@@ -2,6 +2,7 @@ name: Phera
 description: Indian Wedding Platform - A dual-experience wedding platform with admin dashboard and guest website
 visibility: private
 default_branch: main
+owner: gourmet-tech
 
 # Branch Protection Rules
 branch_protection:
@@ -26,6 +27,17 @@ settings:
   allow_merge_commit: false
   allow_rebase_merge: false
   delete_branch_on_merge: true
+
+# Team Access
+teams:
+  - name: developers
+    permission: push
+  - name: maintainers
+    permission: admin
+
+# Collaborators
+collaborators:
+  kghumaan: push
 
 # Issue Templates
 issue_templates:
