@@ -1,0 +1,862 @@
+'use client';
+
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Button, 
+  Paper,
+  useTheme,
+  useMediaQuery,
+  Stack,
+  Avatar,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Divider,
+  Alert,
+  IconButton,
+  Menu,
+  MenuItem
+} from '@mui/material';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { 
+  FavoriteOutlined, 
+  LocationOnOutlined, 
+  CalendarTodayOutlined,
+  Google as GoogleIcon,
+  Email as EmailIcon,
+  Close as CloseIcon,
+  Logout as LogoutIcon
+} from '@mui/icons-material';
+import { useState, useEffect } from 'react';
+import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
+import ActivityFeed from '@/components/guest/ActivityFeed';
+import GuestList from '@/components/guest/GuestList';
+
+// Countdown hook
+const useCountdown = (targetDate: string) => {
+  const [timeLeft, setTimeLeft] = useState({
+    months: 0,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(targetDate).getTime() - new Date().getTime();
+      
+      if (difference > 0) {
+        const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44)); // Average days per month
+        const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setTimeLeft({
+          months,
+          days,
+          hours,
+          minutes,
+          seconds
+        });
+      } else {
+        setTimeLeft({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  return timeLeft;
+};
+
+// Countdown component
+const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
+  const timeLeft = useCountdown(targetDate);
+  const theme = useTheme();
+
+  const timeUnits = [
+    { label: 'Months', value: timeLeft.months },
+    { label: 'Days', value: timeLeft.days },
+    { label: 'Hours', value: timeLeft.hours },
+    { label: 'Mins', value: timeLeft.minutes },
+    { label: 'Secs', value: timeLeft.seconds }
+  ];
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 3,
+        px: 4,
+        py: 2,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255,255,255,0.2)',
+        width: '100%',
+        maxWidth: 500,
+      }}
+    >
+      <Stack 
+        direction="row" 
+        spacing={{ xs: 2, sm: 3 }} 
+        justifyContent="center" 
+        alignItems="center"
+        flexWrap="wrap"
+      >
+        {timeUnits.map((unit, index) => (
+          <Box key={unit.label} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Stack alignItems="center" spacing={0.5}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: '#000',
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                  lineHeight: 1,
+                }}
+              >
+                {unit.value.toString().padStart(2, '0')}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: '#000',
+                  fontWeight: 500,
+                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {unit.label}
+              </Typography>
+            </Stack>
+            {index < timeUnits.length - 1 && (
+                          <Typography
+              sx={{
+                color: '#000',
+                fontWeight: 700,
+                fontSize: '1.5rem',
+                mx: 1,
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
+              :
+            </Typography>
+            )}
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+};
+
+// Sample couple data - this would come from your backend/config
+const coupleData = {
+  names: "Simran & Karanvir",
+  date: "4-6 JANUARY, 2026",
+  weddingDate: "2026-01-04T00:00:00", // ISO format for countdown
+  venue: "The Palayana, Hua Hin, Thailand",
+  flag: "🇹🇭",
+  rsvpDeadline: "15 July, 2025",
+  coupleImage: "/design-reference/landing-page.png", // Using the reference image as placeholder
+  frameImage: "/design-reference/image-frames/Frame 27.png" // Can be switched to Frame 4.png
+};
+
+// Couple Image Carousel Component
+const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  const coupleImages = [
+    '/couple-images/1.png',
+    '/couple-images/2.png'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      
+      setTimeout(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % coupleImages.length);
+        setIsTransitioning(false);
+      }, 300); // Half of transition duration
+      
+    }, 6000); // Change image every 6 seconds
+
+    return () => clearInterval(interval);
+  }, [coupleImages.length]);
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        component="img"
+        src={coupleImages[currentImageIndex]}
+        alt="Couple Photo"
+        sx={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          transition: 'filter 0.6s ease-in-out',
+          filter: isTransitioning ? 'blur(5px)' : 'blur(0px)',
+        }}
+      />
+    </Box>
+  );
+};
+
+export default function HomePage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [currentBackground, setCurrentBackground] = useState(0);
+  const [customBackground, setCustomBackground] = useState<string>('');
+  const [customOverlay, setCustomOverlay] = useState<string>('');
+  
+  // Authentication state
+  const [user, setUser] = useState<any>(null);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const [loginMethod, setLoginMethod] = useState<'google' | 'email' | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  
+  // Use BlueClouds background only
+  const backgrounds = [
+    '/design-reference/backgrounds/BlueClouds.png'
+  ];
+
+  // No need for rotation since we're using a single background
+  // useEffect(() => {
+  //   if (!customBackground) {
+  //     const interval = setInterval(() => {
+  //       setCurrentBackground((prev) => (prev + 1) % backgrounds.length);
+  //     }, 8000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [backgrounds.length, customBackground]);
+
+  const handleBackgroundChange = (backgroundPath: string) => {
+    setCustomBackground(backgroundPath);
+  };
+
+  const handleOverlayChange = (overlayPath: string) => {
+    setCustomOverlay(overlayPath);
+  };
+
+  const activeBackground = customBackground || backgrounds[currentBackground];
+  const activeOverlay = customOverlay || '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png';
+
+  // Authentication functions
+  const handleGoogleSignIn = async () => {
+    try {
+      setAuthError('');
+      // Simulate Google sign-in - replace with actual Supabase auth
+      const mockUser = {
+        name: 'John Doe',
+        email: 'john.doe@gmail.com',
+        initials: 'JD',
+        avatar_color: '#4285F4'
+      };
+      setUser(mockUser);
+      setLoginDialogOpen(false);
+    } catch (error) {
+      setAuthError('Failed to sign in with Google');
+    }
+  };
+
+  const handleEmailSignIn = async () => {
+    try {
+      setAuthError('');
+      if (!email || !password) {
+        setAuthError('Please enter email and password');
+        return;
+      }
+      // Simulate email sign-in - replace with actual Supabase auth
+      const mockUser = {
+        name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        email: email,
+        initials: email.substring(0, 2).toUpperCase(),
+        avatar_color: '#E91E63'
+      };
+      setUser(mockUser);
+      setLoginDialogOpen(false);
+      setEmail('');
+      setPassword('');
+    } catch (error) {
+      setAuthError('Failed to sign in');
+    }
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setUserMenuAnchor(null);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Dynamic Background */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0,
+        }}
+      >
+        <motion.div
+          key={activeBackground}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5 }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${activeBackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+          }}
+        />
+        
+
+      </Box>
+
+      {/* Decorative Overlay */}
+      {activeOverlay && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            backgroundImage: `url(${activeOverlay})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            opacity: 0.6,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* Header Section */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 3,
+          pt: 2,
+          px: 2,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            {/* Logo */}
+            <Box
+              component="img"
+              src="/logo.svg"
+              alt="Phera Logo"
+              sx={{
+                height: { xs: 32, sm: 40 },
+                width: 'auto',
+                filter: 'brightness(0)',
+              }}
+            />
+            
+            {/* Login Button / User Avatar */}
+            {user ? (
+              <Chip
+                avatar={
+                  <Avatar
+                    sx={{
+                      backgroundColor: user.avatar_color,
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                    }}
+                  >
+                    {user.initials}
+                  </Avatar>
+                }
+                label={user.name.split(' ')[0]}
+                onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  color: '#333',
+                  fontWeight: 500,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                  },
+                }}
+              />
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => setLoginDialogOpen(true)}
+                sx={{
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  borderRadius: '24px',
+                  px: 3,
+                  py: 1,
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  minWidth: 80,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  '&:hover': {
+                    backgroundColor: '#333',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                  },
+                }}
+              >
+                Login
+              </Button>
+            )}
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Main Landing Section */}
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
+        <Box sx={{ pt: 10, pb: 4 }}>
+          {/* Couple Photo Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: 400,
+                aspectRatio: '1',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              {/* Frame Background */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundImage: `url(/design-reference/image-frames/Frame%2027.png)`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  zIndex: 1,
+                }}
+              />
+              
+              {/* Couple Image */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '7%',
+                  left: '7%',
+                  width: '87%',
+                  height: '87%',
+                  overflow: 'hidden',
+                  zIndex: 2,
+                }}
+              >
+                <CoupleImageCarousel size={300} />
+              </Box>
+            </Box>
+          </motion.div>
+
+          {/* Wedding Details Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Stack spacing={1} alignItems="center" textAlign="center">
+              {/* Date */}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#000',
+                  // fontWeight: 600,
+                  fontSize: '1rem',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {coupleData.date}
+              </Typography>
+
+              {/* Names */}
+              <Typography
+                variant="h2"
+                sx={{
+                  // fontFamily: '"Playfair Display", serif',
+                  fontSize: { xs: '2.5rem', sm: '3rem' },
+                  // fontWeight: 700,
+                  color: '#000',
+                  lineHeight: 1.2,
+                  // textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}
+              >
+                {coupleData.names}
+              </Typography>
+
+              {/* Venue */}
+              <Box
+                onClick={() => {
+                  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coupleData.venue)}`;
+                  window.open(mapsUrl, '_blank');
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out',
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0px)',
+                  },
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1} justifyContent="center">
+                  <LocationOnOutlined 
+                    sx={{ 
+                      color: '#000', 
+                      fontSize: '1.2rem' 
+                    }} 
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#000',
+                      // fontWeight: 500,
+                      fontSize: '1.1rem',
+                    }}
+                  >
+                    {coupleData.venue}
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.2rem' }}>
+                    {coupleData.flag}
+                  </Typography>
+                </Stack>
+                {/* <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#777',
+                    fontSize: '0.8rem',
+                    textAlign: 'center',
+                    display: 'block',
+                    mt: 0.5,
+                    opacity: 0.8,
+                  }}
+                >
+                  Tap to view in Google Maps
+                </Typography> */}
+              </Box>
+
+              {/* Countdown Timer */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <CountdownTimer targetDate={coupleData.weddingDate} />
+              </motion.div>
+
+
+            </Stack>
+          </motion.div>
+        </Box>
+      </Container>
+
+      {/* Activity Feed & Guest List Sections */}
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
+        <Stack spacing={4}>
+          {/* Activity Feed */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            <ActivityFeed weddingId="sim-kv" />
+          </motion.div>
+
+          {/* Guest List */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            <GuestList weddingId="sim-kv" />
+          </motion.div>
+        </Stack>
+      </Container>
+
+      {/* User Menu */}
+      <Menu
+        anchorEl={userMenuAnchor}
+        open={Boolean(userMenuAnchor)}
+        onClose={() => setUserMenuAnchor(null)}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 150,
+            borderRadius: 2,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          }
+        }}
+      >
+        <MenuItem onClick={handleSignOut}>
+          <LogoutIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
+          Sign Out
+        </MenuItem>
+      </Menu>
+
+      {/* Login Dialog */}
+      <Dialog
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1,
+          }
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              Welcome Back
+            </Typography>
+            <IconButton onClick={() => setLoginDialogOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 2 }}>
+          <Stack spacing={3}>
+            {authError && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {authError}
+              </Alert>
+            )}
+            
+            {/* Google Sign In */}
+            <Button
+              variant="outlined"
+              fullWidth
+              size="large"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleSignIn}
+              sx={{
+                borderColor: '#dadce0',
+                color: '#3c4043',
+                py: 1.5,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 500,
+                '&:hover': {
+                  backgroundColor: '#f8f9fa',
+                  borderColor: '#dadce0',
+                },
+              }}
+            >
+              Continue with Google
+            </Button>
+            
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                or
+              </Typography>
+            </Divider>
+            
+            {/* Email Sign In */}
+            <Stack spacing={2}>
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                variant="outlined"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                variant="outlined"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                onClick={handleEmailSignIn}
+                sx={{
+                  backgroundColor: '#E91E63',
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: '#C2185B',
+                  },
+                }}
+              >
+                Sign In with Email
+              </Button>
+            </Stack>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sticky RSVP Footer */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 4,
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+          px: 2,
+          py: 2,
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Container maxWidth="sm">
+          <Stack spacing={1.5} alignItems="center">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              style={{ width: '100%' }}
+            >
+              <Button
+                component={Link}
+                href="/rsvp"
+                variant="contained"
+                size="large"
+                fullWidth
+                sx={{
+                  backgroundColor: '#DE3F5E',
+                  color: 'white',
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: '32px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#C8365A',
+                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                  },
+                }}
+              >
+                RSVP
+              </Button>
+            </motion.div>
+            
+            {/* RSVP Deadline */}
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#777',
+                fontSize: '0.9rem',
+                textAlign: 'center',
+                lineHeight: 1.4,
+              }}
+            >
+              Let us know you're coming by {coupleData.rsvpDeadline}
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+
+      {/* Add bottom padding to prevent content from being hidden behind sticky footer */}
+      <Box sx={{ height: 100 }} />
+
+    </Box>
+  );
+} 

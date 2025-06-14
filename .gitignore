@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large image files
+design-reference/**/*.png
+design-reference/**/*.jpg
+design-reference/**/*.jpeg
+public/design-reference/**/*.png
+public/design-reference/**/*.jpg
+public/design-reference/**/*.jpeg
+public/couple-images/**/*.png
+public/couple-images/**/*.jpg
+public/couple-images/**/*.jpeg
+public/logo-white.png
