@@ -37,6 +37,7 @@ import { useState, useEffect } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
 import ActivityFeed from '@/components/guest/ActivityFeed';
 import GuestList from '@/components/guest/GuestList';
+import PinEntry from '@/components/guest/PinEntry';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -230,6 +231,9 @@ export default function HomePage() {
   const [customBackground, setCustomBackground] = useState<string>('');
   const [customOverlay, setCustomOverlay] = useState<string>('');
   
+  // Pin verification state
+  const [isPinVerified, setIsPinVerified] = useState(false);
+  
   // Authentication state
   const [user, setUser] = useState<any>(null);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -319,6 +323,15 @@ export default function HomePage() {
       .substring(0, 2)
       .toUpperCase();
   };
+
+  const handlePinVerified = () => {
+    setIsPinVerified(true);
+  };
+
+  // Show pin entry screen if not verified
+  if (!isPinVerified) {
+    return <PinEntry onPinVerified={handlePinVerified} />;
+  }
 
   return (
     <Box

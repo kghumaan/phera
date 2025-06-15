@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -15,7 +15,6 @@ import {
   Radio,
   RadioGroup,
   Select,
-  SelectChangeEvent,
   Stack,
   TextField,
   Typography,
@@ -25,19 +24,23 @@ import {
   Alert,
   Collapse,
   Divider,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FavoriteOutlined,
-  RestaurantOutlined,
-  LocationOnOutlined,
-  MusicNoteOutlined,
-  FlightOutlined,
-  HotelOutlined,
   CheckCircleOutlined,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { submitRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
+import { useRouter } from 'next/navigation';
 import Confetti from 'react-confetti';
 
 interface RSVPFormData {
@@ -51,27 +54,19 @@ interface RSVPFormData {
   attending: 'yes' | 'no' | '';
   plusOne: 'yes' | 'no' | '';
   plusOneName: string;
+  plusOneEmail: string;
   guestCount: number;
   
-  // Event-specific
-  ceremonyAttending: string[];
+  // Event-specific (ceremonies removed)
   foodPreference: string;
   dietaryRestrictions: string;
   
-  // Cultural & Personal
-  relationshipToBride: string;
-  relationshipToGroom: string;
-  traditionalWear: 'yes' | 'no' | '';
+  // Cultural & Personal (modified)
+  weddingSide: 'bride' | 'groom' | 'both' | '' | undefined;
   
-  // Logistics
-  needsAccommodation: 'yes' | 'no' | '';
-  accommodationNights: number;
-  transportationNeeded: 'yes' | 'no' | '';
-  
-  // Fun & Engagement
+  // Fun & Engagement (participation removed)
   songRequest: string;
   specialMessage: string;
-  participation: string[];
 }
 
 const initialFormData: RSVPFormData = {
@@ -82,28 +77,14 @@ const initialFormData: RSVPFormData = {
   attending: '',
   plusOne: '',
   plusOneName: '',
+  plusOneEmail: '',
   guestCount: 1,
-  ceremonyAttending: [],
   foodPreference: '',
   dietaryRestrictions: '',
-  relationshipToBride: '',
-  relationshipToGroom: '',
-  traditionalWear: '',
-  needsAccommodation: '',
-  accommodationNights: 1,
-  transportationNeeded: '',
+  weddingSide: '',
   songRequest: '',
   specialMessage: '',
-  participation: [],
 };
-
-const ceremonies = [
-  'Mehndi Ceremony',
-  'Sangeet Night',
-  'Haldi Ceremony',
-  'Wedding Ceremony',
-  'Reception',
-];
 
 const foodPreferences = [
   'Vegetarian',
@@ -113,39 +94,28 @@ const foodPreferences = [
   'No Preference',
 ];
 
-const relationships = [
-  'Family',
-  'Close Friend',
-  'Colleague',
-  'Neighbor',
-  'Classmate',
-  'Other',
-];
-
-const participationOptions = [
-  'Dance Performance',
-  'Photography/Videography',
-  'Decoration Help',
-  'Music/DJ',
-  'Ceremony Assistance',
-  'Not Interested',
+const weddingSideOptions = [
+  { value: 'bride', label: "Bride's Side" },
+  { value: 'groom', label: "Groom's Side" },
+  { value: 'both', label: "I can't pick!" },
 ];
 
 export default function CustomRSVPForm() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const router = useRouter();
   const [formData, setFormData] = useState<RSVPFormData>(initialFormData);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
   const steps = [
     'Basic Information',
     'Attendance Details',
     'Event Preferences',
-    'Cultural & Personal',
-    'Logistics',
+    'Personal Details',
     'Fun & Messages',
   ];
 
@@ -164,13 +134,24 @@ export default function CustomRSVPForm() {
     }
   };
 
-  const handleMultiSelectChange = (field: keyof RSVPFormData, value: string) => {
-    const currentValues = formData[field] as string[];
-    const newValues = currentValues.includes(value)
-      ? currentValues.filter(item => item !== value)
-      : [...currentValues, value];
-    
-    handleInputChange(field, newValues);
+  const handleGuestCountChange = (increment: boolean) => {
+    const newCount = increment 
+      ? Math.min(formData.guestCount + 1, 10) 
+      : Math.max(formData.guestCount - 1, 1);
+    handleInputChange('guestCount', newCount);
+  };
+
+  const handleClose = () => {
+    setShowExitConfirmation(true);
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitConfirmation(false);
+    router.push('/');
+  };
+
+  const handleCancelExit = () => {
+    setShowExitConfirmation(false);
   };
 
   const validateStep = (step: number): boolean => {
@@ -188,17 +169,27 @@ export default function CustomRSVPForm() {
       
       case 1: // Attendance Details
         if (!formData.attending) newErrors.attending = 'Please select attendance';
-        if (formData.attending === 'yes' && formData.plusOne === 'yes' && !formData.plusOneName.trim()) {
-          newErrors.plusOneName = 'Plus one name is required';
+        if (formData.attending === 'yes' && formData.plusOne === 'yes') {
+          if (!formData.plusOneName.trim()) {
+            newErrors.plusOneName = 'Plus one name is required';
+          }
+          if (!formData.plusOneEmail.trim()) {
+            newErrors.plusOneEmail = 'Plus one email is required';
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
+            newErrors.plusOneEmail = 'Please enter a valid email';
+          }
         }
         break;
       
       case 2: // Event Preferences
-        if (formData.attending === 'yes' && formData.ceremonyAttending.length === 0) {
-          newErrors.ceremonyAttending = 'Please select at least one ceremony';
-        }
         if (formData.attending === 'yes' && !formData.foodPreference) {
           newErrors.foodPreference = 'Please select food preference';
+        }
+        break;
+
+      case 3: // Personal Details
+        if (!formData.weddingSide) {
+          newErrors.weddingSide = 'Please select which side of the wedding';
         }
         break;
     }
@@ -232,19 +223,21 @@ export default function CustomRSVPForm() {
         attending: formData.attending === 'yes',
         plusOne: formData.plusOne === 'yes',
         plusOneName: formData.plusOneName,
+        plusOneEmail: formData.plusOneEmail,
         guestCount: formData.guestCount,
-        ceremonyAttending: formData.ceremonyAttending,
+        ceremonyAttending: [], // No longer used
         foodPreference: formData.foodPreference,
         dietaryRestrictions: formData.dietaryRestrictions,
-        relationshipToBride: formData.relationshipToBride,
-        relationshipToGroom: formData.relationshipToGroom,
-        traditionalWear: formData.traditionalWear === 'yes',
-        needsAccommodation: formData.needsAccommodation === 'yes',
-        accommodationNights: formData.accommodationNights,
-        transportationNeeded: formData.transportationNeeded === 'yes',
+        relationshipToBride: formData.weddingSide === 'bride' ? 'Guest' : undefined,
+        relationshipToGroom: formData.weddingSide === 'groom' ? 'Guest' : undefined,
+        weddingSide: formData.weddingSide === '' ? undefined : formData.weddingSide,
+        traditionalWear: undefined, // Removed
+        needsAccommodation: false, // Removed
+        accommodationNights: 0,
+        transportationNeeded: false, // Removed
         songRequest: formData.songRequest,
         specialMessage: formData.specialMessage,
-        participation: formData.participation,
+        participation: [], // Removed
       };
 
       const result = await submitRSVP(supabaseFormData, 'sim-kv');
@@ -295,7 +288,21 @@ export default function CustomRSVPForm() {
           numberOfPieces={200}
           gravity={0.3}
         />
-        <Container maxWidth="md" sx={{ py: 4 }}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9999,
+            p: 2,
+          }}
+        >
           <motion.div
             initial="hidden"
             animate="visible"
@@ -305,11 +312,13 @@ export default function CustomRSVPForm() {
               elevation={8}
               sx={{
                 p: 6,
-                borderRadius: 4,
+                borderRadius: 1,
                 textAlign: 'center',
                 backgroundColor: 'white',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                 border: '2px solid #f0f0f0',
+                maxWidth: 500,
+                width: '100%',
               }}
             >
               <motion.div
@@ -326,35 +335,54 @@ export default function CustomRSVPForm() {
                 />
               </motion.div>
               
-              <Typography variant="h3" gutterBottom sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main' }}>
+              <Typography variant="h3" gutterBottom sx={{ fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
                 Thank You! 🙏
               </Typography>
               
-              <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3, fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: '#000', mb: 3, fontWeight: 500 }}>
                 Your RSVP has been submitted successfully
               </Typography>
               
-              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4 }}>
+              <Typography variant="body1" sx={{ color: '#000', mb: 4 }}>
                 We're excited to celebrate this special occasion with you! You'll receive a confirmation email shortly with all the details.
               </Typography>
               
-              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Chip
-                  icon={<FavoriteOutlined />}
-                  label="Namaste"
-                  variant="outlined"
-                  sx={{ borderColor: 'primary.main', color: 'primary.main' }}
-                />
-                <Chip
-                  icon={<LocationOnOutlined />}
-                  label="See you in Thailand!"
-                  variant="outlined"
-                  sx={{ borderColor: 'secondary.main', color: 'secondary.main' }}
-                />
-              </Box>
-            </Paper>
-          </motion.div>
-        </Container>
+                              {/* <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <Chip
+                    icon={<FavoriteOutlined />}
+                    label="Namaste"
+                    variant="outlined"
+                    sx={{ borderColor: 'primary.main', color: 'primary.main' }}
+                  />
+                </Box> */}
+                
+                <Button
+                  onClick={() => router.push('/')}
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    py: 2,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    borderRadius: '32px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                    mt: 4,
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                      boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                    },
+                  }}
+                >
+                  Done
+                </Button>
+              </Paper>
+            </motion.div>
+          </Box>
       </>
     );
   }
@@ -406,6 +434,12 @@ export default function CustomRSVPForm() {
               onChange={(e) => handleInputChange('phone', e.target.value)}
               helperText="Optional - for important updates"
             />
+            
+            <Alert severity="info" sx={{ borderRadius: 1, mt: 2, backgroundColor: '#f0f0f0' }}>
+              <Typography variant="body2">
+                <strong>Note:</strong> Your email and phone are needed for hotel booking confirmations and will help you access your details in the future with your 4-digit PIN.
+              </Typography>
+            </Alert>
           </Stack>
         );
 
@@ -438,7 +472,15 @@ export default function CustomRSVPForm() {
                   <FormLabel>Will you be bringing a plus one?</FormLabel>
                   <RadioGroup
                     value={formData.plusOne}
-                    onChange={(e) => handleInputChange('plusOne', e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange('plusOne', e.target.value);
+                      // Update guest count based on plus one selection
+                      if (e.target.value === 'yes') {
+                        handleInputChange('guestCount', 2);
+                      } else {
+                        handleInputChange('guestCount', 1);
+                      }
+                    }}
                   >
                     <FormControlLabel value="yes" control={<Radio />} label="Yes, bringing someone special" />
                     <FormControlLabel value="no" control={<Radio />} label="Just me!" />
@@ -446,29 +488,73 @@ export default function CustomRSVPForm() {
                 </FormControl>
                 
                 <Collapse in={formData.plusOne === 'yes'}>
-                  <TextField
-                    fullWidth
-                    label="Plus One Name"
-                    value={formData.plusOneName}
-                    onChange={(e) => handleInputChange('plusOneName', e.target.value)}
-                    error={!!errors.plusOneName}
-                    helperText={errors.plusOneName}
-                  />
+                  <Stack spacing={2}>
+                    <TextField
+                      fullWidth
+                      label="Plus One Name"
+                      value={formData.plusOneName}
+                      onChange={(e) => handleInputChange('plusOneName', e.target.value)}
+                      error={!!errors.plusOneName}
+                      helperText={errors.plusOneName}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Plus One Email"
+                      type="email"
+                      value={formData.plusOneEmail}
+                      onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
+                      error={!!errors.plusOneEmail}
+                      helperText={errors.plusOneEmail}
+                    />
+                  </Stack>
                 </Collapse>
                 
-                <TextField
-                  type="number"
-                  label="Total Number of Guests"
-                  value={formData.guestCount}
-                  onChange={(e) => handleInputChange('guestCount', parseInt(e.target.value) || 1)}
-                  inputProps={{ min: 1, max: 10 }}
-                  helperText="Including yourself and plus one"
-                />
+                {formData.plusOne === 'yes' && (
+                  <Box>
+                    <FormLabel sx={{ mb: 2, display: 'block' }}>Total Number of Guests</FormLabel>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      border: '1px solid #000',
+                      borderRadius: 1,
+                      p: 1,
+                      maxWidth: 200,
+                      '&:focus-within': {
+                        borderColor: '#DAA520',
+                        boxShadow: '0 0 0 1px #DAA520',
+                      }
+                    }}>
+                      <IconButton
+                        onClick={() => handleGuestCountChange(false)}
+                        disabled={formData.guestCount <= 1}
+                        size="small"
+                        sx={{ color: '#000' }}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography variant="h6" sx={{ minWidth: 20, textAlign: 'center', color: '#000' }}>
+                        {formData.guestCount}
+                      </Typography>
+                      <IconButton
+                        onClick={() => handleGuestCountChange(true)}
+                        disabled={formData.guestCount >= 10}
+                        size="small"
+                        sx={{ color: '#000' }}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#666', mt: 1, display: 'block' }}>
+                      Including yourself and plus one
+                    </Typography>
+                  </Box>
+                )}
               </Stack>
             </Collapse>
             
             <Collapse in={formData.attending === 'no'}>
-              <Alert severity="info" sx={{ borderRadius: 2 }}>
+              <Alert severity="info" sx={{ borderRadius: 1 }}>
                 We'll miss you! We hope to celebrate with you in the future. 💕
               </Alert>
             </Collapse>
@@ -479,29 +565,8 @@ export default function CustomRSVPForm() {
         return (
           <Stack spacing={3}>
             <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Event Preferences 🎊
+              Food Preferences 🍽️
             </Typography>
-            
-            <FormControl error={!!errors.ceremonyAttending}>
-              <FormLabel>Which ceremonies will you attend?</FormLabel>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                {ceremonies.map((ceremony) => (
-                  <Chip
-                    key={ceremony}
-                    label={ceremony}
-                    clickable
-                    color={formData.ceremonyAttending.includes(ceremony) ? 'primary' : 'default'}
-                    onClick={() => handleMultiSelectChange('ceremonyAttending', ceremony)}
-                    variant={formData.ceremonyAttending.includes(ceremony) ? 'filled' : 'outlined'}
-                  />
-                ))}
-              </Box>
-              {errors.ceremonyAttending && (
-                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                  {errors.ceremonyAttending}
-                </Typography>
-              )}
-            </FormControl>
             
             <FormControl fullWidth error={!!errors.foodPreference}>
               <FormLabel>Food Preference</FormLabel>
@@ -526,9 +591,9 @@ export default function CustomRSVPForm() {
             
             <TextField
               fullWidth
-              label="Dietary Restrictions or Allergies"
+              label="Any allergies or dietary restrictions?"
               multiline
-              rows={2}
+              rows={3}
               value={formData.dietaryRestrictions}
               onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
               helperText="Please let us know about any allergies or special dietary needs"
@@ -536,121 +601,37 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 3: // Cultural & Personal
+      case 3: // Personal Details
         return (
           <Stack spacing={3}>
             <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
               Personal Details 🌸
             </Typography>
             
-            <Box sx={{ display: 'flex', gap: 2, flexDirection: isMobile ? 'column' : 'row' }}>
-              <FormControl fullWidth>
-                <FormLabel>Relationship to Bride</FormLabel>
-                <Select
-                  value={formData.relationshipToBride}
-                  onChange={(e) => handleInputChange('relationshipToBride', e.target.value)}
-                  displayEmpty
-                >
-                  <MenuItem value="">Select relationship</MenuItem>
-                  {relationships.map((relationship) => (
-                    <MenuItem key={relationship} value={relationship}>
-                      {relationship}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <FormLabel>Relationship to Groom</FormLabel>
-                <Select
-                  value={formData.relationshipToGroom}
-                  onChange={(e) => handleInputChange('relationshipToGroom', e.target.value)}
-                  displayEmpty
-                >
-                  <MenuItem value="">Select relationship</MenuItem>
-                  {relationships.map((relationship) => (
-                    <MenuItem key={relationship} value={relationship}>
-                      {relationship}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            
-            <FormControl>
-              <FormLabel>Will you be wearing traditional Indian attire?</FormLabel>
-              <RadioGroup
-                value={formData.traditionalWear}
-                onChange={(e) => handleInputChange('traditionalWear', e.target.value)}
+            <FormControl fullWidth error={!!errors.weddingSide}>
+              <FormLabel>Which side of the wedding are you on?</FormLabel>
+              <Select
+                value={formData.weddingSide}
+                onChange={(e) => handleInputChange('weddingSide', e.target.value as 'bride' | 'groom' | 'both' | '')}
+                displayEmpty
               >
-                <FormControlLabel value="yes" control={<Radio />} label="Yes, I love traditional wear! 🥻" />
-                <FormControlLabel value="no" control={<Radio />} label="No, I'll wear western attire" />
-              </RadioGroup>
+                <MenuItem value="">Select side</MenuItem>
+                {weddingSideOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.weddingSide && (
+                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                  {errors.weddingSide}
+                </Typography>
+              )}
             </FormControl>
           </Stack>
         );
 
-      case 4: // Logistics
-        return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Travel & Logistics ✈️
-            </Typography>
-            
-            <FormControl>
-              <FormLabel>Do you need accommodation assistance?</FormLabel>
-              <RadioGroup
-                value={formData.needsAccommodation}
-                onChange={(e) => handleInputChange('needsAccommodation', e.target.value)}
-              >
-                <FormControlLabel 
-                  value="yes" 
-                  control={<Radio />} 
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <HotelOutlined fontSize="small" />
-                      Yes, I need help with accommodation
-                    </Box>
-                  } 
-                />
-                <FormControlLabel value="no" control={<Radio />} label="No, I have my own arrangements" />
-              </RadioGroup>
-            </FormControl>
-            
-            <Collapse in={formData.needsAccommodation === 'yes'}>
-              <TextField
-                type="number"
-                label="Number of Nights"
-                value={formData.accommodationNights}
-                onChange={(e) => handleInputChange('accommodationNights', parseInt(e.target.value) || 1)}
-                inputProps={{ min: 1, max: 10 }}
-                helperText="How many nights will you be staying?"
-              />
-            </Collapse>
-            
-            <FormControl>
-              <FormLabel>Do you need transportation from airport/hotel?</FormLabel>
-              <RadioGroup
-                value={formData.transportationNeeded}
-                onChange={(e) => handleInputChange('transportationNeeded', e.target.value)}
-              >
-                <FormControlLabel 
-                  value="yes" 
-                  control={<Radio />} 
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <FlightOutlined fontSize="small" />
-                      Yes, I need transportation
-                    </Box>
-                  } 
-                />
-                <FormControlLabel value="no" control={<Radio />} label="No, I have my own transport" />
-              </RadioGroup>
-            </FormControl>
-          </Stack>
-        );
-
-      case 5: // Fun & Messages
+      case 4: // Fun & Messages
         return (
           <Stack spacing={3}>
             <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
@@ -663,26 +644,7 @@ export default function CustomRSVPForm() {
               value={formData.songRequest}
               onChange={(e) => handleInputChange('songRequest', e.target.value)}
               helperText="Any specific song you'd like to hear at the celebration?"
-              InputProps={{
-                startAdornment: <MusicNoteOutlined sx={{ color: 'action.active', mr: 1 }} />,
-              }}
             />
-            
-            <FormControl>
-              <FormLabel>Would you like to participate in any activities?</FormLabel>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                {participationOptions.map((option) => (
-                  <Chip
-                    key={option}
-                    label={option}
-                    clickable
-                    color={formData.participation.includes(option) ? 'secondary' : 'default'}
-                    onClick={() => handleMultiSelectChange('participation', option)}
-                    variant={formData.participation.includes(option) ? 'filled' : 'outlined'}
-                  />
-                ))}
-              </Box>
-            </FormControl>
             
             <TextField
               fullWidth
@@ -717,9 +679,20 @@ export default function CustomRSVPForm() {
             <Typography variant="h6" sx={{ fontFamily: 'var(--font-playfair)', color: '#000000' }}>
               RSVP Form
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666666' }}>
-              Step {currentStep + 1} of {steps.length}
-            </Typography>
+            <IconButton
+              onClick={handleClose}
+              sx={{
+                color: '#000',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid #000',
+                borderRadius: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(240, 240, 240, 0.9)',
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
           </Box>
           
           <Box
@@ -751,9 +724,8 @@ export default function CustomRSVPForm() {
           elevation={0}
           sx={{
             p: 4,
-            borderRadius: 4,
-            border: '1px solid',
-            borderColor: 'divider',
+            borderRadius: 1,
+            border: '1px solid #000',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             color: '#000000',
@@ -770,9 +742,38 @@ export default function CustomRSVPForm() {
             '& .MuiTextField-root .MuiOutlinedInput-root': {
               backgroundColor: 'rgba(255, 255, 255, 0.8)',
               color: '#000000 !important',
+              '& fieldset': {
+                borderColor: '#000 !important',
+              },
+              '&:hover fieldset': {
+                borderColor: '#000 !important',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#DAA520 !important',
+                borderWidth: '2px !important',
+              },
+              '& input': {
+                '&:-webkit-autofill': {
+                  WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                  WebkitTextFillColor: '#000000 !important',
+                  backgroundColor: 'transparent !important',
+                },
+                '&:-webkit-autofill:hover': {
+                  WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                  WebkitTextFillColor: '#000000 !important',
+                },
+                '&:-webkit-autofill:focus': {
+                  WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                  WebkitTextFillColor: '#000000 !important',
+                },
+              },
             },
             '& .MuiTextField-root .MuiOutlinedInput-input': {
               color: '#000000 !important',
+              padding: '16.5px 14px',
+            },
+            '& .MuiTextField-root .MuiInputBase-inputMultiline': {
+              padding: '16.5px 14px',
             },
             '& .MuiRadio-root': {
               color: '#666666 !important',
@@ -785,6 +786,21 @@ export default function CustomRSVPForm() {
             },
             '& .MuiSelect-root': {
               color: '#000000 !important',
+            },
+            '& .MuiSelect-select': {
+              padding: '16.5px 14px',
+            },
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#000 !important',
+              },
+              '&:hover fieldset': {
+                borderColor: '#000 !important',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#DAA520 !important',
+                borderWidth: '2px !important',
+              },
             },
             '& .MuiMenuItem-root': {
               color: '#000000 !important',
@@ -835,6 +851,59 @@ export default function CustomRSVPForm() {
             )}
           </Box>
         </Paper>
+
+        {/* Exit Confirmation Dialog */}
+        <Dialog
+          open={showExitConfirmation}
+          onClose={handleCancelExit}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 1,
+              border: '1px solid #000',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#000', fontWeight: 600 }}>
+            Exit RSVP Process?
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ color: '#000' }}>
+              Are you sure you want to leave? Any information you've entered will be lost and you'll need to start over.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, gap: 2 }}>
+            <Button
+              onClick={handleCancelExit}
+              variant="outlined"
+              sx={{
+                borderColor: '#000',
+                color: '#000',
+                '&:hover': {
+                  borderColor: '#000',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                },
+              }}
+            >
+              Continue RSVP
+            </Button>
+            <Button
+              onClick={handleConfirmExit}
+              variant="contained"
+              sx={{
+                backgroundColor: '#DC3545',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#C82333',
+                },
+              }}
+            >
+              Yes, Exit
+            </Button>
+          </DialogActions>
+        </Dialog>
       </motion.div>
     </Container>
   );

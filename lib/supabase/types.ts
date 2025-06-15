@@ -32,27 +32,29 @@ export interface RSVPFormData {
   attending: boolean
   plusOne: boolean
   plusOneName?: string
+  plusOneEmail?: string
   guestCount: number
   
-  // Event-specific
-  ceremonyAttending: string[]
+  // Event-specific (ceremonies removed - now handled differently)
+  ceremonyAttending: string[] // Keep for backward compatibility
   foodPreference: string
   dietaryRestrictions?: string
   
-  // Cultural & Personal
-  relationshipToBride?: string
-  relationshipToGroom?: string
-  traditionalWear?: boolean
+  // Cultural & Personal (modified)
+  relationshipToBride?: string // Keep for backward compatibility  
+  relationshipToGroom?: string // Keep for backward compatibility
+  weddingSide?: 'bride' | 'groom' | 'both' // New field
+  traditionalWear?: boolean // Removed from form but keep for compatibility
   
-  // Logistics
+  // Logistics (removed from form but keep for compatibility)
   needsAccommodation?: boolean
   accommodationNights?: number
   transportationNeeded?: boolean
   
-  // Fun & Engagement
+  // Fun & Engagement (participation removed)
   songRequest?: string
   specialMessage?: string
-  participation?: string[]
+  participation?: string[] // Keep for backward compatibility
 }
 
 export interface Comment {

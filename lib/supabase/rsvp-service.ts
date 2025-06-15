@@ -1,19 +1,20 @@
 import { supabase } from './client'
-import { RSVPFormData } from './types'
+import type { RSVPFormData } from './types'
 
-// Helper function to generate avatar color based on name
+// Generate a random color for avatar
 function generateAvatarColor(name: string): string {
-  // Create a simple hash of the name
-  let hash = 0;
+  const colors = [
+    '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3',
+    '#03A9F4', '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
+    '#CDDC39', '#FFC107', '#FF9800', '#FF5722', '#795548'
+  ]
+  
+  let hash = 0
   for (let i = 0; i < name.length; i++) {
-    const char = name.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
   }
   
-  // Convert to hex color
-  const color = Math.abs(hash).toString(16).substring(0, 6).padStart(6, '0');
-  return `#${color}`;
+  return colors[Math.abs(hash) % colors.length]
 }
 
 export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
@@ -40,7 +41,9 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
           name: fullName,
           phone: formData.phone,
           wedding_id: weddingId,
-          avatar_color: avatarColor
+          avatar_color: avatarColor,
+          wedding_side: formData.weddingSide,
+          // Don't update auth_method if guest already exists (they may have signed in before)
         })
         .eq('id', guestId)
     } else {
@@ -52,7 +55,9 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
           email: formData.email,
           phone: formData.phone,
           wedding_id: weddingId,
-          avatar_color: avatarColor
+          avatar_color: avatarColor,
+          auth_method: 'email', // Default to email for now, will be updated when actual auth is implemented
+          wedding_side: formData.weddingSide,
         })
         .select('id')
         .single()
@@ -61,21 +66,19 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       guestId = newGuest.id
     }
 
-    // Insert RSVPs for each ceremony they're attending
-    if (formData.attending && formData.ceremonyAttending.length > 0) {
-      const rsvpPromises = formData.ceremonyAttending.map(ceremony =>
-        supabase.from('rsvps').upsert({
-          guest_id: guestId,
-          wedding_id: weddingId,
-          event_id: ceremony.toLowerCase().replace(/\s+/g, '-'),
-          attending: true,
-          guest_count: formData.guestCount,
-          dietary_restrictions: formData.dietaryRestrictions
-        })
-      )
-
-      await Promise.all(rsvpPromises)
-    } else if (!formData.attending) {
+    // Insert general RSVP record (since we removed ceremony selection)
+    if (formData.attending) {
+      await supabase.from('rsvps').upsert({
+        guest_id: guestId,
+        wedding_id: weddingId,
+        event_id: 'general', // General attendance
+        attending: true,
+        guest_count: formData.guestCount,
+        plus_one_name: formData.plusOneName,
+        plus_one_email: formData.plusOneEmail,
+        dietary_restrictions: formData.dietaryRestrictions
+      })
+    } else {
       // Insert a "not attending" record
       await supabase.from('rsvps').upsert({
         guest_id: guestId,
