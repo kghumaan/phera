@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Work_Sans, Instrument_Serif } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 import "./globals.css";
 
 const workSans = Work_Sans({
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`}>
         <AppRouterCacheProvider>
           <ClientThemeProvider>
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </ClientThemeProvider>
         </AppRouterCacheProvider>
       </body>

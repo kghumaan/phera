@@ -11,13 +11,6 @@ import {
   Stack,
   Avatar,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Divider,
-  Alert,
   IconButton,
   Menu,
   MenuItem
@@ -28,16 +21,16 @@ import {
   FavoriteOutlined, 
   LocationOnOutlined, 
   CalendarTodayOutlined,
-  Google as GoogleIcon,
-  Email as EmailIcon,
-  Close as CloseIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
 import ActivityFeed from '@/components/guest/ActivityFeed';
 import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
+import LoginDialog from '@/components/auth/LoginDialog';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -234,29 +227,17 @@ export default function HomePage() {
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
   
-  // Authentication state
-  const [user, setUser] = useState<any>(null);
+  // Authentication state from context
+  const { user, isLoading, hasRSVPed, signOut } = useAuth();
+  
+  // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  const [loginMethod, setLoginMethod] = useState<'google' | 'email' | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
   
   // Use BlueClouds background only
   const backgrounds = [
     '/design-reference/backgrounds/BlueClouds.png'
   ];
-
-  // No need for rotation since we're using a single background
-  // useEffect(() => {
-  //   if (!customBackground) {
-  //     const interval = setInterval(() => {
-  //       setCurrentBackground((prev) => (prev + 1) % backgrounds.length);
-  //     }, 8000);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [backgrounds.length, customBackground]);
 
   const handleBackgroundChange = (backgroundPath: string) => {
     setCustomBackground(backgroundPath);
@@ -269,59 +250,9 @@ export default function HomePage() {
   const activeBackground = customBackground || backgrounds[currentBackground];
   const activeOverlay = customOverlay || '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png';
 
-  // Authentication functions
-  const handleGoogleSignIn = async () => {
-    try {
-      setAuthError('');
-      // Simulate Google sign-in - replace with actual Supabase auth
-      const mockUser = {
-        name: 'John Doe',
-        email: 'john.doe@gmail.com',
-        initials: 'JD',
-        avatar_color: '#4285F4'
-      };
-      setUser(mockUser);
-      setLoginDialogOpen(false);
-    } catch (error) {
-      setAuthError('Failed to sign in with Google');
-    }
-  };
-
-  const handleEmailSignIn = async () => {
-    try {
-      setAuthError('');
-      if (!email || !password) {
-        setAuthError('Please enter email and password');
-        return;
-      }
-      // Simulate email sign-in - replace with actual Supabase auth
-      const mockUser = {
-        name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        email: email,
-        initials: email.substring(0, 2).toUpperCase(),
-        avatar_color: '#E91E63'
-      };
-      setUser(mockUser);
-      setLoginDialogOpen(false);
-      setEmail('');
-      setPassword('');
-    } catch (error) {
-      setAuthError('Failed to sign in');
-    }
-  };
-
-  const handleSignOut = () => {
-    setUser(null);
+  const handleSignOut = async () => {
+    await signOut();
     setUserMenuAnchor(null);
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
   };
 
   const handlePinVerified = () => {
@@ -372,8 +303,6 @@ export default function HomePage() {
             backgroundAttachment: 'fixed',
           }}
         />
-        
-
       </Box>
 
       {/* Decorative Overlay */}
@@ -431,7 +360,9 @@ export default function HomePage() {
             />
             
             {/* Login Button / User Avatar */}
-            {user ? (
+            {isLoading ? (
+              <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
+            ) : user ? (
               <Chip
                 avatar={
                   <Avatar
@@ -550,7 +481,6 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#000',
-                  // fontWeight: 600,
                   fontSize: '1rem',
                   letterSpacing: '0.5px',
                 }}
@@ -562,12 +492,9 @@ export default function HomePage() {
               <Typography
                 variant="h2"
                 sx={{
-                  // fontFamily: '"Playfair Display", serif',
                   fontSize: { xs: '2.5rem', sm: '3rem' },
-                  // fontWeight: 700,
                   color: '#000',
                   lineHeight: 1.2,
-                  // textShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 }}
               >
                 {coupleData.names}
@@ -603,7 +530,6 @@ export default function HomePage() {
                     variant="body2"
                     sx={{
                       color: '#000',
-                      // fontWeight: 500,
                       fontSize: '1.1rem',
                     }}
                   >
@@ -613,19 +539,6 @@ export default function HomePage() {
                     {coupleData.flag}
                   </Typography>
                 </Stack>
-                {/* <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#777',
-                    fontSize: '0.8rem',
-                    textAlign: 'center',
-                    display: 'block',
-                    mt: 0.5,
-                    opacity: 0.8,
-                  }}
-                >
-                  Tap to view in Google Maps
-                </Typography> */}
               </Box>
 
               {/* Countdown Timer */}
@@ -636,8 +549,6 @@ export default function HomePage() {
               >
                 <CountdownTimer targetDate={coupleData.weddingDate} />
               </motion.div>
-
-
             </Stack>
           </motion.div>
         </Box>
@@ -689,187 +600,120 @@ export default function HomePage() {
       </Menu>
 
       {/* Login Dialog */}
-      <Dialog
+      <LoginDialog
         open={loginDialogOpen}
         onClose={() => setLoginDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            p: 1,
-          }
+        onSuccess={() => {
+          // Optional: Show success message or refresh data
+          console.log('Login successful');
         }}
-      >
-        <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
-              Welcome Back
-            </Typography>
-            <IconButton onClick={() => setLoginDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={3}>
-            {authError && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {authError}
-              </Alert>
-            )}
-            
-            {/* Google Sign In */}
-            <Button
-              variant="outlined"
-              fullWidth
-              size="large"
-              startIcon={<GoogleIcon />}
-              onClick={handleGoogleSignIn}
-              sx={{
-                borderColor: '#dadce0',
-                color: '#3c4043',
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1rem',
-                fontWeight: 500,
-                '&:hover': {
-                  backgroundColor: '#f8f9fa',
-                  borderColor: '#dadce0',
-                },
-              }}
-            >
-              Continue with Google
-            </Button>
-            
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                or
+      />
+
+      {/* Sticky RSVP Footer - Conditionally Rendered */}
+      {!hasRSVPed && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+            px: 2,
+            py: 2,
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Container maxWidth="sm">
+            <Stack spacing={1.5} alignItems="center">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ width: '100%' }}
+              >
+                <Button
+                  component={Link}
+                  href="/rsvp"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    py: 2,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    borderRadius: '32px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                      boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                    },
+                  }}
+                >
+                  RSVP
+                </Button>
+              </motion.div>
+              
+              {/* RSVP Deadline */}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#777',
+                  fontSize: '0.9rem',
+                  textAlign: 'center',
+                  lineHeight: 1.4,
+                }}
+              >
+                Let us know you're coming by {coupleData.rsvpDeadline}
               </Typography>
-            </Divider>
-            
-            {/* Email Sign In */}
-            <Stack spacing={2}>
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                variant="outlined"
+            </Stack>
+          </Container>
+        </Box>
+      )}
+
+      {/* RSVP Completed Message - Show when user has RSVP'd */}
+      {hasRSVPed && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 4,
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '1px solid rgba(76, 175, 80, 0.3)',
+            px: 2,
+            py: 2,
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Container maxWidth="sm">
+            <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
+              <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: '1.5rem' }} />
+              <Typography
+                variant="body1"
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
-              />
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                onClick={handleEmailSignIn}
-                sx={{
-                  backgroundColor: '#E91E63',
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: 'none',
+                  color: '#2E7D32',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#C2185B',
-                  },
+                  textAlign: 'center',
                 }}
               >
-                Sign In with Email
-              </Button>
+                Thanks for your RSVP! We can't wait to celebrate with you! 🎉
+              </Typography>
             </Stack>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-
-      {/* Sticky RSVP Footer */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 4,
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-          px: 2,
-          py: 2,
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <Container maxWidth="sm">
-          <Stack spacing={1.5} alignItems="center">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={{ width: '100%' }}
-            >
-              <Button
-                component={Link}
-                href="/rsvp"
-                variant="contained"
-                size="large"
-                fullWidth
-                sx={{
-                  backgroundColor: '#DE3F5E',
-                  color: 'white',
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: '32px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
-                  '&:hover': {
-                    backgroundColor: '#C8365A',
-                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
-                  },
-                }}
-              >
-                RSVP
-              </Button>
-            </motion.div>
-            
-            {/* RSVP Deadline */}
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#777',
-                fontSize: '0.9rem',
-                textAlign: 'center',
-                lineHeight: 1.4,
-              }}
-            >
-              Let us know you're coming by {coupleData.rsvpDeadline}
-            </Typography>
-          </Stack>
-        </Container>
-      </Box>
+          </Container>
+        </Box>
+      )}
 
       {/* Add bottom padding to prevent content from being hidden behind sticky footer */}
       <Box sx={{ height: 100 }} />
-
     </Box>
   );
 } 
