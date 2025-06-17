@@ -19,6 +19,7 @@ import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
 interface PinEntryProps {
   onPinVerified: () => void;
@@ -67,20 +68,10 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   const handleContinue = async () => {
     const enteredPin = pin.join('');
     if (enteredPin === '1111') {
-      // Create a temporary guest auth when using default pin
+      // Set pin verification flag instead of creating fake auth
       if (typeof window !== 'undefined') {
-        const tempGuestInfo = {
-          id: 'temp-guest',
-          email: 'guest@example.com',
-          name: 'Guest User',
-          phone: '',
-          weddingId: 'sim-kv',
-          timestamp: Date.now()
-        };
-        localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
-        
-        // Refresh auth context to pick up the new auth
-        await refreshAuth();
+        localStorage.setItem('phera_pin_verified', 'true');
+        localStorage.setItem('phera_pin_timestamp', Date.now().toString());
         
         // Call the callback to notify parent component
         onPinVerified();
@@ -139,28 +130,34 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     setAuthError('');
   };
 
-  // Check for auth state changes and guest auth
+  // Check for auth state changes and pin verification
   useEffect(() => {
-    // Check for existing guest auth on component mount
-    const checkGuestAuth = () => {
+    // Check for existing pin verification on component mount
+    const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
-        const guestAuthData = localStorage.getItem('phera_guest_auth');
-        if (guestAuthData) {
+        const pinVerified = localStorage.getItem('phera_pin_verified');
+        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        
+        if (pinVerified === 'true' && pinTimestamp) {
           try {
-            const guestInfo = JSON.parse(guestAuthData);
-            const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
-            if (isRecent && guestInfo.email) {
-              onPinVerified(); // Skip pin if guest is authenticated
+            const timestamp = parseInt(pinTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+            if (isRecent) {
+              onPinVerified(); // Skip pin if recently verified
               return;
+            } else {
+              // Remove expired pin verification
+              localStorage.removeItem('phera_pin_verified');
+              localStorage.removeItem('phera_pin_timestamp');
             }
           } catch (error) {
-            console.error('Error checking guest auth:', error);
+            console.error('Error checking pin verification:', error);
           }
         }
       }
     };
 
-    checkGuestAuth();
+    checkPinVerification();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
@@ -172,68 +169,11 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   }, [onPinVerified]);
 
   // Background and overlay setup similar to home page
-  const activeBackground = '/images/backgrounds/blue-clouds.jpg';
-  const activeOverlay = '/images/overlays/petals-birds.png';
-
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+    <OptimizedBackground 
+      useAppDefault={true}
+      className="min-h-screen flex flex-col"
     >
-      {/* Dynamic Background */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 0,
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url(${activeBackground})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-          }}
-        />
-      </Box>
-
-      {/* Decorative Overlay */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1,
-          backgroundImage: `url(${activeOverlay})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          opacity: 0.6,
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Header Section with Logo */}
       <Box
         sx={{
@@ -765,7 +705,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           </Stack>
         </DialogActions>
       </Dialog>
-    </Box>
+    </OptimizedBackground>
   );
 };
 

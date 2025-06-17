@@ -53,7 +53,7 @@ interface RSVPFormData {
   phone: string;
   
   // Attendance
-  attending: 'yes' | 'no' | '';
+  attending: 'yes' | 'no' | 'maybe' | '';
   plusOne: 'yes' | 'no' | '';
   plusOneName: string;
   plusOneEmail: string;
@@ -69,6 +69,7 @@ interface RSVPFormData {
   // Fun & Engagement (participation removed)
   songRequest: string;
   specialMessage: string;
+  maybeComment: string;
 }
 
 const initialFormData: RSVPFormData = {
@@ -87,6 +88,7 @@ const initialFormData: RSVPFormData = {
   weddingSide: '',
   songRequest: '',
   specialMessage: '',
+  maybeComment: '',
 };
 
 const foodPreferences = [
@@ -263,7 +265,9 @@ export default function CustomRSVPForm() {
         accommodationNights: 0,
         transportationNeeded: false, // Removed
         songRequest: formData.songRequest,
-        specialMessage: formData.specialMessage,
+        specialMessage: formData.attending === 'maybe' 
+          ? `Maybe attending. Notes: ${formData.maybeComment}${formData.specialMessage ? ` | Special message: ${formData.specialMessage}` : ''}`
+          : formData.specialMessage,
         participation: [], // Removed
       };
 
@@ -382,7 +386,10 @@ export default function CustomRSVPForm() {
               </Typography>
               
               <Typography variant="body1" sx={{ color: '#000', mb: 4 }}>
-                We're excited to celebrate this special occasion with you! You'll receive a confirmation email shortly with all the details.
+                {formData.attending === 'yes' 
+                  ? "We're excited to celebrate this special occasion with you!"
+                  : "We're sorry to hear you may not join us. Remember, you can return here to update your RSVP until March 15th, 2025."
+                }
               </Typography>
               
                               {/* <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -524,6 +531,7 @@ export default function CustomRSVPForm() {
               >
                 <FormControlLabel value="yes" control={<Radio />} label="Yes, I'll be there! 🎉" />
                 <FormControlLabel value="no" control={<Radio />} label="Sorry, I can't make it 😔" />
+                <FormControlLabel value="maybe" control={<Radio />} label="Maybe... not sure yet 🤔" />
               </RadioGroup>
               {errors.attending && (
                 <Typography variant="caption" color="error" sx={{ mt: 1 }}>
@@ -616,6 +624,20 @@ export default function CustomRSVPForm() {
                     </Typography>
                   </Box>
                 )}
+              </Stack>
+            </Collapse>
+            
+            <Collapse in={formData.attending === 'maybe'}>
+              <Stack spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Please tell us more"
+                  multiline
+                  rows={3}
+                  value={formData.maybeComment}
+                  onChange={(e) => handleInputChange('maybeComment', e.target.value)}
+                  helperText="Let us know what might help you decide or any concerns you have"
+                />
               </Stack>
             </Collapse>
             
@@ -898,12 +920,12 @@ export default function CustomRSVPForm() {
             
             {currentStep < steps.length - 1 ? (
               <Button
-                onClick={handleNext}
+                onClick={formData.attending === 'no' ? handleSubmit : handleNext}
                 variant="contained"
                 sx={{ minWidth: 100 }}
                 disabled={formData.attending === 'no' && currentStep > 1}
               >
-                Next
+                {formData.attending === 'no' ? 'Submit :(' : 'Next'}
               </Button>
             ) : (
               <Button

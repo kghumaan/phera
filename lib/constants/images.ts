@@ -15,6 +15,7 @@ export const BACKGROUNDS = {
   // OPTIMIZED versions (USE THESE!) - 98% smaller!
   BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg', // 6.7MB → 130KB
   GREEN: '/images/backgrounds/green.jpg', // 6.0MB → 199KB
+  ROSE: '/images/backgrounds/rose.jpg', // Current default background
   
   // New AI-generated variations (to be added)
   BLUE_VARIANTS: [
@@ -92,13 +93,13 @@ export const BRAND_ASSETS = {
 // Default combinations for common use cases
 export const DEFAULT_COMBINATIONS = {
   MAIN_BACKGROUND: {
-    // Already optimized paths - ready to use!
-    background: BACKGROUNDS.BLUE_CLOUDS, // 130KB optimized JPG
+    // Using rose background as the main default (currently used on home page)
+    background: BACKGROUNDS.ROSE, // Current default background
     overlay: OVERLAYS.PETALS_BIRDS, // 676KB optimized PNG
   },
   GUEST_BACKGROUND: {
-    // Already optimized paths - ready to use!
-    background: BACKGROUNDS.GREEN, // 199KB optimized JPG
+    // Alternative background for variety
+    background: BACKGROUNDS.BLUE_CLOUDS, // 130KB optimized JPG  
     overlay: OVERLAYS.PETALS_BIRDS, // 676KB optimized PNG
   },
 } as const;
@@ -134,4 +135,38 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
     default:
       return BACKGROUNDS.BLUE_CLOUDS;
   }
+}
+
+// APP-WIDE BACKGROUND CONFIGURATION
+// This will be the single source of truth for all background settings
+// In the future, this can be loaded from a database/config API
+export const APP_BACKGROUND_CONFIG = {
+  // Current default - can be changed here to affect entire app
+  default: {
+    background: BACKGROUNDS.ROSE,
+    overlay: OVERLAYS.PETALS_BIRDS,
+    overlayOpacity: 0.6,
+  },
+  
+  // Alternative configurations for different contexts
+  variants: {
+    elegant: {
+      background: BACKGROUNDS.BLUE_CLOUDS,
+      overlay: OVERLAYS.PETALS_BIRDS,
+      overlayOpacity: 0.5,
+    },
+    natural: {
+      background: BACKGROUNDS.GREEN,
+      overlay: OVERLAYS.PETALS_BIRDS,
+      overlayOpacity: 0.7,
+    },
+  }
+} as const;
+
+// Helper function to get the current app background configuration
+export function getAppBackgroundConfig(variant: 'default' | 'elegant' | 'natural' = 'default') {
+  if (variant === 'default') {
+    return APP_BACKGROUND_CONFIG.default;
+  }
+  return APP_BACKGROUND_CONFIG.variants[variant];
 } 

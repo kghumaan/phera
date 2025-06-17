@@ -30,6 +30,7 @@ import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
 import LoginDialog from '@/components/auth/LoginDialog';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -226,15 +227,15 @@ export default function HomePage() {
   // Authentication state from context
   const { user, isLoading, hasRSVPed, isCheckingRSVP, signOut } = useAuth();
   
+  // Pin verification state
+  const [isPinVerified, setIsPinVerified] = useState(false);
+  const [isCheckingPin, setIsCheckingPin] = useState(true);
+  
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   
-  // Use optimized BlueClouds background only
-  const backgrounds = [
-    '/images/backgrounds/rose.jpg'
-  ];
-
+  // Background configuration - now handled by OptimizedBackground component
   const handleBackgroundChange = (backgroundPath: string) => {
     setCustomBackground(backgroundPath);
   };
@@ -243,26 +244,55 @@ export default function HomePage() {
     setCustomOverlay(overlayPath);
   };
 
-  const activeBackground = customBackground || backgrounds[currentBackground];
-  const activeOverlay = customOverlay || '/images/overlays/petals-birds.png';
-
   const handleSignOut = async () => {
     await signOut();
     setUserMenuAnchor(null);
   };
 
   const handlePinVerified = () => {
-    // Pin verification is no longer needed since we use auth context
-    // This function is kept for the PinEntry component but doesn't do anything
+    setIsPinVerified(true);
   };
 
-  // Show pin entry screen if user is not authenticated and not loading
-  if (!isLoading && !user) {
+  // Check for pin verification on component mount
+  useEffect(() => {
+    const checkPinVerification = () => {
+      if (typeof window !== 'undefined') {
+        const pinVerified = localStorage.getItem('phera_pin_verified');
+        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        
+        if (pinVerified === 'true' && pinTimestamp) {
+          try {
+            const timestamp = parseInt(pinTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+            if (isRecent) {
+              setIsPinVerified(true);
+            } else {
+              // Remove expired pin verification
+              localStorage.removeItem('phera_pin_verified');
+              localStorage.removeItem('phera_pin_timestamp');
+              setIsPinVerified(false);
+            }
+          } catch (error) {
+            console.error('Error checking pin verification:', error);
+            setIsPinVerified(false);
+          }
+        } else {
+          setIsPinVerified(false);
+        }
+      }
+      setIsCheckingPin(false);
+    };
+
+    checkPinVerification();
+  }, []);
+
+  // Show pin entry screen if pin is not verified and not loading
+  if (!isCheckingPin && !isPinVerified) {
     return <PinEntry onPinVerified={handlePinVerified} />;
   }
 
-  // Show loading screen while checking authentication
-  if (isLoading) {
+  // Show loading screen while checking authentication or pin
+  if (isLoading || isCheckingPin) {
     return (
       <Box
         sx={{
@@ -281,66 +311,10 @@ export default function HomePage() {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+    <OptimizedBackground 
+      useAppDefault={true}
+      className="min-h-screen flex flex-col"
     >
-      {/* Dynamic Background */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 0,
-        }}
-      >
-        <motion.div
-          key={activeBackground}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url(${activeBackground})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-          }}
-        />
-      </Box>
-
-      {/* Decorative Overlay */}
-      {activeOverlay && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1,
-            backgroundImage: `url(${activeOverlay})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-            opacity: 0.6,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
 
       {/* Header Section */}
       <Box
@@ -569,17 +543,19 @@ export default function HomePage() {
         </Box>
       </Container>
 
-      {/* Wedding Community Section */}
-      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true, margin: '-100px' }}
-        >
-          <GuestList weddingId="sim-kv" />
-        </motion.div>
-      </Container>
+      {/* Wedding Community Section - Only show if user has RSVP'd */}
+      {!isLoading && user && !isCheckingRSVP && hasRSVPed && (
+        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            <GuestList weddingId="sim-kv" />
+          </motion.div>
+        </Container>
+      )}
 
       {/* User Menu */}
       <Menu
@@ -611,8 +587,8 @@ export default function HomePage() {
         }}
       />
 
-      {/* Sticky RSVP Footer - Only show if user hasn't RSVP'd and not loading */}
-      {!isLoading && user && !isCheckingRSVP && !hasRSVPed && (
+      {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd */}
+      {!isLoading && !isCheckingPin && isPinVerified && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
         <Box
           sx={{
             position: 'fixed',
@@ -732,6 +708,6 @@ export default function HomePage() {
 
       {/* Add bottom padding to prevent content from being hidden behind sticky footer */}
       <Box sx={{ height: 100 }} />
-    </Box>
+    </OptimizedBackground>
   );
 } 

@@ -32,7 +32,7 @@ import {
   ReplyOutlined,
   EmojiEmotionsOutlined,
 } from '@mui/icons-material';
-import { getAttendees } from '@/lib/supabase/rsvp-service';
+import { getAttendees, getComments, addComment } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -48,14 +48,15 @@ interface GuestItem {
 
 interface Comment {
   id: string;
-  user_id: string;
-  user_name: string;
-  user_initials: string;
-  user_avatar_color: string;
-  content: string;
+  guest_id: string;
+  wedding_id: string;
+  message: string;
   created_at: string;
-  reactions: Reaction[];
-  replies: Reply[];
+  guest?: {
+    name: string;
+    initials: string;
+    avatar_color: string;
+  };
 }
 
 interface Reply {
@@ -103,10 +104,6 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [newComment, setNewComment] = useState('');
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState('');
-  const [emojiMenuAnchor, setEmojiMenuAnchor] = useState<null | HTMLElement>(null);
-  const [selectedCommentForEmoji, setSelectedCommentForEmoji] = useState<string | null>(null);
   const [newActivityCount, setNewActivityCount] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -192,7 +189,10 @@ export default function GuestList({ weddingId }: GuestListProps) {
 
   const fetchData = async () => {
     try {
-      const attendees = await getAttendees(weddingId);
+      const [attendees, commentsData] = await Promise.all([
+        getAttendees(weddingId),
+        getComments(weddingId)
+      ]);
       
       // Convert RSVP data to guest format
       const guestData = attendees.map((rsvp, index) => ({
@@ -221,6 +221,9 @@ export default function GuestList({ weddingId }: GuestListProps) {
 
       setGuests(guestData);
       setActivities(activityData.slice(0, 10));
+
+      // Load comments from database
+      setComments(commentsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -248,78 +251,27 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const handleAddComment = async () => {
     if (!newComment.trim() || !user) return;
 
-    const comment: Comment = {
-      id: `comment-${Date.now()}`,
-      user_id: user.id,
-      user_name: user.name,
-      user_initials: user.initials,
-      user_avatar_color: user.avatar_color,
-      content: newComment,
-      created_at: new Date().toISOString(),
-      reactions: [],
-      replies: [],
-    };
-
-    setComments(prev => [comment, ...prev]);
-    setNewComment('');
+    try {
+      // Save to database
+      const savedComment = await addComment(weddingId, user.id, newComment);
+      
+      // Add to local state
+      setComments(prev => [savedComment, ...prev]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error saving comment:', error);
+      // You could show a toast notification here
+    }
   };
 
   const handleAddReply = async (commentId: string) => {
-    if (!replyText.trim() || !user) return;
-
-    const reply: Reply = {
-      id: `reply-${Date.now()}`,
-      user_id: user.id,
-      user_name: user.name,
-      user_initials: user.initials,
-      user_avatar_color: user.avatar_color,
-      content: replyText,
-      created_at: new Date().toISOString(),
-      reactions: [],
-    };
-
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? { ...comment, replies: [reply, ...comment.replies] }
-        : comment
-    ));
-    setReplyText('');
-    setReplyingTo(null);
+    // Temporarily disabled - requires API enhancement
+    console.log('Reply functionality temporarily disabled');
   };
 
   const handleAddReaction = (commentId: string, emoji: string, isReply: boolean = false, replyId?: string) => {
-    if (!user) return;
-
-    setComments(prev => prev.map(comment => {
-      if (comment.id === commentId) {
-        if (isReply && replyId) {
-          return {
-            ...comment,
-            replies: comment.replies.map(reply =>
-              reply.id === replyId
-                ? {
-                    ...reply,
-                    reactions: reply.reactions.some(r => r.user_id === user.id && r.emoji === emoji)
-                      ? reply.reactions.filter(r => !(r.user_id === user.id && r.emoji === emoji))
-                      : [...reply.reactions, { id: `reaction-${Date.now()}`, user_id: user.id, user_name: user.name, emoji }]
-                  }
-                : reply
-            ),
-          };
-        } else {
-          return {
-            ...comment,
-            reactions: comment.reactions.some(r => r.user_id === user.id && r.emoji === emoji)
-              ? comment.reactions.filter(r => !(r.user_id === user.id && r.emoji === emoji))
-              : [...comment.reactions, { id: `reaction-${Date.now()}`, user_id: user.id, user_name: user.name, emoji }]
-          };
-        }
-      }
-      return comment;
-    }));
-
-    setEmojiMenuAnchor(null);
-    setSelectedCommentForEmoji(null);
+    // Temporarily disabled - requires API enhancement
+    console.log('Reaction functionality temporarily disabled');
   };
 
   const getStatusCounts = () => {
@@ -462,13 +414,13 @@ export default function GuestList({ weddingId }: GuestListProps) {
                     sx={{
                       width: 40,
                       height: 40,
-                      backgroundColor: comment.user_avatar_color,
+                      backgroundColor: comment.guest?.avatar_color || '#666',
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '0.9rem',
                     }}
                   >
-                    {comment.user_initials}
+                    {comment.guest?.initials || '??'}
                   </Avatar>
 
                   <Box sx={{ flex: 1 }}>
@@ -482,7 +434,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                           fontFamily: 'var(--font-playfair)',
                         }}
                       >
-                        {comment.user_name}
+                        {comment.guest?.name || 'Unknown Guest'}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -505,23 +457,17 @@ export default function GuestList({ weddingId }: GuestListProps) {
                         mb: 1,
                       }}
                     >
-                      {comment.content}
+                      {comment.message}
                     </Typography>
 
-                    {/* Comment Actions */}
+                    {/* Comment Actions - temporarily simplified */}
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Button
                         size="small"
                         startIcon={<ThumbUpOutlined />}
-                        onClick={() => handleAddReaction(comment.id, '👍')}
+                        disabled
                         sx={{
-                          color: comment.reactions.some(r => r.user_id === user?.id && r.emoji === '👍') ? '#4CAF50' : '#666',
-                          backgroundColor: comment.reactions.some(r => r.user_id === user?.id && r.emoji === '👍')
-                            ? 'rgba(76, 175, 80, 0.1)'
-                            : 'transparent',
-                          '&:hover': {
-                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                          },
+                          color: '#666',
                           minWidth: 'auto',
                           px: 1.5,
                           py: 0.5,
@@ -530,13 +476,13 @@ export default function GuestList({ weddingId }: GuestListProps) {
                           textTransform: 'none',
                         }}
                       >
-                        {comment.reactions.length > 0 && comment.reactions.length}
+                        Like (Coming Soon)
                       </Button>
 
                       <Button
                         size="small"
                         startIcon={<ReplyOutlined />}
-                        onClick={() => setReplyingTo(comment.id)}
+                        disabled
                         sx={{
                           color: '#666',
                           minWidth: 'auto',
@@ -545,234 +491,11 @@ export default function GuestList({ weddingId }: GuestListProps) {
                           borderRadius: 2,
                           fontSize: '0.75rem',
                           textTransform: 'none',
-                          '&:hover': {
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                          },
                         }}
                       >
-                        Reply
+                        Reply (Coming Soon)
                       </Button>
-
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          setEmojiMenuAnchor(e.currentTarget);
-                          setSelectedCommentForEmoji(comment.id);
-                        }}
-                        sx={{
-                          color: '#666',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                          },
-                        }}
-                      >
-                        <EmojiEmotionsOutlined fontSize="small" />
-                      </IconButton>
                     </Stack>
-
-                    {/* Emoji Reactions Display */}
-                    {comment.reactions && comment.reactions.length > 0 && (
-                      <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {Object.entries(
-                          comment.reactions.reduce((acc, reaction) => {
-                            if (!acc[reaction.emoji]) {
-                              acc[reaction.emoji] = [];
-                            }
-                            acc[reaction.emoji].push(reaction);
-                            return acc;
-                          }, {} as Record<string, Reaction[]>)
-                        ).map(([emoji, reactions]) => (
-                          <Chip
-                            key={emoji}
-                            size="small"
-                            label={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <span style={{ fontSize: '0.9rem' }}>{emoji}</span>
-                                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                                  {reactions.length}
-                                </span>
-                              </Box>
-                            }
-                            onClick={() => handleAddReaction(comment.id, emoji)}
-                            sx={{
-                              backgroundColor: reactions.some(r => r.user_id === user?.id)
-                                ? 'rgba(128, 0, 32, 0.15)'
-                                : 'rgba(0,0,0,0.05)',
-                              color: reactions.some(r => r.user_id === user?.id)
-                                ? '#800020'
-                                : '#666',
-                              border: reactions.some(r => r.user_id === user?.id)
-                                ? '1px solid rgba(128, 0, 32, 0.3)'
-                                : '1px solid transparent',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: reactions.some(r => r.user_id === user?.id)
-                                  ? 'rgba(128, 0, 32, 0.25)'
-                                  : 'rgba(0,0,0,0.1)',
-                              },
-                              height: 24,
-                              '& .MuiChip-label': {
-                                px: 1,
-                              },
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    )}
-
-                    {/* Reply Input */}
-                    <Collapse in={replyingTo === comment.id}>
-                      <Box sx={{ mt: 2, ml: 2, display: 'flex', gap: 1 }}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          placeholder={`Reply to ${comment.user_name}...`}
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          variant="outlined"
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              backgroundColor: 'rgba(255,255,255,0.8)',
-                              fontSize: '0.875rem',
-                            },
-                          }}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddReply(comment.id);
-                            }
-                          }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleAddReply(comment.id)}
-                          disabled={!replyText.trim()}
-                          sx={{
-                            color: '#800020',
-                            backgroundColor: 'rgba(128, 0, 32, 0.1)',
-                            '&:hover': {
-                              backgroundColor: 'rgba(128, 0, 32, 0.2)',
-                            },
-                            '&:disabled': {
-                              color: '#ccc',
-                              backgroundColor: 'transparent',
-                            },
-                          }}
-                        >
-                          <SendOutlined fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Collapse>
-
-                    {/* Replies */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <Box sx={{ mt: 2, ml: 3, borderLeft: '2px solid rgba(0,0,0,0.05)', pl: 2 }}>
-                        {comment.replies.map((reply, replyIndex) => (
-                          <Box key={reply.id} sx={{ py: 1 }}>
-                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                              <Avatar
-                                sx={{
-                                  width: 28,
-                                  height: 28,
-                                  backgroundColor: reply.user_avatar_color,
-                                  color: 'white',
-                                  fontWeight: 600,
-                                  fontSize: '0.7rem',
-                                }}
-                              >
-                                {reply.user_initials}
-                              </Avatar>
-                              <Box sx={{ flex: 1 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      fontWeight: 600,
-                                      color: '#800020',
-                                      fontFamily: 'var(--font-playfair)',
-                                    }}
-                                  >
-                                    {reply.user_name}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      color: '#999',
-                                      fontSize: '0.7rem',
-                                      fontFamily: 'var(--font-playfair)',
-                                    }}
-                                  >
-                                    {formatTimeAgo(reply.created_at)}
-                                  </Typography>
-                                </Box>
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color: '#555',
-                                    fontFamily: 'var(--font-playfair)',
-                                    lineHeight: 1.4,
-                                    display: 'block',
-                                  }}
-                                >
-                                  {reply.content}
-                                </Typography>
-
-                                {/* Reply Emoji Reactions */}
-                                {reply.reactions && reply.reactions.length > 0 && (
-                                  <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    {Object.entries(
-                                      reply.reactions.reduce((acc, reaction) => {
-                                        if (!acc[reaction.emoji]) {
-                                          acc[reaction.emoji] = [];
-                                        }
-                                        acc[reaction.emoji].push(reaction);
-                                        return acc;
-                                      }, {} as Record<string, Reaction[]>)
-                                    ).map(([emoji, reactions]) => (
-                                      <Chip
-                                        key={emoji}
-                                        size="small"
-                                        label={
-                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <span style={{ fontSize: '0.8rem' }}>{emoji}</span>
-                                            <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>
-                                              {reactions.length}
-                                            </span>
-                                          </Box>
-                                        }
-                                        onClick={() => handleAddReaction(comment.id, emoji, true, reply.id)}
-                                        sx={{
-                                          backgroundColor: reactions.some(r => r.user_id === user?.id)
-                                            ? 'rgba(128, 0, 32, 0.15)'
-                                            : 'rgba(0,0,0,0.05)',
-                                          color: reactions.some(r => r.user_id === user?.id)
-                                            ? '#800020'
-                                            : '#666',
-                                          border: reactions.some(r => r.user_id === user?.id)
-                                            ? '1px solid rgba(128, 0, 32, 0.3)'
-                                            : '1px solid transparent',
-                                          cursor: 'pointer',
-                                          '&:hover': {
-                                            backgroundColor: reactions.some(r => r.user_id === user?.id)
-                                              ? 'rgba(128, 0, 32, 0.25)'
-                                              : 'rgba(0,0,0,0.1)',
-                                          },
-                                          height: 20,
-                                          '& .MuiChip-label': {
-                                            px: 0.5,
-                                          },
-                                        }}
-                                      />
-                                    ))}
-                                  </Box>
-                                )}
-                              </Box>
-                            </Box>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
                   </Box>
                 </Box>
               </Box>
@@ -1032,46 +755,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
         </AnimatePresence>
       </Box>
 
-      {/* Emoji Menu */}
-      <Menu
-        anchorEl={emojiMenuAnchor}
-        open={Boolean(emojiMenuAnchor)}
-        onClose={() => {
-          setEmojiMenuAnchor(null);
-          setSelectedCommentForEmoji(null);
-        }}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            p: 1,
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          {emojis.map((emoji) => (
-            <IconButton
-              key={emoji}
-              onClick={() => {
-                if (selectedCommentForEmoji?.includes('-')) {
-                  const [commentId, replyId] = selectedCommentForEmoji.split('-');
-                  handleAddReaction(commentId, emoji, true, replyId);
-                } else if (selectedCommentForEmoji) {
-                  handleAddReaction(selectedCommentForEmoji, emoji);
-                }
-              }}
-              sx={{
-                fontSize: '1.2rem',
-                '&:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.05)',
-                },
-              }}
-            >
-              {emoji}
-            </IconButton>
-          ))}
-        </Box>
-      </Menu>
+{/* Emoji menu temporarily removed */}
     </Paper>
   );
 } 

@@ -3,47 +3,24 @@
 import { Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import CustomRSVPForm from '@/components/guest/CustomRSVPForm';
+import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
 export default function RSVPPage() {
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        backgroundImage: 'url(/images/backgrounds/blue-clouds.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
+    <OptimizedBackground 
+      useAppDefault={true}
+      className="min-h-screen"
     >
-      {/* Gradient Overlay */}
+      {/* Gradient Overlay for better form readability */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
           background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)',
-        }}
-      />
-
-      {/* Decorative Overlay */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
           zIndex: 1,
-          backgroundImage: 'url(/images/overlays/petals-birds.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.6,
-          pointerEvents: 'none',
         }}
       />
 
@@ -51,6 +28,6 @@ export default function RSVPPage() {
       <Box sx={{ position: 'relative', zIndex: 2 }}>
         <CustomRSVPForm />
       </Box>
-    </Box>
+    </OptimizedBackground>
   );
 } 

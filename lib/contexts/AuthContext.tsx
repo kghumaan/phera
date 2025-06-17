@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const guestInfo = JSON.parse(guestAuthData);
               // Check if the authentication is recent (within 24 hours)
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
-              if (isRecent && guestInfo.email) {
+              if (isRecent && guestInfo.email && guestInfo.id !== 'temp-guest') {
                 const userData: User = {
                   id: guestInfo.id,
                   email: guestInfo.email,
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 };
                 setUser(userData);
               } else {
-                // Remove expired guest auth
+                // Remove expired or temp guest auth
                 localStorage.removeItem('phera_guest_auth');
                 setUser(null);
               }
@@ -209,9 +209,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      // Also clear guest authentication
+      // Also clear guest authentication and pin verification
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phera_guest_auth');
+        localStorage.removeItem('phera_pin_verified');
+        localStorage.removeItem('phera_pin_timestamp');
       }
       setUser(null);
       setHasRSVPed(false);

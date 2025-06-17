@@ -182,7 +182,25 @@ export async function getComments(weddingId: string) {
       guest:guests(name, initials, avatar_color)
     `)
     .eq('wedding_id', weddingId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function addComment(weddingId: string, guestId: string, message: string) {
+  const { data, error } = await supabase
+    .from('comments')
+    .insert({
+      guest_id: guestId,
+      wedding_id: weddingId,
+      message: message
+    })
+    .select(`
+      *,
+      guest:guests(name, initials, avatar_color)
+    `)
+    .single()
 
   if (error) throw error
   return data
