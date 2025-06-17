@@ -3,6 +3,7 @@ import { Work_Sans, Instrument_Serif } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import "./globals.css";
 
 const workSans = Work_Sans({
@@ -21,6 +22,11 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Phera - Indian Wedding Platform",
   description: "Celebrate love with traditional Indian wedding ceremonies",
+  icons: {
+    icon: '/logo-flower.svg',
+    shortcut: '/logo-flower.svg',
+    apple: '/logo-flower.svg',
+  },
 };
 
 export default function RootLayout({
@@ -31,13 +37,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`}>
-        <AppRouterCacheProvider>
-          <ClientThemeProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </ClientThemeProvider>
-        </AppRouterCacheProvider>
+        <ErrorBoundary>
+          <AppRouterCacheProvider>
+            <ClientThemeProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </ClientThemeProvider>
+          </AppRouterCacheProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

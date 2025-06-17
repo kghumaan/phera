@@ -77,10 +77,6 @@ export const FRAMES = {
 
 // Couple Images - OPTIMIZED ✅
 export const COUPLE_IMAGES = {
-  // Legacy paths (DEPRECATED)
-  COUPLE_1_LEGACY: '/design-reference/couple-images/1.png',
-  COUPLE_2_LEGACY: '/design-reference/couple-images/2.png',
-  
   // OPTIMIZED versions (USE THESE!) - 95% smaller!
   COUPLE_1: '/images/couple/couple-1.jpg', // 1.3MB → 75KB
   COUPLE_2: '/images/couple/couple-2.jpg', // 1.1MB → 58KB

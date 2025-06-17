@@ -26,7 +26,6 @@ import {
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
-import ActivityFeed from '@/components/guest/ActivityFeed';
 import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
 import LoginDialog from '@/components/auth/LoginDialog';
@@ -225,7 +224,7 @@ export default function HomePage() {
   const [customOverlay, setCustomOverlay] = useState<string>('');
   
   // Authentication state from context
-  const { user, isLoading, hasRSVPed, signOut } = useAuth();
+  const { user, isLoading, hasRSVPed, isCheckingRSVP, signOut } = useAuth();
   
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -352,7 +351,6 @@ export default function HomePage() {
           right: 0,
           zIndex: 3,
           pt: 2,
-          px: 2,
         }}
       >
         <Container maxWidth="sm">
@@ -571,29 +569,16 @@ export default function HomePage() {
         </Box>
       </Container>
 
-      {/* Activity Feed & Guest List Sections */}
+      {/* Wedding Community Section */}
       <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
-        <Stack spacing={4}>
-          {/* Activity Feed */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: '-100px' }}
-          >
-            <ActivityFeed weddingId="sim-kv" />
-          </motion.div>
-
-          {/* Guest List */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true, margin: '-100px' }}
-          >
-            <GuestList weddingId="sim-kv" />
-          </motion.div>
-        </Stack>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-100px' }}
+        >
+          <GuestList weddingId="sim-kv" />
+        </motion.div>
       </Container>
 
       {/* User Menu */}
@@ -626,8 +611,8 @@ export default function HomePage() {
         }}
       />
 
-      {/* Sticky RSVP Footer - Conditionally Rendered */}
-      {!hasRSVPed && (
+      {/* Sticky RSVP Footer - Only show if user hasn't RSVP'd and not loading */}
+      {!isLoading && user && !isCheckingRSVP && !hasRSVPed && (
         <Box
           sx={{
             position: 'fixed',
@@ -693,8 +678,8 @@ export default function HomePage() {
         </Box>
       )}
 
-      {/* RSVP Completed Message - Show when user has RSVP'd */}
-      {hasRSVPed && (
+      {/* View Events Button - Show when user has RSVP'd */}
+      {!isLoading && user && !isCheckingRSVP && hasRSVPed && (
         <Box
           sx={{
             position: 'fixed',
@@ -702,29 +687,45 @@ export default function HomePage() {
             left: 0,
             right: 0,
             zIndex: 4,
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
             backdropFilter: 'blur(10px)',
-            borderTop: '1px solid rgba(76, 175, 80, 0.3)',
+            borderTop: '1px solid rgba(0, 0, 0, 0.1)',
             px: 2,
             py: 2,
             boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
           }}
         >
           <Container maxWidth="sm">
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
-              <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: '1.5rem' }} />
-              <Typography
-                variant="body1"
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              style={{ width: '100%' }}
+            >
+              <Button
+                component={Link}
+                href="/events"
+                variant="contained"
+                size="large"
+                fullWidth
                 sx={{
-                  color: '#2E7D32',
-                  fontSize: '1rem',
+                  backgroundColor: '#DE3F5E',
+                  color: 'white',
+                  py: 2,
+                  fontSize: '1.1rem',
                   fontWeight: 600,
-                  textAlign: 'center',
+                  borderRadius: '32px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#C8365A',
+                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                  },
                 }}
               >
-                Thanks for your RSVP! We can't wait to celebrate with you! 🎉
-              </Typography>
-            </Stack>
+                View Events
+              </Button>
+            </motion.div>
           </Container>
         </Box>
       )}

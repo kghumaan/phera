@@ -38,13 +38,20 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newActivityCount, setNewActivityCount] = useState(0);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
     fetchActivities();
 
+    // Prevent duplicate subscriptions
+    if (isSubscribed) {
+      return;
+    }
+
     // Set up real-time subscription for RSVP updates
+    // Use a unique channel name to avoid conflicts with other components
     const channel = supabase
-      .channel('rsvp_updates')
+      .channel(`activity_feed_rsvp_updates_${weddingId}`)
       .on(
         'postgres_changes',
         {
@@ -77,13 +84,26 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           fetchActivities();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('ActivityFeed: Successfully subscribed to RSVP updates');
+          setIsSubscribed(true);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('ActivityFeed: Failed to subscribe to RSVP updates');
+          setIsSubscribed(false);
+        }
+      });
 
     // Cleanup subscription on unmount
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        setIsSubscribed(false);
+        supabase.removeChannel(channel);
+      } catch (error) {
+        console.error('Error removing ActivityFeed channel:', error);
+      }
     };
-  }, [weddingId]);
+  }, [weddingId, isSubscribed]);
 
   const fetchActivities = async () => {
     try {

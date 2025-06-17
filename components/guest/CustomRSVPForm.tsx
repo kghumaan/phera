@@ -49,6 +49,7 @@ interface RSVPFormData {
   firstName: string;
   lastName: string;
   email: string;
+  countryCode: string;
   phone: string;
   
   // Attendance
@@ -74,6 +75,7 @@ const initialFormData: RSVPFormData = {
   firstName: '',
   lastName: '',
   email: '',
+  countryCode: '+1',
   phone: '',
   attending: '',
   plusOne: '',
@@ -99,6 +101,29 @@ const weddingSideOptions = [
   { value: 'bride', label: "Bride's Side" },
   { value: 'groom', label: "Groom's Side" },
   { value: 'both', label: "I can't pick!" },
+];
+
+const countryCodes = [
+  { code: '+1', country: 'US/CA', flag: '🇺🇸' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+  { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+  { code: '+66', country: 'Thailand', flag: '🇹🇭' },
+  { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
+  { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
+  { code: '+63', country: 'Philippines', flag: '🇵🇭' },
 ];
 
 export default function CustomRSVPForm() {
@@ -221,7 +246,7 @@ export default function CustomRSVPForm() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone ? `${formData.countryCode}${formData.phone}` : '',
         attending: formData.attending === 'yes',
         plusOne: formData.plusOne === 'yes',
         plusOneName: formData.plusOneName,
@@ -440,13 +465,41 @@ export default function CustomRSVPForm() {
               helperText={errors.email}
             />
             
-            <TextField
-              fullWidth
-              label="Phone Number"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              helperText="Optional - for important updates"
-            />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <FormControl sx={{ minWidth: 120 }}>
+                <Select
+                  value={formData.countryCode}
+                  onChange={(e) => handleInputChange('countryCode', e.target.value)}
+                  displayEmpty
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    '& .MuiSelect-select': {
+                      padding: '16.5px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    },
+                  }}
+                >
+                  {countryCodes.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <span>{country.flag}</span>
+                        <span>{country.code}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Phone Number"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                helperText="Optional - for important updates"
+                sx={{ flex: 1 }}
+              />
+            </Box>
             
             <Alert severity="info" sx={{ borderRadius: 1, mt: 2, backgroundColor: '#f0f0f0' }}>
               <Typography variant="body2">

@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   hasRSVPed: boolean;
+  isCheckingRSVP: boolean;
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasRSVPed, setHasRSVPed] = useState(false);
+  const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
 
   const generateInitials = (name: string) => {
     return name
@@ -54,11 +56,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkRSVPStatus = async () => {
-    if (!user) {
-      setHasRSVPed(false);
+    if (!user || isCheckingRSVP || !user.email) {
       return;
     }
 
+    setIsCheckingRSVP(true);
+    setHasRSVPed(false); // Reset state first
+    
     try {
       // First, let's try a direct RSVP query to see if the user has any RSVPs
       const { data: rsvpData, error: rsvpError } = await supabase
@@ -139,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error checking RSVP status:', error);
       setHasRSVPed(false);
+    } finally {
+      setIsCheckingRSVP(false);
     }
   };
 
@@ -215,28 +221,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    checkAuthStatus();
+    let mounted = true;
+    
+    const initAuth = async () => {
+      if (mounted) {
+        await checkAuthStatus();
+      }
+    };
+    
+    initAuth().catch(console.error);
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          await checkAuthStatus();
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setHasRSVPed(false);
+        if (!mounted) return;
+        
+        try {
+          if (event === 'SIGNED_IN' && session) {
+            await checkAuthStatus();
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setHasRSVPed(false);
+          }
+        } catch (error) {
+          console.error('Auth state change error:', error);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
-    if (user) {
-      checkRSVPStatus();
+    if (user && !isLoading) {
+      // Add a small delay to ensure database is consistent
+      const timer = setTimeout(() => {
+        checkRSVPStatus();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setHasRSVPed(false);
+      setIsCheckingRSVP(false);
     }
-  }, [user]);
+  }, [user?.id, isLoading]); // Use user.id instead of user object to prevent unnecessary re-renders
 
   return (
     <AuthContext.Provider 
@@ -244,6 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user, 
         isLoading, 
         hasRSVPed, 
+        isCheckingRSVP,
         checkRSVPStatus, 
         signOut,
         refreshAuth: checkAuthStatus
