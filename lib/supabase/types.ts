@@ -6,6 +6,8 @@ export interface Guest {
   initials: string
   avatar_color: string
   wedding_id: string
+  auth_method?: string
+  wedding_side?: string
   created_at: string
 }
 

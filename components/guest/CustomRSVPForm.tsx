@@ -41,6 +41,7 @@ import {
 import { submitRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import Confetti from 'react-confetti';
 
 interface RSVPFormData {
@@ -104,6 +105,7 @@ export default function CustomRSVPForm() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
+  const { refreshAuth, checkRSVPStatus } = useAuth();
   const [formData, setFormData] = useState<RSVPFormData>(initialFormData);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,6 +245,17 @@ export default function CustomRSVPForm() {
       const result = await submitRSVP(supabaseFormData, 'sim-kv');
       
       if (result.success) {
+        console.log('RSVP submitted successfully, result:', result);
+        
+        // Refresh authentication to pick up the new guest auth
+        await refreshAuth();
+        
+        // Wait a bit for database to be consistent, then check RSVP status
+        setTimeout(async () => {
+          console.log('Checking RSVP status after delay...');
+          await checkRSVPStatus();
+        }, 1000);
+        
         setIsSubmitted(true);
       } else {
         throw new Error('Failed to submit RSVP');

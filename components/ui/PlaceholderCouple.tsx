@@ -32,7 +32,7 @@ export function PlaceholderCouple({ size = 300 }: PlaceholderCoupleProps) {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'url("/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png")',
+          background: 'url("/images/overlays/petals-birds.png")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.3,

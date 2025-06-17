@@ -18,7 +18,7 @@ interface BackgroundCustomizerProps {
 const backgrounds: BackgroundOption[] = [
   {
     name: 'Blue Clouds',
-    path: '/design-reference/backgrounds/BlueClouds.png',
+    path: '/images/backgrounds/blue-clouds.jpg',
     preview: '☁️'
   }
 ];
@@ -26,7 +26,7 @@ const backgrounds: BackgroundOption[] = [
 const overlays: BackgroundOption[] = [
   {
     name: 'Floral Birds',
-    path: '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png',
+    path: '/images/overlays/petals-birds.png',
     preview: '🌸🦋'
   },
   {
@@ -39,7 +39,7 @@ const overlays: BackgroundOption[] = [
 const frames: BackgroundOption[] = [
   {
     name: 'Classic Frame',
-    path: '/design-reference/image-frames/Frame 27.png',
+    path: '/images/frames/frame-27.png',
     preview: '🖼️'
   },
   {

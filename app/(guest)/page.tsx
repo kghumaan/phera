@@ -163,8 +163,8 @@ const coupleData = {
   venue: "The Palayana, Hua Hin, Thailand",
   flag: "🇹🇭",
   rsvpDeadline: "15 July, 2025",
-  coupleImage: "/design-reference/landing-page.png", // Using the reference image as placeholder
-  frameImage: "/design-reference/image-frames/Frame 27.png" // Can be switched to Frame 4.png
+          coupleImage: "/images/couple/couple-1.jpg", // Using optimized couple image
+        frameImage: "/images/frames/frame-27.png" // Optimized frame image
 };
 
 // Couple Image Carousel Component
@@ -173,8 +173,8 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const coupleImages = [
-    '/couple-images/1.png',
-    '/couple-images/2.png'
+    '/images/couple/couple-1.jpg',
+    '/images/couple/couple-2.jpg'
   ];
 
   useEffect(() => {
@@ -224,9 +224,6 @@ export default function HomePage() {
   const [customBackground, setCustomBackground] = useState<string>('');
   const [customOverlay, setCustomOverlay] = useState<string>('');
   
-  // Pin verification state
-  const [isPinVerified, setIsPinVerified] = useState(false);
-  
   // Authentication state from context
   const { user, isLoading, hasRSVPed, signOut } = useAuth();
   
@@ -234,9 +231,9 @@ export default function HomePage() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   
-  // Use BlueClouds background only
+  // Use optimized BlueClouds background only
   const backgrounds = [
-    '/design-reference/backgrounds/BlueClouds.png'
+    '/images/backgrounds/rose.png'
   ];
 
   const handleBackgroundChange = (backgroundPath: string) => {
@@ -248,7 +245,7 @@ export default function HomePage() {
   };
 
   const activeBackground = customBackground || backgrounds[currentBackground];
-  const activeOverlay = customOverlay || '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png';
+  const activeOverlay = customOverlay || '/images/overlays/petals-birds.png';
 
   const handleSignOut = async () => {
     await signOut();
@@ -256,12 +253,32 @@ export default function HomePage() {
   };
 
   const handlePinVerified = () => {
-    setIsPinVerified(true);
+    // Pin verification is no longer needed since we use auth context
+    // This function is kept for the PinEntry component but doesn't do anything
   };
 
-  // Show pin entry screen if not verified
-  if (!isPinVerified) {
+  // Show pin entry screen if user is not authenticated and not loading
+  if (!isLoading && !user) {
     return <PinEntry onPinVerified={handlePinVerified} />;
+  }
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f5f5f5',
+        }}
+      >
+        <Typography variant="h6" sx={{ color: '#666' }}>
+          Loading...
+        </Typography>
+      </Box>
+    );
   }
 
   return (
@@ -444,7 +461,7 @@ export default function HomePage() {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  backgroundImage: `url(/design-reference/image-frames/Frame%2027.png)`,
+                  backgroundImage: `url(/images/frames/frame-27.png)`,
                   backgroundSize: 'contain',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',

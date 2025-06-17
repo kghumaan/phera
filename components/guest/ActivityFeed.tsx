@@ -17,6 +17,7 @@ import {
   ChatBubbleOutlineRounded,
 } from '@mui/icons-material';
 import { getAttendees } from '@/lib/supabase/rsvp-service';
+import { supabase } from '@/lib/supabase/client';
 
 interface ActivityItem {
   id: string;
@@ -36,9 +37,52 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
   const theme = useTheme();
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newActivityCount, setNewActivityCount] = useState(0);
 
   useEffect(() => {
     fetchActivities();
+
+    // Set up real-time subscription for RSVP updates
+    const channel = supabase
+      .channel('rsvp_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'rsvps',
+          filter: `wedding_id=eq.${weddingId}`,
+        },
+        (payload) => {
+          console.log('New RSVP received:', payload);
+          // Show a brief notification of new activity
+          setNewActivityCount(prev => prev + 1);
+          // Reset the notification after 3 seconds
+          setTimeout(() => setNewActivityCount(0), 3000);
+          // Refresh activities when new RSVP is submitted
+          fetchActivities();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rsvps', 
+          filter: `wedding_id=eq.${weddingId}`,
+        },
+        (payload) => {
+          console.log('RSVP updated:', payload);
+          // Refresh activities when RSVP is updated
+          fetchActivities();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [weddingId]);
 
   const fetchActivities = async () => {
@@ -126,12 +170,13 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           Activity
         </Typography>
         <Chip
-          label={`${activities.length} updates`}
+          label={newActivityCount > 0 ? `+${newActivityCount} new!` : `${activities.length} updates`}
           size="small"
           sx={{
-            backgroundColor: 'rgba(128, 0, 32, 0.1)',
-            color: '#800020',
+            backgroundColor: newActivityCount > 0 ? 'rgba(76, 175, 80, 0.2)' : 'rgba(128, 0, 32, 0.1)',
+            color: newActivityCount > 0 ? '#4CAF50' : '#800020',
             fontWeight: 500,
+            transition: 'all 0.3s ease',
           }}
         />
       </Box>

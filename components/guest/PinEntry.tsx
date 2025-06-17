@@ -18,6 +18,7 @@ import {
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface PinEntryProps {
   onPinVerified: () => void;
@@ -32,6 +33,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   const [phone, setPhone] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { refreshAuth } = useAuth();
   const inputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -62,10 +64,27 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const enteredPin = pin.join('');
     if (enteredPin === '1111') {
-      onPinVerified();
+      // Create a temporary guest auth when using default pin
+      if (typeof window !== 'undefined') {
+        const tempGuestInfo = {
+          id: 'temp-guest',
+          email: 'guest@example.com',
+          name: 'Guest User',
+          phone: '',
+          weddingId: 'sim-kv',
+          timestamp: Date.now()
+        };
+        localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
+        
+        // Refresh auth context to pick up the new auth
+        await refreshAuth();
+        
+        // Call the callback to notify parent component
+        onPinVerified();
+      }
     } else {
       setError(true);
       // Clear pin after error
@@ -120,8 +139,29 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     setAuthError('');
   };
 
-  // Check for auth state changes
+  // Check for auth state changes and guest auth
   useEffect(() => {
+    // Check for existing guest auth on component mount
+    const checkGuestAuth = () => {
+      if (typeof window !== 'undefined') {
+        const guestAuthData = localStorage.getItem('phera_guest_auth');
+        if (guestAuthData) {
+          try {
+            const guestInfo = JSON.parse(guestAuthData);
+            const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
+            if (isRecent && guestInfo.email) {
+              onPinVerified(); // Skip pin if guest is authenticated
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking guest auth:', error);
+          }
+        }
+      }
+    };
+
+    checkGuestAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         onPinVerified(); // Skip pin if authenticated
@@ -132,8 +172,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   }, [onPinVerified]);
 
   // Background and overlay setup similar to home page
-  const activeBackground = '/design-reference/backgrounds/BlueClouds.png';
-  const activeOverlay = '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png';
+  const activeBackground = '/images/backgrounds/blue-clouds.jpg';
+  const activeOverlay = '/images/overlays/petals-birds.png';
 
   return (
     <Box
@@ -342,6 +382,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 }}
                 inputProps={{
                   maxLength: 1,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
                   style: { 
                     textAlign: 'center',
                     fontSize: 'inherit',

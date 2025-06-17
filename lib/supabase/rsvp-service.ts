@@ -67,26 +67,67 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     }
 
     // Insert general RSVP record (since we removed ceremony selection)
+    console.log('About to insert RSVP with data:', {
+      guest_id: guestId,
+      wedding_id: weddingId,
+      event_id: 'general',
+      attending: formData.attending,
+      guest_count: formData.guestCount
+    });
+
     if (formData.attending) {
-      await supabase.from('rsvps').upsert({
+      const rsvpRecord = {
         guest_id: guestId,
         wedding_id: weddingId,
         event_id: 'general', // General attendance
         attending: true,
         guest_count: formData.guestCount,
-        plus_one_name: formData.plusOneName,
-        plus_one_email: formData.plusOneEmail,
-        dietary_restrictions: formData.dietaryRestrictions
-      })
+        plus_one_name: formData.plusOneName || null,
+        plus_one_email: formData.plusOneEmail || null,
+        dietary_restrictions: formData.dietaryRestrictions || null
+      };
+      
+      console.log('Inserting RSVP record:', rsvpRecord);
+      
+      const { data: rsvpData, error: rsvpError } = await supabase
+        .from('rsvps')
+        .upsert(rsvpRecord, {
+          onConflict: 'guest_id,event_id,wedding_id'
+        });
+      
+      console.log('RSVP upsert result:', { rsvpData, rsvpError });
+      
+      if (rsvpError) {
+        console.error('Error inserting RSVP:', rsvpError);
+        throw rsvpError;
+      }
     } else {
       // Insert a "not attending" record
-      await supabase.from('rsvps').upsert({
+      const rsvpRecord = {
         guest_id: guestId,
         wedding_id: weddingId,
         event_id: 'general',
         attending: false,
-        guest_count: 0
-      })
+        guest_count: 0,
+        plus_one_name: null,
+        plus_one_email: null,
+        dietary_restrictions: null
+      };
+      
+      console.log('Inserting not attending RSVP record:', rsvpRecord);
+      
+      const { data: rsvpData, error: rsvpError } = await supabase
+        .from('rsvps')
+        .upsert(rsvpRecord, {
+          onConflict: 'guest_id,event_id,wedding_id'
+        });
+      
+      console.log('RSVP upsert result (not attending):', { rsvpData, rsvpError });
+      
+      if (rsvpError) {
+        console.error('Error inserting RSVP:', rsvpError);
+        throw rsvpError;
+      }
     }
 
     // Add special message as a comment if provided
@@ -96,6 +137,20 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         wedding_id: weddingId,
         message: formData.specialMessage
       })
+    }
+
+    // Store user info in local storage for auto-login
+    // This creates a pseudo-authentication state that the AuthContext can pick up
+    if (typeof window !== 'undefined') {
+      const guestInfo = {
+        id: guestId,
+        email: formData.email,
+        name: fullName,
+        phone: formData.phone,
+        weddingId: weddingId,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('phera_guest_auth', JSON.stringify(guestInfo));
     }
 
     return { success: true, guestId }

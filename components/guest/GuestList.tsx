@@ -58,8 +58,8 @@ export default function GuestList({ weddingId }: GuestListProps) {
       const attendees = await getAttendees(weddingId);
       
       // Convert RSVP data to guest format
-      const guestData = attendees.map((rsvp) => ({
-        id: rsvp.guest_id,
+      const guestData = attendees.map((rsvp, index) => ({
+        id: rsvp.id || `${rsvp.guest_id}-${index}`, // Use RSVP ID or create unique key
         name: rsvp.guest?.name || 'Unknown Guest',
         initials: rsvp.guest?.initials || '??',
         avatarColor: rsvp.guest?.avatar_color || '#666',

@@ -19,6 +19,7 @@ interface AuthContextType {
   hasRSVPed: boolean;
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,26 +60,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      // First, let's try a direct RSVP query to see if the user has any RSVPs
+      const { data: rsvpData, error: rsvpError } = await supabase
+        .from('rsvps')
+        .select(`
+          id,
+          attending,
+          event_id,
+          guest_id,
+          guests (
+            id,
+            email,
+            name
+          )
+        `)
+        .eq('wedding_id', 'sim-kv');
+
+      console.log('All RSVPs in database:', rsvpData);
+
+      // Now check specifically for this user's RSVPs using the guest relationship
       const { data, error } = await supabase
         .from('guests')
         .select(`
           id,
+          email,
+          name,
           rsvps (
             id,
-            attending
+            attending,
+            event_id
           )
         `)
         .eq('email', user.email)
         .eq('wedding_id', 'sim-kv')
         .single();
 
-      if (error || !data) {
+      console.log('Guest query result:', { data, error, userEmail: user.email });
+
+      if (error) {
+        console.error('Error in guest query:', error);
+        
+        // If guest not found, maybe check by guest ID directly
+        if (user.id && user.id !== 'temp-guest') {
+          const { data: directRSVPData, error: directError } = await supabase
+            .from('rsvps')
+            .select('*')
+            .eq('guest_id', user.id)
+            .eq('wedding_id', 'sim-kv');
+          
+          console.log('Direct RSVP query by guest_id:', { directRSVPData, directError });
+          
+          if (directRSVPData && directRSVPData.length > 0) {
+            setHasRSVPed(true);
+            return;
+          }
+        }
+        
         setHasRSVPed(false);
         return;
       }
 
-      // Check if user has any RSVP records
-      setHasRSVPed(data.rsvps && data.rsvps.length > 0);
+      if (!data) {
+        setHasRSVPed(false);
+        return;
+      }
+
+      // Check if user has any RSVP records (including both attending and not attending)
+      const hasAnyRSVP = data.rsvps && data.rsvps.length > 0;
+      setHasRSVPed(hasAnyRSVP);
+      
+      // Log for debugging
+      console.log('RSVP Status Check:', {
+        user: user.email,
+        hasRSVPs: hasAnyRSVP,
+        rsvps: data.rsvps,
+        guestData: data
+      });
     } catch (error) {
       console.error('Error checking RSVP status:', error);
       setHasRSVPed(false);
@@ -87,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // First check for Supabase auth
       const result = await getCurrentUser();
       if (result.success && result.user) {
         const userData: User = {
@@ -99,7 +157,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setUser(userData);
       } else {
-        setUser(null);
+        // Check for guest authentication (after RSVP)
+        if (typeof window !== 'undefined') {
+          const guestAuthData = localStorage.getItem('phera_guest_auth');
+          if (guestAuthData) {
+            try {
+              const guestInfo = JSON.parse(guestAuthData);
+              // Check if the authentication is recent (within 24 hours)
+              const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
+              if (isRecent && guestInfo.email) {
+                const userData: User = {
+                  id: guestInfo.id,
+                  email: guestInfo.email,
+                  name: guestInfo.name,
+                  phone: guestInfo.phone,
+                  initials: generateInitials(guestInfo.name),
+                  avatar_color: generateAvatarColor(guestInfo.name),
+                };
+                setUser(userData);
+              } else {
+                // Remove expired guest auth
+                localStorage.removeItem('phera_guest_auth');
+                setUser(null);
+              }
+            } catch (error) {
+              console.error('Error parsing guest auth data:', error);
+              localStorage.removeItem('phera_guest_auth');
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -112,6 +203,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      // Also clear guest authentication
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('phera_guest_auth');
+      }
       setUser(null);
       setHasRSVPed(false);
     } catch (error) {
@@ -150,7 +245,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading, 
         hasRSVPed, 
         checkRSVPStatus, 
-        signOut 
+        signOut,
+        refreshAuth: checkAuthStatus
       }}
     >
       {children}
