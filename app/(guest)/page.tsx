@@ -233,7 +233,7 @@ export default function HomePage() {
   
   // Use optimized BlueClouds background only
   const backgrounds = [
-    '/images/backgrounds/rose.png'
+    '/images/backgrounds/rose.jpg'
   ];
 
   const handleBackgroundChange = (backgroundPath: string) => {
