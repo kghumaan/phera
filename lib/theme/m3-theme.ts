@@ -40,29 +40,29 @@ export const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'var(--font-work-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: 'var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
     h2: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
     h3: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
     h4: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
     h5: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
     h6: {
-      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+      fontFamily: 'var(--font-outfit), Georgia, serif',
       fontWeight: 400,
     },
   },

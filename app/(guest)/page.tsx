@@ -31,6 +31,7 @@ import PinEntry from '@/components/guest/PinEntry';
 import LoginDialog from '@/components/auth/LoginDialog';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import AppHeader from '@/components/shared/AppHeader';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -317,94 +318,10 @@ export default function HomePage() {
     >
 
       {/* Header Section */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 3,
-          pt: 2,
-        }}
-      >
-        <Container maxWidth="sm">
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
-            {/* Logo */}
-            <Box
-              component="img"
-              src="/logo.svg"
-              alt="Phera Logo"
-              sx={{
-                height: { xs: 32, sm: 40 },
-                width: 'auto',
-                filter: 'brightness(0)',
-              }}
-            />
-            
-            {/* Login Button / User Avatar */}
-            {isLoading ? (
-              <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
-            ) : user ? (
-              <Chip
-                avatar={
-                  <Avatar
-                    sx={{
-                      backgroundColor: user.avatar_color,
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
-                    }}
-                  >
-                    {user.initials}
-                  </Avatar>
-                }
-                label={user.name.split(' ')[0]}
-                onClick={(e) => setUserMenuAnchor(e.currentTarget)}
-                sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  color: '#333',
-                  fontWeight: 500,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 1)',
-                  },
-                }}
-              />
-            ) : (
-              <Button
-                variant="contained"
-                onClick={() => setLoginDialogOpen(true)}
-                sx={{
-                  backgroundColor: '#000',
-                  color: '#fff',
-                  borderRadius: '24px',
-                  px: 3,
-                  py: 1,
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  textTransform: 'none',
-                  minWidth: 80,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  '&:hover': {
-                    backgroundColor: '#333',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-                  },
-                }}
-              >
-                Login
-              </Button>
-            )}
-          </Box>
-        </Container>
-      </Box>
+      <AppHeader 
+        variant="transparent" 
+        onLoginClick={() => setLoginDialogOpen(true)}
+      />
 
       {/* Main Landing Section */}
       <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>

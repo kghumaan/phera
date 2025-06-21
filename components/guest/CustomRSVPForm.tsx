@@ -436,35 +436,37 @@ export default function CustomRSVPForm() {
     switch (currentStep) {
       case 0: // Basic Information
         return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-playfair)', color: '#800020', mb: 2 }}>
-              Let's get to know you! 👋
+          <Stack spacing={2}>
+            <Typography variant="h4" sx={{ color: '#000', mb: 2 }}>
+              Let's make this celebration official! ✨
             </Typography>
             
-            <Box sx={{ display: 'flex', gap: 2, flexDirection: isMobile ? 'column' : 'row' }}>
+            <Typography variant="body1" sx={{ color: '#808080 !important', mb: 3 }}>
+              First, we need some basics to create your guest account:
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row' }}>
               <TextField
-                fullWidth
-                label="First Name"
+                label="First name"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 error={!!errors.firstName}
                 helperText={errors.firstName}
-                sx={{ flex: 1 }}
+                sx={{ flex: 1, maxWidth: '48%' }}
               />
               <TextField
-                fullWidth
-                label="Last Name"
+                label="Last name"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 error={!!errors.lastName}
                 helperText={errors.lastName}
-                sx={{ flex: 1 }}
+                sx={{ flex: 1, maxWidth: '48%' }}
               />
             </Box>
             
             <TextField
               fullWidth
-              label="Email Address"
+              label="Email"
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
@@ -472,47 +474,68 @@ export default function CustomRSVPForm() {
               helperText={errors.email}
             />
             
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <FormControl sx={{ minWidth: 120 }}>
-                <Select
-                  value={formData.countryCode}
-                  onChange={(e) => handleInputChange('countryCode', e.target.value)}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    '& .MuiSelect-select': {
-                      padding: '16.5px 14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                    },
-                  }}
-                >
-                  {countryCodes.map((country) => (
-                    <MenuItem key={country.code} value={country.code}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span>{country.flag}</span>
-                        <span>{country.code}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                helperText="Optional - for important updates"
-                sx={{ flex: 1 }}
-              />
-            </Box>
+            <TextField
+              fullWidth
+              label="Phone Number"
+              value={formData.phone}
+              onChange={(e) => {
+                // Remove any non-numeric characters except + and spaces
+                const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
+                handleInputChange('phone', cleanValue);
+              }}
+              placeholder={`000 000 0000`}
+              InputProps={{
+                startAdornment: (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                    <FormControl sx={{ minWidth: 100 }}>
+                      <Select
+                        value={formData.countryCode}
+                        onChange={(e) => handleInputChange('countryCode', e.target.value)}
+                        variant="standard"
+                        disableUnderline
+                        sx={{
+                          '& .MuiSelect-select': {
+                            padding: '0px 8px 0px 0px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            fontSize: '1rem',
+                            border: 'none',
+                            '&:focus': {
+                              backgroundColor: 'transparent',
+                            },
+                          },
+                          '& .MuiSelect-icon': {
+                            color: '#666',
+                            fontSize: '1.2rem',
+                          },
+                        }}
+                      >
+                        {countryCodes.map((country) => (
+                          <MenuItem key={country.code} value={country.code}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <span style={{ fontSize: '1rem' }}>{country.flag}</span>
+                              <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                ),
+              }}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  '& input': {
+                    paddingLeft: '8px',
+                  },
+                },
+              }}
+            />
             
-            <Alert severity="info" sx={{ borderRadius: 1, mt: 2, backgroundColor: '#f0f0f0' }}>
-              <Typography variant="body2">
-                <strong>Note:</strong> Your email and phone are needed for hotel booking confirmations and will help you access your details in the future with your 4-digit PIN.
-              </Typography>
-            </Alert>
+            <Typography variant="body2" sx={{ color: '#666', mt: 2, mb: 2 }}>
+              <strong>Note:</strong> We're creating your account so you can easily access wedding updates and never have to find that invitation code again! Plus we need these for hotel confirmations.
+            </Typography>
           </Stack>
         );
 
@@ -631,7 +654,7 @@ export default function CustomRSVPForm() {
               <Stack spacing={2}>
                 <TextField
                   fullWidth
-                  label="Please tell us more"
+                  label="Comments"
                   multiline
                   rows={3}
                   value={formData.maybeComment}
@@ -761,84 +784,63 @@ export default function CustomRSVPForm() {
         animate="visible"
         variants={containerVariants}
       >
-        {/* Progress Bar */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontFamily: 'var(--font-playfair)', color: '#000000' }}>
-              RSVP Form
-            </Typography>
+        {/* Close Button - positioned outside form */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, pt: 1 }}>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
             <IconButton
               onClick={handleClose}
               sx={{
                 color: '#000',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                border: '1px solid #000',
-                borderRadius: 1,
+                backgroundColor: 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(240, 240, 240, 0.9)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
                 },
               }}
             >
               <CloseIcon />
             </IconButton>
           </Box>
-          
-          <Box
-            sx={{
-              height: 4,
-              bgcolor: 'grey.200',
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
-            <Box
-              sx={{
-                height: '100%',
-                bgcolor: 'primary.main',
-                borderRadius: 2,
-                transition: 'width 0.3s ease',
-                width: `${((currentStep + 1) / steps.length) * 100}%`,
-              }}
-            />
-          </Box>
-          
-          <Typography variant="body2" sx={{ color: '#666666', mt: 1 }}>
-            {steps[currentStep]}
+          <Typography variant="h6" sx={{ fontFamily: 'var(--font-playfair)', color: '#000000', fontWeight: 600 }}>
+            RSVP
           </Typography>
+          <Box sx={{ flex: 1 }} /> {/* Spacer */}
         </Box>
 
         {/* Form Content */}
         <Paper
           elevation={0}
           sx={{
-            p: 4,
+            p: 3,
             borderRadius: 1,
             border: '1px solid #000',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             color: '#000000',
-            '& .MuiTypography-root': {
-              color: '#000000 !important',
-            },
             '& .MuiFormLabel-root': {
               color: '#333333 !important',
               fontWeight: 600,
             },
             '& .MuiTextField-root .MuiInputLabel-root': {
-              color: '#666666 !important',
+              color: '#808080 !important',
             },
             '& .MuiTextField-root .MuiOutlinedInput-root': {
               backgroundColor: 'rgba(255, 255, 255, 0.8)',
               color: '#000000 !important',
+              borderRadius: '8px !important',
               '& fieldset': {
-                borderColor: '#000 !important',
+                borderColor: '#808080 !important',
+                borderRadius: '8px !important',
               },
               '&:hover fieldset': {
-                borderColor: '#000 !important',
+                borderColor: '#808080 !important',
               },
               '&.Mui-focused fieldset': {
                 borderColor: '#DAA520 !important',
                 borderWidth: '2px !important',
+              },
+              '& input::placeholder': {
+                color: '#808080 !important',
+                opacity: 1,
               },
               '& input': {
                 '&:-webkit-autofill': {
@@ -879,11 +881,13 @@ export default function CustomRSVPForm() {
               padding: '16.5px 14px',
             },
             '& .MuiOutlinedInput-root': {
+              borderRadius: '8px !important',
               '& fieldset': {
-                borderColor: '#000 !important',
+                borderColor: '#808080 !important',
+                borderRadius: '8px !important',
               },
               '&:hover fieldset': {
-                borderColor: '#000 !important',
+                borderColor: '#808080 !important',
               },
               '&.Mui-focused fieldset': {
                 borderColor: '#DAA520 !important',
@@ -895,6 +899,43 @@ export default function CustomRSVPForm() {
             },
           }}
         >
+          {/* Progress Bar - moved inside form */}
+          <Box sx={{ mb: 4 }}>            
+            {/* Horizontal Segment Progress Bar */}
+            <Box sx={{ mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '4px',
+                  height: '4px',
+                  borderRadius: '2px',
+                  overflow: 'hidden',
+                  backgroundColor: '#F5F5F5',
+                }}
+              >
+                {steps.map((_, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      flex: 1,
+                      height: '100%',
+                      backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
+                      transition: 'background-color 0.3s ease',
+                      '&:first-of-type': {
+                        borderTopLeftRadius: '2px',
+                        borderBottomLeftRadius: '2px',
+                      },
+                      '&:last-of-type': {
+                        borderTopRightRadius: '2px',
+                        borderBottomRightRadius: '2px',
+                      },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -909,32 +950,83 @@ export default function CustomRSVPForm() {
 
           {/* Navigation Buttons */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3 }}>
-            <Button
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              variant="outlined"
-              sx={{ minWidth: 100 }}
-            >
-              Back
-            </Button>
+            {currentStep > 0 && (
+              <Button
+                onClick={handleBack}
+                variant="text"
+                sx={{ 
+                  minWidth: 100,
+                  color: '#666',
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                Back
+              </Button>
+            )}
+            
+            {currentStep === 0 && <Box />} {/* Spacer for first step */}
             
             {currentStep < steps.length - 1 ? (
               <Button
                 onClick={formData.attending === 'no' ? handleSubmit : handleNext}
                 variant="contained"
-                sx={{ minWidth: 100 }}
+                fullWidth={currentStep === 0}
+                sx={{ 
+                  minWidth: currentStep === 0 ? 'auto' : 100,
+                  maxWidth: currentStep === 0 ? '100%' : 'auto',
+                  backgroundColor: '#DE3F5E',
+                  color: 'white',
+                  py: 2,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  borderRadius: '32px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#C8365A',
+                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#ccc',
+                    color: '#999',
+                  },
+                }}
                 disabled={formData.attending === 'no' && currentStep > 1}
               >
-                {formData.attending === 'no' ? 'Submit :(' : 'Next'}
+                {formData.attending === 'no' ? 'Submit :(' : 'NEXT'}
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
                 variant="contained"
-                sx={{ minWidth: 100 }}
+                fullWidth
+                sx={{ 
+                  backgroundColor: '#DE3F5E',
+                  color: 'white',
+                  py: 2,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  borderRadius: '32px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#C8365A',
+                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#ccc',
+                    color: '#999',
+                  },
+                }}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT RSVP'}
               </Button>
             )}
           </Box>
