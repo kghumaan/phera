@@ -60,7 +60,7 @@ interface RSVPFormData {
   guestCount: number;
   
   // Event-specific (ceremonies removed)
-  foodPreference: string;
+  foodPreference: string[];
   dietaryRestrictions: string;
   
   // Cultural & Personal (modified)
@@ -83,7 +83,7 @@ const initialFormData: RSVPFormData = {
   plusOneName: '',
   plusOneEmail: '',
   guestCount: 1,
-  foodPreference: '',
+  foodPreference: [],
   dietaryRestrictions: '',
   weddingSide: '',
   songRequest: '',
@@ -143,6 +143,7 @@ export default function CustomRSVPForm() {
   const steps = [
     'Basic Information',
     'Attendance Details',
+    'Plus One Details',
     'Event Preferences',
     'Personal Details',
     'Fun & Messages',
@@ -198,6 +199,12 @@ export default function CustomRSVPForm() {
       
       case 1: // Attendance Details
         if (!formData.attending) newErrors.attending = 'Please select attendance';
+        break;
+      
+      case 2: // Plus One Details  
+        if (formData.attending === 'yes' && !formData.plusOne) {
+          newErrors.plusOne = 'Please select plus one option';
+        }
         if (formData.attending === 'yes' && formData.plusOne === 'yes') {
           if (!formData.plusOneName.trim()) {
             newErrors.plusOneName = 'Plus one name is required';
@@ -210,13 +217,13 @@ export default function CustomRSVPForm() {
         }
         break;
       
-      case 2: // Event Preferences
-        if (formData.attending === 'yes' && !formData.foodPreference) {
-          newErrors.foodPreference = 'Please select food preference';
+      case 3: // Event Preferences
+        if (formData.attending === 'yes' && formData.foodPreference.length === 0) {
+          newErrors.foodPreference = 'Please select at least one food preference';
         }
         break;
 
-      case 3: // Personal Details
+      case 4: // Personal Details
         if (!formData.weddingSide) {
           newErrors.weddingSide = 'Please select which side of the wedding';
         }
@@ -229,7 +236,12 @@ export default function CustomRSVPForm() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+      // Skip plus one section if not attending
+      if (currentStep === 1 && formData.attending !== 'yes') {
+        setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip case 2 (plus one)
+      } else {
+        setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+      }
     }
   };
 
@@ -255,7 +267,7 @@ export default function CustomRSVPForm() {
         plusOneEmail: formData.plusOneEmail,
         guestCount: formData.guestCount,
         ceremonyAttending: [], // No longer used
-        foodPreference: formData.foodPreference,
+        foodPreference: formData.foodPreference.join(', '),
         dietaryRestrictions: formData.dietaryRestrictions,
         relationshipToBride: formData.weddingSide === 'bride' ? 'Guest' : undefined,
         relationshipToGroom: formData.weddingSide === 'groom' ? 'Guest' : undefined,
@@ -377,20 +389,43 @@ export default function CustomRSVPForm() {
                 />
               </motion.div>
               
-              <Typography variant="h3" gutterBottom sx={{ fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
-                Thank You! 🙏
-              </Typography>
+              {formData.attending === 'yes' && (
+                <>
+                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
+                    Yay! You're part of our celebration and we can't wait to have you there
+                  </Typography>
+                  
+                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
+                    Your room is booked and covered! We'll send hotel details soon.
+                  </Typography>
+                </>
+              )}
               
-              <Typography variant="h6" gutterBottom sx={{ color: '#000', mb: 3, fontWeight: 500 }}>
-                Your RSVP has been submitted successfully
-              </Typography>
+              {formData.attending === 'maybe' && (
+                <>
+                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
+                    Thanks for letting us know!
+                  </Typography>
+                  
+                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
+                    We understand you need to figure some things out. Just remember: We need your final answer by September 30, 2025. We'll check in with you before then!
+                    {'\n\n'}
+                    Use your email or phone number to sign in anytime so you can update your response.
+                  </Typography>
+                </>
+              )}
               
-              <Typography variant="body1" sx={{ color: '#000', mb: 4 }}>
-                {formData.attending === 'yes' 
-                  ? "We're excited to celebrate this special occasion with you!"
-                  : "We're sorry to hear you may not join us. Remember, you can return here to update your RSVP until March 15th, 2025."
-                }
-              </Typography>
+              {formData.attending === 'no' && (
+                <>
+                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
+                    We'll miss you! :(
+                  </Typography>
+                  
+                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
+                    We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on September 30, 2025
+                  </Typography>
+                </>
+              )}
               
                               {/* <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <Chip
@@ -541,21 +576,162 @@ export default function CustomRSVPForm() {
 
       case 1: // Attendance Details
         return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Will you be joining us? 💫
-            </Typography>
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#141414', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontSize: '28px',
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Will you be celebrating with us in Thailand? 🏖️
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  fontSize: '16px',
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Ready to make some memories?
+              </Typography>
+            </Box>
             
             <FormControl error={!!errors.attending}>
-              <FormLabel>Can you attend our wedding celebrations?</FormLabel>
-              <RadioGroup
-                value={formData.attending}
-                onChange={(e) => handleInputChange('attending', e.target.value)}
-              >
-                <FormControlLabel value="yes" control={<Radio />} label="Yes, I'll be there! 🎉" />
-                <FormControlLabel value="no" control={<Radio />} label="Sorry, I can't make it 😔" />
-                <FormControlLabel value="maybe" control={<Radio />} label="Maybe... not sure yet 🤔" />
-              </RadioGroup>
+              <Box>
+                {[
+                  { value: 'yes', label: 'YES! Can\'t wait to celebrate!' },
+                  { value: 'no', label: 'Sorry, can\'t make it :(' },
+                  { value: 'maybe', label: 'MAYBE - Need to check a few things' }
+                ].map((option, index, array) => (
+                  <Box key={option.value}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 2,
+                        borderBottom: index < array.length - 1 || option.value !== 'maybe' ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        },
+                      }}
+                      onClick={() => handleInputChange('attending', option.value)}
+                    >
+                      <Typography 
+                        sx={{ 
+                          color: formData.attending === option.value ? '#DE3F5E' : '#141414',
+                          fontWeight: formData.attending === option.value ? 600 : 400,
+                          fontSize: '16px',
+                          fontFamily: 'Outfit',
+                          lineHeight: 1.3,
+                          flex: 1
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+                      
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: `2px solid ${formData.attending === option.value ? '#DE3F5E' : '#141414'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: formData.attending === option.value ? '#DE3F5E' : 'transparent',
+                        }}
+                      >
+                        {formData.attending === option.value && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                    
+                    {/* Maybe text field - show when maybe is selected */}
+                    {option.value === 'maybe' && formData.attending === 'maybe' && (
+                      <Box sx={{ mt: 2, mb: 2 }}>
+                        <Box
+                          sx={{
+                            border: '1px solid rgba(0, 0, 0, 0.24)',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            backgroundColor: 'white',
+                            cursor: 'text',
+                            minHeight: '60px',
+                            '&:hover': {
+                              borderColor: 'rgba(0, 0, 0, 0.4)',
+                            },
+                            '&:focus-within': {
+                              borderColor: '#DAA520',
+                              borderWidth: '2px',
+                              padding: '7px 11px',
+                            },
+                          }}
+                        >
+                          <textarea
+                            placeholder="Help us understand what's holding you back We want to make this work! Let us know what you're figuring out:"
+                            value={formData.maybeComment}
+                            onChange={(e) => handleInputChange('maybeComment', e.target.value)}
+                            style={{
+                              border: 'none',
+                              outline: 'none',
+                              width: '100%',
+                              height: '70px',
+                              resize: 'none',
+                              fontFamily: 'Outfit',
+                              fontSize: '16px',
+                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.24)',
+                              backgroundColor: 'transparent',
+                            }}
+                          />
+                        </Box>
+                        
+                        {/* Final answer reminder */}
+                        <Box 
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            p: 2, 
+                            backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                            borderRadius: '8px',
+                            color: 'rgba(0, 0, 0, 0.72)',
+                            mt: 2
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ 
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            lineHeight: 1.5,
+                            fontFamily: 'Outfit'
+                          }}>
+                            📅  Final answer needed by: <strong>August 31, 2025</strong>
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
               {errors.attending && (
                 <Typography variant="caption" color="error" sx={{ mt: 1 }}>
                   {errors.attending}
@@ -563,10 +739,65 @@ export default function CustomRSVPForm() {
               )}
             </FormControl>
             
-            <Collapse in={formData.attending === 'yes'}>
-              <Stack spacing={3}>
-                <FormControl>
-                  <FormLabel>Will you be bringing a plus one?</FormLabel>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'rgba(0, 0, 0, 0.48)',
+                lineHeight: 1.5,
+                fontSize: '14px',
+                fontFamily: 'Outfit',
+                mt: 3
+              }}
+            >
+              <strong>Note:</strong> Your accommodation will be covered by us! We need to book the right number of rooms, so please let us know for sure by July 31, 2025!
+            </Typography>
+            
+
+            
+            <Collapse in={formData.attending === 'no'}>
+              <Alert severity="info" sx={{ borderRadius: 1 }}>
+                We'll miss you! We hope to celebrate with you in the future. 💕
+              </Alert>
+            </Collapse>
+          </Stack>
+        );
+
+      case 2: // Plus One Details
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Bringing your special someone? 💕
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Couples share one invitation - add your partner here!
+              </Typography>
+            </Box>
+            
+            <Box>
+              <FormControl error={!!errors.plusOne} sx={{ width: '100%' }}>
+                <Box>
                   <RadioGroup
                     value={formData.plusOne}
                     onChange={(e) => {
@@ -579,196 +810,811 @@ export default function CustomRSVPForm() {
                       }
                     }}
                   >
-                    <FormControlLabel value="yes" control={<Radio />} label="Yes, bringing someone special" />
-                    <FormControlLabel value="no" control={<Radio />} label="Just me!" />
-                  </RadioGroup>
-                </FormControl>
-                
-                <Collapse in={formData.plusOne === 'yes'}>
-                  <Stack spacing={2}>
-                    <TextField
-                      fullWidth
-                      label="Plus One Name"
-                      value={formData.plusOneName}
-                      onChange={(e) => handleInputChange('plusOneName', e.target.value)}
-                      error={!!errors.plusOneName}
-                      helperText={errors.plusOneName}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Plus One Email"
-                      type="email"
-                      value={formData.plusOneEmail}
-                      onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
-                      error={!!errors.plusOneEmail}
-                      helperText={errors.plusOneEmail}
-                    />
-                  </Stack>
-                </Collapse>
-                
-                {formData.plusOne === 'yes' && (
-                  <Box>
-                    <FormLabel sx={{ mb: 2, display: 'block' }}>Total Number of Guests</FormLabel>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 2,
-                      border: '1px solid #000',
-                      borderRadius: 1,
-                      p: 1,
-                      maxWidth: 200,
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 2,
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        },
+                      }}
+                      onClick={() => {
+                        handleInputChange('plusOne', 'yes');
+                        handleInputChange('guestCount', 2);
+                      }}
+                    >
+                      <Typography 
+                        sx={{ 
+                          color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
+                          fontWeight: formData.plusOne === 'yes' ? 600 : 400,
+                          fontSize: '1rem',
+                          fontFamily: 'Outfit',
+                          lineHeight: 1.3,
+                          flex: 1
+                        }}
+                      >
+                        Yes! Here are their details
+                      </Typography>
+                      
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: `2px solid ${formData.plusOne === 'yes' ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: formData.plusOne === 'yes' ? '#DE3F5E' : 'transparent',
+                        }}
+                      >
+                        {formData.plusOne === 'yes' && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                    <Collapse in={formData.plusOne === 'yes'}>
+              <Box>
+                {/* First Name and Last Name Row */}
+                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Box
+                      sx={{
+                        border: '1px solid rgba(0, 0, 0, 0.24)',
+                        borderRadius: '8px',
+                        padding: '16px 12px',
+                        backgroundColor: 'white',
+                        cursor: 'text',
+                        '&:hover': {
+                          borderColor: 'rgba(0, 0, 0, 0.4)',
+                        },
+                        '&:focus-within': {
+                          borderColor: '#DAA520',
+                          borderWidth: '2px',
+                          padding: '15px 11px',
+                        },
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="First name"
+                        value={formData.plusOneName.split(' ')[0] || ''}
+                        onChange={(e) => {
+                          const lastName = formData.plusOneName.split(' ').slice(1).join(' ');
+                          handleInputChange('plusOneName', e.target.value + (lastName ? ' ' + lastName : ''));
+                        }}
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          width: '100%',
+                          fontFamily: 'Outfit',
+                          fontSize: '16px',
+                          color: formData.plusOneName.split(' ')[0] ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    </Box>
+                    {errors.plusOneName && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                        {errors.plusOneName}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  <Box sx={{ flex: 1 }}>
+                    <Box
+                      sx={{
+                        border: '1px solid rgba(0, 0, 0, 0.24)',
+                        borderRadius: '8px',
+                        padding: '16px 12px',
+                        backgroundColor: 'white',
+                        cursor: 'text',
+                        '&:hover': {
+                          borderColor: 'rgba(0, 0, 0, 0.4)',
+                        },
+                        '&:focus-within': {
+                          borderColor: '#DAA520',
+                          borderWidth: '2px',
+                          padding: '15px 11px',
+                        },
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Last name"
+                        value={formData.plusOneName.split(' ').slice(1).join(' ') || ''}
+                        onChange={(e) => {
+                          const firstName = formData.plusOneName.split(' ')[0] || '';
+                          handleInputChange('plusOneName', firstName + (e.target.value ? ' ' + e.target.value : ''));
+                        }}
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          width: '100%',
+                          fontFamily: 'Outfit',
+                          fontSize: '16px',
+                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Email Field */}
+                <Box sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      border: '1px solid rgba(0, 0, 0, 0.24)',
+                      borderRadius: '8px',
+                      padding: '16px 12px',
+                      backgroundColor: 'white',
+                      cursor: 'text',
+                      '&:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.4)',
+                      },
                       '&:focus-within': {
                         borderColor: '#DAA520',
-                        boxShadow: '0 0 0 1px #DAA520',
-                      }
-                    }}>
-                      <IconButton
-                        onClick={() => handleGuestCountChange(false)}
-                        disabled={formData.guestCount <= 1}
-                        size="small"
-                        sx={{ color: '#000' }}
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-                      <Typography variant="h6" sx={{ minWidth: 20, textAlign: 'center', color: '#000' }}>
-                        {formData.guestCount}
-                      </Typography>
-                      <IconButton
-                        onClick={() => handleGuestCountChange(true)}
-                        disabled={formData.guestCount >= 10}
-                        size="small"
-                        sx={{ color: '#000' }}
-                      >
-                        <AddIcon />
-                      </IconButton>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#666', mt: 1, display: 'block' }}>
-                      Including yourself and plus one
-                    </Typography>
+                        borderWidth: '2px',
+                        padding: '15px 11px',
+                      },
+                    }}
+                  >
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={formData.plusOneEmail}
+                      onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        fontFamily: 'Outfit',
+                        fontSize: '16px',
+                        color: formData.plusOneEmail ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                        backgroundColor: 'transparent',
+                      }}
+                    />
                   </Box>
-                )}
-              </Stack>
-            </Collapse>
-            
-            <Collapse in={formData.attending === 'maybe'}>
-              <Stack spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Comments"
-                  multiline
-                  rows={3}
-                  value={formData.maybeComment}
-                  onChange={(e) => handleInputChange('maybeComment', e.target.value)}
-                  helperText="Let us know what might help you decide or any concerns you have"
-                />
-              </Stack>
-            </Collapse>
-            
-            <Collapse in={formData.attending === 'no'}>
-              <Alert severity="info" sx={{ borderRadius: 1 }}>
-                We'll miss you! We hope to celebrate with you in the future. 💕
-              </Alert>
-            </Collapse>
-          </Stack>
-        );
+                  {errors.plusOneEmail && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                      {errors.plusOneEmail}
+                    </Typography>
+                  )}
+                </Box>
 
-      case 2: // Event Preferences
-        return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Food Preferences 🍽️
-            </Typography>
+                {/* Phone Field */}
+                <Box sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      border: '1px solid rgba(0, 0, 0, 0.24)',
+                      borderRadius: '8px',
+                      padding: '16px 12px',
+                      backgroundColor: 'white',
+                      cursor: 'text',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      '&:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.4)',
+                      },
+                      '&:focus-within': {
+                        borderColor: '#DAA520',
+                        borderWidth: '2px',
+                        padding: '15px 11px',
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography sx={{ fontSize: '1.5rem' }}>🇺🇸</Typography>
+                      <Typography sx={{ fontFamily: 'Outfit', fontSize: '16px', color: '#000' }}>
+                        +1
+                      </Typography>
+                    </Box>
+                    <input
+                      type="tel"
+                      placeholder="000 000 0000 (optional)"
+                      value={formData.phone || ''}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
+                        handleInputChange('phone', cleanValue);
+                      }}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        flex: 1,
+                        fontFamily: 'Outfit',
+                        fontSize: '16px',
+                        color: formData.phone ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                        backgroundColor: 'transparent',
+                        marginLeft: '8px',
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>  
+            </Collapse>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 2,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        },
+                      }}
+                      onClick={() => {
+                        handleInputChange('plusOne', 'no');
+                        handleInputChange('guestCount', 1);
+                      }}
+                    >
+                      <Typography 
+                        sx={{ 
+                          color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
+                          fontWeight: formData.plusOne === 'no' ? 600 : 400,
+                          fontSize: '1rem',
+                          fontFamily: 'Outfit',
+                          lineHeight: 1.3,
+                          flex: 1
+                        }}
+                      >
+                        Just me - ready to celebrate!
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: `2px solid ${formData.plusOne === 'no' ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: formData.plusOne === 'no' ? '#DE3F5E' : 'transparent',
+                        }}
+                      >
+                        {formData.plusOne === 'no' && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </RadioGroup>
+                  
+                  {errors.plusOne && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      {errors.plusOne}
+                    </Typography>
+                  )}
+                </Box>
+              </FormControl>
+            </Box>
+
             
-            <FormControl fullWidth error={!!errors.foodPreference}>
-              <FormLabel>Food Preference</FormLabel>
-              <Select
-                value={formData.foodPreference}
-                onChange={(e) => handleInputChange('foodPreference', e.target.value)}
-                displayEmpty
+            
+            <Box>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mb: 2,
+                  fontSize: '1rem',
+                  fontFamily: 'Outfit'
+                }}
               >
-                <MenuItem value="">Select your preference</MenuItem>
-                {foodPreferences.map((preference) => (
-                  <MenuItem key={preference} value={preference}>
-                    {preference}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.foodPreference && (
-                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                  {errors.foodPreference}
+                Total number in your party (including kids)?
+              </Typography>
+              
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 0,
+                border: '1px solid rgba(0, 0, 0, 0.12)',
+                borderRadius: '8px',
+                p: 0,
+                maxWidth: 180,
+                backgroundColor: 'white',
+              }}>
+                <IconButton
+                  onClick={() => handleGuestCountChange(false)}
+                  disabled={formData.guestCount <= 1}
+                  sx={{ 
+                    color: '#666',
+                    borderRadius: '8px 0 0 8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                    },
+                    '&:disabled': {
+                      color: '#ccc',
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    }
+                  }}
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    minWidth: 60, 
+                    textAlign: 'center', 
+                    color: '#000',
+                    fontSize: '1.25rem',
+                    fontWeight: 500,
+                    py: 1,
+                    fontFamily: 'Outfit'
+                  }}
+                >
+                  {formData.guestCount}
                 </Typography>
-              )}
-            </FormControl>
-            
-            <TextField
-              fullWidth
-              label="Any allergies or dietary restrictions?"
-              multiline
-              rows={3}
-              value={formData.dietaryRestrictions}
-              onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
-              helperText="Please let us know about any allergies or special dietary needs"
-            />
+                <IconButton
+                  onClick={() => handleGuestCountChange(true)}
+                  disabled={formData.guestCount >= 10}
+                  sx={{ 
+                    color: '#666',
+                    borderRadius: '0 8px 8px 0',
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                    },
+                    '&:disabled': {
+                      color: '#ccc',
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    }
+                  }}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+            </Box>
           </Stack>
         );
 
-      case 3: // Personal Details
+      case 3: // Event Preferences
         return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Personal Details 🌸
-            </Typography>
-            
-            <FormControl fullWidth error={!!errors.weddingSide}>
-              <FormLabel>Which side of the wedding are you on?</FormLabel>
-              <Select
-                value={formData.weddingSide}
-                onChange={(e) => handleInputChange('weddingSide', e.target.value as 'bride' | 'groom' | 'both' | '')}
-                displayEmpty
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontFamily: 'Outfit'
+                }}
               >
-                <MenuItem value="">Select side</MenuItem>
-                {weddingSideOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.weddingSide && (
-                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                  {errors.weddingSide}
-                </Typography>
-              )}
-            </FormControl>
+                What's your dining preference? 🍛
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                                 Select all that apply for you (and your plus one)!
+              </Typography>
+            </Box>
+            
+            <Box>
+              <FormControl error={!!errors.foodPreference} sx={{ width: '100%' }}>
+                <Box>
+                  {[
+                    { value: 'Non-Vegetarian', label: 'I enjoy everything! 🍗' },
+                    { value: 'Vegetarian', label: 'Vegetarian 🥬' },
+                    { value: 'Vegan', label: 'Vegan 🌱' },
+                    { value: 'Jain Food', label: 'Jain 🙏' },
+                    { value: 'Gluten-free', label: 'Gluten-free 🚫' },
+                    { value: 'Allergies', label: 'Allergies 🥜 (please specify below)' }
+                  ].map((option, index, array) => (
+                    <Box
+                      key={option.value}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 2,
+                        borderBottom: index < array.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        },
+                      }}
+                                             onClick={() => {
+                         const currentPreferences = [...formData.foodPreference];
+                         const index = currentPreferences.indexOf(option.value);
+                         if (index > -1) {
+                           currentPreferences.splice(index, 1);
+                         } else {
+                           currentPreferences.push(option.value);
+                         }
+                         handleInputChange('foodPreference', currentPreferences);
+                       }}
+                     >
+                       <Typography 
+                         sx={{ 
+                           color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
+                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
+                           fontSize: '1rem',
+                           fontFamily: 'Outfit',
+                           lineHeight: 1.3,
+                           flex: 1
+                         }}
+                       >
+                         {option.label}
+                       </Typography>
+                       
+                       <Box
+                         sx={{
+                           width: 24,
+                           height: 24,
+                           borderRadius: '50%',
+                           border: `2px solid ${formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                           display: 'flex',
+                           alignItems: 'center',
+                           justifyContent: 'center',
+                           backgroundColor: formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'transparent',
+                         }}
+                       >
+                         {formData.foodPreference.includes(option.value) && (
+                           <Box
+                             sx={{
+                               width: 8,
+                               height: 8,
+                               borderRadius: '50%',
+                               backgroundColor: 'white',
+                             }}
+                           />
+                         )}
+                      </Box>
+                    </Box>
+                  ))}
+                  
+                  {errors.foodPreference && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      {errors.foodPreference}
+                    </Typography>
+                  )}
+                </Box>
+              </FormControl>
+            </Box>
+
+                         {/* Dietary Restrictions Text Field - Only show when "Allergies" is selected */}
+             {formData.foodPreference.includes('Allergies') && (
+               <Box sx={{ mt: 3 }}>
+                 <Box
+                   sx={{
+                     border: '1px solid rgba(0, 0, 0, 0.24)',
+                     borderRadius: '8px',
+                     padding: '16px 12px',
+                     backgroundColor: 'white',
+                     cursor: 'text',
+                     minHeight: '100px',
+                     '&:hover': {
+                       borderColor: 'rgba(0, 0, 0, 0.4)',
+                     },
+                     '&:focus-within': {
+                       borderColor: '#DAA520',
+                       borderWidth: '2px',
+                       padding: '15px 11px',
+                     },
+                   }}
+                 >
+                   <textarea
+                     placeholder="Please specify your allergies or dietary restrictions."
+                     value={formData.dietaryRestrictions}
+                     onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
+                     style={{
+                       border: 'none',
+                       outline: 'none',
+                       width: '100%',
+                       height: '20px',
+                       resize: 'none',
+                       fontFamily: 'Outfit',
+                       fontSize: '16px',
+                       color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
+                       backgroundColor: 'transparent',
+                     }}
+                   />
+                 </Box>
+               </Box>
+             )}
           </Stack>
         );
 
-      case 4: // Fun & Messages
+      case 4: // Personal Details
         return (
-          <Stack spacing={3}>
-            <Typography variant="h5" sx={{ fontFamily: 'var(--font-instrument-serif)', color: 'primary.main', mb: 2 }}>
-              Fun & Messages 🎵
-            </Typography>
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Which side of the celebration? 👰🏻‍♀️🤵🏻‍♂️
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                This helps us with logistics and organization!
+              </Typography>
+            </Box>
             
-            <TextField
-              fullWidth
-              label="Song Request"
-              value={formData.songRequest}
-              onChange={(e) => handleInputChange('songRequest', e.target.value)}
-              helperText="Any specific song you'd like to hear at the celebration?"
-            />
-            
-            <TextField
-              fullWidth
-              label="Special Message for the Couple"
-              multiline
-              rows={4}
-              value={formData.specialMessage}
-              onChange={(e) => handleInputChange('specialMessage', e.target.value)}
-              helperText="Share your wishes, memories, or any special message"
-              InputProps={{
-                startAdornment: <FavoriteOutlined sx={{ color: 'action.active', mr: 1, alignSelf: 'flex-start', mt: 1 }} />,
-              }}
-            />
+            <Box>
+              <FormControl error={!!errors.weddingSide} sx={{ width: '100%' }}>
+                <Box>
+                  {[
+                    { value: 'bride', label: '💃 Team Bride' },
+                    { value: 'groom', label: '🕺 Team Groom' },
+                    { value: 'both', label: '🤷‍♀️ Can\'t choose - I love you both!' }
+                  ].map((option, index, array) => (
+                    <Box
+                      key={option.value}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 2,
+                        borderBottom: index < array.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        },
+                      }}
+                      onClick={() => handleInputChange('weddingSide', option.value)}
+                    >
+                      <Typography 
+                        sx={{ 
+                          color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
+                          fontWeight: formData.weddingSide === option.value ? 600 : 400,
+                          fontSize: '1rem',
+                          fontFamily: 'Outfit',
+                          lineHeight: 1.3,
+                          flex: 1
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+                      
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: `2px solid ${formData.weddingSide === option.value ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: formData.weddingSide === option.value ? '#DE3F5E' : 'transparent',
+                        }}
+                      >
+                        {formData.weddingSide === option.value && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+                  
+                  {errors.weddingSide && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      {errors.weddingSide}
+                    </Typography>
+                  )}
+                </Box>
+              </FormControl>
+            </Box>
+          </Stack>
+        );
+
+      case 5: // Fun & Messages
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {/* Music Request Section */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: '#000', 
+                      fontWeight: 400,
+                      lineHeight: 1.3,
+                      mb: 1,
+                      fontSize: { xs: '1.75rem', md: '1.75rem' },
+                      fontFamily: 'Outfit'
+                    }}
+                  >
+                    Music requests 🎵
+                  </Typography>
+                  
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      color: 'rgba(0, 0, 0, 0.48)', 
+                      fontWeight: 400,
+                      fontSize: '1rem',
+                      lineHeight: 1.5,
+                      fontFamily: 'Outfit'
+                    }}
+                  >
+                    What song will make this celebration perfect? (optional)
+                  </Typography>
+                </Box>
+                
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '16px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.4)',
+                    },
+                    '&:focus-within': {
+                      borderColor: '#DAA520',
+                      borderWidth: '2px',
+                      padding: '15px 11px',
+                    },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Add song name and artist..."
+                    value={formData.songRequest}
+                    onChange={(e) => handleInputChange('songRequest', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: '16px',
+                      color: formData.songRequest ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              {/* Special Message Section */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: '#000', 
+                      fontWeight: 400,
+                      lineHeight: 1.3,
+                      mb: 1,
+                      fontSize: { xs: '1.75rem', md: '1.75rem' },
+                      fontFamily: 'Outfit'
+                    }}
+                  >
+                    Share your excitement 💬
+                  </Typography>
+                  
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      color: 'rgba(0, 0, 0, 0.48)', 
+                      fontWeight: 400,
+                      fontSize: '1rem',
+                      lineHeight: 1.5,
+                      fontFamily: 'Outfit'
+                    }}
+                  >
+                    Leave a message for everyone to see! (optional)
+                  </Typography>
+                </Box>
+                
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    minHeight: '100px',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.4)',
+                    },
+                    '&:focus-within': {
+                      borderColor: '#DAA520',
+                      borderWidth: '2px',
+                      padding: '7px 11px',
+                    },
+                  }}
+                >
+                  <textarea
+                    placeholder="Your wishes for the happy couple..."
+                    value={formData.specialMessage}
+                    onChange={(e) => handleInputChange('specialMessage', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      height: '60px',
+                      resize: 'none',
+                      fontFamily: 'Outfit',
+                      fontSize: '16px',
+                      color: formData.specialMessage ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#000',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none">
+                        <path d="M3 2H15V6H3V2Z" fill="currentColor"/>
+                      </svg>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           </Stack>
         );
 
@@ -785,7 +1631,7 @@ export default function CustomRSVPForm() {
         variants={containerVariants}
       >
         {/* Close Button - positioned outside form */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, pt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0, pt: 2, pb: 2 }}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
             <IconButton
               onClick={handleClose}
@@ -800,7 +1646,19 @@ export default function CustomRSVPForm() {
               <CloseIcon />
             </IconButton>
           </Box>
-          <Typography variant="h6" sx={{ fontFamily: 'var(--font-playfair)', color: '#000000', fontWeight: 600 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontFamily: 'Outfit', 
+              color: '#141414', 
+              fontWeight: 400,
+              fontSize: '18px',
+              lineHeight: '1.26em',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              textAlign: 'center'
+            }}
+          >
             RSVP
           </Typography>
           <Box sx={{ flex: 1 }} /> {/* Spacer */}
@@ -816,6 +1674,9 @@ export default function CustomRSVPForm() {
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             color: '#000000',
+            height: '700px',
+            display: 'flex',
+            flexDirection: 'column',
             '& .MuiFormLabel-root': {
               color: '#333333 !important',
               fontWeight: 600,
@@ -900,7 +1761,7 @@ export default function CustomRSVPForm() {
           }}
         >
           {/* Progress Bar - moved inside form */}
-          <Box sx={{ mb: 4 }}>            
+          <Box sx={{ mb: 1 }}>            
             {/* Horizontal Segment Progress Bar */}
             <Box sx={{ mb: 2 }}>
               <Box
@@ -936,60 +1797,89 @@ export default function CustomRSVPForm() {
             </Box>
           </Box>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={stepVariants}
-            >
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
+          {/* Scrollable Content Area */}
+          <Box sx={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            minHeight: 0,
+            pr: 1,
+            '&::-webkit-scrollbar': {
+              width: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: '#f1f1f1',
+              borderRadius: '3px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#c1c1c1',
+              borderRadius: '3px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#a8a8a8',
+            },
+          }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={stepVariants}
+              >
+                {renderStep()}
+              </motion.div>
+            </AnimatePresence>
+          </Box>
 
           {/* Navigation Buttons */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3 }}>
+          <Box sx={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(4px)',
+            // opacity: 0.8,
+            paddingTop: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexShrink: 0,
+            mt: 'auto',
+          }}>
             {currentStep > 0 && (
-              <Button
+              <IconButton
                 onClick={handleBack}
-                variant="text"
-                sx={{ 
-                  minWidth: 100,
-                  color: '#666',
-                  textTransform: 'none',
-                  fontSize: '1rem',
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.16)',
+                  color: '#141414',
                   '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.24)',
                   },
                 }}
               >
-                Back
-              </Button>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+              </IconButton>
             )}
-            
-            {currentStep === 0 && <Box />} {/* Spacer for first step */}
             
             {currentStep < steps.length - 1 ? (
               <Button
                 onClick={formData.attending === 'no' ? handleSubmit : handleNext}
                 variant="contained"
-                fullWidth={currentStep === 0}
                 sx={{ 
-                  minWidth: currentStep === 0 ? 'auto' : 100,
-                  maxWidth: currentStep === 0 ? '100%' : 'auto',
+                  flex: 1,
+                  height: 48,
                   backgroundColor: '#DE3F5E',
                   color: 'white',
-                  py: 2,
                   fontSize: '1rem',
-                  fontWeight: 600,
-                  borderRadius: '32px',
+                  fontWeight: 700,
+                  borderRadius: '80px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  letterSpacing: '6.25%',
+                  fontFamily: 'Outfit',
                   '&:hover': {
                     backgroundColor: '#C8365A',
-                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                   },
                   '&:disabled': {
                     backgroundColor: '#ccc',
@@ -998,26 +1888,25 @@ export default function CustomRSVPForm() {
                 }}
                 disabled={formData.attending === 'no' && currentStep > 1}
               >
-                {formData.attending === 'no' ? 'Submit :(' : 'NEXT'}
+                {formData.attending === 'no' ? 'Submit' : 'Next'}
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
                 variant="contained"
-                fullWidth
                 sx={{ 
+                  flex: 1,
+                  height: 48,
                   backgroundColor: '#DE3F5E',
                   color: 'white',
-                  py: 2,
                   fontSize: '1rem',
-                  fontWeight: 600,
-                  borderRadius: '32px',
+                  fontWeight: 700,
+                  borderRadius: '80px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  letterSpacing: '6.25%',
+                  fontFamily: 'Outfit',
                   '&:hover': {
                     backgroundColor: '#C8365A',
-                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                   },
                   '&:disabled': {
                     backgroundColor: '#ccc',
@@ -1026,7 +1915,7 @@ export default function CustomRSVPForm() {
                 }}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT RSVP'}
+                {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
               </Button>
             )}
           </Box>
