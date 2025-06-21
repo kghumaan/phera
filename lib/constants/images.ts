@@ -15,7 +15,7 @@ export const BACKGROUNDS = {
   // OPTIMIZED versions (USE THESE!) - 98% smaller!
   BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg', // 6.7MB → 130KB
   GREEN: '/images/backgrounds/green.jpg', // 6.0MB → 199KB
-  ROSE: '/images/backgrounds/rose.jpg', // Current default background
+  ROSE: '/images/backgrounds/blue-clouds.jpg', // Current default background
   
   // New AI-generated variations (to be added)
   BLUE_VARIANTS: [
@@ -93,8 +93,8 @@ export const BRAND_ASSETS = {
 // Default combinations for common use cases
 export const DEFAULT_COMBINATIONS = {
   MAIN_BACKGROUND: {
-    // Using rose background as the main default (currently used on home page)
-    background: BACKGROUNDS.ROSE, // Current default background
+    // Using blue-clouds background as the main default (currently used on home page)
+    background: BACKGROUNDS.ROSE, // Current default background (now blue-clouds)
     overlay: OVERLAYS.PETALS_BIRDS, // 676KB optimized PNG
   },
   GUEST_BACKGROUND: {
@@ -143,7 +143,7 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
 export const APP_BACKGROUND_CONFIG = {
   // Current default - can be changed here to affect entire app
   default: {
-    background: BACKGROUNDS.ROSE,
+    background: BACKGROUNDS.ROSE, // Now points to blue-clouds.jpg
     overlay: OVERLAYS.PETALS_BIRDS,
     overlayOpacity: 0.6,
   },

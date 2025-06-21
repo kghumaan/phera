@@ -55,7 +55,7 @@ const weddingEvents = [
   //   dress_code: 'Traditional Formal (Red/Maroon/Gold)',
   //   cultural_significance: 'The sacred bond of marriage blessed by fire and witnessed by nature',
   //   gradient: 'linear-gradient(135deg, rgba(211, 47, 47, 0.8) 0%, rgba(244, 67, 54, 0.8) 50%, rgba(239, 83, 80, 0.8) 100%)',
-  //   image: '/images/backgrounds/rose.jpg'
+  //   image: '/images/backgrounds/blue-clouds.jpg'
   // },
   // {
   //   id: 5,
