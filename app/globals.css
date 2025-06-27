@@ -9,7 +9,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
-  --font-serif: var(--font-outfit);
+  --font-serif: var(--font-instrument-serif);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +23,47 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Viewport optimizations for background images */
+html,
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Dynamic viewport height for mobile browsers */
+  overflow-x: hidden;
+}
+
+/* Ensure backgrounds cover the full viewport on all devices */
+.background-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100vw;
+  position: relative;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  body {
+    /* Prevent horizontal scrolling on mobile */
+    overflow-x: hidden;
+    /* Ensure smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for iOS Safari address bar issues */
+  .background-container {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+  /* Ensure crisp backgrounds on retina displays */
+  .background-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
 }

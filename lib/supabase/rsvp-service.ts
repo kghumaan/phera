@@ -22,6 +22,36 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     const fullName = `${formData.firstName} ${formData.lastName}`;
     const avatarColor = generateAvatarColor(fullName);
     
+    // Normalize attending value - handle both old boolean and new string format
+    const normalizeAttending = (attending: any): 'yes' | 'no' | 'maybe' => {
+      if (typeof attending === 'boolean') {
+        return attending ? 'yes' : 'no';
+      }
+      if (typeof attending === 'string') {
+        return attending as 'yes' | 'no' | 'maybe';
+      }
+      return 'no'; // fallback
+    };
+
+    // Normalize food preferences - handle both string and array format
+    const normalizeFoodPreference = (foodPref: any): string[] => {
+      if (Array.isArray(foodPref)) {
+        return foodPref;
+      }
+      if (typeof foodPref === 'string' && foodPref.trim()) {
+        return foodPref.split(',').map(item => item.trim());
+      }
+      return [];
+    };
+
+    const attendingStatus = normalizeAttending(formData.attending);
+    const foodPreferences = normalizeFoodPreference(formData.foodPreference);
+    
+    // Create full phone number with country code
+    const fullPhone = formData.phone ? 
+      `${formData.countryCode || '+1'}${formData.phone}` : 
+      formData.phone;
+    
     // Create or get guest
     const { data: existingGuest } = await supabase
       .from('guests')
@@ -39,7 +69,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         .from('guests')
         .update({
           name: fullName,
-          phone: formData.phone,
+          phone: fullPhone,
           wedding_id: weddingId,
           avatar_color: avatarColor,
           wedding_side: formData.weddingSide,
@@ -53,7 +83,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         .insert({
           name: fullName,
           email: formData.email,
-          phone: formData.phone,
+          phone: fullPhone,
           wedding_id: weddingId,
           avatar_color: avatarColor,
           auth_method: 'email', // Default to email for now, will be updated when actual auth is implemented
@@ -66,71 +96,40 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       guestId = newGuest.id
     }
 
-    // Insert general RSVP record (since we removed ceremony selection)
-    console.log('About to insert RSVP with data:', {
+    // Prepare comprehensive RSVP record with all form data
+    const rsvpRecord = {
       guest_id: guestId,
       wedding_id: weddingId,
       event_id: 'general',
-      attending: formData.attending,
-      guest_count: formData.guestCount
-    });
+      attending: attendingStatus,
+      guest_count: attendingStatus === 'yes' ? formData.guestCount : 0,
+      plus_one_name: formData.plusOneName || null,
+      plus_one_email: formData.plusOneEmail || null,
+      country_code: formData.countryCode || '+1',
+      plus_one: formData.plusOne || false,
+      food_preference: foodPreferences.length > 0 ? foodPreferences : null,
+      dietary_restrictions: formData.dietaryRestrictions || null,
+      song_request: formData.songRequest || null,
+      special_message: formData.specialMessage || null,
+      maybe_comment: formData.maybeComment || null,
+    };
 
-    if (formData.attending) {
-      const rsvpRecord = {
-        guest_id: guestId,
-        wedding_id: weddingId,
-        event_id: 'general', // General attendance
-        attending: true,
-        guest_count: formData.guestCount,
-        plus_one_name: formData.plusOneName || null,
-        plus_one_email: formData.plusOneEmail || null,
-        dietary_restrictions: formData.dietaryRestrictions || null
-      };
-      
-      console.log('Inserting RSVP record:', rsvpRecord);
-      
-      const { data: rsvpData, error: rsvpError } = await supabase
-        .from('rsvps')
-        .upsert(rsvpRecord, {
-          onConflict: 'guest_id,event_id,wedding_id'
-        });
-      
-      console.log('RSVP upsert result:', { rsvpData, rsvpError });
-      
-      if (rsvpError) {
-        console.error('Error inserting RSVP:', rsvpError);
-        throw rsvpError;
-      }
-    } else {
-      // Insert a "not attending" record
-      const rsvpRecord = {
-        guest_id: guestId,
-        wedding_id: weddingId,
-        event_id: 'general',
-        attending: false,
-        guest_count: 0,
-        plus_one_name: null,
-        plus_one_email: null,
-        dietary_restrictions: null
-      };
-      
-      console.log('Inserting not attending RSVP record:', rsvpRecord);
-      
-      const { data: rsvpData, error: rsvpError } = await supabase
-        .from('rsvps')
-        .upsert(rsvpRecord, {
-          onConflict: 'guest_id,event_id,wedding_id'
-        });
-      
-      console.log('RSVP upsert result (not attending):', { rsvpData, rsvpError });
-      
-      if (rsvpError) {
-        console.error('Error inserting RSVP:', rsvpError);
-        throw rsvpError;
-      }
+    console.log('Inserting comprehensive RSVP record:', rsvpRecord);
+    
+    const { data: rsvpData, error: rsvpError } = await supabase
+      .from('rsvps')
+      .upsert(rsvpRecord, {
+        onConflict: 'guest_id,event_id,wedding_id'
+      });
+    
+    console.log('RSVP upsert result:', { rsvpData, rsvpError });
+    
+    if (rsvpError) {
+      console.error('Error inserting RSVP:', rsvpError);
+      throw rsvpError;
     }
 
-    // Add special message as a comment if provided
+    // Add special message as a comment if provided (keep for backwards compatibility)
     if (formData.specialMessage) {
       await supabase.from('comments').insert({
         guest_id: guestId,
@@ -146,7 +145,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         id: guestId,
         email: formData.email,
         name: fullName,
-        phone: formData.phone,
+        phone: fullPhone,
         weddingId: weddingId,
         timestamp: Date.now()
       };
@@ -168,7 +167,35 @@ export async function getAttendees(weddingId: string) {
       guest:guests(*)
     `)
     .eq('wedding_id', weddingId)
-    .eq('attending', true)
+    .eq('attending', 'yes')
+
+  if (error) throw error
+  return data
+}
+
+export async function getAllRSVPs(weddingId: string) {
+  const { data, error } = await supabase
+    .from('rsvps')
+    .select(`
+      *,
+      guest:guests(*)
+    `)
+    .eq('wedding_id', weddingId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function getMaybeAttendees(weddingId: string) {
+  const { data, error } = await supabase
+    .from('rsvps')
+    .select(`
+      *,
+      guest:guests(*)
+    `)
+    .eq('wedding_id', weddingId)
+    .eq('attending', 'maybe')
 
   if (error) throw error
   return data

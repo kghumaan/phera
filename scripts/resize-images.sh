@@ -77,31 +77,7 @@ optimize_couple_photo() {
     fi
 }
 
-# Function to optimize overlay images (PNG -> PNG, compress)
-optimize_overlay() {
-    local input="$1"
-    local output="$2"
-    local name="$3"
-    
-    if [[ -f "$input" ]]; then
-        echo -e "${BLUE}Processing overlay: $name${NC}"
-        echo "  📁 Input:  $input ($(show_size "$input"))"
-        
-        # Compress PNG while maintaining transparency
-        magick "$input" \
-            -quality 85 \
-            -define png:compression-filter=5 \
-            -define png:compression-level=9 \
-            -define png:compression-strategy=1 \
-            "$output"
-        
-        echo "  💾 Output: $output ($(show_size "$output"))"
-        echo -e "${GREEN}  ✅ Done!${NC}"
-        echo ""
-    else
-        echo -e "${RED}  ❌ File not found: $input${NC}"
-    fi
-}
+
 
 # Function to optimize frame images (PNG -> PNG, compress)
 optimize_frame() {
@@ -169,15 +145,7 @@ optimize_couple_photo \
     "public/images/couple/couple-2-alt.jpg" \
     "Couple Photo 2 (Public)"
 
-echo -e "${YELLOW}🌸 Optimizing Overlay Images${NC}"
-echo "Compressing PNG while maintaining transparency..."
-echo ""
 
-# Overlay Images (730KB -> ~200-400KB PNG)
-optimize_overlay \
-    "design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png" \
-    "public/images/overlays/petals-birds.png" \
-    "Petals and Birds"
 
 echo -e "${YELLOW}🖼️  Optimizing Frame Images${NC}"
 echo "Compressing PNG frames..."
@@ -199,13 +167,13 @@ echo ""
 echo "📊 Summary:"
 echo "  • Background images: Resized to 1920x1080 and converted to JPG"
 echo "  • Couple photos: Resized to max 800x600 and converted to JPG"
-echo "  • Overlays: Compressed PNG while maintaining transparency"
+
 echo "  • Frames: Compressed PNG"
 echo ""
 echo "📁 All optimized images are now in:"
 echo "  • public/images/backgrounds/"
 echo "  • public/images/couple/"
-echo "  • public/images/overlays/"
+
 echo "  • public/images/frames/"
 echo ""
 echo -e "${BLUE}Next steps:${NC}"

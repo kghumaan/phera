@@ -28,7 +28,7 @@ import { useState, useEffect } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
 import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
-import LoginDialog from '@/components/auth/LoginDialog';
+import LoginModal from '@/components/auth/LoginModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
@@ -81,75 +81,66 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   const theme = useTheme();
 
   const timeUnits = [
-    { label: 'Months', value: timeLeft.months },
-    { label: 'Days', value: timeLeft.days },
-    { label: 'Hours', value: timeLeft.hours },
-    { label: 'Mins', value: timeLeft.minutes },
-    { label: 'Secs', value: timeLeft.seconds }
+    { label: 'months', value: timeLeft.months },
+    { label: 'days', value: timeLeft.days },
+    { label: 'hours', value: timeLeft.hours },
+    { label: 'mins', value: timeLeft.minutes },
+    { label: 'secs', value: timeLeft.seconds }
   ];
 
   return (
     <Box
       sx={{
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 3,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8, // 64px from Figma converted to MUI scale
         px: 4,
-        py: 2,
+        py: 1.5,
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255,255,255,0.2)',
         width: '100%',
-        maxWidth: 500,
+        maxWidth: 400,
       }}
     >
       <Stack 
         direction="row" 
-        spacing={{ xs: 2, sm: 3 }} 
+        spacing={2}
         justifyContent="center" 
         alignItems="center"
-        flexWrap="wrap"
       >
         {timeUnits.map((unit, index) => (
-          <Box key={unit.label} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Stack alignItems="center" spacing={0.5}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: '#000',
-                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
-                  lineHeight: 1,
-                }}
-              >
-                {unit.value.toString().padStart(2, '0')}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#000',
-                  fontWeight: 500,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                {unit.label}
-              </Typography>
-            </Stack>
-            {index < timeUnits.length - 1 && (
-                          <Typography
+          <Stack 
+            key={unit.label} 
+            alignItems="center" 
+            spacing={0}
+            sx={{ 
+              minWidth: { xs: 35, sm: 40 }, // Fixed width for each column
+            }}
+          >
+            <Typography
+              variant="h4"
               sx={{
-                color: '#000',
-                fontWeight: 700,
-                fontSize: '1.5rem',
-                mx: 1,
-                display: { xs: 'none', sm: 'block' }
+                fontWeight: 400, // Regular weight like in Figma
+                color: '#000000',
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }, // 24px from Figma
+                lineHeight: 1.2,
+                fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
             >
-              :
+              {unit.value}
             </Typography>
-            )}
-          </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#000000',
+                fontWeight: 400,
+                fontSize: { xs: '0.65rem', sm: '0.75rem' }, // 12px from Figma
+                lineHeight: 1.4,
+                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                textAlign: 'center',
+              }}
+            >
+              {unit.label}
+            </Typography>
+          </Stack>
         ))}
       </Stack>
     </Box>
@@ -223,7 +214,6 @@ export default function HomePage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [currentBackground, setCurrentBackground] = useState(0);
   const [customBackground, setCustomBackground] = useState<string>('');
-  const [customOverlay, setCustomOverlay] = useState<string>('');
   
   // Authentication state from context
   const { user, isLoading, hasRSVPed, isCheckingRSVP, signOut } = useAuth();
@@ -236,13 +226,9 @@ export default function HomePage() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   
-  // Background configuration - now handled by OptimizedBackground component
+  // Background configuration - now handled by OptimizedBackground component  
   const handleBackgroundChange = (backgroundPath: string) => {
     setCustomBackground(backgroundPath);
-  };
-
-  const handleOverlayChange = (overlayPath: string) => {
-    setCustomOverlay(overlayPath);
   };
 
   const handleSignOut = async () => {
@@ -332,16 +318,16 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <Box
-              sx={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: 400,
-                aspectRatio: '1',
-                mx: 'auto',
-                mb: 2,
-              }}
-            >
+                          <Box
+                sx={{
+                  position: 'relative',
+                  width: '100%',
+                  maxWidth: 320,
+                  aspectRatio: '1',
+                  mx: 'auto',
+                  mb: 2,
+                }}
+              >
               {/* Frame Background */}
               <Box
                 sx={{
@@ -401,6 +387,8 @@ export default function HomePage() {
                   fontSize: { xs: '2.5rem', sm: '3rem' },
                   color: '#000',
                   lineHeight: 1.2,
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontStyle: 'italic',
                 }}
               >
                 {coupleData.names}
@@ -494,8 +482,8 @@ export default function HomePage() {
         </MenuItem>
       </Menu>
 
-      {/* Login Dialog */}
-      <LoginDialog
+      {/* Login Modal */}
+      <LoginModal
         open={loginDialogOpen}
         onClose={() => setLoginDialogOpen(false)}
         onSuccess={() => {

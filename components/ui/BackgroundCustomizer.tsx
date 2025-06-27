@@ -12,7 +12,6 @@ interface BackgroundOption {
 
 interface BackgroundCustomizerProps {
   onBackgroundChange?: (backgroundPath: string) => void;
-  onOverlayChange?: (overlayPath: string) => void;
 }
 
 const backgrounds: BackgroundOption[] = [
@@ -20,49 +19,41 @@ const backgrounds: BackgroundOption[] = [
     name: 'Blue Clouds',
     path: '/images/backgrounds/blue-clouds.jpg',
     preview: '☁️'
-  }
-];
-
-const overlays: BackgroundOption[] = [
-  {
-    name: 'Floral Birds',
-    path: '/images/overlays/petals-birds.png',
-    preview: '🌸🦋'
   },
   {
-    name: 'None',
-    path: '',
-    preview: '✨'
-  }
-];
-
-const frames: BackgroundOption[] = [
-  {
-    name: 'Classic Frame',
-    path: '/images/frames/frame-27.png',
-    preview: '🖼️'
+    name: 'Green',
+    path: '/images/backgrounds/green.jpg',
+    preview: '🌿'
   },
   {
-    name: 'No Frame',
-    path: '',
-    preview: '⭕'
+    name: 'Rose',
+    path: '/images/backgrounds/rose.jpg',
+    preview: '🌹'
+  },
+  {
+    name: 'Haldi',
+    path: '/images/backgrounds/haldi-optimized.jpg',
+    preview: '💛'
+  },
+  {
+    name: 'Mehndi',
+    path: '/images/backgrounds/mehndi-optimized.jpg',
+    preview: '🎨'
+  },
+  {
+    name: 'Pool',
+    path: '/images/backgrounds/pool-optimized.jpg',
+    preview: '🏊‍♀️'
   }
 ];
 
-export function BackgroundCustomizer({ onBackgroundChange, onOverlayChange }: BackgroundCustomizerProps) {
+export function BackgroundCustomizer({ onBackgroundChange }: BackgroundCustomizerProps) {
   const [selectedBackground, setSelectedBackground] = useState(0);
-  const [selectedOverlay, setSelectedOverlay] = useState(0);
-  const [selectedFrame, setSelectedFrame] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleBackgroundChange = (index: number) => {
     setSelectedBackground(index);
     onBackgroundChange?.(backgrounds[index].path);
-  };
-
-  const handleOverlayChange = (index: number) => {
-    setSelectedOverlay(index);
-    onOverlayChange?.(overlays[index].path);
   };
 
   return (
@@ -88,7 +79,7 @@ export function BackgroundCustomizer({ onBackgroundChange, onOverlayChange }: Ba
         <Stack spacing={2}>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-              Customize
+              Background
             </Typography>
             <Button
               size="small"
@@ -111,9 +102,9 @@ export function BackgroundCustomizer({ onBackgroundChange, onOverlayChange }: Ba
                   {/* Background Selection */}
                   <Box>
                     <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                      Background
+                      Choose Background
                     </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {backgrounds.map((bg, index) => (
                         <Chip
                           key={bg.name}
@@ -122,27 +113,7 @@ export function BackgroundCustomizer({ onBackgroundChange, onOverlayChange }: Ba
                           variant={selectedBackground === index ? 'filled' : 'outlined'}
                           color={selectedBackground === index ? 'primary' : 'default'}
                           size="small"
-                          sx={{ fontSize: '0.75rem' }}
-                        />
-                      ))}
-                    </Stack>
-                  </Box>
-
-                  {/* Overlay Selection */}
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                      Overlay
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {overlays.map((overlay, index) => (
-                        <Chip
-                          key={overlay.name}
-                          label={`${overlay.preview} ${overlay.name}`}
-                          onClick={() => handleOverlayChange(index)}
-                          variant={selectedOverlay === index ? 'filled' : 'outlined'}
-                          color={selectedOverlay === index ? 'primary' : 'default'}
-                          size="small"
-                          sx={{ fontSize: '0.75rem' }}
+                          sx={{ fontSize: '0.75rem', mb: 1 }}
                         />
                       ))}
                     </Stack>
@@ -176,23 +147,6 @@ export function BackgroundCustomizer({ onBackgroundChange, onOverlayChange }: Ba
                           backgroundPosition: 'center',
                         }}
                       />
-                      
-                      {/* Preview Overlay */}
-                      {overlays[selectedOverlay].path && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundImage: `url(${overlays[selectedOverlay].path})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            opacity: 0.6,
-                          }}
-                        />
-                      )}
                     </Box>
                   </Box>
                 </Stack>

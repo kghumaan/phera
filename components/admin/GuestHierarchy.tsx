@@ -506,6 +506,11 @@ export default function GuestHierarchy() {
               rows={2}
               fullWidth
               placeholder="Any special notes about this guest..."
+              sx={{
+                '& textarea::placeholder': {
+                  color: '#C2C2C2 !important',
+                },
+              }}
             />
           </Box>
         </DialogContent>

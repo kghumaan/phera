@@ -195,6 +195,10 @@ export default function CustomRSVPForm() {
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = 'Please enter a valid email';
         }
+        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (formData.phone && formData.phone.replace(/\D/g, '').length < 10) {
+          newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
+        }
         break;
       
       case 1: // Attendance Details
@@ -260,14 +264,16 @@ export default function CustomRSVPForm() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone ? `${formData.countryCode}${formData.phone}` : '',
-        attending: formData.attending === 'yes',
+        phone: formData.phone,
+        countryCode: formData.countryCode,
+        attending: formData.attending === '' ? 'no' : formData.attending, // Now supports 'yes'/'no'/'maybe'
         plusOne: formData.plusOne === 'yes',
         plusOneName: formData.plusOneName,
         plusOneEmail: formData.plusOneEmail,
         guestCount: formData.guestCount,
+        maybeComment: formData.maybeComment,
         ceremonyAttending: [], // No longer used
-        foodPreference: formData.foodPreference.join(', '),
+        foodPreference: formData.foodPreference, // Now supports array
         dietaryRestrictions: formData.dietaryRestrictions,
         relationshipToBride: formData.weddingSide === 'bride' ? 'Guest' : undefined,
         relationshipToGroom: formData.weddingSide === 'groom' ? 'Guest' : undefined,
@@ -277,9 +283,7 @@ export default function CustomRSVPForm() {
         accommodationNights: 0,
         transportationNeeded: false, // Removed
         songRequest: formData.songRequest,
-        specialMessage: formData.attending === 'maybe' 
-          ? `Maybe attending. Notes: ${formData.maybeComment}${formData.specialMessage ? ` | Special message: ${formData.specialMessage}` : ''}`
-          : formData.specialMessage,
+        specialMessage: formData.specialMessage,
         participation: [], // Removed
       };
 
@@ -421,9 +425,9 @@ export default function CustomRSVPForm() {
                     We'll miss you! :(
                   </Typography>
                   
-                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
-                    We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on September 30, 2025
-                  </Typography>
+                  <Alert severity="info" sx={{ borderRadius: 1, mb: 4 }}>
+                    We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>
+                  </Alert>
                 </>
               )}
               
@@ -472,11 +476,30 @@ export default function CustomRSVPForm() {
       case 0: // Basic Information
         return (
           <Stack spacing={2}>
-            <Typography variant="h4" sx={{ color: '#000', mb: 2 }}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                color: '#000', 
+                mb: 2,
+                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+                fontFamily: 'Outfit',
+                fontWeight: 400,
+                lineHeight: 1.3,
+              }}
+            >
               Let's make this celebration official! ✨
             </Typography>
             
-            <Typography variant="body1" sx={{ color: '#808080 !important', mb: 3 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#808080 !important', 
+                mb: 3,
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                fontFamily: 'Outfit',
+                lineHeight: 1.5,
+              }}
+            >
               First, we need some basics to create your guest account:
             </Typography>
             
@@ -487,7 +510,14 @@ export default function CustomRSVPForm() {
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 error={!!errors.firstName}
                 helperText={errors.firstName}
-                sx={{ flex: 1, maxWidth: '48%' }}
+                sx={{ 
+                  flex: 1, 
+                  maxWidth: '48%',
+                  '& .MuiOutlinedInput-input::placeholder': {
+                    fontSize: { xs: '13px', sm: '16px' },
+                    color: '#C2C2C2 !important',
+                  },
+                }}
               />
               <TextField
                 label="Last name"
@@ -495,7 +525,14 @@ export default function CustomRSVPForm() {
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 error={!!errors.lastName}
                 helperText={errors.lastName}
-                sx={{ flex: 1, maxWidth: '48%' }}
+                sx={{ 
+                  flex: 1, 
+                  maxWidth: '48%',
+                  '& .MuiOutlinedInput-input::placeholder': {
+                    fontSize: { xs: '13px', sm: '16px' },
+                    color: '#C2C2C2 !important',
+                  },
+                }}
               />
             </Box>
             
@@ -507,6 +544,12 @@ export default function CustomRSVPForm() {
               onChange={(e) => handleInputChange('email', e.target.value)}
               error={!!errors.email}
               helperText={errors.email}
+              sx={{
+                '& .MuiOutlinedInput-input::placeholder': {
+                  fontSize: { xs: '13px', sm: '16px' },
+                  color: '#C2C2C2 !important',
+                },
+              }}
             />
             
             <TextField
@@ -519,6 +562,8 @@ export default function CustomRSVPForm() {
                 handleInputChange('phone', cleanValue);
               }}
               placeholder={`000 000 0000`}
+              error={!!errors.phone}
+              helperText={errors.phone}
               InputProps={{
                 startAdornment: (
                   <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
@@ -563,13 +608,27 @@ export default function CustomRSVPForm() {
                 '& .MuiOutlinedInput-root': {
                   '& input': {
                     paddingLeft: '8px',
+                    '&::placeholder': {
+                      fontSize: { xs: '14px', sm: '16px' },
+                      color: '#C2C2C2 !important',
+                    },
                   },
                 },
               }}
             />
             
-            <Typography variant="body2" sx={{ color: '#666', mt: 2, mb: 2 }}>
-              <strong>Note:</strong> We're creating your account so you can easily access wedding updates and never have to find that invitation code again! Plus we need these for hotel confirmations.
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#666', 
+                mt: 2, 
+                mb: 2,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontFamily: 'Outfit',
+                lineHeight: 1.4,
+              }}
+            >
+              <strong>Note:</strong> We're creating your account so you can easily access wedding updates and never have to find that invitation code again! Phone number is required for hotel confirmations and important updates.
             </Typography>
           </Stack>
         );
@@ -585,7 +644,7 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: '28px',
+                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -597,7 +656,7 @@ export default function CustomRSVPForm() {
                 sx={{ 
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
-                  fontSize: '16px',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -632,7 +691,7 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.attending === option.value ? '#DE3F5E' : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
-                          fontSize: '16px',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -698,10 +757,11 @@ export default function CustomRSVPForm() {
                               height: '70px',
                               resize: 'none',
                               fontFamily: 'Outfit',
-                              fontSize: '16px',
-                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.24)',
+                              fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
                               backgroundColor: 'transparent',
                             }}
+                            className="responsive-textarea"
                           />
                         </Box>
                         
@@ -720,7 +780,7 @@ export default function CustomRSVPForm() {
                         >
                           <Typography variant="body2" sx={{ 
                             fontWeight: 400,
-                            fontSize: '14px',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
                             lineHeight: 1.5,
                             fontFamily: 'Outfit'
                           }}>
@@ -744,7 +804,7 @@ export default function CustomRSVPForm() {
               sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
                 lineHeight: 1.5,
-                fontSize: '14px',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 fontFamily: 'Outfit',
                 mt: 3
               }}
@@ -754,11 +814,29 @@ export default function CustomRSVPForm() {
             
 
             
-            <Collapse in={formData.attending === 'no'}>
-              <Alert severity="info" sx={{ borderRadius: 1 }}>
-                We'll miss you! We hope to celebrate with you in the future. 💕
-              </Alert>
-            </Collapse>
+            {/* <Collapse in={formData.attending === 'no'}>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  p: 2, 
+                  backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                  borderRadius: '8px',
+                  color: 'rgba(0, 0, 0, 0.72)',
+                  mt: 2
+                }}
+              >
+                <Typography variant="body2" sx={{ 
+                  fontWeight: 400,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}>
+                  We'll miss you! We hope to celebrate with you in the future. 💕
+                </Typography>
+              </Box>
+            </Collapse> */}
           </Stack>
         );
 
@@ -773,7 +851,7 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -786,7 +864,7 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -831,7 +909,7 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
-                          fontSize: '1rem',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -899,10 +977,11 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: '16px',
-                          color: formData.plusOneName.split(' ')[0] ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                          fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                          color: formData.plusOneName.split(' ')[0] ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
+                        className="responsive-placeholder"
                       />
                     </Box>
                     {errors.plusOneName && (
@@ -943,10 +1022,11 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: '16px',
-                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                          fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
+                        className="responsive-placeholder"
                       />
                     </Box>
                   </Box>
@@ -981,10 +1061,11 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         width: '100%',
                         fontFamily: 'Outfit',
-                        fontSize: '16px',
-                        color: formData.plusOneEmail ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                        fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                        color: formData.plusOneEmail ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                       }}
+                      className="responsive-placeholder"
                     />
                   </Box>
                   {errors.plusOneEmail && (
@@ -1035,11 +1116,12 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         flex: 1,
                         fontFamily: 'Outfit',
-                        fontSize: '16px',
-                        color: formData.phone ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                        fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                        color: formData.phone ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                         marginLeft: '8px',
                       }}
+                      className="responsive-placeholder"
                     />
                   </Box>
                 </Box>
@@ -1065,7 +1147,7 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
-                          fontSize: '1rem',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -1117,7 +1199,7 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mb: 2,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1158,7 +1240,7 @@ export default function CustomRSVPForm() {
                     minWidth: 60, 
                     textAlign: 'center', 
                     color: '#000',
-                    fontSize: '1.25rem',
+                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
                     fontWeight: 500,
                     py: 1,
                     fontFamily: 'Outfit'
@@ -1200,7 +1282,7 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1213,7 +1295,7 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -1261,7 +1343,7 @@ export default function CustomRSVPForm() {
                          sx={{ 
                            color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
                            fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
-                           fontSize: '1rem',
+                           fontSize: { xs: '0.9rem', sm: '1rem' },
                            fontFamily: 'Outfit',
                            lineHeight: 1.3,
                            flex: 1
@@ -1337,10 +1419,11 @@ export default function CustomRSVPForm() {
                        height: '20px',
                        resize: 'none',
                        fontFamily: 'Outfit',
-                       fontSize: '16px',
+                       fontSize: window.innerWidth < 600 ? '14px' : '16px',
                        color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
                        backgroundColor: 'transparent',
                      }}
+                     className="responsive-textarea"
                    />
                  </Box>
                </Box>
@@ -1359,7 +1442,7 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.75rem', md: '1.75rem' },
+                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1372,7 +1455,7 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -1408,7 +1491,7 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
-                          fontSize: '1rem',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -1468,7 +1551,7 @@ export default function CustomRSVPForm() {
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
-                      fontSize: { xs: '1.75rem', md: '1.75rem' },
+                      fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                       fontFamily: 'Outfit'
                     }}
                   >
@@ -1480,7 +1563,7 @@ export default function CustomRSVPForm() {
                     sx={{ 
                       color: 'rgba(0, 0, 0, 0.48)', 
                       fontWeight: 400,
-                      fontSize: '1rem',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
                       lineHeight: 1.5,
                       fontFamily: 'Outfit'
                     }}
@@ -1518,10 +1601,11 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: '16px',
-                      color: formData.songRequest ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      color: formData.songRequest ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
+                    className="responsive-placeholder"
                   />
                 </Box>
               </Box>
@@ -1536,7 +1620,7 @@ export default function CustomRSVPForm() {
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
-                      fontSize: { xs: '1.75rem', md: '1.75rem' },
+                      fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                       fontFamily: 'Outfit'
                     }}
                   >
@@ -1548,7 +1632,7 @@ export default function CustomRSVPForm() {
                     sx={{ 
                       color: 'rgba(0, 0, 0, 0.48)', 
                       fontWeight: 400,
-                      fontSize: '1rem',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
                       lineHeight: 1.5,
                       fontFamily: 'Outfit'
                     }}
@@ -1589,10 +1673,11 @@ export default function CustomRSVPForm() {
                       height: '60px',
                       resize: 'none',
                       fontFamily: 'Outfit',
-                      fontSize: '16px',
-                      color: formData.specialMessage ? '#000' : 'rgba(0, 0, 0, 0.24)',
+                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      color: formData.specialMessage ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
+                    className="responsive-textarea"
                   />
                   
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
@@ -1624,20 +1709,52 @@ export default function CustomRSVPForm() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <Container 
+        maxWidth="md" 
+        sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          py: { xs: 2, sm: 3, md: 4 },
+          px: { xs: 2, sm: 3, md: 4 },
+          overflow: 'hidden',
+        }}
       >
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
         {/* Close Button - positioned outside form */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0, pt: 2, pb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: { xs: 1, sm: 2 }, 
+          flexShrink: 0,
+        }}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
             <IconButton
               onClick={handleClose}
               sx={{
                 color: '#000',
                 backgroundColor: 'transparent',
+                p: { xs: 1, sm: 1.5 },
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.04)',
                 },
@@ -1652,7 +1769,7 @@ export default function CustomRSVPForm() {
               fontFamily: 'Outfit', 
               color: '#141414', 
               fontWeight: 400,
-              fontSize: '18px',
+              fontSize: { xs: '16px', sm: '18px' },
               lineHeight: '1.26em',
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
@@ -1668,15 +1785,26 @@ export default function CustomRSVPForm() {
         <Paper
           elevation={0}
           sx={{
-            p: 3,
+            p: { xs: 2, sm: 3 },
             borderRadius: 1,
             border: '1px solid #000',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             color: '#000000',
-            height: '700px',
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
+            minHeight: 0,
+            maxHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 140px)', md: 'calc(100vh - 160px)' },
+            // Responsive placeholder styles
+            '& .responsive-placeholder::placeholder': {
+              fontSize: { xs: '13px', sm: '16px' },
+              color: '#C2C2C2 !important',
+            },
+            '& .responsive-textarea::placeholder': {
+              fontSize: { xs: '13px', sm: '16px' },
+              color: '#C2C2C2 !important',
+            },
             '& .MuiFormLabel-root': {
               color: '#333333 !important',
               fontWeight: 600,
@@ -1700,7 +1828,7 @@ export default function CustomRSVPForm() {
                 borderWidth: '2px !important',
               },
               '& input::placeholder': {
-                color: '#808080 !important',
+                color: '#C2C2C2 !important',
                 opacity: 1,
               },
               '& input': {
@@ -1761,14 +1889,14 @@ export default function CustomRSVPForm() {
           }}
         >
           {/* Progress Bar - moved inside form */}
-          <Box sx={{ mb: 1 }}>            
+          <Box sx={{ mb: { xs: 1, sm: 2 }, flexShrink: 0 }}>            
             {/* Horizontal Segment Progress Bar */}
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   gap: '4px',
-                  height: '4px',
+                  height: { xs: '3px', sm: '4px' },
                   borderRadius: '2px',
                   overflow: 'hidden',
                   backgroundColor: '#F5F5F5',
@@ -1802,9 +1930,10 @@ export default function CustomRSVPForm() {
             flex: 1, 
             overflowY: 'auto', 
             minHeight: 0,
-            pr: 1,
+            pr: { xs: 0.5, sm: 1 },
+            px: { xs: 1, sm: 0 },
             '&::-webkit-scrollbar': {
-              width: '6px',
+              width: { xs: '4px', sm: '6px' },
             },
             '&::-webkit-scrollbar-track': {
               background: '#f1f1f1',
@@ -1835,11 +1964,10 @@ export default function CustomRSVPForm() {
           <Box sx={{ 
             backgroundColor: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(4px)',
-            // opacity: 0.8,
-            paddingTop: '20px',
+            pt: { xs: 2, sm: 2.5 },
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
+            gap: { xs: 1, sm: 1.5 },
             flexShrink: 0,
             mt: 'auto',
           }}>
@@ -1847,8 +1975,8 @@ export default function CustomRSVPForm() {
               <IconButton
                 onClick={handleBack}
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: { xs: 44, sm: 48 },
+                  height: { xs: 44, sm: 48 },
                   borderRadius: '50%',
                   backgroundColor: 'rgba(0, 0, 0, 0.16)',
                   color: '#141414',
@@ -1869,10 +1997,10 @@ export default function CustomRSVPForm() {
                 variant="contained"
                 sx={{ 
                   flex: 1,
-                  height: 48,
+                  height: { xs: 44, sm: 48 },
                   backgroundColor: '#DE3F5E',
                   color: 'white',
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontWeight: 700,
                   borderRadius: '80px',
                   textTransform: 'uppercase',
@@ -1896,10 +2024,10 @@ export default function CustomRSVPForm() {
                 variant="contained"
                 sx={{ 
                   flex: 1,
-                  height: 48,
+                  height: { xs: 44, sm: 48 },
                   backgroundColor: '#DE3F5E',
                   color: 'white',
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontWeight: 700,
                   borderRadius: '80px',
                   textTransform: 'uppercase',
@@ -1973,7 +2101,8 @@ export default function CustomRSVPForm() {
             </Button>
           </DialogActions>
         </Dialog>
-      </motion.div>
-    </Container>
+        </motion.div>
+      </Container>
+    </Box>
   );
 } 

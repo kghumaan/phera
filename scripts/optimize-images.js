@@ -18,9 +18,7 @@ const currentStructure = {
     'BlueClouds.png',
     'Green.png'
   ],
-  'design-reference/background-overlays/': [
-    'PedalsAndGreenPlantAndBirds.png'
-  ],
+
   'design-reference/image-frames/': [
     'Frame 27.png',
     'Frame 4.png'
@@ -36,9 +34,7 @@ const targetStructure = {
     'blue-clouds.jpg',      // Optimized from BlueClouds.png
     'green.jpg'             // Optimized from Green.png
   ],
-  'public/images/overlays/': [
-    'petals-birds.png'      // Optimized from PedalsAndGreenPlantAndBirds.png
-  ],
+
   'public/images/frames/': [
     'frame-27.png',         // Optimized from Frame 27.png
     'frame-4.png'           // Optimized from Frame 4.png
@@ -78,7 +74,7 @@ console.log('');
 console.log('Next Steps:');
 console.log('1. Manually optimize each image:');
 console.log('   - Backgrounds: Resize to 1920x1080, compress to ~300-500KB JPG');
-console.log('   - Overlays: Keep as PNG, compress to ~200-400KB');
+
 console.log('   - Couple photos: Resize to 800x600, compress to ~100-200KB JPG');
 console.log('   - Frames: Optimize PNG, target ~100-200KB');
 console.log('');

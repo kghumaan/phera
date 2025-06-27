@@ -194,6 +194,9 @@ export default function LoginDialog({ open, onClose, onSuccess }: LoginDialogPro
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    '& input::placeholder': {
+                      color: '#C2C2C2 !important',
+                    },
                   }
                 }}
               />
@@ -246,6 +249,9 @@ export default function LoginDialog({ open, onClose, onSuccess }: LoginDialogPro
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
+                  '& input::placeholder': {
+                    color: '#C2C2C2 !important',
+                  },
                 }
               }}
             />

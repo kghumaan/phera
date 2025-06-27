@@ -11,8 +11,6 @@ interface OptimizedBackgroundProps {
   children?: ReactNode;
   className?: string;
   priority?: boolean;
-  overlay?: string;
-  overlayOpacity?: number;
   useAppDefault?: boolean;
   variant?: 'default' | 'elegant' | 'natural';
 }
@@ -23,15 +21,11 @@ export default function OptimizedBackground({
   children,
   className = '',
   priority = false,
-  overlay,
-  overlayOpacity,
   useAppDefault = false,
   variant = 'default'
 }: OptimizedBackgroundProps) {
   const appConfig = useAppDefault ? getAppBackgroundConfig(variant) : null;
   const backgroundSrc = useAppDefault && appConfig ? appConfig.background : src;
-  const overlaySrc = useAppDefault && appConfig ? appConfig.overlay : overlay;
-  const opacity = useAppDefault && appConfig ? appConfig.overlayOpacity : (overlayOpacity ?? 0.3);
 
   if (!backgroundSrc) {
     console.warn('OptimizedBackground: No background source provided');
@@ -40,18 +34,16 @@ export default function OptimizedBackground({
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      {/* Background Image */}
+      {/* Background Image Container */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5 }}
+        className="fixed inset-0 -z-10"
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: -2,
+          // Ensure the container covers the entire viewport
+          minHeight: '100dvh', // Use dvh for better mobile support, fallback to vh via CSS
+          minWidth: '100vw',
         }}
       >
         <Image
@@ -59,38 +51,16 @@ export default function OptimizedBackground({
           alt={alt}
           fill
           priority={priority}
-          quality={85}
+          quality={90}
           sizes="100vw"
           className="object-cover object-center"
-          style={{
-            backgroundAttachment: 'fixed',
-          }}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
         />
       </motion.div>
       
-      {/* Overlay Image */}
-      {overlaySrc && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: -1,
-            backgroundImage: `url(${overlaySrc})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-            opacity: opacity,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-      
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 min-h-screen">
         {children}
       </div>
     </div>

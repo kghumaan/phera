@@ -18,6 +18,9 @@ npm install react-hook-form zod @hookform/resolvers
 
 # Supabase
 npm install @supabase/supabase-js @supabase/auth-helpers-nextjs
+
+# Supabase MCP (for AI integration)
+# See SUPABASE_MCP_SETUP.md for detailed setup instructions
 ```
 
 ## Project Structure
@@ -157,6 +160,27 @@ export interface Comment {
   guest?: Guest
 }
 ```
+
+## AI Integration with Supabase MCP
+
+### Model Context Protocol (MCP) Setup
+The project includes Supabase MCP integration for enhanced AI assistance. This allows your AI assistant to:
+- Query and analyze wedding guest data
+- Generate database insights and reports  
+- Manage database schema and migrations
+- Provide TypeScript type generation
+- Help with database optimization
+
+Configuration files:
+- `.cursor/mcp.json` - Project-specific MCP settings
+- `SUPABASE_MCP_SETUP.md` - Complete setup guide
+
+Benefits for wedding platform development:
+- Ask AI to analyze RSVP data patterns
+- Generate custom reports on attendance
+- Get help with database schema design
+- Automate TypeScript type generation
+- Receive guided database optimization suggestions
 
 ## Core Features Implementation
 

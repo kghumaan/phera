@@ -16,9 +16,17 @@ export interface RSVP {
   guest_id: string
   wedding_id: string
   event_id: string
-  attending: boolean
+  attending: 'yes' | 'no' | 'maybe'
   guest_count: number
   dietary_restrictions?: string
+  plus_one_name?: string
+  plus_one_email?: string
+  country_code?: string
+  plus_one: boolean
+  food_preference?: string[]
+  song_request?: string
+  special_message?: string
+  maybe_comment?: string
   created_at: string
   guest?: Guest
 }
@@ -29,17 +37,19 @@ export interface RSVPFormData {
   lastName: string
   email: string
   phone?: string
+  countryCode?: string
   
   // Attendance
-  attending: boolean
+  attending: 'yes' | 'no' | 'maybe' | boolean // Support both new and old format
   plusOne: boolean
   plusOneName?: string
   plusOneEmail?: string
   guestCount: number
+  maybeComment?: string
   
   // Event-specific (ceremonies removed - now handled differently)
   ceremonyAttending: string[] // Keep for backward compatibility
-  foodPreference: string
+  foodPreference: string | string[] // Support both single string and array
   dietaryRestrictions?: string
   
   // Cultural & Personal (modified)

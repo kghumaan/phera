@@ -25,19 +25,7 @@ export function PlaceholderCouple({ size = 300 }: PlaceholderCoupleProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url("/images/overlays/petals-birds.png")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.3,
-          zIndex: 1,
-        }
+
       }}
     >
       {/* Simulated couple photo */}

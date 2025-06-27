@@ -13,9 +13,18 @@ export const BACKGROUNDS = {
   GREEN_LEGACY: '/design-reference/backgrounds/Green.png',
   
   // OPTIMIZED versions (USE THESE!) - 98% smaller!
-  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg', // 6.7MB → 130KB
+  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg', // Optimized watercolor blue sky - 133KB @ 1920x1080
   GREEN: '/images/backgrounds/green.jpg', // 6.0MB → 199KB
-  ROSE: '/images/backgrounds/blue-clouds.jpg', // Current default background
+  ROSE: '/images/backgrounds/rose.jpg', // Rose background
+  
+  // Event-specific backgrounds
+  HALDI: '/images/backgrounds/haldi-optimized.jpg',
+  HALDI_2: '/images/backgrounds/haldi2-optimized.jpg',
+  MEHNDI: '/images/backgrounds/mehndi-optimized.jpg',
+  JAGGO: '/images/backgrounds/jaggo-optimized.jpg',
+  JAGGO_2: '/images/backgrounds/jaggo2-optimized.jpg',
+  POOL: '/images/backgrounds/pool-optimized.jpg',
+  POOL_2: '/images/backgrounds/pool2-optimized.jpg',
   
   // New AI-generated variations (to be added)
   BLUE_VARIANTS: [
@@ -56,15 +65,6 @@ export const BACKGROUNDS = {
   ],
 } as const;
 
-// Overlay Images - OPTIMIZED ✅
-export const OVERLAYS = {
-  // Legacy path (DEPRECATED)
-  PETALS_BIRDS_LEGACY: '/design-reference/background-overlays/PedalsAndGreenPlantAndBirds.png',
-  
-  // OPTIMIZED version (USE THIS!) - 7% smaller with better compression
-  PETALS_BIRDS: '/images/overlays/petals-birds.png', // 732KB → 676KB
-} as const;
-
 // Frame Images - OPTIMIZED ✅
 export const FRAMES = {
   // Legacy paths (DEPRECATED)
@@ -93,14 +93,12 @@ export const BRAND_ASSETS = {
 // Default combinations for common use cases
 export const DEFAULT_COMBINATIONS = {
   MAIN_BACKGROUND: {
-    // Using blue-clouds background as the main default (currently used on home page)
-    background: BACKGROUNDS.ROSE, // Current default background (now blue-clouds)
-    overlay: OVERLAYS.PETALS_BIRDS, // 676KB optimized PNG
+    // Using blue-clouds background as the main default
+    background: BACKGROUNDS.BLUE_CLOUDS,
   },
   GUEST_BACKGROUND: {
     // Alternative background for variety
-    background: BACKGROUNDS.BLUE_CLOUDS, // 130KB optimized JPG  
-    overlay: OVERLAYS.PETALS_BIRDS, // 676KB optimized PNG
+    background: BACKGROUNDS.GREEN,
   },
 } as const;
 
@@ -112,7 +110,7 @@ export function getOptimizedImage(imagePath: string): string {
 
 // Helper to check if image is optimized (all current paths are optimized!)
 export function isOptimized(imagePath: string): boolean {
-  // All paths in BACKGROUNDS, OVERLAYS, FRAMES, COUPLE_IMAGES are now optimized
+  // All paths in BACKGROUNDS, FRAMES, COUPLE_IMAGES are now optimized
   return !imagePath.includes('/design-reference/');
 }
 
@@ -143,22 +141,16 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
 export const APP_BACKGROUND_CONFIG = {
   // Current default - can be changed here to affect entire app
   default: {
-    background: BACKGROUNDS.ROSE, // Now points to blue-clouds.jpg
-    overlay: OVERLAYS.PETALS_BIRDS,
-    overlayOpacity: 0.6,
+    background: BACKGROUNDS.BLUE_CLOUDS,
   },
   
   // Alternative configurations for different contexts
   variants: {
     elegant: {
-      background: BACKGROUNDS.BLUE_CLOUDS,
-      overlay: OVERLAYS.PETALS_BIRDS,
-      overlayOpacity: 0.5,
+      background: BACKGROUNDS.ROSE,
     },
     natural: {
       background: BACKGROUNDS.GREEN,
-      overlay: OVERLAYS.PETALS_BIRDS,
-      overlayOpacity: 0.7,
     },
   }
 } as const;

@@ -8,32 +8,26 @@ import {
   TextField,
   Stack,
   InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Divider,
-  Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import LoginModal from '@/components/auth/LoginModal';
 
 interface PinEntryProps {
   onPinVerified: () => void;
 }
 
+
+
 const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone' | null>(null);
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+
+
   const { refreshAuth } = useAuth();
   const inputRefs = [
     useRef<HTMLInputElement>(null),
@@ -88,47 +82,23 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
-    setAuthError('');
   };
 
-  const handleAuthSubmit = async () => {
-    setIsLoading(true);
-    setAuthError('');
-
-    try {
-      if (loginMethod === 'email') {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: email,
-          options: {
-            shouldCreateUser: true,
-          }
-        });
-        if (error) throw error;
-        setAuthError('Check your email for the login link!');
-      } else if (loginMethod === 'phone') {
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: phone,
-          options: {
-            shouldCreateUser: true,
-          }
-        });
-        if (error) throw error;
-        setAuthError('Check your phone for the verification code!');
-      }
-    } catch (error: any) {
-      setAuthError(error.message || 'Authentication failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCloseDialog = () => {
+  const handleLoginSuccess = () => {
     setLoginDialogOpen(false);
-    setLoginMethod(null);
-    setEmail('');
-    setPhone('');
-    setAuthError('');
+    onPinVerified();
   };
+
+  // Disable scrolling on this screen
+  useEffect(() => {
+    // Disable scrolling when component mounts
+    document.body.style.overflow = 'hidden';
+    
+    // Re-enable scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   // Check for auth state changes and pin verification
   useEffect(() => {
@@ -168,7 +138,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     return () => subscription.unsubscribe();
   }, [onPinVerified]);
 
-  // Background and overlay setup similar to home page
+  // Background setup similar to home page
   return (
     <OptimizedBackground 
       useAppDefault={true}
@@ -187,21 +157,21 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
         }}
       >
         <Container maxWidth="sm">
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
+                      <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
             {/* Logo */}
             <Box
               component="img"
-              src="/logo.svg"
+              src="/logo-stacked.svg"
               alt="Phera Logo"
               sx={{
-                height: { xs: 32, sm: 40 },
+                height: { xs: 80, sm: 100, md: 120 },
                 width: 'auto',
                 filter: 'brightness(0)',
               }}
@@ -218,12 +188,13 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
           minHeight: '100vh',
           pt: { xs: 8, sm: 8 }, // Account for header
           pb: { xs: 4, sm: 6 },
           px: { xs: 3, sm: 4 },
+          gap: { xs: 4, sm: 6 },
         }}
       >
         {/* Top Section - Logo and Title */}
@@ -237,11 +208,10 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            flex: '0 0 auto',
           }}
         >
           {/* Lotus Logo */}
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               justifyContent: 'center',
@@ -258,7 +228,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 filter: 'brightness(0)', // Makes it black
               }}
             />
-          </Box>
+          </Box> */}
 
           {/* Heading */}
           <Typography
@@ -302,8 +272,6 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            flex: '1 1 0',
-            minHeight: 0,
           }}
         >
           {/* Pin Input Section */}
@@ -311,7 +279,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             direction="row" 
             spacing={{ xs: 1.5, sm: 2, md: 3 }}
             justifyContent="center"
-            mb={0}
+            mb={4}
           >
             {pin.map((digit, index) => (
               <TextField
@@ -404,7 +372,6 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '16px',
-            marginTop: 'auto',
           }}
         >
           {/* Continue Button */}
@@ -529,199 +496,12 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
         </motion.div>
       </Container>
 
-      {/* Login Dialog */}
-      <Dialog
+      {/* Login Modal */}
+      <LoginModal
         open={loginDialogOpen}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0,0,0,0.1)',
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          color: '#000', 
-          fontWeight: 700,
-          fontSize: '1.5rem',
-          textAlign: 'center',
-          pb: 1,
-        }}>
-          Welcome Back!
-        </DialogTitle>
-        <DialogContent sx={{ px: 4, py: 2 }}>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#000', 
-              mb: 3,
-              textAlign: 'center',
-              fontSize: '1rem',
-            }}
-          >
-            Choose how you'd like to sign in
-          </Typography>
-
-          {!loginMethod ? (
-            <Stack spacing={2}>
-              <Button
-                variant="outlined"
-                fullWidth
-                size="large"
-                onClick={() => setLoginMethod('email')}
-                sx={{
-                  borderColor: '#DE3F5E',
-                  color: '#DE3F5E',
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#C8365A',
-                    backgroundColor: 'rgba(222, 63, 94, 0.05)',
-                  },
-                }}
-              >
-                Continue with Email
-              </Button>
-              <Button
-                variant="outlined"
-                fullWidth
-                size="large"
-                onClick={() => setLoginMethod('phone')}
-                sx={{
-                  borderColor: '#DE3F5E',
-                  color: '#DE3F5E',
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#C8365A',
-                    backgroundColor: 'rgba(222, 63, 94, 0.05)',
-                  },
-                }}
-              >
-                Continue with Phone
-              </Button>
-            </Stack>
-          ) : (
-            <Stack spacing={3}>
-              {loginMethod === 'email' ? (
-                <TextField
-                  label="Email Address"
-                  type="email"
-                  fullWidth
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      '& fieldset': {
-                        borderColor: 'rgba(0,0,0,0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                    },
-                  }}
-                />
-              ) : (
-                <TextField
-                  label="Phone Number"
-                  type="tel"
-                  fullWidth
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter your phone number with country code"
-                  helperText="Include country code (e.g., +1 for US, +91 for India)"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      '& fieldset': {
-                        borderColor: 'rgba(0,0,0,0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                    },
-                  }}
-                />
-              )}
-              
-              {authError && (
-                <Alert 
-                  severity={authError.includes('Check your') ? 'success' : 'error'}
-                  sx={{ borderRadius: 2 }}
-                >
-                  {authError}
-                </Alert>
-              )}
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 4, pb: 4, pt: 2 }}>
-          <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
-            <Button
-              onClick={loginMethod ? () => setLoginMethod(null) : handleCloseDialog}
-              variant="outlined"
-              sx={{
-                borderColor: 'rgba(0,0,0,0.2)',
-                color: '#666',
-                flex: 1,
-                py: 1,
-                borderRadius: 2,
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: 'rgba(0,0,0,0.4)',
-                  backgroundColor: 'rgba(0,0,0,0.05)',
-                },
-              }}
-            >
-              {loginMethod ? 'Back' : 'Cancel'}
-            </Button>
-            {loginMethod && (
-              <Button
-                onClick={handleAuthSubmit}
-                disabled={isLoading || (loginMethod === 'email' ? !email : !phone)}
-                variant="contained"
-                sx={{
-                  backgroundColor: '#DE3F5E',
-                  color: '#fff',
-                  flex: 1,
-                  py: 1,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#C8365A',
-                  },
-                  '&:disabled': {
-                    backgroundColor: 'rgba(222, 63, 94, 0.3)',
-                  },
-                }}
-              >
-                {isLoading ? 'Sending...' : `Send ${loginMethod === 'email' ? 'Login Link' : 'Code'}`}
-              </Button>
-            )}
-          </Stack>
-        </DialogActions>
-      </Dialog>
+        onClose={() => setLoginDialogOpen(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </OptimizedBackground>
   );
 };

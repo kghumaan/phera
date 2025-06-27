@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Instrument_Serif } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
@@ -10,6 +10,13 @@ const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${outfit.variable} antialiased`}>
+      <body className={`${outfit.variable} ${instrumentSerif.variable} antialiased`}>
         <ErrorBoundary>
           <AppRouterCacheProvider>
             <ClientThemeProvider>

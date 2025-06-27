@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
 // Cultural color tokens
 const culturalColors = {
@@ -13,7 +13,7 @@ const culturalColors = {
   purple: '#6C5CE7'
 };
 
-export const theme = createTheme({
+const baseTheme = createTheme({
   cssVariables: {
     colorSchemeSelector: 'data-mui-color-scheme'
   },
@@ -134,6 +134,12 @@ export const theme = createTheme({
               borderColor: culturalColors.maroon,
               borderWidth: '2px',
             },
+            '& input::placeholder': {
+              color: '#C2C2C2 !important',
+            },
+            '& textarea::placeholder': {
+              color: '#C2C2C2 !important',
+            },
           },
         },
       },
@@ -158,4 +164,7 @@ export const theme = createTheme({
       },
     },
   },
-}); 
+});
+
+// Apply responsive font sizes
+export const theme = responsiveFontSizes(baseTheme); 

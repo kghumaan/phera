@@ -347,6 +347,9 @@ export default function GuestList({ weddingId }: GuestListProps) {
                     borderColor: '#000',
                     borderWidth: '2px',
                   },
+                  '& textarea::placeholder': {
+                    color: '#C2C2C2 !important',
+                  },
                 },
                 '& .MuiInputBase-input': {
                   fontFamily: 'var(--font-playfair)',
