@@ -182,8 +182,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           left: 0,
           right: 0,
           zIndex: 3,
-          pt: 2,
-          px: 2,
+          pt: { xs: 2, sm: 3 },
+          px: { xs: 3, sm: 4 },
         }}
       >
         <Container maxWidth="sm">
@@ -218,24 +218,34 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
           alignItems: 'center',
           minHeight: '100vh',
-          py: 4,
+          pt: { xs: 8, sm: 8 }, // Account for header
+          pb: { xs: 4, sm: 6 },
+          px: { xs: 3, sm: 4 },
         }}
       >
+        {/* Top Section - Logo and Title */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          style={{ width: '100%', textAlign: 'center' }}
+          style={{ 
+            width: '100%', 
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            flex: '0 0 auto',
+          }}
         >
           {/* Lotus Logo */}
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              mb: 4,
+              mb: { xs: 2, sm: 3 },
             }}
           >
             <Box
@@ -243,7 +253,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               src="/logo-lotus-flame.svg"
               alt="Lotus Logo"
               sx={{
-                height: { xs: 80, sm: 100 },
+                height: { xs: 50, sm: 60, md: 80 },
                 width: 'auto',
                 filter: 'brightness(0)', // Makes it black
               }}
@@ -256,8 +266,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             sx={{
               fontWeight: 800,
               color: '#000',
-              mb: 2,
-              fontSize: { xs: '2rem', sm: '2.5rem' },
+              mb: { xs: 1, sm: 1.5 },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
               letterSpacing: '0.02em',
             }}
           >
@@ -269,23 +279,39 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             variant="body1"
             sx={{
               color: '#000',
-              mb: 6,
-              fontSize: { xs: '1rem', sm: '1.1rem' },
-              lineHeight: 1.5,
-              maxWidth: 400,
+              fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+              lineHeight: 1.4,
+              maxWidth: { xs: 280, sm: 350 },
               mx: 'auto',
               fontWeight: 500,
             }}
           >
             Enter your invitation code to see all the details and RSVP for our celebration
           </Typography>
+        </motion.div>
 
+        {/* Middle Section - PIN Input (Centered) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          style={{ 
+            width: '100%', 
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: '1 1 0',
+            minHeight: 0,
+          }}
+        >
           {/* Pin Input Section */}
           <Stack 
             direction="row" 
-            spacing={{ xs: 2, sm: 3 }}
+            spacing={{ xs: 1.5, sm: 2, md: 3 }}
             justifyContent="center"
-            mb={6}
+            mb={0}
           >
             {pin.map((digit, index) => (
               <TextField
@@ -295,22 +321,26 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 onChange={(e) => handlePinChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 sx={{
-                  width: { xs: 60, sm: 80 },
+                  width: { xs: 55, sm: 70, md: 85 },
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: 2,
-                    height: { xs: 60, sm: 80 },
-                    fontSize: { xs: '1.5rem', sm: '2rem' },
-                    fontWeight: 600,
+                    borderRadius: 3,
+                    height: { xs: 55, sm: 70, md: 85 },
+                    fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
+                    fontWeight: 700,
                     textAlign: 'center',
-                    border: error ? '2px solid #f44336' : '1px solid rgba(0,0,0,0.12)',
+                    border: error ? '3px solid #f44336' : '2px solid rgba(0,0,0,0.15)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     '&:hover': {
-                      border: error ? '2px solid #f44336' : '1px solid rgba(0,0,0,0.25)',
+                      border: error ? '3px solid #f44336' : '2px solid rgba(0,0,0,0.3)',
+                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.15)',
                     },
                     '&.Mui-focused': {
-                      border: error ? '2px solid #f44336' : '2px solid #000',
-                      boxShadow: error ? '0 0 0 4px rgba(244, 67, 54, 0.1)' : '0 0 0 4px rgba(0, 0, 0, 0.1)',
+                      border: error ? '3px solid #f44336' : '3px solid #DE3F5E',
+                      boxShadow: error ? '0 0 0 6px rgba(244, 67, 54, 0.15)' : '0 0 0 6px rgba(222, 63, 94, 0.15)',
+                      transform: 'scale(1.05)',
                     },
+                    transition: 'all 0.2s ease-in-out',
                   },
                   '& .MuiOutlinedInput-input': {
                     textAlign: 'center',
@@ -346,86 +376,79 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 variant="body2"
                 sx={{
                   color: '#f44336',
-                  mb: 4,
-                  fontWeight: 500,
+                  mt: { xs: 3, sm: 4 },
+                  fontWeight: 600,
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  textAlign: 'center',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  px: 3,
+                  py: 1,
+                  borderRadius: '20px',
+                  border: '1px solid rgba(244, 67, 54, 0.2)',
                 }}
               >
                 Invalid invitation code. Please try again.
               </Typography>
             </motion.div>
           )}
+        </motion.div>
 
-          {/* Decorative Lotus at bottom */}
-          <Box
+        {/* Bottom Section - Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            marginTop: 'auto',
+          }}
+        >
+          {/* Continue Button */}
+          <Button
+            onClick={handleContinue}
+            disabled={!isPinComplete}
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 6,
-            //   opacity: 0.7,
+              backgroundColor: '#DE3F5E',
+              color: '#fff',
+              borderRadius: '32px',
+              px: { xs: 4, sm: 6, md: 8 },
+              py: { xs: 1.25, sm: 1.5, md: 2 },
+              fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              width: '100%',
+              maxWidth: { xs: 280, sm: 300 },
+              boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
+              '&:hover': {
+                backgroundColor: '#C8365A',
+                boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
+                transform: 'translateY(-1px)',
+              },
+              '&:disabled': {
+                backgroundColor: 'rgba(222, 63, 94, 0.3)',
+                color: 'rgba(255,255,255,0.5)',
+                boxShadow: 'none',
+                transform: 'none',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
-            <Box
-              component="img"
-              src="/logo-lotus-flame.svg"
-              alt="Decorative Lotus"
-              sx={{
-                height: { xs: 80, sm: 100 },
-                width: 'auto',
-                filter: 'brightness(0)',
-                transform: 'rotate(180deg)',
-              }}
-              
-            />
-          </Box>
-
-          {/* Continue Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <Button
-              onClick={handleContinue}
-              disabled={!isPinComplete}
-              sx={{
-                backgroundColor: '#DE3F5E',
-                color: '#fff',
-                borderRadius: '32px',
-                px: { xs: 6, sm: 8 },
-                py: { xs: 1.5, sm: 2 },
-                fontSize: { xs: '1rem', sm: '1.1rem' },
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                width: '100%',
-                maxWidth: 300,
-                boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
-                '&:hover': {
-                  backgroundColor: '#C8365A',
-                  boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
-                  transform: 'translateY(-1px)',
-                },
-                '&:disabled': {
-                  backgroundColor: 'rgba(222, 63, 94, 0.3)',
-                  color: 'rgba(255,255,255,0.5)',
-                  boxShadow: 'none',
-                  transform: 'none',
-                },
-                transition: 'all 0.2s ease-in-out',
-              }}
-            >
-              Continue
-            </Button>
-          </motion.div>
+            Continue
+          </Button>
 
           {/* Or Divider */}
           <Box 
             sx={{ 
-              my: 4, 
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
+              my: { xs: 1, sm: 2 },
             }}
           >
             <Box
@@ -433,7 +456,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 width: '100%',
-                maxWidth: 300,
+                maxWidth: { xs: 280, sm: 300 },
                 gap: 2,
               }}
             >
@@ -452,10 +475,10 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 sx={{
                   color: '#000',
                   fontWeight: 500,
-                  fontSize: '0.9rem',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
                   textTransform: 'lowercase',
                   backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  px: 2,
+                  px: { xs: 1.5, sm: 2 },
                   py: 0.5,
                   borderRadius: '12px',
                   border: '1px solid rgba(0, 0, 0, 0.1)',
@@ -478,37 +501,31 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           </Box>
 
           {/* Login Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+          <Button
+            onClick={handleLogin}
+            sx={{
+              backgroundColor: '#DE3F5E',
+              color: '#fff',
+              borderRadius: '32px',
+              px: { xs: 4, sm: 6, md: 8 },
+              py: { xs: 1.25, sm: 1.5, md: 2 },
+              fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              width: '100%',
+              maxWidth: { xs: 280, sm: 300 },
+              boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
+              '&:hover': {
+                backgroundColor: '#C8365A',
+                boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
+                transform: 'translateY(-1px)',
+              },
+              transition: 'all 0.2s ease-in-out',
+            }}
           >
-            <Button
-              onClick={handleLogin}
-              sx={{
-                backgroundColor: '#DE3F5E',
-                color: '#fff',
-                borderRadius: '32px',
-                px: { xs: 6, sm: 8 },
-                py: { xs: 1.5, sm: 2 },
-                fontSize: { xs: '1rem', sm: '1.1rem' },
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                width: '100%',
-                maxWidth: 300,
-                boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
-                '&:hover': {
-                  backgroundColor: '#C8365A',
-                  boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
-                  transform: 'translateY(-1px)',
-                },
-                transition: 'all 0.2s ease-in-out',
-              }}
-            >
-              Login
-            </Button>
-          </motion.div>
+            Login
+          </Button>
         </motion.div>
       </Container>
 
