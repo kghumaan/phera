@@ -7,6 +7,9 @@ export interface AuthResult {
     email: string
     name: string
     phone?: string
+    avatar_style?: string
+    avatar_seed?: string
+    avatar_svg?: string
   }
   error?: string
 }
@@ -94,13 +97,29 @@ export async function getCurrentUser(): Promise<AuthResult> {
       return { success: false, error: 'No user session found' }
     }
 
+    // Try to get enhanced user data from guests table
+    let guestData = null;
+    if (user.email) {
+      const { data: guest } = await supabase
+        .from('guests')
+        .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
+        .eq('email', user.email)
+        .eq('wedding_id', 'sim-kv')
+        .single();
+      
+      guestData = guest;
+    }
+
     return {
       success: true,
       user: {
-        id: user.id,
+        id: guestData?.id || user.id,
         email: user.email || '',
-        name: user.user_metadata?.full_name || user.email || user.phone || '',
-        phone: user.phone,
+        name: guestData?.name || user.user_metadata?.full_name || user.email || user.phone || '',
+        phone: guestData?.phone || user.phone,
+        avatar_style: guestData?.avatar_style,
+        avatar_seed: guestData?.avatar_seed,
+        avatar_svg: guestData?.avatar_svg,
       }
     }
   } catch (error) {

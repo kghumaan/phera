@@ -30,7 +30,7 @@ export default function AppHeader({
   variant = 'transparent',
   onLoginClick
 }: AppHeaderProps) {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, hasRSVPed, rsvpResponse, signOut } = useAuth();
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
 
   const handleSignOut = async () => {
@@ -39,6 +39,15 @@ export default function AppHeader({
       setUserMenuAnchor(null);
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const formatRSVPResponse = (response: 'yes' | 'no' | 'maybe' | null): string => {
+    switch (response) {
+      case 'yes': return 'Going';
+      case 'no': return 'Not Going';
+      case 'maybe': return 'Maybe';
+      default: return 'RSVP';
     }
   };
 
@@ -102,36 +111,76 @@ export default function AppHeader({
               </Link>
             </Box>
             
-            {/* Right side - User Avatar / Login Button */}
+            {/* Right side - RSVP Status / User Avatar / Login Button */}
             {isLoading ? (
               <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
             ) : user ? (
-              <Chip
-                avatar={
-                  <Avatar
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* RSVP Status Button - Show when user has RSVPed */}
+                {hasRSVPed && rsvpResponse && (
+                  <Button
+                    variant="contained"
                     sx={{
-                      backgroundColor: user.avatar_color,
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      px: 2.5,
+                      py: 0.5,
+                      fontSize: '0.875rem',
+                      fontWeight: 400,
+                      letterSpacing: '7.142857142857142%',
+                      textTransform: 'none',
+                      minHeight: 32,
+                      fontFamily: 'Outfit',
+                      '&:hover': {
+                        backgroundColor: '#333',
+                      },
                     }}
                   >
-                    {user.initials}
-                  </Avatar>
-                }
-                label={user.name.split(' ')[0]}
-                onClick={(e) => setUserMenuAnchor(e.currentTarget)}
-                sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  color: '#333',
-                  fontWeight: 500,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 1)',
-                  },
-                }}
-              />
+                    {formatRSVPResponse(rsvpResponse)}
+                  </Button>
+                )}
+                
+                {/* User Avatar - Circular only */}
+                <Avatar
+                  onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    backgroundColor: user.avatar_color,
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {user.avatar_svg ? (
+                    <Box
+                      dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '& svg': {
+                          width: '100%',
+                          height: '100%',
+                        },
+                      }}
+                    />
+                  ) : (
+                    user.initials
+                  )}
+                </Avatar>
+              </Box>
             ) : (
               <Button
                 variant="contained"

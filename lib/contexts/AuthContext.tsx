@@ -11,12 +11,16 @@ interface User {
   phone?: string;
   initials: string;
   avatar_color: string;
+  avatar_style?: string;
+  avatar_seed?: string;
+  avatar_svg?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   hasRSVPed: boolean;
+  rsvpResponse: 'yes' | 'no' | 'maybe' | null;
   isCheckingRSVP: boolean;
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -29,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasRSVPed, setHasRSVPed] = useState(false);
+  const [rsvpResponse, setRsvpResponse] = useState<'yes' | 'no' | 'maybe' | null>(null);
   const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
 
   const generateInitials = (name: string) => {
@@ -62,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setIsCheckingRSVP(true);
     setHasRSVPed(false); // Reset state first
+    setRsvpResponse(null); // Reset RSVP response
     
     try {
       // First, let's try a direct RSVP query to see if the user has any RSVPs
@@ -116,16 +122,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (directRSVPData && directRSVPData.length > 0) {
             setHasRSVPed(true);
+            setRsvpResponse(directRSVPData[0].attending);
             return;
           }
         }
         
         setHasRSVPed(false);
+        setRsvpResponse(null);
         return;
       }
 
       if (!data) {
         setHasRSVPed(false);
+        setRsvpResponse(null);
         return;
       }
 
@@ -133,16 +142,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const hasAnyRSVP = data.rsvps && data.rsvps.length > 0;
       setHasRSVPed(hasAnyRSVP);
       
+      // Set RSVP response if available
+      if (hasAnyRSVP && data.rsvps[0]) {
+        setRsvpResponse(data.rsvps[0].attending);
+      } else {
+        setRsvpResponse(null);
+      }
+      
       // Log for debugging
       console.log('RSVP Status Check:', {
         user: user.email,
         hasRSVPs: hasAnyRSVP,
+        rsvpResponse: data.rsvps[0]?.attending,
         rsvps: data.rsvps,
         guestData: data
       });
     } catch (error) {
       console.error('Error checking RSVP status:', error);
       setHasRSVPed(false);
+      setRsvpResponse(null);
     } finally {
       setIsCheckingRSVP(false);
     }
@@ -160,6 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           phone: result.user.phone,
           initials: generateInitials(result.user.name),
           avatar_color: generateAvatarColor(result.user.name),
+          avatar_style: result.user.avatar_style,
+          avatar_seed: result.user.avatar_seed,
+          avatar_svg: result.user.avatar_svg,
         };
         setUser(userData);
       } else {
@@ -172,6 +193,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Check if the authentication is recent (within 24 hours)
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
               if (isRecent && guestInfo.email && guestInfo.id !== 'temp-guest') {
+                // If avatar data is missing, fetch it from database
+                if (!guestInfo.avatar_svg && guestInfo.email) {
+                  console.log('Avatar data missing in localStorage, fetching from database...');
+                  try {
+                    const { data: guestData } = await supabase
+                      .from('guests')
+                      .select('avatar_style, avatar_seed, avatar_svg')
+                      .eq('email', guestInfo.email)
+                      .eq('wedding_id', 'sim-kv')
+                      .single();
+                    
+                    if (guestData) {
+                      // Update localStorage with complete data
+                      const updatedGuestInfo = {
+                        ...guestInfo,
+                        avatar_style: guestData.avatar_style,
+                        avatar_seed: guestData.avatar_seed,
+                        avatar_svg: guestData.avatar_svg,
+                      };
+                      localStorage.setItem('phera_guest_auth', JSON.stringify(updatedGuestInfo));
+                      guestInfo.avatar_style = guestData.avatar_style;
+                      guestInfo.avatar_seed = guestData.avatar_seed;
+                      guestInfo.avatar_svg = guestData.avatar_svg;
+                    }
+                  } catch (error) {
+                    console.error('Error fetching avatar data:', error);
+                  }
+                }
+                
                 const userData: User = {
                   id: guestInfo.id,
                   email: guestInfo.email,
@@ -179,6 +229,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   phone: guestInfo.phone,
                   initials: generateInitials(guestInfo.name),
                   avatar_color: generateAvatarColor(guestInfo.name),
+                  avatar_style: guestInfo.avatar_style,
+                  avatar_seed: guestInfo.avatar_seed,
+                  avatar_svg: guestInfo.avatar_svg,
                 };
                 setUser(userData);
               } else {
@@ -217,6 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setUser(null);
       setHasRSVPed(false);
+      setRsvpResponse(null);
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -241,10 +295,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           if (event === 'SIGNED_IN' && session) {
             await checkAuthStatus();
-          } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-            setHasRSVPed(false);
-          }
+                  } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+        }
         } catch (error) {
           console.error('Auth state change error:', error);
         }
@@ -267,6 +322,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return () => clearTimeout(timer);
     } else {
       setHasRSVPed(false);
+      setRsvpResponse(null);
       setIsCheckingRSVP(false);
     }
   }, [user?.id, isLoading]); // Use user.id instead of user object to prevent unnecessary re-renders
@@ -277,6 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user, 
         isLoading, 
         hasRSVPed, 
+        rsvpResponse,
         isCheckingRSVP,
         checkRSVPStatus, 
         signOut,

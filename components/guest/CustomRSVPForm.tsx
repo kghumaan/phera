@@ -38,11 +38,13 @@ import {
   Remove as RemoveIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { submitRSVP } from '@/lib/supabase/rsvp-service';
+import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Confetti from 'react-confetti';
+import GifPicker from '@/components/ui/GifPicker';
+import { GifData } from '@/lib/supabase/types';
 
 interface RSVPFormData {
   // Basic Information
@@ -70,6 +72,7 @@ interface RSVPFormData {
   songRequest: string;
   specialMessage: string;
   maybeComment: string;
+  selectedGif?: GifData;
 }
 
 const initialFormData: RSVPFormData = {
@@ -89,6 +92,7 @@ const initialFormData: RSVPFormData = {
   songRequest: '',
   specialMessage: '',
   maybeComment: '',
+  selectedGif: undefined,
 };
 
 const foodPreferences = [
@@ -132,13 +136,15 @@ export default function CustomRSVPForm() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
-  const { refreshAuth, checkRSVPStatus } = useAuth();
+  const { user, refreshAuth, checkRSVPStatus } = useAuth();
   const [formData, setFormData] = useState<RSVPFormData>(initialFormData);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
 
   const steps = [
     'Basic Information',
@@ -148,6 +154,61 @@ export default function CustomRSVPForm() {
     'Personal Details',
     'Fun & Messages',
   ];
+
+  // Fetch existing RSVP data when component mounts and user is authenticated
+  useEffect(() => {
+    const fetchExistingRSVP = async () => {
+      console.log('CustomRSVPForm: Starting fetchExistingRSVP, user:', user?.email);
+      setIsLoadingExisting(true);
+      
+      try {
+        if (user && user.email) {
+          console.log('CustomRSVPForm: Fetching existing RSVP for:', user.email);
+          
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('RSVP fetch timeout')), 10000)
+          );
+          
+          const result = await Promise.race([
+            getExistingRSVP(user.email, 'sim-kv'),
+            timeoutPromise
+          ]);
+          console.log('CustomRSVPForm: getExistingRSVP result:', result);
+          
+          if (result.success && result.data) {
+            console.log('CustomRSVPForm: Found existing RSVP data:', result.data);
+            setFormData(prev => ({
+              ...prev,
+              ...result.data
+            }));
+          } else {
+            console.log('CustomRSVPForm: No existing RSVP found, starting fresh');
+            // Pre-fill user info if available
+            if (user.name) {
+              const nameParts = user.name.split(' ');
+              setFormData(prev => ({
+                ...prev,
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || '',
+                email: user.email,
+                phone: user.phone || '',
+              }));
+            }
+          }
+        } else {
+          console.log('CustomRSVPForm: No user or email available, starting with empty form');
+        }
+      } catch (error) {
+        console.error('CustomRSVPForm: Error fetching existing RSVP:', error);
+      } finally {
+        console.log('CustomRSVPForm: Setting isLoadingExisting to false');
+        setIsLoadingExisting(false);
+      }
+    };
+
+    fetchExistingRSVP();
+  }, [user]);
 
   const handleInputChange = (field: keyof RSVPFormData, value: any) => {
     setFormData(prev => ({
@@ -182,6 +243,21 @@ export default function CustomRSVPForm() {
 
   const handleCancelExit = () => {
     setShowExitConfirmation(false);
+  };
+
+  const handleGifSelect = (gif: GifData) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedGif: gif,
+    }));
+    setShowGifPicker(false);
+  };
+
+  const handleRemoveGif = () => {
+    setFormData(prev => ({
+      ...prev,
+      selectedGif: undefined,
+    }));
   };
 
   const validateStep = (step: number): boolean => {
@@ -259,35 +335,10 @@ export default function CustomRSVPForm() {
     setIsSubmitting(true);
     
     try {
-      // Convert form data to Supabase format
-      const supabaseFormData: SupabaseRSVPFormData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        countryCode: formData.countryCode,
-        attending: formData.attending === '' ? 'no' : formData.attending, // Now supports 'yes'/'no'/'maybe'
-        plusOne: formData.plusOne === 'yes',
-        plusOneName: formData.plusOneName,
-        plusOneEmail: formData.plusOneEmail,
-        guestCount: formData.guestCount,
-        maybeComment: formData.maybeComment,
-        ceremonyAttending: [], // No longer used
-        foodPreference: formData.foodPreference, // Now supports array
-        dietaryRestrictions: formData.dietaryRestrictions,
-        relationshipToBride: formData.weddingSide === 'bride' ? 'Guest' : undefined,
-        relationshipToGroom: formData.weddingSide === 'groom' ? 'Guest' : undefined,
-        weddingSide: formData.weddingSide === '' ? undefined : formData.weddingSide,
-        traditionalWear: undefined, // Removed
-        needsAccommodation: false, // Removed
-        accommodationNights: 0,
-        transportationNeeded: false, // Removed
-        songRequest: formData.songRequest,
-        specialMessage: formData.specialMessage,
-        participation: [], // Removed
-      };
-
-      const result = await submitRSVP(supabaseFormData, 'sim-kv');
+      // Directly pass form data - the service handles all normalization
+      console.log('Submitting form data:', formData);
+      
+      const result = await submitRSVP(formData, 'sim-kv');
       
       if (result.success) {
         console.log('RSVP submitted successfully, result:', result);
@@ -337,6 +388,19 @@ export default function CustomRSVPForm() {
   };
 
   if (isSubmitted) {
+    const getOverlayImage = () => {
+      switch (formData.attending) {
+        case 'yes':
+          return '/images/overlays/yes-rsvp.png';
+        case 'maybe':
+          return '/images/overlays/maybe-rsvp.png';
+        case 'no':
+          return '/images/overlays/no-rsvp.png';
+        default:
+          return null;
+      }
+    };
+
     return (
       <>
         <Confetti
@@ -354,91 +418,234 @@ export default function CustomRSVPForm() {
             right: 0,
             bottom: 0,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 9999,
-            p: 2,
+            p: { xs: 2, sm: 3 },
           }}
         >
           <motion.div
             initial="hidden"
             animate="visible"
             variants={containerVariants}
+            style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
           >
+            {/* RSVP Header - Outside the white container */}
+            <Box sx={{ 
+              mb: { xs: 1, sm: 2 }, 
+              flexShrink: 0,
+            }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontFamily: 'Outfit', 
+                  color: '#141414', 
+                  fontWeight: 400,
+                  fontSize: { xs: '16px', sm: '18px' },
+                  lineHeight: '1.26em',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  textAlign: 'center'
+                }}
+              >
+                RSVP
+              </Typography>
+            </Box>
+
             <Paper
               elevation={8}
               sx={{
-                p: 6,
-                borderRadius: 1,
+                borderRadius: 1, // 8px - reduced from 16px
                 textAlign: 'center',
                 backgroundColor: 'white',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                border: '2px solid #f0f0f0',
-                maxWidth: 500,
+                boxShadow: '0 0px 24px 0px rgba(0, 0, 0, 0.08)',
+                border: 'none',
                 width: '100%',
+                maxWidth: { xs: '100%', sm: 400, md: 500 },
+                height: { xs: '80vh', sm: '75vh', md: '80vh' },
+                maxHeight: 650,
+                overflow: 'hidden',
+                position: 'relative',
+                margin: 'auto',
+                flex: 1,
+                minHeight: 0,
               }}
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              >
-                <CheckCircleOutlined
+
+              {/* Overlay Image */}
+              {getOverlayImage() && (
+                <Box
                   sx={{
-                    fontSize: 80,
-                    color: 'success.main',
-                    mb: 3,
+                    width: '100%',
+                    height: { xs: '35%', sm: '40%', md: '35%' },
+                    minHeight: 180,
+                    maxHeight: 250,
+                    backgroundImage: `url(${getOverlayImage()})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
                   }}
-                />
-              </motion.div>
-              
-              {formData.attending === 'yes' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
-                    Yay! You're part of our celebration and we can't wait to have you there
-                  </Typography>
-                  
-                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
-                    Your room is booked and covered! We'll send hotel details soon.
-                  </Typography>
-                </>
+                >
+                  {/* Logo overlapping the bottom half of overlay image */}
+                  <Box sx={{ 
+                    position: 'absolute',
+                    bottom: -40, // Moves logo to cover bottom half
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 5,
+                  }}>
+                    <Box
+                      component="img"
+                      src="/logo-lotus-flame.svg"
+                      alt="Logo"
+                      sx={{
+                        width: { xs: 60, sm: 70, md: 80 },
+                        height: { xs: 60, sm: 70, md: 80 },
+                        filter: 'brightness(0)', // Makes the logo black
+                      }}
+                    />
+                  </Box>
+                </Box>
               )}
-              
-              {formData.attending === 'maybe' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
-                    Thanks for letting us know!
-                  </Typography>
-                  
-                  <Typography variant="body1" sx={{ color: 'rgba(0, 0, 0, 0.72)', mb: 4, fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', fontFamily: 'Outfit' }}>
-                    We understand you need to figure some things out. Just remember: We need your final answer by September 30, 2025. We'll check in with you before then!
-                    {'\n\n'}
-                    Use your email or phone number to sign in anytime so you can update your response.
-                  </Typography>
-                </>
-              )}
-              
-              {formData.attending === 'no' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Outfit', color: '#000', fontSize: '1.5rem', lineHeight: 1.5, textAlign: 'center' }}>
-                    We'll miss you! :(
-                  </Typography>
-                  
-                  <Alert severity="info" sx={{ borderRadius: 1, mb: 4 }}>
-                    We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>
-                  </Alert>
-                </>
-              )}
-              
-                              {/* <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <Chip
-                    icon={<FavoriteOutlined />}
-                    label="Namaste"
-                    variant="outlined"
-                    sx={{ borderColor: 'primary.main', color: 'primary.main' }}
+
+              {/* Fallback logo if no overlay image */}
+              {!getOverlayImage() && (
+                <Box sx={{ 
+                  position: 'absolute',
+                  top: 60,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 5,
+                }}>
+                  <Box
+                    component="img"
+                    src="/logo-lotus-flame.svg"
+                    alt="Logo"
+                    sx={{
+                      width: { xs: 60, sm: 70, md: 80 },
+                      height: { xs: 60, sm: 70, md: 80 },
+                      filter: 'brightness(0)', // Makes the logo black
+                    }}
                   />
-                </Box> */}
+                </Box>
+              )}
+              
+              {/* Content */}
+              <Box sx={{ 
+                p: { xs: 4, sm: 5, md: 6 }, 
+                backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+                backdropFilter: 'blur(4px)',
+                height: getOverlayImage() ? { xs: '65%', sm: '60%', md: '65%' } : '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                overflow: 'auto',
+                pt: getOverlayImage() ? { xs: 5, sm: 6, md: 7 } : { xs: 4, sm: 5, md: 6 }, // Reduced padding since no header inside
+              }}>
+                
+                {formData.attending === 'yes' && (
+                  <>
+                    <Typography variant="h3" gutterBottom sx={{ 
+                      fontFamily: 'Outfit', 
+                      color: '#000', 
+                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center',
+                      fontWeight: 400,
+                      mb: { xs: 1.5, sm: 2 }
+                    }}>
+                      Yay! You're part of our celebration and we can't wait to have you there
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ 
+                      color: '#474747', 
+                      mb: { xs: 3, sm: 4 }, 
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center', 
+                      fontFamily: 'Outfit',
+                      fontWeight: 400 
+                    }}>
+                      Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
+                    </Typography>
+                  </>
+                )}
+                
+                {formData.attending === 'maybe' && (
+                  <>
+                    <Typography variant="h3" gutterBottom sx={{ 
+                      fontFamily: 'Outfit', 
+                      color: '#000', 
+                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center',
+                      fontWeight: 400,
+                      mb: { xs: 1.5, sm: 2 }
+                    }}>
+                      Thanks for letting us know!
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ 
+                      color: '#474747', 
+                      mb: { xs: 3, sm: 4 }, 
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center', 
+                      fontFamily: 'Outfit',
+                      fontWeight: 400 
+                    }}>
+                      We understand you need to figure some things out. Just remember: We need your final answer by August 31, 2025. We'll check in with you before then!
+                      {'\n\n'}
+                      Use your email or phone number to sign in anytime so you can update your response.
+                    </Typography>
+                  </>
+                )}
+                
+                {formData.attending === 'no' && (
+                  <>
+                    <Typography variant="h3" gutterBottom sx={{ 
+                      fontFamily: 'Outfit', 
+                      color: '#000', 
+                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center',
+                      fontWeight: 400,
+                      mb: { xs: 1.5, sm: 2 }
+                    }}>
+                      We'll miss you! :(
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ 
+                      color: '#474747', 
+                      mb: { xs: 3, sm: 4 }, 
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
+                      lineHeight: 1.5, 
+                      textAlign: 'center', 
+                      fontFamily: 'Outfit',
+                      fontWeight: 400 
+                    }}>
+                      We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on August 31, 2025.
+                    </Typography>
+                  </>
+                )}
+                
+                {/* Bottom Logo - Upside Down */}
+                <Box sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', justifyContent: 'center' }}>
+                  <Box
+                    component="img"
+                    src="/logo-lotus-flame.svg"
+                    alt="Logo"
+                    sx={{
+                      width: { xs: 60, sm: 70, md: 80 },
+                      height: { xs: 60, sm: 70, md: 80 },
+                      filter: 'brightness(0)', // Makes the logo black
+                      transform: 'rotate(180deg)', // Flips the logo upside down
+                    }}
+                  />
+                </Box>
                 
                 <Button
                   onClick={() => router.push('/')}
@@ -448,25 +655,28 @@ export default function CustomRSVPForm() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: 2,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: '32px',
+                    py: { xs: 1.25, sm: 1.5 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    fontWeight: 700,
+                    borderRadius: '80px',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
-                    mt: 4,
+                    letterSpacing: '6.25%',
+                    boxShadow: 'none',
+                    fontFamily: 'Outfit',
+                    maxWidth: { xs: '100%', sm: '85%', md: '80%' }, // Made wider
+                    mx: 'auto',
                     '&:hover': {
                       backgroundColor: '#C8365A',
-                      boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                      boxShadow: 'none',
                     },
                   }}
                 >
                   Done
                 </Button>
-              </Paper>
-            </motion.div>
-          </Box>
+              </Box>
+            </Paper>
+          </motion.div>
+        </Box>
       </>
     );
   }
@@ -1680,23 +1890,85 @@ export default function CustomRSVPForm() {
                     className="responsive-textarea"
                   />
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                    <Box
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+                    <IconButton
+                      onClick={() => setShowGifPicker(true)}
                       sx={{
-                        width: 24,
-                        height: 24,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#000',
-                        cursor: 'pointer',
+                        width: 32,
+                        height: 32,
+                        border: '1px solid #000',
+                        borderRadius: '6px',
+                        backgroundColor: 'white',
+                        p: 1,
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          borderColor: '#000',
+                        },
                       }}
                     >
-                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none">
-                        <path d="M3 2H15V6H3V2Z" fill="currentColor"/>
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.61429 8V0H10.1571V8H8.61429ZM0 8V0H6.17143V1.6H1.54286V6.4H4.62857V4H6.17143V8H0ZM12.4714 8V0H18V1.6H14.0143V3.6H16.6179V5.2H14.0143V8H12.4714Z" fill="#141414"/>
                       </svg>
-                    </Box>
+                    </IconButton>
                   </Box>
+                  
+                  {/* Display selected GIF */}
+                  {formData.selectedGif && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      p: 2, 
+                      border: '1px solid rgba(0, 0, 0, 0.12)', 
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}>
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={formData.selectedGif.preview_url}
+                          alt={formData.selectedGif.title}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" sx={{ 
+                          fontWeight: 600, 
+                          color: '#000',
+                          mb: 0.5,
+                          fontFamily: 'Outfit' 
+                        }}>
+                          Selected GIF
+                        </Typography>
+                        <Typography variant="caption" sx={{ 
+                          color: '#666',
+                          display: 'block',
+                          fontFamily: 'Outfit' 
+                        }}>
+                          {formData.selectedGif.title}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        onClick={handleRemoveGif}
+                        size="small"
+                        sx={{ color: '#666' }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Box>
@@ -1721,6 +1993,76 @@ export default function CustomRSVPForm() {
         overflow: 'hidden',
       }}
     >
+      {/* Loading Overlay for Existing RSVP Data */}
+      <AnimatePresence>
+        {isLoadingExisting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9998,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 3,
+                padding: 4,
+                borderRadius: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                style={{
+                  width: 48,
+                  height: 48,
+                  border: '4px solid #f3f3f3',
+                  borderTop: '4px solid #DE3F5E',
+                  borderRadius: '50%',
+                }}
+              />
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#000',
+                  fontWeight: 600,
+                  fontFamily: 'Outfit',
+                  textAlign: 'center',
+                }}
+              >
+                Loading Your RSVP...
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#666',
+                  textAlign: 'center',
+                  maxWidth: 250,
+                }}
+              >
+                We're fetching your existing information to make updating easier
+              </Typography>
+            </Box>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Container 
         maxWidth="md" 
         sx={{ 
@@ -1993,7 +2335,7 @@ export default function CustomRSVPForm() {
             
             {currentStep < steps.length - 1 ? (
               <Button
-                onClick={formData.attending === 'no' ? handleSubmit : handleNext}
+                onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
                 variant="contained"
                 sx={{ 
                   flex: 1,
@@ -2014,9 +2356,9 @@ export default function CustomRSVPForm() {
                     color: '#999',
                   },
                 }}
-                disabled={formData.attending === 'no' && currentStep > 1}
+                disabled={false}
               >
-                {formData.attending === 'no' ? 'Submit' : 'Next'}
+                {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
               </Button>
             ) : (
               <Button
@@ -2101,6 +2443,13 @@ export default function CustomRSVPForm() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* GIF Picker Dialog */}
+        <GifPicker
+          open={showGifPicker}
+          onClose={() => setShowGifPicker(false)}
+          onSelectGif={handleGifSelect}
+        />
         </motion.div>
       </Container>
     </Box>

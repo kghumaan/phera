@@ -5,6 +5,9 @@ export interface Guest {
   phone?: string
   initials: string
   avatar_color: string
+  avatar_style?: string
+  avatar_seed?: string
+  avatar_svg?: string
   wedding_id: string
   auth_method?: string
   wedding_side?: string
@@ -31,6 +34,13 @@ export interface RSVP {
   guest?: Guest
 }
 
+export interface GifData {
+  id: string
+  url: string
+  title: string
+  preview_url: string
+}
+
 export interface RSVPFormData {
   // Basic Information
   firstName: string
@@ -40,33 +50,34 @@ export interface RSVPFormData {
   countryCode?: string
   
   // Attendance
-  attending: 'yes' | 'no' | 'maybe' | boolean // Support both new and old format
-  plusOne: boolean
+  attending: 'yes' | 'no' | 'maybe' | '' | boolean // Support both new and old format
+  plusOne: 'yes' | 'no' | '' | boolean // Support both string and boolean format
   plusOneName?: string
   plusOneEmail?: string
   guestCount: number
   maybeComment?: string
   
-  // Event-specific (ceremonies removed - now handled differently)
-  ceremonyAttending: string[] // Keep for backward compatibility
-  foodPreference: string | string[] // Support both single string and array
+  // Event-specific
+  foodPreference: string[] // Array of food preferences
   dietaryRestrictions?: string
   
-  // Cultural & Personal (modified)
-  relationshipToBride?: string // Keep for backward compatibility  
-  relationshipToGroom?: string // Keep for backward compatibility
-  weddingSide?: 'bride' | 'groom' | 'both' // New field
-  traditionalWear?: boolean // Removed from form but keep for compatibility
+  // Cultural & Personal
+  weddingSide?: 'bride' | 'groom' | 'both' | ''
   
-  // Logistics (removed from form but keep for compatibility)
+  // Fun & Engagement
+  songRequest?: string
+  specialMessage?: string
+  selectedGif?: GifData
+  
+  // Backward compatibility (optional fields)
+  ceremonyAttending?: string[]
+  relationshipToBride?: string
+  relationshipToGroom?: string
+  traditionalWear?: boolean
   needsAccommodation?: boolean
   accommodationNights?: number
   transportationNeeded?: boolean
-  
-  // Fun & Engagement (participation removed)
-  songRequest?: string
-  specialMessage?: string
-  participation?: string[] // Keep for backward compatibility
+  participation?: string[]
 }
 
 export interface Comment {
@@ -76,6 +87,10 @@ export interface Comment {
   message: string
   created_at: string
   guest?: Guest
+  gif_id?: string
+  gif_url?: string
+  gif_title?: string
+  gif_preview_url?: string
 }
 
 export interface Database {

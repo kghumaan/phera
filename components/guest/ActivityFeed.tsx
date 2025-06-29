@@ -27,6 +27,9 @@ interface ActivityItem {
   rawTimestamp: string;
   initials: string;
   avatarColor: string;
+  avatarStyle?: string;
+  avatarSeed?: string;
+  avatarSvg?: string;
 }
 
 interface ActivityFeedProps {
@@ -118,6 +121,9 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
         rawTimestamp: rsvp.created_at,
         initials: rsvp.guest?.initials || '??',
         avatarColor: rsvp.guest?.avatar_color || '#666',
+        avatarStyle: rsvp.guest?.avatar_style,
+        avatarSeed: rsvp.guest?.avatar_seed,
+        avatarSvg: rsvp.guest?.avatar_svg,
       }));
 
       // Sort by most recent first
@@ -238,7 +244,24 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
                     fontSize: '1.1rem',
                   }}
                 >
-                  {activity.initials}
+                  {activity.avatarSvg ? (
+                    <Box
+                      dangerouslySetInnerHTML={{ __html: activity.avatarSvg }}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '& svg': {
+                          width: '100%',
+                          height: '100%',
+                        },
+                      }}
+                    />
+                  ) : (
+                    activity.initials
+                  )}
                 </Avatar>
 
                 {/* Content */}

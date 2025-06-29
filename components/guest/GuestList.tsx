@@ -12,8 +12,6 @@ import {
   TextField,
   InputAdornment,
   Chip,
-  Tab,
-  Tabs,
   useTheme,
   Divider,
   Collapse,
@@ -31,8 +29,9 @@ import {
   MoreVertOutlined,
   ReplyOutlined,
   EmojiEmotionsOutlined,
+  DeleteOutlineOutlined,
 } from '@mui/icons-material';
-import { getAttendees, getComments, addComment } from '@/lib/supabase/rsvp-service';
+import { getAttendees, getComments, addComment, deleteComment } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -41,6 +40,9 @@ interface GuestItem {
   name: string;
   initials: string;
   avatarColor: string;
+  avatarStyle?: string;
+  avatarSeed?: string;
+  avatarSvg?: string;
   status: 'going' | 'maybe' | 'not-going';
   guestCount: number;
   timestamp: string;
@@ -56,7 +58,14 @@ interface Comment {
     name: string;
     initials: string;
     avatar_color: string;
+    avatar_style?: string;
+    avatar_seed?: string;
+    avatar_svg?: string;
   };
+  gif_id?: string;
+  gif_url?: string;
+  gif_title?: string;
+  gif_preview_url?: string;
 }
 
 interface Reply {
@@ -130,6 +139,8 @@ export default function GuestList({ weddingId }: GuestListProps) {
   }, [guests, searchQuery, activeTab]);
 
   useEffect(() => {
+    // Always start with loading true
+    setLoading(true);
     fetchData();
     const cleanup = setupRealtimeListeners();
     
@@ -174,25 +185,56 @@ export default function GuestList({ weddingId }: GuestListProps) {
         }
       });
 
-    // Comments updates (when we implement the backend)
-    // For now, we'll use local state
+    // Comments updates - real-time subscription
+    const commentsChannel = supabase
+      .channel(`guest_list_comments_${weddingId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `wedding_id=eq.${weddingId}`,
+        },
+        (payload) => {
+          console.log('Comments change detected:', payload);
+          // Refresh comments on any change
+          fetchData();
+        }
+      )
+      .subscribe();
     
     return () => {
       try {
         setIsSubscribed(false);
         supabase.removeChannel(rsvpChannel);
+        supabase.removeChannel(commentsChannel);
       } catch (error) {
-        console.error('Error removing GuestList channel:', error);
+        console.error('Error removing GuestList channels:', error);
       }
     };
   };
 
   const fetchData = async () => {
+    console.log('GuestList: Starting fetchData...');
     try {
-      const [attendees, commentsData] = await Promise.all([
-        getAttendees(weddingId),
-        getComments(weddingId)
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Data fetch timeout')), 15000)
+      );
+      
+      const [attendees, commentsData] = await Promise.race([
+        Promise.all([
+          getAttendees(weddingId),
+          getComments(weddingId)
+        ]),
+        timeoutPromise
       ]);
+      
+      console.log('GuestList: Fetched data successfully', { 
+        attendeesCount: attendees.length, 
+        commentsCount: commentsData.length 
+      });
       
       // Convert RSVP data to guest format
       const guestData = attendees.map((rsvp, index) => ({
@@ -200,6 +242,9 @@ export default function GuestList({ weddingId }: GuestListProps) {
         name: rsvp.guest?.name || 'Unknown Guest',
         initials: rsvp.guest?.initials || '??',
         avatarColor: rsvp.guest?.avatar_color || '#666',
+        avatarStyle: rsvp.guest?.avatar_style,
+        avatarSeed: rsvp.guest?.avatar_seed,
+        avatarSvg: rsvp.guest?.avatar_svg,
         status: rsvp.attending ? 'going' : 'not-going' as 'going' | 'maybe' | 'not-going',
         guestCount: rsvp.guest_count || 1,
         timestamp: rsvp.created_at,
@@ -224,9 +269,12 @@ export default function GuestList({ weddingId }: GuestListProps) {
 
       // Load comments from database
       setComments(commentsData);
+      
+      console.log('GuestList: State updated successfully');
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('GuestList: Error fetching data:', error);
     } finally {
+      console.log('GuestList: Setting loading to false');
       setLoading(false);
     }
   };
@@ -264,6 +312,31 @@ export default function GuestList({ weddingId }: GuestListProps) {
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user) {
+      console.error('No user found for delete operation');
+      return;
+    }
+
+    console.log('Attempting to delete comment:', commentId, 'by user:', user.id);
+
+    try {
+      // Delete from database
+      const result = await deleteComment(commentId, user.id);
+      console.log('Delete result:', result);
+      
+      // Remove from local state
+      setComments(prev => {
+        const filtered = prev.filter(comment => comment.id !== commentId);
+        console.log('Updated comments:', filtered.length, 'remaining');
+        return filtered;
+      });
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      // You could show a toast notification here
+    }
+  };
+
   const handleAddReply = async (commentId: string) => {
     // Temporarily disabled - requires API enhancement
     console.log('Reply functionality temporarily disabled');
@@ -275,11 +348,13 @@ export default function GuestList({ weddingId }: GuestListProps) {
   };
 
   const getStatusCounts = () => {
-    const going = guests.filter(g => g.status === 'going').length;
-    const maybe = guests.filter(g => g.status === 'maybe').length;
-    const totalAttending = guests.reduce((sum, guest) => 
+    const going = guests.reduce((sum, guest) => 
       guest.status === 'going' ? sum + guest.guestCount : sum, 0
     );
+    const maybe = guests.reduce((sum, guest) => 
+      guest.status === 'maybe' ? sum + guest.guestCount : sum, 0
+    );
+    const totalAttending = going; // Same as going count since we're summing guest counts
     return { going, maybe, totalAttending };
   };
 
@@ -289,99 +364,134 @@ export default function GuestList({ weddingId }: GuestListProps) {
     return (
       <Paper
         sx={{
-          backgroundColor: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: 3,
+          backgroundColor: '#FFFFFF',
+          borderRadius: 2,
           p: 3,
           textAlign: 'center',
+          boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <Typography sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}>
-          Loading...
+        <Typography sx={{ 
+          fontFamily: 'Outfit',
+          fontWeight: 400,
+          fontSize: '16px',
+          lineHeight: '1.5em',
+          color: '#858585'
+        }}>
+          Loading comments...
         </Typography>
       </Paper>
     );
   }
 
   const renderActivityTab = () => (
-    <Stack spacing={2}>
+    <Stack spacing={3}> {/* 24px gap */}
       {/* Comment Input */}
       {user && (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Avatar
             sx={{
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               backgroundColor: user.avatar_color || '#DE3F5E',
               color: 'white',
               fontWeight: 600,
               fontSize: '0.9rem',
             }}
           >
-            {user.initials || '??'}
+            {user.avatar_svg ? (
+              <Box
+                dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '& svg': {
+                    width: '100%',
+                    height: '100%',
+                  },
+                }}
+              />
+            ) : (
+              user.initials || '??'
+            )}
           </Avatar>
           <Box sx={{ flex: 1 }}>
-            <TextField
-              fullWidth
-              multiline
-              minRows={1}
-              maxRows={4}
-              placeholder="Leave a comment!"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              variant="outlined"
-              size="small"
+            <Paper
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  backgroundColor: 'rgba(255,255,255,0.8)',
-                  '& fieldset': {
-                    borderColor: '#333',
-                    borderWidth: '1.5px',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#000',
-                    borderWidth: '2px',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#000',
-                    borderWidth: '2px',
-                  },
-                  '& textarea::placeholder': {
-                    color: '#C2C2C2 !important',
-                  },
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #BCBCBC',
+                borderRadius: '8px', // 8px
+                py: '8px',
+                px: '12px',
+                minHeight: '40px', // Match avatar height
+                display: 'flex',
+                alignItems: 'center',
+                '&:hover': {
+                  borderColor: '#BCBCBC',
                 },
-                '& .MuiInputBase-input': {
-                  fontFamily: 'var(--font-playfair)',
-                  color: '#000',
+                '&:focus-within': {
+                  borderColor: '#DE3F5E',
+                  boxShadow: '0 0 0 2px rgba(222, 63, 94, 0.1)',
                 },
               }}
-              InputProps={{
-                endAdornment: newComment.trim() && (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleAddComment}
-                      sx={{
-                        color: '#800020',
-                        backgroundColor: 'rgba(128, 0, 32, 0.1)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(128, 0, 32, 0.2)',
-                        },
+            >
+              <TextField
+                fullWidth
+                multiline
+                minRows={1}
+                maxRows={4}
+                placeholder="Leave a comment!"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                variant="standard"
+                InputProps={{
+                  disableUnderline: true,
+                  sx: {
+                    fontSize: '16px',
+                    fontFamily: 'Outfit',
+                    color: '#141414',
+                    '& textarea::placeholder': {
+                      color: '#BCBCBC',
+                      opacity: 1,
+                    },
+                  },
+                  endAdornment: newComment.trim() && (
+                    <InputAdornment 
+                      position="end" 
+                      sx={{ 
+                        ml: 1,
+                        alignSelf: 'center',
+                        height: 'auto'
                       }}
-                      size="small"
                     >
-                      <SendOutlined fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleAddComment();
-                }
-              }}
-            />
+                      <IconButton
+                        onClick={handleAddComment}
+                        sx={{
+                          color: '#DE3F5E',
+                          backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: 'rgba(222, 63, 94, 0.2)',
+                          },
+                        }}
+                        size="small"
+                      >
+                        <SendOutlined fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
+              />
+            </Paper>
           </Box>
         </Box>
       )}
@@ -390,120 +500,169 @@ export default function GuestList({ weddingId }: GuestListProps) {
       <Stack spacing={0}>
         {comments.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography sx={{ color: '#666', fontFamily: 'var(--font-playfair)', mb: 1 }}>
+            <Typography sx={{ 
+              color: '#858585', 
+              fontFamily: 'Outfit',
+              fontSize: '16px',
+              lineHeight: '1.5em',
+              mb: 1 
+            }}>
               No comments yet! 💬
             </Typography>
-            <Typography variant="body2" sx={{ color: '#999', fontFamily: 'var(--font-playfair)' }}>
+            <Typography sx={{ 
+              color: '#BCBCBC', 
+              fontFamily: 'Outfit',
+              fontSize: '14px',
+              lineHeight: '1.5em'
+            }}>
               Share your excitement about the wedding
             </Typography>
           </Box>
         ) : (
-          comments.map((comment, index) => (
+          comments.map((comment, index) => {
+            console.log('Rendering comment:', comment.id, 'by guest:', comment.guest_id, 'current user:', user?.id);
+            return (
             <motion.div
               key={comment.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Box
-                sx={{
-                  py: 2,
-                  borderBottom: index < comments.length - 1 ? '1px solid' : 'none',
-                  borderColor: 'rgba(0,0,0,0.05)',
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <Box>
+                <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
                   <Avatar
                     sx={{
                       width: 40,
                       height: 40,
-                      backgroundColor: comment.guest?.avatar_color || '#666',
+                      backgroundColor: comment.guest?.avatar_color || '#C4C4C4',
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '0.9rem',
                     }}
                   >
-                    {comment.guest?.initials || '??'}
+                    {comment.guest?.avatar_svg ? (
+                      <Box
+                        dangerouslySetInnerHTML={{ __html: comment.guest.avatar_svg }}
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          '& svg': {
+                            width: '100%',
+                            height: '100%',
+                          },
+                        }}
+                      />
+                    ) : (
+                      comment.guest?.initials || '??'
+                    )}
                   </Avatar>
 
-                  <Box sx={{ flex: 1 }}>
+                  <Box sx={{ flex: 1, ml: 1 }}>
                     {/* Comment Header */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                       <Typography
-                        variant="body2"
                         sx={{
+                          fontFamily: 'Outfit',
                           fontWeight: 600,
-                          color: '#800020',
-                          fontFamily: 'var(--font-playfair)',
+                          fontSize: '16px',
+                          lineHeight: '1.5em',
+                          color: '#141414',
                         }}
                       >
                         {comment.guest?.name || 'Unknown Guest'}
                       </Typography>
                       <Typography
-                        variant="caption"
                         sx={{
-                          color: '#999',
-                          fontFamily: 'var(--font-playfair)',
+                          fontFamily: 'Outfit',
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '1.5em',
+                          color: '#858585',
                         }}
                       >
                         {formatTimeAgo(comment.created_at)}
                       </Typography>
+                      
+                      {/* Delete button - only show for user's own comments */}
+                      {user && comment.guest_id === user.id && (
+                        <Box sx={{ ml: 'auto' }}>
+                          <IconButton
+                            onClick={() => {
+                              console.log('Delete button clicked for comment:', comment.id);
+                              console.log('User ID:', user.id);
+                              console.log('Comment guest_id:', comment.guest_id);
+                              handleDeleteComment(comment.id);
+                            }}
+                            size="small"
+                            sx={{
+                              color: '#858585',
+                              opacity: 0.7,
+                              '&:hover': {
+                                color: '#DE3F5E',
+                                opacity: 1,
+                                backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                              },
+                            }}
+                          >
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
                     </Box>
 
                     {/* Comment Content */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: '#333',
-                        fontFamily: 'var(--font-playfair)',
-                        lineHeight: 1.5,
-                        mb: 1,
-                      }}
-                    >
-                      {comment.message}
-                    </Typography>
-
-                    {/* Comment Actions - temporarily simplified */}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Button
-                        size="small"
-                        startIcon={<ThumbUpOutlined />}
-                        disabled
+                    {comment.message && (
+                      <Typography
                         sx={{
-                          color: '#666',
-                          minWidth: 'auto',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 2,
-                          fontSize: '0.75rem',
-                          textTransform: 'none',
+                          fontFamily: 'Outfit',
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          lineHeight: '1.5em',
+                          color: '#141414',
+                          mb: comment.gif_url ? 1 : 1,
                         }}
                       >
-                        Like (Coming Soon)
-                      </Button>
+                        {comment.message}
+                      </Typography>
+                    )}
 
-                      <Button
-                        size="small"
-                        startIcon={<ReplyOutlined />}
-                        disabled
+                    {/* Comment GIF */}
+                    {comment.gif_url && (
+                      <Box
                         sx={{
-                          color: '#666',
-                          minWidth: 'auto',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 2,
-                          fontSize: '0.75rem',
-                          textTransform: 'none',
+                          mt: comment.message ? 1 : 0,
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          maxWidth: '280px',
+                          border: '1px solid rgba(0, 0, 0, 0.08)',
+                          mb: 1,
                         }}
                       >
-                        Reply (Coming Soon)
-                      </Button>
-                    </Stack>
+                        <img
+                          src={comment.gif_preview_url || comment.gif_url}
+                          alt={comment.gif_title || 'GIF'}
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            display: 'block',
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
                 </Box>
+
+                {/* Divider - show for all comments except the last one */}
+                {index < comments.length - 1 && (
+                  <Divider sx={{ borderColor: '#EBEBEB' }} />
+                )}
               </Box>
             </motion.div>
-          ))
+            );
+          })
         )}
       </Stack>
     </Stack>
@@ -512,7 +671,15 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const renderGuestTab = () => (
     <Stack spacing={0}>
       {filteredGuests.length === 0 ? (
-        <Typography sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }} textAlign="center" py={4}>
+        <Typography sx={{ 
+          fontFamily: 'Outfit',
+          fontWeight: 400,
+          fontSize: '16px',
+          lineHeight: '1.5em',
+          color: '#858585',
+          textAlign: 'center',
+          py: 4
+        }}>
           {searchQuery ? 'No guests found matching your search.' : 'No guests in this category yet.'}
         </Typography>
       ) : (
@@ -543,15 +710,44 @@ export default function GuestList({ weddingId }: GuestListProps) {
                   fontSize: '1.1rem',
                 }}
               >
-                {guest.initials}
+                {guest.avatarSvg ? (
+                  <Box
+                    dangerouslySetInnerHTML={{ __html: guest.avatarSvg }}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      '& svg': {
+                        width: '100%',
+                        height: '100%',
+                      },
+                    }}
+                  />
+                ) : (
+                  guest.initials
+                )}
               </Avatar>
 
               <Box sx={{ flex: 1 }}>
-                <Typography variant="body1" fontWeight={600} sx={{ color: '#800020', fontFamily: 'var(--font-playfair)' }}>
+                <Typography sx={{ 
+                  fontFamily: 'Outfit',
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  lineHeight: '1.5em',
+                  color: '#141414'
+                }}>
                   {guest.name}
                 </Typography>
                 {guest.guestCount > 1 && (
-                  <Typography variant="caption" sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}>
+                  <Typography sx={{ 
+                    fontFamily: 'Outfit',
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    lineHeight: '1.5em',
+                    color: '#858585'
+                  }}>
                     +{guest.guestCount - 1} guest{guest.guestCount > 2 ? 's' : ''}
                   </Typography>
                 )}
@@ -601,148 +797,116 @@ export default function GuestList({ weddingId }: GuestListProps) {
   return (
     <Paper
       sx={{
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: 3,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 1, // 16px
         overflow: 'hidden',
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
       }}
     >
-      {/* Header with Total Count */}
-      <Box sx={{ p: 3, pb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography 
-            variant="h6" 
-            fontWeight={600} 
-            sx={{ 
-              fontFamily: 'var(--font-instrument-serif)', 
-              color: '#800020' 
-            }}
-          >
-            Wedding Community
-          </Typography>
-          <Chip
-            label={`${totalAttending} attending`}
-            sx={{
-              backgroundColor: 'rgba(76, 175, 80, 0.2)',
-              color: '#4CAF50',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-            }}
-          />
-        </Box>
-
-        {/* Search - only show for guest tabs */}
-        {/* {(activeTab === 1 || activeTab === 2) && (
-          <TextField
-            fullWidth
-            placeholder="Find a guest..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined color="action" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'rgba(0,0,0,0.03)',
-                borderRadius: 2,
-              },
-            }}
-          />
-        )} */}
-      </Box>
 
       {/* Tabs */}
-      <Box sx={{ px: 3 }}>
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
+      <Box>
+        <Box
           sx={{
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontWeight: 500,
-              minWidth: 'auto',
-              px: 2,
-              color: '#666',
-              '&.Mui-selected': {
-                color: '#800020',
-                fontWeight: 600,
-              },
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: '#800020',
-              height: 3,
-              borderRadius: '2px 2px 0 0',
-            },
+            display: 'flex',
+            width: '100%',
           }}
         >
           {tabs.map((tab, index) => (
-            <Tab
+            <Box
               key={tab}
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {tab}
-                  {index === 0 && newActivityCount > 0 && (
-                    <Chip
-                      label={newActivityCount}
-                      size="small"
-                      sx={{
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        height: 20,
-                        minWidth: 20,
-                        '& .MuiChip-label': {
-                          px: 0.5,
-                          fontSize: '0.7rem',
-                        },
-                      }}
-                    />
-                  )}
-                  {index === 1 && (
-                    <Chip
-                      label={going}
-                      size="small"
-                      sx={{
-                        backgroundColor: 'rgba(128, 0, 32, 0.1)',
-                        color: '#800020',
-                        height: 20,
-                        minWidth: 20,
-                        '& .MuiChip-label': {
-                          px: 0.5,
-                          fontSize: '0.7rem',
-                        },
-                      }}
-                    />
-                  )}
-                  {index === 2 && (
-                    <Chip
-                      label={maybe}
-                      size="small"
-                      sx={{
-                        backgroundColor: 'rgba(255, 193, 7, 0.2)',
-                        color: '#F57C00',
-                        height: 20,
-                        minWidth: 20,
-                        '& .MuiChip-label': {
-                          px: 0.5,
-                          fontSize: '0.7rem',
-                        },
-                      }}
-                    />
-                  )}
-                </Box>
-              }
-            />
+              onClick={() => setActiveTab(index)}
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                py: 2,
+                px: 1,
+                cursor: 'pointer',
+                borderBottom: index === activeTab ? '2px solid #DE3F5E' : '2px solid #EBEBEB',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: 'Outfit',
+                  fontWeight: index === activeTab ? 600 : 400,
+                  fontSize: '16px',
+                  lineHeight: '1.26em',
+                  textAlign: 'center',
+                  color: index === activeTab ? '#DE3F5E' : '#000000',
+                }}
+              >
+                {tab}
+              </Typography>
+              
+              {/* Count chips */}
+              {index === 0 && newActivityCount > 0 && (
+                <Chip
+                  label={newActivityCount}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    height: 20,
+                    minWidth: 20,
+                    '& .MuiChip-label': {
+                      px: 0.75,
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      letterSpacing: '6%',
+                      textTransform: 'uppercase',
+                    },
+                  }}
+                />
+              )}
+              {index === 1 && (
+                <Chip
+                  label={going}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#D6D6D6',
+                    color: '#000000',
+                    height: 20,
+                    minWidth: 20,
+                    '& .MuiChip-label': {
+                      px: 0.75,
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      letterSpacing: '6%',
+                      textTransform: 'uppercase',
+                    },
+                  }}
+                />
+              )}
+              {index === 2 && (
+                <Chip
+                  label={maybe}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#D6D6D6',
+                    color: '#000000',
+                    height: 20,
+                    minWidth: 20,
+                    '& .MuiChip-label': {
+                      px: 0.75,
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      letterSpacing: '6%',
+                      textTransform: 'uppercase',
+                    },
+                  }}
+                />
+              )}
+            </Box>
           ))}
-        </Tabs>
+        </Box>
       </Box>
 
       {/* Tab Content */}
-      <Box sx={{ px: 3, pb: 3, mt: 2 }}>
+      <Box sx={{ px: 3, pb: 2.5, mt: 3 }}> {/* pb: 20px to match design */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

@@ -216,7 +216,7 @@ export default function HomePage() {
   const [customBackground, setCustomBackground] = useState<string>('');
   
   // Authentication state from context
-  const { user, isLoading, hasRSVPed, isCheckingRSVP, signOut } = useAuth();
+  const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut } = useAuth();
   
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
@@ -559,7 +559,7 @@ export default function HomePage() {
         </Box>
       )}
 
-      {/* View Events Button - Show when user has RSVP'd */}
+      {/* Change RSVP Button - Show when user has RSVP'd */}
       {!isLoading && user && !isCheckingRSVP && hasRSVPed && (
         <Box
           sx={{
@@ -568,8 +568,8 @@ export default function HomePage() {
             left: 0,
             right: 0,
             zIndex: 4,
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(4px)',
             borderTop: '1px solid rgba(0, 0, 0, 0.1)',
             px: 2,
             py: 2,
@@ -577,36 +577,51 @@ export default function HomePage() {
           }}
         >
           <Container maxWidth="sm">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={{ width: '100%' }}
-            >
-              <Button
-                component={Link}
-                href="/events"
-                variant="contained"
-                size="large"
-                fullWidth
+            <Stack spacing={1} alignItems="center">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ width: '100%' }}
+              >
+                <Button
+                  component={Link}
+                  href="/rsvp"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    py: 1.5,
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    borderRadius: '80px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '6.25%',
+                    fontFamily: 'Outfit',
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                    },
+                  }}
+                >
+                  Change RSVP
+                </Button>
+              </motion.div>
+              
+              {/* RSVP Deadline */}
+              <Typography
+                variant="body2"
                 sx={{
-                  backgroundColor: '#DE3F5E',
-                  color: 'white',
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: '32px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
-                  '&:hover': {
-                    backgroundColor: '#C8365A',
-                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
-                  },
+                  color: '#141414',
+                  fontSize: '1rem',
+                  textAlign: 'center',
+                  lineHeight: 1.26,
+                  fontFamily: 'Outfit',
                 }}
               >
-                View Events
-              </Button>
-            </motion.div>
+                Let us know you're coming by 30 Sept, 2025
+              </Typography>
+            </Stack>
           </Container>
         </Box>
       )}
