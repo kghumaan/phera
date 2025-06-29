@@ -485,16 +485,13 @@ export default function CustomRSVPForm() {
                   position: 'relative',
                 }}
               >
-              {/* Scrollable Content Area - Same structure as regular form */}
+              {/* Scrollable Content Area - Full width for confirmation */}
               <Box sx={{ 
                 flex: 1, 
                 overflowY: 'auto', 
                 minHeight: 0,
-                pr: { xs: 0.5, sm: 1 },
-                px: { xs: 1, sm: 0 },
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
                 '&::-webkit-scrollbar': {
                   width: { xs: '4px', sm: '6px' },
                 },
@@ -510,19 +507,17 @@ export default function CustomRSVPForm() {
                   background: '#a8a8a8',
                 },
               }}>
-                {/* Overlay Image */}
+                {/* Overlay Image - Full width */}
                 {getOverlayImage() && (
                   <Box
                     sx={{
                       width: '100%',
-                      height: 200,
+                      height: { xs: 180, sm: 200, md: 220 },
                       backgroundImage: `url(${getOverlayImage()})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       backgroundRepeat: 'no-repeat',
                       position: 'relative',
-                      borderRadius: 1,
-                      mb: 2,
                     }}
                   >
                     {/* Logo overlapping the bottom half of overlay image */}
@@ -538,8 +533,8 @@ export default function CustomRSVPForm() {
                         src="/logo-lotus-flame.svg"
                         alt="Logo"
                         sx={{
-                          width: { xs: 60, sm: 70, md: 80 },
-                          height: { xs: 60, sm: 70, md: 80 },
+                          width: { xs: 70, sm: 80, md: 90 },
+                          height: { xs: 70, sm: 80, md: 90 },
                           filter: 'brightness(0)', // Makes the logo black
                         }}
                       />
@@ -550,7 +545,8 @@ export default function CustomRSVPForm() {
                 {/* Fallback logo if no overlay image */}
                 {!getOverlayImage() && (
                   <Box sx={{ 
-                    mb: 3,
+                    mb: 4,
+                    mt: 3,
                     display: 'flex',
                     justifyContent: 'center',
                   }}>
@@ -559,8 +555,8 @@ export default function CustomRSVPForm() {
                       src="/logo-lotus-flame.svg"
                       alt="Logo"
                       sx={{
-                        width: { xs: 60, sm: 70, md: 80 },
-                        height: { xs: 60, sm: 70, md: 80 },
+                        width: { xs: 70, sm: 80, md: 90 },
+                        height: { xs: 70, sm: 80, md: 90 },
                         filter: 'brightness(0)', // Makes the logo black
                       }}
                     />
@@ -569,13 +565,14 @@ export default function CustomRSVPForm() {
                 
                 {/* Content */}
                 <Box sx={{ 
-                  p: { xs: 2, sm: 3 }, 
+                  p: { xs: 3, sm: 4, md: 5 }, 
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
                   width: '100%',
-                  pt: getOverlayImage() ? { xs: 4, sm: 5 } : { xs: 2, sm: 3 }, // Extra padding for overlapping logo
+                  flex: 1,
+                  pt: getOverlayImage() ? { xs: 5, sm: 6, md: 7 } : { xs: 3, sm: 4 }, // Extra padding for overlapping logo
                 }}>
                 
                 {formData.attending === 'yes' && (
@@ -583,20 +580,20 @@ export default function CustomRSVPForm() {
                     <Typography variant="h3" gutterBottom sx={{ 
                       fontFamily: 'Outfit', 
                       color: '#000', 
-                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
-                      lineHeight: 1.5, 
+                      fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, 
+                      lineHeight: 1.4, 
                       textAlign: 'center',
-                      fontWeight: 400,
-                      mb: { xs: 1.5, sm: 2 }
+                      fontWeight: 500,
+                      mb: { xs: 2, sm: 3 }
                     }}>
                       Yay! You're part of our celebration and we can't wait to have you there
                     </Typography>
                     
                     <Typography variant="body1" sx={{ 
                       color: '#474747', 
-                      mb: { xs: 3, sm: 4 }, 
-                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
-                      lineHeight: 1.5, 
+                      mb: { xs: 4, sm: 5 }, 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' }, 
+                      lineHeight: 1.6, 
                       textAlign: 'center', 
                       fontFamily: 'Outfit',
                       fontWeight: 400 
@@ -611,20 +608,20 @@ export default function CustomRSVPForm() {
                     <Typography variant="h3" gutterBottom sx={{ 
                       fontFamily: 'Outfit', 
                       color: '#000', 
-                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
-                      lineHeight: 1.5, 
+                      fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, 
+                      lineHeight: 1.4, 
                       textAlign: 'center',
-                      fontWeight: 400,
-                      mb: { xs: 1.5, sm: 2 }
+                      fontWeight: 500,
+                      mb: { xs: 2, sm: 3 }
                     }}>
                       Thanks for letting us know!
                     </Typography>
                     
                     <Typography variant="body1" sx={{ 
                       color: '#474747', 
-                      mb: { xs: 3, sm: 4 }, 
-                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
-                      lineHeight: 1.5, 
+                      mb: { xs: 4, sm: 5 }, 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' }, 
+                      lineHeight: 1.6, 
                       textAlign: 'center', 
                       fontFamily: 'Outfit',
                       fontWeight: 400 
@@ -641,20 +638,20 @@ export default function CustomRSVPForm() {
                     <Typography variant="h3" gutterBottom sx={{ 
                       fontFamily: 'Outfit', 
                       color: '#000', 
-                      fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.375rem' }, 
-                      lineHeight: 1.5, 
+                      fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, 
+                      lineHeight: 1.4, 
                       textAlign: 'center',
-                      fontWeight: 400,
-                      mb: { xs: 1.5, sm: 2 }
+                      fontWeight: 500,
+                      mb: { xs: 2, sm: 3 }
                     }}>
                       We'll miss you! :(
                     </Typography>
                     
                     <Typography variant="body1" sx={{ 
                       color: '#474747', 
-                      mb: { xs: 3, sm: 4 }, 
-                      fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }, 
-                      lineHeight: 1.5, 
+                      mb: { xs: 4, sm: 5 }, 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' }, 
+                      lineHeight: 1.6, 
                       textAlign: 'center', 
                       fontFamily: 'Outfit',
                       fontWeight: 400 
@@ -665,46 +662,53 @@ export default function CustomRSVPForm() {
                 )}
                 
                 {/* Bottom Logo - Upside Down */}
-                <Box sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ mt: 'auto', mb: { xs: 4, sm: 5 }, display: 'flex', justifyContent: 'center' }}>
                   <Box
                     component="img"
                     src="/logo-lotus-flame.svg"
                     alt="Logo"
                     sx={{
-                      width: { xs: 60, sm: 70, md: 80 },
-                      height: { xs: 60, sm: 70, md: 80 },
+                      width: { xs: 70, sm: 80, md: 90 },
+                      height: { xs: 70, sm: 80, md: 90 },
                       filter: 'brightness(0)', // Makes the logo black
                       transform: 'rotate(180deg)', // Flips the logo upside down
                     }}
                   />
                 </Box>
-                
-                <Button
-                  onClick={() => router.push('/')}
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  sx={{
-                    backgroundColor: '#DE3F5E',
-                    color: 'white',
-                    py: { xs: 1.25, sm: 1.5 },
-                    fontSize: { xs: '0.875rem', sm: '1rem' },
-                    fontWeight: 700,
-                    borderRadius: '80px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '6.25%',
-                    boxShadow: 'none',
-                    fontFamily: 'Outfit',
-                    maxWidth: { xs: '100%', sm: '85%', md: '80%' }, // Made wider
-                    mx: 'auto',
-                    '&:hover': {
-                      backgroundColor: '#C8365A',
+                </Box>
+
+                {/* Done Button - Fixed at bottom */}
+                <Box sx={{ 
+                  p: { xs: 3, sm: 4 }, 
+                  pt: 0,
+                  flexShrink: 0,
+                }}>
+                  <Button
+                    onClick={() => router.push('/')}
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    sx={{
+                      backgroundColor: '#DE3F5E',
+                      color: 'white',
+                      py: { xs: 1.5, sm: 1.75 },
+                      fontSize: { xs: '1rem', sm: '1.125rem' },
+                      fontWeight: 700,
+                      borderRadius: '80px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '6.25%',
                       boxShadow: 'none',
-                    },
-                  }}
-                >
-                  Done
-                </Button>
+                      fontFamily: 'Outfit',
+                      maxWidth: { xs: '100%', sm: '90%', md: '85%' },
+                      mx: 'auto',
+                      '&:hover': {
+                        backgroundColor: '#C8365A',
+                        boxShadow: 'none',
+                      },
+                    }}
+                  >
+                    Done
+                  </Button>
                 </Box>
               </Box>
             </Paper>
