@@ -419,83 +419,140 @@ export default function CustomRSVPForm() {
             bottom: 0,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 9999,
-            p: { xs: 2, sm: 3 },
+            overflow: 'hidden',
           }}
         >
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-            style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+          <Container 
+            maxWidth="md" 
+            sx={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '100vh',
+              py: { xs: 2, sm: 3, md: 4 },
+              px: { xs: 2, sm: 3, md: 4 },
+              overflow: 'hidden',
+            }}
           >
-            {/* RSVP Header - Outside the white container */}
-            <Box sx={{ 
-              mb: { xs: 1, sm: 2 }, 
-              flexShrink: 0,
-            }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontFamily: 'Outfit', 
-                  color: '#141414', 
-                  fontWeight: 400,
-                  fontSize: { xs: '16px', sm: '18px' },
-                  lineHeight: '1.26em',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  textAlign: 'center'
-                }}
-              >
-                RSVP
-              </Typography>
-            </Box>
-
-            <Paper
-              elevation={8}
-              sx={{
-                borderRadius: 1, // 8px - reduced from 16px
-                textAlign: 'center',
-                backgroundColor: 'white',
-                boxShadow: '0 0px 24px 0px rgba(0, 0, 0, 0.08)',
-                border: 'none',
-                width: '100%',
-                maxWidth: { xs: '100%', sm: 400, md: 500 },
-                height: { xs: '80vh', sm: '75vh', md: '80vh' },
-                maxHeight: 650,
-                overflow: 'hidden',
-                position: 'relative',
-                margin: 'auto',
-                flex: 1,
-                minHeight: 0,
-              }}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-
-              {/* Overlay Image */}
-              {getOverlayImage() && (
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: { xs: '35%', sm: '40%', md: '35%' },
-                    minHeight: 180,
-                    maxHeight: 250,
-                    backgroundImage: `url(${getOverlayImage()})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    position: 'relative',
+              {/* RSVP Header - Same as form */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                mb: { xs: 1, sm: 2 }, 
+                flexShrink: 0,
+              }}>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: 'Outfit', 
+                    color: '#141414', 
+                    fontWeight: 400,
+                    fontSize: { xs: '16px', sm: '18px' },
+                    lineHeight: '1.26em',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    textAlign: 'center'
                   }}
                 >
-                  {/* Logo overlapping the bottom half of overlay image */}
+                  RSVP
+                </Typography>
+              </Box>
+
+              {/* Form Content - Same structure as regular form */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 2, sm: 3 },
+                  borderRadius: 1,
+                  border: '1px solid #000',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#000000',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: 0,
+                  maxHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 140px)', md: 'calc(100vh - 160px)' },
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+              {/* Scrollable Content Area - Same structure as regular form */}
+              <Box sx={{ 
+                flex: 1, 
+                overflowY: 'auto', 
+                minHeight: 0,
+                pr: { xs: 0.5, sm: 1 },
+                px: { xs: 1, sm: 0 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                '&::-webkit-scrollbar': {
+                  width: { xs: '4px', sm: '6px' },
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#c1c1c1',
+                  borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#a8a8a8',
+                },
+              }}>
+                {/* Overlay Image */}
+                {getOverlayImage() && (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 200,
+                      backgroundImage: `url(${getOverlayImage()})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      position: 'relative',
+                      borderRadius: 1,
+                      mb: 2,
+                    }}
+                  >
+                    {/* Logo overlapping the bottom half of overlay image */}
+                    <Box sx={{ 
+                      position: 'absolute',
+                      bottom: -30, // Moves logo to cover bottom half
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      zIndex: 5,
+                    }}>
+                      <Box
+                        component="img"
+                        src="/logo-lotus-flame.svg"
+                        alt="Logo"
+                        sx={{
+                          width: { xs: 60, sm: 70, md: 80 },
+                          height: { xs: 60, sm: 70, md: 80 },
+                          filter: 'brightness(0)', // Makes the logo black
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Fallback logo if no overlay image */}
+                {!getOverlayImage() && (
                   <Box sx={{ 
-                    position: 'absolute',
-                    bottom: -40, // Moves logo to cover bottom half
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 5,
+                    mb: 3,
+                    display: 'flex',
+                    justifyContent: 'center',
                   }}>
                     <Box
                       component="img"
@@ -508,43 +565,18 @@ export default function CustomRSVPForm() {
                       }}
                     />
                   </Box>
-                </Box>
-              )}
-
-              {/* Fallback logo if no overlay image */}
-              {!getOverlayImage() && (
+                )}
+                
+                {/* Content */}
                 <Box sx={{ 
-                  position: 'absolute',
-                  top: 60,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 5,
+                  p: { xs: 2, sm: 3 }, 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  width: '100%',
+                  pt: getOverlayImage() ? { xs: 4, sm: 5 } : { xs: 2, sm: 3 }, // Extra padding for overlapping logo
                 }}>
-                  <Box
-                    component="img"
-                    src="/logo-lotus-flame.svg"
-                    alt="Logo"
-                    sx={{
-                      width: { xs: 60, sm: 70, md: 80 },
-                      height: { xs: 60, sm: 70, md: 80 },
-                      filter: 'brightness(0)', // Makes the logo black
-                    }}
-                  />
-                </Box>
-              )}
-              
-              {/* Content */}
-              <Box sx={{ 
-                p: { xs: 4, sm: 5, md: 6 }, 
-                backgroundColor: 'rgba(255, 255, 255, 0.8)', 
-                backdropFilter: 'blur(4px)',
-                height: getOverlayImage() ? { xs: '65%', sm: '60%', md: '65%' } : '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                overflow: 'auto',
-                pt: getOverlayImage() ? { xs: 5, sm: 6, md: 7 } : { xs: 4, sm: 5, md: 6 }, // Reduced padding since no header inside
-              }}>
                 
                 {formData.attending === 'yes' && (
                   <>
@@ -673,9 +705,11 @@ export default function CustomRSVPForm() {
                 >
                   Done
                 </Button>
+                </Box>
               </Box>
             </Paper>
-          </motion.div>
+            </motion.div>
+          </Container>
         </Box>
       </>
     );
