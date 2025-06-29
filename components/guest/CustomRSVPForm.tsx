@@ -430,7 +430,7 @@ export default function CustomRSVPForm() {
               justifyContent: 'center',
               alignItems: 'center',
               minHeight: '100vh',
-              py: { xs: 2, sm: 3, md: 4 },
+              py: { xs: 3, sm: 4, md: 5 },
               px: { xs: 2, sm: 3, md: 4 },
               overflow: 'hidden',
             }}
@@ -446,7 +446,7 @@ export default function CustomRSVPForm() {
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center', 
-                mb: { xs: 1, sm: 2 }, 
+                mb: { xs: 2, sm: 3, md: 4 }, 
                 flexShrink: 0,
               }}>
                 <Typography 
@@ -470,7 +470,6 @@ export default function CustomRSVPForm() {
               <Paper
                 elevation={0}
                 sx={{
-                  p: { xs: 2, sm: 3 },
                   borderRadius: 1,
                   border: '1px solid #000',
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -583,7 +582,6 @@ export default function CustomRSVPForm() {
                       fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, 
                       lineHeight: 1.4, 
                       textAlign: 'center',
-                      fontWeight: 500,
                       mb: { xs: 2, sm: 3 }
                     }}>
                       Yay! You're part of our celebration and we can't wait to have you there
@@ -596,7 +594,6 @@ export default function CustomRSVPForm() {
                       lineHeight: 1.6, 
                       textAlign: 'center', 
                       fontFamily: 'Outfit',
-                      fontWeight: 400 
                     }}>
                       Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
                     </Typography>
@@ -611,7 +608,6 @@ export default function CustomRSVPForm() {
                       fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, 
                       lineHeight: 1.4, 
                       textAlign: 'center',
-                      fontWeight: 500,
                       mb: { xs: 2, sm: 3 }
                     }}>
                       Thanks for letting us know!
