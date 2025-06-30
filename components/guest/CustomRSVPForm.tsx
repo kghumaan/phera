@@ -430,7 +430,7 @@ export default function CustomRSVPForm() {
               justifyContent: 'center',
               alignItems: 'center',
               minHeight: '100vh',
-              py: { xs: 3, sm: 4, md: 5 },
+              py: { xs: 2, sm: 3, md: 4 },
               px: { xs: 2, sm: 3, md: 4 },
               overflow: 'hidden',
             }}
@@ -446,7 +446,7 @@ export default function CustomRSVPForm() {
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center', 
-                mb: { xs: 2, sm: 3, md: 4 }, 
+                mb: { xs: 1, sm: 2, md: 3 }, 
                 flexShrink: 0,
               }}>
                 <Typography 
@@ -479,7 +479,7 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: 0,
-                  maxHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 140px)', md: 'calc(100vh - 160px)' },
+                  maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 115px)', md: 'calc(100vh - 130px)' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -2171,7 +2171,7 @@ export default function CustomRSVPForm() {
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
-            maxHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 140px)', md: 'calc(100vh - 160px)' },
+            maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 115px)', md: 'calc(100vh - 130px)' },
             // Responsive placeholder styles
             '& .responsive-placeholder::placeholder': {
               fontSize: { xs: '13px', sm: '16px' },
