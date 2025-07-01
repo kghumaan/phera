@@ -116,11 +116,12 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
         alignItems: 'center',
         borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         backgroundColor: 'white',
-        p: 3,
+        p: 2,
+        py: 1.5,
         fontFamily: 'Outfit', 
-        fontWeight: 400,
+        fontWeight: 500,
         color: '#000',
-        fontSize: '1.25rem'
+        fontSize: '1.1rem'
       }}>
         Choose a GIF
         <IconButton 
@@ -128,114 +129,121 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
           size="small"
           sx={{
             color: '#000',
+            p: 0.5,
             '&:hover': {
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
             },
           }}
         >
-          <CloseIcon />
+          <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
       
       <DialogContent sx={{ p: 0 }}>
         {/* Search Section */}
-        <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)', backgroundColor: 'white' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0, 0, 0, 0.08)', backgroundColor: 'white' }}>
+          {/* Search Input */}
+          <Box sx={{ position: 'relative', mb: 1.5 }}>
             <TextField
               fullWidth
+              size="small"
               placeholder="Search for GIFs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={handleKeyPress}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ color: '#808080', mr: 1 }} />,
+                startAdornment: <SearchIcon sx={{ color: '#808080', mr: 1, fontSize: '1.2rem' }} />,
+                endAdornment: searchTerm.trim() && (
+                  <IconButton
+                    size="small"
+                    onClick={() => searchGifs(searchTerm)}
+                    disabled={loading}
+                    sx={{
+                      color: '#DE3F5E',
+                      p: 0.5,
+                      '&:hover': {
+                        backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                      },
+                      '&:disabled': {
+                        color: '#ccc',
+                      },
+                    }}
+                  >
+                    <SearchIcon fontSize="small" />
+                  </IconButton>
+                ),
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(248, 248, 248, 1)',
+                  height: '40px',
                   '& fieldset': {
-                    borderColor: '#808080',
+                    borderColor: 'rgba(0, 0, 0, 0.12)',
                   },
                   '&:hover fieldset': {
-                    borderColor: '#808080',
+                    borderColor: 'rgba(0, 0, 0, 0.23)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#DAA520',
-                    borderWidth: '2px',
+                    borderColor: '#DE3F5E',
+                    borderWidth: '1px',
                   },
                 },
                 '& .MuiOutlinedInput-input': {
                   color: '#000',
                   fontFamily: 'Outfit',
+                  fontSize: '0.9rem',
+                  py: 0,
                   '&::placeholder': {
-                    color: '#C2C2C2',
+                    color: '#999',
                     opacity: 1,
                   },
                 },
               }}
             />
-            <Button
-              variant="contained"
-              onClick={() => searchGifs(searchTerm)}
-              disabled={loading || !searchTerm.trim()}
-              sx={{
-                borderRadius: '16px',
-                minWidth: 'auto',
-                px: 3,
-                backgroundColor: '#DE3F5E',
-                color: 'white',
-                fontFamily: 'Outfit',
-                fontWeight: 600,
-                textTransform: 'none',
-                '&:hover': {
-                  backgroundColor: '#C8365A',
-                },
-                '&:disabled': {
-                  backgroundColor: '#ccc',
-                  color: '#999',
-                },
-              }}
-            >
-              Search
-            </Button>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+          {/* Quick Tags */}
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
             {['bollywood dance', 'celebration', 'love', 'indian wedding', 'excited', 'happy'].map((tag) => (
-              <Button
+              <Box
                 key={tag}
-                size="small"
-                variant="outlined"
+                component="button"
                 onClick={() => {
                   setSearchTerm(tag);
                   searchGifs(tag);
                 }}
                 sx={{
-                  borderRadius: '16px',
-                  textTransform: 'none',
-                  fontSize: '0.8rem',
+                  border: 'none',
+                  borderRadius: '12px',
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: '0.75rem',
                   fontFamily: 'Outfit',
-                  borderColor: '#808080',
-                  color: '#000',
+                  backgroundColor: 'rgba(222, 63, 94, 0.08)',
+                  color: '#DE3F5E',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    borderColor: '#DE3F5E',
-                    backgroundColor: 'rgba(222, 63, 94, 0.04)',
-                    color: '#DE3F5E',
+                    backgroundColor: 'rgba(222, 63, 94, 0.15)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
                   },
                 }}
               >
                 {tag}
-              </Button>
+              </Box>
             ))}
           </Box>
         </Box>
 
         {/* GIFs Grid */}
-        <Box sx={{ p: 3, minHeight: '400px', backgroundColor: 'white' }}>
+        <Box sx={{ p: 2, minHeight: '400px', backgroundColor: 'white' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-              <CircularProgress sx={{ color: '#DE3F5E' }} />
+              <CircularProgress sx={{ color: '#DE3F5E' }} size={32} />
             </Box>
           ) : gifs.length > 0 ? (
             <Box sx={{ 
@@ -245,7 +253,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                 sm: 'repeat(3, 1fr)', 
                 md: 'repeat(4, 1fr)' 
               }, 
-              gap: 2
+              gap: 1.5
             }}>
               {gifs.map((gif) => (
                 <Box
@@ -254,7 +262,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                     position: 'relative',
                     width: '100%',
                     paddingTop: '100%', // Square aspect ratio
-                    borderRadius: '16px',
+                    borderRadius: '12px',
                     overflow: 'hidden',
                     cursor: 'pointer',
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
@@ -283,21 +291,21 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
             </Box>
           ) : hasSearched ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" sx={{ 
+              <Typography variant="body2" sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
                 fontFamily: 'Outfit',
-                fontSize: '1rem'
+                fontSize: '0.9rem'
               }}>
                 No GIFs found. Try a different search term.
               </Typography>
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <GifIcon sx={{ fontSize: 64, color: '#ccc', mb: 2 }} />
-              <Typography variant="body1" sx={{ 
+              <GifIcon sx={{ fontSize: 48, color: '#ccc', mb: 1 }} />
+              <Typography variant="body2" sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
                 fontFamily: 'Outfit',
-                fontSize: '1rem'
+                fontSize: '0.9rem'
               }}>
                 Search for GIFs to add to your message!
               </Typography>
@@ -306,18 +314,20 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
         </Box>
       </DialogContent>
       
-      <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(0, 0, 0, 0.08)', backgroundColor: 'white' }}>
+      <DialogActions sx={{ px: 2, py: 1.5, borderTop: '1px solid rgba(0, 0, 0, 0.08)', backgroundColor: 'white' }}>
         <Button 
           onClick={onClose} 
           variant="outlined"
+          size="small"
           sx={{
-            borderRadius: '16px',
-            borderColor: '#808080',
+            borderRadius: '12px',
+            borderColor: 'rgba(0, 0, 0, 0.23)',
             color: '#000',
             fontFamily: 'Outfit',
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: 'none',
-            px: 3,
+            px: 2,
+            fontSize: '0.9rem',
             '&:hover': {
               borderColor: '#000',
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
