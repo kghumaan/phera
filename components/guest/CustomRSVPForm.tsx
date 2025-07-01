@@ -430,7 +430,7 @@ export default function CustomRSVPForm() {
               justifyContent: 'center',
               alignItems: 'center',
               minHeight: '100vh',
-              py: { xs: 2, sm: 3, md: 4 },
+              py: { xs: 1, sm: 2, md: 3 },
               px: { xs: 2, sm: 3, md: 4 },
               overflow: 'hidden',
             }}
@@ -446,7 +446,7 @@ export default function CustomRSVPForm() {
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center', 
-                mb: { xs: 1, sm: 2, md: 3 }, 
+                mb: { xs: 0.5, sm: 1, md: 2 }, 
                 flexShrink: 0,
               }}>
                 <Typography 
@@ -479,7 +479,7 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: 0,
-                  maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 115px)', md: 'calc(100vh - 130px)' },
+                  maxHeight: { xs: 'calc(100vh - 70px)', sm: 'calc(100vh - 85px)', md: 'calc(100vh - 100px)' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -2105,7 +2105,7 @@ export default function CustomRSVPForm() {
           justifyContent: 'center',
           alignItems: 'center',
           minHeight: '100vh',
-          py: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 1, sm: 2, md: 3 },
           px: { xs: 2, sm: 3, md: 4 },
           overflow: 'hidden',
         }}
@@ -2121,7 +2121,7 @@ export default function CustomRSVPForm() {
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
-          mb: { xs: 1, sm: 2 }, 
+          mb: { xs: 0.5, sm: 1 }, 
           flexShrink: 0,
         }}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
@@ -2161,7 +2161,7 @@ export default function CustomRSVPForm() {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2, sm: 3 },
+            p: { xs: 1.5, sm: 2.5 },
             borderRadius: 1,
             border: '1px solid #000',
             background: 'rgba(255, 255, 255, 0.95)',
@@ -2171,7 +2171,7 @@ export default function CustomRSVPForm() {
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
-            maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 115px)', md: 'calc(100vh - 130px)' },
+            maxHeight: { xs: 'calc(100vh - 70px)', sm: 'calc(100vh - 85px)', md: 'calc(100vh - 100px)' },
             // Responsive placeholder styles
             '& .responsive-placeholder::placeholder': {
               fontSize: { xs: '13px', sm: '16px' },
