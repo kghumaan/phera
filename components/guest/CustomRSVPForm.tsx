@@ -2171,7 +2171,7 @@ export default function CustomRSVPForm() {
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
-            maxHeight: { xs: 'calc(100vh - 70px)', sm: 'calc(100vh - 85px)', md: 'calc(100vh - 100px)' },
+            maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
             // Responsive placeholder styles
             '& .responsive-placeholder::placeholder': {
               fontSize: { xs: '13px', sm: '16px' },
