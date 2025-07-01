@@ -2135,258 +2135,374 @@ export default function CustomRSVPForm() {
             alignItems: 'center'
           }}
         >
-          {/* Form Content - Centered */}
+          {/* Close Button - positioned outside form */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: { xs: 0.5, sm: 1 }, 
+            flexShrink: 0,
+          }}>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+              <IconButton
+                onClick={handleClose}
+                sx={{
+                  color: '#000',
+                  backgroundColor: 'transparent',
+                  p: { xs: 1, sm: 1.5 },
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontFamily: 'Outfit', 
+                color: '#141414', 
+                fontWeight: 400,
+                fontSize: { xs: '16px', sm: '18px' },
+                lineHeight: '1.26em',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                textAlign: 'center'
+              }}
+            >
+              RSVP
+            </Typography>
+            <Box sx={{ flex: 1 }} /> {/* Spacer */}
+          </Box>
+
+          {/* Form Content */}
           <Paper
             elevation={0}
             sx={{
+              p: { xs: 1.5, sm: 2.5 },
               borderRadius: 1,
               border: '1px solid #000',
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
               color: '#000000',
-              width: '100%',
-              height: { xs: '80vh', sm: '75vh', md: '70vh' },
-              maxHeight: { xs: '600px', sm: '650px', md: '700px' },
+              flex: 1,
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
-              position: 'relative',
+              minHeight: 0,
+              maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+              // Responsive placeholder styles
+              '& .responsive-placeholder::placeholder': {
+                fontSize: { xs: '13px', sm: '16px' },
+                color: '#C2C2C2 !important',
+              },
+              '& .responsive-textarea::placeholder': {
+                fontSize: { xs: '13px', sm: '16px' },
+                color: '#C2C2C2 !important',
+              },
+              '& .MuiFormLabel-root': {
+                color: '#333333 !important',
+                fontWeight: 600,
+              },
+              '& .MuiTextField-root .MuiInputLabel-root': {
+                color: '#808080 !important',
+              },
+              '& .MuiTextField-root .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                color: '#000000 !important',
+                borderRadius: '8px !important',
+                '& fieldset': {
+                  borderColor: '#808080 !important',
+                  borderRadius: '8px !important',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#808080 !important',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#DAA520 !important',
+                  borderWidth: '2px !important',
+                },
+                '& input::placeholder': {
+                  color: '#C2C2C2 !important',
+                  opacity: 1,
+                },
+                '& input': {
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                    WebkitTextFillColor: '#000000 !important',
+                    backgroundColor: 'transparent !important',
+                  },
+                  '&:-webkit-autofill:hover': {
+                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                    WebkitTextFillColor: '#000000 !important',
+                  },
+                  '&:-webkit-autofill:focus': {
+                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
+                    WebkitTextFillColor: '#000000 !important',
+                  },
+                },
+              },
+              '& .MuiTextField-root .MuiOutlinedInput-input': {
+                color: '#000000 !important',
+                padding: '16.5px 14px',
+              },
+              '& .MuiTextField-root .MuiInputBase-inputMultiline': {
+                padding: '16.5px 14px',
+              },
+              '& .MuiRadio-root': {
+                color: '#666666 !important',
+              },
+              '& .MuiFormControlLabel-label': {
+                color: '#000000 !important',
+              },
+              '& .MuiChip-root': {
+                color: '#000000 !important',
+              },
+              '& .MuiSelect-root': {
+                color: '#000000 !important',
+              },
+              '& .MuiSelect-select': {
+                padding: '16.5px 14px',
+              },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px !important',
+                '& fieldset': {
+                  borderColor: '#808080 !important',
+                  borderRadius: '8px !important',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#808080 !important',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#DAA520 !important',
+                  borderWidth: '2px !important',
+                },
+              },
+              '& .MuiMenuItem-root': {
+                color: '#000000 !important',
+              },
             }}
           >
-          {/* Scrollable Content Area - Full width for confirmation */}
-          <Box sx={{ 
-            flex: 1, 
-            overflowY: 'auto', 
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            '&::-webkit-scrollbar': {
-              width: { xs: '4px', sm: '6px' },
-            },
-            '&::-webkit-scrollbar-track': {
-              background: '#f1f1f1',
-              borderRadius: '3px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#c1c1c1',
-              borderRadius: '3px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: '#a8a8a8',
-            },
-          }}>
-            {/* Overlay Image - Full width */}
-            {getOverlayImage() && (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: { xs: 120, sm: 140, md: 160 },
-                  backgroundImage: `url(${getOverlayImage()})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  position: 'relative',
-                }}
-              >
-                {/* Logo overlapping the bottom half of overlay image */}
-                <Box sx={{ 
-                  position: 'absolute',
-                  bottom: -20, // Reduced overlap
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 5,
-                }}>
-                  <Box
-                    component="img"
-                    src="/logo-lotus-flame.svg"
-                    alt="Logo"
-                    sx={{
-                      width: { xs: 50, sm: 60, md: 70 },
-                      height: { xs: 50, sm: 60, md: 70 },
-                      filter: 'brightness(0)', // Makes the logo black
-                    }}
-                  />
+            {/* Progress Bar - moved inside form */}
+            <Box sx={{ mb: { xs: 1, sm: 2 }, flexShrink: 0 }}>            
+              {/* Horizontal Segment Progress Bar */}
+              <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: '4px',
+                    height: { xs: '3px', sm: '4px' },
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                    backgroundColor: '#F5F5F5',
+                  }}
+                >
+                  {steps.map((_, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        flex: 1,
+                        height: '100%',
+                        backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
+                        transition: 'background-color 0.3s ease',
+                        '&:first-of-type': {
+                          borderTopLeftRadius: '2px',
+                          borderBottomLeftRadius: '2px',
+                        },
+                        '&:last-of-type': {
+                          borderTopRightRadius: '2px',
+                          borderBottomRightRadius: '2px',
+                        },
+                      }}
+                    />
+                  ))}
                 </Box>
               </Box>
-            )}
-
-            {/* Fallback logo if no overlay image */}
-            {!getOverlayImage() && (
-              <Box sx={{ 
-                mb: 2,
-                mt: 2,
-                display: 'flex',
-                justifyContent: 'center',
-              }}>
-                <Box
-                  component="img"
-                  src="/logo-lotus-flame.svg"
-                  alt="Logo"
-                  sx={{
-                    width: { xs: 50, sm: 60, md: 70 },
-                    height: { xs: 50, sm: 60, md: 70 },
-                    filter: 'brightness(0)', // Makes the logo black
-                  }}
-                />
-              </Box>
-            )}
-            
-            {/* Content */}
-            <Box sx={{ 
-              p: { xs: 2, sm: 3, md: 4 }, 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              width: '100%',
-              flex: 1,
-              pt: getOverlayImage() ? { xs: 3, sm: 4, md: 5 } : { xs: 2, sm: 3 }, // Extra padding for overlapping logo
-            }}>
-            
-            {/* Centered Text Content */}
-            <Box sx={{ 
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-            }}>
-              {formData.attending === 'yes' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ 
-                    fontFamily: 'Outfit', 
-                    color: '#000', 
-                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                    lineHeight: 1.3, 
-                    textAlign: 'center',
-                    mb: { xs: 1.5, sm: 2 }
-                  }}>
-                    Yay! You're part of our celebration and we can't wait to have you there
-                  </Typography>
-                  
-                  <Typography variant="body1" sx={{ 
-                    color: '#474747', 
-                    mb: { xs: 2, sm: 3 }, 
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                    lineHeight: 1.5, 
-                    textAlign: 'center', 
-                    fontFamily: 'Outfit',
-                  }}>
-                    Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
-                  </Typography>
-                </>
-              )}
-              
-              {formData.attending === 'maybe' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ 
-                    fontFamily: 'Outfit', 
-                    color: '#000', 
-                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                    lineHeight: 1.3, 
-                    textAlign: 'center',
-                    mb: { xs: 1.5, sm: 2 }
-                  }}>
-                    Thanks for letting us know!
-                  </Typography>
-                  
-                  <Typography variant="body1" sx={{ 
-                    color: '#474747', 
-                    mb: { xs: 2, sm: 3 }, 
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                    lineHeight: 1.5, 
-                    textAlign: 'center', 
-                    fontFamily: 'Outfit',
-                    fontWeight: 400 
-                  }}>
-                    We understand you need to figure some things out. Just remember: We need your final answer by August 31, 2025. We'll check in with you before then!
-                    {'\n\n'}
-                    Use your email or phone number to sign in anytime so you can update your response.
-                  </Typography>
-                </>
-              )}
-              
-              {formData.attending === 'no' && (
-                <>
-                  <Typography variant="h3" gutterBottom sx={{ 
-                    fontFamily: 'Outfit', 
-                    color: '#000', 
-                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                    lineHeight: 1.3, 
-                    textAlign: 'center',
-                    fontWeight: 500,
-                    mb: { xs: 1.5, sm: 2 }
-                  }}>
-                    We'll miss you! :(
-                  </Typography>
-                  
-                  <Typography variant="body1" sx={{ 
-                    color: '#474747', 
-                    mb: { xs: 2, sm: 3 }, 
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                    lineHeight: 1.5, 
-                    textAlign: 'center', 
-                    fontFamily: 'Outfit',
-                    fontWeight: 400 
-                  }}>
-                    We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on August 31, 2025.
-                  </Typography>
-                </>
-              )}
-            </Box>
-            
-            {/* Bottom Logo - Upside Down */}
-            <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', justifyContent: 'center' }}>
-              <Box
-                component="img"
-                src="/logo-lotus-flame.svg"
-                alt="Logo"
-                sx={{
-                  width: { xs: 50, sm: 60, md: 70 },
-                  height: { xs: 50, sm: 60, md: 70 },
-                  filter: 'brightness(0)', // Makes the logo black
-                  transform: 'rotate(180deg)', // Flips the logo upside down
-                }}
-              />
-            </Box>
             </Box>
 
-            {/* Done Button - Fixed at bottom */}
+            {/* Scrollable Content Area */}
             <Box sx={{ 
-              p: { xs: 2, sm: 3 }, 
-              pt: 0,
+              flex: 1, 
+              overflowY: 'auto', 
+              minHeight: 0,
+              pr: { xs: 0.5, sm: 1 },
+              px: { xs: 1, sm: 0 },
+              '&::-webkit-scrollbar': {
+                width: { xs: '4px', sm: '6px' },
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+                borderRadius: '3px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#c1c1c1',
+                borderRadius: '3px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#a8a8a8',
+              },
+            }}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={stepVariants}
+                >
+                  {renderStep()}
+                </motion.div>
+              </AnimatePresence>
+            </Box>
+
+            {/* Navigation Buttons */}
+            <Box sx={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(4px)',
+              pt: { xs: 2, sm: 2.5 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 1, sm: 1.5 },
               flexShrink: 0,
+              mt: 'auto',
             }}>
+              {currentStep > 0 && (
+                <IconButton
+                  onClick={handleBack}
+                  sx={{
+                    width: { xs: 44, sm: 48 },
+                    height: { xs: 44, sm: 48 },
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.16)',
+                    color: '#141414',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.24)',
+                    },
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                </IconButton>
+              )}
+              
+              {currentStep < steps.length - 1 ? (
+                <Button
+                  onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
+                  variant="contained"
+                  sx={{ 
+                    flex: 1,
+                    height: { xs: 44, sm: 48 },
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 700,
+                    borderRadius: '80px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '6.25%',
+                    fontFamily: 'Outfit', 
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#ccc',
+                      color: '#999',
+                    },
+                  }}
+                  disabled={false}
+                >
+                  {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  variant="contained"
+                  sx={{
+                    flex: 1,
+                    height: { xs: 44, sm: 48 },
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 700,
+                    borderRadius: '80px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '6.25%',
+                    fontFamily: 'Outfit',
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#ccc',
+                      color: '#999',
+                    },
+                  }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+                </Button>
+              )}
+            </Box>
+          </Paper>
+
+          {/* Exit Confirmation Dialog */}
+          <Dialog
+            open={showExitConfirmation}
+            onClose={handleCancelExit}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: 1,
+                border: '1px solid #000',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              }
+            }}
+          >
+            <DialogTitle sx={{ color: '#000', fontWeight: 600 }}>
+              Exit RSVP Process?
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="body1" sx={{ color: '#000' }}>
+                Are you sure you want to leave? Any information you've entered will be lost and you'll need to start over.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, gap: 2 }}>
               <Button
-                onClick={() => router.push('/')}
-                variant="contained"
-                size="large"
-                fullWidth
+                onClick={handleCancelExit}
+                variant="outlined"
                 sx={{
-                  backgroundColor: '#DE3F5E',
-                  color: 'white',
-                  py: { xs: 1.25, sm: 1.5 },
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontWeight: 700,
-                  borderRadius: '80px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '6.25%',
-                  boxShadow: 'none',
-                  fontFamily: 'Outfit',
-                  maxWidth: { xs: '100%', sm: '90%', md: '85%' },
-                  mx: 'auto',
+                  borderColor: '#000',
+                  color: '#000',
                   '&:hover': {
-                    backgroundColor: '#C8365A',
-                    boxShadow: 'none',
+                    borderColor: '#000',
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   },
                 }}
               >
-                Done
+                Continue RSVP
               </Button>
-            </Box>
-          </Box>
-        </Paper>
+              <Button
+                onClick={handleConfirmExit}
+                variant="contained"
+                sx={{
+                  backgroundColor: '#DC3545',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#C82333',
+                  },
+                }}
+              >
+                Yes, Exit
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* GIF Picker Dialog */}
+          <GifPicker
+            open={showGifPicker}
+            onClose={() => setShowGifPicker(false)}
+            onSelectGif={handleGifSelect}
+          />
         </motion.div>
       </Container>
     </Box>
