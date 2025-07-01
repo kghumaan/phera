@@ -444,7 +444,7 @@ export default function CustomRSVPForm() {
               {/* Header Section - centered vertically in top portion */}
               <Box sx={{ 
                 flex: '0 0 auto',
-                height: { xs: '120px', sm: '140px', md: '160px' },
+                height: { xs: '80px', sm: '90px', md: '100px' },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -488,7 +488,7 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: 0,
-                  maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+                  maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 110px)', md: 'calc(100vh - 120px)' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -2151,7 +2151,7 @@ export default function CustomRSVPForm() {
         {/* Header Section - centered vertically in top portion */}
         <Box sx={{ 
           flex: '0 0 auto',
-          height: { xs: '120px', sm: '140px', md: '160px' },
+          height: { xs: '80px', sm: '90px', md: '100px' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2196,7 +2196,7 @@ export default function CustomRSVPForm() {
               display: 'flex',
               flexDirection: 'column',
               minHeight: 0,
-              maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+              maxHeight: { xs: 'calc(100vh - 100px)', sm: 'calc(100vh - 110px)', md: 'calc(100vh - 120px)' },
             // Responsive placeholder styles
             '& .responsive-placeholder::placeholder': {
               fontSize: { xs: '13px', sm: '16px' },
