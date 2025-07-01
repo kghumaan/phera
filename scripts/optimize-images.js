@@ -83,4 +83,5 @@ console.log('   - TinyPNG: https://tinypng.com/');
 console.log('   - Squoosh: https://squoosh.app/');
 console.log('   - ImageOptim (Mac): https://imageoptim.com/');
 console.log('');
-console.log('3. Then run the code update script'); 
+console.log('3. Or use the automated ImageMagick script: ./scripts/imagemagick-optimize.sh');
+console.log('4. Then run the code update script'); 

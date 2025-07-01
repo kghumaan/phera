@@ -506,240 +506,223 @@ export default function CustomRSVPForm() {
                   position: 'relative',
                 }}
               >
-              {/* Scrollable Content Area - Full width for confirmation */}
-              <Box sx={{ 
-                flex: 1, 
-                overflowY: 'auto', 
-                minHeight: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                '&::-webkit-scrollbar': {
-                  width: { xs: '4px', sm: '6px' },
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                  borderRadius: '3px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#c1c1c1',
-                  borderRadius: '3px',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  background: '#a8a8a8',
-                },
-              }}>
-                {/* Overlay Image - Full width */}
+                {/* Overlay Image - Absolutely positioned on top */}
                 {getOverlayImage() && (
                   <Box
                     sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
                       width: '100%',
-                      height: { xs: 120, sm: 140, md: 160 },
+                      height: { xs: 200, sm: 200, md: 200 },
                       backgroundImage: `url(${getOverlayImage()})`,
                       backgroundSize: 'cover',
-                      backgroundPosition: 'center',
+                      backgroundPosition: 'center top',
                       backgroundRepeat: 'no-repeat',
-                      position: 'relative',
+                      zIndex: 1,
+                      borderRadius: '4px 4px 0 0', // Match Paper border radius at top
                     }}
-                  >
-                    {/* Logo overlapping the bottom half of overlay image */}
+                  />
+                )}
+
+                {/* Scrollable Content Area - Full width for confirmation */}
+                <Box sx={{ 
+                  flex: 1, 
+                  overflowY: 'auto', 
+                  minHeight: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  position: 'relative',
+                  zIndex: 2, // Above overlay
+                  '&::-webkit-scrollbar': {
+                    width: { xs: '4px', sm: '6px' },
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '3px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '3px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#a8a8a8',
+                  },
+                }}>
+                  {/* Spacer for overlay height */}
+                  {getOverlayImage() && (
+                    <Box sx={{ height: { xs: 200, sm: 200, md: 200 }, flexShrink: 0 }} />
+                  )}
+
+                  {/* Content - Absolutely centered in remaining space */}
+                  <Box sx={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: { xs: 2, sm: 3 },
+                    minHeight: 0,
+                    mt: { xs: -20, sm: -20, md: -20 }, // Pull content up to better center it
+                  }}>
+                    {/* Content Column with tight spacing */}
                     <Box sx={{ 
-                      position: 'absolute',
-                      bottom: -20, // Reduced overlap
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      zIndex: 5,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 1, // 8px gap like in Figma
                     }}>
+                      {/* Top Logo */}
                       <Box
                         component="img"
                         src="/logo-lotus-flame.svg"
                         alt="Logo"
                         sx={{
-                          width: { xs: 50, sm: 60, md: 70 },
-                          height: { xs: 50, sm: 60, md: 70 },
+                          width: { xs: 80, sm: 80, md: 80 },
+                          height: { xs: 80, sm: 80, md: 80 },
                           filter: 'brightness(0)', // Makes the logo black
+                        }}
+                      />
+                  
+                      {/* Text Content */}
+                      <Box sx={{ 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        px: 6,
+                        gap: 1,
+                      }}>
+                        {formData.attending === 'yes' && (
+                          <>
+                            <Typography sx={{ 
+                              fontFamily: 'Outfit', 
+                              color: '#000', 
+                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center',
+                              fontWeight: 400,
+                            }}>
+                              Yay! You're part of our celebration and we can't wait to have you there
+                            </Typography>
+                            
+                            <Typography sx={{ 
+                              color: '#474747', 
+                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center', 
+                              fontFamily: 'Outfit',
+                              fontWeight: 400,
+                            }}>
+                              Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
+                            </Typography>
+                          </>
+                        )}
+                        
+                        {formData.attending === 'maybe' && (
+                          <>
+                            <Typography sx={{ 
+                              fontFamily: 'Outfit', 
+                              color: '#000', 
+                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center',
+                              fontWeight: 400,
+                            }}>
+                              Thanks for letting us know!
+                            </Typography>
+                            
+                            <Typography sx={{ 
+                              color: '#474747', 
+                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center', 
+                              fontFamily: 'Outfit',
+                              fontWeight: 400 
+                            }}>
+                              We understand you need to figure some things out. Just remember: We need your final answer by August 31, 2025. We'll check in with you before then!
+                              {'\n\n'}
+                              Use your email or phone number to sign in anytime so you can update your response.
+                            </Typography>
+                          </>
+                        )}
+                        
+                        {formData.attending === 'no' && (
+                          <>
+                            <Typography sx={{ 
+                              fontFamily: 'Outfit', 
+                              color: '#000', 
+                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center',
+                              fontWeight: 400,
+                            }}>
+                              We'll miss you! :(
+                            </Typography>
+                            
+                            <Typography sx={{ 
+                              color: '#474747', 
+                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
+                              lineHeight: 1.5, 
+                              textAlign: 'center', 
+                              fontFamily: 'Outfit',
+                              fontWeight: 400 
+                            }}>
+                              We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on August 31, 2025.
+                            </Typography>
+                          </>
+                        )}
+                      </Box>
+                      
+                      {/* Bottom Logo - Upside Down */}
+                      <Box
+                        component="img"
+                        src="/logo-lotus-flame.svg"
+                        alt="Logo"
+                        sx={{
+                          width: { xs: 80, sm: 80, md: 80 },
+                          height: { xs: 80, sm: 80, md: 80 },
+                          filter: 'brightness(0)', // Makes the logo black
+                          transform: 'rotate(180deg)', // Flips the logo upside down
                         }}
                       />
                     </Box>
                   </Box>
-                )}
 
-                {/* Fallback logo if no overlay image */}
-                {!getOverlayImage() && (
+                  {/* Done Button - Fixed at bottom */}
                   <Box sx={{ 
-                    mb: 2,
-                    mt: 2,
-                    display: 'flex',
-                    justifyContent: 'center',
+                    p: { xs: 2, sm: 3 }, 
+                    pt: { xs: 1, sm: 1.5 },
+                    flexShrink: 0,
                   }}>
-                    <Box
-                      component="img"
-                      src="/logo-lotus-flame.svg"
-                      alt="Logo"
+                    <Button
+                      onClick={() => router.push('/')}
+                      variant="contained"
+                      size="large"
+                      fullWidth
                       sx={{
-                        width: { xs: 50, sm: 60, md: 70 },
-                        height: { xs: 50, sm: 60, md: 70 },
-                        filter: 'brightness(0)', // Makes the logo black
-                      }}
-                    />
-                  </Box>
-                )}
-                
-                {/* Content */}
-                <Box sx={{ 
-                  p: { xs: 2, sm: 3, md: 4 }, 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  width: '100%',
-                  flex: 1,
-                  pt: getOverlayImage() ? { xs: 3, sm: 4, md: 5 } : { xs: 2, sm: 3 }, // Extra padding for overlapping logo
-                }}>
-                
-                {/* Centered Text Content */}
-                <Box sx={{ 
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: '100%',
-                }}>
-                  {formData.attending === 'yes' && (
-                    <>
-                      <Typography variant="h3" gutterBottom sx={{ 
-                        fontFamily: 'Outfit', 
-                        color: '#000', 
-                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                        lineHeight: 1.3, 
-                        textAlign: 'center',
-                        mb: { xs: 1.5, sm: 2 }
-                      }}>
-                        Yay! You're part of our celebration and we can't wait to have you there
-                      </Typography>
-                      
-                      <Typography variant="body1" sx={{ 
-                        color: '#474747', 
-                        mb: { xs: 2, sm: 3 }, 
-                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                        lineHeight: 1.5, 
-                        textAlign: 'center', 
-                        fontFamily: 'Outfit',
-                      }}>
-                        Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
-                      </Typography>
-                    </>
-                  )}
-                  
-                  {formData.attending === 'maybe' && (
-                    <>
-                      <Typography variant="h3" gutterBottom sx={{ 
-                        fontFamily: 'Outfit', 
-                        color: '#000', 
-                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                        lineHeight: 1.3, 
-                        textAlign: 'center',
-                        mb: { xs: 1.5, sm: 2 }
-                      }}>
-                        Thanks for letting us know!
-                      </Typography>
-                      
-                      <Typography variant="body1" sx={{ 
-                        color: '#474747', 
-                        mb: { xs: 2, sm: 3 }, 
-                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                        lineHeight: 1.5, 
-                        textAlign: 'center', 
-                        fontFamily: 'Outfit',
-                        fontWeight: 400 
-                      }}>
-                        We understand you need to figure some things out. Just remember: We need your final answer by August 31, 2025. We'll check in with you before then!
-                        {'\n\n'}
-                        Use your email or phone number to sign in anytime so you can update your response.
-                      </Typography>
-                    </>
-                  )}
-                  
-                  {formData.attending === 'no' && (
-                    <>
-                      <Typography variant="h3" gutterBottom sx={{ 
-                        fontFamily: 'Outfit', 
-                        color: '#000', 
-                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }, 
-                        lineHeight: 1.3, 
-                        textAlign: 'center',
-                        fontWeight: 500,
-                        mb: { xs: 1.5, sm: 2 }
-                      }}>
-                        We'll miss you! :(
-                      </Typography>
-                      
-                      <Typography variant="body1" sx={{ 
-                        color: '#474747', 
-                        mb: { xs: 2, sm: 3 }, 
-                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }, 
-                        lineHeight: 1.5, 
-                        textAlign: 'center', 
-                        fontFamily: 'Outfit',
-                        fontWeight: 400 
-                      }}>
-                        We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on August 31, 2025.
-                      </Typography>
-                    </>
-                  )}
-                </Box>
-                
-                {/* Bottom Logo - Upside Down */}
-                <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', justifyContent: 'center' }}>
-                  <Box
-                    component="img"
-                    src="/logo-lotus-flame.svg"
-                    alt="Logo"
-                    sx={{
-                      width: { xs: 50, sm: 60, md: 70 },
-                      height: { xs: 50, sm: 60, md: 70 },
-                      filter: 'brightness(0)', // Makes the logo black
-                      transform: 'rotate(180deg)', // Flips the logo upside down
-                    }}
-                  />
-                </Box>
-                </Box>
-
-                {/* Done Button - Fixed at bottom */}
-                <Box sx={{ 
-                  p: { xs: 2, sm: 3 }, 
-                  pt: 0,
-                  flexShrink: 0,
-                }}>
-                  <Button
-                    onClick={() => router.push('/')}
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    sx={{
-                      backgroundColor: '#DE3F5E',
-                      color: 'white',
-                      py: { xs: 1.25, sm: 1.5 },
-                      fontSize: { xs: '0.9rem', sm: '1rem' },
-                      fontWeight: 700,
-                      borderRadius: '80px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '6.25%',
-                      boxShadow: 'none',
-                      fontFamily: 'Outfit',
-                      maxWidth: { xs: '100%', sm: '90%', md: '85%' },
-                      mx: 'auto',
-                      '&:hover': {
-                        backgroundColor: '#C8365A',
+                        backgroundColor: '#DE3F5E',
+                        color: 'white',
+                        py: { xs: 1.5, sm: 1.5 },
+                        fontSize: { xs: '1rem', sm: '1rem' },
+                        fontWeight: 700,
+                        borderRadius: '80px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '6.25%',
                         boxShadow: 'none',
-                      },
-                    }}
-                  >
-                    Done
-                  </Button>
+                        fontFamily: 'Outfit',
+                        '&:hover': {
+                          backgroundColor: '#C8365A',
+                          boxShadow: 'none',
+                        },
+                      }}
+                    >
+                      Done
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            </Paper>
+              </Paper>
             </motion.div>
           </Container>
         </Box>
