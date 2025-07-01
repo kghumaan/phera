@@ -515,13 +515,18 @@ export default function CustomRSVPForm() {
                       left: 0,
                       right: 0,
                       width: '100%',
-                      height: { xs: 200, sm: 200, md: 200 },
+                      height: { 
+                        xs: formData.attending === 'no' ? 300 : 200, 
+                        sm: formData.attending === 'no' ? 300 : 200, 
+                        md: 300 
+                      },
                       backgroundImage: `url(${getOverlayImage()})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center top',
                       backgroundRepeat: 'no-repeat',
-                      zIndex: 1,
+                      zIndex: 99, // High z-index to sit on top of everything
                       borderRadius: '4px 4px 0 0', // Match Paper border radius at top
+                      pointerEvents: 'none', // Allow clicks to pass through transparent areas
                     }}
                   />
                 )}
@@ -534,7 +539,7 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
-                  zIndex: 2, // Above overlay
+                  // Removed zIndex so overlay can sit on top
                   '&::-webkit-scrollbar': {
                     width: { xs: '4px', sm: '6px' },
                   },
@@ -552,7 +557,14 @@ export default function CustomRSVPForm() {
                 }}>
                   {/* Spacer for overlay height */}
                   {getOverlayImage() && (
-                    <Box sx={{ height: { xs: 200, sm: 200, md: 200 }, flexShrink: 0 }} />
+                    <Box sx={{ 
+                      height: { 
+                        xs: formData.attending === 'no' ? 300 : 200, 
+                        sm: formData.attending === 'no' ? 300 : 200, 
+                        md: 300 
+                      }, 
+                      flexShrink: 0 
+                    }} />
                   )}
 
                   {/* Content - Absolutely centered in remaining space */}
