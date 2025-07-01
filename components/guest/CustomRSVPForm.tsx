@@ -145,6 +145,7 @@ export default function CustomRSVPForm() {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
 
   const steps = [
     'Basic Information',
@@ -154,6 +155,24 @@ export default function CustomRSVPForm() {
     'Personal Details',
     'Fun & Messages',
   ];
+
+  // Track window height changes for proper mobile viewport handling
+  useEffect(() => {
+    const updateWindowHeight = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', updateWindowHeight);
+    window.addEventListener('orientationchange', updateWindowHeight);
+    
+    // Update immediately in case initial height was wrong
+    updateWindowHeight();
+
+    return () => {
+      window.removeEventListener('resize', updateWindowHeight);
+      window.removeEventListener('orientationchange', updateWindowHeight);
+    };
+  }, []);
 
   // Fetch existing RSVP data when component mounts and user is authenticated
   useEffect(() => {
@@ -479,8 +498,8 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   mt: 6,
-                  minHeight: 0,
-                  maxHeight: { xs: 'calc(100vh - 160px)', sm: 'calc(100vh - 175px)', md: 'calc(100vh - 190px)' },
+                  minHeight: '180px',
+                  maxHeight: windowHeight - (isMobile ? 160 : 190),
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -759,120 +778,229 @@ export default function CustomRSVPForm() {
             </Typography>
             
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row' }}>
-              <TextField
-                label="First name"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-                sx={{ 
-                  flex: 1, 
-                  maxWidth: '48%',
-                  '& .MuiOutlinedInput-input::placeholder': {
-                    fontSize: { xs: '13px', sm: '16px' },
-                    color: '#C2C2C2 !important',
-                  },
-                }}
-              />
-              <TextField
-                label="Last name"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-                sx={{ 
-                  flex: 1, 
-                  maxWidth: '48%',
-                  '& .MuiOutlinedInput-input::placeholder': {
-                    fontSize: { xs: '13px', sm: '16px' },
-                    color: '#C2C2C2 !important',
-                  },
-                }}
-              />
+              <Box sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.4)',
+                    },
+                    '&:focus-within': {
+                      borderColor: '#DAA520',
+                      borderWidth: '2px',
+                      padding: '11px 11px',
+                    },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="First name"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      color: formData.firstName ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                    className="responsive-placeholder"
+                  />
+                </Box>
+                {errors.firstName && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                    {errors.firstName}
+                  </Typography>
+                )}
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.4)',
+                    },
+                    '&:focus-within': {
+                      borderColor: '#DAA520',
+                      borderWidth: '2px',
+                      padding: '11px 11px',
+                    },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Last name"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      color: formData.lastName ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                    className="responsive-placeholder"
+                  />
+                </Box>
+                {errors.lastName && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                    {errors.lastName}
+                  </Typography>
+                )}
+              </Box>
             </Box>
             
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              error={!!errors.email}
-              helperText={errors.email}
-              sx={{
-                '& .MuiOutlinedInput-input::placeholder': {
-                  fontSize: { xs: '13px', sm: '16px' },
-                  color: '#C2C2C2 !important',
-                },
-              }}
-            />
-            
-            <TextField
-              fullWidth
-              label="Phone Number"
-              type="tel"
-              inputMode="tel"
-              value={formData.phone}
-              onChange={(e) => {
-                // Remove any non-numeric characters except + and spaces
-                const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
-                handleInputChange('phone', cleanValue);
-              }}
-              placeholder={`000 000 0000`}
-              error={!!errors.phone}
-              helperText={errors.phone}
-              InputProps={{
-                startAdornment: (
-                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                    <FormControl sx={{ minWidth: 100 }}>
-                      <Select
-                        value={formData.countryCode}
-                        onChange={(e) => handleInputChange('countryCode', e.target.value)}
-                        variant="standard"
-                        disableUnderline
-                        sx={{
-                          '& .MuiSelect-select': {
-                            padding: '0px 8px 0px 0px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontSize: '1rem',
-                            border: 'none',
-                            '&:focus': {
-                              backgroundColor: 'transparent',
-                            },
-                          },
-                          '& .MuiSelect-icon': {
-                            color: '#666',
-                            fontSize: '1.2rem',
-                          },
-                        }}
-                      >
-                        {countryCodes.map((country) => (
-                          <MenuItem key={country.code} value={country.code}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <span style={{ fontSize: '1rem' }}>{country.flag}</span>
-                              <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
-                            </Box>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                ),
-              }}
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  '& input': {
-                    paddingLeft: '8px',
-                    '&::placeholder': {
-                      fontSize: { xs: '14px', sm: '16px' },
-                      color: '#C2C2C2 !important',
-                    },
+            <Box>
+              <Box
+                sx={{
+                  border: '1px solid rgba(0, 0, 0, 0.24)',
+                  borderRadius: '8px',
+                  padding: '12px 12px',
+                  backgroundColor: 'white',
+                  cursor: 'text',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  '&:hover': {
+                    borderColor: 'rgba(0, 0, 0, 0.4)',
                   },
-                },
-              }}
-            />
+                  '&:focus-within': {
+                    borderColor: '#DAA520',
+                    borderWidth: '2px',
+                    padding: '11px 11px',
+                  },
+                }}
+              >
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    width: '100%',
+                    fontFamily: 'Outfit',
+                    fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                    color: formData.email ? '#000' : '#C2C2C2',
+                    backgroundColor: 'transparent',
+                  }}
+                  className="responsive-placeholder"
+                />
+              </Box>
+              {errors.email && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                  {errors.email}
+                </Typography>
+              )}
+            </Box>
+            
+            <Box>
+              <Box
+                sx={{
+                  border: '1px solid rgba(0, 0, 0, 0.24)',
+                  borderRadius: '8px',
+                  padding: '12px 12px',
+                  backgroundColor: 'white',
+                  cursor: 'text',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  '&:hover': {
+                    borderColor: 'rgba(0, 0, 0, 0.4)',
+                  },
+                  '&:focus-within': {
+                    borderColor: '#DAA520',
+                    borderWidth: '2px',
+                    padding: '11px 11px',
+                  },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                  <FormControl sx={{ minWidth: 100 }}>
+                    <Select
+                      value={formData.countryCode}
+                      onChange={(e) => handleInputChange('countryCode', e.target.value)}
+                      variant="standard"
+                      disableUnderline
+                      sx={{
+                        '& .MuiSelect-select': {
+                          padding: '0px 8px 0px 0px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          fontSize: '1rem',
+                          border: 'none',
+                          '&:focus': {
+                            backgroundColor: 'transparent',
+                          },
+                        },
+                        '& .MuiSelect-icon': {
+                          color: '#666',
+                          fontSize: '1.2rem',
+                        },
+                      }}
+                    >
+                      {countryCodes.map((country) => (
+                        <MenuItem key={country.code} value={country.code}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span style={{ fontSize: '1rem' }}>{country.flag}</span>
+                            <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="000 000 0000"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    // Remove any non-numeric characters except + and spaces
+                    const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
+                    handleInputChange('phone', cleanValue);
+                  }}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    flex: 1,
+                    fontFamily: 'Outfit',
+                    fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                    color: formData.phone ? '#000' : '#C2C2C2',
+                    backgroundColor: 'transparent',
+                    marginLeft: '8px',
+                  }}
+                  className="responsive-placeholder"
+                />
+              </Box>
+              {errors.phone && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                  {errors.phone}
+                </Typography>
+              )}
+            </Box>
             
             <Typography 
               variant="body2" 
@@ -1844,9 +1972,10 @@ export default function CustomRSVPForm() {
                   sx={{
                     border: '1px solid rgba(0, 0, 0, 0.24)',
                     borderRadius: '8px',
-                    padding: '16px 12px',
+                    padding: '12px 12px',
                     backgroundColor: 'white',
                     cursor: 'text',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     '&:hover': {
@@ -1855,7 +1984,7 @@ export default function CustomRSVPForm() {
                     '&:focus-within': {
                       borderColor: '#DAA520',
                       borderWidth: '2px',
-                      padding: '15px 11px',
+                      padding: '11px 11px',
                     },
                   }}
                 >
@@ -2204,7 +2333,7 @@ export default function CustomRSVPForm() {
               color: '#000000',
               display: 'flex',
               flexDirection: 'column',
-              height: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+              height: windowHeight - (isMobile ? 180 : 200),
               width: '100%',
               // Responsive placeholder styles
               '& .responsive-placeholder::placeholder': {
