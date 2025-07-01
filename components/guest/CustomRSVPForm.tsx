@@ -810,6 +810,8 @@ export default function CustomRSVPForm() {
             <TextField
               fullWidth
               label="Phone Number"
+              type="tel"
+              inputMode="tel"
               value={formData.phone}
               onChange={(e) => {
                 // Remove any non-numeric characters except + and spaces
@@ -1206,16 +1208,19 @@ export default function CustomRSVPForm() {
                       sx={{
                         border: '1px solid rgba(0, 0, 0, 0.24)',
                         borderRadius: '8px',
-                        padding: '16px 12px',
+                        padding: '12px 12px',
                         backgroundColor: 'white',
                         cursor: 'text',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
                         '&:hover': {
                           borderColor: 'rgba(0, 0, 0, 0.4)',
                         },
                         '&:focus-within': {
                           borderColor: '#DAA520',
                           borderWidth: '2px',
-                          padding: '15px 11px',
+                          padding: '11px 11px',
                         },
                       }}
                     >
@@ -1251,16 +1256,19 @@ export default function CustomRSVPForm() {
                       sx={{
                         border: '1px solid rgba(0, 0, 0, 0.24)',
                         borderRadius: '8px',
-                        padding: '16px 12px',
+                        padding: '12px 12px',
                         backgroundColor: 'white',
                         cursor: 'text',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
                         '&:hover': {
                           borderColor: 'rgba(0, 0, 0, 0.4)',
                         },
                         '&:focus-within': {
                           borderColor: '#DAA520',
                           borderWidth: '2px',
-                          padding: '15px 11px',
+                          padding: '11px 11px',
                         },
                       }}
                     >
@@ -1293,16 +1301,19 @@ export default function CustomRSVPForm() {
                     sx={{
                       border: '1px solid rgba(0, 0, 0, 0.24)',
                       borderRadius: '8px',
-                      padding: '16px 12px',
+                      padding: '12px 12px',
                       backgroundColor: 'white',
                       cursor: 'text',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
                         borderColor: 'rgba(0, 0, 0, 0.4)',
                       },
                       '&:focus-within': {
                         borderColor: '#DAA520',
                         borderWidth: '2px',
-                        padding: '15px 11px',
+                        padding: '11px 11px',
                       },
                     }}
                   >
@@ -1336,9 +1347,10 @@ export default function CustomRSVPForm() {
                     sx={{
                       border: '1px solid rgba(0, 0, 0, 0.24)',
                       borderRadius: '8px',
-                      padding: '16px 12px',
+                      padding: '12px 12px',
                       backgroundColor: 'white',
                       cursor: 'text',
+                      height: '40px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
@@ -1348,18 +1360,19 @@ export default function CustomRSVPForm() {
                       '&:focus-within': {
                         borderColor: '#DAA520',
                         borderWidth: '2px',
-                        padding: '15px 11px',
+                        padding: '11px 11px',
                       },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography sx={{ fontSize: '1.5rem' }}>🇺🇸</Typography>
-                      <Typography sx={{ fontFamily: 'Outfit', fontSize: '16px', color: '#000' }}>
+                      <Typography sx={{ fontSize: '1.2rem' }}>🇺🇸</Typography>
+                      <Typography sx={{ fontFamily: 'Outfit', fontSize: '14px', color: '#000' }}>
                         +1
                       </Typography>
                     </Box>
                     <input
                       type="tel"
+                      inputMode="tel"
                       placeholder="000 000 0000 (optional)"
                       value={formData.phone || ''}
                       onChange={(e) => {
@@ -2114,10 +2127,11 @@ export default function CustomRSVPForm() {
         sx={{ 
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
           minHeight: '100vh',
-          py: 0,
+          pt: 0,
+          pb: { xs: 2, sm: 3 },
           px: { xs: 2, sm: 3, md: 4 },
           overflow: 'hidden',
         }}
@@ -2131,33 +2145,33 @@ export default function CustomRSVPForm() {
             maxWidth: '500px',
             display: 'flex', 
             flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
           }}
         >
-          {/* Close Button - positioned outside form */}
+          {/* Header with close button and RSVP title - perfectly aligned */}
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center', 
+            width: '100%',
+            height: 56,
             mb: { xs: 0.5, sm: 1 }, 
             flexShrink: 0,
           }}>
-            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-              <IconButton
-                onClick={handleClose}
-                sx={{
-                  color: '#000',
-                  backgroundColor: 'transparent',
-                  p: { xs: 1, sm: 1.5 },
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  },
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </Box>
+            <IconButton
+              onClick={handleClose}
+              sx={{
+                color: '#000',
+                backgroundColor: 'transparent',
+                p: { xs: 1, sm: 1.5 },
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+            
             <Typography 
               variant="h6" 
               sx={{ 
@@ -2173,7 +2187,9 @@ export default function CustomRSVPForm() {
             >
               RSVP
             </Typography>
-            <Box sx={{ flex: 1 }} /> {/* Spacer */}
+            
+            {/* Spacer to center the RSVP text */}
+            <Box sx={{ width: { xs: 40, sm: 48 } }} />
           </Box>
 
           {/* Form Content */}
@@ -2186,11 +2202,10 @@ export default function CustomRSVPForm() {
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
               color: '#000000',
-              flex: 1,
               display: 'flex',
               flexDirection: 'column',
-              minHeight: 0,
-              maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+              height: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+              width: '100%',
               // Responsive placeholder styles
               '& .responsive-placeholder::placeholder': {
                 fontSize: { xs: '13px', sm: '16px' },
