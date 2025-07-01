@@ -146,6 +146,7 @@ export default function CustomRSVPForm() {
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   const steps = [
     'Basic Information',
@@ -156,21 +157,22 @@ export default function CustomRSVPForm() {
     'Fun & Messages',
   ];
 
-  // Track window height changes for proper mobile viewport handling
+  // Track window dimensions changes for proper mobile viewport handling
   useEffect(() => {
-    const updateWindowHeight = () => {
+    const updateWindowDimensions = () => {
       setWindowHeight(window.innerHeight);
+      setWindowWidth(window.innerWidth);
     };
 
-    window.addEventListener('resize', updateWindowHeight);
-    window.addEventListener('orientationchange', updateWindowHeight);
+    window.addEventListener('resize', updateWindowDimensions);
+    window.addEventListener('orientationchange', updateWindowDimensions);
     
-    // Update immediately in case initial height was wrong
-    updateWindowHeight();
+    // Update immediately in case initial dimensions were wrong
+    updateWindowDimensions();
 
     return () => {
-      window.removeEventListener('resize', updateWindowHeight);
-      window.removeEventListener('orientationchange', updateWindowHeight);
+      window.removeEventListener('resize', updateWindowDimensions);
+      window.removeEventListener('orientationchange', updateWindowDimensions);
     };
   }, []);
 
@@ -423,8 +425,8 @@ export default function CustomRSVPForm() {
     return (
       <>
         <Confetti
-          width={typeof window !== 'undefined' ? window.innerWidth : 1200}
-          height={typeof window !== 'undefined' ? window.innerHeight : 800}
+          width={windowWidth}
+          height={windowHeight}
           recycle={false}
           numberOfPieces={200}
           gravity={0.3}
@@ -809,7 +811,7 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.firstName ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
@@ -854,7 +856,7 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.lastName ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
@@ -900,7 +902,7 @@ export default function CustomRSVPForm() {
                     outline: 'none',
                     width: '100%',
                     fontFamily: 'Outfit',
-                    fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                    fontSize: windowWidth < 600 ? '14px' : '16px',
                     color: formData.email ? '#000' : '#C2C2C2',
                     backgroundColor: 'transparent',
                   }}
@@ -987,7 +989,7 @@ export default function CustomRSVPForm() {
                     outline: 'none',
                     flex: 1,
                     fontFamily: 'Outfit',
-                    fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                    fontSize: windowWidth < 600 ? '14px' : '16px',
                     color: formData.phone ? '#000' : '#C2C2C2',
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
@@ -1141,9 +1143,9 @@ export default function CustomRSVPForm() {
                               width: '100%',
                               height: '70px',
                               resize: 'none',
-                              fontFamily: 'Outfit',
-                              fontSize: window.innerWidth < 600 ? '14px' : '16px',
-                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
+                                                          fontFamily: 'Outfit',
+                            fontSize: windowWidth < 600 ? '14px' : '16px',
+                            color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
                               backgroundColor: 'transparent',
                             }}
                             className="responsive-textarea"
@@ -1365,7 +1367,7 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                          fontSize: windowWidth < 600 ? '14px' : '16px',
                           color: formData.plusOneName.split(' ')[0] ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
@@ -1413,7 +1415,7 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                          fontSize: windowWidth < 600 ? '14px' : '16px',
                           color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
@@ -1454,9 +1456,9 @@ export default function CustomRSVPForm() {
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                        fontFamily: 'Outfit',
-                        fontSize: window.innerWidth < 600 ? '14px' : '16px',
-                        color: formData.plusOneEmail ? '#000' : '#C2C2C2',
+                                              fontFamily: 'Outfit',
+                      fontSize: windowWidth < 600 ? '14px' : '16px',
+                      color: formData.plusOneEmail ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                       }}
                       className="responsive-placeholder"
@@ -1512,7 +1514,7 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         flex: 1,
                         fontFamily: 'Outfit',
-                        fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                        fontSize: windowWidth < 600 ? '14px' : '16px',
                         color: formData.phone ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                         marginLeft: '8px',
@@ -1815,7 +1817,7 @@ export default function CustomRSVPForm() {
                        height: '20px',
                        resize: 'none',
                        fontFamily: 'Outfit',
-                       fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                       fontSize: windowWidth < 600 ? '14px' : '16px',
                        color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
                        backgroundColor: 'transparent',
                      }}
@@ -1998,7 +2000,7 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.songRequest ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
@@ -2070,7 +2072,7 @@ export default function CustomRSVPForm() {
                       height: '60px',
                       resize: 'none',
                       fontFamily: 'Outfit',
-                      fontSize: window.innerWidth < 600 ? '14px' : '16px',
+                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.specialMessage ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
