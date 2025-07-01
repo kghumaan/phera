@@ -31,7 +31,7 @@ import {
   EmojiEmotionsOutlined,
   DeleteOutlineOutlined,
 } from '@mui/icons-material';
-import { getAttendees, getComments, addComment, deleteComment } from '@/lib/supabase/rsvp-service';
+import { getAllRSVPs, getComments, addComment, deleteComment } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -225,7 +225,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
       
       const [attendees, commentsData] = await Promise.race([
         Promise.all([
-          getAttendees(weddingId),
+          getAllRSVPs(weddingId),
           getComments(weddingId)
         ]),
         timeoutPromise
@@ -237,32 +237,56 @@ export default function GuestList({ weddingId }: GuestListProps) {
       });
       
       // Convert RSVP data to guest format
-      const guestData = attendees.map((rsvp, index) => ({
-        id: rsvp.id || `${rsvp.guest_id}-${index}`,
-        name: rsvp.guest?.name || 'Unknown Guest',
-        initials: rsvp.guest?.initials || '??',
-        avatarColor: rsvp.guest?.avatar_color || '#666',
-        avatarStyle: rsvp.guest?.avatar_style,
-        avatarSeed: rsvp.guest?.avatar_seed,
-        avatarSvg: rsvp.guest?.avatar_svg,
-        status: rsvp.attending ? 'going' : 'not-going' as 'going' | 'maybe' | 'not-going',
-        guestCount: rsvp.guest_count || 1,
-        timestamp: rsvp.created_at,
-      }));
+      const guestData = attendees.map((rsvp: any, index: number) => {
+        // Map RSVP attending status to display status
+        let status: 'going' | 'maybe' | 'not-going';
+        if (rsvp.attending === 'yes') {
+          status = 'going';
+        } else if (rsvp.attending === 'maybe') {
+          status = 'maybe';
+        } else {
+          status = 'not-going';
+        }
+
+        return {
+          id: rsvp.id || `${rsvp.guest_id}-${index}`,
+          name: rsvp.guest?.name || 'Unknown Guest',
+          initials: rsvp.guest?.initials || '??',
+          avatarColor: rsvp.guest?.avatar_color || '#666',
+          avatarStyle: rsvp.guest?.avatar_style,
+          avatarSeed: rsvp.guest?.avatar_seed,
+          avatarSvg: rsvp.guest?.avatar_svg,
+          status,
+          guestCount: rsvp.guest_count || 1,
+          timestamp: rsvp.created_at,
+        };
+      });
 
       // Convert to activity format
-      const activityData = attendees.map((rsvp) => ({
-        id: rsvp.id,
-        guestName: rsvp.guest?.name || 'Unknown Guest',
-        action: 'RSVP\'d Going',
-        timestamp: formatTimeAgo(rsvp.created_at),
-        rawTimestamp: rsvp.created_at,
-        initials: rsvp.guest?.initials || '??',
-        avatarColor: rsvp.guest?.avatar_color || '#666',
-      }));
+      const activityData = attendees.map((rsvp: any) => {
+        // Map attending status to activity action
+        let action: string;
+        if (rsvp.attending === 'yes') {
+          action = 'RSVP\'d Going';
+        } else if (rsvp.attending === 'maybe') {
+          action = 'RSVP\'d Maybe';
+        } else {
+          action = 'RSVP\'d Not Going';
+        }
+
+        return {
+          id: rsvp.id,
+          guestName: rsvp.guest?.name || 'Unknown Guest',
+          action,
+          timestamp: formatTimeAgo(rsvp.created_at),
+          rawTimestamp: rsvp.created_at,
+          initials: rsvp.guest?.initials || '??',
+          avatarColor: rsvp.guest?.avatar_color || '#666',
+        };
+      });
 
       // Sort activities by most recent first
-      activityData.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
+      activityData.sort((a: any, b: any) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
 
       setGuests(guestData);
       setActivities(activityData.slice(0, 10));
