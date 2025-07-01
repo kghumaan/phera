@@ -430,7 +430,7 @@ export default function CustomRSVPForm() {
               justifyContent: 'center',
               alignItems: 'center',
               minHeight: '100vh',
-              py: { xs: 1, sm: 2, md: 3 },
+              py: 0,
               px: { xs: 2, sm: 3, md: 4 },
               overflow: 'hidden',
             }}
@@ -439,15 +439,15 @@ export default function CustomRSVPForm() {
               initial="hidden"
               animate="visible"
               variants={containerVariants}
-              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+              style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}
             >
-              {/* RSVP Header - Same as form */}
+              {/* Header Section - centered vertically in top portion */}
               <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                mb: { xs: 0.5, sm: 1, md: 2 }, 
-                flexShrink: 0,
+                flex: '0 0 auto',
+                height: { xs: '120px', sm: '140px', md: '160px' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
                 <Typography 
                   variant="h6" 
@@ -466,8 +466,16 @@ export default function CustomRSVPForm() {
                 </Typography>
               </Box>
 
-              {/* Form Content - Same structure as regular form */}
-              <Paper
+              {/* Form Content - centered in remaining space */}
+              <Box sx={{ 
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: { xs: 1, sm: 2 },
+                pb: { xs: 2, sm: 3 },
+              }}>
+                <Paper
                 elevation={0}
                 sx={{
                   borderRadius: 1,
@@ -475,11 +483,12 @@ export default function CustomRSVPForm() {
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   color: '#000000',
-                  flex: 1,
+                  width: '100%',
+                  maxWidth: { xs: '100%', sm: '600px', md: '700px' },
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: 0,
-                  maxHeight: { xs: 'calc(100vh - 70px)', sm: 'calc(100vh - 85px)', md: 'calc(100vh - 100px)' },
+                  maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -708,6 +717,7 @@ export default function CustomRSVPForm() {
                 </Box>
               </Box>
             </Paper>
+            </Box>
             </motion.div>
           </Container>
         </Box>
@@ -2105,7 +2115,7 @@ export default function CustomRSVPForm() {
           justifyContent: 'center',
           alignItems: 'center',
           minHeight: '100vh',
-          py: { xs: 1, sm: 2, md: 3 },
+          py: 0,
           px: { xs: 2, sm: 3, md: 4 },
           overflow: 'hidden',
         }}
@@ -2114,31 +2124,38 @@ export default function CustomRSVPForm() {
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+          style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}
         >
-        {/* Close Button - positioned outside form */}
+        {/* Close Button - absolutely positioned */}
         <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: { xs: 0.5, sm: 1 }, 
-          flexShrink: 0,
+          position: 'absolute',
+          top: { xs: 16, sm: 20, md: 24 },
+          left: { xs: 16, sm: 20, md: 24 },
+          zIndex: 10,
         }}>
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-            <IconButton
-              onClick={handleClose}
-              sx={{
-                color: '#000',
-                backgroundColor: 'transparent',
-                p: { xs: 1, sm: 1.5 },
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          <IconButton
+            onClick={handleClose}
+            sx={{
+              color: '#000',
+              backgroundColor: 'transparent',
+              p: { xs: 1, sm: 1.5 },
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {/* Header Section - centered vertically in top portion */}
+        <Box sx={{ 
+          flex: '0 0 auto',
+          height: { xs: '120px', sm: '140px', md: '160px' },
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
           <Typography 
             variant="h6" 
             sx={{ 
@@ -2154,24 +2171,32 @@ export default function CustomRSVPForm() {
           >
             RSVP
           </Typography>
-          <Box sx={{ flex: 1 }} /> {/* Spacer */}
         </Box>
 
-        {/* Form Content */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 1.5, sm: 2.5 },
-            borderRadius: 1,
-            border: '1px solid #000',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            color: '#000000',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-            maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
+        {/* Form Content - centered in remaining space */}
+        <Box sx={{ 
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: { xs: 1, sm: 2 },
+          pb: { xs: 2, sm: 3 },
+        }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 1.5, sm: 2.5 },
+              borderRadius: 1,
+              border: '1px solid #000',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              color: '#000000',
+              width: '100%',
+              maxWidth: { xs: '100%', sm: '600px', md: '700px' },
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+              maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 150px)', md: 'calc(100vh - 160px)' },
             // Responsive placeholder styles
             '& .responsive-placeholder::placeholder': {
               fontSize: { xs: '13px', sm: '16px' },
@@ -2424,6 +2449,7 @@ export default function CustomRSVPForm() {
             )}
           </Box>
         </Paper>
+        </Box>
 
         {/* Exit Confirmation Dialog */}
         <Dialog
