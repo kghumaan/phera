@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-gif": "node scripts/download-wedding-gif.js",
+    "gif-help": "node scripts/download-wedding-gif.js --manual"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.3",

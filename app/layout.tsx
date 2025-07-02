@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "Sim & KV's Wedding Invite - Phera",
   description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
   
-  // Open Graph tags for rich link previews
+  // Open Graph tags for rich link previews - Using large GIF for maximum wow factor
   openGraph: {
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
@@ -31,6 +31,14 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.app",
     siteName: "Phera",
     images: [
+      {
+        url: "/images/couple/wedding-celebration.gif",
+        width: 1200,
+        height: 630,
+        alt: "Sim & KV - Wedding Celebration",
+        type: "image/gif",
+      },
+      // Fallback static image for platforms that don't support GIFs
       {
         url: "/images/couple/couple-1-og.jpg",
         width: 1200,
@@ -41,12 +49,12 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   
-  // Twitter Card tags
+  // Twitter Card tags - Using large image format for maximum impact
   twitter: {
     card: "summary_large_image",
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
-    images: ["/images/couple/couple-1-og.jpg"],
+    images: ["/images/couple/wedding-celebration.gif"],
   },
   
   // Additional metadata
@@ -82,6 +90,10 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Phera',
     'theme-color': '#D4AF37',
+    // Enhanced meta tags for GIF support
+    'og:image:type': 'image/gif',
+    'og:image:width': '1200',
+    'og:image:height': '630',
   },
 };
 
