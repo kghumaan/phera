@@ -61,11 +61,17 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
 
   const handleContinue = async () => {
     const enteredPin = pin.join('');
-    if (enteredPin === '1111') {
-      // Set pin verification flag instead of creating fake auth
+    
+    // PIN codes for different guest types
+    const PIN_WITH_PLUS_ONE = '7834';
+    const PIN_NO_PLUS_ONE = '2591';
+    
+    if (enteredPin === PIN_WITH_PLUS_ONE || enteredPin === PIN_NO_PLUS_ONE) {
+      // Set pin verification flag and store plus-one eligibility
       if (typeof window !== 'undefined') {
         localStorage.setItem('phera_pin_verified', 'true');
         localStorage.setItem('phera_pin_timestamp', Date.now().toString());
+        localStorage.setItem('phera_allows_plus_one', enteredPin === PIN_WITH_PLUS_ONE ? 'true' : 'false');
         
         // Call the callback to notify parent component
         onPinVerified();

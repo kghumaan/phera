@@ -148,10 +148,33 @@ export default function CustomRSVPForm() {
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
-  const steps = [
+  // Check if plus-ones are allowed based on PIN
+  const allowsPlusOne = typeof window !== 'undefined' ? 
+    localStorage.getItem('phera_allows_plus_one') === 'true' : true;
+
+  // Set default values for non-plus-one guests
+  useEffect(() => {
+    if (!allowsPlusOne) {
+      setFormData(prev => ({
+        ...prev,
+        plusOne: 'no',
+        guestCount: 1,
+        plusOneName: '',
+        plusOneEmail: '',
+      }));
+    }
+  }, [allowsPlusOne]);
+
+  const steps = allowsPlusOne ? [
     'Basic Information',
     'Attendance Details',
     'Plus One Details',
+    'Event Preferences',
+    'Personal Details',
+    'Fun & Messages',
+  ] : [
+    'Basic Information',
+    'Attendance Details',
     'Event Preferences',
     'Personal Details',
     'Fun & Messages',
@@ -284,7 +307,20 @@ export default function CustomRSVPForm() {
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
     
-    switch (step) {
+    // Adjust step numbers based on whether plus-ones are allowed
+    const getActualStepType = (step: number) => {
+      if (allowsPlusOne) {
+        return step; // No adjustment needed
+      } else {
+        // When plus-ones not allowed, shift steps after attendance
+        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
+        return step;
+      }
+    };
+    
+    const actualStep = getActualStepType(step);
+    
+    switch (actualStep) {
       case 0: // Basic Information
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -302,18 +338,20 @@ export default function CustomRSVPForm() {
         if (!formData.attending) newErrors.attending = 'Please select attendance';
         break;
       
-      case 2: // Plus One Details  
-        if (formData.attending === 'yes' && !formData.plusOne) {
-          newErrors.plusOne = 'Please select plus one option';
-        }
-        if (formData.attending === 'yes' && formData.plusOne === 'yes') {
-          if (!formData.plusOneName.trim()) {
-            newErrors.plusOneName = 'Plus one name is required';
+      case 2: // Plus One Details (only when allowsPlusOne is true)
+        if (allowsPlusOne) {
+          if (formData.attending === 'yes' && !formData.plusOne) {
+            newErrors.plusOne = 'Please select plus one option';
           }
-          if (!formData.plusOneEmail.trim()) {
-            newErrors.plusOneEmail = 'Plus one email is required';
-          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
-            newErrors.plusOneEmail = 'Please enter a valid email';
+          if (formData.attending === 'yes' && formData.plusOne === 'yes') {
+            if (!formData.plusOneName.trim()) {
+              newErrors.plusOneName = 'Plus one name is required';
+            }
+            if (!formData.plusOneEmail.trim()) {
+              newErrors.plusOneEmail = 'Plus one email is required';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
+              newErrors.plusOneEmail = 'Please enter a valid email';
+            }
           }
         }
         break;
@@ -337,9 +375,9 @@ export default function CustomRSVPForm() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      // Skip plus one section if not attending
-      if (currentStep === 1 && formData.attending !== 'yes') {
-        setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip case 2 (plus one)
+      // If plus-ones are not allowed, or if not attending, skip the plus-one section
+      if (allowsPlusOne && currentStep === 1 && formData.attending !== 'yes') {
+        setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip plus one section
       } else {
         setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
       }
@@ -611,7 +649,7 @@ export default function CustomRSVPForm() {
                             <Typography sx={{ 
                               fontFamily: 'Outfit', 
                               color: '#000', 
-                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
+                              fontSize: { xs: '1.375rem', sm: '1.5rem', md: '1.65rem' }, 
                               lineHeight: 1.5, 
                               textAlign: 'center',
                               fontWeight: 400,
@@ -621,7 +659,7 @@ export default function CustomRSVPForm() {
                             
                             <Typography sx={{ 
                               color: '#474747', 
-                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
+                              fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }, 
                               lineHeight: 1.5, 
                               textAlign: 'center', 
                               fontFamily: 'Outfit',
@@ -743,7 +781,20 @@ export default function CustomRSVPForm() {
   }
 
   const renderStep = () => {
-    switch (currentStep) {
+    // Adjust step numbers based on whether plus-ones are allowed
+    const getActualStepType = (step: number) => {
+      if (allowsPlusOne) {
+        return step; // No adjustment needed
+      } else {
+        // When plus-ones not allowed, shift steps after attendance
+        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
+        return step;
+      }
+    };
+    
+    const actualStep = getActualStepType(currentStep);
+    
+    switch (actualStep) {
       case 0: // Basic Information
         return (
           <Stack spacing={2}>
@@ -1222,7 +1273,8 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 2: // Plus One Details
+      case 2: // Plus One Details (only when plus-ones are allowed)
+        if (!allowsPlusOne) return null; // Safety check
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
