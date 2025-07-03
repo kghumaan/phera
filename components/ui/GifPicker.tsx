@@ -14,12 +14,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Close as CloseIcon, Search as SearchIcon, Gif as GifIcon } from '@mui/icons-material';
-import { GiphyFetch } from '@giphy/js-fetch-api';
 import { GifData } from '@/lib/supabase/types';
-
-// You'll need to get a GIPHY API key from https://developers.giphy.com/
-const GIPHY_API_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY || 'your-giphy-api-key-here';
-const gf = new GiphyFetch(GIPHY_API_KEY);
 
 interface GifPickerProps {
   open: boolean;
@@ -38,8 +33,12 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
     
     setLoading(true);
     try {
-      const { data } = await gf.search(query, { limit: 20 });
-      setGifs(data);
+      const response = await fetch(`/api/giphy?q=${encodeURIComponent(query)}&limit=20`);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      const data = await response.json();
+      setGifs(data.data);
       setHasSearched(true);
     } catch (error) {
       console.error('Error searching GIFs:', error);
@@ -53,15 +52,23 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
     setLoading(true);
     try {
       // Search for Indian marriage related GIFs instead of trending
-      const { data } = await gf.search('indian wedding', { limit: 20 });
-      setGifs(data);
+      const response = await fetch(`/api/giphy?q=${encodeURIComponent('indian wedding')}&limit=20`);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      const data = await response.json();
+      setGifs(data.data);
       setHasSearched(true);
     } catch (error) {
       console.error('Error loading indian wedding GIFs:', error);
-      // Fallback to trending if Indian wedding search fails
+      // Fallback to celebration GIFs if Indian wedding search fails
       try {
-        const { data: fallbackData } = await gf.trending({ limit: 20 });
-        setGifs(fallbackData);
+        const fallbackResponse = await fetch(`/api/giphy?q=${encodeURIComponent('celebration')}&limit=20`);
+        if (!fallbackResponse.ok) {
+          throw new Error(`Fallback API error: ${fallbackResponse.status}`);
+        }
+        const fallbackData = await fallbackResponse.json();
+        setGifs(fallbackData.data);
       } catch (fallbackError) {
         console.error('Error loading fallback GIFs:', fallbackError);
         setGifs([]);
