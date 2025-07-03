@@ -37,8 +37,27 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   ];
 
   const handlePinChange = (index: number, value: string) => {
-    // Only allow single digits
-    if (value.length > 1) return;
+    // Handle multiple digits (paste or fast typing)
+    if (value.length > 1) {
+      // Extract only digits and take up to 4
+      const digits = value.replace(/[^0-9]/g, '').slice(0, 4);
+      if (digits.length > 0) {
+        const newPin = ['', '', '', ''];
+        // Fill the pin array with the digits
+        for (let i = 0; i < digits.length && i < 4; i++) {
+          newPin[i] = digits[i];
+        }
+        setPin(newPin);
+        setError(false);
+        
+        // Focus the next empty field or the last field
+        const nextIndex = Math.min(digits.length, 3);
+        inputRefs[nextIndex].current?.focus();
+      }
+      return;
+    }
+
+    // Handle single digit input
     if (value && !/^[0-9]$/.test(value)) return;
 
     const newPin = [...pin];
@@ -56,6 +75,25 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     // Handle backspace
     if (e.key === 'Backspace' && !pin[index] && index > 0) {
       inputRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    const digits = pastedText.replace(/[^0-9]/g, '').slice(0, 4);
+    
+    if (digits.length > 0) {
+      const newPin = ['', '', '', ''];
+      for (let i = 0; i < digits.length && i < 4; i++) {
+        newPin[i] = digits[i];
+      }
+      setPin(newPin);
+      setError(false);
+      
+      // Focus the next empty field or the last field
+      const nextIndex = Math.min(digits.length, 3);
+      inputRefs[nextIndex].current?.focus();
     }
   };
 
@@ -150,6 +188,38 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
       useAppDefault={true}
       className="min-h-screen flex flex-col"
     >
+      {/* Top Left Decorative Image */}
+      <Box
+        component="img"
+        src="/images/overlays/entry-topleft.png"
+        alt="Decorative Top Left"
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1,
+          width: { xs: '120px', sm: '160px', md: '200px' },
+          height: 'auto',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Top Right Decorative Image */}
+      <Box
+        component="img"
+        src="/images/overlays/entry-topright.png"
+        alt="Decorative Top Right"
+        sx={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          zIndex: 1,
+          width: { xs: '120px', sm: '160px', md: '200px' },
+          height: 'auto',
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Header Section with Logo */}
       <Box
         sx={{
@@ -240,26 +310,32 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           <Typography
             variant="h3"
             sx={{
-              fontWeight: 800,
+              fontFamily: 'var(--font-instrument-serif), serif',
+              fontWeight: 400,
               color: '#000',
               mb: { xs: 1, sm: 1.5 },
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-              letterSpacing: '0.02em',
+              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem' },
+              lineHeight: 1.4,
+              textAlign: 'center',
+              fontStyle: 'italic',
             }}
           >
-            YOU'RE INVITED!
+            You're Invited!
           </Typography>
 
           {/* Subtitle */}
           <Typography
             variant="body1"
             sx={{
+              fontFamily: 'var(--font-outfit), sans-serif',
               color: '#000',
-              fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
-              lineHeight: 1.4,
-              maxWidth: { xs: 280, sm: 350 },
+              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem' },
+              lineHeight: 1.5,
+              maxWidth: { xs: 355, sm: 400 },
               mx: 'auto',
-              fontWeight: 500,
+              fontWeight: 400,
+              textAlign: 'center',
+              px: 2,
             }}
           >
             Enter your invitation code to see all the details and RSVP for our celebration
@@ -283,7 +359,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           {/* Pin Input Section */}
           <Stack 
             direction="row" 
-            spacing={{ xs: 1.5, sm: 2, md: 3 }}
+            spacing={{ xs: 1.5, sm: 1.5, md: 1.5 }}
             justifyContent="center"
             mb={4}
           >
@@ -294,47 +370,49 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 value={digit}
                 onChange={(e) => handlePinChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={handlePaste}
                 sx={{
-                  width: { xs: 55, sm: 70, md: 85 },
+                  width: { xs: 72, sm: 72, md: 73 },
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: 3,
-                    height: { xs: 55, sm: 70, md: 85 },
-                    fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '50%', // Perfect circle
+                    height: { xs: 72, sm: 72, md: 73 },
+                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem' },
+                    fontFamily: 'var(--font-outfit), sans-serif',
                     fontWeight: 700,
                     textAlign: 'center',
-                    border: error ? '3px solid #f44336' : '2px solid rgba(0,0,0,0.15)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
+                    boxShadow: 'none',
                     '&:hover': {
-                      border: error ? '3px solid #f44336' : '2px solid rgba(0,0,0,0.3)',
-                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.15)',
+                      border: error ? '1px solid #f44336' : '1px solid rgba(0,0,0,0.3)',
                     },
                     '&.Mui-focused': {
-                      border: error ? '3px solid #f44336' : '3px solid #DE3F5E',
-                      boxShadow: error ? '0 0 0 6px rgba(244, 67, 54, 0.15)' : '0 0 0 6px rgba(222, 63, 94, 0.15)',
-                      transform: 'scale(1.05)',
+                      border: error ? '1px solid #f44336' : '1px solid #141414',
+                      boxShadow: 'none',
                     },
                     transition: 'all 0.2s ease-in-out',
                   },
                   '& .MuiOutlinedInput-input': {
                     textAlign: 'center',
                     padding: 0,
+                    letterSpacing: '4.17%',
+                    textTransform: 'uppercase',
                   },
                   '& fieldset': {
                     border: 'none',
                   },
                 }}
                 inputProps={{
-                  maxLength: 1,
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
                   style: { 
                     textAlign: 'center',
                     fontSize: 'inherit',
                     fontWeight: 'inherit',
-                    color: '#000',
+                    color: pin[index] ? '#000' : 'rgba(0, 0, 0, 0.2)',
                   }
                 }}
+                placeholder="0"
               />
             ))}
           </Stack>
@@ -385,28 +463,27 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             onClick={handleContinue}
             disabled={!isPinComplete}
             sx={{
-              backgroundColor: '#DE3F5E',
-              color: '#fff',
-              borderRadius: '32px',
-              px: { xs: 4, sm: 6, md: 8 },
-              py: { xs: 1.25, sm: 1.5, md: 2 },
-              fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-              fontWeight: 600,
+              backgroundColor: '#141414',
+              color: '#FFFFFF',
+              borderRadius: '80px',
+              px: '20px',
+              py: '12px',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-outfit), sans-serif',
+              fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: { xs: 280, sm: 300 },
-              boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
+              maxWidth: '354px',
+              boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#C8365A',
-                boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
-                transform: 'translateY(-1px)',
+                backgroundColor: '#2A2A2A',
+                boxShadow: 'none',
               },
               '&:disabled': {
-                backgroundColor: 'rgba(222, 63, 94, 0.3)',
+                backgroundColor: 'rgba(20, 20, 20, 0.3)',
                 color: 'rgba(255,255,255,0.5)',
                 boxShadow: 'none',
-                transform: 'none',
               },
               transition: 'all 0.2s ease-in-out',
             }}
@@ -447,15 +524,11 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 variant="body2"
                 sx={{
                   color: '#000',
-                  fontWeight: 500,
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                  textTransform: 'lowercase',
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  px: { xs: 1.5, sm: 2 },
-                  py: 0.5,
-                  borderRadius: '12px',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                  fontFamily: 'var(--font-outfit), sans-serif',
+                  fontWeight: 400,
+                  fontSize: { xs: '1rem', sm: '1rem' },
+                  textTransform: 'uppercase',
+                  letterSpacing: '6.25%',
                   flexShrink: 0,
                 }}
               >
@@ -477,22 +550,24 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           <Button
             onClick={handleLogin}
             sx={{
-              backgroundColor: '#DE3F5E',
-              color: '#fff',
-              borderRadius: '32px',
-              px: { xs: 4, sm: 6, md: 8 },
-              py: { xs: 1.25, sm: 1.5, md: 2 },
-              fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-              fontWeight: 600,
+              backgroundColor: '#FFFFFF',
+              color: '#141414',
+              borderRadius: '80px',
+              px: '20px',
+              py: '12px',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-outfit), sans-serif',
+              fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: { xs: 280, sm: 300 },
-              boxShadow: '0 4px 20px rgba(222, 63, 94, 0.3)',
+              maxWidth: '354px',
+              border: '1px solid #D6D6D6',
+              boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#C8365A',
-                boxShadow: '0 6px 25px rgba(222, 63, 94, 0.4)',
-                transform: 'translateY(-1px)',
+                backgroundColor: '#F5F5F5',
+                border: '1px solid #B0B0B0',
+                boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
             }}
