@@ -238,6 +238,10 @@ export default function HomePage() {
 
   const handlePinVerified = () => {
     setIsPinVerified(true);
+    // Scroll to top when main content loads
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Check for pin verification on component mount
@@ -272,6 +276,20 @@ export default function HomePage() {
 
     checkPinVerification();
   }, []);
+
+  // Scroll to top when main content becomes visible after PIN verification
+  useEffect(() => {
+    if (isPinVerified && !isLoading && !isCheckingPin) {
+      // Small delay to ensure content has rendered
+      const timer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isPinVerified, isLoading, isCheckingPin]);
 
   // Show pin entry screen if pin is not verified and not loading
   if (!isCheckingPin && !isPinVerified) {
