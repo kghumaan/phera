@@ -375,6 +375,16 @@ export default function CustomRSVPForm() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      // Reset zoom and scroll position
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        // Reset zoom level
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+        }
+      }, 100);
+
       // If plus-ones are not allowed, or if not attending, skip the plus-one section
       if (allowsPlusOne && currentStep === 1 && formData.attending !== 'yes') {
         setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip plus one section
