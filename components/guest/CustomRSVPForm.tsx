@@ -459,8 +459,6 @@ export default function CustomRSVPForm() {
   if (isSubmitted) {
     const getOverlayImage = () => {
       switch (formData.attending) {
-        case 'yes':
-          return '/images/overlays/yes-rsvp.png';
         case 'maybe':
           return '/images/overlays/maybe-rsvp.png';
         case 'no':
@@ -510,31 +508,6 @@ export default function CustomRSVPForm() {
               variants={containerVariants}
               style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-              {/* RSVP Header - Same as form */}
-              {/* <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                mb: { xs: 0.5, sm: 1, md: 2 }, 
-                flexShrink: 0,
-              }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontFamily: 'Outfit', 
-                    color: '#141414', 
-                    fontWeight: 400,
-                    fontSize: { xs: '16px', sm: '18px' },
-                    lineHeight: '1.26em',
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    textAlign: 'center'
-                  }}
-                >
-                  RSVP
-                </Typography>
-              </Box> */}
-
               {/* Form Content - Same structure as regular form */}
               <Paper
                 elevation={0}
@@ -554,7 +527,7 @@ export default function CustomRSVPForm() {
                   position: 'relative',
                 }}
               >
-                {/* Overlay Image - Absolutely positioned on top */}
+                {/* Overlay Image for maybe/no responses - Absolutely positioned on top */}
                 {getOverlayImage() && (
                   <Box
                     sx={{
@@ -579,6 +552,43 @@ export default function CustomRSVPForm() {
                   />
                 )}
 
+                {/* Corner decorative images for yes response only */}
+                {formData.attending === 'yes' && (
+                  <>
+                    {/* Top Left Decorative Image */}
+                    <Box
+                      component="img"
+                      src="/images/overlays/entry-topleft.png"
+                      alt="Decorative Top Left"
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1,
+                        width: { xs: '120px', sm: '140px', md: '160px' },
+                        height: 'auto',
+                        pointerEvents: 'none',
+                      }}
+                    />
+
+                    {/* Top Right Decorative Image */}
+                    <Box
+                      component="img"
+                      src="/images/overlays/entry-topright.png"
+                      alt="Decorative Top Right"
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        zIndex: 1,
+                        width: { xs: '120px', sm: '140px', md: '160px' },
+                        height: 'auto',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </>
+                )}
+
                 {/* Scrollable Content Area - Full width for confirmation */}
                 <Box sx={{ 
                   flex: 1, 
@@ -587,7 +597,6 @@ export default function CustomRSVPForm() {
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
-                  // Removed zIndex so overlay can sit on top
                   '&::-webkit-scrollbar': {
                     width: { xs: '4px', sm: '6px' },
                   },
@@ -624,7 +633,6 @@ export default function CustomRSVPForm() {
                     justifyContent: 'center',
                     p: { xs: 2, sm: 3 },
                     minHeight: 0,
-                    mt: { xs: -20, sm: -20, md: -20 }, // Pull content up to better center it
                   }}>
                     {/* Content Column with tight spacing */}
                     <Box sx={{ 

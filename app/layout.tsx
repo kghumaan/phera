@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "Sim & KV's Wedding Invite - Phera",
   description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
   
-  // Open Graph tags for rich link previews - Using large GIF for maximum wow factor
+  // Open Graph tags for rich link previews - Optimized for large rectangular format
   openGraph: {
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
@@ -32,18 +32,11 @@ export const metadata: Metadata = {
     siteName: "Phera",
     images: [
       {
-        url: "/images/couple/wedding-celebration.gif",
+        url: "/images/couple/couple-1-og-optimized.jpg",
         width: 1200,
         height: 630,
         alt: "Sim & KV - Wedding Celebration",
-        type: "image/gif",
-      },
-      // Fallback static image for platforms that don't support GIFs
-      {
-        url: "/images/couple/couple-1-og.jpg",
-        width: 1200,
-        height: 1200,
-        alt: "Sim & KV - Wedding Couple",
+        type: "image/jpeg",
       },
     ],
     locale: "en_US",
@@ -54,7 +47,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
-    images: ["/images/couple/wedding-celebration.gif"],
+    images: ["/images/couple/couple-1-og-optimized.jpg"],
+    creator: "@phera",
   },
   
   // Additional metadata
@@ -83,17 +77,18 @@ export const metadata: Metadata = {
     maximumScale: 1,
   },
   
-  // Additional meta tags
+  // Additional meta tags optimized for link sharing
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Phera',
     'theme-color': '#D4AF37',
-    // Enhanced meta tags for GIF support
-    'og:image:type': 'image/gif',
+    // Enhanced meta tags for better link previews
+    'og:image:type': 'image/jpeg',
     'og:image:width': '1200',
     'og:image:height': '630',
+    'og:image:alt': 'Sim & KV - Wedding Celebration',
   },
 };
 
