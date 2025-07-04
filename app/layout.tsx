@@ -32,7 +32,15 @@ export const metadata: Metadata = {
     siteName: "Phera",
     images: [
       {
-        url: "/images/couple/couple-1-og-optimized.jpg",
+        url: "/images/couple/sim-kv-og-optimized.gif",
+        width: 1200,
+        height: 630,
+        alt: "Sim & KV - Wedding Celebration",
+        type: "image/gif",
+      },
+      // Static fallback for platforms that prefer static images
+      {
+        url: "/images/couple/sim-kv-og-static.jpg",
         width: 1200,
         height: 630,
         alt: "Sim & KV - Wedding Celebration",
@@ -47,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
-    images: ["/images/couple/couple-1-og-optimized.jpg"],
+    images: ["/images/couple/sim-kv-og-optimized.gif"],
     creator: "@phera",
   },
   
@@ -85,7 +93,7 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-title': 'Phera',
     'theme-color': '#D4AF37',
     // Enhanced meta tags for better link previews
-    'og:image:type': 'image/jpeg',
+    'og:image:type': 'image/gif',
     'og:image:width': '1200',
     'og:image:height': '630',
     'og:image:alt': 'Sim & KV - Wedding Celebration',
