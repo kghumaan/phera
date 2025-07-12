@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "Phera",
     images: [
       {
-        url: "/images/couple/sim-kv-og-compact.gif",
+        url: "/images/invite.png",
         width: 800,
         height: 420,
         alt: "Sim & KV - Wedding Celebration",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sim & KV's Wedding Invite - Phera",
     description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
-    images: ["/images/couple/sim-kv-og-compact.gif"],
+    images: ["/images/invite.png"],
     creator: "@phera",
   },
   
