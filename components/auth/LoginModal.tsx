@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { sendMagicLink } from '@/lib/supabase/auth-service';
 
 interface LoginModalProps {
   open: boolean;
@@ -30,17 +31,15 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
 
     try {
       if (email && email.trim()) {
-        // Use email authentication - no OTP verification needed, just magic link
-        const { error } = await supabase.auth.signInWithOtp({
-          email: email.trim(),
-          options: {
-            shouldCreateUser: true,
-          }
-        });
-        if (error) throw error;
+        // Use enhanced magic link with email validation and PIN preservation
+        const result = await sendMagicLink(email.trim(), true);
         
-        // For email, we don't need OTP verification - just show success screen
-        setEmailSent(true);
+        if (result.success) {
+          // Show success screen
+          setEmailSent(true);
+        } else {
+          throw new Error(result.error || 'Failed to send magic link');
+        }
       } else {
         setAuthError('Please enter an email address');
       }

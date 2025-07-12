@@ -139,6 +139,13 @@ for file in public/images/backgrounds/*.jpg; do
     fi
 done
 
+echo -e "\n${YELLOW}🌅 Optimizing Background PNGs...${NC}"
+for file in public/images/backgrounds/*.png; do
+    if [ -f "$file" ]; then
+        optimize_png "$file" "$file" 1920 1080
+    fi
+done
+
 echo -e "\n${YELLOW}👥 Optimizing Couple Photos...${NC}"
 # Optimize couple photos
 for file in public/images/couple/*.jpg; do
@@ -147,21 +154,29 @@ for file in public/images/couple/*.jpg; do
     fi
 done
 
-echo -e "\n${YELLOW}🚀 Creating WebP versions for modern browsers...${NC}"
-# Create WebP versions for better performance
-for file in public/images/backgrounds/*.jpg; do
+echo -e "\n${YELLOW}🏨 Optimizing Travel Stay PNGs...${NC}"
+for file in public/images/travel_stay/*.png; do
     if [ -f "$file" ]; then
-        webp_file="${file%.jpg}.webp"
-        convert_to_webp "$file" "$webp_file" 85
+        optimize_png "$file" "$file" 1200 900
     fi
 done
 
-for file in public/images/couple/*.jpg; do
-    if [ -f "$file" ]; then
-        webp_file="${file%.jpg}.webp"
-        convert_to_webp "$file" "$webp_file" 88
-    fi
-done
+# Comment out WebP creation
+# echo -e "\n${YELLOW}🚀 Creating WebP versions for modern browsers...${NC}"
+# # Create WebP versions for better performance
+# for file in public/images/backgrounds/*.jpg; do
+#     if [ -f "$file" ]; then
+#         webp_file="${file%.jpg}.webp"
+#         convert_to_webp "$file" "$webp_file" 85
+#     fi
+# done
+# 
+# for file in public/images/couple/*.jpg; do
+#     if [ -f "$file" ]; then
+#         webp_file="${file%.jpg}.webp"
+#         convert_to_webp "$file" "$webp_file" 88
+#     fi
+# done
 
 echo -e "\n${GREEN}✨ Optimization Complete!${NC}"
 echo -e "${BLUE}📁 Original files backed up to: $BACKUP_DIR${NC}"

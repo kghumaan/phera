@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowBack, Logout as LogoutIcon } from '@mui/icons-material';
+import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface AppHeaderProps {
@@ -32,6 +32,7 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut } = useAuth();
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
+  const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
 
   const handleSignOut = async () => {
     try {
@@ -120,6 +121,7 @@ export default function AppHeader({
                 {hasRSVPed && rsvpResponse && (
                   <Button
                     variant="contained"
+                    onClick={(e) => setRsvpMenuAnchor(e.currentTarget)}
                     sx={{
                       backgroundColor: '#000',
                       color: '#fff',
@@ -246,6 +248,49 @@ export default function AppHeader({
           >
             <LogoutIcon fontSize="small" />
             Sign Out
+          </MenuItem>
+        </Menu>
+      )}
+
+      {/* RSVP Menu */}
+      {user && hasRSVPed && rsvpResponse && (
+        <Menu
+          anchorEl={rsvpMenuAnchor}
+          open={Boolean(rsvpMenuAnchor)}
+          onClose={() => setRsvpMenuAnchor(null)}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 2,
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              mt: 1,
+            },
+          }}
+        >
+          <MenuItem 
+            component={Link}
+            href="/rsvp"
+            onClick={() => setRsvpMenuAnchor(null)}
+            sx={{
+              color: '#666',
+              gap: 1,
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              },
+            }}
+          >
+            <EditIcon fontSize="small" />
+            Change RSVP?
           </MenuItem>
         </Menu>
       )}

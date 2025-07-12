@@ -102,7 +102,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
     >
       <Stack 
         direction="row" 
-        spacing={2}
+        spacing={3}
         justifyContent="center" 
         alignItems="center"
       >
@@ -120,7 +120,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.25rem', sm: '1.5rem' }, // 24px from Figma
+                fontSize: { xs: '1.5rem', sm: '1.5rem' }, // 24px from Figma
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
@@ -132,7 +132,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.65rem', sm: '0.75rem' }, // 12px from Figma
+                fontSize: { xs: '0.85rem', sm: '0.75rem' }, // 12px from Figma
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
                 textAlign: 'center',
@@ -154,7 +154,7 @@ const coupleData = {
   weddingDate: "2026-01-04T00:00:00", // ISO format for countdown
   venue: "The Palayana, Hua Hin, Thailand",
   flag: "🇹🇭",
-  rsvpDeadline: "15 July, 2025",
+  rsvpDeadline: "31 July, 2025",
           coupleImage: "/images/couple/couple-1.jpg", // Using optimized couple image
         frameImage: "/images/frames/frame-27.png" // Optimized frame image
 };
@@ -244,10 +244,62 @@ export default function HomePage() {
     }
   };
 
+  // Scroll to top on initial page load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, []);
+
   // Check for pin verification on component mount
   useEffect(() => {
     const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
+        // First check for auth errors from callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const authError = urlParams.get('auth_error');
+        
+        if (authError) {
+          console.error('Authentication error:', authError);
+          // You could show a toast notification here
+          // Clean up URL params
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('auth_error');
+          window.history.replaceState({}, '', newUrl.toString());
+        }
+        
+        // Check for PIN restoration from auth callback
+        const restorePin = urlParams.get('restore_pin');
+        const restoredTimestamp = urlParams.get('pin_timestamp');
+        const restoredAllowsPlusOne = urlParams.get('allows_plus_one');
+        
+        if (restorePin === 'true' && restoredTimestamp) {
+          try {
+            const timestamp = parseInt(restoredTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+            if (isRecent) {
+              // Restore PIN verification state
+              localStorage.setItem('phera_pin_verified', 'true');
+              localStorage.setItem('phera_pin_timestamp', restoredTimestamp);
+              localStorage.setItem('phera_allows_plus_one', restoredAllowsPlusOne || 'false');
+              setIsPinVerified(true);
+              
+              // Clean up URL params
+              const newUrl = new URL(window.location.href);
+              newUrl.searchParams.delete('restore_pin');
+              newUrl.searchParams.delete('pin_timestamp');
+              newUrl.searchParams.delete('allows_plus_one');
+              window.history.replaceState({}, '', newUrl.toString());
+              
+              setIsCheckingPin(false);
+              return;
+            }
+          } catch (error) {
+            console.error('Error restoring PIN verification:', error);
+          }
+        }
+        
+        // Check existing PIN verification
         const pinVerified = localStorage.getItem('phera_pin_verified');
         const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
         
@@ -431,18 +483,19 @@ export default function HomePage() {
                   },
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1} justifyContent="center">
-                  <LocationOnOutlined 
+                <Stack direction="row" alignItems="center" spacing={1} justifyContent="center" mb={2}>
+                  {/* <LocationOnOutlined 
                     sx={{ 
                       color: '#000', 
                       fontSize: '1.2rem' 
                     }} 
-                  />
+                  /> */}
                   <Typography
                     variant="body2"
                     sx={{
                       color: '#000',
                       fontSize: '1.1rem',
+                      textDecoration: 'underline',
                     }}
                   >
                     {coupleData.venue}
@@ -603,7 +656,7 @@ export default function HomePage() {
               >
                 <Button
                   component={Link}
-                  href="/rsvp"
+                  href="/details"
                   variant="contained"
                   size="large"
                   fullWidth
@@ -622,7 +675,7 @@ export default function HomePage() {
                     },
                   }}
                 >
-                  Change RSVP
+                  View Details
                 </Button>
               </motion.div>
               

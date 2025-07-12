@@ -29,7 +29,9 @@ export async function getExistingRSVP(email: string, weddingId: string) {
           dietary_restrictions,
           song_request,
           special_message,
-          maybe_comment
+          maybe_comment,
+          arrival_option,
+          arrival_date
         )
       `)
       .eq('email', email)
@@ -91,6 +93,8 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       songRequest: rsvp.song_request || '',
       specialMessage: rsvp.special_message || '',
       maybeComment: rsvp.maybe_comment || '',
+      arrivalOption: rsvp.arrival_option || '',
+      arrivalDate: rsvp.arrival_date || '',
     }
 
     return { success: true, data: formData }
@@ -224,6 +228,8 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       song_request: formData.songRequest || null,
       special_message: formData.specialMessage || null,
       maybe_comment: formData.maybeComment || null,
+      arrival_option: formData.arrivalOption || null,
+      arrival_date: formData.arrivalDate || null,
     };
 
     console.log('Inserting comprehensive RSVP record:', rsvpRecord);

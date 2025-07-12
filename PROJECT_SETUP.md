@@ -289,6 +289,7 @@ phera/
 └── Documentation/
     ├── SUPABASE_MCP_SETUP.md      # AI database integration
     ├── TWILIO_MCP_SETUP.md        # AI SMS integration
+    ├── BROWSER_DEVTOOLS_MCP_SETUP.md # AI browser dev-tools integration
     └── RSVP_DATABASE_MIGRATION_GUIDE.md # Migration guide
 ```
 
@@ -447,6 +448,19 @@ Enables AI assistant to handle SMS communications:
 - Create voice systems for wedding information
 
 **Setup Documentation**: `TWILIO_MCP_SETUP.md`
+
+### Browser Dev-Tools MCP Integration
+Enables AI assistant to interact with browser developer tools:
+
+**Capabilities:**
+- Select HTML elements in dev tools and get detailed context
+- Monitor console logs and errors in real-time
+- Analyze network requests and performance
+- Run accessibility, SEO, and performance audits
+- Take screenshots and inspect browser state
+- Debug styling and layout issues
+
+**Setup Documentation**: `BROWSER_DEVTOOLS_MCP_SETUP.md`
 
 ## Database Migration System
 
@@ -617,7 +631,8 @@ vercel --prod
 
 ### Setup & Integration Guides
 - **`SUPABASE_MCP_SETUP.md`** - Complete AI database integration guide
-- **`TWILIO_MCP_SETUP.md`** - Complete AI SMS integration guide  
+- **`TWILIO_MCP_SETUP.md`** - Complete AI SMS integration guide
+- **`BROWSER_DEVTOOLS_MCP_SETUP.md`** - Complete AI browser dev-tools integration guide  
 - **`RSVP_DATABASE_MIGRATION_GUIDE.md`** - Database migration documentation
 
 ### External Documentation

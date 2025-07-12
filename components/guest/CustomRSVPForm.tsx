@@ -29,6 +29,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormHelperText,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -73,6 +74,8 @@ interface RSVPFormData {
   specialMessage: string;
   maybeComment: string;
   selectedGif?: GifData;
+  arrivalOption: 'known' | 'not_sure' | '';
+  arrivalDate: string;
 }
 
 const initialFormData: RSVPFormData = {
@@ -93,6 +96,8 @@ const initialFormData: RSVPFormData = {
   specialMessage: '',
   maybeComment: '',
   selectedGif: undefined,
+  arrivalOption: '',
+  arrivalDate: '',
 };
 
 const foodPreferences = [
@@ -171,12 +176,14 @@ export default function CustomRSVPForm() {
     'Plus One Details',
     'Event Preferences',
     'Personal Details',
+    'Arrival Plans',
     'Fun & Messages',
   ] : [
     'Basic Information',
     'Attendance Details',
     'Event Preferences',
     'Personal Details',
+    'Arrival Plans',
     'Fun & Messages',
   ];
 
@@ -366,6 +373,20 @@ export default function CustomRSVPForm() {
         if (!formData.weddingSide) {
           newErrors.weddingSide = 'Please select which side of the wedding';
         }
+        break;
+
+      case 5: // Arrival Plans
+        if (!formData.arrivalOption) {
+          newErrors.arrivalOption = 'Please select an arrival option';
+        }
+        if (formData.arrivalOption === 'known' && !formData.arrivalDate) {
+          newErrors.arrivalDate = 'Please select your arrival date';
+        }
+        break;
+
+      case 6: // Fun & Messages
+        if (!formData.songRequest.trim()) newErrors.songRequest = 'Song request is required';
+        if (!formData.specialMessage.trim()) newErrors.specialMessage = 'Special message is required';
         break;
     }
     
@@ -2000,7 +2021,143 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 5: // Fun & Messages
+      case 5: // Arrival Plans
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
+                  fontFamily: 'Outfit'
+                }}
+              >
+                When do you plan to arrive in Thailand? 🛬
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  lineHeight: 1.5,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                We'll share travel tips and help coordinate arrivals!
+              </Typography>
+            </Box>
+            
+            <Box>
+              {[
+                { value: 'known', label: 'I know my arrival date' },
+                { value: 'not_sure', label: "Not sure yet, I'll share later" }
+              ].map((option, index, array) => (
+                <Box key={option.value}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      py: 2,
+                      borderBottom: index < array.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      },
+                    }}
+                    onClick={() => handleInputChange('arrivalOption', option.value)}
+                  >
+                    <Typography 
+                      sx={{ 
+                        color: formData.arrivalOption === option.value ? '#DE3F5E' : '#000',
+                        fontWeight: formData.arrivalOption === option.value ? 600 : 400,
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                        fontFamily: 'Outfit',
+                        lineHeight: 1.3,
+                        flex: 1
+                      }}
+                    >
+                      {option.label}
+                    </Typography>
+                    
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        border: `2px solid ${formData.arrivalOption === option.value ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}` ,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: formData.arrivalOption === option.value ? '#DE3F5E' : 'transparent',
+                      }}
+                    >
+                      {formData.arrivalOption === option.value && (
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: 'white',
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                  
+                  {option.value === 'known' && (
+                    <Collapse in={formData.arrivalOption === 'known'}>
+                      <TextField
+                        type="date"
+                        value={formData.arrivalDate}
+                        onChange={(e) => handleInputChange('arrivalDate', e.target.value)}
+                        fullWidth
+                        error={!!errors.arrivalDate}
+                        helperText={errors.arrivalDate}
+                        InputLabelProps={{ shrink: true }}
+                        inputProps={{
+                          min: '2025-12-01',
+                          max: '2026-01-04'
+                        }}
+                        sx={{ mt: 2, mb: 2 }}
+                      />
+                    </Collapse>
+                  )}
+                </Box>
+              ))}
+              
+              {errors.arrivalOption && (
+                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                  {errors.arrivalOption}
+                </Typography>
+              )}
+            </Box>
+            
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'rgba(0, 0, 0, 0.72)', 
+                p: 2, 
+                backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                borderRadius: '8px',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                lineHeight: 1.5,
+                fontFamily: 'Outfit'
+              }}
+            >
+              Travel Tip: Hua Hin is a ~3 hour drive from Bangkok, and our celebrations start at 12pm on January 4th. We recommend arriving in Bangkok by at least January 3rd so you can travel to Hua Hin early on the 4th morning!
+            </Typography>
+          </Stack>
+        );
+
+      case 6: // Fun & Messages
         return (
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

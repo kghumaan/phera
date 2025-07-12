@@ -135,3 +135,77 @@ export async function getCurrentUser(): Promise<AuthResult> {
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
 } 
+
+// Validate if email exists in guests table before sending magic link
+export async function validateEmailExists(email: string): Promise<{ exists: boolean; guest?: any }> {
+  try {
+    const { data: guest, error } = await supabase
+      .from('guests')
+      .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
+      .eq('email', email.trim())
+      .eq('wedding_id', 'sim-kv')
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+      throw error;
+    }
+
+    return {
+      exists: !!guest,
+      guest: guest || undefined
+    };
+  } catch (error) {
+    console.error('Error validating email:', error);
+    return { exists: false };
+  }
+}
+
+// Enhanced email magic link with state preservation
+export async function sendMagicLink(email: string, preservePin: boolean = false): Promise<AuthResult> {
+  try {
+    // First validate if email exists
+    const validation = await validateEmailExists(email);
+    if (!validation.exists) {
+      return {
+        success: false,
+        error: 'Email address not found in our guest list. Please check your email or contact the couple.'
+      };
+    }
+
+    // Prepare redirect URL with state preservation
+    const redirectUrl = new URL('/auth/callback', window.location.origin);
+    
+    // If PIN verification should be preserved, add it to the state
+    if (preservePin && typeof window !== 'undefined') {
+      const pinVerified = localStorage.getItem('phera_pin_verified');
+      const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+      const allowsPlusOne = localStorage.getItem('phera_allows_plus_one');
+      
+      if (pinVerified === 'true' && pinTimestamp) {
+        redirectUrl.searchParams.set('pin_verified', 'true');
+        redirectUrl.searchParams.set('pin_timestamp', pinTimestamp);
+        redirectUrl.searchParams.set('allows_plus_one', allowsPlusOne || 'false');
+      }
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        shouldCreateUser: false, // Don't create user, they must exist in guests table
+        emailRedirectTo: redirectUrl.toString(),
+      }
+    });
+
+    if (error) throw error;
+
+    return { 
+      success: true
+    };
+  } catch (error) {
+    console.error('Magic link error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send magic link'
+    };
+  }
+} 

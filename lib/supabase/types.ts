@@ -30,6 +30,8 @@ export interface RSVP {
   song_request?: string
   special_message?: string
   maybe_comment?: string
+  arrival_option?: string
+  arrival_date?: string
   created_at: string
   guest?: Guest
 }
@@ -68,6 +70,8 @@ export interface RSVPFormData {
   songRequest?: string
   specialMessage?: string
   selectedGif?: GifData
+  arrivalOption: 'known' | 'not_sure' | ''
+  arrivalDate: string
   
   // Backward compatibility (optional fields)
   ceremonyAttending?: string[]
