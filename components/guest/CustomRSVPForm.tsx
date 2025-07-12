@@ -61,6 +61,8 @@ interface RSVPFormData {
   plusOne: 'yes' | 'no' | '';
   plusOneName: string;
   plusOneEmail: string;
+  plusOneCountryCode: string; // <-- Added
+  plusOnePhone: string; // <-- Added
   guestCount: number;
   
   // Event-specific (ceremonies removed)
@@ -89,6 +91,8 @@ const initialFormData: RSVPFormData = {
   plusOne: '',
   plusOneName: '',
   plusOneEmail: '',
+  plusOneCountryCode: '+1', // <-- Added
+  plusOnePhone: '', // <-- Added
   guestCount: 1,
   foodPreference: [],
   dietaryRestrictions: '',
@@ -315,8 +319,8 @@ export default function CustomRSVPForm() {
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = 'Please enter a valid email';
         }
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-        if (formData.phone && formData.phone.replace(/\D/g, '').length < 10) {
+        // Phone is now optional, but if provided, validate format
+        if (formData.phone && formData.phone.replace(/\D/g, '').length > 0 && formData.phone.replace(/\D/g, '').length < 10) {
           newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
         }
         break;
@@ -338,6 +342,10 @@ export default function CustomRSVPForm() {
               newErrors.plusOneEmail = 'Plus one email is required';
             } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
               newErrors.plusOneEmail = 'Please enter a valid email';
+            }
+            // Plus one phone is now optional, but if provided, validate format
+            if (formData.plusOnePhone && formData.plusOnePhone.replace(/\D/g, '').length > 0 && formData.plusOnePhone.replace(/\D/g, '').length < 10) {
+              newErrors.plusOnePhone = 'Please enter a valid phone number (at least 10 digits)';
             }
           }
         }
@@ -1003,6 +1011,9 @@ export default function CustomRSVPForm() {
                       variant="standard"
                       disableUnderline
                       sx={{
+                        height: '24px',
+                        color: '#000', // always black
+                        fontSize: '1rem',
                         '& .MuiSelect-select': {
                           padding: '0px 8px 0px 0px',
                           display: 'flex',
@@ -1010,6 +1021,7 @@ export default function CustomRSVPForm() {
                           gap: 0.5,
                           fontSize: '1rem',
                           border: 'none',
+                          color: '#000', // always black
                           '&:focus': {
                             backgroundColor: 'transparent',
                           },
@@ -1019,9 +1031,24 @@ export default function CustomRSVPForm() {
                           fontSize: '1.2rem',
                         },
                       }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            backgroundColor: '#fff',
+                            boxShadow: 3,
+                            // borderRadius: 2,
+                            height: '300px',
+                          },
+                        },
+                        MenuListProps: {
+                          sx: {
+                            py: 0.5,
+                          },
+                        },
+                      }}
                     >
                       {countryCodes.map((country) => (
-                        <MenuItem key={country.code} value={country.code}>
+                        <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <span style={{ fontSize: '1rem' }}>{country.flag}</span>
                             <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
@@ -1273,7 +1300,7 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 2: // Plus One Details (only when plus-ones are allowed)
+      case 2: // Plus One Details (only when allowsPlusOne is true)
         if (!allowsPlusOne) return null; // Safety check
         return (
           <Stack spacing={4}>
@@ -1509,16 +1536,16 @@ export default function CustomRSVPForm() {
                   )}
                 </Box>
 
-                {/* Phone Field */}
+                {/* Phone Field (with country code select) */}
                 <Box sx={{ mb: 2 }}>
                   <Box
                     sx={{
                       border: '1px solid rgba(0, 0, 0, 0.24)',
                       borderRadius: '8px',
-                      padding: '12px 12px',
+                      padding: '6px 8px', // smaller padding
                       backgroundColor: 'white',
                       cursor: 'text',
-                      height: '40px',
+                      height: '36px', // smaller height
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
@@ -1528,33 +1555,83 @@ export default function CustomRSVPForm() {
                       '&:focus-within': {
                         borderColor: '#DAA520',
                         borderWidth: '2px',
-                        padding: '11px 11px',
+                        padding: '5px 7px',
                       },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography sx={{ fontSize: '1.2rem' }}>🇺🇸</Typography>
-                      <Typography sx={{ fontFamily: 'Outfit', fontSize: '14px', color: '#000' }}>
-                        +1
-                      </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                      <FormControl sx={{ minWidth: 70 }}>
+                        <Select
+                          value={formData.plusOneCountryCode}
+                          onChange={(e) => handleInputChange('plusOneCountryCode', e.target.value)}
+                          variant="standard"
+                          disableUnderline
+                          sx={{
+                            height: '24px',
+                            color: '#000', // always black
+                            fontSize: '1rem',
+                            '& .MuiSelect-select': {
+                              padding: '0px 8px 0px 0px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              fontSize: '1rem',
+                              border: 'none',
+                              color: '#000', // always black
+                              '&:focus': {
+                                backgroundColor: 'transparent',
+                              },
+                            },
+                            '& .MuiSelect-icon': {
+                              color: '#666',
+                              fontSize: '1.2rem',
+                            },
+                          }}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: {
+                                backgroundColor: '#fff',
+                                boxShadow: 3,
+                                height: '300px',
+                                // borderRadius: 2,
+                              },
+                            },
+                            MenuListProps: {
+                              sx: {
+                                py: 0.5,
+                              },
+                            },
+                          }}
+                        >
+                          {countryCodes.map((country) => (
+                            <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <span style={{ fontSize: '1rem' }}>{country.flag}</span>
+                                <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </Box>
                     <input
                       type="tel"
                       inputMode="tel"
                       placeholder="000 000 0000 (optional)"
-                      value={formData.phone || ''}
+                      value={formData.plusOnePhone}
                       onChange={(e) => {
                         const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
-                        handleInputChange('phone', cleanValue);
+                        handleInputChange('plusOnePhone', cleanValue);
                       }}
                       style={{
                         border: 'none',
                         outline: 'none',
                         flex: 1,
                         fontFamily: 'Outfit',
-                        color: formData.phone ? '#000' : '#C2C2C2',
+                        color: formData.plusOnePhone ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                         marginLeft: '8px',
+                        fontSize: '1rem',
                       }}
                     />
                   </Box>
@@ -2060,9 +2137,18 @@ export default function CustomRSVPForm() {
                         InputLabelProps={{ shrink: true }}
                         inputProps={{
                           min: '2025-12-01',
-                          max: '2026-01-04'
+                          max: '2026-01-04',
+                          style: {
+                            fontFamily: 'Outfit',
+                            border: '1px solid #ccc',
+                            color: '#000',
+                            borderRadius: '8px',
+                          },
                         }}
-                        sx={{ mt: 2, mb: 2 }}
+                        sx={{
+                          marginTop: 2, marginBottom: 2,
+                          fontFamily: 'Outfit',
+                        }}
                       />
                     </Collapse>
                   )}
@@ -2320,165 +2406,194 @@ export default function CustomRSVPForm() {
   };
 
   return (
-    <FullScreenFormContainer
-      title="RSVP"
-      onClose={handleClose}
-      paperHeight="85vh" // Set to 85% of viewport height as per user request
-    >
-      {/* Progress Bar */}
-      <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
-        <Box
-          sx={{
-            display: 'flex',
-            gap: '4px',
-            height: { xs: '3px', sm: '4px' },
-            borderRadius: '2px',
-            overflow: 'hidden',
-            backgroundColor: '#F5F5F5',
-          }}
-        >
-          {steps.map((_, index) => (
-            <Box
-              key={index}
+    <>
+      <FullScreenFormContainer
+        title="RSVP"
+        onClose={handleClose}
+        paperHeight="85vh" // Set to 85% of viewport height as per user request
+      >
+        {/* Progress Bar */}
+        <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: '4px',
+              height: { xs: '3px', sm: '4px' },
+              borderRadius: '2px',
+              overflow: 'hidden',
+              backgroundColor: '#F5F5F5',
+            }}
+          >
+            {steps.map((_, index) => (
+              <Box
+                key={index}
+                sx={{
+                  flex: 1,
+                  height: '100%',
+                  backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
+                  transition: 'background-color 0.3s ease',
+                  '&:first-of-type': {
+                    borderTopLeftRadius: '2px',
+                    borderBottomLeftRadius: '2px',
+                  },
+                  '&:last-of-type': {
+                    borderTopRightRadius: '2px',
+                    borderBottomRightRadius: '2px',
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        {/* Scrollable Content Area */}
+        <Box sx={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          minHeight: 0,
+          pr: { xs: 0.5, sm: 1 },
+          px: { xs: 1, sm: 0 },
+          '&::-webkit-scrollbar': {
+            width: { xs: '4px', sm: '6px' },
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#c1c1c1',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#a8a8a8',
+          },
+        }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={stepVariants}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </Box>
+
+        {/* Navigation Buttons */}
+        <Box sx={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(4px)',
+          pt: { xs: 2, sm: 2.5 },
+          display: 'flex',
+          alignItems: 'center',
+          gap: { xs: 1, sm: 1.5 },
+          flexShrink: 0,
+          mt: 'auto',
+        }}>
+          {currentStep > 0 && (
+            <IconButton
+              onClick={handleBack}
               sx={{
-                flex: 1,
-                height: '100%',
-                backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
-                transition: 'background-color 0.3s ease',
-                '&:first-of-type': {
-                  borderTopLeftRadius: '2px',
-                  borderBottomLeftRadius: '2px',
-                },
-                '&:last-of-type': {
-                  borderTopRightRadius: '2px',
-                  borderBottomRightRadius: '2px',
+                width: { xs: 44, sm: 48 },
+                height: { xs: 44, sm: 48 },
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.16)',
+                color: '#141414',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.24)',
                 },
               }}
-            />
-          ))}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+            </IconButton>
+          )}
+          
+          {currentStep < steps.length - 1 ? (
+            <Button
+              onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
+              variant="contained"
+              sx={{ 
+                flex: 1,
+                height: { xs: 44, sm: 48 },
+                backgroundColor: '#DE3F5E',
+                color: 'white',
+                fontWeight: 700,
+                borderRadius: '80px',
+                textTransform: 'uppercase',
+                letterSpacing: '6.25%',
+                fontFamily: 'Outfit', 
+                '&:hover': {
+                  backgroundColor: '#C8365A',
+                },
+                '&:disabled': {
+                  backgroundColor: '#ccc',
+                  color: '#999',
+                },
+              }}
+              disabled={false}
+            >
+              {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                flex: 1,
+                height: { xs: 44, sm: 48 },
+                backgroundColor: '#DE3F5E',
+                color: 'white',
+                fontWeight: 700,
+                borderRadius: '80px',
+                textTransform: 'uppercase',
+                letterSpacing: '6.25%',
+                fontFamily: 'Outfit',
+                '&:hover': {
+                  backgroundColor: '#C8365A',
+                },
+                '&:disabled': {
+                  backgroundColor: '#ccc',
+                  color: '#999',
+                },
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+            </Button>
+          )}
         </Box>
-      </Box>
+      </FullScreenFormContainer>
 
-      {/* Scrollable Content Area */}
-      <Box sx={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        minHeight: 0,
-        pr: { xs: 0.5, sm: 1 },
-        px: { xs: 1, sm: 0 },
-        '&::-webkit-scrollbar': {
-          width: { xs: '4px', sm: '6px' },
-        },
-        '&::-webkit-scrollbar-track': {
-          background: '#f1f1f1',
-          borderRadius: '3px',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: '#c1c1c1',
-          borderRadius: '3px',
-        },
-        '&::-webkit-scrollbar-thumb:hover': {
-          background: '#a8a8a8',
-        },
-      }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={stepVariants}
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
-      </Box>
-
-      {/* Navigation Buttons */}
-      <Box sx={{ 
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(4px)',
-        pt: { xs: 2, sm: 2.5 },
-        display: 'flex',
-        alignItems: 'center',
-        gap: { xs: 1, sm: 1.5 },
-        flexShrink: 0,
-        mt: 'auto',
-      }}>
-        {currentStep > 0 && (
-          <IconButton
-            onClick={handleBack}
-            sx={{
-              width: { xs: 44, sm: 48 },
-              height: { xs: 44, sm: 48 },
-              borderRadius: '50%',
-              backgroundColor: 'rgba(0, 0, 0, 0.16)',
-              color: '#141414',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.24)',
-              },
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-          </IconButton>
-        )}
-        
-        {currentStep < steps.length - 1 ? (
-          <Button
-            onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
-            variant="contained"
-            sx={{ 
-              flex: 1,
-              height: { xs: 44, sm: 48 },
-              backgroundColor: '#DE3F5E',
-              color: 'white',
-              fontWeight: 700,
-              borderRadius: '80px',
-              textTransform: 'uppercase',
-              letterSpacing: '6.25%',
-              fontFamily: 'Outfit', 
-              '&:hover': {
-                backgroundColor: '#C8365A',
-              },
-              '&:disabled': {
-                backgroundColor: '#ccc',
-                color: '#999',
-              },
-            }}
-            disabled={false}
-          >
-            {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+      {/* Exit Confirmation Dialog */}
+      <Dialog open={showExitConfirmation} onClose={handleCancelExit}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#fff',
+            color: '#000',
+            borderRadius: 2,
+            boxShadow: 8,
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: '#000', background: 'transparent' }}>Leave RSVP?</DialogTitle>
+        <DialogContent sx={{ color: '#000', background: 'transparent' }}>
+          <Typography sx={{ color: '#000' }}>
+            Are you sure you want to exit? Your changes will not be saved.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ background: 'transparent', pb: 2, pr: 2 }}>
+          <Button onClick={handleCancelExit} variant="outlined" sx={{ color: '#000', borderColor: '#000', '&:hover': { borderColor: '#000', background: '#222' } }}>
+            Cancel
           </Button>
-        ) : (
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              flex: 1,
-              height: { xs: 44, sm: 48 },
-              backgroundColor: '#DE3F5E',
-              color: 'white',
-              fontWeight: 700,
-              borderRadius: '80px',
-              textTransform: 'uppercase',
-              letterSpacing: '6.25%',
-              fontFamily: 'Outfit',
-              '&:hover': {
-                backgroundColor: '#C8365A',
-              },
-              '&:disabled': {
-                backgroundColor: '#ccc',
-                color: '#999',
-              },
-            }}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+          <Button onClick={handleConfirmExit} color="error" variant="contained" sx={{ color: '#fff', background: '#DE3F5E', '&:hover': { background: '#C8365A' } }}>
+            Leave
           </Button>
-        )}
-      </Box>
-    </FullScreenFormContainer>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 } 
