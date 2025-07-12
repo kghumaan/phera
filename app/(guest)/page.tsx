@@ -681,19 +681,7 @@ export default function HomePage() {
                 </Button>
               </motion.div>
               
-              {/* RSVP Deadline */}
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#141414',
-                  fontSize: '1rem',
-                  textAlign: 'center',
-                  lineHeight: 1.26,
-                  fontFamily: 'Outfit',
-                }}
-              >
-                Let us know you're coming by 30 Sept, 2025
-              </Typography>
+              {/* RSVP Deadline - removed for RSVP'd users */}
             </Stack>
           </Container>
         </Box>

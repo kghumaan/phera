@@ -1,10 +1,11 @@
 'use client';
 
-import { Box, Container, Typography } from '@mui/material';
+import { Box, Container, Typography, IconButton, Stack } from '@mui/material';
 import { motion } from 'framer-motion';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import AppHeader from '@/components/shared/AppHeader';
 import Link from 'next/link';
+import { ArrowBack } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 // Sample events data - this would come from your backend/config in the future
 const weddingEvents = [
@@ -94,20 +95,60 @@ const formatDate = (dateString: string) => {
 };
 
 export default function GuestEventsPage() {
+  const router = useRouter();
   return (
     <OptimizedBackground 
       useAppDefault={true}
       className="min-h-screen"
     >
       {/* Header */}
-      <AppHeader 
-        showBackButton={true}
-        backHref="/"
-        variant="solid"
-      />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2,
+          pt: 2,
+          pb: 2,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <IconButton
+              onClick={() => router.back()}
+              sx={{
+                color: '#000',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              }}
+            >
+              <ArrowBack />
+            </IconButton>
+            <Typography
+              variant="h6"
+              sx={{
+                fontFamily: 'Outfit',
+                fontWeight: 400,
+                fontSize: 18,
+                lineHeight: 1.5,
+                letterSpacing: '5.56%',
+                textTransform: 'uppercase',
+                color: '#141414',
+              }}
+            >
+              Events & Dress Code
+            </Typography>
+            <Box sx={{ width: 48 }} /> {/* Spacer */}
+          </Stack>
+        </Container>
+      </Box>
 
       {/* Main Content */}
-      <Container maxWidth="sm" sx={{ pb: 4, px: 0 }}>
+      <Container maxWidth="sm" sx={{ pb: 4, px: 0, pt: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

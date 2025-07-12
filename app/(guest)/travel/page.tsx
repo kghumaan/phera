@@ -251,7 +251,7 @@ export default function TravelPage() {
       title: "We’re so excited to celebrate with you! 🎉",
       content: <>That's everything you should need for now! If you have any questions about travel, the wedding, or anything else, just reach out - we're always happy to help.</>,
       image: "/images/travel_stay/9.png",
-      buttonText: "Back to home",
+      buttonText: "Back to menu",
       onButtonClick: () => router.push('/details'),
     },
   ];
@@ -378,6 +378,19 @@ export default function TravelPage() {
                 overflow: 'hidden',
               }}
               onTouchStart={handleTouchStart}
+              onClick={(e) => {
+                // Only trigger on tap/click, not drag
+                // Get the bounding rect of the Box
+                const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                const x = e.clientX - rect.left; // x position within the element
+                if (x < rect.width / 2) {
+                  // Tap on left half
+                  handleSlideChange('prev');
+                } else {
+                  // Tap on right half
+                  handleSlideChange('next');
+                }
+              }}
             >
               <Stack 
                 direction="row" 
