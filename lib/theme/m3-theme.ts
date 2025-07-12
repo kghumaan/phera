@@ -44,73 +44,184 @@ const baseTheme = createTheme({
     h1: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 300,
+      '@media (min-width:600px)': {
+        fontSize: '3.5rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '4rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '4.5rem',
+      },
     },
     h2: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
+      '@media (min-width:600px)': {
+        fontSize: '2.75rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '3rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '3.25rem',
+      },
     },
     h3: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 500,
+      '@media (min-width:600px)': {
+        fontSize: '2.25rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '2.5rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '2.75rem',
+      },
     },
     h4: {
+      color: 'green',
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
+      '@media (min-width:600px)': {
+        fontSize: '1.75rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.75rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '2rem',
+      },
     },
     h5: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 600,
+      '@media (min-width:600px)': {
+        fontSize: '1.375rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.5rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.625rem',
+      },
     },
     h6: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 600,
+      '@media (min-width:600px)': {
+        fontSize: '1.125rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.25rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.375rem',
+      },
     },
     // Body text variants
     body1: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '1.125rem',
       fontWeight: 400,
       lineHeight: 1.5,
+      '@media (min-width:600px)': {
+        fontSize: '1rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.125rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.25rem',
+      },
     },
     body2: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '0.875rem',
       fontWeight: 400,
       lineHeight: 1.43,
+      '@media (min-width:600px)': {
+        fontSize: '0.875rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.125rem',
+      },
     },
     subtitle1: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '1.125rem',
       fontWeight: 500,
       lineHeight: 1.4,
+      '@media (min-width:600px)': {
+        fontSize: '1.125rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.25rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.375rem',
+      },
     },
     subtitle2: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '1rem',
       fontWeight: 500,
       lineHeight: 1.4,
+      '@media (min-width:600px)': {
+        fontSize: '1rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.125rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.25rem',
+      },
     },
     caption: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '0.75rem',
       fontWeight: 400,
       lineHeight: 1.33,
+      '@media (min-width:600px)': {
+        fontSize: '0.8rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '0.875rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1rem',
+      },
     },
     overline: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '0.75rem',
       fontWeight: 500,
       lineHeight: 2.66,
       textTransform: 'uppercase',
       letterSpacing: '0.08333em',
+      '@media (min-width:600px)': {
+        fontSize: '0.8rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '0.875rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1rem',
+      },
     },
     button: {
       fontFamily: 'var(--font-outfit)',
-      fontSize: '0.875rem',
       fontWeight: 500,
       lineHeight: 1.75,
       textTransform: 'none',
       letterSpacing: '0.02857em',
+      '@media (min-width:600px)': {
+        fontSize: '1rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.125rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.25rem',
+      },
     },
   },
   shape: {
@@ -141,6 +252,30 @@ const baseTheme = createTheme({
               color: '#C2C2C2 !important',
             },
           },
+          '& .MuiInputBase-input': {
+            '@media (min-width:600px)': {
+              fontSize: '1rem',
+            },
+            '@media (min-width:900px)': {
+              fontSize: '1.125rem',
+            },
+          },
+          '& .MuiInputBase-inputMultiline': {
+            '@media (min-width:600px)': {
+              fontSize: '1rem',
+            },
+            '@media (min-width:900px)': {
+              fontSize: '1.125rem',
+            },
+            '&::placeholder': {
+              '@media (min-width:600px)': {
+                fontSize: '1rem',
+              },
+              '@media (min-width:900px)': {
+                fontSize: '1.125rem',
+              },
+            },
+          },
         },
       },
     },
@@ -150,6 +285,14 @@ const baseTheme = createTheme({
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
             borderColor: culturalColors.maroon,
             borderWidth: '2px',
+          },
+          '& .MuiInputBase-input': {
+            '@media (min-width:600px)': {
+              fontSize: '1rem',
+            },
+            '@media (min-width:900px)': {
+              fontSize: '1.125rem',
+            },
           },
         },
       },
@@ -166,5 +309,4 @@ const baseTheme = createTheme({
   },
 });
 
-// Apply responsive font sizes
 export const theme = responsiveFontSizes(baseTheme); 

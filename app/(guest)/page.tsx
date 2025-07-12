@@ -238,10 +238,13 @@ export default function HomePage() {
 
   const handlePinVerified = () => {
     setIsPinVerified(true);
-    // Scroll to top when main content loads
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    
+    // Scroll to top after small delay to ensure content has rendered
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 200);
   };
 
   // Scroll to top on initial page load
@@ -332,12 +335,11 @@ export default function HomePage() {
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
     if (isPinVerified && !isLoading && !isCheckingPin) {
-      // Small delay to ensure content has rendered
       const timer = setTimeout(() => {
         if (typeof window !== 'undefined') {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-      }, 100);
+      }, 300);
       
       return () => clearTimeout(timer);
     }

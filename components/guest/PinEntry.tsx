@@ -185,7 +185,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   // Background setup similar to home page
   return (
     <OptimizedBackground 
-      useAppDefault={true}
+      src="/images/backgrounds/pearl.png"
       className="min-h-screen flex flex-col"
     >
       {/* Top Left Decorative Image */}

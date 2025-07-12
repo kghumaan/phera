@@ -46,6 +46,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
 import { GifData } from '@/lib/supabase/types';
+import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 
 interface RSVPFormData {
   // Basic Information
@@ -150,8 +151,6 @@ export default function CustomRSVPForm() {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
-  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   // Check if plus-ones are allowed based on PIN
   const allowsPlusOne = typeof window !== 'undefined' ? 
@@ -186,25 +185,6 @@ export default function CustomRSVPForm() {
     'Arrival Plans',
     'Fun & Messages',
   ];
-
-  // Track window dimensions changes for proper mobile viewport handling
-  useEffect(() => {
-    const updateWindowDimensions = () => {
-      setWindowHeight(window.innerHeight);
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener('resize', updateWindowDimensions);
-    window.addEventListener('orientationchange', updateWindowDimensions);
-    
-    // Update immediately in case initial dimensions were wrong
-    updateWindowDimensions();
-
-    return () => {
-      window.removeEventListener('resize', updateWindowDimensions);
-      window.removeEventListener('orientationchange', updateWindowDimensions);
-    };
-  }, []);
 
   // Fetch existing RSVP data when component mounts and user is authenticated
   useEffect(() => {
@@ -491,13 +471,16 @@ export default function CustomRSVPForm() {
 
     return (
       <>
-        <Confetti
-          width={windowWidth}
-          height={windowHeight}
-          recycle={false}
-          numberOfPieces={200}
-          gravity={0.3}
-        />
+        {/* Only show confetti for 'yes' responses */}
+        {formData.attending === 'yes' && (
+          <Confetti
+            width={typeof window !== 'undefined' ? window.innerWidth : 1200}
+            height={typeof window !== 'undefined' ? window.innerHeight : 800}
+            recycle={false}
+            numberOfPieces={200}
+            gravity={0.3}
+          />
+        )}
         <Box
           sx={{
             position: 'fixed',
@@ -543,7 +526,7 @@ export default function CustomRSVPForm() {
                   flexDirection: 'column',
                   mt: 6,
                   minHeight: '180px',
-                  maxHeight: windowHeight - (isMobile ? 160 : 190),
+                  maxHeight: 'calc(100vh - 160px)',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -654,6 +637,16 @@ export default function CustomRSVPForm() {
                     justifyContent: 'center',
                     p: { xs: 2, sm: 3 },
                     minHeight: 0,
+                    // Center content regardless of overlay image
+                    position: 'relative',
+                    ...(getOverlayImage() && {
+                      // When there's an overlay, center in the available space below it
+                      marginTop: { 
+                        xs: formData.attending === 'no' ? '-200px' : '-150px', 
+                        sm: formData.attending === 'no' ? '-200px' : '-150px', 
+                        md: '-200px' 
+                      },
+                    }),
                   }}>
                     {/* Content Column with tight spacing */}
                     <Box sx={{ 
@@ -683,85 +676,72 @@ export default function CustomRSVPForm() {
                         px: 6,
                         gap: 1,
                       }}>
-                        {formData.attending === 'yes' && (
-                          <>
-                            <Typography sx={{ 
-                              fontFamily: 'Outfit', 
-                              color: '#000', 
-                              fontSize: { xs: '1.375rem', sm: '1.5rem', md: '1.65rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center',
-                              fontWeight: 400,
-                            }}>
-                              Yay! You're part of our celebration and we can't wait to have you there
-                            </Typography>
-                            
-                            <Typography sx={{ 
-                              color: '#474747', 
-                              fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center', 
-                              fontFamily: 'Outfit',
-                              fontWeight: 400,
-                            }}>
-                              Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
-                            </Typography>
-                          </>
-                        )}
-                        
-                        {formData.attending === 'maybe' && (
-                          <>
-                            <Typography sx={{ 
-                              fontFamily: 'Outfit', 
-                              color: '#000', 
-                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center',
-                              fontWeight: 400,
-                            }}>
-                              Thanks for letting us know!
-                            </Typography>
-                            
-                            <Typography sx={{ 
-                              color: '#474747', 
-                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center', 
-                              fontFamily: 'Outfit',
-                              fontWeight: 400 
-                            }}>
-                              We understand you need to figure some things out. Just remember: We need your final answer by August 31, 2025. We'll check in with you before then!
-                              {'\n\n'}
-                              Use your email or phone number to sign in anytime so you can update your response.
-                            </Typography>
-                          </>
-                        )}
-                        
-                        {formData.attending === 'no' && (
-                          <>
-                            <Typography sx={{ 
-                              fontFamily: 'Outfit', 
-                              color: '#000', 
-                              fontSize: { xs: '1.375rem', sm: '1.375rem', md: '1.375rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center',
-                              fontWeight: 400,
-                            }}>
-                              We'll miss you! :(
-                            </Typography>
-                            
-                            <Typography sx={{ 
-                              color: '#474747', 
-                              fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }, 
-                              lineHeight: 1.5, 
-                              textAlign: 'center', 
-                              fontFamily: 'Outfit',
-                              fontWeight: 400 
-                            }}>
-                              We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on August 31, 2025.
-                            </Typography>
-                          </>
-                        )}
+                        {/* Define common Typography styles */}
+                        {(() => {
+                          const headingStyle = {
+                            fontFamily: 'Outfit',
+                            color: '#000',
+                            lineHeight: 1.5,
+                            textAlign: 'center' as const,
+                            fontWeight: 400,
+                            fontSize: { xs: '1.6rem', sm: '1.9rem' },
+                          };
+
+                          const bodyStyle = {
+                            fontFamily: 'Outfit',
+                            color: '#474747',
+                            lineHeight: 1.5,
+                            textAlign: 'center' as const,
+                            fontWeight: 400,
+                            fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                          };
+
+                          if (formData.attending === 'yes') {
+                            return (
+                              <>
+                                <Typography sx={headingStyle}>
+                                  Yay! You're part of our celebration and we can't wait to have you there
+                                </Typography>
+                                
+                                <Typography sx={bodyStyle}>
+                                  Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
+                                </Typography>
+                              </>
+                            );
+                          }
+
+                          if (formData.attending === 'maybe') {
+                            return (
+                              <>
+                                <Typography sx={headingStyle}>
+                                  Thanks for letting us know!
+                                </Typography>
+                                
+                                <Typography sx={bodyStyle}>
+                                  We understand you need to figure some things out. Just remember: We need your final answer by <strong>September 30, 2025</strong>. We'll check in with you before then!
+                                  {'\n\n'}
+                                  Use your email or phone number to sign in anytime so you can update your response.
+                                </Typography>
+                              </>
+                            );
+                          }
+
+                          if (formData.attending === 'no') {
+                            return (
+                              <>
+                                <Typography sx={headingStyle}>
+                                  We'll miss you! :(
+                                </Typography>
+                                
+                                <Typography sx={bodyStyle}>
+                                  We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>.
+                                </Typography>
+                              </>
+                            );
+                          }
+
+                          return null;
+                        })()}
                       </Box>
                       
                       {/* Bottom Logo - Upside Down */}
@@ -794,7 +774,6 @@ export default function CustomRSVPForm() {
                         backgroundColor: '#DE3F5E',
                         color: 'white',
                         py: { xs: 1.5, sm: 1.5 },
-                        fontSize: { xs: '1rem', sm: '1rem' },
                         fontWeight: 700,
                         borderRadius: '80px',
                         textTransform: 'uppercase',
@@ -841,11 +820,11 @@ export default function CustomRSVPForm() {
               variant="h4" 
               sx={{ 
                 color: '#000', 
-                mb: 2,
-                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                fontFamily: 'Outfit',
                 fontWeight: 400,
                 lineHeight: 1.3,
+                mb: 2,
+                fontFamily: 'Outfit',
+                fontSize: '1.75rem',
               }}
             >
               Let's make this celebration official! ✨
@@ -856,7 +835,6 @@ export default function CustomRSVPForm() {
               sx={{ 
                 color: '#808080 !important', 
                 mb: 3,
-                fontSize: { xs: '0.9rem', sm: '1rem' },
                 fontFamily: 'Outfit',
                 lineHeight: 1.5,
               }}
@@ -896,11 +874,9 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.firstName ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
-                    className="responsive-placeholder"
                   />
                 </Box>
                 {errors.firstName && (
@@ -941,11 +917,9 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.lastName ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
-                    className="responsive-placeholder"
                   />
                 </Box>
                 {errors.lastName && (
@@ -987,11 +961,9 @@ export default function CustomRSVPForm() {
                     outline: 'none',
                     width: '100%',
                     fontFamily: 'Outfit',
-                    fontSize: windowWidth < 600 ? '14px' : '16px',
                     color: formData.email ? '#000' : '#C2C2C2',
                     backgroundColor: 'transparent',
                   }}
-                  className="responsive-placeholder"
                 />
               </Box>
               {errors.email && (
@@ -1074,12 +1046,10 @@ export default function CustomRSVPForm() {
                     outline: 'none',
                     flex: 1,
                     fontFamily: 'Outfit',
-                    fontSize: windowWidth < 600 ? '14px' : '16px',
                     color: formData.phone ? '#000' : '#C2C2C2',
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
                   }}
-                  className="responsive-placeholder"
                 />
               </Box>
               {errors.phone && (
@@ -1095,7 +1065,6 @@ export default function CustomRSVPForm() {
                 color: '#666', 
                 mt: 2, 
                 mb: 2,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 fontFamily: 'Outfit',
                 lineHeight: 1.4,
               }}
@@ -1116,7 +1085,6 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1128,9 +1096,8 @@ export default function CustomRSVPForm() {
                 sx={{ 
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: 'Outfit',
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Ready to make some memories?
@@ -1163,7 +1130,6 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.attending === option.value ? '#DE3F5E' : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
-                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -1228,12 +1194,10 @@ export default function CustomRSVPForm() {
                               width: '100%',
                               height: '70px',
                               resize: 'none',
-                                                          fontFamily: 'Outfit',
-                            fontSize: windowWidth < 600 ? '14px' : '16px',
-                            color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
+                              fontFamily: 'Outfit',
+                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
                               backgroundColor: 'transparent',
                             }}
-                            className="responsive-textarea"
                           />
                         </Box>
                         
@@ -1250,13 +1214,12 @@ export default function CustomRSVPForm() {
                             mt: 2
                           }}
                         >
-                          <Typography variant="body2" sx={{ 
+                          <Typography sx={{ 
                             fontWeight: 400,
-                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
                             lineHeight: 1.5,
                             fontFamily: 'Outfit'
                           }}>
-                            📅  Final answer needed by: <strong>August 31, 2025</strong>
+                            📅  Final answer needed by: <strong>September 30, 2025</strong>
                           </Typography>
                         </Box>
                       </Box>
@@ -1276,7 +1239,6 @@ export default function CustomRSVPForm() {
               sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
                 lineHeight: 1.5,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 fontFamily: 'Outfit',
                 mt: 3
               }}
@@ -1301,7 +1263,6 @@ export default function CustomRSVPForm() {
               >
                 <Typography variant="body2" sx={{ 
                   fontWeight: 400,
-                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}>
@@ -1324,7 +1285,6 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1337,7 +1297,6 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -1382,7 +1341,6 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
-                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -1453,11 +1411,9 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: windowWidth < 600 ? '14px' : '16px',
                           color: formData.plusOneName.split(' ')[0] ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
-                        className="responsive-placeholder"
                       />
                     </Box>
                     {errors.plusOneName && (
@@ -1501,11 +1457,9 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          fontSize: windowWidth < 600 ? '14px' : '16px',
                           color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#C2C2C2',
                           backgroundColor: 'transparent',
                         }}
-                        className="responsive-placeholder"
                       />
                     </Box>
                   </Box>
@@ -1542,12 +1496,10 @@ export default function CustomRSVPForm() {
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                                              fontFamily: 'Outfit',
-                      fontSize: windowWidth < 600 ? '14px' : '16px',
-                      color: formData.plusOneEmail ? '#000' : '#C2C2C2',
+                        fontFamily: 'Outfit',
+                        color: formData.plusOneEmail ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                       }}
-                      className="responsive-placeholder"
                     />
                   </Box>
                   {errors.plusOneEmail && (
@@ -1600,12 +1552,10 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         flex: 1,
                         fontFamily: 'Outfit',
-                        fontSize: windowWidth < 600 ? '14px' : '16px',
                         color: formData.phone ? '#000' : '#C2C2C2',
                         backgroundColor: 'transparent',
                         marginLeft: '8px',
                       }}
-                      className="responsive-placeholder"
                     />
                   </Box>
                 </Box>
@@ -1631,7 +1581,6 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
-                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -1683,7 +1632,6 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mb: 2,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1724,7 +1672,6 @@ export default function CustomRSVPForm() {
                     minWidth: 60, 
                     textAlign: 'center', 
                     color: '#000',
-                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
                     fontWeight: 500,
                     py: 1,
                     fontFamily: 'Outfit'
@@ -1766,7 +1713,6 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1779,7 +1725,6 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -1827,7 +1772,6 @@ export default function CustomRSVPForm() {
                          sx={{ 
                            color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
                            fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
-                           fontSize: { xs: '0.9rem', sm: '1rem' },
                            fontFamily: 'Outfit',
                            lineHeight: 1.3,
                            flex: 1
@@ -1903,11 +1847,9 @@ export default function CustomRSVPForm() {
                        height: '20px',
                        resize: 'none',
                        fontFamily: 'Outfit',
-                       fontSize: windowWidth < 600 ? '14px' : '16px',
                        color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
                        backgroundColor: 'transparent',
                      }}
-                     className="responsive-textarea"
                    />
                  </Box>
                </Box>
@@ -1926,7 +1868,6 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -1939,7 +1880,6 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   lineHeight: 1.5,
                   fontFamily: 'Outfit'
                 }}
@@ -1975,7 +1915,6 @@ export default function CustomRSVPForm() {
                         sx={{ 
                           color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
-                          fontSize: { xs: '0.9rem', sm: '1rem' },
                           fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
@@ -2032,7 +1971,6 @@ export default function CustomRSVPForm() {
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                   fontFamily: 'Outfit'
                 }}
               >
@@ -2045,9 +1983,8 @@ export default function CustomRSVPForm() {
                   color: 'rgba(0, 0, 0, 0.48)', 
                   fontWeight: 400,
                   mt: 1,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontFamily: 'Outfit',
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}
               >
                 We'll share travel tips and help coordinate arrivals!
@@ -2078,7 +2015,6 @@ export default function CustomRSVPForm() {
                       sx={{ 
                         color: formData.arrivalOption === option.value ? '#DE3F5E' : '#000',
                         fontWeight: formData.arrivalOption === option.value ? 600 : 400,
-                        fontSize: { xs: '0.9rem', sm: '1rem' },
                         fontFamily: 'Outfit',
                         lineHeight: 1.3,
                         flex: 1
@@ -2147,7 +2083,6 @@ export default function CustomRSVPForm() {
                 p: 2, 
                 backgroundColor: 'rgba(0, 0, 0, 0.08)', 
                 borderRadius: '8px',
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 lineHeight: 1.5,
                 fontFamily: 'Outfit'
               }}
@@ -2171,7 +2106,6 @@ export default function CustomRSVPForm() {
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
-                      fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                       fontFamily: 'Outfit'
                     }}
                   >
@@ -2183,9 +2117,8 @@ export default function CustomRSVPForm() {
                     sx={{ 
                       color: 'rgba(0, 0, 0, 0.48)', 
                       fontWeight: 400,
-                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontFamily: 'Outfit',
                       lineHeight: 1.5,
-                      fontFamily: 'Outfit'
                     }}
                   >
                     What song will make this celebration perfect? (optional)
@@ -2222,11 +2155,9 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.songRequest ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
-                    className="responsive-placeholder"
                   />
                 </Box>
               </Box>
@@ -2241,7 +2172,6 @@ export default function CustomRSVPForm() {
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
-                      fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.75rem' },
                       fontFamily: 'Outfit'
                     }}
                   >
@@ -2253,9 +2183,8 @@ export default function CustomRSVPForm() {
                     sx={{ 
                       color: 'rgba(0, 0, 0, 0.48)', 
                       fontWeight: 400,
-                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontFamily: 'Outfit',
                       lineHeight: 1.5,
-                      fontFamily: 'Outfit'
                     }}
                   >
                     Leave a message for everyone to see! (optional)
@@ -2294,11 +2223,9 @@ export default function CustomRSVPForm() {
                       height: '60px',
                       resize: 'none',
                       fontFamily: 'Outfit',
-                      fontSize: windowWidth < 600 ? '14px' : '16px',
                       color: formData.specialMessage ? '#000' : '#C2C2C2',
                       backgroundColor: 'transparent',
                     }}
-                    className="responsive-textarea"
                   />
                   
                   {/* GIF Button - only show when no GIF is selected */}
@@ -2393,486 +2320,165 @@ export default function CustomRSVPForm() {
   };
 
   return (
-    <Box
-      sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
+    <FullScreenFormContainer
+      title="RSVP"
+      onClose={handleClose}
+      paperHeight="85vh" // Set to 85% of viewport height as per user request
     >
-      {/* Loading Overlay for Existing RSVP Data */}
-      <AnimatePresence>
-        {isLoadingExisting && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(4px)',
-              zIndex: 9998,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-                padding: 4,
-                borderRadius: 2,
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                style={{
-                  width: 48,
-                  height: 48,
-                  border: '4px solid #f3f3f3',
-                  borderTop: '4px solid #DE3F5E',
-                  borderRadius: '50%',
-                }}
-              />
-              <Typography
-                variant="h6"
-                sx={{
-                  color: '#000',
-                  fontWeight: 600,
-                  fontFamily: 'Outfit',
-                  textAlign: 'center',
-                }}
-              >
-                Loading Your RSVP...
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#666',
-                  textAlign: 'center',
-                  maxWidth: 250,
-                }}
-              >
-                We're fetching your existing information to make updating easier
-              </Typography>
-            </Box>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          minHeight: '100vh',
-          pt: 0,
-          pb: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 3, md: 4 },
-          overflow: 'hidden',
-        }}
-      >
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          style={{ 
-            width: '100%', 
-            maxWidth: '500px',
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'center',
+      {/* Progress Bar */}
+      <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '4px',
+            height: { xs: '3px', sm: '4px' },
+            borderRadius: '2px',
+            overflow: 'hidden',
+            backgroundColor: '#F5F5F5',
           }}
         >
-          {/* Header with close button and RSVP title - perfectly aligned */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            width: '100%',
-            height: 56,
-            mb: { xs: 0.5, sm: 1 }, 
-            flexShrink: 0,
-          }}>
-            <IconButton
-              onClick={handleClose}
+          {steps.map((_, index) => (
+            <Box
+              key={index}
               sx={{
-                color: '#000',
-                backgroundColor: 'transparent',
-                p: { xs: 1, sm: 1.5 },
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                flex: 1,
+                height: '100%',
+                backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
+                transition: 'background-color 0.3s ease',
+                '&:first-of-type': {
+                  borderTopLeftRadius: '2px',
+                  borderBottomLeftRadius: '2px',
+                },
+                '&:last-of-type': {
+                  borderTopRightRadius: '2px',
+                  borderBottomRightRadius: '2px',
                 },
               }}
-            >
-              <CloseIcon />
-            </IconButton>
-            
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontFamily: 'Outfit', 
-                color: '#141414', 
-                fontWeight: 400,
-                fontSize: { xs: '16px', sm: '18px' },
-                lineHeight: '1.26em',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                textAlign: 'center'
-              }}
-            >
-              RSVP
-            </Typography>
-            
-            {/* Spacer to center the RSVP text */}
-            <Box sx={{ width: { xs: 40, sm: 48 } }} />
-          </Box>
+            />
+          ))}
+        </Box>
+      </Box>
 
-          {/* Form Content */}
-          <Paper
-            elevation={0}
+      {/* Scrollable Content Area */}
+      <Box sx={{ 
+        flex: 1, 
+        overflowY: 'auto', 
+        minHeight: 0,
+        pr: { xs: 0.5, sm: 1 },
+        px: { xs: 1, sm: 0 },
+        '&::-webkit-scrollbar': {
+          width: { xs: '4px', sm: '6px' },
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#a8a8a8',
+        },
+      }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={stepVariants}
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
+      </Box>
+
+      {/* Navigation Buttons */}
+      <Box sx={{ 
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(4px)',
+        pt: { xs: 2, sm: 2.5 },
+        display: 'flex',
+        alignItems: 'center',
+        gap: { xs: 1, sm: 1.5 },
+        flexShrink: 0,
+        mt: 'auto',
+      }}>
+        {currentStep > 0 && (
+          <IconButton
+            onClick={handleBack}
             sx={{
-              p: { xs: 1.5, sm: 2.5 },
-              borderRadius: 1,
-              border: '1px solid #000',
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              color: '#000000',
-              display: 'flex',
-              flexDirection: 'column',
-              height: windowHeight - (isMobile ? 180 : 200),
-              width: '100%',
-              // Responsive placeholder styles
-              '& .responsive-placeholder::placeholder': {
-                fontSize: { xs: '13px', sm: '16px' },
-                color: '#C2C2C2 !important',
-              },
-              '& .responsive-textarea::placeholder': {
-                fontSize: { xs: '13px', sm: '16px' },
-                color: '#C2C2C2 !important',
-              },
-              '& .MuiFormLabel-root': {
-                color: '#333333 !important',
-                fontWeight: 600,
-              },
-              '& .MuiTextField-root .MuiInputLabel-root': {
-                color: '#808080 !important',
-              },
-              '& .MuiTextField-root .MuiOutlinedInput-root': {
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                color: '#000000 !important',
-                borderRadius: '8px !important',
-                '& fieldset': {
-                  borderColor: '#808080 !important',
-                  borderRadius: '8px !important',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#808080 !important',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#DAA520 !important',
-                  borderWidth: '2px !important',
-                },
-                '& input::placeholder': {
-                  color: '#C2C2C2 !important',
-                  opacity: 1,
-                },
-                '& input': {
-                  '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
-                    WebkitTextFillColor: '#000000 !important',
-                    backgroundColor: 'transparent !important',
-                  },
-                  '&:-webkit-autofill:hover': {
-                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
-                    WebkitTextFillColor: '#000000 !important',
-                  },
-                  '&:-webkit-autofill:focus': {
-                    WebkitBoxShadow: '0 0 0 1000px rgba(255, 255, 255, 0.8) inset !important',
-                    WebkitTextFillColor: '#000000 !important',
-                  },
-                },
-              },
-              '& .MuiTextField-root .MuiOutlinedInput-input': {
-                color: '#000000 !important',
-                padding: '16.5px 14px',
-              },
-              '& .MuiTextField-root .MuiInputBase-inputMultiline': {
-                padding: '16.5px 14px',
-              },
-              '& .MuiRadio-root': {
-                color: '#666666 !important',
-              },
-              '& .MuiFormControlLabel-label': {
-                color: '#000000 !important',
-              },
-              '& .MuiChip-root': {
-                color: '#000000 !important',
-              },
-              '& .MuiSelect-root': {
-                color: '#000000 !important',
-              },
-              '& .MuiSelect-select': {
-                padding: '16.5px 14px',
-              },
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px !important',
-                '& fieldset': {
-                  borderColor: '#808080 !important',
-                  borderRadius: '8px !important',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#808080 !important',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#DAA520 !important',
-                  borderWidth: '2px !important',
-                },
-              },
-              '& .MuiMenuItem-root': {
-                color: '#000000 !important',
+              width: { xs: 44, sm: 48 },
+              height: { xs: 44, sm: 48 },
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0, 0, 0, 0.16)',
+              color: '#141414',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.24)',
               },
             }}
           >
-            {/* Progress Bar - moved inside form */}
-            <Box sx={{ mb: { xs: 1, sm: 2 }, flexShrink: 0 }}>            
-              {/* Horizontal Segment Progress Bar */}
-              <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: '4px',
-                    height: { xs: '3px', sm: '4px' },
-                    borderRadius: '2px',
-                    overflow: 'hidden',
-                    backgroundColor: '#F5F5F5',
-                  }}
-                >
-                  {steps.map((_, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        flex: 1,
-                        height: '100%',
-                        backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
-                        transition: 'background-color 0.3s ease',
-                        '&:first-of-type': {
-                          borderTopLeftRadius: '2px',
-                          borderBottomLeftRadius: '2px',
-                        },
-                        '&:last-of-type': {
-                          borderTopRightRadius: '2px',
-                          borderBottomRightRadius: '2px',
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Scrollable Content Area */}
-            <Box sx={{ 
-              flex: 1, 
-              overflowY: 'auto', 
-              minHeight: 0,
-              pr: { xs: 0.5, sm: 1 },
-              px: { xs: 1, sm: 0 },
-              '&::-webkit-scrollbar': {
-                width: { xs: '4px', sm: '6px' },
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+          </IconButton>
+        )}
+        
+        {currentStep < steps.length - 1 ? (
+          <Button
+            onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
+            variant="contained"
+            sx={{ 
+              flex: 1,
+              height: { xs: 44, sm: 48 },
+              backgroundColor: '#DE3F5E',
+              color: 'white',
+              fontWeight: 700,
+              borderRadius: '80px',
+              textTransform: 'uppercase',
+              letterSpacing: '6.25%',
+              fontFamily: 'Outfit', 
+              '&:hover': {
+                backgroundColor: '#C8365A',
               },
-              '&::-webkit-scrollbar-track': {
-                background: '#f1f1f1',
-                borderRadius: '3px',
+              '&:disabled': {
+                backgroundColor: '#ccc',
+                color: '#999',
               },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#c1c1c1',
-                borderRadius: '3px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                background: '#a8a8a8',
-              },
-            }}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentStep}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={stepVariants}
-                >
-                  {renderStep()}
-                </motion.div>
-              </AnimatePresence>
-            </Box>
-
-            {/* Navigation Buttons */}
-            <Box sx={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(4px)',
-              pt: { xs: 2, sm: 2.5 },
-              display: 'flex',
-              alignItems: 'center',
-              gap: { xs: 1, sm: 1.5 },
-              flexShrink: 0,
-              mt: 'auto',
-            }}>
-              {currentStep > 0 && (
-                <IconButton
-                  onClick={handleBack}
-                  sx={{
-                    width: { xs: 44, sm: 48 },
-                    height: { xs: 44, sm: 48 },
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                    color: '#141414',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.24)',
-                    },
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m15 18-6-6 6-6"/>
-                  </svg>
-                </IconButton>
-              )}
-              
-              {currentStep < steps.length - 1 ? (
-                <Button
-                  onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
-                  variant="contained"
-                  sx={{ 
-                    flex: 1,
-                    height: { xs: 44, sm: 48 },
-                    backgroundColor: '#DE3F5E',
-                    color: 'white',
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
-                    fontWeight: 700,
-                    borderRadius: '80px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '6.25%',
-                    fontFamily: 'Outfit', 
-                    '&:hover': {
-                      backgroundColor: '#C8365A',
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#ccc',
-                      color: '#999',
-                    },
-                  }}
-                  disabled={false}
-                >
-                  {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  variant="contained"
-                  sx={{
-                    flex: 1,
-                    height: { xs: 44, sm: 48 },
-                    backgroundColor: '#DE3F5E',
-                    color: 'white',
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
-                    fontWeight: 700,
-                    borderRadius: '80px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
-                    '&:hover': {
-                      backgroundColor: '#C8365A',
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#ccc',
-                      color: '#999',
-                    },
-                  }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
-                </Button>
-              )}
-            </Box>
-          </Paper>
-
-          {/* Exit Confirmation Dialog */}
-          <Dialog
-            open={showExitConfirmation}
-            onClose={handleCancelExit}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: 1,
-                border: '1px solid #000',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              }
             }}
+            disabled={false}
           >
-            <DialogTitle sx={{ color: '#000', fontWeight: 600 }}>
-              Exit RSVP Process?
-            </DialogTitle>
-            <DialogContent>
-              <Typography variant="body1" sx={{ color: '#000' }}>
-                Are you sure you want to leave? Any information you've entered will be lost and you'll need to start over.
-              </Typography>
-            </DialogContent>
-            <DialogActions sx={{ p: 3, gap: 2 }}>
-              <Button
-                onClick={handleCancelExit}
-                variant="outlined"
-                sx={{
-                  borderColor: '#000',
-                  color: '#000',
-                  '&:hover': {
-                    borderColor: '#000',
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  },
-                }}
-              >
-                Continue RSVP
-              </Button>
-              <Button
-                onClick={handleConfirmExit}
-                variant="contained"
-                sx={{
-                  backgroundColor: '#DC3545',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: '#C82333',
-                  },
-                }}
-              >
-                Yes, Exit
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* GIF Picker Dialog */}
-          <GifPicker
-            open={showGifPicker}
-            onClose={() => setShowGifPicker(false)}
-            onSelectGif={handleGifSelect}
-          />
-        </motion.div>
-      </Container>
-    </Box>
+            {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              flex: 1,
+              height: { xs: 44, sm: 48 },
+              backgroundColor: '#DE3F5E',
+              color: 'white',
+              fontWeight: 700,
+              borderRadius: '80px',
+              textTransform: 'uppercase',
+              letterSpacing: '6.25%',
+              fontFamily: 'Outfit',
+              '&:hover': {
+                backgroundColor: '#C8365A',
+              },
+              '&:disabled': {
+                backgroundColor: '#ccc',
+                color: '#999',
+              },
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+          </Button>
+        )}
+      </Box>
+    </FullScreenFormContainer>
   );
 } 

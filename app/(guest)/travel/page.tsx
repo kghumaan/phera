@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
 
@@ -33,7 +33,7 @@ const DiamondIndicators = ({ total, current }: { total: number; current: number 
         }}
       >
         <svg width="12" height="12" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z" fill={index === current ? '#DE3F5E' : '#D7A393'}/>
+          <path fillRule="evenodd" clipRule="evenodd" d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z" fill={index === current ? '#DE3F5E' : '#D7A393'}/>
         </svg>
       </Box>
     ))}
@@ -68,7 +68,8 @@ const TravelCard = ({
     style={{
       width: '100vw',
       maxWidth: '100%',
-      height: 596,
+      height: '70vh', // Responsive height instead of fixed 596px
+      minHeight: '500px', // Minimum height for smaller screens
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -160,7 +161,8 @@ const TravelCard = ({
         sx={{
           position: 'relative',
           width: '100%',
-          height: 257,
+          height: '40%', // Make image section responsive too
+          minHeight: 200,
           overflow: 'hidden',
         }}
       >
@@ -187,6 +189,14 @@ export default function TravelPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Disable scrolling when component mounts
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   const travelData = [
     {
@@ -293,173 +303,168 @@ export default function TravelPage() {
       alt="Rose Quartz Background"
       priority={true}
     >
-      {/* Header with back button */}
       <Box
         sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          pt: { xs: 7, sm: 8 },
-          pb: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          touchAction: 'pan-x',
         }}
       >
-        <Container maxWidth="sm">
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <IconButton
-              onClick={handleBack}
-              sx={{
-                color: '#000',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                },
-              }}
-            >
-              <ArrowBack />
-            </IconButton>
-            <Typography
-              variant="h6"
-              sx={{
-                fontFamily: 'Outfit',
-                fontWeight: 400,
-                fontSize: 18,
-                lineHeight: 1.5,
-                letterSpacing: '5.56%',
-                textTransform: 'uppercase',
-                color: '#141414',
-                textAlign: 'center',
-              }}
-            >
-              Travel & Stay
-            </Typography>
-            <Box sx={{ width: 48 }} />
-          </Stack>
-        </Container>
-      </Box>
-
-      {/* Main carousel content */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '100vw',
-          zIndex: 2,
-        }}
-      >
-        <Stack spacing={3} alignItems="center">
-          {/* Carousel container */}
-          <Box
-            sx={{
-              width: '100vw',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-            onTouchStart={handleTouchStart}
-          >
-            <Stack 
-              direction="row" 
-              spacing={0}
-              sx={{
-                transform: `translateX(-${currentSlide * 100}vw)`,
-                transition: 'transform 0.3s ease-in-out',
-                width: 'max-content',
-              }}
-            >
-              {travelData.map((card, index) => (
-                <TravelCard
-                  key={index}
-                  title={card.title}
-                  content={card.content}
-                  image={card.image}
-                  isActive={index === currentSlide}
-                  buttonText={card.buttonText}
-                  isDisabled={card.isDisabled}
-                  onButtonClick={card.onButtonClick}
-                />
-              ))}
-            </Stack>
-          </Box>
-
-          {/* Navigation buttons for desktop */}
-          {!isMobile && (
-            <Stack direction="row" spacing={2} justifyContent="center">
-              <IconButton
-                onClick={() => handleSlideChange('prev')}
-                disabled={currentSlide === 0}
-                sx={{
-                  color: '#000',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                  },
-                }}
-              >
-                ←
-              </IconButton>
-              <IconButton
-                onClick={() => handleSlideChange('next')}
-                disabled={currentSlide === travelData.length - 1}
-                sx={{
-                  color: '#000',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                  },
-                }}
-              >
-                →
-              </IconButton>
-            </Stack>
-          )}
-        </Stack>
-      </Box>
-
-      {/* Diamond indicators */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 120,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 3,
-        }}
-      >
-        <DiamondIndicators total={travelData.length} current={currentSlide} />
-      </Box>
-
-      {/* Home indicator */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 21,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 3,
-        }}
-      >
+        {/* Header with back button */}
         <Box
           sx={{
-            width: 134,
-            height: 5,
-            backgroundColor: '#000',
-            borderRadius: '1.5px',
+            position: 'relative',
+            zIndex: 2,
+            pt: 2,
+            pb: 2,
+            flexShrink: 0,
           }}
-        />
+        >
+          <Container maxWidth="sm">
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <IconButton
+                onClick={handleBack}
+                sx={{
+                  color: '#000',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                }}
+              >
+                <ArrowBack />
+              </IconButton>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'Outfit',
+                  fontWeight: 400,
+                  fontSize: 18,
+                  lineHeight: 1.5,
+                  letterSpacing: '5.56%',
+                  textTransform: 'uppercase',
+                  color: '#141414',
+                  textAlign: 'center',
+                }}
+              >
+                Travel & Stay
+              </Typography>
+              <Box sx={{ width: 48 }} />
+            </Stack>
+          </Container>
+        </Box>
+
+        {/* Main carousel content */}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
+          <Stack spacing={3} alignItems="center" sx={{ width: '100%', height: '100%', justifyContent: 'center' }}>
+            {/* Carousel container */}
+            <Box
+              sx={{
+                width: '100vw',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              onTouchStart={handleTouchStart}
+            >
+              <Stack 
+                direction="row" 
+                spacing={0}
+                sx={{
+                  transform: `translateX(-${currentSlide * 100}vw)`,
+                  transition: 'transform 0.3s ease-in-out',
+                  width: 'max-content',
+                }}
+              >
+                {travelData.map((card, index) => (
+                  <TravelCard
+                    key={index}
+                    title={card.title}
+                    content={card.content}
+                    image={card.image}
+                    isActive={index === currentSlide}
+                    buttonText={card.buttonText}
+                    isDisabled={card.isDisabled}
+                    onButtonClick={card.onButtonClick}
+                  />
+                ))}
+              </Stack>
+            </Box>
+
+            {/* Navigation buttons for desktop */}
+            {!isMobile && (
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <IconButton
+                  onClick={() => handleSlideChange('prev')}
+                  disabled={currentSlide === 0}
+                  sx={{
+                    color: '#000',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.3,
+                    },
+                  }}
+                >
+                  ←
+                </IconButton>
+                <IconButton
+                  onClick={() => handleSlideChange('next')}
+                  disabled={currentSlide === travelData.length - 1}
+                  sx={{
+                    color: '#000',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.3,
+                    },
+                  }}
+                >
+                  →
+                </IconButton>
+              </Stack>
+            )}
+          </Stack>
+        </Box>
+
+        {/* Bottom indicators and home indicator */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 3,
+            flexShrink: 0,
+          }}
+        >
+          {/* Diamond indicators */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mb: 2,
+              mt: 4,
+            }}
+          >
+            <DiamondIndicators total={travelData.length} current={currentSlide} />
+          </Box>
+        </Box>
       </Box>
     </OptimizedBackground>
   );

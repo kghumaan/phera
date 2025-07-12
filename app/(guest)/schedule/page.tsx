@@ -80,7 +80,7 @@ const DayCard = ({ day, date, events, index }: {
       sx={{
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
-        borderRadius: 3,
+        borderRadius: 1.5,
         p: 3,
         mb: 3,
         border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -122,75 +122,73 @@ const DayCard = ({ day, date, events, index }: {
           <Box
             key={eventIndex}
             sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 3,
               pb: eventIndex < events.length - 1 ? 2.5 : 0,
               borderBottom: eventIndex < events.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
             }}
           >
-            {/* Time */}
+            {/* Time and Event Name Row */}
             <Box
               sx={{
-                minWidth: 80,
                 display: 'flex',
-                alignItems: 'center',
-                gap: 1,
+                alignItems: 'flex-start',
+                gap: 3,
+                mb: 1,
               }}
             >
-              <AccessTimeOutlined 
-                sx={{ fontSize: 16, color: '#DE3F5E' }} 
-              />
-              <Typography
-                variant="body2"
+              {/* Time */}
+              <Box
                 sx={{
-                  color: '#DE3F5E',
-                  fontWeight: 600,
-                  fontSize: '0.85rem',
+                  minWidth: 80,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
                 }}
               >
-                {event.time.split(' - ')[0]}
-              </Typography>
-            </Box>
-
-            {/* Event Details */}
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: 'Outfit',
-                  fontWeight: 600,
-                  color: '#141414',
-                  mb: 0.5,
-                  fontSize: '1.1rem',
-                }}
-              >
-                {event.name}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#666',
-                  fontWeight: 500,
-                  mb: 0.5,
-                }}
-              >
-                {event.time}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LocationOnOutlined 
-                  sx={{ fontSize: 14, color: '#999' }} 
+                <AccessTimeOutlined 
+                  sx={{ fontSize: 16, color: '#DE3F5E' }} 
                 />
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#999',
+                    color: '#DE3F5E',
+                    fontWeight: 600,
                     fontSize: '0.85rem',
                   }}
                 >
-                  {event.location}
+                  {event.time.split(' - ')[0]}
                 </Typography>
               </Box>
+
+              {/* Event Name */}
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontFamily: 'Outfit',
+                    fontWeight: 600,
+                    color: '#141414',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  {event.name}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Location Row - Full Width */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LocationOnOutlined 
+                sx={{ fontSize: 14, color: '#999' }} 
+              />
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#999',
+                  fontSize: '0.85rem',
+                }}
+              >
+                {event.location}
+              </Typography>
             </Box>
           </Box>
         ))}
@@ -219,34 +217,6 @@ export default function SchedulePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* Page Title */}
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontFamily: 'Outfit',
-                fontWeight: 700,
-                color: '#141414',
-                textAlign: 'center',
-                mb: 2,
-              }}
-            >
-              Wedding Schedule
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: '#666',
-                textAlign: 'center',
-                maxWidth: 400,
-                mx: 'auto',
-                lineHeight: 1.6,
-              }}
-            >
-              Join us for three days of celebration, tradition, and joy as we begin our new journey together.
-            </Typography>
-          </Box>
-
           {/* Schedule Cards */}
           <Box>
             {weddingSchedule.map((dayData, index) => (
@@ -270,7 +240,7 @@ export default function SchedulePage() {
               sx={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 backdropFilter: 'blur(10px)',
-                borderRadius: 3,
+                borderRadius: 1.5,
                 p: 3,
                 mt: 3,
                 border: '1px solid rgba(255, 255, 255, 0.2)',

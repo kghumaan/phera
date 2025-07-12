@@ -11,8 +11,8 @@ export default function RSVPPage() {
       useAppDefault={true}
       className="min-h-screen"
     >
-      {/* Gradient Overlay for better form readability */}
-      <Box
+      {/* Remove gradient overlay as it might interfere */}
+      {/* <Box
         sx={{
           position: 'fixed',
           top: 0,
@@ -22,12 +22,12 @@ export default function RSVPPage() {
           background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)',
           zIndex: 1,
         }}
-      />
+      /> */}
 
-      {/* RSVP Form */}
-      <Box sx={{ position: 'relative', zIndex: 2 }}>
+      {/* Remove extra Box */}
+      {/* <Box sx={{ position: 'relative', zIndex: 2 }}> */}
         <CustomRSVPForm />
-      </Box>
+      {/* </Box> */}
     </OptimizedBackground>
   );
 } 

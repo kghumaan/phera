@@ -55,9 +55,13 @@ export default function FAQPage() {
       {/* Header */}
       <Box
         sx={{
-          position: 'relative',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
           zIndex: 2,
-          py: 3,
+          pt: 2,
+          pb: 2,
         }}
       >
         <Container maxWidth="sm">
@@ -81,6 +85,8 @@ export default function FAQPage() {
                 fontFamily: 'Outfit',
                 fontWeight: 400,
                 fontSize: 18,
+                lineHeight: 1.5,
+                letterSpacing: '5.56%',
                 textTransform: 'uppercase',
                 color: '#141414',
               }}
@@ -93,7 +99,7 @@ export default function FAQPage() {
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="sm" sx={{ pb: 4 }}>
+      <Container maxWidth="sm" sx={{ pb: 4, pt: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

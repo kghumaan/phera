@@ -60,7 +60,7 @@ export default function OptimizedBackground({
       </motion.div>
       
       {/* Content */}
-      <div className="relative z-10 min-h-screen">
+      <div className="relative z-10 min-h-dvh">
         {children}
       </div>
     </div>

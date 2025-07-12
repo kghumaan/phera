@@ -148,19 +148,29 @@ export default function DetailsPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '100dvh', // Use dynamic viewport height for mobile
+        minHeight: '100vh', // Fallback for older browsers
         display: 'flex',
         flexDirection: 'column',
         backgroundImage: 'url(/images/backgrounds/pearl.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        overflow: 'hidden', // Prevent scrolling
+        position: 'fixed', // Fix position to prevent mobile scroll
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
       {/* Header with back button */}
       <Box
         sx={{
-          position: 'relative',
+          position: 'absolute', // Changed to absolute positioning
+          top: 0,
+          left: 0,
+          right: 0,
           zIndex: 2,
           pt: 2,
           pb: 2,
@@ -193,20 +203,24 @@ export default function DetailsPage() {
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          zIndex: 2,
-          marginTop: '-80px', // Increased offset to account for header height
+          zIndex: 1,
+          maxHeight: '100%', // Ensure content doesn't exceed container
+          marginTop: '-40px',
+          paddingBottom: '20px', // Add bottom padding for balance
+          // Removed marginTop offset since header is now absolutely positioned
         }}
       >
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            style={{ width: '100%' }}
           >
-            <Stack spacing={6} alignItems="center" sx={{ py: 4 }}>
+            <Stack spacing={3} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
               <Stack 
-                spacing={3} 
+                spacing={2} 
                 sx={{ 
                   width: '100%', 
                   maxWidth: 361,
