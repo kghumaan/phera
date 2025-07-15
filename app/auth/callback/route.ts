@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -23,30 +24,16 @@ export async function GET(request: NextRequest) {
   // Handle successful authentication
   if (code) {
     try {
-      // Create Supabase client for server-side auth
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      const cookieStore = cookies();
+      const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
       // Exchange the code for a session
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       
       if (exchangeError) throw exchangeError;
 
-      // Create response with redirect
-      const redirectUrl = new URL('/', origin);
-      const response = NextResponse.redirect(redirectUrl);
-
-      // Set auth cookies
-      if (data.session) {
-        response.cookies.set('supabase-auth-token', data.session.access_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-        });
-      }
+      // Determine redirect URL - go to guest home if authenticated
+      const redirectUrl = new URL('/guest-home', origin);
 
       // Preserve PIN verification state by setting it in the redirect URL
       if (pinVerified === 'true' && pinTimestamp) {
@@ -55,7 +42,7 @@ export async function GET(request: NextRequest) {
         redirectUrl.searchParams.set('allows_plus_one', allowsPlusOne || 'false');
       }
 
-      return response;
+      return NextResponse.redirect(redirectUrl);
 
     } catch (error) {
       console.error('Auth exchange error:', error);
