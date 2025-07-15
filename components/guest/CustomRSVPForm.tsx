@@ -47,6 +47,7 @@ import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
 import { GifData } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
+import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 
 interface RSVPFormData {
   // Basic Information
@@ -373,8 +374,7 @@ export default function CustomRSVPForm() {
         break;
 
       case 6: // Fun & Messages
-        if (!formData.songRequest.trim()) newErrors.songRequest = 'Song request is required';
-        if (!formData.specialMessage.trim()) newErrors.specialMessage = 'Special message is required';
+        // No required fields in this step - both song request and special message are optional
         break;
     }
     
@@ -1270,7 +1270,7 @@ export default function CustomRSVPForm() {
                 mt: 3
               }}
             >
-              <strong>Note:</strong> Your accommodation will be covered by us! We need to book the right number of rooms, so please let us know for sure by July 31, 2025!
+              <strong>Note:</strong> Your accommodation will be covered by us! We need to book the right number of rooms, so please let us know for sure by {WEDDING_CONFIG.rsvpDeadline}!
             </Typography>
             
 
@@ -2574,7 +2574,6 @@ export default function CustomRSVPForm() {
           sx: {
             backgroundColor: '#fff',
             color: '#000',
-            borderRadius: 2,
             boxShadow: 8,
           },
         }}

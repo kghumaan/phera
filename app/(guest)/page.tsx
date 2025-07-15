@@ -32,6 +32,7 @@ import LoginModal from '@/components/auth/LoginModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
+import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -147,16 +148,16 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   );
 };
 
-// Sample couple data - this would come from your backend/config
+// Wedding data from centralized config
 const coupleData = {
-  names: "Simran & Karanvir",
-  date: "4-6 JANUARY, 2026",
-  weddingDate: "2026-01-04T00:00:00", // ISO format for countdown
-  venue: "The Palayana, Hua Hin, Thailand",
-  flag: "🇹🇭",
-  rsvpDeadline: "31 July, 2025",
-          coupleImage: "/images/couple/couple-1.jpg", // Using optimized couple image
-        frameImage: "/images/frames/frame-27.png" // Optimized frame image
+  names: WEDDING_CONFIG.coupleNames,
+  date: WEDDING_CONFIG.weddingDateDisplay,
+  weddingDate: WEDDING_CONFIG.weddingDate,
+  venue: WEDDING_CONFIG.venue,
+  flag: WEDDING_CONFIG.venueFlag,
+  rsvpDeadline: WEDDING_CONFIG.rsvpDeadline,
+  coupleImage: WEDDING_CONFIG.coupleImage,
+  frameImage: WEDDING_CONFIG.frameImage
 };
 
 // Couple Image Carousel Component
