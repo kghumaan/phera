@@ -11,79 +11,58 @@ import { useRouter } from 'next/navigation';
 const weddingEvents = [
   {
     id: 1,
-    slug: 'haldi-ceremony',
-    name: 'Haldi Ceremony',
-    description: 'A beautiful traditional ceremony where turmeric paste is applied to the bride and groom for good luck and purification.',
-    date: '4 January, 2026',
-    time: '10:00 AM - 12:00 PM',
-    location: 'Garden Pavilion, The Palayana',
-    dress_code: 'Traditional Yellow/Orange',
-    cultural_significance: 'Turmeric is believed to ward off evil spirits and bring prosperity',
-    image: '/images/backgrounds/haldi-optimized.jpg'
+    slug: 'welcome-lunch-haldi',
+    name: 'Welcome Lunch & Haldi',
+    dress_code: 'Shades of Yellow',
+    dress_code_emoji: '🌻',
+    date: 'January 4',
+    time: '12 PM',
   },
   {
     id: 2,
-    slug: 'mehendi-ceremony',
-    name: 'Mehendi Ceremony',
-    description: 'An artistic celebration where intricate henna designs are applied to hands and feet, accompanied by music and dance.',
-    date: '4 January, 2026',
-    time: '2:00 PM - 6:00 PM',
-    location: 'Beachside Terrace, The Palayana',
-    dress_code: 'Vibrant Colors (Green/Pink preferred)',
-    cultural_significance: 'Henna symbolizes joy, beauty, and spiritual awakening',
-    image: '/images/backgrounds/mehndi-optimized.jpg'
+    slug: 'baraat-varmala-jaggo',
+    name: 'Baraat, Varmala, & Jaggo',
+    dress_code: 'Vibrant Festive Hues',
+    dress_code_emoji: '🎊',
+    date: 'January 4',
+    time: '4 PM',
   },
   {
     id: 3,
-    slug: 'jaggo',
-    name: 'Jaggo',
-    description: 'A joyful gathering to welcome all families and friends. Enjoy traditional music, dance, and delicious appetizers.',
-    date: '4 January, 2026',
-    time: '7:00 PM - 11:00 PM',
-    location: 'Courtyard, The Palayana',
-    dress_code: 'Semi-formal Indian/Western',
-    cultural_significance: 'Bringing together two families as one',
-    image: '/images/backgrounds/jaggo-optimized.jpg'
+    slug: 'anand-karaj',
+    name: 'Anand Karaj (Wedding Ceremony)',
+    dress_code: 'Pastel',
+    dress_code_emoji: '🌸',
+    date: 'January 5',
+    time: '9:30 AM',
   },
   {
     id: 4,
-    slug: 'wedding-ceremony',
-    name: 'Wedding Ceremony',
-    description: 'The sacred union ceremony with traditional rituals, vows, and blessings. A moment of pure love and commitment.',
-    date: '5 January, 2026',
-    time: '6:00 AM - 10:00 AM',
-    location: 'Sacred Garden, The Palayana',
-    dress_code: 'Traditional Formal (Red/Maroon/Gold)',
-    cultural_significance: 'The sacred bond of marriage blessed by fire and witnessed by nature',
-    gradient: 'linear-gradient(135deg, rgba(211, 47, 47, 0.8) 0%, rgba(244, 67, 54, 0.8) 50%, rgba(239, 83, 80, 0.8) 100%)',
-    image: '/images/backgrounds/blue-clouds.jpg'
+    slug: 'pool-party',
+    name: 'Pool Party',
+    dress_code: 'Beach-Chic Loungewear',
+    dress_code_emoji: '🏖️',
+    date: 'January 5',
+    time: '2 PM',
   },
   {
     id: 5,
-    slug: 'reception-dinner',
-    name: 'Reception Dinner',
-    description: 'An elegant evening celebration with dinner, music, and dancing to honor the newly married couple.',
-    date: '5 January, 2026',
-    time: '7:00 PM - 12:00 AM',
-    location: 'Grand Ballroom, The Palayana',
-    dress_code: 'Formal/Cocktail Attire',
-    cultural_significance: 'Celebrating the new beginning with family and friends',
-    gradient: 'linear-gradient(135deg, rgba(123, 31, 162, 0.8) 0%, rgba(156, 39, 176, 0.8) 50%, rgba(186, 104, 200, 0.8) 100%)',
-    image: '/images/backgrounds/pool-optimized.jpg'
+    slug: 'reception',
+    name: 'Reception',
+    dress_code: 'Black-Tie',
+    dress_code_emoji: '🤵🏽',
+    date: 'January 5',
+    time: '7:30 PM',
   },
   {
     id: 6,
-    slug: 'farewell-brunch',
-    name: 'Farewell Brunch',
-    description: 'A relaxed morning gathering to share memories, exchange contact information, and bid farewell until we meet again.',
-    date: '6 January, 2026',
-    time: '10:00 AM - 1:00 PM',
-    location: 'Poolside Restaurant, The Palayana',
-    dress_code: 'Casual Comfortable',
-    cultural_significance: 'Blessing the couple for their journey ahead',
-    gradient: 'linear-gradient(135deg, rgba(255, 152, 0, 0.8) 0%, rgba(255, 183, 77, 0.8) 50%, rgba(255, 204, 2, 0.8) 100%)',
-    image: '/images/backgrounds/pool2-optimized.jpg'
-  }
+    slug: 'after-party',
+    name: 'After Party',
+    dress_code: 'Neon Festival Rave',
+    dress_code_emoji: '🎆',
+    date: 'January 5',
+    time: '11:45 PM',
+  },
 ];
 
 // Helper function to format date
@@ -164,6 +143,7 @@ export default function GuestEventsPage() {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <Box
+                  onClick={() => router.push(`/events/${event.slug}`)}
                   sx={{
                     backgroundColor: '#fff',
                     borderRadius: '16px',
@@ -173,6 +153,12 @@ export default function GuestEventsPage() {
                     px: 2,
                     py: 2,
                     mb: 0,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0px 4px 40px 0px rgba(0, 0, 0, 0.15)',
+                    },
                   }}
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -211,7 +197,7 @@ export default function GuestEventsPage() {
                         gap: 1,
                       }}
                     >
-                      {getDressCodeEmoji(event.name)} {event.dress_code}
+                      {event.dress_code_emoji} <span style={{fontWeight: 700}}>{event.dress_code}</span>
                     </Typography>
                     {/* Date/Time */}
                     <Typography
@@ -224,7 +210,7 @@ export default function GuestEventsPage() {
                         color: '#858585',
                       }}
                     >
-                      {event.date} @ {event.time.split(' - ')[0]}
+                      {event.date} @ {event.time}
                     </Typography>
                   </Box>
                   {/* Chevron Icon */}
@@ -241,26 +227,4 @@ export default function GuestEventsPage() {
       </Container>
     </OptimizedBackground>
   );
-} 
-
-// Add helper functions for emoji and color
-function getDressCodeEmoji(eventName: string) {
-  if (/haldi/i.test(eventName)) return '🌻';
-  if (/mehendi/i.test(eventName)) return '🌈';
-  if (/jaggo/i.test(eventName)) return '🎉';
-  if (/wedding/i.test(eventName) || /anand/i.test(eventName)) return '🌸';
-  if (/pool/i.test(eventName)) return '🏖️';
-  if (/reception/i.test(eventName)) return '🤵🏽';
-  if (/farewell|after/i.test(eventName)) return '🎆';
-  return '🎊';
-}
-function getDressCodeColor(eventName: string) {
-  if (/haldi/i.test(eventName)) return '#FFA100';
-  if (/mehendi/i.test(eventName)) return '#911BBF';
-  if (/jaggo/i.test(eventName)) return '#B1C614';
-  if (/wedding/i.test(eventName) || /anand/i.test(eventName)) return '#E78D9F';
-  if (/pool/i.test(eventName)) return '#16877A';
-  if (/reception/i.test(eventName)) return '#141414';
-  if (/farewell|after/i.test(eventName)) return '#B1C614';
-  return '#858585';
 } 
