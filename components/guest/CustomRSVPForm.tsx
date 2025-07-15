@@ -2594,6 +2594,13 @@ export default function CustomRSVPForm() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* GIF Picker Modal */}
+      <GifPicker
+        open={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onSelectGif={handleGifSelect}
+      />
     </>
   );
 } 

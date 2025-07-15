@@ -30,10 +30,13 @@ import {
   ReplyOutlined,
   EmojiEmotionsOutlined,
   DeleteOutlineOutlined,
+  Gif as GifIcon,
 } from '@mui/icons-material';
 import { getAllRSVPs, getComments, addComment, deleteComment } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import GifPicker from '@/components/ui/GifPicker';
+import { GifData } from '@/lib/supabase/types';
 
 interface GuestItem {
   id: string;
@@ -115,6 +118,8 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const [newComment, setNewComment] = useState('');
   const [newActivityCount, setNewActivityCount] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
 
   const tabs = ['Activity', 'Going', 'Maybe'];
 
@@ -321,19 +326,39 @@ export default function GuestList({ weddingId }: GuestListProps) {
   // };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !user) return;
+    if ((!newComment.trim() && !selectedGif) || !user) return;
 
     try {
-      // Save to database
-      const savedComment = await addComment(weddingId, user.id, newComment);
+      // Save to database - pass GIF data if selected
+      const savedComment = await addComment(
+        weddingId, 
+        user.id, 
+        newComment, 
+        selectedGif ? {
+          gif_id: selectedGif.id,
+          gif_url: selectedGif.url,
+          gif_title: selectedGif.title,
+          gif_preview_url: selectedGif.preview_url,
+        } : undefined
+      );
       
       // Add to local state
       setComments(prev => [savedComment, ...prev]);
       setNewComment('');
+      setSelectedGif(null);
     } catch (error) {
       console.error('Error saving comment:', error);
       // You could show a toast notification here
     }
+  };
+
+  const handleGifSelect = (gif: GifData) => {
+    setSelectedGif(gif);
+    setShowGifPicker(false);
+  };
+
+  const handleRemoveGif = () => {
+    setSelectedGif(null);
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -450,7 +475,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                 borderRadius: '8px', // 8px
                 py: '8px',
                 px: '12px',
-                minHeight: '40px', // Match avatar height
+                minHeight: '50px', // Match avatar height
                 display: 'flex',
                 alignItems: 'center',
                 '&:hover': {
@@ -462,59 +487,153 @@ export default function GuestList({ weddingId }: GuestListProps) {
                 },
               }}
             >
-              <TextField
-                fullWidth
-                multiline
-                minRows={1}
-                maxRows={4}
-                placeholder="Leave a comment!"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                variant="standard"
-                InputProps={{
-                  disableUnderline: true,
-                  sx: {
-                    fontSize: '16px',
-                    fontFamily: 'Outfit',
-                    color: '#141414',
-                    '& textarea::placeholder': {
-                      color: '#BCBCBC',
-                      opacity: 1,
+              <Box sx={{ position: 'relative', width: '100%' }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={selectedGif ? 2 : 1}
+                  maxRows={selectedGif ? 5 : 4}
+                  placeholder="Leave a comment!"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  variant="standard"
+                  sx={{pb: '4px'}}
+                  InputProps={{
+                    disableUnderline: true,
+                    sx: {
+                      fontSize: '16px',
+                      fontFamily: 'Outfit',
+                      color: '#141414',
+                      paddingBottom: selectedGif ? '160px' : '0px',
+                      '& textarea::placeholder': {
+                        color: '#BCBCBC',
+                        opacity: 1,
+                      },
                     },
-                  },
-                  endAdornment: newComment.trim() && (
-                    <InputAdornment 
-                      position="end" 
-                      sx={{ 
-                        ml: 1,
-                        alignSelf: 'center',
-                        height: 'auto'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddComment();
+                    }
+                  }}
+                />
+                
+                {/* Buttons positioned at top right */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    display: 'flex',
+                    gap: 0.5,
+                  }}
+                >
+                  {/* GIF Button */}
+                  {!selectedGif && (
+                    <IconButton
+                      onClick={() => setShowGifPicker(true)}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        border: '1px solid #000',
+                        borderRadius: '6px',
+                        color: '#000',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        },
                       }}
+                      size="small"
                     >
+                      <GifIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  
+                  {/* Send Button - only show when there's content */}
+                  {(newComment.trim() || selectedGif) && (
+                    <IconButton
+                      onClick={handleAddComment}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        color: '#DE3F5E',
+                        backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                        borderRadius: '6px',
+                        '&:hover': {
+                          backgroundColor: 'rgba(222, 63, 94, 0.2)',
+                        },
+                      }}
+                      size="small"
+                    >
+                      <SendOutlined fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+                
+                {/* Selected GIF Display inside input */}
+                {selectedGif && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      px: 0,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(0, 0, 0, 0.08)',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                        },
+                      }}
+                      onClick={() => setShowGifPicker(true)}
+                    >
+                      <img
+                        src={selectedGif.preview_url}
+                        alt={selectedGif.title}
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: '140px',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
                       <IconButton
-                        onClick={handleAddComment}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveGif();
+                        }}
                         sx={{
-                          color: '#DE3F5E',
-                          backgroundColor: 'rgba(222, 63, 94, 0.1)',
-                          borderRadius: 1,
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                          color: 'white',
+                          width: 24,
+                          height: 24,
                           '&:hover': {
-                            backgroundColor: 'rgba(222, 63, 94, 0.2)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
                           },
                         }}
                         size="small"
                       >
-                        <SendOutlined fontSize="small" />
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
                       </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAddComment();
-                  }
-                }}
-              />
+                    </Box>
+                  </Box>
+                )}
+              </Box>
             </Paper>
           </Box>
         </Box>
@@ -947,6 +1066,13 @@ export default function GuestList({ weddingId }: GuestListProps) {
       </Box>
 
 {/* Emoji menu temporarily removed */}
+      
+      {/* GIF Picker Modal */}
+      <GifPicker
+        open={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onSelectGif={handleGifSelect}
+      />
     </Paper>
   );
 } 

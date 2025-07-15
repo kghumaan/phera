@@ -345,14 +345,34 @@ export async function getComments(weddingId: string) {
   return data
 }
 
-export async function addComment(weddingId: string, guestId: string, message: string) {
+export async function addComment(
+  weddingId: string, 
+  guestId: string, 
+  message: string, 
+  gifData?: {
+    gif_id: string;
+    gif_url: string;
+    gif_title: string;
+    gif_preview_url: string;
+  }
+) {
+  const insertData: any = {
+    guest_id: guestId,
+    wedding_id: weddingId,
+    message: message
+  };
+
+  // Add GIF data if provided
+  if (gifData) {
+    insertData.gif_id = gifData.gif_id;
+    insertData.gif_url = gifData.gif_url;
+    insertData.gif_title = gifData.gif_title;
+    insertData.gif_preview_url = gifData.gif_preview_url;
+  }
+
   const { data, error } = await supabase
     .from('comments')
-    .insert({
-      guest_id: guestId,
-      wedding_id: weddingId,
-      message: message
-    })
+    .insert(insertData)
     .select(`
       *,
       guest:guests(name, initials, avatar_color, avatar_style, avatar_seed, avatar_svg)
