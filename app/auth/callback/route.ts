@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       
       if (exchangeError) throw exchangeError;
 
-      // Determine redirect URL - go to guest home if authenticated
-      const redirectUrl = new URL('/guest-home', origin);
+      // Determine redirect URL - go to main guest page if authenticated
+      const redirectUrl = new URL('/', origin);
 
       // Preserve PIN verification state by setting it in the redirect URL
       if (pinVerified === 'true' && pinTimestamp) {

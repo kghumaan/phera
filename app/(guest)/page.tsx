@@ -218,7 +218,7 @@ export default function HomePage() {
   const [customBackground, setCustomBackground] = useState<string>('');
   
   // Authentication state from context
-  const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut } = useAuth();
+  const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
   
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
@@ -295,6 +295,11 @@ export default function HomePage() {
               newUrl.searchParams.delete('pin_timestamp');
               newUrl.searchParams.delete('allows_plus_one');
               window.history.replaceState({}, '', newUrl.toString());
+              
+              // Force refresh auth status after callback
+              setTimeout(() => {
+                refreshAuth();
+              }, 500);
               
               setIsCheckingPin(false);
               return;

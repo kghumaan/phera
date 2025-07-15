@@ -276,6 +276,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshAuth = async () => {
+    console.log('Manually refreshing auth status');
+    await checkAuthStatus();
+  };
+
   useEffect(() => {
     let mounted = true;
     
@@ -294,21 +299,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         try {
           if (event === 'SIGNED_IN' && session) {
+            console.log('Auth state changed to SIGNED_IN, refreshing auth status');
             await checkAuthStatus();
-                  } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setHasRSVPed(false);
-          setRsvpResponse(null);
-        }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setHasRSVPed(false);
+            setRsvpResponse(null);
+          }
         } catch (error) {
           console.error('Auth state change error:', error);
         }
       }
     );
 
+    // Also listen for storage events to handle cross-tab auth changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'phera_guest_auth' && mounted) {
+        console.log('Guest auth changed in storage, refreshing auth status');
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -337,7 +354,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isCheckingRSVP,
         checkRSVPStatus, 
         signOut,
-        refreshAuth: checkAuthStatus
+        refreshAuth
       }}
     >
       {children}
