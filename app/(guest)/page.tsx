@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   FavoriteOutlined, 
   LocationOnOutlined, 
@@ -165,6 +166,7 @@ const coupleData = {
 const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const coupleImages = [
     '/images/couple/couple-1.jpg',
@@ -194,18 +196,28 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
         overflow: 'hidden',
       }}
     >
-      <Box
-        component="img"
+      <Image
         src={coupleImages[currentImageIndex]}
         alt="Couple Photo"
-        sx={{
-          width: '100%',
-          height: '100%',
+        fill
+        priority={currentImageIndex === 0} // Priority for first image
+        sizes="(max-width: 768px) 320px, 400px"
+        style={{
           objectFit: 'cover',
           objectPosition: 'center',
           transition: 'filter 0.6s ease-in-out',
           filter: isTransitioning ? 'blur(5px)' : 'blur(0px)',
         }}
+        onLoad={() => setImageLoaded(true)}
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+      />
+      
+      {/* Preload next image */}
+      <link
+        rel="preload"
+        as="image"
+        href={coupleImages[(currentImageIndex + 1) % coupleImages.length]}
       />
     </Box>
   );
@@ -410,17 +422,15 @@ export default function HomePage() {
                 }}
               >
               {/* Frame Background */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  backgroundImage: `url(/images/frames/frame-27.png)`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
+              <Image
+                src="/images/frames/frame-27.png"
+                alt="Decorative frame"
+                fill
+                priority
+                sizes="(max-width: 768px) 320px, 400px"
+                style={{
+                  objectFit: 'contain',
+                  objectPosition: 'center',
                   zIndex: 1,
                 }}
               />

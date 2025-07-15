@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Typography,
@@ -596,9 +597,11 @@ export default function GuestList({ weddingId }: GuestListProps) {
                       }}
                       onClick={() => setShowGifPicker(true)}
                     >
-                      <img
+                      <Image
                         src={selectedGif.preview_url}
                         alt={selectedGif.title}
+                        width={160}
+                        height={140}
                         style={{
                           width: '100%',
                           height: 'auto',
@@ -606,6 +609,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                           objectFit: 'cover',
                           display: 'block',
                         }}
+                        unoptimized // For external GIF URLs
                       />
                       <IconButton
                         onClick={(e) => {
@@ -784,14 +788,17 @@ export default function GuestList({ weddingId }: GuestListProps) {
                           mb: 1,
                         }}
                       >
-                        <img
+                        <Image
                           src={comment.gif_preview_url || comment.gif_url}
                           alt={comment.gif_title || 'GIF'}
+                          width={160}
+                          height={120}
                           style={{
                             width: '100%',
                             height: 'auto',
                             display: 'block',
                           }}
+                          unoptimized // For external GIF URLs
                         />
                       </Box>
                     )}

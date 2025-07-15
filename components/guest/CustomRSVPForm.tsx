@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Button,
@@ -2357,9 +2358,11 @@ export default function CustomRSVPForm() {
                         }}
                         onClick={() => setShowGifPicker(true)}
                       >
-                        <img
+                        <Image
                           src={formData.selectedGif.preview_url}
                           alt={formData.selectedGif.title}
+                          width={200}
+                          height={200}
                           style={{
                             width: '100%',
                             height: 'auto',
@@ -2367,6 +2370,7 @@ export default function CustomRSVPForm() {
                             objectFit: 'cover',
                             display: 'block',
                           }}
+                          unoptimized // For external GIF URLs
                         />
                         
                         {/* Delete button */}

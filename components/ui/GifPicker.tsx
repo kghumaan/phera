@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Button,
@@ -281,17 +282,14 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   }}
                   onClick={() => handleSelectGif(gif)}
                 >
-                  <img
+                  <Image
                     src={gif.images.fixed_width.url}
                     alt={gif.title}
+                    fill
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
                       objectFit: 'cover',
                     }}
+                    unoptimized // For external GIF URLs
                   />
                 </Box>
               ))}

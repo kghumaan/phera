@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -99,12 +100,15 @@ export default function AppHeader({
               
               {/* Logo */}
               <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                <Box
-                  component="img"
+                <Image
                   src="/logo.svg"
                   alt="Phera Logo"
-                  sx={{
-                    height: { xs: 32, sm: 40 },
+                  width={40}
+                  height={40}
+                  priority
+                  style={{
+                    height: 'auto',
+                    maxHeight: '40px',
                     width: 'auto',
                     filter: 'brightness(0)',
                   }}
