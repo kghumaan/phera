@@ -545,7 +545,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                       }}
                       size="small"
                     >
-                      <GifIcon fontSize="small" />
+                      <GifIcon fontSize="small"  sx={{width: '130%', height: '130%'}}/>
                     </IconButton>
                   )}
                   

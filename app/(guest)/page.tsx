@@ -33,6 +33,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
+import DesktopAlert from '@/components/ui/DesktopAlert';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -375,6 +376,8 @@ export default function HomePage() {
       useAppDefault={true}
       className="min-h-screen flex flex-col"
     >
+      {/* Desktop Alert */}
+      <DesktopAlert />
 
       {/* Header Section */}
       <AppHeader 

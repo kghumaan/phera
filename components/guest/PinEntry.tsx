@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoginModal from '@/components/auth/LoginModal';
+import DesktopAlert from '@/components/ui/DesktopAlert';
 
 interface PinEntryProps {
   onPinVerified: () => void;
@@ -188,6 +189,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
       src="/images/backgrounds/pearl.png"
       className="min-h-screen flex flex-col"
     >
+      {/* Desktop Alert */}
+      <DesktopAlert />
       {/* Top Left Decorative Image */}
       <Box
         component="img"
