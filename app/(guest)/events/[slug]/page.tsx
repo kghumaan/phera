@@ -1245,7 +1245,6 @@ export default function EventDetailPage() {
           flexDirection: 'column',
           overflow: 'hidden',
           touchAction: 'pan-x',
-          minHeight: '100vh',
         }}
       >
         {/* Header with back button */}
@@ -1397,6 +1396,7 @@ export default function EventDetailPage() {
             position: 'relative',
             zIndex: 3,
             flexShrink: 0,
+            pb: { xs: 4, sm: 2 }, // Extra padding for mobile browser bar
           }}
         >
           <Box
