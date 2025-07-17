@@ -66,8 +66,8 @@ const EventCard = ({
     style={{
       width: '100vw',
       maxWidth: '100%',
-      height: 'calc(100vh - 200px)', // Account for header + bottom indicators + mobile browser bar
-      minHeight: '400px',
+      height: '70vh', // Responsive height instead of fixed calculation
+      minHeight: '500px', // Minimum height for smaller screens
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -1406,8 +1406,8 @@ export default function EventDetailPage() {
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              mb: { xs: 1, sm: 2 },
-              mt: { xs: 2, sm: 4 },
+              // mb: 20,
+              // mt: 2,
             }}
           >
             <DiamondIndicators total={eventData.length} current={currentSlide} />

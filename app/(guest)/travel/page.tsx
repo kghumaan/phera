@@ -233,7 +233,7 @@ export default function TravelPage() {
       content: <>January weather is lovely - around 75-85°F (24-29°C). Pack light and bring sunscreen! <br /><br />There are specific dress codes for each wedding event, so check the link below for details.</>,
       image: "/images/travel_stay/6.png",
       buttonText: "Dress Code",
-      // TODO: Add actual link for Dress Code
+      onButtonClick: () => router.push('/events'),
     },
     {
       title: "Money stuff 💰",
