@@ -168,7 +168,7 @@ const TravelCard = ({
       >
         <Box
           component="img"
-          src={image || '/images/travel_stay/Frame 1000004400.png'}
+          src={image}
           alt="Travel destination"
           sx={{
             width: '120%',

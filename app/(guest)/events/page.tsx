@@ -95,7 +95,7 @@ export default function GuestEventsPage() {
         <Container maxWidth="sm">
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <IconButton
-              onClick={() => router.back()}
+              onClick={() => router.push('/details')}
               sx={{
                 color: '#000',
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -142,25 +142,25 @@ export default function GuestEventsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
-                <Box
-                  onClick={() => router.push(`/events/${event.slug}`)}
-                  sx={{
-                    backgroundColor: '#fff',
-                    borderRadius: '16px',
-                    boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    px: 2,
-                    py: 2,
-                    mb: 0,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0px 4px 40px 0px rgba(0, 0, 0, 0.15)',
-                    },
-                  }}
-                >
+                <Link href={`/events/${event.slug}`} style={{ textDecoration: 'none' }}>
+                  <Box
+                    sx={{
+                      backgroundColor: '#fff',
+                      borderRadius: '16px',
+                      boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      py: 2,
+                      mb: 0,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0px 0px 40px 0px rgba(0, 0, 0, 0.16)',
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     {/* Event Title */}
                     <Typography
@@ -220,6 +220,7 @@ export default function GuestEventsPage() {
                     </svg>
                   </Box>
                 </Box>
+                </Link>
               </motion.div>
             ))}
           </Stack>
