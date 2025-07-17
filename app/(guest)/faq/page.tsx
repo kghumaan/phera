@@ -26,7 +26,7 @@ const faqData = [
   {
     question: "What would you like as wedding gifts?",
     answer: "Your presence is the greatest present! If you'd like to give something, we have a honeymoon fund and new home fund you can contribute to (link below). We're not doing physical gifts since we're all traveling.",
-    button: { text: "Registry", link: "#" },
+    button: { text: "Registry", link: "/registry" },
   },
   {
     question: "Where can I shop for Indian outfits?",

@@ -93,7 +93,7 @@ export default function RegistryPage() {
                 fontSize: 32,
                 lineHeight: 1.3,
                 color: '#141414',
-                mb: 3,
+                mb: 2,
               }}
             >
               Registry
@@ -106,10 +106,109 @@ export default function RegistryPage() {
                 fontSize: 16,
                 lineHeight: 1.5,
                 color: '#474747',
+                mb: 4,
               }}
             >
-              Coming soon...
+              Help us start our new journey together by contributing to our future.
             </Typography>
+            
+            <Stack spacing={2} sx={{ maxWidth: 400, mx: 'auto' }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Box
+                  component="button"
+                  onClick={() => router.push('/registry/honeymoon-fund')}
+                  sx={{
+                    width: '100%',
+                    backgroundColor: '#141414',
+                    color: '#fff',
+                    borderRadius: '16px',
+                    border: 'none',
+                    py: 3,
+                    px: 3,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'Outfit',
+                    fontSize: 16,
+                    fontWeight: 500,
+                    '&:hover': {
+                      backgroundColor: '#2a2a2a',
+                    },
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontSize: 18,
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    🏝️ Honeymoon Fund
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontSize: 14,
+                      fontWeight: 300,
+                      opacity: 0.8,
+                    }}
+                  >
+                    Help create unforgettable memories
+                  </Typography>
+                </Box>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Box
+                  component="button"
+                  onClick={() => router.push('/registry/new-home-fund')}
+                  sx={{
+                    width: '100%',
+                    backgroundColor: '#141414',
+                    color: '#fff',
+                    borderRadius: '16px',
+                    border: 'none',
+                    py: 3,
+                    px: 3,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'Outfit',
+                    fontSize: 16,
+                    fontWeight: 500,
+                    '&:hover': {
+                      backgroundColor: '#2a2a2a',
+                    },
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontSize: 18,
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    🏡 New Home Fund
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontSize: 14,
+                      fontWeight: 300,
+                      opacity: 0.8,
+                    }}
+                  >
+                    Help us build our nest together
+                  </Typography>
+                </Box>
+              </motion.div>
+            </Stack>
           </motion.div>
         </Container>
       </Box>
