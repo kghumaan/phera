@@ -1302,8 +1302,6 @@ export default function EventDetailPage() {
             justifyContent: 'center',
             position: 'relative',
             zIndex: 2,
-            minHeight: 0, // Allow flex shrinking
-            pb: 2, // Add padding bottom for mobile
           }}
         >
           <Stack spacing={3} alignItems="center" sx={{ width: '100%', height: '100%', justifyContent: 'center' }}>
@@ -1399,15 +1397,14 @@ export default function EventDetailPage() {
             position: 'relative',
             zIndex: 3,
             flexShrink: 0,
-            pb: { xs: 3, sm: 2 }, // Extra padding for mobile browser bar
           }}
         >
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              // mb: 20,
-              // mt: 2,
+              mb: 2,
+              mt: 4,
             }}
           >
             <DiamondIndicators total={eventData.length} current={currentSlide} />
