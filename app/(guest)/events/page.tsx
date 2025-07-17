@@ -12,7 +12,7 @@ const weddingEvents = [
   {
     id: 1,
     slug: 'welcome-lunch-haldi',
-    name: 'Welcome Lunch & Haldi',
+    name: 'Haldi & Mehendi',
     dress_code: 'Shades of Yellow',
     dress_code_emoji: '🌻',
     date: 'January 4',
@@ -71,6 +71,17 @@ const formatDate = (dateString: string) => {
   const month = date.toLocaleDateString('en-US', { month: 'short' });
   const day = date.getDate();
   return `${month} ${day}`;
+};
+
+export const getGradientImage = (slug: string) => {
+  switch(slug) {
+    case 'welcome-lunch-haldi':
+      return 'GradientYellow.png';
+    case 'baraat-varmala-jaggo':
+      return 'GradientJaggo.png';
+    default:
+      return null;
+  }
 };
 
 export default function GuestEventsPage() {
@@ -145,14 +156,9 @@ export default function GuestEventsPage() {
                 <Link href={`/events/${event.slug}`} style={{ textDecoration: 'none' }}>
                   <Box
                     sx={{
-                      backgroundColor: '#fff',
                       borderRadius: '16px',
+                      overflow: 'hidden',
                       boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      px: 2,
-                      py: 2,
-                      mb: 0,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
@@ -161,65 +167,89 @@ export default function GuestEventsPage() {
                       },
                     }}
                   >
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    {/* Event Title */}
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 600,
-                        fontSize: 14,
-                        lineHeight: 1.5,
-                        letterSpacing: '0.07em',
-                        textTransform: 'uppercase',
-                        color: '#474747',
-                        mb: 0.5,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {event.name}
-                    </Typography>
-                    {/* Dress Code (emoji + text) */}
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 500,
-                        fontSize: 24,
-                        lineHeight: 1.3,
-                        // color: getDressCodeColor(event.name),
-                        color: '#000',
-                        mb: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      {event.dress_code_emoji} <span style={{fontWeight: 700}}>{event.dress_code}</span>
-                    </Typography>
-                    {/* Date/Time */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 300,
-                        fontSize: 16,
-                        lineHeight: 1.5,
-                        color: '#858585',
-                      }}
-                    >
-                      {event.date} @ {event.time}
-                    </Typography>
+                    <Box sx={{ display: 'flex' }}>
+                      {getGradientImage(event.slug) && (
+                        <Box 
+                          sx={{ 
+                            width: 8, 
+                            flexShrink: 0, 
+                            backgroundImage: `url(/images/backgrounds/${getGradientImage(event.slug)})`, 
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center' 
+                          }} 
+                        />
+                      )}
+                      <Box 
+                        sx={{ 
+                          flex: 1, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          px: 2, 
+                          py: 2, 
+                          backgroundColor: '#fff' 
+                        }} 
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          {/* Event Title */}
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 600,
+                              fontSize: 14,
+                              lineHeight: 1.5,
+                              letterSpacing: '0.07em',
+                              textTransform: 'uppercase',
+                              color: '#474747',
+                              mb: 0.5,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {event.name}
+                          </Typography>
+                          {/* Dress Code (emoji + text) */}
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 500,
+                              fontSize: 24,
+                              lineHeight: 1.3,
+                              // color: getDressCodeColor(event.name),
+                              color: '#000',
+                              mb: 0.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {event.dress_code_emoji} <span style={{fontWeight: 500}}>{event.dress_code}</span>
+                          </Typography>
+                          {/* Date/Time */}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 300,
+                              fontSize: 16,
+                              lineHeight: 1.5,
+                              color: '#858585',
+                            }}
+                          >
+                            {event.date} @ {event.time}
+                          </Typography>
+                        </Box>
+                        {/* Chevron Icon */}
+                        <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </Box>
+                      </Box>
+                    </Box>
                   </Box>
-                  {/* Chevron Icon */}
-                  <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </Box>
-                </Box>
                 </Link>
               </motion.div>
             ))}

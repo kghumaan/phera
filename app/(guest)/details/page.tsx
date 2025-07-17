@@ -140,6 +140,9 @@ export default function DetailsPage() {
       case 'Schedule':
         router.push('/schedule');
         break;
+      case 'Registry':
+        router.push('/registry');
+        break;
       default:
         console.log(`Navigate to ${item}`);
     }
@@ -245,6 +248,11 @@ export default function DetailsPage() {
                 <MenuItem 
                   title="Schedule" 
                   onClick={() => handleMenuItemClick('Schedule')} 
+                />
+                <DiamondDecoration />
+                <MenuItem 
+                  title="Registry" 
+                  onClick={() => handleMenuItemClick('Registry')} 
                 />
               </Stack>
             </Stack>
