@@ -677,7 +677,7 @@ export default function EventDetailPage() {
               lineHeight: 1.5,
               letterSpacing: '0.0625em',
               textTransform: 'uppercase',
-              color: '#141414',
+              color: '#FFFFFF',
               opacity: 0.4,
               textAlign: 'center'
             }}
@@ -693,7 +693,7 @@ export default function EventDetailPage() {
               fontSize: 40,
               lineHeight: 1.3,
               textTransform: 'capitalize',
-              color: '#141414',
+              color: '#FFFFFF',
               textAlign: 'center',
               mb: 1
             }}
@@ -708,7 +708,7 @@ export default function EventDetailPage() {
               fontWeight: 300,
               fontSize: 16,
               lineHeight: 1.5,
-              color: '#141414',
+              color: '#FFFFFF',
               textAlign: 'center',
               maxWidth: 281,
               px: 2
@@ -726,62 +726,62 @@ export default function EventDetailPage() {
       isImage: true,
       imageSrc: "/images/carousel/jaggo/1.png"
     },
-    // Slide 3 - Baraat What It Is content
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Baraat
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1
-            }}
-          >
-            What It Is
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            The groom's grand entrance with dancing, music, and celebration as he arrives to meet his bride.
-          </Typography>
-        </Stack>
-      )
-    },
+         // Slide 3 - Baraat What It Is content
+     {
+       title: "What It Is",
+       content: (
+         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+           <Typography 
+             variant="subtitle2"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 600,
+               fontSize: 16,
+               lineHeight: 1.5,
+               letterSpacing: '0.0625em',
+               textTransform: 'uppercase',
+               color: '#FFFFFF',
+               opacity: 0.4,
+               textAlign: 'center'
+             }}
+           >
+             Baraat
+           </Typography>
+           
+           <Typography 
+             variant="h2"
+             sx={{ 
+               fontFamily: 'Instrument Serif',
+               fontWeight: 400,
+               fontSize: 40,
+               lineHeight: 1.3,
+               textTransform: 'capitalize',
+               color: '#FFFFFF',
+               textAlign: 'center',
+               mb: 1
+             }}
+           >
+             What It Is
+           </Typography>
+           
+           <Typography 
+             variant="body1"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 300,
+               fontSize: 16,
+               lineHeight: 1.5,
+               color: '#FFFFFF',
+               textAlign: 'center',
+               maxWidth: 281,
+               px: 2
+             }}
+           >
+             The groom's grand entrance with dancing, music, and celebration as he arrives to meet his bride.
+           </Typography>
+         </Stack>
+       )
+     },
          // Slide 4 - Image 2
      {
        title: "Image 2",
@@ -789,62 +789,62 @@ export default function EventDetailPage() {
        isImage: true,
        imageSrc: "/images/carousel/jaggo/2.png"
      },
-    // Slide 5 - Varmala What It Is content
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Varmala
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1
-            }}
-          >
-            What It Is
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            The beautiful ceremony where the bride and groom exchange floral garlands, symbolizing their acceptance of each other.
-          </Typography>
-        </Stack>
-      )
-    },
+         // Slide 5 - Varmala What It Is content
+     {
+       title: "What It Is",
+       content: (
+         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+           <Typography 
+             variant="subtitle2"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 600,
+               fontSize: 16,
+               lineHeight: 1.5,
+               letterSpacing: '0.0625em',
+               textTransform: 'uppercase',
+               color: '#FFFFFF',
+               opacity: 0.4,
+               textAlign: 'center'
+             }}
+           >
+             Varmala
+           </Typography>
+           
+           <Typography 
+             variant="h2"
+             sx={{ 
+               fontFamily: 'Instrument Serif',
+               fontWeight: 400,
+               fontSize: 40,
+               lineHeight: 1.3,
+               textTransform: 'capitalize',
+               color: '#FFFFFF',
+               textAlign: 'center',
+               mb: 1
+             }}
+           >
+             What It Is
+           </Typography>
+           
+           <Typography 
+             variant="body1"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 300,
+               fontSize: 16,
+               lineHeight: 1.5,
+               color: '#FFFFFF',
+               textAlign: 'center',
+               maxWidth: 281,
+               px: 2
+             }}
+           >
+             The beautiful ceremony where the bride and groom exchange floral garlands, symbolizing their acceptance of each other.
+           </Typography>
+         </Stack>
+       )
+     },
          // Slide 6 - Image 3
      {
        title: "Image 3",
@@ -852,62 +852,62 @@ export default function EventDetailPage() {
        isImage: true,
        imageSrc: "/images/carousel/jaggo/3.png"
      },
-    // Slide 7 - Jaggo What It Is content
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Jaggo
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1
-            }}
-          >
-            What It Is
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            A spirited pre-wedding celebration where family and friends dance through the streets with decorated pots and dhol beats.
-          </Typography>
-        </Stack>
-      )
-    },
+         // Slide 7 - Jaggo What It Is content
+     {
+       title: "What It Is",
+       content: (
+         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+           <Typography 
+             variant="subtitle2"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 600,
+               fontSize: 16,
+               lineHeight: 1.5,
+               letterSpacing: '0.0625em',
+               textTransform: 'uppercase',
+               color: '#FFFFFF',
+               opacity: 0.4,
+               textAlign: 'center'
+             }}
+           >
+             Jaggo
+           </Typography>
+           
+           <Typography 
+             variant="h2"
+             sx={{ 
+               fontFamily: 'Instrument Serif',
+               fontWeight: 400,
+               fontSize: 40,
+               lineHeight: 1.3,
+               textTransform: 'capitalize',
+               color: '#FFFFFF',
+               textAlign: 'center',
+               mb: 1
+             }}
+           >
+             What It Is
+           </Typography>
+           
+           <Typography 
+             variant="body1"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 300,
+               fontSize: 16,
+               lineHeight: 1.5,
+               color: '#FFFFFF',
+               textAlign: 'center',
+               maxWidth: 281,
+               px: 2
+             }}
+           >
+             A spirited pre-wedding celebration where family and friends dance through the streets with decorated pots and dhol beats.
+           </Typography>
+         </Stack>
+       )
+     },
          // Slide 8 - Image 4
      {
        title: "Image 4",
@@ -915,62 +915,62 @@ export default function EventDetailPage() {
        isImage: true,
        imageSrc: "/images/carousel/jaggo/4.png"
      },
-    // Slide 9 - Music & Dance content
-    {
-      title: "Music & Dance",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Music & Dance
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1
-            }}
-          >
-            Bhangra & Dhol
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            Traditional Punjabi folk music with dhol drums, energetic bhangra dancing, and celebration songs that get everyone moving!
-          </Typography>
-        </Stack>
-      )
-    },
+         // Slide 9 - Music & Dance content
+     {
+       title: "Music & Dance",
+       content: (
+         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+           <Typography 
+             variant="subtitle2"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 600,
+               fontSize: 16,
+               lineHeight: 1.5,
+               letterSpacing: '0.0625em',
+               textTransform: 'uppercase',
+               color: '#FFFFFF',
+               opacity: 0.4,
+               textAlign: 'center'
+             }}
+           >
+             Music & Dance
+           </Typography>
+           
+           <Typography 
+             variant="h2"
+             sx={{ 
+               fontFamily: 'Instrument Serif',
+               fontWeight: 400,
+               fontSize: 40,
+               lineHeight: 1.3,
+               textTransform: 'capitalize',
+               color: '#FFFFFF',
+               textAlign: 'center',
+               mb: 1
+             }}
+           >
+             Bhangra & Dhol
+           </Typography>
+           
+           <Typography 
+             variant="body1"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 300,
+               fontSize: 16,
+               lineHeight: 1.5,
+               color: '#FFFFFF',
+               textAlign: 'center',
+               maxWidth: 281,
+               px: 2
+             }}
+           >
+             Traditional Punjabi folk music with dhol drums, energetic bhangra dancing, and celebration songs that get everyone moving!
+           </Typography>
+         </Stack>
+       )
+     },
          // Slide 10 - Image 5
      {
        title: "Image 5",
@@ -978,62 +978,62 @@ export default function EventDetailPage() {
        isImage: true,
        imageSrc: "/images/carousel/jaggo/5.png"
      },
-    // Slide 11 - Final celebration content
-    {
-      title: "Join the Celebration",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Join the Celebration
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1
-            }}
-          >
-            Let's Dance!
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            Come ready to celebrate, dance, and be part of this joyous tradition. Your presence makes this celebration complete!
-          </Typography>
-        </Stack>
-      )
-    },
+         // Slide 11 - Final celebration content
+     {
+       title: "Join the Celebration",
+       content: (
+         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+           <Typography 
+             variant="subtitle2"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 600,
+               fontSize: 16,
+               lineHeight: 1.5,
+               letterSpacing: '0.0625em',
+               textTransform: 'uppercase',
+               color: '#FFFFFF',
+               opacity: 0.4,
+               textAlign: 'center'
+             }}
+           >
+             Join the Celebration
+           </Typography>
+           
+           <Typography 
+             variant="h2"
+             sx={{ 
+               fontFamily: 'Instrument Serif',
+               fontWeight: 400,
+               fontSize: 40,
+               lineHeight: 1.3,
+               textTransform: 'capitalize',
+               color: '#FFFFFF',
+               textAlign: 'center',
+               mb: 1
+             }}
+           >
+             Let's Dance!
+           </Typography>
+           
+           <Typography 
+             variant="body1"
+             sx={{ 
+               fontFamily: 'Outfit',
+               fontWeight: 300,
+               fontSize: 16,
+               lineHeight: 1.5,
+               color: '#FFFFFF',
+               textAlign: 'center',
+               maxWidth: 281,
+               px: 2
+             }}
+           >
+             Come ready to celebrate, dance, and be part of this joyous tradition. Your presence makes this celebration complete!
+           </Typography>
+         </Stack>
+       )
+     },
   ];
 
   // Anand Karaj event content
