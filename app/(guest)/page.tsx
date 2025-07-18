@@ -167,33 +167,63 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   
   const coupleImages = [
     '/images/couple/couple-1.jpg',
-    '/images/couple/couple-2.jpg'
+    '/images/couple/couple-2.jpg',
+    '/images/couple/couple-3.jpeg',
+    '/images/couple/couple-4.jpg',
+    '/images/couple/couple-5.jpg',
+    '/images/couple/couple-7.jpeg',
+    '/images/couple/couple-8.jpg',
+    '/images/couple/couple-9.jpeg'
   ];
+
+  const advanceToNextImage = () => {
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % coupleImages.length);
+      setIsTransitioning(false);
+    }, 300); // Half of transition duration
+  };
+
+  const handleImageClick = () => {
+    // Clear existing interval
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    
+    // Advance to next image
+    advanceToNextImage();
+    
+    // Restart auto-cycle timer
+    const newInterval = setInterval(() => {
+      advanceToNextImage();
+    }, 4000);
+    
+    setIntervalId(newInterval);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsTransitioning(true);
-      
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % coupleImages.length);
-        setIsTransitioning(false);
-      }, 300); // Half of transition duration
-      
-    }, 6000); // Change image every 6 seconds
+      advanceToNextImage();
+    }, 4000); // Change image every 4 seconds
 
+    setIntervalId(interval);
     return () => clearInterval(interval);
   }, [coupleImages.length]);
 
   return (
     <Box
+      onClick={handleImageClick}
       sx={{
         width: '100%',
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
+        cursor: 'pointer',
       }}
     >
       <Image
@@ -411,16 +441,24 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-                          <Box
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  maxWidth: 320,
-                  aspectRatio: '1',
-                  mx: 'auto',
-                  mb: 2,
-                }}
-              >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: 320,
+                aspectRatio: '1',
+                mx: 'auto',
+                mb: 2,
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                },
+                '&:active': {
+                  transform: 'scale(0.98)',
+                },
+              }}
+            >
               {/* Frame Background */}
               <Image
                 src="/images/frames/frame-27.png"
