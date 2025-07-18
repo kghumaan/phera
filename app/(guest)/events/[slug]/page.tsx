@@ -180,7 +180,7 @@ const weddingEvents = [
   {
     id: 3,
     slug: 'anand-karaj',
-    name: 'Anand Karaj (Wedding Ceremony)',
+    name: 'Anand Karaj',
     dress_code: 'Pastel Indian Traditional',
     dress_code_emoji: '🌸',
     date: 'January 5',

@@ -137,8 +137,8 @@ export default function FundPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/pearl.png"
-      alt="Pearl Background"
+      src="/images/backgrounds/lavendar.png"
+      alt="Lavendar Background"
       priority={true}
     >
       <Box
@@ -206,7 +206,6 @@ export default function FundPage() {
               <Box
                 sx={{
                   borderRadius: 1,
-                  border: '1px solid #000',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   color: '#000000',
@@ -241,7 +240,7 @@ export default function FundPage() {
                     placeholder="Enter your full name"
                     required
                     sx={{
-                      border: '1px solid #000',
+                      border: '1px solid rgba(0, 0, 0, 0.24)',
                       borderRadius: '8px',
                       padding: '12px 12px',
                       backgroundColor: 'white',
@@ -281,7 +280,7 @@ export default function FundPage() {
                     Contribution Amount *
                   </Typography>
                   <Box sx={{
-                    border: '1px solid #000',
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
                     borderRadius: '8px',
                     padding: '12px 12px',
                     backgroundColor: 'white',
@@ -341,7 +340,7 @@ export default function FundPage() {
                     placeholder="Share a message with us..."
                     rows={3}
                     sx={{
-                      border: '1px solid #000',
+                      border: '1px solid rgba(0, 0, 0, 0.24)',
                       borderRadius: '8px',
                       padding: '16px 12px',
                       backgroundColor: 'white',
@@ -426,7 +425,7 @@ export default function FundPage() {
                     },
                     rules: {
                       '.Input': {
-                        border: '1px solid #000',
+                        border: '1px solid rgba(0, 0, 0, 0.24)',
                         borderRadius: '8px',
                         backgroundColor: 'white',
                       },
@@ -438,7 +437,7 @@ export default function FundPage() {
                         borderWidth: '2px',
                       },
                       '.Tab': {
-                        border: '1px solid #000',
+                        border: '1px solid rgba(0, 0, 0, 0.24)',
                         borderRadius: '8px',
                         backgroundColor: 'white',
                       },

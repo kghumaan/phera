@@ -72,7 +72,7 @@ const weddingSchedule = [
       },
       {
         time: '7:30 PM',
-        name: '🎉 Reception',
+        name: '🎉 Sangeet & Reception',
         location: 'Ballroom'
       },
       {
@@ -100,7 +100,7 @@ const DayCard = ({ day, date, events, index }: {
       sx={{
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
-        borderRadius: 2,
+        borderRadius: '16px',
         p: 3,
         mb: 3,
         border: '1px solid rgba(255, 255, 255, 0.2)',

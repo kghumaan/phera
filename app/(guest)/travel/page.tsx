@@ -225,7 +225,7 @@ export default function TravelPage() {
     },
     {
       title: "Getting to Hua Hin 🚌",
-      content: <>It's about a 3-hour drive from Bangkok, and we're organizing buses that leave on January 4th morning from a central location (more details on that later).<br /><br />You can also rent a car if you prefer to drive yourself - just remember they drive on the left side of the road here!<br /><br />FYI, celebrations start at 12pm on Jan 4th so we highly recommend arriving in Bangkok by at least Jan 3rd.</>,
+      content: <>It's ~3-hour drive from Bangkok, and we're organizing buses that leave on Jan 4th morning from a central location (more details to follow). We're estimating the transportation will cost $25-$35 per person.<br /><br />You can also rent a car if you prefer to drive yourself - just remember they drive on the left side of the road!<br /><br />FYI, celebrations start in Hua Hin at 12pm on Jan 4th so we highly recommend arriving in Bangkok by at least Jan 3rd.</>,
       image: "/images/travel_stay/5.png",
     },
     {

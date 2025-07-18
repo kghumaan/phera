@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Typography, IconButton, Stack } from '@mui/material';
+import { Box, Container, Typography, IconButton, Stack, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ const weddingEvents = [
   {
     id: 3,
     slug: 'anand-karaj',
-    name: 'Anand Karaj (Wedding Ceremony)',
+    name: 'Anand Karaj',
     dress_code: 'Pastel Indian Traditional',
     dress_code_emoji: '🌸',
     date: 'January 5',
@@ -211,7 +211,7 @@ export default function GuestEventsPage() {
                             sx={{
                               fontFamily: 'Outfit',
                               fontWeight: 500,
-                              fontSize: 24,
+                              fontSize: 22,
                               lineHeight: 1.3,
                               // color: getDressCodeColor(event.name),
                               color: '#000',
@@ -252,6 +252,61 @@ export default function GuestEventsPage() {
           </Stack>
         </motion.div>
       </Container>
+
+      {/* Sticky "Where to Shop" Footer */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 4,
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+          px: 2,
+          py: 2,
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Container maxWidth="sm">
+          <Stack spacing={1.5} alignItems="center">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              style={{ width: '100%' }}
+            >
+              <Button
+                component={Link}
+                href="/where-to-shop"
+                variant="contained"
+                size="large"
+                fullWidth
+                sx={{
+                  backgroundColor: '#DE3F5E',
+                  color: 'white',
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: '32px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#C8365A',
+                    boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                  },
+                }}
+              >
+                Where to Shop
+              </Button>
+            </motion.div>
+          </Stack>
+        </Container>
+      </Box>
+
+      {/* Add bottom padding to prevent content from being hidden behind sticky footer */}
+      <Box sx={{ height: 100 }} />
     </OptimizedBackground>
   );
 } 

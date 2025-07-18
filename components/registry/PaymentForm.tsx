@@ -74,7 +74,6 @@ export default function PaymentForm({
       <Box
         sx={{
           borderRadius: 1,
-          border: '1px solid #000',
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
           p: 3,
@@ -138,7 +137,6 @@ export default function PaymentForm({
           <Box
             sx={{
               borderRadius: 1,
-              border: '1px solid #000',
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
               p: 3,

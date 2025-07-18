@@ -143,6 +143,9 @@ export default function DetailsPage() {
       case 'Registry':
         router.push('/registry');
         break;
+      case 'Change RSVP':
+        router.push('/rsvp');
+        break;
       default:
         console.log(`Navigate to ${item}`);
     }
@@ -253,6 +256,11 @@ export default function DetailsPage() {
                 <MenuItem 
                   title="Registry" 
                   onClick={() => handleMenuItemClick('Registry')} 
+                />
+                <DiamondDecoration />
+                <MenuItem 
+                  title="Change RSVP" 
+                  onClick={() => handleMenuItemClick('Change RSVP')} 
                 />
               </Stack>
             </Stack>

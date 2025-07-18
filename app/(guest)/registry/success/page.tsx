@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -31,11 +32,19 @@ export default function SuccessPage() {
   }, [router]);
 
   return (
-    <OptimizedBackground
-      src="/images/backgrounds/pearl.png"
-      alt="Pearl Background"
-      priority={true}
-    >
+    <>
+      <Confetti
+        width={typeof window !== 'undefined' ? window.innerWidth : 1200}
+        height={typeof window !== 'undefined' ? window.innerHeight : 800}
+        recycle={false}
+        numberOfPieces={200}
+        gravity={0.3}
+      />
+      <OptimizedBackground
+        src="/images/backgrounds/lavendar.png"
+        alt="Lavendar Background"
+        priority={true}
+      >
       <Box
         sx={{
           display: 'flex',
@@ -58,14 +67,14 @@ export default function SuccessPage() {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               >
-                <Typography
+                {/* <Typography
                   sx={{
                     fontSize: 80,
                     lineHeight: 1,
                   }}
                 >
                   💝
-                </Typography>
+                </Typography> */}
               </motion.div>
 
               <Typography
@@ -76,6 +85,7 @@ export default function SuccessPage() {
                   fontSize: 32,
                   lineHeight: 1.3,
                   color: '#141414',
+                  fontStyle: 'italic',
                 }}
               >
                 Thank You!
@@ -128,5 +138,6 @@ export default function SuccessPage() {
         </Container>
       </Box>
     </OptimizedBackground>
+    </>
   );
 }
