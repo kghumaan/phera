@@ -9,14 +9,14 @@ import "./globals.css";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["200", "300", "400", "500", "600"],
 });
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
   weight: ["400"],
-  style: ["normal", "italic"],
+  style: ["italic"],
 });
 
 export const metadata: Metadata = {

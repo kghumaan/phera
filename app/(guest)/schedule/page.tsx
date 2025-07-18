@@ -10,18 +10,18 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 const weddingSchedule = [
   {
     day: 'Sunday',
-    date: 'January 4, 2025',
+    date: 'Sunday - January 4, 2025',
     events: [
       {
         time: '11 AM',
         name: '🏨 Guest Arrival',
-        description: 'Check in, unpack, and dive straight into the festive fun!',
+        description: 'Check in and dive straight into the festive fun (come dressed in your shades of yellow!)',
         location: 'The Palayana'
       },
       {
         time: '12 PM',
         name: '🥘 Welcome Lunch',
-        description: 'Bright beachfront feast in your sunny yellows—get ready to mingle and reunite.',
+        description: 'Bright beachfront buffet in your sunny yellows—get ready to mingle and reunite.',
         location: 'Lawn'
       },
       {
@@ -49,7 +49,7 @@ const weddingSchedule = [
         location: 'Lawn'
       },
       {
-        time: '7 PM',
+        time: '7 - 10 PM',
         name: '🥁 Dinner & Jaggo',
         description: 'Eat, dance, repeat—savor the feast then let loose to pounding dhol beats.',
         location: 'Lawn'
@@ -57,18 +57,23 @@ const weddingSchedule = [
     ]
   },
   {
-    day: 'Sunday',
-    date: 'January 5, 2025',
+    day: 'Monday',
+    date: 'Monday - January 5, 2025',
     events: [
       {
-        time: '10 AM',
-        name: '🤲 Anand Karaj',
+        time: '7:30 - 9:30 AM',
+        name: '🍳 Breakfast',
+        location: 'Basil Restaurant'
+      },
+      {
+        time: '9:30 AM',
+        name: '🤲 Anand Karaj (Wedding Ceremony)',
         location: 'Satnam House (transportation provided)'
       },
       {
         time: '2 PM',
-        name: '🤿 Pool Party',
-        location: 'Pool'
+        name: '☀️ Lunch & Pool Party',
+        location: 'Poolside & Beach'
       },
       {
         time: '7:30 PM',
@@ -76,9 +81,25 @@ const weddingSchedule = [
         location: 'Ballroom'
       },
       {
-        time: '12 AM - 3 AM',
+        time: '12 - 3 AM',
         name: '🪩 Afterparty',
         location: 'Ballroom'
+      }
+    ]
+  },
+  {
+    day: 'Tuesday',
+    date: 'Tuesday - January 6, 2025',
+    events: [
+      {
+        time: '7:30 - 11 AM',
+        name: '🍳 Breakfast',
+        location: 'Basil Restaurant'
+      },
+      {
+        time: '12 PM',
+        name: '🧳 Checkout',
+        location: 'Hotel Lobby'
       }
     ]
   }
@@ -102,7 +123,7 @@ const DayCard = ({ day, date, events, index }: {
         backdropFilter: 'blur(10px)',
         borderRadius: '16px',
         p: 3,
-        mb: 3,
+        mb: 2,
         border: '1px solid rgba(255, 255, 255, 0.2)',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
       }}
@@ -110,10 +131,10 @@ const DayCard = ({ day, date, events, index }: {
       {/* Day and Date Header */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography
-          variant="h5"
+          variant="h4"
           sx={{
             fontFamily: 'Outfit',
-            fontWeight: 700,
+            fontWeight: 600,
             color: '#141414',
             mb: 0,
           }}
@@ -160,7 +181,7 @@ const DayCard = ({ day, date, events, index }: {
                     fontFamily: 'Outfit',
                     fontWeight: 600,
                     color: '#141414',
-                    fontSize: '1rem',
+                    // fontSize: '1rem',
                     lineHeight: 1.5,
                   }}
                 >
@@ -186,7 +207,7 @@ const DayCard = ({ day, date, events, index }: {
                 sx={{
                   color: '#DE3F5E',
                   fontWeight: 600,
-                  fontSize: '0.875rem',
+                  fontSize: '0.95rem',
                   letterSpacing: '0.07em',
                   textTransform: 'uppercase',
                   textAlign: 'right',
@@ -200,13 +221,13 @@ const DayCard = ({ day, date, events, index }: {
             {event.location && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LocationOnOutlined 
-                  sx={{ fontSize: 14, color: '#858585' }} 
+                  sx={{ fontSize: 16, color: '#858585' }} 
                 />
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   sx={{
                     color: '#858585',
-                    fontSize: '0.875rem',
+                    fontSize: '1rem',
                     fontWeight: 400,
                   }}
                 >

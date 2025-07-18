@@ -181,6 +181,7 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.33,
+      
       '@media (min-width:600px)': {
         fontSize: '0.8rem',
       },

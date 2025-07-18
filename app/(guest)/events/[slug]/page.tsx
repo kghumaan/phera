@@ -129,7 +129,7 @@ const EventCard = ({
               variant="h4"
               sx={{
                 fontFamily: 'Outfit',
-                fontWeight: 400,
+                fontWeight: 300,
                 fontSize: 28,
                 lineHeight: 1.3,
                 color: '#141414',
@@ -1214,7 +1214,7 @@ export default function EventDetailPage() {
             </Typography>
             
             <Stack spacing={1} sx={{ mb: 3 }}>
-              {['Bikinis & One-Pieces', 'Mesh Cover-ups', 'Flowy Kimonos', 'Crochet Tops'].map((item) => (
+              {['Swimsuits', 'Mesh Cover-ups', 'Flowy Kimonos', 'Crochet Tops'].map((item) => (
                 <Typography 
                   key={item}
                   variant="h6"
