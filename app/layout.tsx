@@ -25,14 +25,14 @@ export const metadata: Metadata = {
   
   // Open Graph tags for rich link previews - Optimized for large rectangular format
   openGraph: {
-    title: "Sim & KV's Wedding Invite - Phera",
-    description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
+    title: "Sim & KV's Wedding Invite",
+    description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
     type: "website",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io",
     siteName: "Phera",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.app"}/images/couple/imessage.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage.png`,
         width: 1200,
         height: 630,
         alt: "Sim & KV - Wedding Celebration",
@@ -45,9 +45,9 @@ export const metadata: Metadata = {
   // Twitter Card tags - Using large image format for maximum impact
   twitter: {
     card: "summary_large_image",
-    title: "Sim & KV's Wedding Invite - Phera",
-    description: "Join us for our traditional Indian wedding celebration. RSVP and share in our joyous moments as we begin our journey together.",
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.app"}/images/couple/imessage.png`],
+    title: "Sim & KV's Wedding Invite",
+    description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage.png`],
     creator: "@phera",
   },
   
