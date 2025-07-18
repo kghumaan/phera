@@ -97,7 +97,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
       return { success: false, error: 'No user session found' }
     }
 
-    // Try to get enhanced user data from guests table
+    // Try to get enhanced user data from guests table first
     let guestData = null;
     if (user.email) {
       const { data: guest } = await supabase
@@ -108,6 +108,43 @@ export async function getCurrentUser(): Promise<AuthResult> {
         .single();
       
       guestData = guest;
+    }
+
+    // If not found in guests table, check if this is a plus one authentication
+    if (!guestData && user.email) {
+      const { data: rsvpData } = await supabase
+        .from('rsvps')
+        .select(`
+          id,
+          plus_one_name,
+          plus_one_email,
+          guest_id,
+          guests (
+            id,
+            name,
+            email,
+            phone,
+            avatar_style,
+            avatar_seed,
+            avatar_svg
+          )
+        `)
+        .eq('plus_one_email', user.email)
+        .eq('wedding_id', 'sim-kv')
+        .single();
+
+      if (rsvpData && rsvpData.plus_one_email) {
+        // Create user data for plus one
+        guestData = {
+          id: `plus-one-${rsvpData.guest_id}`,
+          name: rsvpData.plus_one_name || 'Plus One',
+          email: rsvpData.plus_one_email,
+          phone: null,
+          avatar_style: null,
+          avatar_seed: null,
+          avatar_svg: null
+        };
+      }
     }
 
     return {
@@ -136,9 +173,10 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
 } 
 
-// Validate if email exists in guests table before sending magic link
-export async function validateEmailExists(email: string): Promise<{ exists: boolean; guest?: any }> {
+// Validate if email exists in guests table or as plus one before sending magic link
+export async function validateEmailExists(email: string): Promise<{ exists: boolean; guest?: any; isPlusOne?: boolean; mainGuest?: any }> {
   try {
+    // First check if email exists in guests table (main guest)
     const { data: guest, error } = await supabase
       .from('guests')
       .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
@@ -146,14 +184,62 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
       .eq('wedding_id', 'sim-kv')
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
-      throw error;
+    if (guest) {
+      return {
+        exists: true,
+        guest: guest,
+        isPlusOne: false
+      };
     }
 
-    return {
-      exists: !!guest,
-      guest: guest || undefined
-    };
+    // If not found in guests table, check if email exists as plus one
+    const { data: rsvpData, error: rsvpError } = await supabase
+      .from('rsvps')
+      .select(`
+        id,
+        plus_one_name,
+        plus_one_email,
+        guest_id,
+        guests (
+          id,
+          name,
+          email,
+          phone,
+          avatar_style,
+          avatar_seed,
+          avatar_svg
+        )
+      `)
+      .eq('plus_one_email', email.trim())
+      .eq('wedding_id', 'sim-kv')
+      .single();
+
+    if (rsvpData && rsvpData.plus_one_email) {
+      // Create a virtual guest object for the plus one
+      const plusOneGuest = {
+        id: `plus-one-${rsvpData.guest_id}`,
+        name: rsvpData.plus_one_name || 'Plus One',
+        email: rsvpData.plus_one_email,
+        phone: null,
+        avatar_style: null,
+        avatar_seed: null,
+        avatar_svg: null
+      };
+
+      return {
+        exists: true,
+        guest: plusOneGuest,
+        isPlusOne: true,
+        mainGuest: rsvpData.guests
+      };
+    }
+
+    // If neither main guest nor plus one found
+    if (error && error.code !== 'PGRST116' && rsvpError && rsvpError.code !== 'PGRST116') {
+      throw error || rsvpError;
+    }
+
+    return { exists: false };
   } catch (error) {
     console.error('Error validating email:', error);
     return { exists: false };

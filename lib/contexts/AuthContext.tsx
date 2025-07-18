@@ -25,6 +25,7 @@ interface AuthContextType {
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
+  handlePlusOneAuth: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,99 +71,207 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRsvpResponse(null); // Reset RSVP response
     
     try {
-      // First, let's try a direct RSVP query to see if the user has any RSVPs
-      const { data: rsvpData, error: rsvpError } = await supabase
-        .from('rsvps')
-        .select(`
-          id,
-          attending,
-          event_id,
-          guest_id,
-          guests (
-            id,
-            email,
-            name
-          )
-        `)
-        .eq('wedding_id', 'sim-kv');
-
-      console.log('All RSVPs in database:', rsvpData);
-
-      // Now check specifically for this user's RSVPs using the guest relationship
-      const { data, error } = await supabase
-        .from('guests')
-        .select(`
-          id,
-          email,
-          name,
-          rsvps (
+      // Check if this is a plus one authentication (ID starts with "plus-one-")
+      const isPlusOne = user.id?.startsWith('plus-one-');
+      
+      if (isPlusOne) {
+        // For plus ones, check the RSVP by plus_one_email
+        const { data: rsvpData, error: rsvpError } = await supabase
+          .from('rsvps')
+          .select(`
             id,
             attending,
-            event_id
-          )
-        `)
-        .eq('email', user.email)
-        .eq('wedding_id', 'sim-kv')
-        .single();
+            event_id,
+            guest_id,
+            plus_one_email,
+            guests (
+              id,
+              email,
+              name
+            )
+          `)
+          .eq('plus_one_email', user.email)
+          .eq('wedding_id', 'sim-kv')
+          .single();
 
-      console.log('Guest query result:', { data, error, userEmail: user.email });
+        console.log('Plus one RSVP query result:', { rsvpData, rsvpError, userEmail: user.email });
 
-      if (error) {
-        console.error('Error in guest query:', error);
-        
-        // If guest not found, maybe check by guest ID directly
-        if (user.id && user.id !== 'temp-guest') {
-          const { data: directRSVPData, error: directError } = await supabase
-            .from('rsvps')
-            .select('*')
-            .eq('guest_id', user.id)
-            .eq('wedding_id', 'sim-kv');
+        if (rsvpError) {
+          console.error('Error in plus one RSVP query:', rsvpError);
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+          return;
+        }
+
+        if (rsvpData) {
+          setHasRSVPed(true);
+          setRsvpResponse(rsvpData.attending);
+          console.log('Plus one RSVP Status:', {
+            user: user.email,
+            hasRSVP: true,
+            rsvpResponse: rsvpData.attending,
+            rsvpData: rsvpData
+          });
+          return;
+        }
+      } else {
+        // For main guests, use the existing logic
+        // First, let's try a direct RSVP query to see if the user has any RSVPs
+        const { data: rsvpData, error: rsvpError } = await supabase
+          .from('rsvps')
+          .select(`
+            id,
+            attending,
+            event_id,
+            guest_id,
+            guests (
+              id,
+              email,
+              name
+            )
+          `)
+          .eq('wedding_id', 'sim-kv');
+
+        console.log('All RSVPs in database:', rsvpData);
+
+        // Now check specifically for this user's RSVPs using the guest relationship
+        const { data, error } = await supabase
+          .from('guests')
+          .select(`
+            id,
+            email,
+            name,
+            rsvps (
+              id,
+              attending,
+              event_id
+            )
+          `)
+          .eq('email', user.email)
+          .eq('wedding_id', 'sim-kv')
+          .single();
+
+        console.log('Guest query result:', { data, error, userEmail: user.email });
+
+        if (error) {
+          console.error('Error in guest query:', error);
           
-          console.log('Direct RSVP query by guest_id:', { directRSVPData, directError });
-          
-          if (directRSVPData && directRSVPData.length > 0) {
-            setHasRSVPed(true);
-            setRsvpResponse(directRSVPData[0].attending);
-            return;
+          // If guest not found, maybe check by guest ID directly
+          if (user.id && user.id !== 'temp-guest') {
+            const { data: directRSVPData, error: directError } = await supabase
+              .from('rsvps')
+              .select('*')
+              .eq('guest_id', user.id)
+              .eq('wedding_id', 'sim-kv');
+            
+            console.log('Direct RSVP query by guest_id:', { directRSVPData, directError });
+            
+            if (directRSVPData && directRSVPData.length > 0) {
+              setHasRSVPed(true);
+              setRsvpResponse(directRSVPData[0].attending);
+              return;
+            }
           }
+          
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+          return;
+        }
+
+        if (!data) {
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+          return;
+        }
+
+        // Check if user has any RSVP records (including both attending and not attending)
+        const hasAnyRSVP = data.rsvps && data.rsvps.length > 0;
+        setHasRSVPed(hasAnyRSVP);
+        
+        // Set RSVP response if available
+        if (hasAnyRSVP && data.rsvps[0]) {
+          setRsvpResponse(data.rsvps[0].attending);
+        } else {
+          setRsvpResponse(null);
         }
         
-        setHasRSVPed(false);
-        setRsvpResponse(null);
-        return;
+        // Log for debugging
+        console.log('RSVP Status Check:', {
+          user: user.email,
+          hasRSVPs: hasAnyRSVP,
+          rsvpResponse: data.rsvps[0]?.attending,
+          rsvps: data.rsvps,
+          guestData: data
+        });
       }
-
-      if (!data) {
-        setHasRSVPed(false);
-        setRsvpResponse(null);
-        return;
-      }
-
-      // Check if user has any RSVP records (including both attending and not attending)
-      const hasAnyRSVP = data.rsvps && data.rsvps.length > 0;
-      setHasRSVPed(hasAnyRSVP);
-      
-      // Set RSVP response if available
-      if (hasAnyRSVP && data.rsvps[0]) {
-        setRsvpResponse(data.rsvps[0].attending);
-      } else {
-        setRsvpResponse(null);
-      }
-      
-      // Log for debugging
-      console.log('RSVP Status Check:', {
-        user: user.email,
-        hasRSVPs: hasAnyRSVP,
-        rsvpResponse: data.rsvps[0]?.attending,
-        rsvps: data.rsvps,
-        guestData: data
-      });
     } catch (error) {
       console.error('Error checking RSVP status:', error);
       setHasRSVPed(false);
       setRsvpResponse(null);
     } finally {
       setIsCheckingRSVP(false);
+    }
+  };
+
+  // Helper function to handle plus one authentication
+  const handlePlusOneAuth = async (email: string) => {
+    try {
+      const { data: rsvpData } = await supabase
+        .from('rsvps')
+        .select(`
+          id,
+          plus_one_name,
+          plus_one_email,
+          guest_id,
+          guests (
+            id,
+            name,
+            email,
+            phone,
+            avatar_style,
+            avatar_seed,
+            avatar_svg
+          )
+        `)
+        .eq('plus_one_email', email)
+        .eq('wedding_id', 'sim-kv')
+        .single();
+
+      if (rsvpData && rsvpData.plus_one_email) {
+        // Create virtual guest authentication for plus one
+        const guestInfo = {
+          id: `plus-one-${rsvpData.guest_id}`,
+          email: rsvpData.plus_one_email,
+          name: rsvpData.plus_one_name || 'Plus One',
+          phone: undefined,
+          weddingId: 'sim-kv',
+          avatar_style: undefined,
+          avatar_seed: undefined,
+          avatar_svg: undefined,
+          timestamp: Date.now()
+        };
+
+        // Store in localStorage for future authentication
+        localStorage.setItem('phera_guest_auth', JSON.stringify(guestInfo));
+
+        const userData: User = {
+          id: guestInfo.id,
+          email: guestInfo.email,
+          name: guestInfo.name,
+          phone: guestInfo.phone,
+          initials: generateInitials(guestInfo.name),
+          avatar_color: generateAvatarColor(guestInfo.name),
+          avatar_style: guestInfo.avatar_style,
+          avatar_seed: guestInfo.avatar_seed,
+          avatar_svg: guestInfo.avatar_svg,
+        };
+        setUser(userData);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error handling plus one authentication:', error);
+      return false;
     }
   };
 
@@ -193,47 +302,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Check if the authentication is recent (within 24 hours)
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
               if (isRecent && guestInfo.email && guestInfo.id !== 'temp-guest') {
-                // If avatar data is missing, fetch it from database
-                if (!guestInfo.avatar_svg && guestInfo.email) {
-                  console.log('Avatar data missing in localStorage, fetching from database...');
-                  try {
-                    const { data: guestData } = await supabase
-                      .from('guests')
-                      .select('avatar_style, avatar_seed, avatar_svg')
-                      .eq('email', guestInfo.email)
-                      .eq('wedding_id', 'sim-kv')
-                      .single();
-                    
-                    if (guestData) {
-                      // Update localStorage with complete data
-                      const updatedGuestInfo = {
-                        ...guestInfo,
-                        avatar_style: guestData.avatar_style,
-                        avatar_seed: guestData.avatar_seed,
-                        avatar_svg: guestData.avatar_svg,
-                      };
-                      localStorage.setItem('phera_guest_auth', JSON.stringify(updatedGuestInfo));
-                      guestInfo.avatar_style = guestData.avatar_style;
-                      guestInfo.avatar_seed = guestData.avatar_seed;
-                      guestInfo.avatar_svg = guestData.avatar_svg;
-                    }
-                  } catch (error) {
-                    console.error('Error fetching avatar data:', error);
-                  }
-                }
+                // Check if this is a plus one authentication
+                const isPlusOne = guestInfo.id?.startsWith('plus-one-');
                 
-                const userData: User = {
-                  id: guestInfo.id,
-                  email: guestInfo.email,
-                  name: guestInfo.name,
-                  phone: guestInfo.phone,
-                  initials: generateInitials(guestInfo.name),
-                  avatar_color: generateAvatarColor(guestInfo.name),
-                  avatar_style: guestInfo.avatar_style,
-                  avatar_seed: guestInfo.avatar_seed,
-                  avatar_svg: guestInfo.avatar_svg,
-                };
-                setUser(userData);
+                if (isPlusOne) {
+                  // For plus ones, we don't need to fetch avatar data from guests table
+                  // since they don't have entries there
+                  const userData: User = {
+                    id: guestInfo.id,
+                    email: guestInfo.email,
+                    name: guestInfo.name,
+                    phone: guestInfo.phone,
+                    initials: generateInitials(guestInfo.name),
+                    avatar_color: generateAvatarColor(guestInfo.name),
+                    avatar_style: guestInfo.avatar_style,
+                    avatar_seed: guestInfo.avatar_seed,
+                    avatar_svg: guestInfo.avatar_svg,
+                  };
+                  setUser(userData);
+                } else {
+                  // For main guests, handle avatar data fetching as before
+                  if (!guestInfo.avatar_svg && guestInfo.email) {
+                    console.log('Avatar data missing in localStorage, fetching from database...');
+                    try {
+                      const { data: guestData } = await supabase
+                        .from('guests')
+                        .select('avatar_style, avatar_seed, avatar_svg')
+                        .eq('email', guestInfo.email)
+                        .eq('wedding_id', 'sim-kv')
+                        .single();
+                      
+                      if (guestData) {
+                        // Update localStorage with complete data
+                        const updatedGuestInfo = {
+                          ...guestInfo,
+                          avatar_style: guestData.avatar_style,
+                          avatar_seed: guestData.avatar_seed,
+                          avatar_svg: guestData.avatar_svg,
+                        };
+                        localStorage.setItem('phera_guest_auth', JSON.stringify(updatedGuestInfo));
+                        guestInfo.avatar_style = guestData.avatar_style;
+                        guestInfo.avatar_seed = guestData.avatar_seed;
+                        guestInfo.avatar_svg = guestData.avatar_svg;
+                      }
+                    } catch (error) {
+                      console.error('Error fetching avatar data:', error);
+                    }
+                  }
+                  
+                  const userData: User = {
+                    id: guestInfo.id,
+                    email: guestInfo.email,
+                    name: guestInfo.name,
+                    phone: guestInfo.phone,
+                    initials: generateInitials(guestInfo.name),
+                    avatar_color: generateAvatarColor(guestInfo.name),
+                    avatar_style: guestInfo.avatar_style,
+                    avatar_seed: guestInfo.avatar_seed,
+                    avatar_svg: guestInfo.avatar_svg,
+                  };
+                  setUser(userData);
+                }
               } else {
                 // Remove expired or temp guest auth
                 localStorage.removeItem('phera_guest_auth');
@@ -354,7 +483,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isCheckingRSVP,
         checkRSVPStatus, 
         signOut,
-        refreshAuth
+        refreshAuth,
+        handlePlusOneAuth
       }}
     >
       {children}

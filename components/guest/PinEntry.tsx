@@ -269,8 +269,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
-          pt: { xs: 8, sm: 8 }, // Account for header
+          minHeight: { xs: 'calc(100vh - 96px)', sm: 'calc(100vh - 112px)', md: 'calc(100vh - 128px)' },
+          pt: { xs: 12, sm: 14, md: 16 }, // Increased padding to account for header
           pb: { xs: 4, sm: 6 },
           px: { xs: 3, sm: 4 },
           gap: { xs: 4, sm: 6 },

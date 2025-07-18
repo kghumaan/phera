@@ -84,7 +84,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
       id: gif.id,
       url: gif.images.original.url,
       title: gif.title,
-      preview_url: gif.images.preview_gif.url,
+      preview_url: gif.images.downsized_medium?.url || gif.images.downsized?.url || gif.images.fixed_width.url,
     };
     onSelectGif(gifData);
     onClose();
@@ -283,7 +283,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   onClick={() => handleSelectGif(gif)}
                 >
                   <Image
-                    src={gif.images.fixed_width.url}
+                    src={gif.images.downsized_medium?.url || gif.images.downsized?.url || gif.images.fixed_width.url}
                     alt={gif.title}
                     fill
                     style={{

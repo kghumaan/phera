@@ -124,11 +124,13 @@ const weddingSideOptions = [
 const countryCodes = [
   { code: '+1', country: 'US/CA', flag: '🇺🇸' },
   { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+66', country: 'Thailand', flag: '🇹🇭' },
   { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
   { code: '+61', country: 'Australia', flag: '🇦🇺' },
   { code: '+971', country: 'UAE', flag: '🇦🇪' },
   { code: '+65', country: 'Singapore', flag: '🇸🇬' },
-  { code: '+49', country: 'Germany', flag: '🇩🇪' },
   { code: '+33', country: 'France', flag: '🇫🇷' },
   { code: '+81', country: 'Japan', flag: '🇯🇵' },
   { code: '+86', country: 'China', flag: '🇨🇳' },
@@ -138,9 +140,7 @@ const countryCodes = [
   { code: '+27', country: 'South Africa', flag: '🇿🇦' },
   { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
   { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
-  { code: '+66', country: 'Thailand', flag: '🇹🇭' },
   { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
-  { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
   { code: '+63', country: 'Philippines', flag: '🇵🇭' },
 ];
 
@@ -713,7 +713,7 @@ export default function CustomRSVPForm() {
                                 </Typography>
                                 
                                 <Typography sx={bodyStyle}>
-                                  Your room is booked and fully paid for! We'll be updating this website with a lot more details soon so keep an eye out for texts/emails!
+                                  Your room is booked and fully paid for! Check out the rest of the website for travel trips, event details, dress codes, etc. We may require more information from you closer to the wedding so keep an eye out for emails!
                                 </Typography>
                               </>
                             );
@@ -1329,7 +1329,7 @@ export default function CustomRSVPForm() {
                   fontFamily: 'Outfit'
                 }}
               >
-                Couples share one invitation - add your partner here!
+                Couples share one invitation - add your partner here! They will be able to sign in to the website with their email address as well.
               </Typography>
             </Box>
             
@@ -1807,7 +1807,7 @@ export default function CustomRSVPForm() {
                   fontFamily: 'Outfit'
                 }}
               >
-                                 Select all that apply for you (and your plus one)!
+                {allowsPlusOne ? 'Select all that apply for you (and your plus one)!' : 'Select all that apply for you!'}
               </Typography>
             </Box>
             

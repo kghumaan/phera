@@ -169,7 +169,7 @@ const DayCard = ({ day, date, events, index }: {
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 mb: 1,
                 gap: 2,
               }}
