@@ -51,7 +51,7 @@ const TravelCard = ({
   onButtonClick
 }: { 
   title: string; 
-  content: React.ReactNode; 
+  content: React.ReactNode[]; 
   image?: string; 
   isActive: boolean;
   buttonText?: string;
@@ -117,20 +117,25 @@ const TravelCard = ({
           >
             {title}
           </Typography>
-          <Typography
-            variant="body1"
-            component="div"
-            sx={{
-              fontFamily: 'Outfit',
-              fontWeight: 400,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#474747',
-              textAlign: 'left',
-            }}
-          >
-            {content}
-          </Typography>
+          <Stack spacing={1}>
+            {content.map((paragraph, index) => (
+              <Typography
+                key={index}
+                variant="body1"
+                component="div"
+                sx={{
+                  fontFamily: 'Outfit',
+                  fontWeight: 400,
+                  fontSize: 16,
+                  lineHeight: 1.5,
+                  color: '#474747',
+                  textAlign: 'left',
+                }}
+              >
+                {paragraph}
+              </Typography>
+            ))}
+          </Stack>
         </Stack>
         {buttonText && (
           <Box sx={{ mt: 2 }}>
@@ -201,55 +206,81 @@ export default function TravelPage() {
   const travelData = [
     {
       title: "We've got your stay covered ✨",
-      content: <>Your rooms at The Palayana are taken care of for January 4th & 5th. Get ready to celebrate right on the beach - the resort is absolutely gorgeous!<br /><br />We'll share room assignments closer to the date.</>,
+      content: [
+        "Your rooms at The Palayana are taken care of for January 4th & 5th. Get ready to celebrate right on the beach - the resort is absolutely gorgeous!",
+        "We'll share room assignments closer to the date."
+      ],
       image: "/images/travel_stay/1.png",
     },
     {
       title: "Book additional nights at The Palayana 🏝️",
-      content: <>Want to stay longer? Book additional nights as soon as possible since the hotel fills up fast! Use the link below or email <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=Simran%20x%20Karanvir%20wedding%20-%20Additional%20Nights&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>vidhi@thepalayana.com</a> and CC <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=Simran%20x%20Karanvir%20wedding%20-%20Additional%20Nights&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>booking@thepalayana.com</a> if you’d prefer to stay in the same room we assign to you for the 4th and 5th.</>,
+      content: [
+        <>Want to stay longer? Book additional nights as soon as possible since the hotel fills up fast! Use the link below or email <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=Simran%20x%20Karanvir%20wedding%20-%20Additional%20Nights&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>vidhi@thepalayana.com</a> and CC <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=Simran%20x%20Karanvir%20wedding%20-%20Additional%20Nights&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>booking@thepalayana.com</a> if you’d prefer to stay in the same room we assign to you for the 4th and 5th.</>
+      ],
       image: "/images/travel_stay/2.png",
       buttonText: "booking link",
       onButtonClick: () => window.open('https://bit.ly/45TiuuI', '_blank'),
     },
     {
       title: "Coming to Bangkok first? 🏙️",
-      content: <>If you're planning to arrive early, we'll be in Bangkok for New Year's Eve. No formal plans yet, but you're welcome to join whatever we end up doing.<br /><br />Plus, Bangkok is ‘the best city in world’ according to Sim so it’s worth the trip 👀</>,
+      content: [
+        "If you're planning to arrive early, we'll be in Bangkok for New Year's Eve. No formal plans yet, but you're welcome to join whatever we end up doing.",
+        "Plus, Bangkok is ‘the best city in world’ according to Sim so it’s worth the trip 👀"
+      ],
       image: "/images/travel_stay/3.png",
       buttonText: "Sim’s bangkok guide",
       onButtonClick: () => window.open('https://docs.google.com/document/d/1JedCbzdZkMiRaI37d-5wP59qipdAJW97RPLkTMx6reI/edit?tab=t.0', '_blank'),
     },
     {
       title: "Where to stay in Bangkok 🗺️",
-      content: <>Sukhumvit is our top pick for max convenience - food, nightlife, shopping, it’s the heart of the city. And it’s where Sim grew up! <br /><br />Silom/Sathorn for a quieter residential vibe, Riverside for fancy hotels and upscale vibes, Chinatown if you’re looking for a local experience and boutique hotels (or ratchet hostels 😜).</>,
+      content: [
+        "Sukhumvit (Asok, Phrom Phong, Thong Lo) is our top pick for max convenience - food, nightlife, shopping, it’s the heart of the city. And it’s where Sim grew up!",
+        "Silom/Sathorn for a quieter residential vibe, Riverside for fancy hotels and upscale vibes, Chinatown if you’re looking for a local experience and boutique hotels (or ratchet hostels 😜)."
+      ],
       image: "/images/travel_stay/4.png",
     },
     {
       title: "Getting to Hua Hin 🚌",
-      content: <>It's ~3-hour drive from Bangkok, and we're organizing buses that leave on Jan 4th morning from a central location (more details to follow). We're estimating the transportation will cost $25-$35 per person.<br /><br />You can also rent a car if you prefer to drive yourself - just remember they drive on the left side of the road!<br /><br />FYI, celebrations start in Hua Hin at 12pm on Jan 4th so we highly recommend arriving in Bangkok by at least Jan 3rd.</>,
+      content: [
+        "Hua Hin is a ~3-hour drive from Bangkok. We can help organize transportation for your group (more info on this coming soon). Transportation will cost $25-$35 per person for a round trip.",
+        "You can also rent a car if you prefer to drive yourself - just remember they drive on the left side of the road!",
+        "FYI, celebrations start in Hua Hin at 12pm on Jan 4th so we highly recommend arriving in Bangkok by at least Jan 3rd."
+      ],
       image: "/images/travel_stay/5.png",
     },
     {
       title: "Weather &  what to expect 🌤️",
-      content: <>January weather is lovely - around 75-85°F (24-29°C). Pack light and bring sunscreen! <br /><br />There are specific dress codes for each wedding event, so check the link below for details.</>,
+      content: [
+        "January weather is lovely - around 75-85°F (24-29°C). Pack light and bring sunscreen!",
+        "There are specific dress codes for each wedding event, so check the link below for details."
+      ],
       image: "/images/travel_stay/6.png",
       buttonText: "Dress Code",
       onButtonClick: () => router.push('/events'),
     },
     {
       title: "Money stuff 💰",
-      content: <>Thailand uses Thai Baht (roughly 1 USD = 35 THB, 1 INR = 0.4 THB). We recommend getting cash from a currency exchange since ATMs here have high fees. <br /><br />Most places accept cards, but local stores and 7-Elevens will require cash.</>,
+      content: [
+        "Thailand uses Thai Baht (roughly 1 USD = 35 THB, 1 INR = 0.4 THB). We recommend getting cash from a currency exchange since ATMs here have high fees.",
+        "Most places accept cards, but local stores and 7-Elevens will require cash."
+      ],
       image: "/images/travel_stay/7.png",
     },
     {
       title: "Staying in touch 📱",
-      content: <>We'll be using WhatsApp for updates and coordination so make sure you have the app downloaded on your phone. <br /><br />Also, keep checking back here - we'll add more details as we get closer.</>,
+      content: [
+        "We'll be using WhatsApp for updates and coordination so make sure you have the app downloaded on your phone.",
+        "Also, keep checking back here - we'll add more details as we get closer."
+      ],
       image: "/images/travel_stay/8.png",
       buttonText: "link coming soon",
       isDisabled: true,
     },
     {
       title: "We’re so excited to celebrate with you! 🎉",
-      content: <>That's everything you should need for now! If you have any questions about travel, the wedding, or anything else, just reach out - we're always happy to help.</>,
+      content: [
+        "That's everything you should need for now! If you have any questions about travel, the wedding, or anything else, just reach out - we're always happy to help."
+      ],
       image: "/images/travel_stay/9.png",
       buttonText: "Back to menu",
       onButtonClick: () => router.push('/details'),

@@ -50,7 +50,7 @@ const weddingEvents = [
     slug: 'reception',
     name: 'Sangeet & Reception',
     dress_code: 'Cocktail Glam',
-    dress_code_emoji: '🤵🏽',
+    dress_code_emoji: '🪩',
     date: 'January 5',
     time: '7:30 PM',
   },
