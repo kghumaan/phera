@@ -24,6 +24,8 @@ export async function getExistingRSVP(email: string, weddingId: string) {
           plus_one,
           plus_one_name,
           plus_one_email,
+          plus_one_country_code,
+          plus_one_phone,
           country_code,
           food_preference,
           dietary_restrictions,
@@ -70,6 +72,10 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       }
     }
 
+    // Extract plus one phone details
+    const plusOneCountryCode = rsvp.plus_one_country_code || '+1'
+    const plusOnePhone = rsvp.plus_one_phone || ''
+
     // Parse name
     const nameParts = guest.name.split(' ')
     const firstName = nameParts[0] || ''
@@ -86,6 +92,8 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       plusOne: (rsvp.plus_one ? 'yes' : 'no') as 'yes' | 'no' | '',
       plusOneName: rsvp.plus_one_name || '',
       plusOneEmail: rsvp.plus_one_email || '',
+      plusOneCountryCode,
+      plusOnePhone,
       guestCount: rsvp.guest_count || 1,
       foodPreference: Array.isArray(rsvp.food_preference) ? rsvp.food_preference : [],
       dietaryRestrictions: rsvp.dietary_restrictions || '',
@@ -222,6 +230,8 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       plus_one: plusOneStatus,
       plus_one_name: plusOneStatus && formData.plusOneName ? formData.plusOneName : null,
       plus_one_email: plusOneStatus && formData.plusOneEmail ? formData.plusOneEmail : null,
+      plus_one_country_code: plusOneStatus && formData.plusOneCountryCode ? formData.plusOneCountryCode : null,
+      plus_one_phone: plusOneStatus && formData.plusOnePhone ? formData.plusOnePhone : null,
       country_code: formData.countryCode || '+1',
       food_preference: foodPreferences.length > 0 ? foodPreferences : null,
       dietary_restrictions: formData.dietaryRestrictions || null,

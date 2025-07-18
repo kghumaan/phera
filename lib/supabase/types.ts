@@ -24,6 +24,8 @@ export interface RSVP {
   dietary_restrictions?: string
   plus_one_name?: string
   plus_one_email?: string
+  plus_one_country_code?: string
+  plus_one_phone?: string
   country_code?: string
   plus_one: boolean
   food_preference?: string[]
@@ -56,6 +58,8 @@ export interface RSVPFormData {
   plusOne: 'yes' | 'no' | '' | boolean // Support both string and boolean format
   plusOneName?: string
   plusOneEmail?: string
+  plusOneCountryCode?: string
+  plusOnePhone?: string
   guestCount: number
   maybeComment?: string
   
