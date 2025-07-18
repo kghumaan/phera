@@ -32,11 +32,18 @@ export const metadata: Metadata = {
     siteName: "Phera",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
         width: 1200,
         height: 630,
         alt: "Sim & KV - Wedding Celebration",
-        type: "image/png",
+        type: "image/jpeg",
+      },
+      {
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/whatsapp-square.jpg`,
+        width: 1200,
+        height: 1200,
+        alt: "Sim & KV - Wedding Celebration",
+        type: "image/jpeg",
       },
     ],
     locale: "en_US",
@@ -47,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sim & KV's Wedding Invite",
     description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage.png`],
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`],
     creator: "@phera",
   },
   
@@ -77,18 +84,20 @@ export const metadata: Metadata = {
     maximumScale: 1,
   },
   
-  // Additional meta tags optimized for link sharing
+  // Additional meta tags optimized for link sharing, including WhatsApp
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Phera',
     'theme-color': '#D4AF37',
+    
     // Enhanced meta tags for better link previews
-    'og:image:type': 'image/png',
+    'og:image:type': 'image/jpeg',
     'og:image:width': '1200',
     'og:image:height': '630',
     'og:image:alt': 'Sim & KV - Wedding Celebration',
+    'og:image:secure_url': `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
   },
 };
 

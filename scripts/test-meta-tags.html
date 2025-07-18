@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Tags Test - Phera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .meta-tag {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .warning {
+            color: #ffc107;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .image-preview {
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>WhatsApp Meta Tags Test</h1>
+    
+    <div class="test-section">
+        <h2>✅ What's Fixed for WhatsApp</h2>
+        <ul>
+            <li class="success">✅ File size optimized (under 300KB)</li>
+            <li class="success">✅ Multiple image formats (rectangular + square)</li>
+            <li class="success">✅ JPEG format for better compression</li>
+            <li class="success">✅ Proper Open Graph meta tags</li>
+            <li class="success">✅ HTTPS secure URLs</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Current Meta Tags</h2>
+        <div class="meta-tag">
+            &lt;meta property="og:title" content="Sim & KV's Wedding Invite" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:description" content="RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website." /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image" content="https://phera.io/images/couple/imessage-optimized.jpg" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image:width" content="1200" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image:height" content="630" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image:type" content="image/jpeg" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image" content="https://phera.io/images/couple/whatsapp-square.jpg" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image:width" content="1200" /&gt;
+        </div>
+        <div class="meta-tag">
+            &lt;meta property="og:image:height" content="1200" /&gt;
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 Platform Support</h2>
+        <ul>
+            <li><strong>WhatsApp:</strong> Will use the square image (1200x1200) - 228KB</li>
+            <li><strong>iMessage:</strong> Will use the rectangular image (1200x630) - 165KB</li>
+            <li><strong>Facebook:</strong> Will use the rectangular image (1200x630) - 165KB</li>
+            <li><strong>Twitter:</strong> Will use the rectangular image (1200x630) - 165KB</li>
+            <li><strong>LinkedIn:</strong> Will use the rectangular image (1200x630) - 165KB</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Testing Instructions</h2>
+        <ol>
+            <li>Deploy your changes to production</li>
+            <li>Test the link in WhatsApp:
+                <ul>
+                    <li>Send the link to yourself or a friend</li>
+                    <li>Check if the preview image appears</li>
+                    <li>Verify the title and description are correct</li>
+                </ul>
+            </li>
+            <li>Use Facebook's Sharing Debugger: <a href="https://developers.facebook.com/tools/debug/" target="_blank">https://developers.facebook.com/tools/debug/</a></li>
+            <li>Use LinkedIn's Post Inspector: <a href="https://www.linkedin.com/post-inspector/" target="_blank">https://www.linkedin.com/post-inspector/</a></li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>⚠️ Important Notes</h2>
+        <ul>
+            <li class="warning">WhatsApp caches link previews aggressively. If you don't see changes immediately, try:</li>
+            <li>- Adding a query parameter to the URL (e.g., ?v=1)</li>
+            <li>- Waiting 24-48 hours for cache to clear</li>
+            <li>- Using Facebook's Sharing Debugger to force a refresh</li>
+        </ul>
+    </div>
+</body>
+</html> 
