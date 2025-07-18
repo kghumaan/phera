@@ -61,7 +61,7 @@ const weddingSchedule = [
     date: 'Monday - January 5, 2025',
     events: [
       {
-        time: '7:30 - 9:30 AM',
+        time: '6:30 - 9:30 AM',
         name: '🍳 Breakfast',
         location: 'Basil Restaurant'
       },
@@ -92,7 +92,7 @@ const weddingSchedule = [
     date: 'Tuesday - January 6, 2025',
     events: [
       {
-        time: '7:30 - 11 AM',
+        time: '6:30 - 11 AM',
         name: '🍳 Breakfast',
         location: 'Basil Restaurant'
       },
