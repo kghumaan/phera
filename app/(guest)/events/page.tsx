@@ -12,7 +12,7 @@ const weddingEvents = [
   {
     id: 1,
     slug: 'welcome-lunch-haldi',
-    name: 'Haldi & Mehendi',
+    name: 'Welcome Lunch & Haldi',
     dress_code: 'Shades of Yellow',
     dress_code_emoji: '🌻',
     date: 'January 4',
@@ -22,7 +22,7 @@ const weddingEvents = [
     id: 2,
     slug: 'baraat-varmala-jaggo',
     name: 'Baraat, Varmala, & Jaggo',
-    dress_code: 'Vibrant Festive Hues',
+    dress_code: 'Vibrant Indian Festive',
     dress_code_emoji: '🎊',
     date: 'January 4',
     time: '4 PM',
@@ -31,7 +31,7 @@ const weddingEvents = [
     id: 3,
     slug: 'anand-karaj',
     name: 'Anand Karaj (Wedding Ceremony)',
-    dress_code: 'Pastel',
+    dress_code: 'Pastel Indian Traditional',
     dress_code_emoji: '🌸',
     date: 'January 5',
     time: '9:30 AM',
@@ -40,31 +40,21 @@ const weddingEvents = [
     id: 4,
     slug: 'pool-party',
     name: 'Pool Party',
-    dress_code: 'Beach-Chic Loungewear',
-    dress_code_emoji: '🏖️',
+    dress_code: 'Boho Beach Festival',
+    dress_code_emoji: '☀️',
     date: 'January 5',
     time: '2 PM',
   },
   {
     id: 5,
     slug: 'reception',
-    name: 'Reception',
-    dress_code: 'Black-Tie',
+    name: 'Sangeet & Reception',
+    dress_code: 'Cocktail Glam',
     dress_code_emoji: '🤵🏽',
     date: 'January 5',
     time: '7:30 PM',
   },
-  {
-    id: 6,
-    slug: 'after-party',
-    name: 'After Party',
-    dress_code: 'Neon Festival Rave',
-    dress_code_emoji: '🎆',
-    date: 'January 5',
-    time: '11:45 PM',
-  },
 ];
-
 // Helper function to format date
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -78,6 +68,12 @@ export const getGradientImage = (slug: string) => {
     case 'welcome-lunch-haldi':
       return 'GradientYellow.png';
     case 'baraat-varmala-jaggo':
+      return 'GradientJaggo.png';
+    case 'anand-karaj':
+      return 'GradientCottonCandy.png';
+    case 'pool-party':
+      return 'GradientPoolParty.png';
+    case 'reception':
       return 'GradientJaggo.png';
     default:
       return null;

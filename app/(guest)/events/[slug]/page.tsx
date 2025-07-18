@@ -90,7 +90,7 @@ const EventCard = ({
         display: 'flex',
         flexDirection: 'column',
         backgroundImage: (index === 0 || index === 2 || index === 4 || index === 6 || index === 8 || index === 10) ? 
-          `url(/images/backgrounds/Gradient${eventSlug === 'baraat-varmala-jaggo' ? 'Jaggo' : 'Yellow'}.png)` : 'none',
+          `url(/images/backgrounds/Gradient${eventSlug === 'reception' ? 'Reception' : eventSlug === 'baraat-varmala-jaggo' ? 'Jaggo' : eventSlug === 'anand-karaj' ? 'CottonCandy' : eventSlug === 'pool-party' ? 'PoolParty' : 'Yellow'}.png)` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -172,7 +172,7 @@ const weddingEvents = [
     id: 2,
     slug: 'baraat-varmala-jaggo',
     name: 'Baraat, Varmala, & Jaggo',
-    dress_code: 'Vibrant Festive Hues',
+    dress_code: 'Vibrant Indian Festive',
     dress_code_emoji: '🎊',
     date: 'January 4',
     time: '4 PM',
@@ -181,7 +181,7 @@ const weddingEvents = [
     id: 3,
     slug: 'anand-karaj',
     name: 'Anand Karaj (Wedding Ceremony)',
-    dress_code: 'Pastel',
+    dress_code: 'Pastel Indian Traditional',
     dress_code_emoji: '🌸',
     date: 'January 5',
     time: '9:30 AM',
@@ -190,28 +190,19 @@ const weddingEvents = [
     id: 4,
     slug: 'pool-party',
     name: 'Pool Party',
-    dress_code: 'Beach-Chic Loungewear',
-    dress_code_emoji: '🏖️',
+    dress_code: 'Boho Beach Festival',
+    dress_code_emoji: '☀️',
     date: 'January 5',
     time: '2 PM',
   },
   {
     id: 5,
     slug: 'reception',
-    name: 'Reception',
-    dress_code: 'Black-Tie',
+    name: 'Sangeet & Reception',
+    dress_code: 'Cocktail Glam',
     dress_code_emoji: '🤵🏽',
     date: 'January 5',
     time: '7:30 PM',
-  },
-  {
-    id: 6,
-    slug: 'after-party',
-    name: 'After Party',
-    dress_code: 'Neon Festival Rave',
-    dress_code_emoji: '🎆',
-    date: 'January 5',
-    time: '11:45 PM',
   },
 ];
 
@@ -436,7 +427,7 @@ export default function EventDetailPage() {
               textAlign: 'center'
             }}
           >
-            Haldi
+            The Ritual
           </Typography>
           
           <Typography 
@@ -453,7 +444,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            What It Is
+            Haldi
           </Typography>
           
           <Typography 
@@ -469,7 +460,7 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-            A ritual where loved ones smear a turmeric–mustard–flour paste on the bride AND groom for cleansing, blessing, and pre-wedding glow-up time.
+            A joyful ceremony where family and friends smear the couple with turmeric-paste - symbolizing purity, protection, and a radiant glow for the big day.
           </Typography>
         </Stack>
       )
@@ -500,7 +491,7 @@ export default function EventDetailPage() {
               textAlign: 'center'
             }}
           >
-            Haldi
+            The Ritual
           </Typography>
           
           <Typography 
@@ -517,7 +508,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            Why it Matters
+            Mehendi
           </Typography>
           
           <Typography 
@@ -533,7 +524,7 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-            Turmeric symbolizes purity, protection & prosperity. Expect playful folk songs, lots of laughter, and those iconic yellow highlights.
+            Live henna artists weave intricate patterns on your hands and feet—an ancient symbol of luck, love, and festive camaraderie.
           </Typography>
         </Stack>
       )
@@ -544,127 +535,6 @@ export default function EventDetailPage() {
       content: null,
       isImage: true,
       imageSrc: "/images/carousel/haldi/4.png"
-    },
-    // Slide 9 - Mehendi station content
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Mehendi station
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1,
-              fontStyle: 'italic',
-            }}
-          >
-            What It Is
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            Live henna artists transform your hands into intricate, temporary works of art—each swirl and paisley a symbol of love and good fortune.
-          </Typography>
-        </Stack>
-      )
-    },
-    // Slide 10 - Image 5
-    {
-      title: "Image 5",
-      content: null,
-      isImage: true,
-      imageSrc: "/images/carousel/haldi/5.png"
-    },
-    // Slide 11 - Mehendi station Why it Matters content
-    {
-      title: "Why it Matters",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography 
-            variant="subtitle2"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 600,
-              fontSize: 16,
-              lineHeight: 1.5,
-              letterSpacing: '0.0625em',
-              textTransform: 'uppercase',
-              color: '#141414',
-              opacity: 0.4,
-              textAlign: 'center'
-            }}
-          >
-            Mehendi station
-          </Typography>
-          
-          <Typography 
-            variant="h2"
-            sx={{ 
-              fontFamily: 'Instrument Serif',
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.3,
-              textTransform: 'capitalize',
-              color: '#141414',
-              textAlign: 'center',
-              mb: 1,
-              fontStyle: 'italic',
-            }}
-          >
-            Why it Matters
-          </Typography>
-          
-          <Typography 
-            variant="body1"
-            sx={{ 
-              fontFamily: 'Outfit',
-              fontWeight: 300,
-              fontSize: 16,
-              lineHeight: 1.5,
-              color: '#141414',
-              textAlign: 'center',
-              maxWidth: 281,
-              px: 2
-            }}
-          >
-            Beyond the beauty, mehendi is believed to bring luck, ward off evil, and strengthen the bond between the couple—and it's a chance for guests to relax, socialize, and get creative.
-          </Typography>
-        </Stack>
-      )
     },
   ];
 
@@ -849,7 +719,7 @@ export default function EventDetailPage() {
               textAlign: 'center'
             }}
           >
-            Baraat & Varmala
+            The Vibe
           </Typography>
           
           <Typography 
@@ -866,7 +736,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            What It Is
+            Baraat
           </Typography>
           
           <Typography 
@@ -882,7 +752,7 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-            First, the baraat arrives in style—groom's crew dancing with drums and trumpets as he makes his grand entrance. Then comes the Varmala, where the couple meets on the mandap and drapes floral garlands around each other's necks.
+            Groom’s crew bursts in on drums and trumpets, dancing him straight into the venue—an electrifying welcome that kicks off the celebration.
           </Typography>
         </Stack>
       )
@@ -913,7 +783,7 @@ export default function EventDetailPage() {
               textAlign: 'center'
             }}
           >
-            Baraat & Varmala
+            The Moment
           </Typography>
           
           <Typography 
@@ -930,7 +800,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            Why it Matters
+            Varmala & Vows
           </Typography>
           
           <Typography 
@@ -946,8 +816,7 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-            This is the ultimate welcome party: the bride's side greets the groom's side in full celebration, then the garlands seal their promise. It's a vibrant declaration of love and equal partnership.
-          </Typography>
+        On the mandap, the couple swaps floral garlands and shares personal vows—an equal, heartfelt promise in one picture-perfect instant.          </Typography>
         </Stack>
       )
     },
@@ -977,7 +846,7 @@ export default function EventDetailPage() {
               textAlign: 'center'
             }}
           >
-            Jaggo Night
+            The Ritual
           </Typography>
           
           <Typography 
@@ -994,7 +863,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            What It Is
+            Jaggo
           </Typography>
           
           <Typography 
@@ -1010,7 +879,7 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-           A night-owl block-party procession: women carry decorated copper pots ("gaggars") with lit diyas on their heads, shake bells, and sing as they "wake up" the neighborhood.           </Typography>
+        After dinner, the night ignites into a Punjabi “wake-up” party—guests circle the dance floor to pounding dhol and swirling dupattas, celebrating under lantern-lit trees.           </Typography>
         </Stack>
       )
     },
@@ -1021,9 +890,13 @@ export default function EventDetailPage() {
       isImage: true,
       imageSrc: "/images/carousel/jaggo/5.png"
     },
-    // Slide 11 - Final celebration content
+  ];
+
+  // Anand Karaj event content
+  const getAnandKarajContent = () => [
+    // Slide 1 - Dress code content
     {
-      title: "Join the Celebration",
+      title: "Dress code",
       content: (
         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
           <Typography 
@@ -1035,12 +908,472 @@ export default function EventDetailPage() {
               lineHeight: 1.5,
               letterSpacing: '0.0625em',
               textTransform: 'uppercase',
-              color: '#FFFFFF',
+              color: '#141414',
               opacity: 0.4,
               textAlign: 'center'
             }}
           >
-            Jaggo Night
+            Dress code
+          </Typography>
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.3,
+              textTransform: 'capitalize',
+              color: '#141414',
+              textAlign: 'center',
+              fontStyle: 'italic',
+              mb: 1
+            }}
+          >
+            Traditional Indian - Pastels
+          </Typography>
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#141414',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            Show up in soft blush, mint, and lavender—think light chiffons or cotton‐silk kurtas and flowy dupattas. A head covering is required for this sacred Anand Karaj ceremony. Please no reds!
+          </Typography>
+        </Stack>
+      )
+    },
+    // Slide 2 - Image 1
+    {
+      title: "Image 1",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/anand_karaj/1.png"
+    },
+    // Slide 3 - Traditional Outfit Ideas from Figma
+    {
+      title: "Traditional Outfit Ideas",
+      content: (
+        <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          {/* Women Section */}
+          <Box sx={{ textAlign: 'center', width: '100%' }}>
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#141414',
+                opacity: 0.4,
+                textAlign: 'center',
+                mb: 2
+              }}
+            >
+              Women
+            </Typography>
+            
+            <Stack spacing={1} sx={{ mb: 3 }}>
+              {['Lehengas', 'Anarkalis', 'Sarees', 'Salwar Kameez'].map((item) => (
+                <Typography 
+                  key={item}
+                  variant="h6"
+                  sx={{ 
+                    fontFamily: 'Instrument Serif',
+                    fontWeight: 400,
+                    fontSize: 28,
+                    lineHeight: 1.3,
+                    textTransform: 'capitalize',
+                    color: '#141414',
+                    textAlign: 'center',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {item}
+                </Typography>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* Men Section */}
+          <Box sx={{ textAlign: 'center', width: '100%' }}>
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#141414',
+                opacity: 0.4,
+                textAlign: 'center',
+                mb: 2
+              }}
+            >
+              Men
+            </Typography>
+            
+            <Stack spacing={1}>
+              {['Kurta Sets', 'Summer Suits', 'Sherwanis', 'Bandhgalas'].map((item) => (
+                <Typography 
+                  key={item}
+                  variant="h6"
+                  sx={{ 
+                    fontFamily: 'Instrument Serif',
+                    fontWeight: 400,
+                    fontSize: 28,
+                    lineHeight: 1.3,
+                    textTransform: 'capitalize',
+                    color: '#141414',
+                    textAlign: 'center',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {item}
+                </Typography>
+              ))}
+            </Stack>
+          </Box>
+        </Stack>
+      )
+    },
+    // Slide 4 - Image 2
+    {
+      title: "Image 2",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/anand_karaj/2.png"
+    },
+    // Slide 5 - The Ceremony content from Figma
+    {
+      title: "The Ceremony",
+      content: (
+        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#141414',
+              opacity: 0.4,
+              textAlign: 'center'
+            }}
+          >
+            The ceremony
+          </Typography>
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.3,
+              textTransform: 'capitalize',
+              color: '#141414',
+              textAlign: 'center',
+              mb: 1,
+              fontStyle: 'italic',
+            }}
+          >
+            Anand Karaj
+          </Typography>
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#141414',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            A sacred Sikh ceremony where the couple circles the Guru Granth Sahib four times—each lap sealing vows through timeless hymns and equal partnership.
+          </Typography>
+        </Stack>
+      )
+    },
+    // Slide 6 - Image 3
+    {
+      title: "Image 3",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/anand_karaj/3.png"
+    }
+  ];
+
+  // Pool Party event content
+  const getPoolPartyContent = () => [
+    // Slide 1 - Dress code from Figma
+    {
+      title: "Dress code",
+      content: (
+        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#141414',
+              opacity: 0.4,
+              textAlign: 'center'
+            }}
+          >
+            Dress code
+          </Typography>
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.3,
+              textTransform: 'capitalize',
+              color: '#141414',
+              textAlign: 'center',
+              fontStyle: 'italic',
+              mb: 1
+            }}
+          >
+            Boho Beach Festival
+          </Typography>
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#141414',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            Day-Party Festival Vibes—bright swimwear under flowy kimonos or mesh cover-ups, oversized shades, and comfy slides or sandals.
+          </Typography>
+        </Stack>
+      )
+    },
+    // Slide 2 - Image 1
+    {
+      title: "Image 1",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/pool_party/1.png"
+    },
+    // Slide 3 - Outfit Ideas content
+    {
+      title: "Outfit Ideas",
+      content: (
+        <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          {/* Women Section */}
+          <Box sx={{ textAlign: 'center', width: '100%' }}>
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#141414',
+                opacity: 0.4,
+                textAlign: 'center',
+                mb: 2
+              }}
+            >
+              Women
+            </Typography>
+            
+            <Stack spacing={1} sx={{ mb: 3 }}>
+              {['Bikinis & One-Pieces', 'Mesh Cover-ups', 'Flowy Kimonos', 'Crochet Tops'].map((item) => (
+                <Typography 
+                  key={item}
+                  variant="h6"
+                  sx={{ 
+                    fontFamily: 'Instrument Serif',
+                    fontWeight: 400,
+                    fontSize: 28,
+                    lineHeight: 1.3,
+                    textTransform: 'capitalize',
+                    color: '#141414',
+                    textAlign: 'center',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {item}
+                </Typography>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* Men Section */}
+          <Box sx={{ textAlign: 'center', width: '100%' }}>
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#141414',
+                opacity: 0.4,
+                textAlign: 'center',
+                mb: 2
+              }}
+            >
+              Men
+            </Typography>
+            
+            <Stack spacing={1}>
+              {['Swim Trunks', 'Linen Shirts', 'Tank Tops', 'Bucket Hats'].map((item) => (
+                <Typography 
+                  key={item}
+                  variant="h6"
+                  sx={{ 
+                    fontFamily: 'Instrument Serif',
+                    fontWeight: 400,
+                    fontSize: 28,
+                    lineHeight: 1.3,
+                    textTransform: 'capitalize',
+                    color: '#141414',
+                    textAlign: 'center',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {item}
+                </Typography>
+              ))}
+            </Stack>
+          </Box>
+        </Stack>
+      )
+    },
+    // Slide 4 - Image 2
+    {
+      title: "Image 2",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/pool_party/2.png"
+    },
+    // Slide 5 - The Vibe content from Figma
+    {
+      title: "The Vibe",
+      content: (
+        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#141414',
+              opacity: 0.4,
+              textAlign: 'center'
+            }}
+          >
+            The vibe
+          </Typography>
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.3,
+              textTransform: 'capitalize',
+              color: '#141414',
+              textAlign: 'center',
+              mb: 1,
+              fontStyle: 'italic',
+            }}
+          >
+            Pool Party
+          </Typography>
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#141414',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            A daytime festival by water—splashy games, chilled cocktails, and laid-back beats under palm fronds, recharging you for the night ahead.
+          </Typography>
+        </Stack>
+      )
+    },
+    // Slide 6 - Image 3
+    {
+      title: "Image 3",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/pool_party/3.png"
+    }
+  ];
+
+  // Reception event content
+  const getReceptionContent = () => [
+    // Slide 1 - Dress code content (matching Figma design)
+    {
+      title: "Dress code",
+      content: (
+        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#EBEBEB',
+              opacity: 0.7,
+              textAlign: 'center'
+            }}
+          >
+            Dress code
           </Typography>
           
           <Typography 
@@ -1057,7 +1390,7 @@ export default function EventDetailPage() {
               fontStyle: 'italic',
             }}
           >
-            Why It Matters
+            Cocktail Glam
           </Typography>
           
           <Typography 
@@ -1073,114 +1406,300 @@ export default function EventDetailPage() {
               px: 2
             }}
           >
-         It's pure Punjabi energy—spreading joy door-to-door with bhangra, boliyan (folk songs), chai & snacks, and that unbeatable drum pulse.           </Typography>
+            Dress to impress—think sharp suits, elegant gowns, or chic lehengas and sherwanis in jewel tones and standout embellishments.
+          </Typography>
         </Stack>
       )
     },
-  ];
+    // Slide 2 - Image 1
+    {
+      title: "Image 1",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/reception/1.png"
+    },
+    // Slide 3 - Detailed Dress Code (matching Figma design)
+    {
+      title: "Detailed Dress Code",
+      content: (
+        <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 2, px: 2 }}>
+          {/* Women's Section */}
+          <Stack spacing={2} alignItems="center">
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#EBEBEB',
+                opacity: 0.7,
+                textAlign: 'center'
+              }}
+            >
+              Women
+            </Typography>
+            
+            <Stack spacing={1} alignItems="center">
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Evening Gowns
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Embellished Sarees
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Fusion Co-ord Sets
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Cocktail Lehengas
+              </Typography>
+            </Stack>
+          </Stack>
 
-  // Anand Karaj event content
-  const getAnandKarajContent = () => [
+          {/* Men's Section */}
+          <Stack spacing={2} alignItems="center">
+            <Typography 
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                fontSize: 16,
+                lineHeight: 1.5,
+                letterSpacing: '0.0625em',
+                textTransform: 'uppercase',
+                color: '#EBEBEB',
+                opacity: 0.7,
+                textAlign: 'center'
+              }}
+            >
+              Men
+            </Typography>
+            
+            <Stack spacing={1} alignItems="center">
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Tuxedos & Dinner Suits
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Tailored Sherwanis
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  fontFamily: 'Instrument Serif',
+                  fontWeight: 400,
+                  fontSize: 28,
+                  lineHeight: 1.3,
+                  textTransform: 'capitalize',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                Patterned Nehru Jackets
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      )
+    },
+    // Slide 4 - Image 2
     {
-      title: "Dress code",
+      title: "Image 2",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/reception/2.png"
+    },
+    // Slide 5 - The Celebration (matching Figma design)
+    {
+      title: "The Celebration",
       content: (
         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Dress code
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#EBEBEB',
+              opacity: 0.7,
+              textAlign: 'center'
+            }}
+          >
+            The celebration
           </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            Pastel
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.5,
+              textTransform: 'capitalize',
+              color: '#FFFFFF',
+              textAlign: 'center',
+              mb: 1,
+              fontStyle: 'italic',
+            }}
+          >
+            Sangeet & Reception
           </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            Soft, gentle colors → blush pink, mint green, lavender, cream. Elegant and serene for this sacred ceremony.
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#FFFFFF',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            Evening kicks off with a high-energy Sangeet of choreographed dances, then flows into a formal Reception of dinner, toasts, and first dances—a perfect blend of party and polish.
           </Typography>
         </Stack>
       )
     },
+    // Slide 6 - Image 3
     {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Anand Karaj
-          </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            What It Is
-          </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            The sacred Sikh wedding ceremony where the couple circles the Guru Granth Sahib four times, each representing a stage of spiritual union.
-          </Typography>
-        </Stack>
-      )
+      title: "Image 3",
+      content: null,
+      isImage: true,
+      imageSrc: "/images/carousel/reception/3.png"
     },
-  ];
-
-  // Pool Party event content
-  const getPoolPartyContent = () => [
+    // Slide 7 - The Vibe (matching Figma design)
     {
-      title: "Dress code",
+      title: "The Vibe",
       content: (
         <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Dress code
+          <Typography 
+            variant="subtitle2"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 600,
+              fontSize: 16,
+              lineHeight: 1.5,
+              letterSpacing: '0.0625em',
+              textTransform: 'uppercase',
+              color: '#EBEBEB',
+              opacity: 0.7,
+              textAlign: 'center'
+            }}
+          >
+            The Vibe
           </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            Beach-Chic Loungewear
+          
+          <Typography 
+            variant="h2"
+            sx={{ 
+              fontFamily: 'Instrument Serif',
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.5,
+              textTransform: 'capitalize',
+              color: '#FFFFFF',
+              textAlign: 'center',
+              mb: 1,
+              fontStyle: 'italic',
+            }}
+          >
+            Afterparty
           </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            Swimwear, cover-ups, linen shirts, flowy dresses. Bring sunscreen and prepare to splash!
-          </Typography>
-        </Stack>
-      )
-    },
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Pool Party
-          </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            What It Is
-          </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            A relaxed celebration by the pool with music, drinks, and fun games. Time to unwind and celebrate!
-          </Typography>
-        </Stack>
-      )
-    },
-  ];
-
-  // Reception event content
-  const getReceptionContent = () => [
-    {
-      title: "Dress code",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Dress code
-          </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            Black-Tie
-          </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            Formal elegant attire → tuxedos, evening gowns, cocktail dresses. Time to dress to impress!
-          </Typography>
-        </Stack>
-      )
-    },
-    {
-      title: "What It Is",
-      content: (
-        <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontFamily: 'Outfit', fontWeight: 600, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#141414', opacity: 0.4, textAlign: 'center' }}>
-            Reception
-          </Typography>
-          <Typography variant="h2" sx={{ fontFamily: 'Instrument Serif', fontWeight: 400, fontSize: 40, lineHeight: 1.3, textTransform: 'capitalize', color: '#141414', textAlign: 'center', mb: 1 }}>
-            What It Is
-          </Typography>
-          <Typography variant="body1" sx={{ fontFamily: 'Outfit', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: '#141414', textAlign: 'center', maxWidth: 281, px: 2 }}>
-            An elegant evening celebration with dinner, dancing, and speeches to honor the newlyweds.
+          
+          <Typography 
+            variant="body1"
+            sx={{ 
+              fontFamily: 'Outfit',
+              fontWeight: 300,
+              fontSize: 16,
+              lineHeight: 1.5,
+              color: '#FFFFFF',
+              textAlign: 'center',
+              maxWidth: 281,
+              px: 2
+            }}
+          >
+            The night continues with pulsing beats, craft cocktails, and a dance floor that stays hot until the wee hours.
           </Typography>
         </Stack>
       )

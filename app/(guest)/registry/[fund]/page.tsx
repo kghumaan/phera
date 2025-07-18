@@ -416,7 +416,7 @@ export default function FundPage() {
                 options={{
                   clientSecret,
                   appearance: {
-                    theme: 'minimal',
+                    // theme: 'minimal',
                     variables: {
                       fontFamily: 'Outfit, system-ui, sans-serif',
                       borderRadius: '8px',
