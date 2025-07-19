@@ -38,13 +38,6 @@ export const metadata: Metadata = {
         alt: "Sim & KV - Wedding Celebration",
         type: "image/jpeg",
       },
-      {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/whatsapp-square.jpg`,
-        width: 1200,
-        height: 1200,
-        alt: "Sim & KV - Wedding Celebration",
-        type: "image/jpeg",
-      },
     ],
     locale: "en_US",
   },
