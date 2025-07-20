@@ -277,7 +277,7 @@ export async function sendMagicLink(email: string, preservePin: boolean = false)
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        shouldCreateUser: false, // Don't create user, they must exist in guests table
+        shouldCreateUser: true, // Allow user creation - validation ensures they exist in guests table
         emailRedirectTo: redirectUrl.toString(),
       }
     });
