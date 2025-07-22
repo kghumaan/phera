@@ -326,8 +326,6 @@ export default function HomePage() {
           // Clean up URL params
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('auth_success');
-          newUrl.searchParams.delete('magic_link');
-          newUrl.searchParams.delete('bypass_pin');
           window.history.replaceState({}, '', newUrl.toString());
         }
         
@@ -396,18 +394,7 @@ export default function HomePage() {
     };
 
     checkPinVerification();
-    
-    // Add a safety timeout to prevent infinite loading
-    const safetyTimeout = setTimeout(() => {
-      console.warn('Pin verification check timed out, forcing completion');
-      setIsCheckingPin(false);
-      if (!isPinVerified) {
-        setIsPinVerified(false);
-      }
-    }, 5000); // 5 second timeout
-    
-    return () => clearTimeout(safetyTimeout);
-  }, [refreshAuth, isPinVerified]);
+  }, [refreshAuth]);
 
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
