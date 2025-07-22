@@ -305,6 +305,7 @@ export default function HomePage() {
         // First check for auth errors from callback
         const urlParams = new URLSearchParams(window.location.search);
         const authError = urlParams.get('auth_error');
+        const authSuccess = urlParams.get('auth_success');
         
         if (authError) {
           console.error('Authentication error:', authError);
@@ -312,6 +313,19 @@ export default function HomePage() {
           // Clean up URL params
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('auth_error');
+          window.history.replaceState({}, '', newUrl.toString());
+        }
+        
+        // Force auth refresh if coming from magic link callback
+        if (authSuccess === 'true') {
+          console.log('Magic link authentication detected, refreshing auth...');
+          setTimeout(() => {
+            refreshAuth(); // Force refresh auth status
+          }, 100);
+          
+          // Clean up URL params
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('auth_success');
           window.history.replaceState({}, '', newUrl.toString());
         }
         
@@ -379,7 +393,7 @@ export default function HomePage() {
     };
 
     checkPinVerification();
-  }, []);
+  }, [refreshAuth]);
 
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
