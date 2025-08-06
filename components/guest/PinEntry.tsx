@@ -150,6 +150,20 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     // Check for existing pin verification on component mount
     const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
+        // FIRST: Check if coming from magic link authentication
+        const urlParams = new URLSearchParams(window.location.search);
+        const authSuccess = urlParams.get('auth_success');
+        const restorePin = urlParams.get('restore_pin');
+        const magicLink = urlParams.get('magic_link');
+        const bypassPin = urlParams.get('bypass_pin');
+        
+        if (authSuccess === 'true' || restorePin === 'true' || magicLink === 'true' || bypassPin === 'true') {
+          // If coming from magic link, bypass PIN entry immediately
+          console.log('Magic link detected, bypassing PIN entry...');
+          onPinVerified();
+          return;
+        }
+        
         const pinVerified = localStorage.getItem('phera_pin_verified');
         const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
         
@@ -164,6 +178,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               // Remove expired pin verification
               localStorage.removeItem('phera_pin_verified');
               localStorage.removeItem('phera_pin_timestamp');
+              localStorage.removeItem('phera_allows_plus_one');
             }
           } catch (error) {
             console.error('Error checking pin verification:', error);
@@ -176,6 +191,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        console.log('Auth state changed to SIGNED_IN, bypassing PIN...');
         onPinVerified(); // Skip pin if authenticated
       }
     });

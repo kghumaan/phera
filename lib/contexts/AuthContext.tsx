@@ -407,7 +407,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAuth = async () => {
     console.log('Manually refreshing auth status');
-    await checkAuthStatus();
+    setIsLoading(true);
+    
+    // Add timeout protection for refresh
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        console.warn('RefreshAuth timed out, forcing completion');
+        setIsLoading(false);
+        resolve();
+      }, 8000); // 8 second timeout for refresh
+    });
+    
+    const authPromise = checkAuthStatus();
+    
+    // Race between auth check and timeout
+    await Promise.race([authPromise, timeoutPromise]);
   };
 
   useEffect(() => {
@@ -451,10 +465,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
 
+    // Add a safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth initialization timed out, forcing completion');
+        setIsLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
+      clearTimeout(safetyTimeout);
     };
   }, []);
 

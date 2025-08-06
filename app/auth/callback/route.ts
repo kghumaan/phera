@@ -35,14 +35,18 @@ export async function GET(request: NextRequest) {
       // Determine redirect URL - go to main guest page if authenticated
       const redirectUrl = new URL('/', origin);
       
-      // Add a flag to trigger client-side auth refresh
+      // Add a flag to trigger client-side auth refresh and bypass PIN
       redirectUrl.searchParams.set('auth_success', 'true');
+      redirectUrl.searchParams.set('magic_link', 'true');
 
       // Preserve PIN verification state by setting it in the redirect URL
       if (pinVerified === 'true' && pinTimestamp) {
         redirectUrl.searchParams.set('restore_pin', 'true');
         redirectUrl.searchParams.set('pin_timestamp', pinTimestamp);
         redirectUrl.searchParams.set('allows_plus_one', allowsPlusOne || 'false');
+      } else {
+        // If no existing PIN verification, bypass PIN entry for magic link users
+        redirectUrl.searchParams.set('bypass_pin', 'true');
       }
 
       return NextResponse.redirect(redirectUrl);
