@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name
             )
           `)
-          .eq('plus_one_email', user.email)
+          .eq('plus_one_email', user.email.toLowerCase())
           .eq('wedding_id', 'sim-kv')
           .single();
 
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               event_id
             )
           `)
-          .eq('email', user.email)
+          .eq('email', user.email.toLowerCase())
           .eq('wedding_id', 'sim-kv')
           .single();
 
@@ -233,7 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             avatar_svg
           )
         `)
-        .eq('plus_one_email', email)
+        .eq('plus_one_email', email.toLowerCase())
         .eq('wedding_id', 'sim-kv')
         .single();
 
@@ -328,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                       const { data: guestData } = await supabase
                         .from('guests')
                         .select('avatar_style, avatar_seed, avatar_svg')
-                        .eq('email', guestInfo.email)
+                        .eq('email', guestInfo.email.toLowerCase())
                         .eq('wedding_id', 'sim-kv')
                         .single();
                       

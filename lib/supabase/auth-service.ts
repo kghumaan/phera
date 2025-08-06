@@ -103,7 +103,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
       const { data: guest } = await supabase
         .from('guests')
         .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
-        .eq('email', user.email)
+        .eq('email', user.email.toLowerCase())
         .eq('wedding_id', 'sim-kv')
         .single();
       
@@ -129,7 +129,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
             avatar_svg
           )
         `)
-        .eq('plus_one_email', user.email)
+        .eq('plus_one_email', user.email.toLowerCase())
         .eq('wedding_id', 'sim-kv')
         .single();
 
@@ -180,7 +180,7 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
     const { data: guest, error } = await supabase
       .from('guests')
       .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
-      .eq('email', email.trim())
+      .eq('email', email.trim().toLowerCase())
       .eq('wedding_id', 'sim-kv')
       .single();
 
@@ -210,7 +210,7 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
           avatar_svg
         )
       `)
-      .eq('plus_one_email', email.trim())
+      .eq('plus_one_email', email.trim().toLowerCase())
       .eq('wedding_id', 'sim-kv')
       .single();
 
@@ -275,7 +275,7 @@ export async function sendMagicLink(email: string, preservePin: boolean = false)
     }
 
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       options: {
         shouldCreateUser: true, // Allow user creation - validation ensures they exist in guests table
         emailRedirectTo: redirectUrl.toString(),

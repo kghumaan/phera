@@ -36,7 +36,7 @@ export async function getExistingRSVP(email: string, weddingId: string) {
           arrival_date
         )
       `)
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .eq('wedding_id', weddingId)
       .single()
 
@@ -175,7 +175,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     const { data: existingGuest } = await supabase
       .from('guests')
       .select('id')
-      .eq('email', formData.email)
+      .eq('email', formData.email.toLowerCase())
       .eq('wedding_id', weddingId)
       .single()
 
@@ -203,7 +203,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         .from('guests')
         .insert({
           name: fullName,
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           phone: fullPhone,
           wedding_id: weddingId,
           avatar_color: avatarColor,
@@ -229,7 +229,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       guest_count: attendingStatus === 'yes' ? (formData.guestCount || 1) : 0,
       plus_one: plusOneStatus,
       plus_one_name: plusOneStatus && formData.plusOneName ? formData.plusOneName : null,
-      plus_one_email: plusOneStatus && formData.plusOneEmail ? formData.plusOneEmail : null,
+      plus_one_email: plusOneStatus && formData.plusOneEmail ? formData.plusOneEmail.toLowerCase() : null,
       plus_one_country_code: plusOneStatus && formData.plusOneCountryCode ? formData.plusOneCountryCode : null,
       plus_one_phone: plusOneStatus && formData.plusOnePhone ? formData.plusOnePhone : null,
       country_code: formData.countryCode || '+1',
@@ -280,7 +280,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     if (typeof window !== 'undefined') {
       const guestInfo = {
         id: guestId,
-        email: formData.email,
+        email: formData.email.toLowerCase(),
         name: fullName,
         phone: fullPhone,
         weddingId: weddingId,
