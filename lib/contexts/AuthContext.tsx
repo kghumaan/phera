@@ -418,10 +418,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }, 8000); // 8 second timeout for refresh
     });
     
-    const authPromise = checkAuthStatus();
+    // Add retry logic for auth check after magic link
+    const authCheckWithRetry = async (retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        console.log(`Auth check attempt ${i + 1} of ${retries}`);
+        
+        try {
+          // First, refresh the session to ensure it's valid
+          console.log('Refreshing Supabase session...');
+          const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
+          console.log('Session refresh result:', { sessionData: sessionData?.session?.user?.email, sessionError });
+          
+          // Check if we have a Supabase session directly
+          const { data: { user: sessionUser }, error } = await supabase.auth.getUser();
+          
+          if (sessionUser) {
+            console.log('Found valid session for:', sessionUser.email);
+            await checkAuthStatus();
+            return;
+          } else if (i < retries - 1) {
+            console.log('No session found, retrying...', error);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          } else {
+            console.log('All auth check attempts failed');
+            
+            // FALLBACK: Check for magic link parameters without session
+            // This handles cases like local testing or session expiry
+            const urlParams = new URLSearchParams(window.location.search);
+            const authSuccess = urlParams.get('auth_success');
+            const userEmail = urlParams.get('user_email');
+            
+            if (authSuccess === 'true' && userEmail) {
+              console.log('Magic link detected without session, attempting guest auth fallback for:', decodeURIComponent(userEmail));
+              
+              // Try guest authentication with the email from URL params
+              const guestEmail = decodeURIComponent(userEmail);
+              
+              // Check for existing guest data directly
+              const { data: guestData } = await supabase
+                .from('guests')
+                .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
+                .eq('email', guestEmail.toLowerCase())
+                .eq('wedding_id', 'sim-kv')
+                .single();
+              
+              if (guestData) {
+                console.log('Found guest data for fallback auth:', guestData.name);
+                
+                const fallbackUser: User = {
+                  id: guestData.id,
+                  email: guestData.email,
+                  name: guestData.name,
+                  phone: guestData.phone,
+                  initials: generateInitials(guestData.name),
+                  avatar_color: generateAvatarColor(guestData.name),
+                  avatar_style: guestData.avatar_style,
+                  avatar_seed: guestData.avatar_seed,
+                  avatar_svg: guestData.avatar_svg,
+                };
+                
+                setUser(fallbackUser);
+                console.log('Fallback authentication successful');
+                return;
+              } else {
+                console.log('No guest data found for fallback auth');
+              }
+            }
+          }
+        } catch (err) {
+          console.error(`Auth check attempt ${i + 1} failed:`, err);
+          if (i < retries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          }
+        }
+      }
+    };
     
-    // Race between auth check and timeout
-    await Promise.race([authPromise, timeoutPromise]);
+    // Race between auth check with retry and timeout
+    await Promise.race([authCheckWithRetry(), timeoutPromise]);
   };
 
   useEffect(() => {
