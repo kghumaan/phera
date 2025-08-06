@@ -91,28 +91,36 @@ export async function verifyOTP(phone: string, token: string): Promise<AuthResul
 // Get current user session
 export async function getCurrentUser(): Promise<AuthResult> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    console.log('getCurrentUser: Checking session...', { user: user?.email, error });
     
     if (!user) {
+      console.log('getCurrentUser: No user session found');
       return { success: false, error: 'No user session found' }
     }
+
+    console.log('getCurrentUser: Found Supabase session for:', user.email);
 
     // Try to get enhanced user data from guests table first
     let guestData = null;
     if (user.email) {
-      const { data: guest } = await supabase
+      console.log('getCurrentUser: Looking up guest data for:', user.email.toLowerCase());
+      const { data: guest, error: guestError } = await supabase
         .from('guests')
         .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
         .eq('email', user.email.toLowerCase())
         .eq('wedding_id', 'sim-kv')
         .single();
       
+      console.log('getCurrentUser: Guest lookup result:', { guest, guestError });
       guestData = guest;
     }
 
     // If not found in guests table, check if this is a plus one authentication
     if (!guestData && user.email) {
-      const { data: rsvpData } = await supabase
+      console.log('getCurrentUser: Checking plus-one data for:', user.email.toLowerCase());
+      const { data: rsvpData, error: rsvpError } = await supabase
         .from('rsvps')
         .select(`
           id,
@@ -133,6 +141,8 @@ export async function getCurrentUser(): Promise<AuthResult> {
         .eq('wedding_id', 'sim-kv')
         .single();
 
+      console.log('getCurrentUser: Plus-one lookup result:', { rsvpData, rsvpError });
+
       if (rsvpData && rsvpData.plus_one_email) {
         // Create user data for plus one
         guestData = {
@@ -144,10 +154,11 @@ export async function getCurrentUser(): Promise<AuthResult> {
           avatar_seed: null,
           avatar_svg: null
         };
+        console.log('getCurrentUser: Created plus-one user data:', guestData);
       }
     }
 
-    return {
+    const result = {
       success: true,
       user: {
         id: guestData?.id || user.id,
@@ -158,9 +169,12 @@ export async function getCurrentUser(): Promise<AuthResult> {
         avatar_seed: guestData?.avatar_seed,
         avatar_svg: guestData?.avatar_svg,
       }
-    }
+    };
+
+    console.log('getCurrentUser: Returning result:', result);
+    return result;
   } catch (error) {
-    console.error('Get current user error:', error)
+    console.error('getCurrentUser: Error occurred:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get user session' 
@@ -247,9 +261,9 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
 }
 
 // Enhanced email magic link with state preservation
-export async function sendMagicLink(email: string, preservePin: boolean = false): Promise<AuthResult> {
+export async function sendMagicLink(email: string): Promise<AuthResult> {
   try {
-    // First validate if email exists
+    // First validate that the email exists in our system (using lowercase for DB query)
     const validation = await validateEmailExists(email);
     if (!validation.exists) {
       return {
@@ -258,40 +272,38 @@ export async function sendMagicLink(email: string, preservePin: boolean = false)
       };
     }
 
-    // Prepare redirect URL with state preservation
-    const redirectUrl = new URL('/auth/callback', window.location.origin);
-    
-    // If PIN verification should be preserved, add it to the state
-    if (preservePin && typeof window !== 'undefined') {
-      const pinVerified = localStorage.getItem('phera_pin_verified');
-      const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
-      const allowsPlusOne = localStorage.getItem('phera_allows_plus_one');
-      
-      if (pinVerified === 'true' && pinTimestamp) {
-        redirectUrl.searchParams.set('pin_verified', 'true');
-        redirectUrl.searchParams.set('pin_timestamp', pinTimestamp);
-        redirectUrl.searchParams.set('allows_plus_one', allowsPlusOne || 'false');
-      }
-    }
+    // Determine redirect URL based on environment
+    const redirectUrl = new URL('/auth/callback', 
+      process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3002'
+        : 'https://phera.vercel.app'
+    );
 
+    // IMPORTANT: Use original email case for Supabase Auth to match existing accounts
+    // Only use lowercase for our database queries, not for Supabase Auth
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
+      email: email.trim(), // Keep original case for Supabase Auth compatibility
       options: {
         shouldCreateUser: true, // Allow user creation - validation ensures they exist in guests table
         emailRedirectTo: redirectUrl.toString(),
+        data: {
+          // Store the email in user metadata for consistency
+          email: email.trim().toLowerCase(), // Lowercase for internal consistency
+        }
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Magic link error:', error);
+      return { success: false, error: error.message };
+    }
 
-    return { 
-      success: true
-    };
+    return { success: true };
   } catch (error) {
-    console.error('Magic link error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to send magic link'
+    console.error('Send magic link error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to send magic link' 
     };
   }
 } 
