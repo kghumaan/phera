@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Instrument_Serif } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
@@ -70,13 +70,6 @@ export const metadata: Metadata = {
   // Manifest
   manifest: '/manifest.json',
   
-  // Viewport
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  
   // Additional meta tags optimized for link sharing, including WhatsApp
   other: {
     'mobile-web-app-capable': 'yes',
@@ -92,6 +85,12 @@ export const metadata: Metadata = {
     'og:image:alt': 'Sim & KV - Wedding Celebration',
     'og:image:secure_url': `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

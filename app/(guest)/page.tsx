@@ -416,8 +416,8 @@ export default function HomePage() {
     }
   }, [isPinVerified, isLoading, isCheckingPin]);
 
-  // Show pin entry screen if pin is not verified and not loading
-  if (!isCheckingPin && !isPinVerified) {
+  // Show pin entry screen if user is not authenticated AND pin is not verified
+  if (!isCheckingPin && !user && !isPinVerified) {
     return <PinEntry onPinVerified={handlePinVerified} />;
   }
 

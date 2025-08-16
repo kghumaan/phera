@@ -27,7 +27,6 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [pinVerificationInProgress, setPinVerificationInProgress] = useState(false);
 
   const { refreshAuth, user, isLoading } = useAuth();
   const inputRefs = [
@@ -145,117 +144,88 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     };
   }, []);
 
-  // Single consolidated useEffect for PIN verification and bypass logic
+    // Simplified PIN verification and bypass logic
   useEffect(() => {
     let mounted = true;
-    let hasTriggeredBypass = false;
+    let bypassTriggered = false;
+    let authSubscription: any = null;
 
-    const checkPinVerification = async () => {
-      // Prevent multiple simultaneous verification attempts
-      if (pinVerificationInProgress || hasTriggeredBypass) {
-        return;
-      }
+    const triggerBypass = () => {
+      if (bypassTriggered || !mounted) return false;
+      bypassTriggered = true;
+      console.log('Triggering bypass - calling onPinVerified()');
+      onPinVerified();
+      return true;
+    };
 
+    const checkInitialState = () => {
       if (typeof window !== 'undefined') {
-        setPinVerificationInProgress(true);
-        
-        try {
-          // PRIORITY 1: Check if user is already authenticated (highest priority)
-          if (!isLoading && user) {
-            console.log('User authenticated, bypassing PIN entry...');
-            if (mounted) {
-              hasTriggeredBypass = true;
-              onPinVerified();
-            }
-            return;
-          }
+        // Check if user became authenticated
+        if (!isLoading && user) {
+          console.log('User authenticated, bypassing PIN entry...');
+          triggerBypass();
+          return;
+        }
 
-          // PRIORITY 2: Check session directly if user not yet loaded
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            console.log('Session found, bypassing PIN entry...');
-            if (mounted) {
-              hasTriggeredBypass = true;
-              onPinVerified();
+        // Check for stored PIN verification
+        const pinVerified = localStorage.getItem('phera_pin_verified');
+        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        
+        if (pinVerified === 'true' && pinTimestamp) {
+          try {
+            const timestamp = parseInt(pinTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+            if (isRecent) {
+              console.log('Recent PIN verification found, bypassing...');
+              triggerBypass();
+              return;
+            } else {
+              // Remove expired pin verification
+              localStorage.removeItem('phera_pin_verified');
+              localStorage.removeItem('phera_pin_timestamp');
+              localStorage.removeItem('phera_allows_plus_one');
             }
-            return;
+          } catch (error) {
+            console.error('Error checking pin verification:', error);
           }
-          
-          // PRIORITY 3: Check URL parameters for auth bypass
-          const urlParams = new URLSearchParams(window.location.search);
-          const authSuccess = urlParams.get('auth_success');
-          const restorePin = urlParams.get('restore_pin');
-          const magicLink = urlParams.get('magic_link');
-          const bypassPin = urlParams.get('bypass_pin');
-          
-          if (authSuccess === 'true' || restorePin === 'true' || magicLink === 'true' || bypassPin === 'true') {
-            console.log('Auth URL parameter detected, bypassing PIN entry...');
-            if (mounted) {
-              hasTriggeredBypass = true;
-              onPinVerified();
-            }
-            return;
-          }
-          
-          // PRIORITY 4: Check for stored PIN verification (lowest priority)
-          const pinVerified = localStorage.getItem('phera_pin_verified');
-          const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
-          
-          if (pinVerified === 'true' && pinTimestamp) {
-            try {
-              const timestamp = parseInt(pinTimestamp);
-              const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
-              if (isRecent) {
-                console.log('Recent PIN verification found, bypassing...');
-                if (mounted) {
-                  hasTriggeredBypass = true;
-                  onPinVerified();
-                }
-                return;
-              } else {
-                // Remove expired pin verification
-                localStorage.removeItem('phera_pin_verified');
-                localStorage.removeItem('phera_pin_timestamp');
-                localStorage.removeItem('phera_allows_plus_one');
-              }
-            } catch (error) {
-              console.error('Error checking pin verification:', error);
-            }
-          }
-        } catch (error) {
-          console.error('Error checking session:', error);
-        } finally {
-          if (mounted) {
-            setPinVerificationInProgress(false);
-          }
+        }
+
+        // Check URL parameters for auth bypass
+        const urlParams = new URLSearchParams(window.location.search);
+        const authSuccess = urlParams.get('auth_success');
+        const restorePin = urlParams.get('restore_pin');
+        const magicLink = urlParams.get('magic_link');
+        const bypassPin = urlParams.get('bypass_pin');
+        
+        if (authSuccess === 'true' || restorePin === 'true' || magicLink === 'true' || bypassPin === 'true') {
+          console.log('Auth URL parameter detected, bypassing PIN entry...');
+          triggerBypass();
+          return;
         }
       }
     };
 
-    // Run initial check
-    checkPinVerification();
-
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && !hasTriggeredBypass && mounted) {
+      if (event === 'SIGNED_IN' && session && mounted) {
         console.log('Auth state changed to SIGNED_IN, bypassing PIN...');
-        hasTriggeredBypass = true;
-        setPinVerificationInProgress(true);
-        // Small delay to ensure proper timing
-        setTimeout(() => {
-          if (mounted) {
-            onPinVerified();
-            setPinVerificationInProgress(false);
-          }
-        }, 100);
+        triggerBypass();
       }
     });
+    
+    authSubscription = subscription;
+
+    // Run initial check
+    checkInitialState();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      bypassTriggered = true; // Prevent any delayed calls
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
     };
-  }, [user, isLoading, onPinVerified, pinVerificationInProgress]);
+  }, [user, isLoading, onPinVerified]);
 
   // Background setup similar to home page
   return (
