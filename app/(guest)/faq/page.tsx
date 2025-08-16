@@ -167,7 +167,7 @@ export default function FAQPage() {
                         fullWidth={true}
                         sx={{
                           mt: 2,
-                          borderRadius: '80px',
+                          borderRadius: '16px',
                           borderColor: '#DE3F5E',
                           color: '#DE3F5E',
                           textTransform: 'uppercase',

@@ -298,10 +298,17 @@ export default function HomePage() {
     }
   }, []);
 
-  // Check for pin verification on component mount
+  // Check for pin verification on component mount and auth changes
   useEffect(() => {
     const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
+        // FIRST: If user is authenticated, consider PIN verified (auth bypass)
+        if (!isLoading && user) {
+          setIsPinVerified(true);
+          return;
+        }
+
+        // Existing checks...
         // First check for auth errors from callback
         const urlParams = new URLSearchParams(window.location.search);
         const authError = urlParams.get('auth_error');
@@ -394,7 +401,7 @@ export default function HomePage() {
     };
 
     checkPinVerification();
-  }, [refreshAuth]);
+  }, [refreshAuth, user, isLoading]); // Add user and isLoading as dependencies
 
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
@@ -740,7 +747,7 @@ export default function HomePage() {
                     py: 1.5,
                     fontSize: '1rem',
                     fontWeight: 700,
-                    borderRadius: '80px',
+                    borderRadius: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     fontFamily: 'Outfit',

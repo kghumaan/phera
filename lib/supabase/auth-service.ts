@@ -260,8 +260,8 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
   }
 }
 
-// Enhanced email magic link with state preservation
-export async function sendMagicLink(email: string): Promise<AuthResult> {
+// Enhanced email OTP with state preservation (renamed from sendMagicLink)
+export async function sendEmailOTP(email: string): Promise<AuthResult> {
   try {
     // First validate that the email exists in our system (using lowercase for DB query)
     const validation = await validateEmailExists(email);
@@ -272,20 +272,14 @@ export async function sendMagicLink(email: string): Promise<AuthResult> {
       };
     }
 
-    // Determine redirect URL based on environment
-    const redirectUrl = new URL('/auth/callback', 
-      process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:3002'
-        : 'https://phera.vercel.app'
-    );
-
+    // Send email OTP (no redirect URL needed for OTP)
     // IMPORTANT: Use original email case for Supabase Auth to match existing accounts
     // Only use lowercase for our database queries, not for Supabase Auth
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(), // Keep original case for Supabase Auth compatibility
       options: {
         shouldCreateUser: true, // Allow user creation - validation ensures they exist in guests table
-        emailRedirectTo: redirectUrl.toString(),
+        // No emailRedirectTo needed for OTP - codes are entered directly in the UI
         data: {
           // Store the email in user metadata for consistency
           email: email.trim().toLowerCase(), // Lowercase for internal consistency
@@ -294,16 +288,59 @@ export async function sendMagicLink(email: string): Promise<AuthResult> {
     });
 
     if (error) {
-      console.error('Magic link error:', error);
+      console.error('Email OTP error:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Send magic link error:', error);
+    console.error('Send email OTP error:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Failed to send magic link' 
+      error: error instanceof Error ? error.message : 'Failed to send email OTP' 
     };
   }
+}
+
+// New function to verify email OTP code
+export async function verifyEmailOTP(email: string, token: string): Promise<AuthResult> {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: token.trim(),
+      type: 'email'
+    });
+
+    if (error) {
+      console.error('Email OTP verification error:', error);
+      return { 
+        success: false, 
+        error: error.message === 'Invalid OTP' ? 'Invalid or expired code. Please try again.' : error.message 
+      };
+    }
+
+    if (!data.user || !data.session) {
+      return {
+        success: false,
+        error: 'Authentication failed. Please try again.'
+      };
+    }
+
+    return { 
+      success: true
+      // Note: user will be handled by the auth context after verification
+    };
+  } catch (error) {
+    console.error('Verify email OTP error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to verify code' 
+    };
+  }
+}
+
+// Keep the old function for backward compatibility, but make it use OTP
+export async function sendMagicLink(email: string): Promise<AuthResult> {
+  // Redirect to the new OTP function
+  return sendEmailOTP(email);
 } 

@@ -11,7 +11,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { sendMagicLink } from '@/lib/supabase/auth-service';
+import { sendEmailOTP, verifyEmailOTP } from '@/lib/supabase/auth-service';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface LoginModalProps {
   open: boolean;
@@ -21,31 +22,67 @@ interface LoginModalProps {
 
 const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
   const [email, setEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const { refreshAuth } = useAuth();
 
-  const handleAuthSubmit = async () => {
+  const handleSendOTP = async () => {
     setIsLoading(true);
     setAuthError('');
 
     try {
       if (email && email.trim()) {
-        // Use enhanced magic link with email validation and PIN preservation
-        const result = await sendMagicLink(email.trim(), true);
+        // Send email OTP
+        const result = await sendEmailOTP(email.trim());
         
         if (result.success) {
-          // Show success screen
-          setEmailSent(true);
+          // Move to OTP input step
+          setStep('otp');
         } else {
-          throw new Error(result.error || 'Failed to send magic link');
+          throw new Error(result.error || 'Failed to send verification code');
         }
       } else {
         setAuthError('Please enter an email address');
       }
     } catch (error: any) {
-      console.error('Auth error:', error); // Debug log
-      setAuthError(error.message || 'Authentication failed');
+      console.error('Send OTP error:', error);
+      setAuthError(error.message || 'Failed to send verification code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    setIsLoading(true);
+    setAuthError('');
+
+    try {
+      if (otpCode && otpCode.trim()) {
+        // Verify the OTP code
+        const result = await verifyEmailOTP(email.trim(), otpCode.trim());
+        
+        if (result.success) {
+          // Close modal first
+          handleCloseDialog();
+          
+          // Call success callback immediately to bypass PIN entry
+          onSuccess?.();
+          
+          // Refresh auth context after a small delay to prevent race conditions
+          setTimeout(async () => {
+            await refreshAuth();
+          }, 200);
+        } else {
+          throw new Error(result.error || 'Invalid verification code');
+        }
+      } else {
+        setAuthError('Please enter the verification code');
+      }
+    } catch (error: any) {
+      console.error('Verify OTP error:', error);
+      setAuthError(error.message || 'Invalid verification code');
     } finally {
       setIsLoading(false);
     }
@@ -53,9 +90,16 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
 
   const handleCloseDialog = () => {
     setEmail('');
+    setOtpCode('');
     setAuthError('');
-    setEmailSent(false);
+    setStep('email');
     onClose();
+  };
+
+  const handleBackToEmail = () => {
+    setOtpCode('');
+    setAuthError('');
+    setStep('email');
   };
 
   return (
@@ -66,10 +110,10 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px', // 16px from Figma
+          borderRadius: '16px',
           backgroundColor: '#FFFFFF',
           margin: { xs: 2, sm: 3 },
-          maxWidth: { xs: '321px', sm: '400px' }, // Match Figma width
+          maxWidth: { xs: '321px', sm: '400px' },
         }
       }}
     >
@@ -89,9 +133,11 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
                 borderRadius: '16px',
               }}
             >
-              {emailSent ? 'Check Your Email!' : 'Welcome Back!'}
+              {step === 'email' && 'Welcome Back!'}
+              {step === 'otp' && 'Enter Verification Code'}
             </Typography>
-            {!emailSent && (
+            
+            {step === 'email' && (
               <Typography 
                 variant="body1" 
                 sx={{ 
@@ -106,201 +152,238 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
                 Enter the email address you provided in your RSVP to login.
               </Typography>
             )}
+            
+            {step === 'otp' && (
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: '#858585',
+                  fontSize: '16px',
+                  lineHeight: '1.5em',
+                  textAlign: 'center',
+                  fontFamily: 'Outfit, sans-serif',
+                  fontWeight: 400,
+                }}
+              >
+                We sent a 6-digit code to <strong>{email}</strong>
+              </Typography>
+            )}
+            
+
           </Stack>
 
           {/* Form Section */}
           <Stack spacing={2} sx={{ width: '100%' }}>
-            {emailSent ? (
+            {step === 'email' && (
               <>
-                {/* Email Sent Success Screen */}
-                <Box sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: '#141414',
+                <TextField
+                  variant="outlined"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendOTP()}
+                  disabled={isLoading}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                      backgroundColor: '#F5F5F5',
                       fontSize: '16px',
-                      lineHeight: '1.5em',
+                      color: '#141414',
+                      fontFamily: 'Outfit, sans-serif',
+                      '& fieldset': {
+                        borderColor: 'transparent',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                        borderWidth: '2px',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input::placeholder': {
+                      color: '#858585',
+                      opacity: 1,
+                    }
+                  }}
+                />
+
+                {authError && (
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: '#DE3F5E',
+                      fontSize: '14px',
                       textAlign: 'center',
                       fontFamily: 'Outfit, sans-serif',
-                      fontWeight: 400,
                     }}
                   >
-                    We've sent you a login link! Check your email and click the link to sign in.
+                    {authError}
                   </Typography>
-                </Box>
+                )}
 
-                {/* Navigation Buttons */}
-                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-                  <Button
-                    onClick={() => {
-                      setEmailSent(false);
-                      setAuthError('');
+                <Button
+                  onClick={handleSendOTP}
+                  variant="contained"
+                  disabled={isLoading}
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    py: 1.5,
+                    borderRadius: '16px',
+                    textTransform: 'uppercase',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    fontFamily: 'Outfit, sans-serif',
+                    '&:hover': {
+                      backgroundColor: '#C73652',
+                    },
+                    color: '#FFFFFF',
+                  }}
+                >
+                  {isLoading ? 'Sending...' : 'Send Verification Code'}
+                </Button>
+              </>
+            )}
+
+            {step === 'otp' && (
+              <>
+                <TextField
+                  variant="outlined"
+                  placeholder="Enter 6-digit code"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleVerifyOTP()}
+                  disabled={isLoading}
+                  inputProps={{
+                    maxLength: 6,
+                    style: { 
+                      textAlign: 'center',
+                      fontSize: '24px',
+                      letterSpacing: '8px',
+                      fontWeight: 'bold',
+                      fontFamily: 'monospace'
+                    }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                      backgroundColor: '#F5F5F5',
+                      fontSize: '24px',
+                      fontFamily: 'monospace',
+                      color: '#141414',
+                      '& fieldset': {
+                        borderColor: 'transparent',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                        borderWidth: '2px',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input::placeholder': {
+                      color: '#858585',
+                      opacity: 1,
+                      letterSpacing: 'normal',
+                      fontSize: '16px',
+                      fontFamily: 'Outfit, sans-serif'
+                    }
+                  }}
+                />
+
+                {authError && (
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: '#DE3F5E',
+                      fontSize: '14px',
+                      textAlign: 'center',
+                      fontFamily: 'Outfit, sans-serif',
                     }}
+                  >
+                    {authError}
+                  </Typography>
+                )}
+
+                <Button
+                  onClick={handleVerifyOTP}
+                  variant="contained"
+                  disabled={isLoading || otpCode.length !== 6}
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    py: 1.5,
+                    borderRadius: '16px',
+                    textTransform: 'uppercase',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    fontFamily: 'Outfit, sans-serif',
+                    '&:hover': {
+                      backgroundColor: '#C73652',
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#E0E0E0',
+                      color: '#A0A0A0',
+                    },
+                  }}
+                >
+                  {isLoading ? 'Verifying...' : 'Verify & Login'}
+                </Button>
+
+                <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                  <Button
+                    onClick={handleBackToEmail}
                     variant="outlined"
                     fullWidth
                     sx={{
                       borderColor: '#DE3F5E',
                       color: '#DE3F5E',
-                      py: 1.5,
-                      borderRadius: '80px',
+                      py: 1,
+                      borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '14px',
+                      fontSize: '12px',
                       fontWeight: 700,
                       fontFamily: 'Outfit, sans-serif',
                       '&:hover': {
-                        borderColor: '#C8365A',
+                        borderColor: '#C73652',
                         backgroundColor: 'rgba(222, 63, 94, 0.04)',
                       },
                     }}
                   >
-                    Go Back
+                    Back
                   </Button>
+                  
                   <Button
-                    onClick={handleCloseDialog}
-                    variant="contained"
+                    onClick={handleSendOTP}
+                    variant="outlined"
+                    disabled={isLoading}
                     fullWidth
                     sx={{
-                      backgroundColor: '#DE3F5E',
-                      color: '#FFFFFF',
-                      py: 1.5,
-                      borderRadius: '80px',
+                      borderColor: '#858585',
+                      color: '#858585',
+                      py: 1,
+                      borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '14px',
+                      fontSize: '12px',
                       fontWeight: 700,
                       fontFamily: 'Outfit, sans-serif',
-                      boxShadow: 'none',
                       '&:hover': {
-                        backgroundColor: '#C8365A',
-                        boxShadow: 'none',
+                        borderColor: '#666666',
+                        backgroundColor: 'rgba(133, 133, 133, 0.04)',
                       },
                     }}
                   >
-                    Done
+                    Resend Code
                   </Button>
                 </Stack>
               </>
-            ) : (
-              <>
-                {/* Email Field */}
-                <Box
-                  sx={{
-                    border: '1px solid #BCBCBC',
-                    borderRadius: '8px',
-                    padding: '16px 12px',
-                    backgroundColor: '#FFFFFF',
-                    cursor: 'text',
-                    '&:hover': {
-                      borderColor: '#DE3F5E',
-                    },
-                    '&:focus-within': {
-                      borderColor: '#DE3F5E',
-                    },
-                  }}
-                  onClick={() => document.getElementById('email-input')?.focus()}
-                >
-                  <TextField
-                    id="email-input"
-                    placeholder="Email"
-                    type="email"
-                    fullWidth
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    variant="standard"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        fontSize: '16px',
-                        fontFamily: 'Outfit, sans-serif',
-                        fontWeight: 400,
-                        color: '#141414',
-                        '& input': {
-                          padding: 0,
-                          color: '#141414 !important',
-                          '&::placeholder': {
-                            color: '#BCBCBC',
-                            opacity: 1,
-                          },
-                          '&:focus': {
-                            color: '#141414 !important',
-                          },
-                          '&:-webkit-autofill': {
-                            WebkitBoxShadow: '0 0 0 1000px #FFFFFF inset !important',
-                            WebkitTextFillColor: '#141414 !important',
-                            backgroundColor: '#FFFFFF !important',
-                          },
-                          '&:-webkit-autofill:hover': {
-                            WebkitBoxShadow: '0 0 0 1000px #FFFFFF inset !important',
-                            WebkitTextFillColor: '#141414 !important',
-                          },
-                          '&:-webkit-autofill:focus': {
-                            WebkitBoxShadow: '0 0 0 1000px #FFFFFF inset !important',
-                            WebkitTextFillColor: '#141414 !important',
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </Box>
-              </>
             )}
 
-            {authError && !emailSent && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 1,
-                  p: 2, 
-                  backgroundColor: authError.includes('Check your') ? 'rgba(0, 0, 0, 0.08)' : 'rgba(244, 67, 54, 0.08)', 
-                  borderRadius: '8px',
-                  color: authError.includes('Check your') ? 'rgba(0, 0, 0, 0.72)' : '#f44336',
-                  mt: 1
-                }}
-              >
-                <Typography variant="body2" sx={{ 
-                  fontWeight: 400,
-                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                  lineHeight: 1.5,
-                  fontFamily: 'Outfit'
-                }}>
-                  {authError.includes('Check your email') && '📧  '}
-                  {authError}
-                </Typography>
-              </Box>
-            )}
+
           </Stack>
-
-          {/* Send Email Button - Only show when not in email sent state */}
-          {!emailSent && (
-            <Button
-              onClick={handleAuthSubmit}
-              disabled={isLoading || !email}
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#DE3F5E',
-                color: '#FFFFFF',
-                py: 1.5,
-                borderRadius: '80px', // Large border radius from Figma
-                textTransform: 'uppercase',
-                fontSize: '16px',
-                fontWeight: 700,
-                letterSpacing: '6.25%',
-                fontFamily: 'Outfit, sans-serif',
-                boxShadow: 'none',
-                '&:hover': {
-                  backgroundColor: '#C8365A',
-                  boxShadow: 'none',
-                },
-                '&:disabled': {
-                  backgroundColor: 'rgba(222, 63, 94, 0.3)',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                },
-              }}
-            >
-              {isLoading ? 'Sending...' : 'send login link'}
-            </Button>
-          )}
         </Stack>
       </DialogContent>
     </Dialog>

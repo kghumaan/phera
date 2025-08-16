@@ -114,6 +114,8 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [newComment, setNewComment] = useState('');
@@ -222,7 +224,22 @@ export default function GuestList({ weddingId }: GuestListProps) {
   };
 
   const fetchData = async () => {
-    console.log('GuestList: Starting fetchData...');
+    const now = Date.now();
+    
+    // Prevent multiple simultaneous fetches
+    if (isFetching) {
+      return; // Silently skip
+    }
+
+    // Throttle rapid successive calls (min 500ms between fetches)
+    if (now - lastFetchTime < 500) {
+      return; // Silently skip
+    }
+
+    console.log('GuestList: Fetching data...');
+    setIsFetching(true);
+    setLastFetchTime(now);
+    
     try {
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise<never>((_, reject) => 
@@ -306,6 +323,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
     } finally {
       console.log('GuestList: Setting loading to false');
       setLoading(false);
+      setIsFetching(false);
     }
   };
 

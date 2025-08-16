@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasRSVPed, setHasRSVPed] = useState(false);
   const [rsvpResponse, setRsvpResponse] = useState<'yes' | 'no' | 'maybe' | null>(null);
   const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const generateInitials = (name: string) => {
     return name
@@ -406,7 +407,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshAuth = async () => {
-    console.log('Manually refreshing auth status');
+    // Prevent multiple simultaneous refresh calls
+    if (isRefreshing) {
+      return; // Silently skip without logging
+    }
+
+    console.log('Refreshing auth status');
+    setIsRefreshing(true);
     setIsLoading(true);
     
     // Add timeout protection for refresh
@@ -414,6 +421,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => {
         console.warn('RefreshAuth timed out, forcing completion');
         setIsLoading(false);
+        setIsRefreshing(false);
         resolve();
       }, 8000); // 8 second timeout for refresh
     });
@@ -495,7 +503,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     
     // Race between auth check with retry and timeout
-    await Promise.race([authCheckWithRetry(), timeoutPromise]);
+    try {
+      await Promise.race([authCheckWithRetry(), timeoutPromise]);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
