@@ -103,13 +103,21 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     // PIN codes for different guest types
     const PIN_WITH_PLUS_ONE = '7834';
     const PIN_NO_PLUS_ONE = '2591';
+    const PIN_BYPASS_RSVP = '9876'; // Bypass RSVP - goes straight to guest home page
     
-    if (enteredPin === PIN_WITH_PLUS_ONE || enteredPin === PIN_NO_PLUS_ONE) {
-      // Set pin verification flag and store plus-one eligibility
+    if (enteredPin === PIN_WITH_PLUS_ONE || enteredPin === PIN_NO_PLUS_ONE || enteredPin === PIN_BYPASS_RSVP) {
+      // Set pin verification flag and store settings
       if (typeof window !== 'undefined') {
         localStorage.setItem('phera_pin_verified', 'true');
         localStorage.setItem('phera_pin_timestamp', Date.now().toString());
         localStorage.setItem('phera_allows_plus_one', enteredPin === PIN_WITH_PLUS_ONE ? 'true' : 'false');
+        
+        // Set bypass flag for PIN 1234
+        if (enteredPin === PIN_BYPASS_RSVP) {
+          localStorage.setItem('phera_bypass_rsvp', 'true');
+        } else {
+          localStorage.removeItem('phera_bypass_rsvp');
+        }
         
         // Call the callback to notify parent component
         onPinVerified();

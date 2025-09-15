@@ -265,6 +265,7 @@ export default function HomePage() {
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isCheckingPin, setIsCheckingPin] = useState(true);
+  const [isBypassPin, setIsBypassPin] = useState(false);
   
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -278,10 +279,43 @@ export default function HomePage() {
   const handleSignOut = async () => {
     await signOut();
     setUserMenuAnchor(null);
+    // Clear bypass PIN state
+    setIsBypassPin(false);
   };
 
   const handlePinVerified = () => {
     setIsPinVerified(true);
+    
+    // Check if this is a bypass PIN immediately
+    if (typeof window !== 'undefined') {
+      const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+      if (bypassFlag === 'true') {
+        setIsBypassPin(true);
+        console.log('Bypass PIN detected in handlePinVerified - showing guest content immediately');
+        
+        // Create temporary guest auth if not exists
+        const existingGuestAuth = localStorage.getItem('phera_guest_auth');
+        if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
+          const tempGuestInfo = {
+            id: 'temp-bypass-guest',
+            email: 'bypass@guest.local',
+            name: 'Wedding Guest',
+            phone: undefined,
+            weddingId: 'sim-kv',
+            avatar_style: undefined,
+            avatar_seed: undefined,
+            avatar_svg: undefined,
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
+          console.log('Created temporary guest auth in handlePinVerified');
+          
+          // Try to refresh auth immediately
+          setTimeout(() => refreshAuth(), 100);
+        }
+      }
+    }
     
     // Scroll to top after small delay to ensure content has rendered
     setTimeout(() => {
@@ -306,6 +340,53 @@ export default function HomePage() {
         if (!isLoading && user) {
           setIsPinVerified(true);
           return;
+        }
+        
+        // CHECK: Handle bypass PIN case - create temporary guest auth
+        const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+        const bypassPinVerified = localStorage.getItem('phera_pin_verified');
+        const bypassPinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        
+        if (bypassFlag === 'true' && bypassPinVerified === 'true' && bypassPinTimestamp) {
+          try {
+            const timestamp = parseInt(bypassPinTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+            if (isRecent) {
+              // Set local bypass PIN state immediately
+              setIsBypassPin(true);
+              console.log('Setting bypass PIN state to true');
+              
+              // Create temporary guest auth for bypass PIN users - but make it more robust
+              const existingGuestAuth = localStorage.getItem('phera_guest_auth');
+              if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
+                const tempGuestInfo = {
+                  id: 'temp-bypass-guest',
+                  email: 'bypass@guest.local',
+                  name: 'Wedding Guest',
+                  phone: undefined,
+                  weddingId: 'sim-kv',
+                  avatar_style: undefined,
+                  avatar_seed: undefined,
+                  avatar_svg: undefined,
+                  timestamp: Date.now()
+                };
+                
+                localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
+                console.log('Created temporary guest auth for bypass PIN user');
+                
+                // Trigger multiple auth refresh attempts
+                setTimeout(() => refreshAuth(), 50);
+                setTimeout(() => refreshAuth(), 200);
+                setTimeout(() => refreshAuth(), 500);
+              }
+              
+              setIsPinVerified(true);
+              setIsCheckingPin(false);
+              return;
+            }
+          } catch (error) {
+            console.error('Error handling bypass PIN verification:', error);
+          }
         }
 
         // Existing checks...
@@ -382,19 +463,29 @@ export default function HomePage() {
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
             if (isRecent) {
               setIsPinVerified(true);
+              
+              // Also check if this is a bypass PIN
+              const existingBypassFlag = localStorage.getItem('phera_bypass_rsvp');
+              if (existingBypassFlag === 'true') {
+                setIsBypassPin(true);
+              }
             } else {
               // Remove expired pin verification
               localStorage.removeItem('phera_pin_verified');
               localStorage.removeItem('phera_pin_timestamp');
               localStorage.removeItem('phera_allows_plus_one');
+              localStorage.removeItem('phera_bypass_rsvp');
               setIsPinVerified(false);
+              setIsBypassPin(false);
             }
           } catch (error) {
             console.error('Error checking pin verification:', error);
             setIsPinVerified(false);
+            setIsBypassPin(false);
           }
         } else {
           setIsPinVerified(false);
+          setIsBypassPin(false);
         }
       }
       setIsCheckingPin(false);
@@ -600,8 +691,19 @@ export default function HomePage() {
         </Box>
       </Container>
 
-      {/* Wedding Community Section - Only show if user has RSVP'd */}
-      {!isLoading && user && !isCheckingRSVP && hasRSVPed && (
+      {/* Wedding Community Section - Only show if user has RSVP'd OR using bypass PIN */}
+      {(() => {
+        console.log('Guest content visibility check:', {
+          isLoading,
+          isCheckingRSVP,
+          user: !!user,
+          hasRSVPed,
+          isBypassPin,
+          shouldShowContent: !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin)
+        });
+        return null;
+      })()}
+      {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -644,8 +746,8 @@ export default function HomePage() {
         }}
       />
 
-      {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd */}
-      {!isLoading && !isCheckingPin && isPinVerified && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
+      {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd (but NOT for bypass PIN users) */}
+      {!isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
         <Box
           sx={{
             position: 'fixed',
@@ -711,8 +813,19 @@ export default function HomePage() {
         </Box>
       )}
 
-      {/* Change RSVP Button - Show when user has RSVP'd */}
-      {!isLoading && user && !isCheckingRSVP && hasRSVPed && (
+      {/* View Details Button - Show when user has RSVP'd OR using bypass PIN */}
+      {(() => {
+        console.log('View Details button visibility check:', {
+          isLoading,
+          isCheckingRSVP,
+          user: !!user,
+          hasRSVPed,
+          isBypassPin,
+          shouldShowButton: !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin)
+        });
+        return null;
+      })()}
+      {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
         <Box
           sx={{
             position: 'fixed',

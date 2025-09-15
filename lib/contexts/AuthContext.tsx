@@ -72,6 +72,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRsvpResponse(null); // Reset RSVP response
     
     try {
+      // Check for bypass RSVP flag first - if set, skip all database checks
+      if (typeof window !== 'undefined') {
+        const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+        if (bypassFlag === 'true') {
+          console.log('Bypass RSVP flag detected - setting hasRSVPed to true without database check');
+          setHasRSVPed(true);
+          setRsvpResponse('yes'); // Set to 'yes' to simulate attending
+          setIsCheckingRSVP(false);
+          return;
+        }
+      }
       // Check if this is a plus one authentication (ID starts with "plus-one-")
       const isPlusOne = user.id?.startsWith('plus-one-');
       
@@ -302,11 +313,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const guestInfo = JSON.parse(guestAuthData);
               // Check if the authentication is recent (within 24 hours)
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
-              if (isRecent && guestInfo.email && guestInfo.id !== 'temp-guest') {
-                // Check if this is a plus one authentication
+              if (isRecent && guestInfo.email && (guestInfo.id !== 'temp-guest' || guestInfo.id === 'temp-bypass-guest')) {
+                // Check if this is a plus one authentication or bypass guest
                 const isPlusOne = guestInfo.id?.startsWith('plus-one-');
+                const isBypassGuest = guestInfo.id === 'temp-bypass-guest';
                 
-                if (isPlusOne) {
+                if (isPlusOne || isBypassGuest) {
                   // For plus ones, we don't need to fetch avatar data from guests table
                   // since they don't have entries there
                   const userData: User = {
@@ -397,6 +409,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('phera_guest_auth');
         localStorage.removeItem('phera_pin_verified');
         localStorage.removeItem('phera_pin_timestamp');
+        localStorage.removeItem('phera_allows_plus_one');
+        localStorage.removeItem('phera_bypass_rsvp');
       }
       setUser(null);
       setHasRSVPed(false);

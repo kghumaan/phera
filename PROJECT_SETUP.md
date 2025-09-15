@@ -16,6 +16,7 @@ A comprehensive dual-experience Indian wedding platform featuring an admin dashb
 - **Pin-Based Access**: Secure guest authentication with differentiated PIN codes
   - **PIN 7834**: Allows plus-ones (includes partner details in RSVP)
   - **PIN 2591**: Individual invitation only (no plus-one option)
+  - **PIN 9876**: Bypass RSVP entirely (goes directly to guest home page)
 - **Guest Auto-Authentication**: Automatic auth after RSVP submission
 - **Persistent Sessions**: 24-hour guest authentication storage
 
@@ -316,7 +317,9 @@ interface AuthContextType {
 1. **PIN-based Access**: Secure guest authentication with invitation type differentiation
    - **PIN 7834**: Couple/family invitations (allows plus-ones)
    - **PIN 2591**: Individual invitations (no plus-one option)
+   - **PIN 9876**: Bypass invitations (skips RSVP process entirely and shows guest home page)
    - Stores `phera_allows_plus_one` flag in localStorage for RSVP form logic
+   - Stores `phera_bypass_rsvp` flag in localStorage for bypass functionality
 2. **Google OAuth**: Seamless Google Sign-In integration  
 3. **Phone/SMS**: Twilio-powered OTP verification
 4. **Auto-authentication**: Automatic auth after RSVP submission
@@ -529,6 +532,7 @@ bash scripts/resize-images.sh      # Batch resize operations
 - [ ] PIN-based guest authentication
   - [ ] PIN 7834 (plus-one allowed) - should show "Bringing your special someone?" step
   - [ ] PIN 2591 (no plus-one) - should skip plus-one step entirely
+  - [ ] PIN 9876 (bypass RSVP) - should skip RSVP entirely and show guest home page
 - [ ] Google OAuth login flow
 - [ ] SMS OTP verification (use `/test-sms` page)
 - [ ] Auto-authentication after RSVP
