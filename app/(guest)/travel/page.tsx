@@ -292,7 +292,7 @@ export default function TravelPage() {
         "Download the app and use the button below to join our wedding channel!"
       ],
       image: "/images/travel_stay/8.png",
-      buttonText: "Join Wedding Channel",
+      buttonText: "Join Whatsapp Channel",
       isDisabled: !shouldShowWhatsApp, // Disable if user can't access WhatsApp
       isWhatsAppButton: true,
       onButtonClick: () => {
