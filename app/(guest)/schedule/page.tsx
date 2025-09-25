@@ -25,7 +25,7 @@ const weddingSchedule = [
         location: 'Lawn'
       },
       {
-        time: '2 PM',
+        time: '1:30 PM',
         name: '🌻 Haldi Ceremony',
         description: 'Splash into the turmeric celebration—feel the buzz as we kick off the good vibes.',
         location: 'Lawn'

@@ -311,7 +311,7 @@ export default function HomePage() {
           localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
           console.log('Created temporary guest auth in handlePinVerified');
           
-          // Try to refresh auth immediately
+          // Try to refresh auth once - prevent multiple calls
           setTimeout(() => refreshAuth(), 100);
         }
       }
@@ -332,6 +332,34 @@ export default function HomePage() {
     }
   }, []);
 
+  // Safety timeout to prevent infinite loading
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      if (isLoading || isCheckingPin) {
+        console.warn('Safety timeout triggered - forcing loading completion');
+        setIsCheckingPin(false);
+        // If we have PIN verification but no user, that's OK for guest access
+        if (typeof window !== 'undefined') {
+          const pinVerified = localStorage.getItem('phera_pin_verified');
+          const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+          if (pinVerified === 'true' && pinTimestamp) {
+            const timestamp = parseInt(pinTimestamp);
+            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+            if (isRecent) {
+              setIsPinVerified(true);
+              const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+              if (bypassFlag === 'true') {
+                setIsBypassPin(true);
+              }
+            }
+          }
+        }
+      }
+    }, 3000); // 3 second safety timeout - should be much faster now
+
+    return () => clearTimeout(safetyTimeout);
+  }, [isLoading, isCheckingPin]);
+
   // Check for pin verification on component mount and auth changes
   useEffect(() => {
     const checkPinVerification = () => {
@@ -339,6 +367,7 @@ export default function HomePage() {
         // FIRST: If user is authenticated, consider PIN verified (auth bypass)
         if (!isLoading && user) {
           setIsPinVerified(true);
+          setIsCheckingPin(false); // Important: Stop checking PIN when user is authenticated
           return;
         }
         
@@ -374,10 +403,8 @@ export default function HomePage() {
                 localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
                 console.log('Created temporary guest auth for bypass PIN user');
                 
-                // Trigger multiple auth refresh attempts
-                setTimeout(() => refreshAuth(), 50);
-                setTimeout(() => refreshAuth(), 200);
-                setTimeout(() => refreshAuth(), 500);
+                // Only trigger auth refresh if we just created the auth - prevent infinite loops
+                setTimeout(() => refreshAuth(), 100);
               }
               
               setIsPinVerified(true);
@@ -491,8 +518,15 @@ export default function HomePage() {
       setIsCheckingPin(false);
     };
 
+    // Early return if user is authenticated - no need to check PIN
+    if (!isLoading && user) {
+      setIsPinVerified(true);
+      setIsCheckingPin(false);
+      return;
+    }
+    
     checkPinVerification();
-  }, [refreshAuth, user, isLoading]); // Add user and isLoading as dependencies
+  }, [user, isLoading]); // Removed refreshAuth from dependencies to prevent infinite loop
 
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
@@ -514,6 +548,16 @@ export default function HomePage() {
 
   // Show loading screen while checking authentication or pin
   if (isLoading || isCheckingPin) {
+    // Debug logging to understand loading state
+    console.log('HomePage loading state:', {
+      isLoading,
+      isCheckingPin,
+      user: !!user,
+      isPinVerified,
+      reason: isLoading ? 'auth loading' : isCheckingPin ? 'checking PIN' : 'unknown',
+      timestamp: new Date().toISOString()
+    });
+    
     return (
       <Box
         sx={{

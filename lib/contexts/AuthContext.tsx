@@ -521,6 +521,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await Promise.race([authCheckWithRetry(), timeoutPromise]);
     } finally {
       setIsRefreshing(false);
+      setIsLoading(false); // Ensure loading state is always cleared
     }
   };
 
