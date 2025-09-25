@@ -185,7 +185,6 @@ export default function AppHeader({
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
-                    border: '1px solid black',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     '&:hover': {
                       transform: 'scale(1.05)',
