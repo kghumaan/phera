@@ -49,7 +49,8 @@ const TravelCard = ({
   isActive,
   buttonText,
   isDisabled,
-  onButtonClick
+  onButtonClick,
+  isWhatsAppButton
 }: { 
   title: string; 
   content: React.ReactNode[]; 
@@ -58,6 +59,7 @@ const TravelCard = ({
   buttonText?: string;
   isDisabled?: boolean;
   onButtonClick?: () => void;
+  isWhatsAppButton?: boolean;
 }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
@@ -138,10 +140,13 @@ const TravelCard = ({
             ))}
           </Stack>
         </Stack>
+        {/* Spacer to push button to bottom */}
+        <Box sx={{ flex: 1 }} />
+        
         {buttonText && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 'auto', pt: 3 }}>
             <Button
-              variant="outlined"
+              variant={isWhatsAppButton ? "contained" : "outlined"}
               disabled={isDisabled}
               onClick={onButtonClick}
               sx={{
@@ -152,8 +157,16 @@ const TravelCard = ({
                 fontWeight: 700,
                 fontSize: 16,
                 letterSpacing: '6.25%',
-                color: isDisabled ? '#BCBCBC' : '#DE3F5E',
-                borderColor: isDisabled ? '#BCBCBC' : '#DE3F5E',
+                ...(isWhatsAppButton ? {
+                  backgroundColor: isDisabled ? '#BCBCBC' : '#000',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: isDisabled ? '#BCBCBC' : '#333',
+                  },
+                } : {
+                  color: isDisabled ? '#BCBCBC' : '#DE3F5E',
+                  borderColor: isDisabled ? '#BCBCBC' : '#DE3F5E',
+                })
               }}
             >
               {buttonText}
@@ -276,11 +289,18 @@ export default function TravelPage() {
       title: "Staying in touch 📱",
       content: [
         "We'll be using WhatsApp for updates and coordination so make sure you have the app downloaded on your phone.",
-        "Also, keep checking back here - we'll add more details as we get closer."
+        "Download the app and use the button below to join our wedding channel!"
       ],
       image: "/images/travel_stay/8.png",
-      buttonText: "link coming soon",
-      isDisabled: true,
+      buttonText: "Join Wedding Channel",
+      isDisabled: !shouldShowWhatsApp, // Disable if user can't access WhatsApp
+      isWhatsAppButton: true,
+      onButtonClick: () => {
+        // Only show WhatsApp modal if user has RSVP'd "yes" or "maybe"
+        if (shouldShowWhatsApp) {
+          setWhatsAppModalOpen(true);
+        }
+      },
     },
     {
       title: "We’re so excited to celebrate with you! 🎉",
@@ -471,6 +491,7 @@ export default function TravelPage() {
                     buttonText={card.buttonText}
                     isDisabled={card.isDisabled}
                     onButtonClick={card.onButtonClick}
+                    isWhatsAppButton={card.isWhatsAppButton}
                   />
                 ))}
               </Stack>
