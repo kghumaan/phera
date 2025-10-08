@@ -44,7 +44,13 @@ export default function RegistryPage() {
           pb: 2,
         }}
       >
-        <Container maxWidth="sm">
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: 361, md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+          }}
+        >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <IconButton
               onClick={handleBack}
@@ -102,18 +108,31 @@ export default function RegistryPage() {
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="sm" sx={{ pb: 4, px: 2, pt: 10 }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          maxWidth: { xs: '100%', md: 600, lg: 700 },
+          px: { xs: 2, md: 3 },
+          pb: 4,
+          pt: 10,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          style={{ width: '100%' }}
         >
-          <Stack spacing={1.5}>
+          <Stack spacing={{ xs: 3, md: 4 }} alignItems="center">
             {/* Fund Cards */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
+              style={{ width: '100%' }}
             >
               <Box
                 component="button"
@@ -123,64 +142,48 @@ export default function RegistryPage() {
                   width: '100%',
                   textDecoration: 'none',
                   border: 'none',
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   overflow: 'hidden',
-                  boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out',
+                  transition: 'all 0.3s ease-in-out',
                   '&:hover': {
-                    boxShadow: '0px 0px 40px 0px rgba(0, 0, 0, 0.16)',
-                    transform: 'translateY(-2px)',
+                    boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
+                    transform: 'translateY(-4px)',
                   },
                 }}
               >
                 <Box
                   sx={{
                     display: 'flex',
-                    alignItems: 'stretch',
-                    gap: 0.5,
-                    padding: 2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 3,
+                    padding: { xs: 4, md: 5 },
                     backgroundColor: '#ffffff',
                   }}
                 >
-                  <Box sx={{ flex: 1, textAlign: 'left' }}>
-                    {/* Fund Name */}
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 500,
-                        fontSize: 24,
-                        lineHeight: 1.3,
-                        color: '#141414',
-                        mb: 1,
-                      }}
-                    >
-                      🏠 New Home Fund
-                    </Typography>
-                    
-                    {/* Fund Description */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 300,
-                        fontSize: 16,
-                        lineHeight: 1.5,
-                        color: '#858585',
-                      }}
-                    >
-                      Help us make our new house into a home.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ChevronRight 
-                      sx={{ 
-                        color: '#858585',
-                        fontSize: 24,
-                      }} 
-                    />
-                  </Box>
+                  {/* Fund Name */}
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontWeight: 600,
+                      fontSize: { xs: 28, md: 32, lg: 36 },
+                      lineHeight: 1,
+                      color: '#141414',
+                    }}
+                  >
+                    🏠 New Home Fund
+                  </Typography>
+
+                  <ChevronRight
+                    sx={{
+                      color: '#141414',
+                      fontSize: { xs: 40, md: 48 },
+                      flexShrink: 0,
+                    }}
+                  />
                 </Box>
               </Box>
             </motion.div>
@@ -189,6 +192,7 @@ export default function RegistryPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
+              style={{ width: '100%' }}
             >
               <Box
                 component="button"
@@ -198,64 +202,48 @@ export default function RegistryPage() {
                   width: '100%',
                   textDecoration: 'none',
                   border: 'none',
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   overflow: 'hidden',
-                  boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out',
+                  transition: 'all 0.3s ease-in-out',
                   '&:hover': {
-                    boxShadow: '0px 0px 40px 0px rgba(0, 0, 0, 0.16)',
-                    transform: 'translateY(-2px)',
+                    boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
+                    transform: 'translateY(-4px)',
                   },
                 }}
               >
                 <Box
                   sx={{
                     display: 'flex',
-                    alignItems: 'stretch',
-                    gap: 0.5,
-                    padding: 2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 3,
+                    padding: { xs: 4, md: 5 },
                     backgroundColor: '#ffffff',
                   }}
                 >
-                  <Box sx={{ flex: 1, textAlign: 'left' }}>
-                    {/* Fund Name */}
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 500,
-                        fontSize: 24,
-                        lineHeight: 1.3,
-                        color: '#141414',
-                        mb: 1,
-                      }}
-                    >
-                      🌙 Honeymoon Fund
-                    </Typography>
-                    
-                    {/* Fund Description */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontWeight: 300,
-                        fontSize: 16,
-                        lineHeight: 1.5,
-                        color: '#858585',
-                      }}
-                    >
-                      Help us make our honeymoon unforgettable.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ChevronRight 
-                      sx={{ 
-                        color: '#858585',
-                        fontSize: 24,
-                      }} 
-                    />
-                  </Box>
+                  {/* Fund Name */}
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontWeight: 600,
+                      fontSize: { xs: 28, md: 32, lg: 36 },
+                      lineHeight: 1,
+                      color: '#141414',
+                    }}
+                  >
+                    ✈️ Honeymoon Fund
+                  </Typography>
+
+                  <ChevronRight
+                    sx={{
+                      color: '#141414',
+                      fontSize: { xs: 40, md: 48 },
+                      flexShrink: 0,
+                    }}
+                  />
                 </Box>
               </Box>
             </motion.div>

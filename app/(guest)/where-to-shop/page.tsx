@@ -75,7 +75,13 @@ export default function WhereToShopPage() {
           pb: 2,
         }}
       >
-        <Container maxWidth="sm">
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: 361, md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+          }}
+        >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <IconButton
               onClick={() => router.push('/events')}
@@ -110,7 +116,15 @@ export default function WhereToShopPage() {
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="sm" sx={{ pb: 4, px: 2, pt: 10 }}>
+      <Container 
+        maxWidth={false}
+        sx={{
+          maxWidth: { xs: '100%', md: 600, lg: 700 },
+          px: { xs: 2, md: 3 },
+          pb: 4,
+          pt: 10,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

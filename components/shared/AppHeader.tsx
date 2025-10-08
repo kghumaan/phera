@@ -75,7 +75,13 @@ export default function AppHeader({
   return (
     <>
       <Box sx={headerSx}>
-        <Container maxWidth="sm">
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: 361, md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+          }}
+        >
           <Box
             sx={{
               display: 'flex',

@@ -189,7 +189,13 @@ export default function DetailsPage() {
           pb: 2,
         }}
       >
-        <Container maxWidth="sm">
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: 361, md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+          }}
+        >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <IconButton
               onClick={handleBack}
@@ -245,8 +251,10 @@ export default function DetailsPage() {
         }}
       >
         <Container
-          maxWidth="sm"
+          maxWidth={false}
           sx={{
+            maxWidth: { xs: '100%', md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -265,7 +273,7 @@ export default function DetailsPage() {
                 spacing={{ xs: 1.5, sm: 2 }}
                 sx={{
                   width: '100%',
-                  maxWidth: { xs: '90%', sm: 361, md: 400 },
+                  maxWidth: { xs: '90%', sm: 361, md: 500, lg: 600 },
                   alignItems: 'center',
                 }}
               >

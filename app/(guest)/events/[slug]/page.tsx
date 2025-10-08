@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -78,8 +78,8 @@ const EventCard = ({
     <Card
       sx={{
         width: '100%',
-        maxWidth: 361,
-        height: '100%',
+        maxWidth: { xs: 361, md: 600, lg: 700 },
+        height: { xs: '100%', md: '96vh', lg: '96vh' },
         backgroundColor: (index === 0 || index === 2 || index === 4 || index === 6 || index === 8 || index === 10) ? 'transparent' : isImage ? '#FFFFFF' : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: (index === 0 || index === 2 || index === 4 || index === 6 || index === 8 || index === 10) ? 'none' : isImage ? 'none' : 'blur(10px)',
         borderRadius: '16px',
@@ -98,7 +98,7 @@ const EventCard = ({
     >
       <CardContent
         sx={{
-          p: isImage ? 0 : 3,
+          p: isImage ? 0 : { xs: 3, md: 4, lg: 5 },
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -124,13 +124,13 @@ const EventCard = ({
         ) : (index === 0 || index === 2 || index === 4 || index === 6 || index === 8 || index === 10) ? (
           content
         ) : (
-          <Stack spacing={2} alignItems="center">
+          <Stack spacing={{ xs: 2, md: 3 }} alignItems="center">
             <Typography
               variant="h4"
               sx={{
                 fontFamily: 'Outfit',
                 fontWeight: 300,
-                fontSize: 28,
+                fontSize: { xs: 28, md: 36, lg: 40 },
                 lineHeight: 1.3,
                 color: '#141414',
               }}
@@ -143,7 +143,7 @@ const EventCard = ({
               sx={{
                 fontFamily: 'Outfit',
                 fontWeight: 400,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 color: '#474747',
               }}
@@ -322,7 +322,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -343,7 +343,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -364,7 +364,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -385,7 +385,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -615,7 +615,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -636,7 +636,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#FFFFFF',
@@ -656,7 +656,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -677,7 +677,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#FFFFFF',
@@ -970,7 +970,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -991,7 +991,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -1012,7 +1012,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -1033,7 +1033,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -1200,7 +1200,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -1221,7 +1221,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -1242,7 +1242,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -1263,7 +1263,7 @@ export default function EventDetailPage() {
                   sx={{ 
                     fontFamily: 'Instrument Serif',
                     fontWeight: 400,
-                    fontSize: 28,
+                    fontSize: { xs: 28, md: 34, lg: 38 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: '#141414',
@@ -1430,7 +1430,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -1448,7 +1448,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1463,7 +1463,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1478,7 +1478,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1493,7 +1493,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1513,7 +1513,7 @@ export default function EventDetailPage() {
               sx={{ 
                 fontFamily: 'Outfit',
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: { xs: 16, md: 18, lg: 20 },
                 lineHeight: 1.5,
                 letterSpacing: '0.0625em',
                 textTransform: 'uppercase',
@@ -1531,7 +1531,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1546,7 +1546,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1561,7 +1561,7 @@ export default function EventDetailPage() {
                 sx={{ 
                   fontFamily: 'Instrument Serif',
                   fontWeight: 400,
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 34, lg: 38 },
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: '#FFFFFF',
@@ -1805,6 +1805,7 @@ export default function EventDetailPage() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
+          minHeight: '100vh',
           overflow: 'hidden',
           touchAction: 'pan-x',
         }}
@@ -1819,7 +1820,13 @@ export default function EventDetailPage() {
             flexShrink: 0,
           }}
         >
-          <Container maxWidth="sm">
+          <Container 
+            maxWidth={false}
+            sx={{
+              maxWidth: { xs: 361, md: 600, lg: 700 },
+              px: { xs: 2, md: 3 },
+            }}
+          >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <IconButton
                 onClick={handleBack}
@@ -1863,9 +1870,10 @@ export default function EventDetailPage() {
             justifyContent: 'center',
             position: 'relative',
             zIndex: 2,
+            py: { xs: 2, md: 4 },
           }}
         >
-          <Stack spacing={3} alignItems="center" sx={{ width: '100%', height: '100%', justifyContent: 'center' }}>
+          <Stack spacing={3} alignItems="center" sx={{ width: '100%' }}>
             {/* Carousel container */}
             <Box
               sx={{
@@ -1917,35 +1925,47 @@ export default function EventDetailPage() {
                   onClick={() => handleSlideChange('prev')}
                   disabled={currentSlide === 0}
                   sx={{
+                    width: 48,
+                    height: 48,
                     color: '#000',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     backdropFilter: 'blur(10px)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
                     },
                     '&:disabled': {
                       opacity: 0.3,
                     },
                   }}
                 >
-                  ←
+                  <ChevronLeft sx={{ fontSize: 32 }} />
                 </IconButton>
                 <IconButton
                   onClick={() => handleSlideChange('next')}
                   disabled={currentSlide === eventData.length - 1}
                   sx={{
+                    width: 48,
+                    height: 48,
                     color: '#000',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     backdropFilter: 'blur(10px)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
                     },
                     '&:disabled': {
                       opacity: 0.3,
                     },
                   }}
                 >
-                  →
+                  <ChevronRight sx={{ fontSize: 32 }} />
                 </IconButton>
               </Stack>
             )}

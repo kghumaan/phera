@@ -54,7 +54,13 @@ export default function SuccessPage() {
           justifyContent: 'center',
         }}
       >
-        <Container maxWidth="sm">
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: '100%', md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

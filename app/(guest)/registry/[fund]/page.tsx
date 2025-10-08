@@ -159,7 +159,13 @@ export default function FundPage() {
             flexShrink: 0,
           }}
         >
-          <Container maxWidth="sm">
+          <Container 
+            maxWidth={false}
+            sx={{
+              maxWidth: { xs: 361, md: 600, lg: 700 },
+              px: { xs: 2, md: 3 },
+            }}
+          >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <IconButton
                 onClick={handleBack}
@@ -195,7 +201,15 @@ export default function FundPage() {
         </Box>
 
         {/* Main Content */}
-        <Container maxWidth="sm" sx={{ flex: 1, py: 4 }}>
+        <Container 
+          maxWidth={false}
+          sx={{
+            maxWidth: { xs: '100%', md: 600, lg: 700 },
+            px: { xs: 2, md: 3 },
+            flex: 1,
+            py: 4,
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
