@@ -15,6 +15,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface WhatsAppChannelModalProps {
   open: boolean;
@@ -215,30 +216,26 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
               {/* Desktop: QR Code, Mobile: App Store Button */}
               {!isMobile ? (
                 <Stack spacing={2} alignItems="center">
-                  {/* QR Code Placeholder */}
+                  {/* QR Code */}
                   <Box
                     sx={{
-                      width: 160,
-                      height: 160,
-                      backgroundColor: '#f5f5f5',
+                      width: 180,
+                      height: 180,
+                      backgroundColor: '#ffffff',
                       borderRadius: 2,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: '1px solid #e0e0e0',
+                      border: '2px solid #e0e0e0',
+                      padding: 2,
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'Outfit',
-                        fontSize: 12,
-                        color: '#999',
-                        textAlign: 'center',
-                      }}
-                    >
-                      Scan with phone to<br />join community
-                    </Typography>
+                    <QRCodeSVG
+                      value="https://chat.whatsapp.com/L8x8m5wBBkm1PmAxFDRO6a?mode=ems_wa_t"
+                      size={160}
+                      level="H"
+                      includeMargin={false}
+                    />
                   </Box>
 
                   <Typography
@@ -249,7 +246,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                       color: '#666',
                     }}
                   >
-                    Or click the button below
+                    Scan with phone to join community
                   </Typography>
                 </Stack>
               ) : (

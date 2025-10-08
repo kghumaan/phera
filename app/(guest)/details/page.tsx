@@ -23,12 +23,13 @@ import { useState } from 'react';
 const DiamondDecoration = () => (
   <Box
     sx={{
-      width: 65,
-      height: 16,
+      width: { xs: 50, sm: 65 },
+      height: { xs: 12, sm: 16 },
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       color: '#D1B99F',
+      my: { xs: 0.5, sm: 0 },
     }}
   >
     <svg width="65" height="16" viewBox="0 0 65 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,23 +73,23 @@ const DiamondDecoration = () => (
 );
 
 // Menu item component
-const MenuItem = ({ 
-  title, 
-  onClick 
-}: { 
-  title: string; 
-  onClick: () => void; 
+const MenuItem = ({
+  title,
+  onClick
+}: {
+  title: string;
+  onClick: () => void;
 }) => (
   <motion.div
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    style={{ cursor: 'pointer' }}
+    style={{ cursor: 'pointer', width: '100%' }}
   >
     <Box
       sx={{
-        py: 2,
-        px: 4,
+        py: { xs: 1.5, sm: 2 },
+        px: { xs: 3, sm: 4 },
         borderRadius: 2,
         transition: 'all 0.2s ease-in-out',
         width: '100%',
@@ -103,7 +104,7 @@ const MenuItem = ({
         sx={{
           fontFamily: 'Outfit',
           fontWeight: 400,
-          fontSize: 18,
+          fontSize: { xs: 16, sm: 18, md: 20 },
           lineHeight: 1.5,
           letterSpacing: '5.56%',
           textTransform: 'uppercase',
@@ -238,26 +239,33 @@ export default function DetailsPage() {
           justifyContent: 'center',
           position: 'relative',
           zIndex: 1,
-          maxHeight: '100%', // Ensure content doesn't exceed container
-          marginTop: '-40px',
-          paddingBottom: '20px', // Add bottom padding for balance
-          // Removed marginTop offset since header is now absolutely positioned
+          paddingTop: '80px', // Add top padding to clear the header
+          paddingBottom: '40px', // Add bottom padding for balance
+          overflow: 'auto', // Allow scrolling if content is too tall
         }}
       >
-        <Container maxWidth="sm" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Container
+          maxWidth="sm"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 2,
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             style={{ width: '100%' }}
           >
-            <Stack spacing={3} alignItems="center" sx={{ justifyContent: 'center' }}>
+            <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
-              <Stack 
-                spacing={2} 
-                sx={{ 
-                  width: '100%', 
-                  maxWidth: 361,
+              <Stack
+                spacing={{ xs: 1.5, sm: 2 }}
+                sx={{
+                  width: '100%',
+                  maxWidth: { xs: '90%', sm: 361, md: 400 },
                   alignItems: 'center',
                 }}
               >
