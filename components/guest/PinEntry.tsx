@@ -15,7 +15,6 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoginModal from '@/components/auth/LoginModal';
-import DesktopAlert from '@/components/ui/DesktopAlert';
 
 interface PinEntryProps {
   onPinVerified: () => void;
@@ -241,8 +240,6 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
       src="/images/backgrounds/pearl.png"
       className="min-h-screen flex flex-col"
     >
-      {/* Desktop Alert */}
-      <DesktopAlert />
       {/* Top Left Decorative Image */}
       <Box
         component="img"
@@ -275,42 +272,6 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
         }}
       />
 
-      {/* Header Section with Logo */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 3,
-          pt: { xs: 2, sm: 3 },
-          px: { xs: 3, sm: 4 },
-        }}
-      >
-        <Container maxWidth="sm">
-                      <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '100%',
-              }}
-            >
-            {/* Logo */}
-            <Box
-              component="img"
-              src="/logo-stacked.svg"
-              alt="Phera Logo"
-              sx={{
-                height: { xs: 80, sm: 100, md: 120 },
-                width: 'auto',
-                filter: 'brightness(0)',
-              }}
-            />
-          </Box>
-        </Container>
-      </Box>
-
       {/* Main Content */}
       <Container 
         maxWidth="sm" 
@@ -321,8 +282,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: { xs: 'calc(100vh - 96px)', sm: 'calc(100vh - 112px)', md: 'calc(100vh - 128px)' },
-          pt: { xs: 12, sm: 14, md: 16 }, // Increased padding to account for header
+          minHeight: '100vh',
+          pt: { xs: 3, sm: 4 },
           pb: { xs: 4, sm: 6 },
           px: { xs: 3, sm: 4 },
           gap: { xs: 4, sm: 6 },
@@ -339,27 +300,20 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            gap: '24px',
           }}
         >
-          {/* Lotus Logo */}
-          {/* <Box
+          {/* Logo */}
+          <Box
+            component="img"
+            src="/logo-stacked.svg"
+            alt="Phera Logo"
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: { xs: 2, sm: 3 },
+              height: { xs: 80, sm: 100, md: 120, lg: 140, xl: 160 },
+              width: 'auto',
+              filter: 'brightness(0)',
             }}
-          >
-            <Box
-              component="img"
-              src="/logo-lotus-flame.svg"
-              alt="Lotus Logo"
-              sx={{
-                height: { xs: 50, sm: 60, md: 80 },
-                width: 'auto',
-                filter: 'brightness(0)', // Makes it black
-              }}
-            />
-          </Box> */}
+          />
 
           {/* Heading */}
           <Typography
@@ -368,8 +322,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               fontFamily: 'var(--font-instrument-serif), serif',
               fontWeight: 400,
               color: '#000',
-              mb: { xs: 1, sm: 1.5 },
-              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem' },
+              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.5rem', xl: '4rem' },
               lineHeight: 1.4,
               textAlign: 'center',
               fontStyle: 'italic',
@@ -384,9 +337,9 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             sx={{
               fontFamily: 'var(--font-outfit), sans-serif',
               color: '#000',
-              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem' },
+              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
               lineHeight: 1.5,
-              maxWidth: { xs: 355, sm: 400 },
+              maxWidth: { xs: 355, sm: 400, lg: 500, xl: 600 },
               mx: 'auto',
               fontWeight: 400,
               textAlign: 'center',
@@ -414,9 +367,8 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           {/* Pin Input Section */}
           <Stack 
             direction="row" 
-            spacing={{ xs: 1.5, sm: 1.5, md: 1.5 }}
+            spacing={{ xs: 1.5, sm: 1.5, md: 1.5, lg: 2, xl: 2.5 }}
             justifyContent="center"
-            mb={4}
           >
             {pin.map((digit, index) => (
               <TextField
@@ -427,12 +379,12 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
                 sx={{
-                  width: { xs: 72, sm: 72, md: 73 },
+                  width: { xs: 72, sm: 72, md: 73, lg: 90, xl: 100 },
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#FFFFFF',
                     borderRadius: '50%', // Perfect circle
-                    height: { xs: 72, sm: 72, md: 73 },
-                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem' },
+                    height: { xs: 72, sm: 72, md: 73, lg: 90, xl: 100 },
+                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.875rem', xl: '2.25rem' },
                     fontFamily: 'var(--font-outfit), sans-serif',
                     fontWeight: 700,
                     textAlign: 'center',
@@ -478,18 +430,18 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
+              style={{ marginTop: '16px' }}
             >
               <Typography
                 variant="body2"
                 sx={{
                   color: '#f44336',
-                  mt: { xs: 3, sm: 4 },
                   fontWeight: 600,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.125rem', xl: '1.25rem' },
                   textAlign: 'center',
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                  px: 3,
-                  py: 1,
+                  px: { xs: 3, lg: 4, xl: 5 },
+                  py: { xs: 1, lg: 1.5, xl: 2 },
                   borderRadius: '20px',
                   border: '1px solid rgba(244, 67, 54, 0.2)',
                 }}
@@ -521,15 +473,15 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               backgroundColor: '#141414',
               color: '#FFFFFF',
               borderRadius: '16px',
-              px: '20px',
-              py: '12px',
-              fontSize: '1rem',
+              px: { xs: '20px', lg: '24px', xl: '28px' },
+              py: { xs: '12px', lg: '14px', xl: '16px' },
+              fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
               fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: '354px',
+              maxWidth: { xs: '354px', lg: '420px', xl: '480px' },
               boxShadow: 'none',
               '&:hover': {
                 backgroundColor: '#2A2A2A',
@@ -561,7 +513,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 width: '100%',
-                maxWidth: { xs: 280, sm: 300 },
+                maxWidth: { xs: 280, sm: 300, lg: 360, xl: 420 },
                 gap: 2,
               }}
             >
@@ -581,7 +533,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                   color: '#000',
                   fontFamily: 'var(--font-outfit), sans-serif',
                   fontWeight: 400,
-                  fontSize: { xs: '1rem', sm: '1rem' },
+                  fontSize: { xs: '1rem', sm: '1rem', lg: '1.125rem', xl: '1.25rem' },
                   textTransform: 'uppercase',
                   letterSpacing: '6.25%',
                   flexShrink: 0,
@@ -608,15 +560,15 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               backgroundColor: '#FFFFFF',
               color: '#141414',
               borderRadius: '16px',
-              px: '20px',
-              py: '12px',
-              fontSize: '1rem',
+              px: { xs: '20px', lg: '24px', xl: '28px' },
+              py: { xs: '12px', lg: '14px', xl: '16px' },
+              fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
               fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: '354px',
+              maxWidth: { xs: '354px', lg: '420px', xl: '480px' },
               border: '1px solid #D6D6D6',
               boxShadow: 'none',
               '&:hover': {
