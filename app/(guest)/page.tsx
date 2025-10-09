@@ -95,16 +95,16 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: 4,
-        py: 1.5,
+        px: { xs: 4, lg: 5, xl: 6 },
+        py: { xs: 1.5, lg: 2, xl: 2.5 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: 400,
+        maxWidth: { xs: 400, lg: 480, xl: 560 },
       }}
     >
       <Stack 
         direction="row" 
-        spacing={3}
+        spacing={{ xs: 3, lg: 4, xl: 5 }}
         justifyContent="center" 
         alignItems="center"
       >
@@ -114,7 +114,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             alignItems="center" 
             spacing={0}
             sx={{ 
-              minWidth: { xs: 35, sm: 40 }, // Fixed width for each column
+              minWidth: { xs: 35, sm: 40, lg: 50, xl: 60 }, // Fixed width for each column
             }}
           >
             <Typography
@@ -122,7 +122,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.5rem', sm: '1.5rem' }, // 24px from Figma
+                fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.875rem', xl: '2.25rem' }, // 24px from Figma
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
@@ -134,7 +134,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.75rem' }, // 12px from Figma
+                fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.9rem', xl: '1rem' }, // 12px from Figma
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
                 textAlign: 'center',
@@ -598,7 +598,7 @@ export default function HomePage() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: 320,
+                maxWidth: { xs: 320, lg: 400, xl: 480 },
                 aspectRatio: '1',
                 mx: 'auto',
                 mb: 2,
@@ -655,7 +655,7 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#000',
-                  fontSize: '1rem',
+                  fontSize: { xs: '1rem', lg: '1.25rem', xl: '1.375rem' },
                   letterSpacing: '0.5px',
                 }}
               >
@@ -666,7 +666,7 @@ export default function HomePage() {
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { xs: '2.5rem', sm: '3rem' },
+                  fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.5rem', xl: '4rem' },
                   color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
@@ -706,13 +706,13 @@ export default function HomePage() {
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: '1.1rem',
+                      fontSize: { xs: '1.1rem', lg: '1.3rem', xl: '1.5rem' },
                       textDecoration: 'underline',
                     }}
                   >
                     {coupleData.venue}
                   </Typography>
-                  <Typography sx={{ fontSize: '1.2rem' }}>
+                  <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }}>
                     {coupleData.flag}
                   </Typography>
                 </Stack>
@@ -819,8 +819,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: 2,
-                    fontSize: '1.1rem',
+                    py: { xs: 2, lg: 2.5, xl: 3 },
+                    fontSize: { xs: '1.1rem', lg: '1.25rem', xl: '1.5rem' },
                     fontWeight: 600,
                     borderRadius: '32px',
                     textTransform: 'uppercase',
@@ -841,7 +841,7 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#777',
-                  fontSize: '0.9rem',
+                  fontSize: { xs: '0.9rem', lg: '1rem', xl: '1.125rem' },
                   textAlign: 'center',
                   lineHeight: 1.4,
                 }}
@@ -897,8 +897,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: 1.5,
-                    fontSize: '1rem',
+                    py: { xs: 1.5, lg: 2, xl: 2.5 },
+                    fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
                     fontWeight: 700,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
