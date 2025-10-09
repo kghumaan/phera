@@ -481,7 +481,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: { xs: '354px', lg: '420px', xl: '480px' },
+              maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
               boxShadow: 'none',
               '&:hover': {
                 backgroundColor: '#2A2A2A',

@@ -95,11 +95,11 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: { xs: 4, lg: 4.5, xl: 5 },
-        py: { xs: 1.5, lg: 1.75, xl: 2 },
+        px: { xs: 4, lg: 4.25, xl: 4.5 },
+        py: { xs: 1.5, lg: 1.625, xl: 1.75 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: { xs: 400, lg: 440, xl: 480 },
+        maxWidth: { xs: 400, lg: 420, xl: 440 },
       }}
     >
       <Stack 
@@ -598,7 +598,7 @@ export default function HomePage() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: { xs: 320, lg: 360, xl: 400 },
+                maxWidth: { xs: 320, lg: 340, xl: 360 },
                 aspectRatio: '1',
                 mx: 'auto',
                 mb: 2,
