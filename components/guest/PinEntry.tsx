@@ -309,7 +309,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             src="/logo-stacked.svg"
             alt="Phera Logo"
             sx={{
-              height: { xs: 80, sm: 100, md: 120, lg: 140, xl: 160 },
+              height: { xs: 80, sm: 100, md: 120, lg: 130, xl: 140 },
               width: 'auto',
               filter: 'brightness(0)',
             }}
@@ -322,7 +322,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               fontFamily: 'var(--font-instrument-serif), serif',
               fontWeight: 400,
               color: '#000',
-              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.5rem', xl: '4rem' },
+              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
               lineHeight: 1.4,
               textAlign: 'center',
               fontStyle: 'italic',
@@ -337,9 +337,9 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             sx={{
               fontFamily: 'var(--font-outfit), sans-serif',
               color: '#000',
-              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
+              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
               lineHeight: 1.5,
-              maxWidth: { xs: 355, sm: 400, lg: 500, xl: 600 },
+              maxWidth: { xs: 355, sm: 400, lg: 450, xl: 500 },
               mx: 'auto',
               fontWeight: 400,
               textAlign: 'center',
@@ -367,7 +367,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           {/* Pin Input Section */}
           <Stack 
             direction="row" 
-            spacing={{ xs: 1.5, sm: 1.5, md: 1.5, lg: 2, xl: 2.5 }}
+            spacing={{ xs: 1.5, sm: 1.5, md: 1.5, lg: 1.75, xl: 2 }}
             justifyContent="center"
           >
             {pin.map((digit, index) => (
@@ -379,12 +379,12 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
                 sx={{
-                  width: { xs: 72, sm: 72, md: 73, lg: 90, xl: 100 },
+                  width: { xs: 72, sm: 72, md: 73, lg: 80, xl: 88 },
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#FFFFFF',
                     borderRadius: '50%', // Perfect circle
-                    height: { xs: 72, sm: 72, md: 73, lg: 90, xl: 100 },
-                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.875rem', xl: '2.25rem' },
+                    height: { xs: 72, sm: 72, md: 73, lg: 80, xl: 88 },
+                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
                     fontFamily: 'var(--font-outfit), sans-serif',
                     fontWeight: 700,
                     textAlign: 'center',
@@ -437,11 +437,11 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 sx={{
                   color: '#f44336',
                   fontWeight: 600,
-                  fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                  fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                   textAlign: 'center',
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                  px: { xs: 3, lg: 4, xl: 5 },
-                  py: { xs: 1, lg: 1.5, xl: 2 },
+                  px: { xs: 3, lg: 3.5, xl: 4 },
+                  py: { xs: 1, lg: 1.25, xl: 1.5 },
                   borderRadius: '20px',
                   border: '1px solid rgba(244, 67, 54, 0.2)',
                 }}
@@ -473,9 +473,9 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               backgroundColor: '#141414',
               color: '#FFFFFF',
               borderRadius: '16px',
-              px: { xs: '20px', lg: '24px', xl: '28px' },
-              py: { xs: '12px', lg: '14px', xl: '16px' },
-              fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
+              px: { xs: '20px', lg: '22px', xl: '24px' },
+              py: { xs: '12px', lg: '13px', xl: '14px' },
+              fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
               fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -513,7 +513,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 width: '100%',
-                maxWidth: { xs: 280, sm: 300, lg: 360, xl: 420 },
+                maxWidth: { xs: 280, sm: 300, lg: 320, xl: 350 },
                 gap: 2,
               }}
             >
@@ -533,7 +533,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                   color: '#000',
                   fontFamily: 'var(--font-outfit), sans-serif',
                   fontWeight: 400,
-                  fontSize: { xs: '1rem', sm: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                  fontSize: { xs: '1rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                   textTransform: 'uppercase',
                   letterSpacing: '6.25%',
                   flexShrink: 0,
@@ -560,15 +560,15 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               backgroundColor: '#FFFFFF',
               color: '#141414',
               borderRadius: '16px',
-              px: { xs: '20px', lg: '24px', xl: '28px' },
-              py: { xs: '12px', lg: '14px', xl: '16px' },
-              fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
+              px: { xs: '20px', lg: '22px', xl: '24px' },
+              py: { xs: '12px', lg: '13px', xl: '14px' },
+              fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
               fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
               width: '100%',
-              maxWidth: { xs: '354px', lg: '420px', xl: '480px' },
+              maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
               border: '1px solid #D6D6D6',
               boxShadow: 'none',
               '&:hover': {

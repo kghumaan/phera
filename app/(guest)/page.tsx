@@ -95,16 +95,16 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: { xs: 4, lg: 5, xl: 6 },
-        py: { xs: 1.5, lg: 2, xl: 2.5 },
+        px: { xs: 4, lg: 4.5, xl: 5 },
+        py: { xs: 1.5, lg: 1.75, xl: 2 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: { xs: 400, lg: 480, xl: 560 },
+        maxWidth: { xs: 400, lg: 440, xl: 480 },
       }}
     >
       <Stack 
         direction="row" 
-        spacing={{ xs: 3, lg: 4, xl: 5 }}
+        spacing={{ xs: 3, lg: 3.5, xl: 4 }}
         justifyContent="center" 
         alignItems="center"
       >
@@ -114,7 +114,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             alignItems="center" 
             spacing={0}
             sx={{ 
-              minWidth: { xs: 35, sm: 40, lg: 50, xl: 60 }, // Fixed width for each column
+              minWidth: { xs: 35, sm: 40, lg: 45, xl: 50 }, // Fixed width for each column
             }}
           >
             <Typography
@@ -122,7 +122,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.875rem', xl: '2.25rem' }, // 24px from Figma
+                fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.75rem', xl: '2rem' }, // 24px from Figma
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
@@ -134,7 +134,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.9rem', xl: '1rem' }, // 12px from Figma
+                fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' }, // 12px from Figma
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
                 textAlign: 'center',
@@ -598,7 +598,7 @@ export default function HomePage() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: { xs: 320, lg: 400, xl: 480 },
+                maxWidth: { xs: 320, lg: 360, xl: 400 },
                 aspectRatio: '1',
                 mx: 'auto',
                 mb: 2,
@@ -655,7 +655,7 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#000',
-                  fontSize: { xs: '1rem', lg: '1.25rem', xl: '1.375rem' },
+                  fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
                   letterSpacing: '0.5px',
                 }}
               >
@@ -666,7 +666,7 @@ export default function HomePage() {
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.5rem', xl: '4rem' },
+                  fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.25rem', xl: '3.5rem' },
                   color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
@@ -706,13 +706,13 @@ export default function HomePage() {
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { xs: '1.1rem', lg: '1.3rem', xl: '1.5rem' },
+                      fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
                       textDecoration: 'underline',
                     }}
                   >
                     {coupleData.venue}
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }}>
+                  <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.3rem', xl: '1.4rem' } }}>
                     {coupleData.flag}
                   </Typography>
                 </Stack>
@@ -819,8 +819,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: { xs: 2, lg: 2.5, xl: 3 },
-                    fontSize: { xs: '1.1rem', lg: '1.25rem', xl: '1.5rem' },
+                    py: { xs: 2, lg: 2.25, xl: 2.5 },
+                    fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
                     fontWeight: 600,
                     borderRadius: '32px',
                     textTransform: 'uppercase',
@@ -841,7 +841,7 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#777',
-                  fontSize: { xs: '0.9rem', lg: '1rem', xl: '1.125rem' },
+                  fontSize: { xs: '0.9rem', lg: '0.95rem', xl: '1rem' },
                   textAlign: 'center',
                   lineHeight: 1.4,
                 }}
@@ -897,8 +897,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: { xs: 1.5, lg: 2, xl: 2.5 },
-                    fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                    py: { xs: 1.5, lg: 1.75, xl: 2 },
+                    fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                     fontWeight: 700,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
