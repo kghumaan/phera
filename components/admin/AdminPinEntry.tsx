@@ -11,7 +11,6 @@ import {
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import DesktopAlert from '@/components/ui/DesktopAlert';
 
 interface AdminPinEntryProps {
   onPinVerified: () => void;
@@ -131,7 +130,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
       className="min-h-screen flex flex-col"
     >
       {/* Desktop Alert */}
-      <DesktopAlert />
+      {/* <DesktopAlert /> */}
       
       {/* Top Left Decorative Image */}
       <Box
