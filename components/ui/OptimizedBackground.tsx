@@ -42,7 +42,7 @@ export default function OptimizedBackground({
         className="fixed inset-0 -z-10"
         style={{
           // Ensure the container covers the entire viewport
-          minHeight: '100dvh', // Use dvh for better mobile support, fallback to vh via CSS
+          minHeight: '100svh', // Use svh to account for mobile browser chrome (address bar, nav buttons)
           minWidth: '100vw',
         }}
       >
@@ -58,9 +58,9 @@ export default function OptimizedBackground({
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
         />
       </motion.div>
-      
+
       {/* Content */}
-      <div className="relative z-10 min-h-dvh">
+      <div className="relative z-10 min-h-svh">
         {children}
       </div>
     </div>

@@ -509,7 +509,7 @@ export default function CustomRSVPForm() {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              minHeight: '100vh',
+              minHeight: '100svh',
               py: 0,
               px: { xs: 2, sm: 3, md: 4 },
               overflow: 'hidden',
@@ -535,7 +535,7 @@ export default function CustomRSVPForm() {
                   flexDirection: 'column',
                   mt: 6,
                   minHeight: '180px',
-                  maxHeight: 'calc(100vh - 160px)',
+                  maxHeight: 'calc(100svh - 160px)',
                   overflow: 'hidden',
                   position: 'relative',
                 }}

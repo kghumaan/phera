@@ -685,7 +685,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
           </Box>
         ) : (
           comments.map((comment, index) => {
-            console.log('Rendering comment:', comment.id, 'by guest:', comment.guest_id, 'current user:', user?.id);
+            // console.log('Rendering comment:', comment.id, 'by guest:', comment.guest_id, 'current user:', user?.id);
             return (
             <motion.div
               key={comment.id}

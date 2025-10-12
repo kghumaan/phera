@@ -49,7 +49,7 @@ export default function SuccessPage() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
+          minHeight: '100svh',
           alignItems: 'center',
           justifyContent: 'center',
         }}

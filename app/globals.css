@@ -29,15 +29,15 @@ body {
 html,
 body {
   min-height: 100vh;
-  min-height: 100dvh;
-  /* Dynamic viewport height for mobile browsers */
+  min-height: 100svh;
+  /* Small viewport height accounts for mobile browser chrome (address bar, nav buttons) */
   overflow-x: hidden;
 }
 
 /* Ensure backgrounds cover the full viewport on all devices */
 .background-container {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh;
   width: 100vw;
   position: relative;
 }

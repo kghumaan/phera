@@ -282,7 +282,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
+          minHeight: '100svh',
           pt: { xs: 3, sm: 4 },
           pb: { xs: 4, sm: 6 },
           px: { xs: 3, sm: 4 },

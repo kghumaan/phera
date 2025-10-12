@@ -161,7 +161,7 @@ export default function DetailsPage() {
   return (
     <Box
       sx={{
-        height: '100dvh', // Use dynamic viewport height for mobile
+        height: '100svh', // Use small viewport height to account for mobile browser chrome
         minHeight: '100vh', // Fallback for older browsers
         display: 'flex',
         flexDirection: 'column',

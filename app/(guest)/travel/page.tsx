@@ -63,28 +63,29 @@ const TravelCard = ({
 }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ 
-      opacity: isActive ? 1 : 0.3, 
-      scale: isActive ? 1 : 0.9 
+    animate={{
+      opacity: isActive ? 1 : 0.3,
+      scale: isActive ? 1 : 0.9
     }}
     transition={{ duration: 0.3 }}
     style={{
       width: '100vw',
       maxWidth: '100%',
-      height: '75vh', // Responsive height instead of fixed 596px
+      height: '75svh', // Use small viewport height to account for mobile browser chrome
       minHeight: '500px', // Minimum height for smaller screens
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      // padding: '0 16px',
+      padding: '0 16px', // Add horizontal padding for smaller screens
     }}
   >
     <Card
       sx={{
         width: '100%',
         maxWidth: { xs: 361, md: 600, lg: 700 },
-        height: { xs: '100%', md: '88vh', lg: '90vh' },
+        height: { xs: '100%', md: '88svh', lg: '90svh' },
+        mx: { xs: 0, md: 2 }, // Additional margin on medium+ screens
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
         borderRadius: '16px',
@@ -364,7 +365,7 @@ export default function TravelPage() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
+          minHeight: '100svh',
           overflow: 'hidden',
           touchAction: 'pan-x',
         }}

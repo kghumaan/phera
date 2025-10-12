@@ -145,7 +145,7 @@ export default function FundPage() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
+          minHeight: '100svh',
           overflowY: 'auto',
         }}
       >

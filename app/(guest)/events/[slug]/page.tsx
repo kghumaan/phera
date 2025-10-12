@@ -1805,7 +1805,7 @@ export default function EventDetailPage() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
+          minHeight: '100svh',
           overflow: 'hidden',
           touchAction: 'pan-x',
         }}
