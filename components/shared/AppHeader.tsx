@@ -75,11 +75,11 @@ export default function AppHeader({
   return (
     <>
       <Box sx={headerSx}>
-        <Container 
+        <Container
           maxWidth={false}
           sx={{
-            maxWidth: { xs: 361, md: 600, lg: 700 },
-            px: { xs: 2, md: 3 },
+            maxWidth: { xs: '100%', sm: 361, md: 600, lg: 700 }, // Full width on mobile
+            px: { xs: 2, sm: 2, md: 3 }, // Match the 16px top padding on mobile
           }}
         >
           <Box

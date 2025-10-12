@@ -161,20 +161,18 @@ export default function DetailsPage() {
   return (
     <Box
       sx={{
-        height: '100svh', // Use small viewport height to account for mobile browser chrome
-        minHeight: '100vh', // Fallback for older browsers
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         display: 'flex',
         flexDirection: 'column',
         backgroundImage: 'url(/images/backgrounds/pearl.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        overflow: 'hidden', // Prevent scrolling
-        position: 'fixed', // Fix position to prevent mobile scroll
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        overflow: 'hidden',
       }}
     >
       {/* Header with back button */}
@@ -250,8 +248,8 @@ export default function DetailsPage() {
           justifyContent: 'center',
           position: 'relative',
           zIndex: 1,
-          paddingTop: '80px', // Add top padding to clear the header
-          paddingBottom: '40px', // Add bottom padding for balance
+          pt: { xs: 10, md: 12 }, // Top padding to clear the header (responsive)
+          pb: { xs: 3, md: 5 }, // Bottom padding for balance
           overflow: 'auto', // Allow scrolling if content is too tall
         }}
       >
