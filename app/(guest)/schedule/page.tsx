@@ -74,8 +74,13 @@ const weddingSchedule = [
         location: 'Satnam House (transportation provided)'
       },
       {
+        time: '12:30 PM',
+        name: '🍽️ Lunch',
+        location: 'Lawn'
+      },
+      {
         time: '2 PM',
-        name: '☀️ Lunch & Pool Party',
+        name: '🏊 Pool Party',
         location: 'Poolside & Beach'
       },
       {
