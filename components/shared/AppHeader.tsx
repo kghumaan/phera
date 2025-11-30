@@ -13,6 +13,7 @@ import {
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
@@ -33,9 +34,13 @@ export default function AppHeader({
   onLoginClick
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut } = useAuth();
+  const pathname = usePathname();
   
-  // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
-  const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
+  // Check if we're on the landing page
+  const isLandingPage = pathname === '/';
+  
+  // Only show WhatsApp button if user has RSVP'd "yes" or "maybe" AND not on landing page
+  const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
@@ -154,8 +159,8 @@ export default function AppHeader({
                   </IconButton>
                 )}
 
-                {/* RSVP Status Button - Show when user has RSVPed */}
-                {hasRSVPed && rsvpResponse && (
+                {/* RSVP Status Button - Show when user has RSVPed AND not on landing page */}
+                {!isLandingPage && hasRSVPed && rsvpResponse && (
                   <Button
                     variant="contained"
                     onClick={(e) => setRsvpMenuAnchor(e.currentTarget)}

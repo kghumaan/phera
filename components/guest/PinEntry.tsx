@@ -18,14 +18,27 @@ import LoginModal from '@/components/auth/LoginModal';
 
 interface PinEntryProps {
   onPinVerified: () => void;
+  weddingSlug: string;
+}
+
+interface PinCode {
+  pin: string;
+  type: string;
+  allows_plus_one: boolean;
+}
+
+interface WeddingSettings {
+  pin_codes: PinCode[];
 }
 
 
 
-const PinEntry = ({ onPinVerified }: PinEntryProps) => {
+const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   const { refreshAuth, user, isLoading } = useAuth();
   const inputRefs = [
@@ -96,27 +109,74 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     }
   };
 
+  // Fetch wedding settings on mount
+  useEffect(() => {
+    const fetchWeddingSettings = async () => {
+      setIsLoadingSettings(true);
+      try {
+        // First get the wedding ID from the slug
+        const { data: wedding, error: weddingError } = await supabase
+          .from('weddings')
+          .select('id')
+          .eq('slug', weddingSlug)
+          .single();
+
+        if (weddingError || !wedding) {
+          console.error('Error fetching wedding:', weddingError);
+          setIsLoadingSettings(false);
+          return;
+        }
+
+        // Now fetch the wedding settings
+        const { data: settings, error: settingsError } = await supabase
+          .from('wedding_settings')
+          .select('pin_codes')
+          .eq('wedding_id', wedding.id)
+          .single();
+
+        if (settingsError) {
+          console.error('Error fetching wedding settings:', settingsError);
+          setIsLoadingSettings(false);
+          return;
+        }
+
+        if (settings && settings.pin_codes) {
+          setWeddingSettings({ pin_codes: settings.pin_codes as PinCode[] });
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching settings:', error);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    fetchWeddingSettings();
+  }, [weddingSlug]);
+
   const handleContinue = async () => {
     const enteredPin = pin.join('');
     
-    // PIN codes for different guest types
-    const PIN_WITH_PLUS_ONE = '7834';
-    const PIN_NO_PLUS_ONE = '2591';
-    const PIN_BYPASS_RSVP = '9876'; // Bypass RSVP - goes straight to guest home page
-    
-    if (enteredPin === PIN_WITH_PLUS_ONE || enteredPin === PIN_NO_PLUS_ONE || enteredPin === PIN_BYPASS_RSVP) {
+    if (!weddingSettings || !weddingSettings.pin_codes) {
+      setError(true);
+      return;
+    }
+
+    // Check if entered PIN matches any valid PIN for this wedding
+    const matchedPin = weddingSettings.pin_codes.find(
+      (pinConfig) => pinConfig.pin === enteredPin
+    );
+
+    if (matchedPin) {
       // Set pin verification flag and store settings
       if (typeof window !== 'undefined') {
-        localStorage.setItem('phera_pin_verified', 'true');
-        localStorage.setItem('phera_pin_timestamp', Date.now().toString());
-        localStorage.setItem('phera_allows_plus_one', enteredPin === PIN_WITH_PLUS_ONE ? 'true' : 'false');
+        localStorage.setItem(`phera_pin_verified_${weddingSlug}`, 'true');
+        localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, Date.now().toString());
+        localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, matchedPin.allows_plus_one ? 'true' : 'false');
+        localStorage.setItem(`phera_pin_type_${weddingSlug}`, matchedPin.type);
         
-        // Set bypass flag for PIN 1234
-        if (enteredPin === PIN_BYPASS_RSVP) {
-          localStorage.setItem('phera_bypass_rsvp', 'true');
-        } else {
-          localStorage.removeItem('phera_bypass_rsvp');
-        }
+        // Check if this is a bypass PIN (you can add a 'bypass_rsvp' field to pin config if needed)
+        // For now, we'll remove the hardcoded bypass behavior
+        localStorage.removeItem(`phera_bypass_rsvp_${weddingSlug}`);
         
         // Call the callback to notify parent component
         onPinVerified();
@@ -130,6 +190,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   };
 
   const isPinComplete = pin.every(digit => digit !== '');
+  const isReady = !isLoadingSettings && weddingSettings !== null;
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
@@ -174,23 +235,24 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           return;
         }
 
-        // Check for stored PIN verification
-        const pinVerified = localStorage.getItem('phera_pin_verified');
-        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        // Check for stored PIN verification (wedding-specific)
+        const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+        const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
         
         if (pinVerified === 'true' && pinTimestamp) {
           try {
             const timestamp = parseInt(pinTimestamp);
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
             if (isRecent) {
-              console.log('Recent PIN verification found, bypassing...');
+              console.log('Recent PIN verification found for this wedding, bypassing...');
               triggerBypass();
               return;
             } else {
               // Remove expired pin verification
-              localStorage.removeItem('phera_pin_verified');
-              localStorage.removeItem('phera_pin_timestamp');
-              localStorage.removeItem('phera_allows_plus_one');
+              localStorage.removeItem(`phera_pin_verified_${weddingSlug}`);
+              localStorage.removeItem(`phera_pin_timestamp_${weddingSlug}`);
+              localStorage.removeItem(`phera_allows_plus_one_${weddingSlug}`);
+              localStorage.removeItem(`phera_pin_type_${weddingSlug}`);
             }
           } catch (error) {
             console.error('Error checking pin verification:', error);
@@ -468,7 +530,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           {/* Continue Button */}
           <Button
             onClick={handleContinue}
-            disabled={!isPinComplete}
+            disabled={!isPinComplete || !isReady}
             sx={{
               backgroundColor: '#141414',
               color: '#FFFFFF',
@@ -495,7 +557,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            Continue
+            {isLoadingSettings ? 'Loading...' : 'Continue'}
           </Button>
 
           {/* Or Divider */}

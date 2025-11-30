@@ -81,7 +81,6 @@ const baseTheme = createTheme({
       },
     },
     h4: {
-      color: 'green',
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       '@media (min-width:600px)': {

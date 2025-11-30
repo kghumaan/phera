@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
+import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 
 interface User {
   id: string;
@@ -64,6 +65,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkRSVPStatus = async () => {
     if (!user || isCheckingRSVP || !user.email) {
+      return;
+    }
+
+    // Skip RSVP checks for landing page
+    if (typeof window !== 'undefined' && isOnLandingPage()) {
+      console.log('Skipping RSVP check for landing page');
+      setIsCheckingRSVP(false);
+      return;
+    }
+
+    // Skip RSVP checks for admin routes
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      console.log('Skipping RSVP check for admin route');
+      setIsCheckingRSVP(false);
       return;
     }
 
@@ -568,11 +583,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Add a safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
-      if (mounted) {
-        console.warn('Auth initialization timed out, forcing completion');
+      if (mounted && isLoading) {
+        console.warn('Auth initialization timed out after 5s, forcing completion');
         setIsLoading(false);
       }
-    }, 10000); // 10 second timeout
+    }, 5000); // 5 second timeout (reduced from 10s)
 
     return () => {
       mounted = false;
@@ -584,6 +599,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user && !isLoading) {
+      // Skip RSVP checks on landing page
+      if (typeof window !== 'undefined' && isOnLandingPage()) {
+        setHasRSVPed(false);
+        setRsvpResponse(null);
+        setIsCheckingRSVP(false);
+        return;
+      }
+      
       // Add a small delay to ensure database is consistent
       const timer = setTimeout(() => {
         checkRSVPStatus();

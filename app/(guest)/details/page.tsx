@@ -194,7 +194,7 @@ export default function DetailsPage() {
             px: { xs: 2, md: 3 },
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
             <IconButton
               onClick={handleBack}
               sx={{
@@ -270,7 +270,7 @@ export default function DetailsPage() {
             transition={{ duration: 0.6 }}
             style={{ width: '100%' }}
           >
-            <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
+            <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} sx={{ alignItems: 'center', justifyContent: 'center' }}>
               {/* Menu Items */}
               <Stack
                 spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}

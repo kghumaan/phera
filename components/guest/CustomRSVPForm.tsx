@@ -144,7 +144,11 @@ const countryCodes = [
   { code: '+63', country: 'Philippines', flag: '🇵🇭' },
 ];
 
-export default function CustomRSVPForm() {
+interface CustomRSVPFormProps {
+  weddingId?: string;
+}
+
+export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -208,7 +212,7 @@ export default function CustomRSVPForm() {
           );
           
           const result = await Promise.race([
-            getExistingRSVP(user.email, 'sim-kv'),
+            getExistingRSVP(user.email, weddingId),
             timeoutPromise
           ]);
           console.log('CustomRSVPForm: getExistingRSVP result:', result);
@@ -417,7 +421,7 @@ export default function CustomRSVPForm() {
       // Directly pass form data - the service handles all normalization
       console.log('Submitting form data:', formData);
       
-      const result = await submitRSVP(formData, 'sim-kv');
+      const result = await submitRSVP(formData, weddingId);
       
       if (result.success) {
         console.log('RSVP submitted successfully, result:', result);

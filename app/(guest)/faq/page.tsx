@@ -79,7 +79,7 @@ export default function FAQPage() {
             px: { xs: 2, md: 3 },
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
             <IconButton
               onClick={() => router.back()}
               sx={{

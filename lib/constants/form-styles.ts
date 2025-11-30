@@ -1,0 +1,88 @@
+/**
+ * Enhanced TextField styling for admin onboarding forms
+ * Provides consistent, larger, more readable form inputs across the platform
+ */
+
+export const ENHANCED_TEXT_FIELD_SX = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '16px',
+    bgcolor: 'white',
+    fontSize: '1.1rem',
+    '& input': {
+      py: 2.5,
+      fontSize: '1.1rem',
+    },
+    '& textarea': {
+      fontSize: '1.1rem',
+    },
+    '& fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.23)',
+    },
+    '&:hover fieldset': {
+      borderColor: '#DE3F5E',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#DE3F5E',
+      borderWidth: '2px',
+    },
+    '&.Mui-disabled': {
+      bgcolor: 'rgba(255, 255, 255, 0.8)',
+      '& fieldset': {
+        borderColor: 'rgba(0, 0, 0, 0.15)',
+      },
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#4a4a4a',
+    fontSize: '1.15rem',
+    fontWeight: 500,
+    '&.Mui-disabled': {
+      color: '#6a6a6a',
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#DE3F5E',
+    fontWeight: 600,
+  },
+  '& .MuiInputBase-input': {
+    color: '#1a1a1a',
+    '&.Mui-disabled': {
+      WebkitTextFillColor: '#4a4a4a',
+      color: '#4a4a4a',
+    },
+    '&:-webkit-autofill': {
+      WebkitBoxShadow: '0 0 0 100px white inset',
+      WebkitTextFillColor: '#1a1a1a',
+      caretColor: '#1a1a1a',
+      borderRadius: 'inherit',
+    },
+  },
+  '& .MuiFormHelperText-root': {
+    color: '#6a6a6a',
+    fontSize: '0.875rem',
+  },
+};
+
+/**
+ * Enhanced Paper styling for form containers
+ * Use for main content sections in onboarding pages
+ */
+export const ENHANCED_PAPER_SX = {
+  p: { xs: 4, md: 6 },
+  borderRadius: '24px',
+  bgcolor: 'rgba(255, 255, 255, 0.95)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+};
+
+/**
+ * Enhanced section spacing
+ * Use for Stack components containing form sections
+ */
+export const ENHANCED_SECTION_SPACING = 5;
+
+/**
+ * Enhanced container max width for desktop
+ */
+export const ENHANCED_CONTAINER_MAX_WIDTH = 'xl' as const;
+

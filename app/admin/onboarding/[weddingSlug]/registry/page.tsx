@@ -1,0 +1,310 @@
+'use client';
+
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Stack,
+  Paper,
+  IconButton,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Snackbar,
+} from '@mui/material';
+import { useState, useEffect, use } from 'react';
+import { Add, Edit, Delete, Save } from '@mui/icons-material';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+
+// Use the enhanced TextField styling
+const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+
+export default function RegistryPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+  const { weddingSlug } = use(params);
+  const [loading, setLoading] = useState(true);
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [registry, setRegistry] = useState<any[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentItem, setCurrentItem] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+
+  useEffect(() => {
+    loadData();
+  }, [weddingSlug]);
+
+  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const loadData = async () => {
+    try {
+      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+      if (wedding) {
+        setWeddingId(wedding.id);
+        const data = await weddingService.getRegistry(wedding.id);
+        setRegistry(data);
+      }
+    } catch (err) {
+      console.error('Error loading registry:', err);
+      const errorMessage = 'Failed to load registry';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = () => {
+    setCurrentItem({
+      wedding_id: weddingId,
+      fund_name: '',
+      emoji: '💝',
+      description: '',
+      stripe_product_id: '',
+      order_index: registry.length,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setCurrentItem(item);
+    setEditDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!currentItem?.fund_name || !currentItem?.emoji) {
+      const errorMessage = 'Please fill in fund name and emoji';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+      return;
+    }
+
+    try {
+      if (currentItem.id) {
+        await weddingService.updateRegistryItem(currentItem.id, currentItem);
+      } else {
+        await weddingService.createRegistryItem(currentItem);
+      }
+      await loadData();
+      setEditDialogOpen(false);
+      setCurrentItem(null);
+      setSuccess(true);
+      showToast('Changes saved!', 'success');
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error saving registry item:', err);
+      const errorMessage = 'Failed to save registry item';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  const handleDelete = async (itemId: string) => {
+    if (!confirm('Delete this fund?')) return;
+    try {
+      await weddingService.deleteRegistryItem(itemId);
+      await loadData();
+      setSuccess(true);
+      showToast('Fund deleted successfully', 'success');
+    } catch (err) {
+      const errorMessage = 'Failed to delete fund';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+        <LoadingSpinner message="Loading registry..." />
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
+        <Box>
+          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+            Registry Funds
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+            Manage your wedding registry contribution funds
+          </Typography>
+        </Box>
+
+
+        <Button 
+          variant="contained" 
+          startIcon={<Add />} 
+          onClick={handleAdd}
+          sx={{
+            bgcolor: '#DE3F5E',
+            color: 'white',
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': {
+              bgcolor: '#C8365A',
+            },
+          }}
+        >
+          Add Fund
+        </Button>
+
+        <Stack spacing={2}>
+          {registry.map((item) => (
+            <Paper key={item.id} sx={{ 
+              p: 3,
+              borderRadius: '16px',
+              bgcolor: '#fafafa',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              }
+            }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h4" sx={{ mb: 1 }}>
+                    {item.emoji}
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                    {item.fund_name}
+                  </Typography>
+                  {item.description && (
+                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                      {item.description}
+                    </Typography>
+                  )}
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <IconButton onClick={() => handleEdit(item)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(item.id)} color="error">
+                    <Delete />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            </Paper>
+          ))}
+
+          {registry.length === 0 && (
+            <Paper sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              borderRadius: '16px',
+              bgcolor: 'white',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            }}>
+              <Typography sx={{ color: '#6a6a6a' }}>
+                No registry funds yet. Add your first fund.
+              </Typography>
+            </Paper>
+          )}
+        </Stack>
+
+        <Dialog 
+          open={editDialogOpen} 
+          onClose={() => setEditDialogOpen(false)} 
+          maxWidth="sm" 
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '24px',
+              bgcolor: 'white',
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentItem?.id ? 'Edit Fund' : 'New Fund'}</DialogTitle>
+          <DialogContent sx={{ bgcolor: 'white' }}>
+            <Stack spacing={3} sx={{ mt: 2 }}>
+              <TextField
+                label="Fund Name *"
+                fullWidth
+                value={currentItem?.fund_name || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, fund_name: e.target.value })}
+                placeholder="e.g., Honeymoon Fund"
+                sx={textFieldSx}
+              />
+              <TextField
+                label="Emoji *"
+                fullWidth
+                value={currentItem?.emoji || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, emoji: e.target.value })}
+                placeholder="e.g., 🏖️"
+                sx={textFieldSx}
+              />
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={2}
+                value={currentItem?.description || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
+                sx={textFieldSx}
+              />
+              <TextField
+                label="Stripe Product ID (Optional)"
+                fullWidth
+                value={currentItem?.stripe_product_id || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, stripe_product_id: e.target.value })}
+                helperText="For payment integration"
+                sx={textFieldSx}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+            <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              startIcon={<Save />} 
+              onClick={handleSave}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: '#C8365A',
+                },
+              }}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Toast Notification */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={() => setSnackbarOpen(false)} 
+            severity={snackbarSeverity}
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Stack>
+    </Container>
+  );
+}
+
