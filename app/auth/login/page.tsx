@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -19,7 +19,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/admin';
@@ -431,6 +431,32 @@ export default function LoginPage() {
         </Container>
       </Box>
     </OptimizedBackground>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+        }}
+      >
+        <CircularProgress sx={{ color: '#DE3F5E' }} />
+      </Box>
+    </OptimizedBackground>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 }
 
