@@ -20,13 +20,13 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Sim & KV's Wedding Invite",
-  description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
+  title: "Phera",
+  description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
   
   // Open Graph tags for rich link previews - Optimized for large rectangular format
   openGraph: {
-    title: "Sim & KV's Wedding Invite",
-    description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
+    title: "Phera",
+    description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
     type: "website",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io",
     siteName: "Phera",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
         url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
         width: 1200,
         height: 630,
-        alt: "Sim & KV - Wedding Celebration",
+        alt: "Phera - Indian Wedding Platform",
         type: "image/jpeg",
       },
     ],
@@ -45,16 +45,16 @@ export const metadata: Metadata = {
   // Twitter Card tags - Using large image format for maximum impact
   twitter: {
     card: "summary_large_image",
-    title: "Sim & KV's Wedding Invite",
-    description: "RSVP for Sim &amp; KV's wedding celebrations in Thailand. All travel and event details are now available on our website.",
+    title: "Phera",
+    description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
     images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`],
     creator: "@phera",
   },
   
   // Additional metadata
-  keywords: ["wedding", "indian wedding", "invitation", "RSVP", "celebration", "Sim", "KV"],
-  authors: [{ name: "Sim & KV" }],
-  creator: "Sim & KV",
+  keywords: ["indian wedding", "wedding platform", "wedding website", "RSVP", "wedding planning", "destination wedding", "wedding management"],
+  authors: [{ name: "Phera" }],
+  creator: "Phera",
   publisher: "Phera",
   
   // Icons - using lotus-flame logo
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     'og:image:type': 'image/jpeg',
     'og:image:width': '1200',
     'og:image:height': '630',
-    'og:image:alt': 'Sim & KV - Wedding Celebration',
+    'og:image:alt': 'Phera - Indian Wedding Platform',
     'og:image:secure_url': `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
   },
 };

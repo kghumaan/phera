@@ -121,9 +121,9 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Build the callback URL with redirect to admin
+      // Build the callback URL - let callback route handle routing logic
+      // This ensures it works across all environments using the same hostname
       const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', '/admin');
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
