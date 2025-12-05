@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Instrument_Serif } from "next/font/google";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';

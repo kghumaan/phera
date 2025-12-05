@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
           .limit(1);
 
         if (weddings && weddings.length > 0) {
-          // User has a wedding, send to admin dashboard
-          redirectUrl = new URL('/admin', origin);
+          // User has a wedding, send to their wedding's onboarding overview
+          redirectUrl = new URL(`/admin/onboarding/${weddings[0].slug}/overview`, origin);
         } else {
           // New user with no wedding - send straight to onboarding
           redirectUrl = new URL('/admin/onboarding/new/overview', origin);

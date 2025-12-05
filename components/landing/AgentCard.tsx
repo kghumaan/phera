@@ -36,19 +36,6 @@ export default function AgentCard({
 }: AgentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const getCtaText = (type: string) => {
-    switch (type) {
-      case 'waitlist':
-        return 'Join Waitlist';
-      case 'pre-order':
-        return 'Pre-Order';
-      case 'learn-more':
-        return 'Learn More';
-      default:
-        return 'Learn More';
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -62,7 +49,7 @@ export default function AgentCard({
       <Card
         sx={{
           p: 3.5,
-          height: '100%',
+          height: '620px',
           width: { xs: '280px', sm: '320px', md: '360px' },
           borderRadius: '24px',
           bgcolor: 'white',
@@ -210,56 +197,31 @@ export default function AgentCard({
             </Typography>
           </Typography>
 
-          {/* CTAs */}
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCtaClick(id, ctaType);
-              }}
-              sx={{
-                flex: 1,
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                py: 1.5,
-                fontSize: '1rem',
-                '&:hover': {
-                  bgcolor: '#C8365A',
-                },
-              }}
-            >
-              {getCtaText(ctaType)}
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCtaClick(id, 'learn-more');
-              }}
-              sx={{
-                flex: 1,
-                borderColor: '#DE3F5E',
-                color: '#DE3F5E',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                py: 1.5,
-                fontSize: '1rem',
-                '&:hover': {
-                  borderColor: '#C8365A',
-                  bgcolor: 'rgba(222, 63, 94, 0.05)',
-                },
-              }}
-            >
-              Details
-            </Button>
-          </Stack>
+          {/* Details Button */}
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={(e) => {
+              e.stopPropagation();
+              onCtaClick(id, 'learn-more');
+            }}
+            sx={{
+              borderColor: '#DE3F5E',
+              color: '#DE3F5E',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              py: 1,
+              fontSize: '0.95rem',
+              mt: 'auto',
+              '&:hover': {
+                borderColor: '#C8365A',
+                bgcolor: 'rgba(222, 63, 94, 0.05)',
+              },
+            }}
+          >
+            Details
+          </Button>
         </Stack>
       </Card>
     </motion.div>

@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering to prevent static generation issues
-export const dynamic = 'force-dynamic';
-
 import {
   Box,
   Container,
@@ -23,6 +20,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   IconButton,
+  TextField,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ import {
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import LoginModal from '@/components/auth/LoginModal';
 import AgentCard from '@/components/landing/AgentCard';
 import AgentModal from '@/components/landing/AgentModal';
@@ -242,7 +242,7 @@ const weddingAgents = [
     name: 'Travel Expert',
     persona: 'Maya',
     emoji: '🌍',
-    tagline: 'Your destination wedding coordinator',
+    tagline: 'Your wedding coordinator',
     problem: 'Tired of coordinating 50+ flight arrivals, hotel bookings, and shuttle schedules?',
     solution: 'Maya aggregates travel details, groups guests by arrival times, and coordinates transportation—automatically.',
     keyPoints: [
@@ -504,6 +504,13 @@ export default function LandingPage() {
   const [selectedAgent, setSelectedAgent] = useState<typeof weddingAgents[0] | null>(null);
   const [agentModalOpen, setAgentModalOpen] = useState(false);
   const [agentModalType, setAgentModalType] = useState<'waitlist' | 'pre-order' | 'learn-more'>('waitlist');
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+  const [waitlistError, setWaitlistError] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [thumbWidth, setThumbWidth] = useState(83); // Default to ~33% of 250px
 
   const handleAgentClick = (agentId: string, ctaType: string) => {
     const agent = weddingAgents.find((a) => a.id === agentId);
@@ -515,6 +522,81 @@ export default function LandingPage() {
         setAgentModalType(ctaType as 'waitlist' | 'pre-order' | 'learn-more');
       }
       setAgentModalOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const updateScrollProgress = () => {
+      const scrollLeft = container.scrollLeft;
+      const scrollWidth = container.scrollWidth - container.clientWidth;
+      const progress = scrollWidth > 0 ? scrollLeft / scrollWidth : 0;
+      setScrollProgress(progress);
+      
+      // Calculate thumb width (250px is the scrollbar track width)
+      const visibleWidth = container.clientWidth;
+      const totalWidth = container.scrollWidth;
+      const calculatedThumbWidth = Math.max(30, (visibleWidth / totalWidth) * 250);
+      setThumbWidth(calculatedThumbWidth);
+    };
+
+    container.addEventListener('scroll', updateScrollProgress);
+    updateScrollProgress(); // Initial calculation
+
+    // Also update on resize
+    const resizeObserver = new ResizeObserver(updateScrollProgress);
+    resizeObserver.observe(container);
+
+    return () => {
+      container.removeEventListener('scroll', updateScrollProgress);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  const handleWaitlistSubmit = async () => {
+    if (!waitlistEmail) return;
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(waitlistEmail)) {
+      setWaitlistError('Please enter a valid email address');
+      return;
+    }
+
+    setWaitlistLoading(true);
+    setWaitlistError('');
+
+    try {
+      // Submit to waitlist for all agents (general waitlist)
+      const response = await fetch('/api/agents/waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: waitlistEmail,
+          agent_id: 'all-agents',
+          cta_type: 'waitlist',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit');
+      }
+
+      setWaitlistSuccess(true);
+      setWaitlistEmail('');
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setWaitlistSuccess(false);
+      }, 3000);
+    } catch (err) {
+      setWaitlistError('Something went wrong. Please try again.');
+    } finally {
+      setWaitlistLoading(false);
     }
   };
 
@@ -772,7 +854,8 @@ export default function LandingPage() {
         </Box>
 
         {/* --- SMART WEDDING AGENTS --- */}
-        <Box sx={{ py: 12, bgcolor: alpha('#DE3F5E', 0.02) }}>
+        <Box sx={{ py: 2, bgcolor: alpha('#DE3F5E', 0.02) }}>
+          {/* Header Section - Within Container */}
           <Container maxWidth="lg">
             <motion.div
               initial="hidden"
@@ -780,19 +863,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <Stack spacing={2} sx={{ textAlign: 'center', mb: 6, alignItems: 'center' }}>
-                <Chip
-                  label="COMING SOON"
-                  sx={{
-                    bgcolor: '#FFF3E0',
-                    color: '#E65100',
-                    fontWeight: 700,
-                    borderRadius: '16px',
-                    px: 2,
-                    py: 2.5,
-                    fontSize: '0.9rem',
-                  }}
-                />
+              <Stack spacing={2} sx={{ textAlign: 'center', mb: 3, alignItems: 'center' }}>
                 <Typography
                   variant="h2"
                   sx={{
@@ -814,105 +885,251 @@ export default function LandingPage() {
                     fontSize: { xs: '1.1rem', md: '1.3rem' },
                   }}
                 >
-                  Free to start. Add specialized AI agents only when you need extra help.
-                  Each agent handles a specific part of wedding planning—so you don't have to.
+                  We're not here to take away the magic—just to handle the tedious logistics and administrative tasks that bog you down. Get personalized starting points for the not-so-fun stuff, so you can focus on what truly matters: celebrating your love.
                 </Typography>
               </Stack>
+            </motion.div>
+          </Container>
 
-              {/* Horizontal Scroll Container */}
+          {/* Horizontal Scroll Container - Full Width */}
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: '90%',
+                maxWidth: '100%',
+              }}
+            >
+              <Box
+                ref={scrollContainerRef}
+                sx={{
+                  display: 'flex',
+                  gap: 3,
+                  overflowX: 'auto',
+                  overflowY: 'visible',
+                  pb: 2,
+                  minHeight: '675px',
+                  alignItems: 'flex-start',
+                  scrollbarWidth: 'none', // Firefox
+                  '&::-webkit-scrollbar': {
+                    display: 'none', // Chrome, Safari
+                  },
+                }}
+              >
+                {weddingAgents.map((agent) => (
+                  <Box key={agent.id} sx={{ flexShrink: 0 }}>
+                    <AgentCard
+                      {...agent}
+                      onCtaClick={handleAgentClick}
+                    />
+                  </Box>
+                ))}
+              </Box>
+              
+              {/* Custom Scrollbar Indicator */}
               <Box
                 sx={{
-                  width: '90%',
-                  mx: 'auto',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  width: '100%',
+                  mt: 2,
                 }}
               >
                 <Box
                   sx={{
-                    display: 'flex',
-                    gap: 3,
-                    overflowX: 'auto',
-                    overflowY: 'hidden',
-                    pb: 4,
-                    '&::-webkit-scrollbar': {
-                      height: '8px',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      background: '#f1f1f1',
-                      borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      background: '#DE3F5E',
-                      borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                      background: '#C8365A',
-                    },
+                    width: '250px',
+                    height: '6px',
+                    bgcolor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: '3px',
+                    position: 'relative',
+                    overflow: 'hidden',
                   }}
                 >
-                  {weddingAgents.map((agent) => (
-                    <Box key={agent.id} sx={{ flexShrink: 0 }}>
-                      <AgentCard
-                        {...agent}
-                        onCtaClick={handleAgentClick}
-                      />
-                    </Box>
-                  ))}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      height: '100%',
+                      width: `${thumbWidth}px`,
+                      bgcolor: '#DE3F5E',
+                      borderRadius: '3px',
+                      transform: `translateX(${scrollProgress * (250 - thumbWidth)}px)`,
+                      transition: 'transform 0.1s ease-out',
+                    }}
+                  />
                 </Box>
               </Box>
+            </Box>
+          </Box>
 
-            <Box sx={{ textAlign: 'center', mt: 6 }}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                sx={{ justifyContent: 'center', alignItems: 'center' }}
-              >
+          {/* Waitlist Form - Under Horizontal Scroll */}
+          <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+            >
+              <Stack spacing={3} sx={{ alignItems: 'center' }}>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   sx={{
-                    color: '#1a1a1a',
                     fontWeight: 600,
+                    color: '#1a1a1a',
+                    textAlign: 'center',
                   }}
                 >
-                  Want them all?
+                  Get notified when agents are available
                 </Typography>
-                <Stack direction="row" spacing={2}>
-                  <Paper
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ width: '100%', maxWidth: '600px' }}
+                >
+                  <TextField
+                    fullWidth
+                    type="email"
+                    placeholder="Enter your email"
+                    value={waitlistEmail}
+                    onChange={(e) => {
+                      setWaitlistEmail(e.target.value);
+                      setWaitlistError('');
+                    }}
+                    disabled={waitlistLoading || waitlistSuccess}
                     sx={{
-                      px: 3,
-                      py: 1.5,
-                      bgcolor: 'rgba(222, 63, 94, 0.05)',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        bgcolor: 'white',
+                        '& fieldset': {
+                          borderColor: waitlistError ? '#d32f2f' : 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: waitlistError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#DE3F5E',
+                        },
+                      },
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleWaitlistSubmit}
+                    disabled={waitlistLoading || waitlistSuccess || !waitlistEmail}
+                    sx={{
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
                       borderRadius: '12px',
-                      border: '1px solid rgba(222, 63, 94, 0.2)',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      minWidth: { xs: '100%', sm: '180px' },
+                      '&:hover': {
+                        bgcolor: '#C8365A',
+                      },
+                      '&:disabled': {
+                        bgcolor: '#ccc',
+                      },
                     }}
                   >
-                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                      Destination Bundle
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-                      $179 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$247</Typography>
-                    </Typography>
-                  </Paper>
-                  <Paper
-                    sx={{
-                      px: 3,
-                      py: 1.5,
-                      bgcolor: 'rgba(222, 63, 94, 0.08)',
-                      borderRadius: '12px',
-                      border: '2px solid #DE3F5E',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                      Full Service Bundle
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-                      $299 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$423</Typography>
-                    </Typography>
-                  </Paper>
+                    {waitlistLoading ? (
+                      <CircularProgress size={24} sx={{ color: 'white' }} />
+                    ) : waitlistSuccess ? (
+                      'Subscribed!'
+                    ) : (
+                      'Notify Me'
+                    )}
+                  </Button>
                 </Stack>
+                {waitlistError && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setWaitlistError('')}
+                    sx={{ width: '100%', maxWidth: '600px', borderRadius: '12px' }}
+                  >
+                    {waitlistError}
+                  </Alert>
+                )}
+                {waitlistSuccess && (
+                  <Alert
+                    severity="success"
+                    sx={{ width: '100%', maxWidth: '600px', borderRadius: '12px' }}
+                  >
+                    🎉 You're on the list! Check your email for confirmation.
+                  </Alert>
+                )}
               </Stack>
-            </Box>
-          </motion.div>
-        </Container>
+            </motion.div>
+          </Container>
+
+          {/* Bundle Deals Section - Within Container */}
+          <Container maxWidth="lg">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+            >
+              <Box sx={{ textAlign: 'center', mt: 6 }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: '#1a1a1a',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Want them all?
+                  </Typography>
+                  <Stack direction="row" spacing={2}>
+                    <Paper
+                      sx={{
+                        px: 3,
+                        py: 1.5,
+                        bgcolor: 'rgba(222, 63, 94, 0.05)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(222, 63, 94, 0.2)',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                        Destination Bundle
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
+                        $179 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$247</Typography>
+                      </Typography>
+                    </Paper>
+                    <Paper
+                      sx={{
+                        px: 3,
+                        py: 1.5,
+                        bgcolor: 'rgba(222, 63, 94, 0.08)',
+                        borderRadius: '12px',
+                        border: '2px solid #DE3F5E',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
+                        Full Service Bundle
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
+                        $299 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$423</Typography>
+                      </Typography>
+                    </Paper>
+                  </Stack>
+                </Stack>
+              </Box>
+            </motion.div>
+          </Container>
         </Box>
 
         {/* --- HOW IT WORKS --- */}

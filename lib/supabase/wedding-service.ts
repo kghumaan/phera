@@ -14,7 +14,7 @@ export interface Wedding {
   venue_location: string;
   venue_flag: string | null;
   rsvp_deadline: string;
-  status: 'draft' | 'preview' | 'live';
+  status: 'draft' | 'live';
   couple_image_url: string | null;
   frame_image_url: string | null;
   background_image: string;

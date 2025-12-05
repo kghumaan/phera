@@ -16,9 +16,13 @@ import {
   Chip,
   Snackbar,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Save, Check, Add, ArrowForward, Delete, ContentCopy, Launch, CheckCircle } from '@mui/icons-material';
+import { Save, Check, Add, ArrowForward, Delete, ContentCopy, Launch, CheckCircle, Edit } from '@mui/icons-material';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
@@ -112,7 +116,8 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
-  const [weddingStatus, setWeddingStatus] = useState<'draft' | 'preview' | 'live'>('draft');
+  const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
+  const [editSlugModalOpen, setEditSlugModalOpen] = useState(false);
   const [urlCopied, setUrlCopied] = useState(false);
   const [customSlug, setCustomSlug] = useState('');
   const [savingSlug, setSavingSlug] = useState(false);
@@ -149,7 +154,14 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
       
       if (wedding) {
         setWeddingId(wedding.id);
-        setWeddingStatus(wedding.status as 'draft' | 'preview' | 'live' || 'draft');
+        // Normalize status: convert 'preview' to 'draft', default to 'draft' if invalid or missing
+        const normalizedStatus = (wedding.status === 'live') ? 'live' : 'draft';
+        setWeddingStatus(normalizedStatus);
+        
+        // If status was 'preview' or invalid, update it in the database
+        if (wedding.status !== 'live' && wedding.status !== 'draft') {
+          await weddingService.updateWedding(wedding.id, { status: 'draft' });
+        }
         setFormData({
           couple_name: wedding.couple_name || '',
           bride_name: wedding.bride_name || '',
@@ -237,7 +249,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  const handleStatusUpdate = async (newStatus: 'draft' | 'preview' | 'live') => {
+  const handleStatusUpdate = async (newStatus: 'draft' | 'live') => {
     if (!weddingId) return;
 
     if (newStatus === 'live') {
@@ -251,7 +263,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
       
       const statusMessages = {
         draft: 'Wedding set to draft mode',
-        preview: 'Wedding set to preview mode',
         live: '🎉 Wedding website is now live!'
       };
       showToast(statusMessages[newStatus], 'success');
@@ -408,7 +419,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                   {weddingStatus === 'draft' && 'Your wedding is private. Only visible to you.'}
-                  {weddingStatus === 'preview' && 'Preview mode active. Share the preview link for testing.'}
                   {weddingStatus === 'live' && '🎉 Your wedding website is live and accessible to guests!'}
                 </Typography>
               </Box>
@@ -432,26 +442,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                     '&:hover': {
                       bgcolor: weddingStatus === 'draft' ? '#C8365A' : alpha('#DE3F5E', 0.08),
                       borderColor: '#DE3F5E',
-                    },
-                  }}
-                />
-                <Chip
-                  label="Preview"
-                  onClick={() => handleStatusUpdate('preview')}
-                  icon={weddingStatus === 'preview' ? <CheckCircle /> : undefined}
-                  sx={{
-                    bgcolor: weddingStatus === 'preview' ? '#3B82F6' : 'transparent',
-                    color: weddingStatus === 'preview' ? 'white' : '#6a6a6a',
-                    borderColor: weddingStatus === 'preview' ? '#3B82F6' : '#e0e0e0',
-                    borderWidth: 1.5,
-                    borderStyle: 'solid',
-                    fontWeight: weddingStatus === 'preview' ? 700 : 500,
-                    fontSize: '0.875rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      bgcolor: weddingStatus === 'preview' ? '#2563EB' : alpha('#3B82F6', 0.08),
-                      borderColor: '#3B82F6',
                     },
                   }}
                 />
@@ -485,14 +475,19 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1 }}>
                 Your Wedding URL
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                Share this URL with your guests to access your wedding website where they can RSVP and view all the details.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} flexWrap="wrap">
                 <Box 
                   sx={{ 
-                    flex: 1,
+                    display: 'inline-flex',
                     bgcolor: 'white',
                     p: 2, 
                     borderRadius: '16px',
-                    border: '1px solid rgba(0, 0, 0, 0.08)'
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    width: 'fit-content',
+                    minWidth: 'fit-content'
                   }}
                 >
                   <Typography 
@@ -501,7 +496,8 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       color: '#DE3F5E',
                       fontWeight: 600,
                       fontFamily: 'monospace',
-                      fontSize: { xs: '1rem', sm: '1.25rem' }
+                      fontSize: { xs: '1rem', sm: '1.25rem' },
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     phera.io/{weddingSlug}
@@ -518,6 +514,21 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                   }}
                 >
                   {urlCopied ? <Check /> : <ContentCopy />}
+                </IconButton>
+                <IconButton 
+                  onClick={() => {
+                    setCustomSlug(weddingSlug);
+                    setEditSlugModalOpen(true);
+                  }}
+                  sx={{
+                    bgcolor: alpha('#DE3F5E', 0.1),
+                    color: '#DE3F5E',
+                    '&:hover': {
+                      bgcolor: alpha('#DE3F5E', 0.2),
+                    },
+                  }}
+                >
+                  <Edit />
                 </IconButton>
                 <Button
                   variant="outlined"
@@ -542,76 +553,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               </Stack>
             </Box>
 
-            {/* Customize Wedding ID */}
-            <Box 
-              sx={{ 
-                bgcolor: alpha('#fff', 0.6),
-                p: 3, 
-                borderRadius: '16px',
-                border: '1px solid rgba(0, 0, 0, 0.08)'
-              }}
-            >
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: '#1a1a1a',
-                  fontWeight: 600,
-                  mb: 1.5
-                }}
-              >
-                Customize Wedding ID
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <TextField
-                  placeholder={weddingSlug}
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value)}
-                  helperText="Lowercase letters, numbers, and hyphens only"
-                  disabled={savingSlug}
-                  size="small"
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      bgcolor: 'white',
-                      '& fieldset': {
-                        borderColor: 'rgba(0, 0, 0, 0.23)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
-                        borderWidth: '2px',
-                      },
-                    },
-                  }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleUpdateSlug}
-                  disabled={!customSlug || customSlug === weddingSlug || savingSlug}
-                  sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    borderRadius: '12px',
-                    px: 3,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    minWidth: 100,
-                    '&:hover': { 
-                      bgcolor: '#C8365A' 
-                    },
-                    '&.Mui-disabled': {
-                      bgcolor: 'rgba(0, 0, 0, 0.12)',
-                      color: 'rgba(0, 0, 0, 0.26)',
-                    },
-                  }}
-                >
-                  {savingSlug ? 'Updating...' : 'Update'}
-                </Button>
-              </Stack>
-            </Box>
           </Stack>
         </Paper>
 
@@ -1055,6 +996,99 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             {snackbarMessage}
           </Alert>
         </Snackbar>
+
+        {/* Edit Wedding ID Modal */}
+        <Dialog
+          open={editSlugModalOpen}
+          onClose={() => {
+            setEditSlugModalOpen(false);
+            setCustomSlug('');
+          }}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '24px',
+              bgcolor: 'white',
+              p: { xs: 3, sm: 5 },
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+            },
+          }}
+        >
+          <DialogTitle 
+            sx={{ 
+              fontFamily: 'var(--font-instrument-serif)', 
+              fontWeight: 700, 
+              color: '#1a1a1a', 
+              pb: 2,
+              px: 0,
+            }}
+          >
+            Customize Wedding ID
+          </DialogTitle>
+          <DialogContent sx={{ px: 0, pt: 4, overflow: 'visible' }}>
+            <Stack spacing={3} sx={{ mt: 0.5 }}>
+              <TextField
+                label="Wedding ID"
+                placeholder={weddingSlug}
+                value={customSlug}
+                onChange={(e) => setCustomSlug(e.target.value)}
+                helperText="Lowercase letters, numbers, and hyphens only"
+                disabled={savingSlug}
+                fullWidth
+                sx={textFieldSx}
+              />
+              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                Your wedding URL will be: <strong style={{ color: '#DE3F5E' }}>phera.io/{customSlug || weddingSlug}</strong>
+              </Typography>
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 0, pt: 2, pb: 0 }}>
+            <Button
+              onClick={() => {
+                setEditSlugModalOpen(false);
+                setCustomSlug('');
+              }}
+              sx={{
+                color: '#6a6a6a',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                borderRadius: '12px',
+                '&:hover': {
+                  bgcolor: alpha('#6a6a6a', 0.08),
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await handleUpdateSlug();
+                setEditSlugModalOpen(false);
+              }}
+              disabled={!customSlug || customSlug === weddingSlug || savingSlug}
+              variant="contained"
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                px: 3,
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { 
+                  bgcolor: '#C8365A' 
+                },
+                '&.Mui-disabled': {
+                  bgcolor: alpha('#DE3F5E', 0.5),
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              {savingSlug ? 'Updating...' : 'Update'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Stack>
     </Container>
   );

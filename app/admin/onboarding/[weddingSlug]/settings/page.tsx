@@ -70,7 +70,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [status, setStatus] = useState<'draft' | 'preview' | 'live'>('draft');
+  const [status, setStatus] = useState<'draft' | 'live'>('draft');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
@@ -96,7 +96,14 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
       if (wedding) {
         setWeddingId(wedding.id);
-        setStatus(wedding.status as any);
+        // Normalize status: convert 'preview' to 'draft', default to 'draft' if invalid or missing
+        const normalizedStatus = (wedding.status === 'live') ? 'live' : 'draft';
+        setStatus(normalizedStatus);
+        
+        // If status was 'preview' or invalid, update it in the database
+        if (wedding.status !== 'live' && wedding.status !== 'draft') {
+          await weddingService.updateWedding(wedding.id, { status: 'draft' });
+        }
         
         const settingsData = await weddingService.getSettings(wedding.id);
         if (settingsData) {
@@ -152,7 +159,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  const handleUpdateStatus = async (newStatus: 'draft' | 'preview' | 'live') => {
+  const handleUpdateStatus = async (newStatus: 'draft' | 'live') => {
     if (newStatus === 'live') {
       if (!confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
         return;
@@ -165,7 +172,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       setSuccess(true);
       const statusMessages = {
         draft: 'Wedding set to draft mode',
-        preview: 'Wedding set to preview mode',
         live: '🎉 Wedding website is now live!'
       };
       showToast(statusMessages[newStatus], 'success');
@@ -211,7 +217,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   }
 
   const weddingUrl = `${window.location.origin}/${weddingSlug}`;
-  const previewUrl = `${window.location.origin}/preview/${weddingSlug}`;
 
   return (
     <Container maxWidth="xl">
@@ -240,7 +245,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 label={`Current Status: ${status.toUpperCase()}`}
                 icon={status === 'live' ? <CheckCircle /> : undefined}
                 sx={{
-                  bgcolor: status === 'live' ? '#DE3F5E' : status === 'preview' ? '#DE3F5E' : '#6a6a6a',
+                  bgcolor: status === 'live' ? '#DE3F5E' : '#6a6a6a',
                   color: 'white',
                   fontWeight: 700,
                   fontSize: '1.1rem',
@@ -287,7 +292,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
             {/* Status Description */}
             <Alert 
-              severity={status === 'live' ? 'success' : status === 'preview' ? 'info' : 'warning'}
+              severity={status === 'live' ? 'success' : 'warning'}
               sx={{ 
                 borderRadius: '16px',
                 fontSize: '1.1rem',
@@ -299,7 +304,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
               }}
             >
               {status === 'draft' && '📝 Draft mode: Your wedding is private. Only you can see it while editing.'}
-              {status === 'preview' && '👀 Preview mode: Share the preview link below to test with friends and family before going live.'}
               {status === 'live' && '✨ Your wedding website is now live and accessible to all guests with their unique PIN codes!'}
             </Alert>
 
@@ -333,31 +337,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   }}
                 >
                   Draft
-                </Button>
-                <Button
-                  variant={status === 'preview' ? 'contained' : 'outlined'}
-                  onClick={() => handleUpdateStatus('preview')}
-                  size="medium"
-                  sx={{
-                    minWidth: { xs: '100%', sm: 120 },
-                    py: 1.5,
-                    px: 3,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    bgcolor: status === 'preview' ? '#DE3F5E' : 'transparent',
-                    borderColor: '#DE3F5E',
-                    color: status === 'preview' ? 'white' : '#DE3F5E',
-                    borderWidth: 2,
-                    '&:hover': {
-                      bgcolor: status === 'preview' ? '#C8365A' : alpha('#DE3F5E', 0.08),
-                      borderColor: '#C8365A',
-                      borderWidth: 2,
-                    },
-                  }}
-                >
-                  Preview
                 </Button>
               </Stack>
             </Box>
@@ -432,64 +411,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 </Button>
               </Stack>
             </Box>
-            {/* Preview Link - Only shown in preview mode */}
-            {status === 'preview' && (
-              <Box>
-                <Typography variant="body1" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5, fontSize: '1.1rem' }}>
-                  Preview Link (for testing)
-                </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'stretch' }}>
-                  <TextField
-                    fullWidth
-                    value={previewUrl}
-                    InputProps={{ 
-                      readOnly: true,
-                      sx: { fontSize: '1.1rem' }
-                    }}
-                    sx={{
-                      ...textFieldSx,
-                      '& .MuiOutlinedInput-root': {
-                        ...textFieldSx['& .MuiOutlinedInput-root'],
-                        bgcolor: alpha('#DE3F5E', 0.05),
-                      }
-                    }}
-                  />
-                  <IconButton 
-                    onClick={() => copyToClipboard(previewUrl)}
-                    sx={{
-                      bgcolor: alpha('#DE3F5E', 0.1),
-                      color: '#DE3F5E',
-                      '&:hover': {
-                        bgcolor: alpha('#DE3F5E', 0.2),
-                      },
-                    }}
-                  >
-                    <ContentCopy />
-                  </IconButton>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Launch />}
-                    href={previewUrl}
-                    target="_blank"
-                    sx={{
-                      borderColor: '#DE3F5E',
-                      color: '#DE3F5E',
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 3,
-                      fontSize: '1.1rem',
-                      '&:hover': {
-                        borderColor: '#C8365A',
-                        bgcolor: alpha('#DE3F5E', 0.05),
-                      },
-                    }}
-                  >
-                    Preview
-                  </Button>
-                </Stack>
-              </Box>
-            )}
           </Stack>
         </Paper>
 

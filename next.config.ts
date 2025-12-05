@@ -29,8 +29,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Enable static optimization for better performance
-  output: 'standalone',
 };
 
 export default nextConfig;
