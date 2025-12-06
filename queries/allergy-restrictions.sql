@@ -134,3 +134,4 @@ ORDER BY g.name;
 -- 4. Data is saved via lib/supabase/rsvp-service.ts (line 237)
 -- 5. To use with Supabase MCP, configure it first (see SUPABASE_MCP_SETUP.md)
 
+

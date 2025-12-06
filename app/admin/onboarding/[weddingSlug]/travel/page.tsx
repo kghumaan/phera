@@ -207,9 +207,35 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                       sx={{ width: 200, height: 120, objectFit: 'cover', borderRadius: 1, mb: 1 }}
                     />
                   )}
-                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                    {card.content?.length || 0} paragraphs
-                  </Typography>
+                  {card.content && Array.isArray(card.content) && card.content.length > 0 ? (
+                    <Stack spacing={0.5} sx={{ mb: 1 }}>
+                      {card.content.slice(0, 2).map((paragraph: string, index: number) => (
+                        <Typography 
+                          key={index}
+                          variant="body2" 
+                          sx={{ 
+                            color: '#6a6a6a',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {paragraph}
+                        </Typography>
+                      ))}
+                      {card.content.length > 2 && (
+                        <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
+                          +{card.content.length - 2} more paragraph{card.content.length - 2 > 1 ? 's' : ''}
+                        </Typography>
+                      )}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                      No content yet
+                    </Typography>
+                  )}
                   {card.button_text && (
                     <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#DE3F5E' }}>
                       Button: {card.button_text}
@@ -217,7 +243,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                   )}
                 </Box>
                 <Stack direction="row" spacing={1}>
-                  <IconButton size="small" onClick={() => handleEdit(card)}>
+                  <IconButton size="small" onClick={() => handleEdit(card)} color="error">
                     <Edit />
                   </IconButton>
                   <IconButton size="small" onClick={() => handleDelete(card.id)} color="error">

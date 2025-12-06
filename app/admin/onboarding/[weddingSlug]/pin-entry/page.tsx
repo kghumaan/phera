@@ -9,7 +9,6 @@ import {
   Paper,
   Grid,
   TextField,
-  alpha,
   Fade,
   Snackbar,
   Alert,
@@ -20,11 +19,18 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_PAPER_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
-import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+
+// Consistent section Paper styling (matches other onboarding pages)
+const sectionPaperSx = {
+  p: 3,
+  borderRadius: '16px',
+  bgcolor: '#fafafa',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+};
 
 const BACKGROUND_OPTIONS = [
   { name: 'Pearl', url: '/images/backgrounds/pearl.png' },
@@ -160,6 +166,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
   return (
     <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
+        {/* Header */}
         <Box>
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             Pin Entry Screen
@@ -169,100 +176,107 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           </Typography>
         </Box>
 
-        <Paper sx={ENHANCED_PAPER_SX}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
-            {/* Text Customization */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Welcome Text
-              </Typography>
-              
-              <TextField
-                label="Main Heading"
-                value={pinEntryText}
-                onChange={(e) => setPinEntryText(e.target.value)}
-                placeholder={`Please join ${coupleName} on their special night`}
-                fullWidth
-                multiline
-                rows={2}
-                helperText="Use {couple_name} as a placeholder for the couple's name"
-                sx={{ ...textFieldSx, mb: 3 }}
-              />
+        {/* Text Customization Section */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            Welcome Text
+          </Typography>
+          
+          <Stack spacing={3}>
+            <TextField
+              label="Main Heading"
+              value={pinEntryText}
+              onChange={(e) => setPinEntryText(e.target.value)}
+              placeholder={`Please join ${coupleName} on their special night`}
+              fullWidth
+              multiline
+              rows={2}
+              helperText="Use {couple_name} as a placeholder for the couple's name"
+              sx={textFieldSx}
+            />
 
-              <TextField
-                label="Subtitle Text"
-                value={pinEntrySubtitleText}
-                onChange={(e) => setPinEntrySubtitleText(e.target.value)}
-                placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
-                fullWidth
-                multiline
-                rows={2}
-                helperText="This appears below the main heading"
-                sx={textFieldSx}
-              />
-            </Box>
+            <TextField
+              label="Subtitle Text"
+              value={pinEntrySubtitleText}
+              onChange={(e) => setPinEntrySubtitleText(e.target.value)}
+              placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
+              fullWidth
+              multiline
+              rows={2}
+              helperText="This appears below the main heading"
+              sx={textFieldSx}
+            />
+          </Stack>
+        </Paper>
 
-            {/* Background Selection */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Background Image
-              </Typography>
-              
-              <Grid container spacing={2} mb={3}>
-                {BACKGROUND_OPTIONS.map((bg) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3 }} key={bg.url}>
-                    <Box
-                      onClick={() => {
-                        setPinEntryBackground(bg.url);
-                        setCustomPinEntryBackground(null);
-                      }}
-                      sx={{
-                        width: '100%',
-                        height: 120,
-                        backgroundImage: `url(${bg.url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#DE3F5E',
-                          transform: 'scale(1.05)',
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                      {bg.name}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-
-              {weddingId && (
-                <ImageUpload
-                  label="Upload Custom Background"
-                  value={customPinEntryBackground}
-                  onChange={(url) => {
-                    setCustomPinEntryBackground(url);
-                    if (url) setPinEntryBackground('');
+        {/* Background Selection Section */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            Background Image
+          </Typography>
+          
+          <Grid container spacing={2} mb={3}>
+            {BACKGROUND_OPTIONS.map((bg) => (
+              <Grid size={{ xs: 6, sm: 4, md: 3 }} key={bg.url}>
+                <Box
+                  onClick={() => {
+                    setPinEntryBackground(bg.url);
+                    setCustomPinEntryBackground(null);
                   }}
-                  path={getWeddingImagePath(weddingId, 'backgrounds')}
-                  helperText="Upload your own background image (recommended: 1920x1080px)"
-                  aspectRatio="16/9"
-                  maxWidth={600}
+                  sx={{
+                    width: '100%',
+                    height: 120,
+                    backgroundImage: `url(${bg.url})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    borderRadius: 1,
+                    cursor: 'pointer',
+                    border: 3,
+                    borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: '#DE3F5E',
+                      transform: 'scale(1.05)',
+                    },
+                  }}
                 />
-              )}
-            </Box>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                  {bg.name}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
 
-            {/* Primary Color Selection */}
+          {weddingId && (
+            <ImageUpload
+              label="Upload Custom Background"
+              value={customPinEntryBackground}
+              onChange={(url) => {
+                setCustomPinEntryBackground(url);
+                if (url) setPinEntryBackground('');
+              }}
+              path={getWeddingImagePath(weddingId, 'backgrounds')}
+              helperText="Upload your own background image (recommended: 1920x1080px)"
+              aspectRatio="16/9"
+              maxWidth={600}
+            />
+          )}
+        </Paper>
+
+        {/* Colors Section */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+            Colors
+          </Typography>
+          
+          <Stack spacing={4}>
+            {/* Button Color */}
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Button Color
               </Typography>
               
-              <Grid container spacing={2} mb={3}>
+              <Grid container spacing={2} mb={2}>
                 {COLOR_OPTIONS.map((color) => (
                   <Grid size={{ xs: 6, sm: 4, md: 2 }} key={color.value}>
                     <Box
@@ -298,13 +312,13 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
               />
             </Box>
 
-            {/* Font Color Selection */}
+            {/* Text Color */}
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Text Color
               </Typography>
               
-              <Grid container spacing={2} mb={3}>
+              <Grid container spacing={2} mb={2}>
                 {FONT_COLOR_OPTIONS.map((color) => (
                   <Grid size={{ xs: 6, sm: 4, md: 3 }} key={color.value}>
                     <Box
@@ -322,7 +336,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                           borderColor: pinEntryPrimaryColor,
                           transform: 'scale(1.05)',
                         },
-                        // Add border for white option so it's visible
                         ...(color.value === '#FFFFFF' && {
                           boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
                         }),
@@ -344,13 +357,13 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
               />
             </Box>
 
-            {/* Button Font Color Selection */}
+            {/* Button Text Color */}
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Button Text Color
               </Typography>
               
-              <Grid container spacing={2} mb={3}>
+              <Grid container spacing={2} mb={2}>
                 {FONT_COLOR_OPTIONS.map((color) => (
                   <Grid size={{ xs: 6, sm: 4, md: 3 }} key={color.value}>
                     <Box
@@ -368,7 +381,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                           borderColor: pinEntryPrimaryColor,
                           transform: 'scale(1.05)',
                         },
-                        // Add border for white option so it's visible
                         ...(color.value === '#FFFFFF' && {
                           boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
                         }),
@@ -389,229 +401,229 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                 sx={{ ...textFieldSx, maxWidth: 200 }}
               />
             </Box>
-
-            {/* Preview */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Preview
-              </Typography>
-              
-              <Box
-                sx={{
-                  width: '100%',
-                  minHeight: 500,
-                  position: 'relative',
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  border: '2px solid #e0e0e0',
-                }}
-              >
-                <OptimizedBackground 
-                  src={customPinEntryBackground || pinEntryBackground}
-                  className="w-full h-full"
-                >
-                  {/* Top Left Decorative Image */}
-                  <Box
-                    component="img"
-                    src="/images/overlays/entry-topleft.png"
-                    alt="Decorative Top Left"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1,
-                      width: '120px',
-                      height: 'auto',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Top Right Decorative Image */}
-                  <Box
-                    component="img"
-                    src="/images/overlays/entry-topright.png"
-                    alt="Decorative Top Right"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      zIndex: 1,
-                      width: '120px',
-                      height: 'auto',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Preview Content */}
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      zIndex: 2,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: 500,
-                      p: 4,
-                      gap: 3,
-                    }}
-                  >
-                    {/* Logo */}
-                    <Box
-                      component="img"
-                      src="/logo-stacked.svg"
-                      alt="Phera Logo"
-                      sx={{
-                        height: 80,
-                        width: 'auto',
-                        filter: 'brightness(0)',
-                      }}
-                    />
-
-                    {/* Heading */}
-                    <Typography
-                      variant="h3"
-                      sx={{
-                        fontFamily: 'var(--font-instrument-serif), serif',
-                        fontWeight: 400,
-                        color: pinEntryFontColor,
-                        fontSize: '2.5rem',
-                        lineHeight: 1.4,
-                        textAlign: 'center',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      {previewText || `Please join ${coupleName} on their special night`}
-                    </Typography>
-
-                    {/* Subtitle */}
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontFamily: 'var(--font-outfit), sans-serif',
-                        color: pinEntryFontColor,
-                        fontSize: '1.125rem',
-                        lineHeight: 1.5,
-                        maxWidth: 400,
-                        mx: 'auto',
-                        fontWeight: 400,
-                        textAlign: 'center',
-                      }}
-                    >
-                      {previewSubtitle || 'Enter your invitation code to see all the details and RSVP for our celebration'}
-                    </Typography>
-
-                    {/* PIN Input Preview */}
-                    <Stack direction="row" spacing={1.5} justifyContent="center">
-                      {[0, 1, 2, 3].map((index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: '50%',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #D6D6D6',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.5rem',
-                            fontFamily: 'var(--font-outfit), sans-serif',
-                            fontWeight: 700,
-                            color: 'rgba(0, 0, 0, 0.2)',
-                          }}
-                        >
-                          {index === 0 ? '0' : ''}
-                        </Box>
-                      ))}
-                    </Stack>
-
-                    {/* Button Preview */}
-                    <Button
-                      variant="contained"
-                      sx={{
-                        backgroundColor: pinEntryPrimaryColor,
-                        color: pinEntryButtonFontColor,
-                        borderRadius: '16px',
-                        px: '20px',
-                        py: '12px',
-                        fontSize: '1rem',
-                        fontFamily: 'var(--font-outfit), sans-serif',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '6.25%',
-                        minWidth: 200,
-                        boxShadow: 'none',
-                        '&:hover': {
-                          backgroundColor: pinEntryPrimaryColor,
-                          opacity: 0.9,
-                          boxShadow: 'none',
-                        },
-                      }}
-                    >
-                      Continue
-                    </Button>
-                  </Box>
-                </OptimizedBackground>
-              </Box>
-            </Box>
-
-            {/* Save Button with Inline Success */}
-            <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={showSaveSuccess ? <Check /> : <Save />}
-                onClick={handleSave}
-                disabled={saving}
-                sx={{
-                  bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                  color: 'white',
-                  py: 1.5,
-                  px: 4,
-                  borderRadius: '32px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: showSaveSuccess 
-                    ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
-                    : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                    boxShadow: showSaveSuccess 
-                      ? '0 6px 16px rgba(16, 185, 129, 0.5)' 
-                      : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                  },
-                  '&:disabled': {
-                    bgcolor: 'rgba(222, 63, 94, 0.5)',
-                  },
-                }}
-              >
-                {saving ? 'Saving...' : showSaveSuccess ? 'Settings Saved!' : 'Save Pin Entry Settings'}
-              </Button>
-              
-              {/* Success message below button */}
-              <Fade in={showSaveSuccess}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    mt: 1,
-                    color: '#10B981',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Pin entry settings saved successfully!
-                </Typography>
-              </Fade>
-            </Box>
           </Stack>
         </Paper>
+
+        {/* Preview Section */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            Preview
+          </Typography>
+          
+          <Box
+            sx={{
+              width: '100%',
+              height: 400,
+              position: 'relative',
+              borderRadius: 2,
+              overflow: 'hidden',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              backgroundImage: `url(${customPinEntryBackground || pinEntryBackground})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          >
+            {/* Top Left Decorative Image */}
+            <Box
+              component="img"
+              src="/images/overlays/entry-topleft.png"
+              alt="Decorative Top Left"
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                zIndex: 1,
+                width: '80px',
+                height: 'auto',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Top Right Decorative Image */}
+            <Box
+              component="img"
+              src="/images/overlays/entry-topright.png"
+              alt="Decorative Top Right"
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                zIndex: 1,
+                width: '80px',
+                height: 'auto',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Preview Content */}
+            <Box
+              sx={{
+                position: 'relative',
+                zIndex: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                p: 3,
+                gap: 2,
+              }}
+            >
+              {/* Logo */}
+              <Box
+                component="img"
+                src="/logo-stacked.svg"
+                alt="Phera Logo"
+                sx={{
+                  height: 50,
+                  width: 'auto',
+                  filter: 'brightness(0)',
+                }}
+              />
+
+              {/* Heading */}
+              <Typography
+                variant="h5"
+                sx={{
+                  fontFamily: 'var(--font-instrument-serif), serif',
+                  fontWeight: 400,
+                  color: pinEntryFontColor,
+                  fontSize: '1.5rem',
+                  lineHeight: 1.3,
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                }}
+              >
+                {previewText || `Please join ${coupleName} on their special night`}
+              </Typography>
+
+              {/* Subtitle */}
+              <Typography
+                variant="body2"
+                sx={{
+                  fontFamily: 'var(--font-outfit), sans-serif',
+                  color: pinEntryFontColor,
+                  fontSize: '0.875rem',
+                  lineHeight: 1.4,
+                  maxWidth: 300,
+                  mx: 'auto',
+                  fontWeight: 400,
+                  textAlign: 'center',
+                }}
+              >
+                {previewSubtitle || 'Enter your invitation code to see all the details and RSVP for our celebration'}
+              </Typography>
+
+              {/* PIN Input Preview */}
+              <Stack direction="row" spacing={1} justifyContent="center">
+                {[0, 1, 2, 3].map((index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #D6D6D6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                      fontFamily: 'var(--font-outfit), sans-serif',
+                      fontWeight: 700,
+                      color: 'rgba(0, 0, 0, 0.2)',
+                    }}
+                  >
+                    {index === 0 ? '0' : ''}
+                  </Box>
+                ))}
+              </Stack>
+
+              {/* Button Preview */}
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  backgroundColor: pinEntryPrimaryColor,
+                  color: pinEntryButtonFontColor,
+                  borderRadius: '12px',
+                  px: '16px',
+                  py: '8px',
+                  fontSize: '0.875rem',
+                  fontFamily: 'var(--font-outfit), sans-serif',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '6.25%',
+                  minWidth: 150,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    backgroundColor: pinEntryPrimaryColor,
+                    opacity: 0.9,
+                    boxShadow: 'none',
+                  },
+                }}
+              >
+                Continue
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+
+        {/* Save Button */}
+        <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={showSaveSuccess ? <Check /> : <Save />}
+            onClick={handleSave}
+            disabled={saving}
+            sx={{
+              bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
+              color: 'white',
+              py: 1.5,
+              px: 4,
+              borderRadius: '12px',
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: showSaveSuccess 
+                ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
+                : '0 4px 12px rgba(222, 63, 94, 0.3)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
+                boxShadow: showSaveSuccess 
+                  ? '0 6px 16px rgba(16, 185, 129, 0.5)' 
+                  : '0 6px 16px rgba(222, 63, 94, 0.4)',
+              },
+              '&:disabled': {
+                bgcolor: 'rgba(222, 63, 94, 0.5)',
+              },
+            }}
+          >
+            {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Settings'}
+          </Button>
+          
+          {/* Success message below button */}
+          <Fade in={showSaveSuccess}>
+            <Typography
+              variant="caption"
+              sx={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                mt: 1,
+                color: '#10B981',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Settings saved successfully!
+            </Typography>
+          </Fade>
+        </Box>
 
         {/* Toast Notification */}
         <Snackbar
