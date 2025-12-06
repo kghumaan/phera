@@ -5,11 +5,11 @@ import { Box, Container, Typography, Button, Stack } from '@mui/material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Visibility } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -255,7 +255,7 @@ function PreviewContent() {
   if (isLoading) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Loading preview...</Typography>
+        <LoadingSpinner message="" />
       </Box>
     );
   }
@@ -274,58 +274,9 @@ function PreviewContent() {
       useAppDefault={!wedding.background_image}
       className="min-h-screen flex flex-col"
     >
-      {/* Preview Banner */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 9999,
-          bgcolor: '#DE3F5E',
-          color: 'white',
-          py: 1.5,
-          px: 2,
-          boxShadow: 3,
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Visibility />
-              <Typography variant="body2" sx={{ fontWeight: 600, color: 'white' }}>
-                PREVIEW MODE - This is how your wedding website will look to guests
-              </Typography>
-            </Stack>
-            <Button
-              onClick={() => {
-                // If inside iframe, message parent to close preview
-                if (window.parent !== window) {
-                  window.parent.postMessage({ type: 'CLOSE_PREVIEW' }, '*');
-                } else {
-                  // If not in iframe, navigate normally
-                  window.location.href = `/admin/onboarding/${wedding.slug}/overview`;
-                }
-              }}
-              variant="contained"
-              size="small"
-              sx={{
-                bgcolor: 'rgba(0,0,0,0.2)',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.3)',
-                },
-              }}
-            >
-              Back to Admin
-            </Button>
-          </Stack>
-        </Container>
-      </Box>
-
       {/* Main Landing Section */}
       <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-        <Box sx={{ pt: 10, pb: 4 }}>
+        <Box sx={{ pt: 4, pb: 4 }}>
           {/* Couple Photo Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

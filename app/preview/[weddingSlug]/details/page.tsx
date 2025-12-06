@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -12,6 +12,8 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowBack } from '@mui/icons-material';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 // Diamond decorative component
 const DiamondDecoration = () => (
@@ -116,10 +118,57 @@ function PreviewDetailsContent() {
   const { wedding, isLoading, error } = useWedding();
   const router = useRouter();
 
+  // State for section data availability
+  const [hasTravelData, setHasTravelData] = useState(false);
+  const [hasFAQData, setHasFAQData] = useState(false);
+  const [hasEventsData, setHasEventsData] = useState(false);
+  const [hasScheduleData, setHasScheduleData] = useState(false);
+  const [hasRegistryData, setHasRegistryData] = useState(false);
+  const [isLoadingSections, setIsLoadingSections] = useState(true);
+
+  // Fetch data availability for each section
+  useEffect(() => {
+    const fetchSectionData = async () => {
+      if (!wedding) {
+        setIsLoadingSections(false);
+        return;
+      }
+
+      try {
+        setIsLoadingSections(true);
+        const weddingId = wedding.id;
+
+        // Fetch all section data in parallel
+        const [travelCards, faqs, events, schedule, registry] = await Promise.all([
+          weddingService.getTravelCards(weddingId),
+          weddingService.getFAQs(weddingId),
+          weddingService.getWeddingEvents(weddingId),
+          weddingService.getWeddingSchedule(weddingId),
+          weddingService.getRegistry(weddingId),
+        ]);
+
+        // Check if each section has data
+        setHasTravelData(travelCards.length > 0);
+        setHasFAQData(faqs.length > 0);
+        setHasEventsData(events.length > 0);
+        setHasScheduleData(schedule.length > 0);
+        setHasRegistryData(registry.length > 0);
+      } catch (error) {
+        console.error('Error fetching section data:', error);
+      } finally {
+        setIsLoadingSections(false);
+      }
+    };
+
+    if (wedding) {
+      fetchSectionData();
+    }
+  }, [wedding]);
+
   if (isLoading) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Loading preview...</Typography>
+        <LoadingSpinner message="" />
       </Box>
     );
   }
@@ -233,44 +282,69 @@ function PreviewDetailsContent() {
           >
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
-              <Stack
-                spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}
-                sx={{
-                  width: '100%',
-                  maxWidth: { xs: '90%', sm: 361, md: 500, lg: 550, xl: 600 },
-                  alignItems: 'center',
-                }}
-              >
-                <MenuItem 
-                  title="Travel & Stay" 
-                  onClick={() => handleMenuItemClick('Travel & Stay')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Events & Dress code" 
-                  onClick={() => handleMenuItemClick('Events & Dress code')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Q & A" 
-                  onClick={() => handleMenuItemClick('Q & A')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Schedule" 
-                  onClick={() => handleMenuItemClick('Schedule')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Registry" 
-                  onClick={() => handleMenuItemClick('Registry')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Change RSVP" 
-                  onClick={() => handleMenuItemClick('Change RSVP')} 
-                />
-              </Stack>
+              {isLoadingSections ? (
+                <Typography sx={{ color: '#141414', fontFamily: 'Outfit' }}>Loading...</Typography>
+              ) : (
+                <Stack
+                  spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}
+                  sx={{
+                    width: '100%',
+                    maxWidth: { xs: '90%', sm: 361, md: 500, lg: 550, xl: 600 },
+                    alignItems: 'center',
+                  }}
+                >
+                  {hasTravelData && (
+                    <>
+                      <MenuItem 
+                        title="Travel & Stay" 
+                        onClick={() => handleMenuItemClick('Travel & Stay')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasEventsData && (
+                    <>
+                      <MenuItem 
+                        title="Events & Dress code" 
+                        onClick={() => handleMenuItemClick('Events & Dress code')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasFAQData && (
+                    <>
+                      <MenuItem 
+                        title="Q & A" 
+                        onClick={() => handleMenuItemClick('Q & A')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasScheduleData && (
+                    <>
+                      <MenuItem 
+                        title="Schedule" 
+                        onClick={() => handleMenuItemClick('Schedule')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasRegistryData && (
+                    <>
+                      <MenuItem 
+                        title="Registry" 
+                        onClick={() => handleMenuItemClick('Registry')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {/* Change RSVP is always shown */}
+                  <MenuItem 
+                    title="Change RSVP" 
+                    onClick={() => handleMenuItemClick('Change RSVP')} 
+                  />
+                </Stack>
+              )}
             </Stack>
           </motion.div>
         </Container>

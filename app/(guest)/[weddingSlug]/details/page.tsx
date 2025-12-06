@@ -17,8 +17,9 @@ import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import AppHeader from '@/components/shared/AppHeader';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { weddingService } from '@/lib/supabase/wedding-service';
 
 // Diamond decorative component
 const DiamondDecoration = () => (
@@ -121,7 +122,7 @@ const MenuItem = ({
 
 export default function DetailsPage() {
   const params = useParams();
-  const weddingId = params.weddingId as string;
+  const weddingSlug = params.weddingSlug as string;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -132,30 +133,84 @@ export default function DetailsPage() {
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
 
+  // State for section data availability
+  const [hasTravelData, setHasTravelData] = useState(false);
+  const [hasFAQData, setHasFAQData] = useState(false);
+  const [hasEventsData, setHasEventsData] = useState(false);
+  const [hasScheduleData, setHasScheduleData] = useState(false);
+  const [hasRegistryData, setHasRegistryData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+
+  // Fetch data availability for each section
+  useEffect(() => {
+    const fetchSectionData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get wedding by slug to get the wedding ID
+        const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+        if (!wedding) {
+          setIsLoading(false);
+          return;
+        }
+
+        const id = wedding.id;
+        setWeddingId(id);
+
+        // Fetch all section data in parallel
+        const [travelCards, faqs, events, schedule, registry] = await Promise.all([
+          weddingService.getTravelCards(id),
+          weddingService.getFAQs(id),
+          weddingService.getWeddingEvents(id),
+          weddingService.getWeddingSchedule(id),
+          weddingService.getRegistry(id),
+        ]);
+
+        // Check if each section has data
+        setHasTravelData(travelCards.length > 0);
+        setHasFAQData(faqs.length > 0);
+        setHasEventsData(events.length > 0);
+        setHasScheduleData(schedule.length > 0);
+        setHasRegistryData(registry.length > 0);
+      } catch (error) {
+        console.error('Error fetching section data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (weddingSlug) {
+      fetchSectionData();
+    }
+  }, [weddingSlug]);
+
   const handleBack = () => {
     router.push('/');
   };
 
   const handleMenuItemClick = (item: string) => {
-    // Navigate to specific sections with the weddingId parameter
+    // Navigate to specific sections with the weddingSlug parameter
+    if (!weddingSlug) return;
+    
     switch (item) {
       case 'Travel & Stay':
-        router.push(`/${weddingId}/travel`);
+        router.push(`/${weddingSlug}/travel`);
         break;
       case 'Events & Dress code':
-        router.push(`/${weddingId}/events`);
+        router.push(`/${weddingSlug}/events`);
         break;
       case 'Q & A':
-        router.push(`/${weddingId}/faq`);
+        router.push(`/${weddingSlug}/faq`);
         break;
       case 'Schedule':
-        router.push(`/${weddingId}/schedule`);
+        router.push(`/${weddingSlug}/schedule`);
         break;
       case 'Registry':
-        router.push(`/${weddingId}/registry`);
+        router.push(`/${weddingSlug}/registry`);
         break;
       case 'Change RSVP':
-        router.push(`/${weddingId}/rsvp`);
+        router.push(`/${weddingSlug}/rsvp`);
         break;
       default:
         console.log(`Navigate to ${item}`);
@@ -276,44 +331,69 @@ export default function DetailsPage() {
           >
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
-              <Stack
-                spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}
-                sx={{
-                  width: '100%',
-                  maxWidth: { xs: '90%', sm: 361, md: 500, lg: 550, xl: 600 },
-                  alignItems: 'center',
-                }}
-              >
-                <MenuItem 
-                  title="Travel & Stay" 
-                  onClick={() => handleMenuItemClick('Travel & Stay')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Events & Dress code" 
-                  onClick={() => handleMenuItemClick('Events & Dress code')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Q & A" 
-                  onClick={() => handleMenuItemClick('Q & A')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Schedule" 
-                  onClick={() => handleMenuItemClick('Schedule')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Registry" 
-                  onClick={() => handleMenuItemClick('Registry')} 
-                />
-                <DiamondDecoration />
-                <MenuItem 
-                  title="Change RSVP" 
-                  onClick={() => handleMenuItemClick('Change RSVP')} 
-                />
-              </Stack>
+              {isLoading ? (
+                <Typography sx={{ color: '#141414', fontFamily: 'Outfit' }}>Loading...</Typography>
+              ) : (
+                <Stack
+                  spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}
+                  sx={{
+                    width: '100%',
+                    maxWidth: { xs: '90%', sm: 361, md: 500, lg: 550, xl: 600 },
+                    alignItems: 'center',
+                  }}
+                >
+                  {hasTravelData && (
+                    <>
+                      <MenuItem 
+                        title="Travel & Stay" 
+                        onClick={() => handleMenuItemClick('Travel & Stay')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasEventsData && (
+                    <>
+                      <MenuItem 
+                        title="Events & Dress code" 
+                        onClick={() => handleMenuItemClick('Events & Dress code')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasFAQData && (
+                    <>
+                      <MenuItem 
+                        title="Q & A" 
+                        onClick={() => handleMenuItemClick('Q & A')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasScheduleData && (
+                    <>
+                      <MenuItem 
+                        title="Schedule" 
+                        onClick={() => handleMenuItemClick('Schedule')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {hasRegistryData && (
+                    <>
+                      <MenuItem 
+                        title="Registry" 
+                        onClick={() => handleMenuItemClick('Registry')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {/* Change RSVP is always shown */}
+                  <MenuItem 
+                    title="Change RSVP" 
+                    onClick={() => handleMenuItemClick('Change RSVP')} 
+                  />
+                </Stack>
+              )}
             </Stack>
           </motion.div>
         </Container>
