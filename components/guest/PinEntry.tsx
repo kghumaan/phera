@@ -39,6 +39,15 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  
+  // Pin entry customization state
+  const [pinEntryText, setPinEntryText] = useState<string | null>(null);
+  const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
+  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.png');
+  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
+  const [pinEntryFontColor, setPinEntryFontColor] = useState('#000');
+  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
+  const [coupleName, setCoupleName] = useState('');
 
   const { refreshAuth, user, isLoading } = useAuth();
   const inputRefs = [
@@ -109,15 +118,15 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
     }
   };
 
-  // Fetch wedding settings on mount
+  // Fetch wedding settings and customizations on mount
   useEffect(() => {
     const fetchWeddingSettings = async () => {
       setIsLoadingSettings(true);
       try {
-        // First get the wedding ID from the slug
+        // Get the wedding data including pin entry customizations
         const { data: wedding, error: weddingError } = await supabase
           .from('weddings')
-          .select('id')
+          .select('id, couple_name, pin_entry_text, pin_entry_subtitle_text, pin_entry_background, pin_entry_primary_color, pin_entry_font_color, pin_entry_button_font_color')
           .eq('slug', weddingSlug)
           .single();
 
@@ -127,7 +136,21 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           return;
         }
 
-        // Now fetch the wedding settings
+        // Set couple name
+        setCoupleName(wedding.couple_name || '');
+
+        // Set pin entry customizations with defaults
+        const defaultText = `Please join ${wedding.couple_name} on their special night`;
+        const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
+        
+        setPinEntryText(wedding.pin_entry_text || defaultText);
+        setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
+        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
+        setPinEntryFontColor(wedding.pin_entry_font_color || '#000');
+        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
+
+        // Now fetch the wedding settings for PIN codes
         const { data: settings, error: settingsError } = await supabase
           .from('wedding_settings')
           .select('pin_codes')
@@ -296,10 +319,20 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
     };
   }, [user, isLoading, onPinVerified]);
 
+  // Generate display text with couple name replacement
+  const displayText = pinEntryText 
+    ? pinEntryText.replace(/\{couple_name\}/g, coupleName)
+    : coupleName 
+      ? `Please join ${coupleName} on their special night`
+      : "You're Invited!";
+  const displaySubtitle = pinEntrySubtitleText 
+    ? pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName)
+    : 'Enter your invitation code to see all the details and RSVP for our celebration';
+
   // Background setup similar to home page
   return (
     <OptimizedBackground 
-      src="/images/backgrounds/pearl.png"
+      src={pinEntryBackground}
       className="min-h-screen flex flex-col"
     >
       {/* Top Left Decorative Image */}
@@ -383,14 +416,14 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
             sx={{
               fontFamily: 'var(--font-instrument-serif), serif',
               fontWeight: 400,
-              color: '#000',
+              color: pinEntryFontColor,
               fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
               lineHeight: 1.4,
               textAlign: 'center',
               fontStyle: 'italic',
             }}
           >
-            You're Invited!
+            {displayText}
           </Typography>
 
           {/* Subtitle */}
@@ -398,7 +431,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
             variant="body1"
             sx={{
               fontFamily: 'var(--font-outfit), sans-serif',
-              color: '#000',
+              color: pinEntryFontColor,
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
               lineHeight: 1.5,
               maxWidth: { xs: 355, sm: 400, lg: 450, xl: 500 },
@@ -408,7 +441,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
               px: 2,
             }}
           >
-            Enter your invitation code to see all the details and RSVP for our celebration
+            {displaySubtitle}
           </Typography>
         </motion.div>
 
@@ -453,10 +486,10 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
                     border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
                     boxShadow: 'none',
                     '&:hover': {
-                      border: error ? '1px solid #f44336' : '1px solid rgba(0,0,0,0.3)',
+                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
                     },
                     '&.Mui-focused': {
-                      border: error ? '1px solid #f44336' : '1px solid #141414',
+                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
                       boxShadow: 'none',
                     },
                     transition: 'all 0.2s ease-in-out',
@@ -532,8 +565,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
             onClick={handleContinue}
             disabled={!isPinComplete || !isReady}
             sx={{
-              backgroundColor: '#141414',
-              color: '#FFFFFF',
+              backgroundColor: pinEntryPrimaryColor,
+              color: pinEntryButtonFontColor,
               borderRadius: '16px',
               px: { xs: '20px', lg: '22px', xl: '24px' },
               py: { xs: '12px', lg: '13px', xl: '14px' },
@@ -546,12 +579,14 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
               maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#2A2A2A',
+                backgroundColor: pinEntryPrimaryColor,
+                opacity: 0.9,
                 boxShadow: 'none',
               },
               '&:disabled': {
-                backgroundColor: 'rgba(20, 20, 20, 0.3)',
-                color: 'rgba(255,255,255,0.5)',
+                backgroundColor: pinEntryPrimaryColor,
+                opacity: 0.3,
+                color: pinEntryButtonFontColor,
                 boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
