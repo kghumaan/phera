@@ -14,6 +14,8 @@ import {
   VpnKey,
   Menu as MenuIcon,
   Close,
+  People,
+  Edit,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -29,6 +31,8 @@ interface SidebarSection {
 
 const sections: SidebarSection[] = [
   { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview', required: true },
+  { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
+  { id: 'guests', label: 'Guest Responses', icon: <People />, path: '/guests' },
   { id: 'events', label: 'Events', icon: <Event />, path: '/events', required: true },
   { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
   { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
