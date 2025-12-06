@@ -12,6 +12,7 @@ import {
   Palette,
   Settings,
   VpnKey,
+  LockOutlined,
   Menu as MenuIcon,
   Close,
 } from '@mui/icons-material';
@@ -32,6 +33,7 @@ const sections: SidebarSection[] = [
   { id: 'events', label: 'Events', icon: <Event />, path: '/events', required: true },
   { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
   { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
+  { id: 'pin-entry', label: 'Pin Entry', icon: <LockOutlined />, path: '/pin-entry', required: false },
   { id: 'travel', label: 'Travel & Stay', icon: <Flight />, path: '/travel' },
   { id: 'faq', label: 'FAQ', icon: <HelpOutline />, path: '/faq' },
   { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },

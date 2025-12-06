@@ -19,6 +19,14 @@ export interface Wedding {
   frame_image_url: string | null;
   background_image: string;
   primary_color: string;
+  font_color?: string | null;
+  button_font_color?: string | null;
+  pin_entry_text?: string | null;
+  pin_entry_background?: string | null;
+  pin_entry_primary_color?: string | null;
+  pin_entry_font_color?: string | null;
+  pin_entry_button_font_color?: string | null;
+  pin_entry_subtitle_text?: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
