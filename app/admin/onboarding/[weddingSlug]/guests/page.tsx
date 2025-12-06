@@ -83,7 +83,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
       
       if (wedding) {
         setWeddingId(wedding.id);
-        const rsvpData = await getAllRSVPs(wedding.id);
+        // Use weddingSlug instead of wedding.id since RSVPs are stored with slug as wedding_id
+        const rsvpData = await getAllRSVPs(weddingSlug);
         setRsvps(rsvpData || []);
       } else {
         setError(`No wedding found with ID: ${weddingSlug}`);
@@ -206,7 +207,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
         {/* Stats Cards */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
                 <People />
@@ -218,7 +219,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981' }}>
                 <CheckCircle />
@@ -230,7 +231,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: alpha('#F59E0B', 0.1), color: '#F59E0B' }}>
                 <HelpOutline />
@@ -242,7 +243,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: alpha('#EF4444', 0.1), color: '#EF4444' }}>
                 <Cancel />
@@ -254,7 +255,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '2px solid #DE3F5E' }}>
+          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '2px solid #DE3F5E', bgcolor: 'white' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: '#DE3F5E', color: 'white' }}>
                 <People />

@@ -2,6 +2,66 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
+// Helper function to process pending wedding invites for a user
+async function processPendingInvites(supabase: ReturnType<typeof createRouteHandlerClient>, userId: string, userEmail: string): Promise<number> {
+  try {
+    // Find all pending invites for this email
+    const { data: invites, error: fetchError } = await supabase
+      .from('wedding_invites')
+      .select('*')
+      .eq('email', userEmail.toLowerCase());
+
+    if (fetchError || !invites || invites.length === 0) {
+      return 0;
+    }
+
+    let processedCount = 0;
+
+    for (const invite of invites) {
+      // Check if user is already an admin for this wedding
+      const { data: existingAdmin } = await supabase
+        .from('wedding_admins')
+        .select('id')
+        .eq('wedding_id', invite.wedding_id)
+        .eq('user_id', userId)
+        .single();
+
+      if (!existingAdmin) {
+        // Add user as admin
+        const { error: insertError } = await supabase
+          .from('wedding_admins')
+          .insert([{
+            wedding_id: invite.wedding_id,
+            user_id: userId,
+            role: invite.role,
+          }]);
+
+        if (!insertError) {
+          // Delete the processed invite
+          await supabase
+            .from('wedding_invites')
+            .delete()
+            .eq('id', invite.id);
+
+          processedCount++;
+        }
+      } else {
+        // User already has access, just delete the invite
+        await supabase
+          .from('wedding_invites')
+          .delete()
+          .eq('id', invite.id);
+      }
+    }
+
+    console.log(`Processed ${processedCount} pending invites for ${userEmail}`);
+    return processedCount;
+  } catch (error) {
+    console.error('Error processing pending invites:', error);
+    return 0;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
@@ -37,6 +97,11 @@ export async function GET(request: NextRequest) {
       
       if (exchangeError) throw exchangeError;
 
+      // Process any pending wedding invites for this user
+      if (data.session?.user?.email) {
+        await processPendingInvites(supabase, data.session.user.id, data.session.user.email);
+      }
+
       // Determine redirect destination
       let redirectUrl: URL;
 
@@ -48,20 +113,43 @@ export async function GET(request: NextRequest) {
       else if (nextParam) {
         redirectUrl = new URL(nextParam, origin);
       }
-      // Priority 3: Check if user is a wedding admin (has created weddings)
+      // Priority 3: Check if user has access to any wedding (created or invited)
       else if (data.session) {
-        const { data: weddings } = await supabase
+        // First check for weddings they created
+        const { data: ownedWeddings } = await supabase
           .from('weddings')
           .select('slug')
           .eq('created_by', data.session.user.id)
           .limit(1);
 
-        if (weddings && weddings.length > 0) {
-          // User has a wedding, send to their wedding's onboarding overview
-          redirectUrl = new URL(`/admin/onboarding/${weddings[0].slug}/overview`, origin);
+        if (ownedWeddings && ownedWeddings.length > 0) {
+          // User has their own wedding, send to their wedding's onboarding overview
+          redirectUrl = new URL(`/admin/onboarding/${ownedWeddings[0].slug}/overview`, origin);
         } else {
-          // New user with no wedding - send straight to onboarding
-          redirectUrl = new URL('/admin/onboarding/new/overview', origin);
+          // Check if they have access via wedding_admins (from invite)
+          const { data: adminWeddings } = await supabase
+            .from('wedding_admins')
+            .select('wedding_id')
+            .eq('user_id', data.session.user.id)
+            .limit(1);
+
+          if (adminWeddings && adminWeddings.length > 0) {
+            // Get the wedding slug for this wedding
+            const { data: wedding } = await supabase
+              .from('weddings')
+              .select('slug')
+              .eq('id', adminWeddings[0].wedding_id)
+              .single();
+
+            if (wedding) {
+              redirectUrl = new URL(`/admin/onboarding/${wedding.slug}/overview`, origin);
+            } else {
+              redirectUrl = new URL('/admin/onboarding/new/overview', origin);
+            }
+          } else {
+            // New user with no wedding - send straight to onboarding
+            redirectUrl = new URL('/admin/onboarding/new/overview', origin);
+          }
         }
       }
       // Priority 4: Default to onboarding for new signups

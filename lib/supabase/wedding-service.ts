@@ -151,6 +151,24 @@ export interface WeddingAdmin {
   created_at: string;
 }
 
+export interface WeddingInvite {
+  id: string;
+  wedding_id: string;
+  email: string;
+  role: 'admin' | 'viewer';
+  invited_by: string;
+  created_at: string;
+}
+
+export interface TeamMember {
+  id: string;
+  user_id: string;
+  email: string;
+  role: 'owner' | 'admin' | 'viewer';
+  created_at: string;
+  is_owner: boolean;
+}
+
 // Wedding CRUD operations
 export class WeddingService {
   private supabase;
@@ -844,6 +862,242 @@ export class WeddingService {
       .single();
 
     return !adminError && !!adminData;
+  }
+
+  // Team Members - Get all team members with their details
+  async getTeamMembers(weddingId: string): Promise<TeamMember[]> {
+    // First get the wedding to find the owner
+    const { data: wedding, error: weddingError } = await this.supabase
+      .from('weddings')
+      .select('created_by')
+      .eq('id', weddingId)
+      .single();
+
+    if (weddingError || !wedding) {
+      console.error('Error fetching wedding for team members:', weddingError);
+      return [];
+    }
+
+    // Get the owner's email from auth.users using a separate query
+    const { data: { user: currentUser } } = await this.supabase.auth.getUser();
+    
+    const teamMembers: TeamMember[] = [];
+
+    // Add the owner as the first team member
+    // We'll get the owner's email from the current user if they're the owner,
+    // otherwise we just show "Owner" as they can see it in the admin list
+    if (currentUser && currentUser.id === wedding.created_by) {
+      teamMembers.push({
+        id: 'owner',
+        user_id: wedding.created_by,
+        email: currentUser.email || 'Owner',
+        role: 'owner',
+        created_at: '',
+        is_owner: true,
+      });
+    } else {
+      // For non-owners viewing the team, show the owner without email
+      teamMembers.push({
+        id: 'owner',
+        user_id: wedding.created_by,
+        email: 'Wedding Owner',
+        role: 'owner',
+        created_at: '',
+        is_owner: true,
+      });
+    }
+
+    // Get all admins from wedding_admins table
+    const { data: admins, error: adminsError } = await this.supabase
+      .from('wedding_admins')
+      .select('*')
+      .eq('wedding_id', weddingId);
+
+    if (adminsError) {
+      console.error('Error fetching wedding admins:', adminsError);
+      return teamMembers;
+    }
+
+    // Add admins to the team members list
+    // Note: We can't directly get emails from auth.users, so admins will need to be matched via user_id
+    if (admins) {
+      for (const admin of admins) {
+        // If the current user is one of the admins, we can show their email
+        if (currentUser && admin.user_id === currentUser.id) {
+          teamMembers.push({
+            id: admin.id,
+            user_id: admin.user_id,
+            email: currentUser.email || 'Unknown',
+            role: admin.role,
+            created_at: admin.created_at,
+            is_owner: false,
+          });
+        } else {
+          teamMembers.push({
+            id: admin.id,
+            user_id: admin.user_id,
+            email: 'Team Member',
+            role: admin.role,
+            created_at: admin.created_at,
+            is_owner: false,
+          });
+        }
+      }
+    }
+
+    return teamMembers;
+  }
+
+  // Wedding Invites
+  async getWeddingInvites(weddingId: string): Promise<WeddingInvite[]> {
+    const { data, error } = await this.supabase
+      .from('wedding_invites')
+      .select('*')
+      .eq('wedding_id', weddingId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching wedding invites:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async createWeddingInvite(invite: Partial<WeddingInvite>): Promise<WeddingInvite | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('wedding_invites')
+        .insert([invite])
+        .select()
+        .single();
+
+      if (error) {
+        // Log the full error object structure
+        console.error('Error creating wedding invite:', error);
+        console.error('Error type:', typeof error);
+        console.error('Error keys:', Object.keys(error));
+        console.error('Error stringified:', JSON.stringify(error, null, 2));
+        console.error('Error details:', {
+          message: error?.message,
+          code: error?.code,
+          details: error?.details,
+          hint: error?.hint,
+          inviteData: invite,
+        });
+        
+        // Check if it's a table not found error
+        if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
+          const enhancedError = new Error('The wedding_invites table does not exist. Please run the migration first.');
+          (enhancedError as any).originalError = error;
+          throw enhancedError;
+        }
+        
+        // Check if it's an RLS policy error
+        if (error?.code === '42501' || error?.message?.includes('permission denied') || error?.message?.includes('policy')) {
+          const enhancedError = new Error('Permission denied. You may not have permission to invite team members for this wedding.');
+          (enhancedError as any).originalError = error;
+          throw enhancedError;
+        }
+        
+        // Create a more descriptive error
+        const errorMessage = error?.message || error?.code || 'Unknown database error';
+        const enhancedError = new Error(`Failed to create invite: ${errorMessage}`);
+        (enhancedError as any).originalError = error;
+        throw enhancedError;
+      }
+
+      return data;
+    } catch (err: any) {
+      // If it's already our enhanced error, re-throw it
+      if (err.message && err.message !== 'Unknown database error') {
+        throw err;
+      }
+      
+      // Otherwise, wrap it
+      console.error('Unexpected error in createWeddingInvite:', err);
+      throw new Error(`Failed to create invite: ${err?.message || 'Unknown error'}`);
+    }
+  }
+
+  async deleteWeddingInvite(id: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('wedding_invites')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting wedding invite:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  // Process pending invites for a user (called after login/signup)
+  async processInvitesForUser(userEmail: string, userId: string): Promise<number> {
+    // Find all pending invites for this email
+    const { data: invites, error: fetchError } = await this.supabase
+      .from('wedding_invites')
+      .select('*')
+      .eq('email', userEmail.toLowerCase());
+
+    if (fetchError || !invites || invites.length === 0) {
+      return 0;
+    }
+
+    let processedCount = 0;
+
+    for (const invite of invites) {
+      // Check if user is already an admin for this wedding
+      const { data: existingAdmin } = await this.supabase
+        .from('wedding_admins')
+        .select('id')
+        .eq('wedding_id', invite.wedding_id)
+        .eq('user_id', userId)
+        .single();
+
+      if (!existingAdmin) {
+        // Add user as admin
+        const { error: insertError } = await this.supabase
+          .from('wedding_admins')
+          .insert([{
+            wedding_id: invite.wedding_id,
+            user_id: userId,
+            role: invite.role,
+          }]);
+
+        if (!insertError) {
+          // Delete the processed invite
+          await this.supabase
+            .from('wedding_invites')
+            .delete()
+            .eq('id', invite.id);
+
+          processedCount++;
+        }
+      } else {
+        // User already has access, just delete the invite
+        await this.supabase
+          .from('wedding_invites')
+          .delete()
+          .eq('id', invite.id);
+      }
+    }
+
+    return processedCount;
+  }
+
+  // Check if an invite already exists for this email and wedding
+  async checkInviteExists(weddingId: string, email: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from('wedding_invites')
+      .select('id')
+      .eq('wedding_id', weddingId)
+      .eq('email', email.toLowerCase())
+      .single();
+
+    return !error && !!data;
   }
 
   async updateWedding(weddingId: string, updates: Partial<Wedding>): Promise<Wedding | null> {

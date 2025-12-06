@@ -17,6 +17,7 @@ import {
   Close,
   People,
   Edit,
+  Groups,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -43,6 +44,7 @@ const sections: SidebarSection[] = [
   { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },
   { id: 'shopping', label: 'Shopping Guide', icon: <ShoppingBag />, path: '/shopping' },
   { id: 'pins', label: 'PIN Management', icon: <VpnKey />, path: '/pins', required: true },
+  { id: 'team', label: 'Team', icon: <Groups />, path: '/team' },
   { id: 'settings', label: 'Publish', icon: <Settings />, path: '/settings', required: true },
 ];
 

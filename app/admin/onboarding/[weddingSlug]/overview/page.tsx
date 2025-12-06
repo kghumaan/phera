@@ -391,7 +391,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         {weddingData && (
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
             {/* Couple Name Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', width: 48, height: 48 }}>
                   <People />
@@ -406,7 +406,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             </Card>
 
             {/* Date Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: alpha('#8B5CF6', 0.1), color: '#8B5CF6', width: 48, height: 48 }}>
                   <CalendarMonth />
@@ -421,7 +421,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             </Card>
 
             {/* Venue Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981', width: 48, height: 48 }}>
                   <LocationOn />

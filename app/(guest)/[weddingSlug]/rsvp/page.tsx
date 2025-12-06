@@ -8,7 +8,7 @@ import { useParams } from 'next/navigation';
 
 export default function RSVPPage() {
   const params = useParams();
-  const weddingId = params.weddingId as string;
+  const weddingId = params.weddingSlug as string;
 
   return (
     <OptimizedBackground
