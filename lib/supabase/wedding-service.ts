@@ -16,6 +16,7 @@ export interface Wedding {
   rsvp_deadline: string;
   status: 'draft' | 'live';
   couple_image_url: string | null;
+  couple_images: string[] | null;
   frame_image_url: string | null;
   background_image: string;
   primary_color: string;
