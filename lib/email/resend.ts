@@ -1,10 +1,31 @@
 import { Resend } from 'resend';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Get Resend API key from environment
+const getResendApiKey = () => {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    throw new Error('RESEND_API_KEY environment variable is not set. Please add it to your .env.local file.');
+  }
+  return key;
+};
+
+// Initialize Resend client lazily
+let resendInstance: Resend | null = null;
+const getResend = () => {
+  if (!resendInstance) {
+    resendInstance = new Resend(getResendApiKey());
+  }
+  return resendInstance;
+};
 
 // Email sender address (must be verified in Resend dashboard)
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Phera <noreply@phera.app>';
+const getFromEmail = () => {
+  const email = process.env.RESEND_FROM_EMAIL;
+  if (!email) {
+    throw new Error('RESEND_FROM_EMAIL environment variable is not set. Please add it to your .env.local file.');
+  }
+  return email;
+};
 
 export interface SendInviteEmailParams {
   to: string;
@@ -27,8 +48,11 @@ export async function sendTeamInviteEmail({
   const previewUrl = `${baseUrl}/preview/${weddingSlug}`;
 
   try {
+    const resend = getResend();
+    const fromEmail = getFromEmail();
+    
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to: [to],
       subject: `You're invited to help with ${weddingCoupleName}'s wedding on Phera`,
       html: `
@@ -157,5 +181,5 @@ If you didn't expect this email, you can safely ignore it.
   }
 }
 
-export { resend };
+export { getResend as resend };
 

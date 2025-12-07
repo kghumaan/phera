@@ -9,6 +9,7 @@ export interface Wedding {
   bride_name: string | null;
   groom_name: string | null;
   wedding_date: string;
+  wedding_date_end: string | null;
   wedding_date_display: string;
   venue_name: string;
   venue_location: string;

@@ -28,43 +28,10 @@ import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationO
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 
-// Consistent TextField styling with enhanced sizes
-const textFieldSx = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
-    bgcolor: 'white',
-    fontSize: '1.1rem',
-    '& input': {
-      py: 2.5,
-      fontSize: '1.1rem',
-    },
-    '& fieldset': {
-      borderColor: 'rgba(0, 0, 0, 0.23)',
-    },
-    '&:hover fieldset': {
-      borderColor: '#DE3F5E',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E',
-      borderWidth: '2px',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: '#4a4a4a',
-    fontSize: '1rem',
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E',
-  },
-  '& .MuiInputBase-input': {
-    color: '#1a1a1a',
-  },
-  '& .MuiFormHelperText-root': {
-    color: '#6a6a6a',
-    fontSize: '0.875rem',
-  },
-};
+// Use enhanced TextField styling
+const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 interface WeddingData {
   id: string;

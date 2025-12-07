@@ -135,3 +135,4 @@ ORDER BY g.name;
 -- 5. To use with Supabase MCP, configure it first (see SUPABASE_MCP_SETUP.md)
 
 
+

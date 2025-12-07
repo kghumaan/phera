@@ -34,8 +34,9 @@ export const ENHANCED_TEXT_FIELD_SX = {
   },
   '& .MuiInputLabel-root': {
     color: '#4a4a4a',
-    fontSize: '1.15rem',
+    fontSize: '1.25rem',
     fontWeight: 500,
+    lineHeight: 1.5,
     '&.Mui-disabled': {
       color: '#6a6a6a',
     },

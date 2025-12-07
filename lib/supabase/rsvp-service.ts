@@ -403,4 +403,14 @@ export async function deleteComment(commentId: string, guestId: string) {
 
   if (error) throw error
   return { success: true }
+}
+
+export async function deleteRSVP(rsvpId: string) {
+  const { error } = await supabase
+    .from('rsvps')
+    .delete()
+    .eq('id', rsvpId)
+
+  if (error) throw error
+  return { success: true }
 } 

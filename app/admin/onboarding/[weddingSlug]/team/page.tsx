@@ -44,43 +44,10 @@ import {
 import { weddingService, WeddingInvite, TeamMember } from '@/lib/supabase/wedding-service';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 
-// Consistent TextField styling
-const textFieldSx = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
-    bgcolor: 'white',
-    fontSize: '1.1rem',
-    '& input': {
-      py: 2.5,
-      fontSize: '1.1rem',
-    },
-    '& fieldset': {
-      borderColor: 'rgba(0, 0, 0, 0.23)',
-    },
-    '&:hover fieldset': {
-      borderColor: '#DE3F5E',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E',
-      borderWidth: '2px',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: '#4a4a4a',
-    fontSize: '1rem',
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E',
-  },
-  '& .MuiInputBase-input': {
-    color: '#1a1a1a',
-  },
-  '& .MuiFormHelperText-root': {
-    color: '#6a6a6a',
-    fontSize: '0.875rem',
-  },
-};
+// Use enhanced TextField styling
+const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 const selectSx = {
   '& .MuiOutlinedInput-root': {
@@ -235,10 +202,48 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       });
 
       if (invite) {
+        // Send email notification
+        let emailSent = false;
+        let emailErrorMessage = null;
+        
+        try {
+          const emailResponse = await fetch('/api/invites/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              inviteId: invite.id,
+              weddingId: weddingId,
+            }),
+          });
+
+          if (emailResponse.ok) {
+            const result = await emailResponse.json();
+            emailSent = result.success === true;
+          } else {
+            const errorData = await emailResponse.json().catch(() => ({ error: 'Unknown error' }));
+            emailErrorMessage = errorData.error || 'Failed to send email';
+            console.warn('Invite created but email failed to send:', errorData);
+          }
+        } catch (err) {
+          console.error('Error sending invite email:', err);
+          emailErrorMessage = 'Network error while sending email';
+        }
+
         setPendingInvites([invite, ...pendingInvites]);
         setInviteEmail('');
         setInviteRole('admin');
-        showToast(`Invite sent to ${email}`, 'success');
+        
+        // Show appropriate message based on email status
+        if (emailSent) {
+          showToast(`Invite sent to ${email}`, 'success');
+        } else {
+          showToast(
+            `Invite created for ${email}, but email notification failed. They can still sign up with this email.`,
+            'warning'
+          );
+        }
       } else {
         showToast('Failed to send invite. Please check console for details.', 'error');
       }
