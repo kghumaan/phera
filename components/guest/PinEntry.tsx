@@ -25,6 +25,7 @@ interface PinCode {
   pin: string;
   type: string;
   allows_plus_one: boolean;
+  skip_rsvp?: boolean;
 }
 
 interface WeddingSettings {
@@ -197,9 +198,12 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, matchedPin.allows_plus_one ? 'true' : 'false');
         localStorage.setItem(`phera_pin_type_${weddingSlug}`, matchedPin.type);
         
-        // Check if this is a bypass PIN (you can add a 'bypass_rsvp' field to pin config if needed)
-        // For now, we'll remove the hardcoded bypass behavior
-        localStorage.removeItem(`phera_bypass_rsvp_${weddingSlug}`);
+        // Store skip_rsvp flag if present
+        if (matchedPin.skip_rsvp) {
+          localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
+        } else {
+          localStorage.removeItem(`phera_skip_rsvp_${weddingSlug}`);
+        }
         
         // Call the callback to notify parent component
         onPinVerified();

@@ -12,7 +12,6 @@ import {
   Palette,
   Settings,
   VpnKey,
-  LockOutlined,
   Menu as MenuIcon,
   Close,
   People,
@@ -33,12 +32,11 @@ interface SidebarSection {
 
 const sections: SidebarSection[] = [
   { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview', required: true },
-  { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
   { id: 'guests', label: 'Guest Responses', icon: <People />, path: '/guests' },
+  { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
   { id: 'events', label: 'Events', icon: <Event />, path: '/events', required: true },
   { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
   { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
-  { id: 'pin-entry', label: 'Pin Entry', icon: <LockOutlined />, path: '/pin-entry', required: false },
   { id: 'travel', label: 'Travel & Stay', icon: <Flight />, path: '/travel' },
   { id: 'faq', label: 'FAQ', icon: <HelpOutline />, path: '/faq' },
   { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },
@@ -165,69 +163,77 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
 
       {/* Navigation List */}
       <List sx={{ flex: 1, py: 2 }}>
-        {sections.map((section) => {
-          const isActive = pathname.includes(section.path);
-          
-          return (
-            <ListItemButton
-              key={section.id}
-              onClick={() => handleSectionClick(section)}
-              selected={isActive}
-              sx={{
-                mx: 1,
-                mb: 0.5,
-                borderRadius: '12px',
-                color: '#4a4a4a',
-                '&:hover': {
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                },
-                '&.Mui-selected': {
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
+        {sections
+          .filter((section) => {
+            // Only show Guest Responses if wedding status is 'live'
+            if (section.id === 'guests') {
+              return wedding?.status === 'live';
+            }
+            return true;
+          })
+          .map((section) => {
+            const isActive = pathname.includes(section.path);
+
+            return (
+              <ListItemButton
+                key={section.id}
+                onClick={() => handleSectionClick(section)}
+                selected={isActive}
+                sx={{
+                  mx: 1,
+                  mb: 0.5,
+                  borderRadius: '12px',
+                  color: '#4a4a4a',
                   '&:hover': {
-                    bgcolor: '#C8365A',
+                    bgcolor: alpha('#DE3F5E', 0.08),
                   },
-                  '& .MuiListItemIcon-root': {
+                  '&.Mui-selected': {
+                    bgcolor: '#DE3F5E',
                     color: 'white',
+                    '&:hover': {
+                      bgcolor: '#C8365A',
+                    },
+                    '& .MuiListItemIcon-root': {
+                      color: 'white',
+                    },
                   },
-                },
-              }}
-            >
-              <ListItemIcon 
-                sx={{ 
-                  minWidth: 40,
-                  color: isActive ? 'inherit' : '#DE3F5E',
                 }}
               >
-                {section.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <span>{section.label}</span>
-                    {section.required && (
-                      <Box
-                        component="span"
-                        sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          bgcolor: isActive ? 'white' : '#DE3F5E',
-                          display: 'inline-block',
-                        }}
-                      />
-                    )}
-                  </Box>
-                }
-                primaryTypographyProps={{
-                  sx: {
-                    fontWeight: isActive ? 600 : 500,
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: isActive ? 'inherit' : '#DE3F5E',
+                  }}
+                >
+                  {section.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <span>{section.label}</span>
+                      {section.required && (
+                        <Box
+                          component="span"
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            bgcolor: isActive ? 'white' : '#DE3F5E',
+                            display: 'inline-block',
+                          }}
+                        />
+                      )}
+                    </Box>
                   }
-                }}
-              />
-            </ListItemButton>
-          );
-        })}
+                  primaryTypographyProps={{
+                    sx: {
+                      fontWeight: isActive ? 600 : 500,
+                    }
+                  }}
+                />
+              </ListItemButton>
+            );
+          })}
       </List>
 
       {/* Footer */}

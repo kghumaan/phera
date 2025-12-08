@@ -135,6 +135,7 @@ export interface WeddingSettings {
     pin: string;
     type: string;
     allows_plus_one: boolean;
+    skip_rsvp?: boolean;
   }>;
   whatsapp_group_link: string | null;
   lapse_event_codes: Record<string, string>;

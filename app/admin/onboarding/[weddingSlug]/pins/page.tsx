@@ -22,7 +22,7 @@ import {
   alpha,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
@@ -35,7 +35,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
-  const [newPin, setNewPin] = useState({ pin: '', type: 'guest', allows_plus_one: false });
+  const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
+  const [newPin, setNewPin] = useState({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
@@ -76,7 +77,16 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
     try {
       const currentPins = settings?.pin_codes || [];
-      const updatedPins = [...currentPins, newPin];
+      let updatedPins;
+
+      if (editingPinIndex !== null) {
+        // Editing existing PIN - replace at index
+        updatedPins = [...currentPins];
+        updatedPins[editingPinIndex] = newPin;
+      } else {
+        // Adding new PIN
+        updatedPins = [...currentPins, newPin];
+      }
 
       if (settings?.id) {
         await weddingService.updateSettings(weddingId!, {
@@ -93,13 +103,31 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       }
 
       setPinDialogOpen(false);
-      setNewPin({ pin: '', type: 'guest', allows_plus_one: false });
+      setEditingPinIndex(null);
+      setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
       await loadData();
-      showToast('PIN added successfully', 'success');
+      showToast(editingPinIndex !== null ? 'PIN updated successfully' : 'PIN added successfully', 'success');
     } catch (err) {
-      console.error('Error adding PIN:', err);
-      showToast('Failed to add PIN', 'error');
+      console.error('Error saving PIN:', err);
+      showToast(editingPinIndex !== null ? 'Failed to update PIN' : 'Failed to add PIN', 'error');
     }
+  };
+
+  const handleEditPin = (pinData: any, index: number) => {
+    setNewPin({
+      pin: pinData.pin,
+      type: pinData.type || 'guest',
+      allows_plus_one: pinData.allows_plus_one || false,
+      skip_rsvp: pinData.skip_rsvp || false,
+    });
+    setEditingPinIndex(index);
+    setPinDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setPinDialogOpen(false);
+    setEditingPinIndex(null);
+    setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
   };
 
   const handleDeletePin = async (pinToDelete: string) => {
@@ -208,25 +236,89 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   <ListItem
                     key={index}
                     sx={{
-                      bgcolor: 'white',
+                      bgcolor: '#f8f8f8',
                       borderRadius: '12px',
                       mb: 1,
-                      py: 2,
+                      py: 2.5,
+                      px: 3,
+                      border: '2px solid',
+                      borderColor: alpha('#DE3F5E', 0.2),
                       '&:last-child': { mb: 0 },
+                      '&:hover': {
+                        borderColor: alpha('#DE3F5E', 0.4),
+                        bgcolor: '#f5f5f5',
+                      },
                     }}
                     secondaryAction={
-                      <IconButton 
-                        edge="end" 
-                        onClick={() => handleDeletePin(pinData.pin)}
-                        sx={{
-                          color: '#EF4444',
-                          '&:hover': {
-                            bgcolor: alpha('#EF4444', 0.1),
-                          },
-                        }}
-                      >
-                        <Delete />
-                      </IconButton>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Stack direction="row" spacing={1.5}>
+                          <Chip 
+                            label={pinData.type} 
+                            size="medium" 
+                            sx={{ 
+                              fontSize: '1rem', 
+                              height: 36,
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              color: '#DE3F5E',
+                              fontWeight: 600,
+                              px: 1,
+                            }} 
+                          />
+                          {pinData.skip_rsvp ? (
+                            <Chip 
+                              label="Skip RSVP" 
+                              size="medium" 
+                              sx={{ 
+                                fontSize: '1rem', 
+                                height: 36,
+                                bgcolor: alpha('#F59E0B', 0.1),
+                                color: '#F59E0B',
+                                fontWeight: 600,
+                                px: 1,
+                              }} 
+                            />
+                          ) : (
+                            <Chip 
+                              label={pinData.allows_plus_one ? 'Plus One Allowed' : 'No Plus One'} 
+                              size="medium" 
+                              sx={{ 
+                                fontSize: '1rem', 
+                                height: 36,
+                                bgcolor: pinData.allows_plus_one ? alpha('#10B981', 0.1) : alpha('#6a6a6a', 0.1),
+                                color: pinData.allows_plus_one ? '#10B981' : '#6a6a6a',
+                                fontWeight: 600,
+                                px: 1,
+                              }} 
+                            />
+                          )}
+                        </Stack>
+                        <IconButton 
+                          edge="end" 
+                          onClick={() => handleEditPin(pinData, index)}
+                          sx={{
+                            color: '#DE3F5E',
+                            ml: 1,
+                            '&:hover': {
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                            },
+                          }}
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton 
+                          edge="end" 
+                          onClick={() => handleDeletePin(pinData.pin)}
+                          sx={{
+                            color: '#EF4444',
+                            ml: 1,
+                            '&:hover': {
+                              bgcolor: alpha('#EF4444', 0.1),
+                            },
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
                     }
                   >
                     <ListItemText
@@ -234,32 +326,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         <Typography sx={{ color: '#1a1a1a', fontSize: '1.2rem', fontWeight: 600 }}>
                           {pinData.pin}
                         </Typography>
-                      }
-                      secondary={
-                        <Stack direction="row" spacing={2} mt={1}>
-                          <Chip 
-                            label={pinData.type} 
-                            size="small" 
-                            sx={{ 
-                              fontSize: '0.875rem', 
-                              height: 28,
-                              bgcolor: alpha('#DE3F5E', 0.1),
-                              color: '#DE3F5E',
-                              fontWeight: 600
-                            }} 
-                          />
-                          <Chip 
-                            label={pinData.allows_plus_one ? 'Plus One Allowed' : 'No Plus One'} 
-                            size="small" 
-                            sx={{ 
-                              fontSize: '0.875rem', 
-                              height: 28,
-                              bgcolor: pinData.allows_plus_one ? alpha('#10B981', 0.1) : alpha('#6a6a6a', 0.1),
-                              color: pinData.allows_plus_one ? '#10B981' : '#6a6a6a',
-                              fontWeight: 600
-                            }} 
-                          />
-                        </Stack>
                       }
                     />
                   </ListItem>
@@ -272,7 +338,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         {/* PIN Dialog */}
         <Dialog 
           open={pinDialogOpen} 
-          onClose={() => setPinDialogOpen(false)} 
+          onClose={handleCloseDialog} 
           maxWidth="sm" 
           fullWidth
           PaperProps={{
@@ -282,7 +348,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             }
           }}
         >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: '1.5rem' }}>Add Guest PIN</DialogTitle>
+          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: '1.5rem' }}>
+            {editingPinIndex !== null ? 'Edit PIN' : 'Add Guest PIN'}
+          </DialogTitle>
           <DialogContent sx={{ bgcolor: 'white' }}>
             <Stack spacing={3} sx={{ mt: 2 }}>
               <TextField
@@ -293,6 +361,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 placeholder="e.g., JOHN2026"
                 required
                 helperText="Create a unique PIN for your guest(s)"
+                disabled={editingPinIndex !== null}
                 sx={textFieldSx}
               />
               <TextField
@@ -300,43 +369,90 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 fullWidth
                 value={newPin.type}
                 onChange={(e) => setNewPin({ ...newPin, type: e.target.value })}
-                placeholder="e.g., guest, family, vip"
+                placeholder="e.g., guest, family, vip, vendor"
                 helperText="Optional: Categorize this PIN"
                 sx={textFieldSx}
               />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
-                  Allows Plus One: <Typography component="span" sx={{ color: newPin.allows_plus_one ? '#10B981' : '#6a6a6a', fontWeight: 600 }}>
-                    {newPin.allows_plus_one ? 'Yes' : 'No'}
+              <Box sx={{ 
+                p: 2, 
+                borderRadius: '12px', 
+                bgcolor: alpha('#F59E0B', 0.05),
+                border: `1px solid ${alpha('#F59E0B', 0.2)}`
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
+                    Skip RSVP: <Typography component="span" sx={{ color: newPin.skip_rsvp ? '#F59E0B' : '#6a6a6a', fontWeight: 600 }}>
+                      {newPin.skip_rsvp ? 'Yes' : 'No'}
+                    </Typography>
                   </Typography>
+                  <Button
+                    size="medium"
+                    variant="outlined"
+                    onClick={() => setNewPin({ ...newPin, skip_rsvp: !newPin.skip_rsvp, allows_plus_one: newPin.skip_rsvp ? false : newPin.allows_plus_one })}
+                    sx={{
+                      borderColor: '#F59E0B',
+                      color: '#F59E0B',
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      minWidth: '80px',
+                      '&:hover': {
+                        borderColor: '#D97706',
+                        bgcolor: 'rgba(245, 158, 11, 0.08)',
+                      },
+                    }}
+                  >
+                    Toggle
+                  </Button>
+                </Box>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  {newPin.skip_rsvp 
+                    ? 'This PIN will skip the RSVP process (useful for vendors or guests who don\'t need to RSVP)'
+                    : 'This PIN will require RSVP. You can configure plus one options below.'}
                 </Typography>
-                <Button
-                  size="medium"
-                  variant="outlined"
-                  onClick={() => setNewPin({ ...newPin, allows_plus_one: !newPin.allows_plus_one })}
-                  sx={{
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    minWidth: '80px',
-                    '&:hover': {
-                      borderColor: '#C8365A',
-                      bgcolor: 'rgba(222, 63, 94, 0.08)',
-                    },
-                  }}
-                >
-                  Toggle
-                </Button>
               </Box>
+              {!newPin.skip_rsvp && (
+                <Box sx={{ 
+                  p: 2, 
+                  borderRadius: '12px', 
+                  bgcolor: alpha('#10B981', 0.05),
+                  border: `1px solid ${alpha('#10B981', 0.2)}`
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
+                      Allows Plus One: <Typography component="span" sx={{ color: newPin.allows_plus_one ? '#10B981' : '#6a6a6a', fontWeight: 600 }}>
+                        {newPin.allows_plus_one ? 'Yes' : 'No'}
+                      </Typography>
+                    </Typography>
+                    <Button
+                      size="medium"
+                      variant="outlined"
+                      onClick={() => setNewPin({ ...newPin, allows_plus_one: !newPin.allows_plus_one })}
+                      sx={{
+                        borderColor: '#10B981',
+                        color: '#10B981',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        minWidth: '80px',
+                        '&:hover': {
+                          borderColor: '#059669',
+                          bgcolor: 'rgba(16, 185, 129, 0.08)',
+                        },
+                      }}
+                    >
+                      Toggle
+                    </Button>
+                  </Box>
+                </Box>
+              )}
             </Stack>
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 3 }}>
-            <Button onClick={() => setPinDialogOpen(false)} sx={{ color: '#6a6a6a', fontSize: '1rem' }}>Cancel</Button>
+            <Button onClick={handleCloseDialog} sx={{ color: '#6a6a6a', fontSize: '1rem' }}>Cancel</Button>
             <Button 
               variant="contained" 
-              startIcon={<Add />} 
+              startIcon={editingPinIndex !== null ? <Edit /> : <Add />} 
               onClick={handleAddPin}
               sx={{
                 bgcolor: '#DE3F5E',
@@ -351,7 +467,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 },
               }}
             >
-              Add PIN
+              {editingPinIndex !== null ? 'Update PIN' : 'Add PIN'}
             </Button>
           </DialogActions>
         </Dialog>

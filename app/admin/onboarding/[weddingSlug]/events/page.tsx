@@ -23,7 +23,6 @@ import {
   Add,
   Edit,
   Delete,
-  DragIndicator,
   Save,
 } from '@mui/icons-material';
 import { weddingService, WeddingEvent } from '@/lib/supabase/wedding-service';
@@ -36,9 +35,27 @@ import { ENHANCED_TEXT_FIELD_SX, ENHANCED_PAPER_SX, ENHANCED_SECTION_SPACING, EN
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
+// Helper function to get gradient background image based on event slug
+const getGradientImage = (slug: string) => {
+  switch(slug) {
+    case 'welcome-lunch-haldi':
+      return 'GradientYellow.png';
+    case 'baraat-varmala-jaggo':
+      return 'GradientJaggo.png';
+    case 'anand-karaj':
+      return 'GradientCottonCandy.png';
+    case 'pool-party':
+      return 'GradientPoolParty.png';
+    case 'reception':
+      return 'GradientJaggo.png';
+    default:
+      return 'GradientYellow.png'; // Default gradient
+  }
+};
+
 export default function EventsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [events, setEvents] = useState<WeddingEvent[]>([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
@@ -53,6 +70,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weddingSlug]);
 
   const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
@@ -63,11 +81,15 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
       if (wedding) {
         setWeddingId(wedding.id);
         const eventsData = await weddingService.getWeddingEvents(wedding.id);
         setEvents(eventsData);
+      } else {
+        console.error('Wedding not found:', weddingSlug);
+        setError('Wedding not found');
       }
     } catch (err) {
       console.error('Error loading events:', err);
@@ -213,7 +235,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     updateCurrentEvent(field, current.filter((_, i) => i !== index));
   };
 
-  if (loading) {
+  if (loading && events.length === 0 && !weddingId) {
     return (
       <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
         <LoadingSpinner message="Loading events..." />
@@ -275,36 +297,228 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
         </Stack>
 
         {/* Events List */}
-        <Stack spacing={2}>
+        <Stack spacing={3}>
           {events.map((event) => (
-            <Paper key={event.id} sx={{ 
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <IconButton size="small">
-                  <DragIndicator />
-                </IconButton>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                    {event.dress_code_emoji} {event.name}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                    {event.date} @ {event.time} • {event.dress_code}
-                  </Typography>
+            <Paper
+              key={event.id}
+              sx={{
+                borderRadius: '16px',
+                overflow: 'hidden',
+                bgcolor: '#fff',
+                boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  boxShadow: '0px 0px 40px 0px rgba(0, 0, 0, 0.16)',
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex' }}>
+                {/* Gradient Left Border */}
+                <Box
+                  sx={{
+                    width: { xs: 8, md: 12 },
+                    flexShrink: 0,
+                    backgroundImage: `url(/images/backgrounds/${getGradientImage(event.slug)})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+
+                {/* Content */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    p: { xs: 2.5, md: 3 },
+                  }}
+                >
+                  {/* Header Row - Event Info + Action Buttons */}
+                  <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2}>
+                    <Box sx={{ flex: 1 }}>
+                      {/* Event Title */}
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontFamily: 'Outfit',
+                          fontWeight: 600,
+                          fontSize: { xs: 13, md: 15 },
+                          lineHeight: 1.5,
+                          letterSpacing: '0.07em',
+                          textTransform: 'uppercase',
+                          color: '#474747',
+                          mb: 0.5,
+                        }}
+                      >
+                        {event.name}
+                      </Typography>
+
+                      {/* Dress Code */}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontFamily: 'Outfit',
+                          fontWeight: 500,
+                          fontSize: { xs: 20, md: 24 },
+                          lineHeight: 1.3,
+                          color: '#000',
+                          mb: 0.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        {event.dress_code_emoji} <span style={{ fontWeight: 500 }}>{event.dress_code}</span>
+                      </Typography>
+
+                      {/* Date/Time */}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontFamily: 'Outfit',
+                          fontWeight: 300,
+                          fontSize: { xs: 14, md: 16 },
+                          lineHeight: 1.5,
+                          color: '#858585',
+                          mb: event.dress_code_description ? 1 : 1.5,
+                        }}
+                      >
+                        {event.date} @ {event.time}
+                      </Typography>
+
+                      {/* Additional Details */}
+                      {event.dress_code_description && (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontFamily: 'Outfit',
+                            fontSize: { xs: 13, md: 14 },
+                            color: '#6a6a6a',
+                            lineHeight: 1.6,
+                            fontStyle: 'italic',
+                            mb: 1.5,
+                          }}
+                        >
+                          {event.dress_code_description}
+                        </Typography>
+                      )}
+
+                      {/* Outfit Ideas */}
+                      {((event.outfit_ideas_women?.length || 0) > 0 || (event.outfit_ideas_men?.length || 0) > 0) && (
+                        <Stack spacing={1.5}>
+                          {(event.outfit_ideas_women?.length || 0) > 0 && (
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontFamily: 'Outfit',
+                                  fontWeight: 600,
+                                  fontSize: { xs: 11, md: 12 },
+                                  textTransform: 'uppercase',
+                                  color: '#858585',
+                                  letterSpacing: '0.05em',
+                                  mb: 0.5,
+                                  display: 'block',
+                                }}
+                              >
+                                Women
+                              </Typography>
+                              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+                                {event.outfit_ideas_women?.map((idea, idx) => (
+                                  <Chip
+                                    key={idx}
+                                    label={idea}
+                                    size="small"
+                                    sx={{
+                                      fontSize: { xs: 13, md: 14 },
+                                      height: { xs: 28, md: 32 },
+                                      bgcolor: '#f5f5f5',
+                                      color: '#1a1a1a',
+                                      fontWeight: 500,
+                                      '& .MuiChip-label': {
+                                        px: { xs: 1.5, md: 2 },
+                                      },
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                            </Box>
+                          )}
+                          {(event.outfit_ideas_men?.length || 0) > 0 && (
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontFamily: 'Outfit',
+                                  fontWeight: 600,
+                                  fontSize: { xs: 11, md: 12 },
+                                  textTransform: 'uppercase',
+                                  color: '#858585',
+                                  letterSpacing: '0.05em',
+                                  mb: 0.5,
+                                  display: 'block',
+                                }}
+                              >
+                                Men
+                              </Typography>
+                              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+                                {event.outfit_ideas_men?.map((idea, idx) => (
+                                  <Chip
+                                    key={idx}
+                                    label={idea}
+                                    size="small"
+                                    sx={{
+                                      fontSize: { xs: 13, md: 14 },
+                                      height: { xs: 28, md: 32 },
+                                      bgcolor: '#f5f5f5',
+                                      color: '#1a1a1a',
+                                      fontWeight: 500,
+                                      '& .MuiChip-label': {
+                                        px: { xs: 1.5, md: 2 },
+                                      },
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                            </Box>
+                          )}
+                        </Stack>
+                      )}
+                    </Box>
+
+                    {/* Action Buttons - Top Right */}
+                    <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+                      <IconButton
+                        onClick={() => handleEdit(event)}
+                        sx={{
+                          color: '#1a1a1a',
+                          bgcolor: 'rgba(0, 0, 0, 0.04)',
+                          width: { xs: 36, md: 40 },
+                          height: { xs: 36, md: 40 },
+                          '&:hover': {
+                            bgcolor: 'rgba(0, 0, 0, 0.08)',
+                          },
+                        }}
+                      >
+                        <Edit sx={{ fontSize: { xs: 18, md: 20 } }} />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDeleteEvent(event.id)}
+                        sx={{
+                          color: '#DE3F5E',
+                          bgcolor: 'rgba(222, 63, 94, 0.08)',
+                          width: { xs: 36, md: 40 },
+                          height: { xs: 36, md: 40 },
+                          '&:hover': {
+                            bgcolor: 'rgba(222, 63, 94, 0.15)',
+                          },
+                        }}
+                      >
+                        <Delete sx={{ fontSize: { xs: 18, md: 20 } }} />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
                 </Box>
-                <IconButton onClick={() => handleEdit(event)} sx={{ color: '#1a1a1a' }}>
-                  <Edit />
-                </IconButton>
-                <IconButton onClick={() => handleDeleteEvent(event.id)} color="error">
-                  <Delete />
-                </IconButton>
-              </Stack>
+              </Box>
             </Paper>
           ))}
 
@@ -454,12 +668,19 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     key={idx}
                     label={idea}
                     onDelete={() => removeOutfitIdea('women', idx)}
-                    sx={{ 
+                    sx={{
                       mb: 1,
                       bgcolor: '#f5f5f5',
                       color: '#1a1a1a',
+                      fontSize: { xs: 14, md: 16 },
+                      height: { xs: 32, md: 40 },
+                      '& .MuiChip-label': {
+                        px: { xs: 1.5, md: 2 },
+                        fontSize: { xs: 14, md: 16 },
+                      },
                       '& .MuiChip-deleteIcon': {
                         color: '#6a6a6a',
+                        fontSize: { xs: 20, md: 24 },
                         '&:hover': {
                           color: '#DE3F5E',
                         },
@@ -496,12 +717,19 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     key={idx}
                     label={idea}
                     onDelete={() => removeOutfitIdea('men', idx)}
-                    sx={{ 
+                    sx={{
                       mb: 1,
                       bgcolor: '#f5f5f5',
                       color: '#1a1a1a',
+                      fontSize: { xs: 14, md: 16 },
+                      height: { xs: 32, md: 40 },
+                      '& .MuiChip-label': {
+                        px: { xs: 1.5, md: 2 },
+                        fontSize: { xs: 14, md: 16 },
+                      },
                       '& .MuiChip-deleteIcon': {
                         color: '#6a6a6a',
+                        fontSize: { xs: 20, md: 24 },
                         '&:hover': {
                           color: '#DE3F5E',
                         },

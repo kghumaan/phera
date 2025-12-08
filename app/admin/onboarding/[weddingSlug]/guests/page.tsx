@@ -747,27 +747,70 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                           <TableCell colSpan={activeTab <= 3 ? 7 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
                             <Box sx={{ px: 2 }}>
                               <Stack spacing={2}>
-                                {rsvp.food_preference && rsvp.food_preference.length > 0 && (
-                                  <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Food Preferences
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                                      {rsvp.food_preference.map((pref, i) => (
-                                        <Chip 
-                                          key={i} 
-                                          label={pref} 
-                                          size="small" 
-                                          sx={{
-                                            bgcolor: '#e0e0e0', // Grey background
-                                            color: '#1a1a1a',   // Blackish text
-                                            fontWeight: 500,
-                                          }}
-                                        />
-                                      ))}
+                                {/* Main details in one row with proper spacing */}
+                                <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                  {rsvp.food_preference && rsvp.food_preference.length > 0 && (
+                                    <Box sx={{ minWidth: 200 }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                        Food Preferences
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                        {rsvp.food_preference.map((pref, i) => (
+                                          <Chip
+                                            key={i}
+                                            label={pref}
+                                            size="small"
+                                            sx={{
+                                              bgcolor: '#e0e0e0',
+                                              color: '#1a1a1a',
+                                              fontWeight: 500,
+                                            }}
+                                          />
+                                        ))}
+                                      </Box>
                                     </Box>
+                                  )}
+
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                      Guest Contact
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                      {rsvp.guest?.email || '-'}
+                                    </Typography>
+                                    {rsvp.guest?.phone && (
+                                      <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
+                                        {rsvp.guest.phone}
+                                      </Typography>
+                                    )}
                                   </Box>
-                                )}
+
+                                  <Box sx={{ minWidth: 120 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                      Party Size
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                      {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                      Responded Date
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                      {new Date(rsvp.created_at).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+
+                                {/* Additional details in separate sections */}
                                 {rsvp.dietary_restrictions && (
                                   <Box>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
@@ -808,63 +851,21 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     </Typography>
                                   </Box>
                                 )}
-                                
-                                {/* Show all additional data */}
-                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2, mt: 1, pt: 2, borderTop: '1px dashed #e0e0e0' }}>
-                                  {rsvp.plus_one && rsvp.plus_one_name && (
-                                    <Box>
-                                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                        Plus One
-                                      </Typography>
-                                      <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
-                                        {rsvp.plus_one_name}
-                                      </Typography>
-                                      {rsvp.plus_one_email && (
-                                        <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
-                                          {rsvp.plus_one_email}
-                                        </Typography>
-                                      )}
-                                    </Box>
-                                  )}
-                                  
+                                {rsvp.plus_one && rsvp.plus_one_name && (
                                   <Box>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Guest Contact
+                                      Plus One
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
-                                      {rsvp.guest?.email || '-'}
+                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                      {rsvp.plus_one_name}
                                     </Typography>
-                                    {rsvp.guest?.phone && (
+                                    {rsvp.plus_one_email && (
                                       <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
-                                        {rsvp.guest.phone}
+                                        {rsvp.plus_one_email}
                                       </Typography>
                                     )}
                                   </Box>
-
-                                  <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Party Size
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
-                                      {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
-                                    </Typography>
-                                  </Box>
-
-                                  <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Responded Date
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
-                                      {new Date(rsvp.created_at).toLocaleDateString('en-US', { 
-                                        year: 'numeric', 
-                                        month: 'long', 
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </Typography>
-                                  </Box>
-                                </Box>
+                                )}
 
                               </Stack>
                             </Box>

@@ -39,6 +39,11 @@ function LoginContent() {
         router.push(redirectTo);
       }
     });
+
+    // Default email for localhost development
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      setEmail('kv.s.ghumaan@gmail.com');
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
