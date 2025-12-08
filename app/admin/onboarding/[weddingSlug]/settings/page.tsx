@@ -195,152 +195,150 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         </Box>
 
         {/* Publish Control Section */}
-        <Paper sx={{ 
-          p: { xs: 4, md: 6 }, 
-          borderRadius: '24px', 
-          bgcolor: status === 'live' ? alpha('#DE3F5E', 0.05) : 'white',
-          boxShadow: status === 'live' ? '0 12px 40px rgba(222, 63, 94, 0.25)' : '0 8px 32px rgba(0, 0, 0, 0.08)',
+        <Paper sx={{
+          p: 4,
+          borderRadius: '16px',
+          bgcolor: status === 'live' ? alpha('#DE3F5E', 0.03) : '#fafafa',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
           border: status === 'live' ? '2px solid #DE3F5E' : 'none',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }
         }}>
-          <Stack spacing={4} alignItems="center">
+          <Stack spacing={3}>
             {/* Current Status Display */}
-            <Box textAlign="center">
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                  Website Status
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  {status === 'draft' ? 'Your wedding website is in draft mode' : 'Your wedding website is live'}
+                </Typography>
+              </Box>
               <Chip
-                label={`Current Status: ${status.toUpperCase()}`}
-                icon={status === 'live' ? <CheckCircle /> : undefined}
+                label={status.toUpperCase()}
+                icon={status === 'live' ? <CheckCircle sx={{ fontSize: 18 }} /> : undefined}
                 sx={{
                   bgcolor: status === 'live' ? '#DE3F5E' : '#6a6a6a',
                   color: 'white',
                   fontWeight: 700,
-                  fontSize: '1.1rem',
-                  px: 3,
-                  py: 3.5,
+                  fontSize: '0.875rem',
+                  px: 2,
+                  py: 2.5,
                   height: 'auto',
                   '& .MuiChip-label': {
-                    px: 2,
+                    px: 1,
                   },
                 }}
               />
             </Box>
 
-            {/* Big Publish/Deactivate Button */}
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handlePublishToggle}
-              sx={{
-                bgcolor: status === 'live' ? '#6a6a6a' : '#DE3F5E',
-                color: 'white',
-                py: 3,
-                px: 8,
-                borderRadius: '24px',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                textTransform: 'none',
-                minWidth: { xs: '100%', sm: 400 },
-                boxShadow: status === 'live' 
-                  ? '0 8px 24px rgba(106, 106, 106, 0.4)' 
-                  : '0 8px 24px rgba(222, 63, 94, 0.4)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  bgcolor: status === 'live' ? '#4a4a4a' : '#C8365A',
-                  boxShadow: status === 'live' 
-                    ? '0 12px 32px rgba(106, 106, 106, 0.5)' 
-                    : '0 12px 32px rgba(222, 63, 94, 0.5)',
-                  transform: 'translateY(-2px)',
-                },
-              }}
-            >
-              {status === 'live' ? '🔒 Deactivate Website' : '🚀 Publish Website'}
-            </Button>
-
             {/* Status Description */}
-            <Alert 
-              severity={status === 'live' ? 'success' : 'warning'}
-              sx={{ 
-                borderRadius: '16px',
-                fontSize: '1.1rem',
-                width: '100%',
-                maxWidth: 600,
+            <Alert
+              severity={status === 'live' ? 'success' : 'info'}
+              sx={{
+                borderRadius: '12px',
+                bgcolor: status === 'live' ? alpha('#10B981', 0.1) : alpha('#3B82F6', 0.1),
+                border: `1px solid ${status === 'live' ? alpha('#10B981', 0.3) : alpha('#3B82F6', 0.3)}`,
+                '& .MuiAlert-icon': {
+                  color: status === 'live' ? '#10B981' : '#3B82F6',
+                },
                 '& .MuiAlert-message': {
-                  fontSize: '1.1rem',
+                  color: '#1a1a1a',
+                  fontWeight: 500,
                 }
               }}
             >
-              {status === 'draft' && '📝 Draft mode: Your wedding is private. Only you can see it while editing.'}
-              {status === 'live' && '✨ Your wedding website is now live and accessible to all guests with their unique PIN codes!'}
+              {status === 'draft' && 'Draft mode: Your wedding is private. Only you can see it while editing.'}
+              {status === 'live' && 'Your wedding website is now live and accessible to all guests with their unique PIN codes!'}
             </Alert>
 
-            {/* Mode Toggle Buttons */}
-            <Box sx={{ pt: 2, borderTop: '1px solid rgba(0, 0, 0, 0.1)', width: '100%' }}>
-              <Typography variant="body1" sx={{ color: '#6a6a6a', mb: 2, textAlign: 'center', fontWeight: 600, fontSize: '1.1rem' }}>
-                Change Mode
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-                <Button
-                  variant={status === 'draft' ? 'contained' : 'outlined'}
-                  onClick={() => handleUpdateStatus('draft')}
-                  size="medium"
-                  sx={{
-                    minWidth: { xs: '100%', sm: 120 },
-                    py: 1.5,
-                    px: 3,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    bgcolor: status === 'draft' ? '#6a6a6a' : 'transparent',
-                    borderColor: '#6a6a6a',
-                    color: status === 'draft' ? 'white' : '#6a6a6a',
+            {/* Action Buttons */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Button
+                variant="contained"
+                onClick={handlePublishToggle}
+                sx={{
+                  bgcolor: status === 'live' ? '#6a6a6a' : '#DE3F5E',
+                  color: 'white',
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  flex: 1,
+                  '&:hover': {
+                    bgcolor: status === 'live' ? '#4a4a4a' : '#C8365A',
+                  },
+                }}
+              >
+                {status === 'live' ? 'Deactivate Website' : 'Publish Website'}
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={() => handleUpdateStatus(status === 'live' ? 'draft' : 'live')}
+                sx={{
+                  borderColor: '#6a6a6a',
+                  color: '#6a6a6a',
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderColor: '#4a4a4a',
+                    bgcolor: alpha('#6a6a6a', 0.05),
                     borderWidth: 2,
-                    '&:hover': {
-                      bgcolor: status === 'draft' ? '#4a4a4a' : alpha('#6a6a6a', 0.08),
-                      borderColor: '#4a4a4a',
-                      borderWidth: 2,
-                    },
-                  }}
-                >
-                  Draft
-                </Button>
-              </Stack>
-            </Box>
+                  },
+                }}
+              >
+                Switch to {status === 'live' ? 'Draft' : 'Live'}
+              </Button>
+            </Stack>
           </Stack>
         </Paper>
 
         {/* Website Links Section */}
-        <Paper sx={{ 
-          p: { xs: 4, md: 6 }, 
-          borderRadius: '24px', 
-          bgcolor: 'white',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' 
+        <Paper sx={{
+          p: 4,
+          borderRadius: '16px',
+          bgcolor: '#fafafa',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }
         }}>
-          <Typography variant="h4" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
             Website Links
           </Typography>
           
           <Stack spacing={3}>
             {/* Main Wedding URL */}
             <Box>
-              <Typography variant="body1" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5, fontSize: '1.1rem' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5 }}>
                 Your Wedding URL
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'stretch' }}>
                 <TextField
                   fullWidth
                   value={weddingUrl}
-                  InputProps={{ 
+                  InputProps={{
                     readOnly: true,
-                    sx: { fontSize: '1.1rem' }
                   }}
                   sx={{
                     ...textFieldSx,
                     '& .MuiOutlinedInput-root': {
                       ...textFieldSx['& .MuiOutlinedInput-root'],
-                      bgcolor: alpha('#DE3F5E', 0.05),
+                      bgcolor: 'white',
                     }
                   }}
                 />
-                <IconButton 
+                <IconButton
                   onClick={() => copyToClipboard(weddingUrl)}
                   sx={{
                     bgcolor: alpha('#DE3F5E', 0.1),
@@ -364,7 +362,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                     textTransform: 'none',
                     fontWeight: 600,
                     px: 3,
-                    fontSize: '1rem',
                     '&:hover': {
                       borderColor: '#C8365A',
                       bgcolor: 'rgba(222, 63, 94, 0.05)',
@@ -380,18 +377,21 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
 
         {/* Integrations (Optional) */}
-        <Paper sx={{ 
-          p: { xs: 4, md: 6 }, 
-          borderRadius: '24px', 
-          bgcolor: alpha('#f5f5f5', 0.5),
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)' 
+        <Paper sx={{
+          p: 4,
+          borderRadius: '16px',
+          bgcolor: '#fafafa',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }
         }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                 Integrations
               </Typography>
-              <Typography variant="body1" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 Optional integrations to enhance your wedding website
               </Typography>
             </Box>
@@ -488,75 +488,78 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         </Paper>
 
         {/* Pre-Publish Checklist */}
-        <Paper sx={{ 
-          p: { xs: 4, md: 6 }, 
-          borderRadius: '24px', 
-          bgcolor: alpha('#f5f5f5', 0.5),
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)' 
+        <Paper sx={{
+          p: 4,
+          borderRadius: '16px',
+          bgcolor: '#fafafa',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }
         }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                 Pre-Publish Checklist
               </Typography>
-              <Typography variant="body1" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 Make sure everything is ready before going live
               </Typography>
             </Box>
             
-            <List sx={{ bgcolor: 'white', borderRadius: '16px', p: 2 }}>
-              <ListItem sx={{ py: 2 }}>
+            <List sx={{ bgcolor: 'white', borderRadius: '12px', p: 2 }}>
+              <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 32 }} />
+                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
                 </ListItemIcon>
-                <ListItemText 
-                  primary="Wedding overview completed" 
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1.15rem', fontWeight: 500 }} 
+                <ListItemText
+                  primary="Wedding overview completed"
+                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
-              <ListItem sx={{ py: 2 }}>
+              <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 32 }} />
+                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
                 </ListItemIcon>
-                <ListItemText 
-                  primary="At least one event added" 
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1.15rem', fontWeight: 500 }} 
+                <ListItemText
+                  primary="At least one event added"
+                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
-              <ListItem sx={{ py: 2 }}>
+              <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 32 }} />
+                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
                 </ListItemIcon>
-                <ListItemText 
-                  primary="Schedule configured" 
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1.15rem', fontWeight: 500 }} 
+                <ListItemText
+                  primary="Schedule configured"
+                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
-              <ListItem sx={{ py: 2 }}>
+              <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
                   {(settings?.pin_codes?.length || 0) > 0 ? (
-                    <CheckCircle sx={{ color: '#10B981', fontSize: 32 }} />
+                    <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
                   ) : (
-                    <Cancel sx={{ color: '#EF4444', fontSize: 32 }} />
+                    <Cancel sx={{ color: '#EF4444', fontSize: 24 }} />
                   )}
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="Guest PIN codes added"
-                  secondary={(settings?.pin_codes?.length || 0) > 0 
-                    ? `✓ ${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured` 
-                    : '✗ Add at least one PIN code for guests'}
-                  primaryTypographyProps={{ 
-                    color: '#1a1a1a', 
-                    fontSize: '1.15rem', 
-                    fontWeight: 500 
-                  }}
-                  secondaryTypographyProps={{ 
-                    color: (settings?.pin_codes?.length || 0) > 0 ? '#10B981' : '#EF4444',
+                  secondary={(settings?.pin_codes?.length || 0) > 0
+                    ? `${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
+                    : 'Add at least one PIN code for guests'}
+                  primaryTypographyProps={{
+                    color: '#1a1a1a',
                     fontSize: '1rem',
-                    fontWeight: 600,
+                    fontWeight: 500
+                  }}
+                  secondaryTypographyProps={{
+                    color: (settings?.pin_codes?.length || 0) > 0 ? '#10B981' : '#EF4444',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
                     mt: 0.5
                   }}
                 />

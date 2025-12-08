@@ -15,11 +15,16 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, ExpandMore } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -37,6 +42,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+  const [expandedPreview, setExpandedPreview] = useState<number | false>(0);
 
   useEffect(() => {
     loadData();
@@ -133,20 +139,118 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
     );
   }
 
-  return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-            Frequently Asked Questions
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-            Add common questions and answers for your guests
-          </Typography>
+  // Mobile Preview Component
+  const MobilePreview = () => (
+    <MobilePreviewFrame title="Q + A">
+      {faqs.length === 0 ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <Box sx={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '12px',
+            p: 3,
+            boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+          }}>
+            <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
+              Add an FAQ to see preview
+            </Typography>
+          </Box>
         </Box>
+      ) : (
+        <Stack spacing={1.5}>
+          {faqs.map((faq, index) => (
+            <Accordion
+              key={faq.id}
+              expanded={expandedPreview === index}
+              onChange={() => setExpandedPreview(expandedPreview === index ? false : index)}
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '8px !important',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                '&:before': {
+                  display: 'none',
+                },
+                '&.Mui-expanded': {
+                  margin: '0 !important',
+                },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMore sx={{ color: '#000', fontSize: 20 }} />}
+                sx={{
+                  minHeight: '48px !important',
+                  '& .MuiAccordionSummary-content': {
+                    margin: '8px 0 !important',
+                  },
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: 'Outfit',
+                    fontWeight: 600,
+                    color: '#141414',
+                    fontSize: 14,
+                  }}
+                >
+                  {faq.question}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0, pb: 2 }}>
+                <Typography
+                  sx={{
+                    color: '#666',
+                    lineHeight: 1.6,
+                    fontSize: 12,
+                    fontFamily: 'Outfit',
+                  }}
+                >
+                  {faq.answer}
+                </Typography>
+                {faq.button_text && (
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      mt: 1.5,
+                      borderRadius: '12px',
+                      borderColor: '#DE3F5E',
+                      color: '#DE3F5E',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      letterSpacing: '6.25%',
+                      fontFamily: 'Outfit',
+                      fontSize: 10,
+                      py: 0.75,
+                    }}
+                  >
+                    {faq.button_text}
+                  </Button>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Stack>
+      )}
+    </MobilePreviewFrame>
+  );
 
+  return (
+    <Container maxWidth="xl">
+      <Grid container spacing={4}>
+        {/* Left Column - Form Controls */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING}>
+            <Box>
+              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                Frequently Asked Questions
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                Add common questions and answers for your guests
+              </Typography>
+            </Box>
 
-        <Button 
+            <Button 
           variant="contained" 
           startIcon={<Add />} 
           onClick={handleAdd}
@@ -190,7 +294,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                   )}
                 </Box>
                 <Stack direction="row" spacing={1}>
-                  <IconButton size="small" onClick={() => handleEdit(faq)}>
+                  <IconButton size="small" onClick={() => handleEdit(faq)} color="error">
                     <Edit />
                   </IconButton>
                   <IconButton size="small" onClick={() => handleDelete(faq.id)} color="error">
@@ -288,22 +392,34 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           </DialogActions>
         </Dialog>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
+            {/* Toast Notification */}
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={6000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert
+                onClose={() => setSnackbarOpen(false)}
+                severity={snackbarSeverity}
+                sx={{ width: '100%' }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </Stack>
+        </Grid>
+
+        {/* Right Column - Sticky Mobile Preview (Desktop only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <MobilePreview />
+        </Grid>
+
+        {/* Mobile Preview at Bottom (Mobile only) */}
+        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
+          <MobilePreview />
+        </Grid>
+      </Grid>
     </Container>
   );
 }

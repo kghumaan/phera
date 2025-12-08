@@ -24,8 +24,9 @@ import {
   Avatar,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth } from '@mui/icons-material';
+import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
@@ -58,6 +59,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const [customSlug, setCustomSlug] = useState('');
   const [savingSlug, setSavingSlug] = useState(false);
   const [weddingData, setWeddingData] = useState<WeddingData | null>(null);
+  const [rsvpStats, setRsvpStats] = useState({ attending: 0, notAttending: 0, pending: 0, total: 0, totalGuestsComing: 0 });
 
   useEffect(() => {
     loadWeddingData();
@@ -73,7 +75,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
     console.log('🔍 Loading wedding data for slug:', weddingSlug);
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-      
+
       if (wedding) {
         setWeddingId(wedding.id);
         // Normalize status: convert 'preview' to 'draft', default to 'draft' if invalid or missing
@@ -88,10 +90,34 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           venue_flag: wedding.venue_flag || '',
           status: normalizedStatus,
         });
-        
+
         // If status was 'preview' or invalid, update it in the database
         if (wedding.status !== 'live' && wedding.status !== 'draft') {
           await weddingService.updateWedding(wedding.id, { status: 'draft' });
+        }
+
+        // Load RSVP stats - use weddingSlug instead of wedding.id
+        try {
+          const rsvps = await getAllRSVPs(weddingSlug);
+          const attending = rsvps.filter(r => r.attending === 'yes').length;
+          const notAttending = rsvps.filter(r => r.attending === 'no').length;
+          const pending = rsvps.filter(r => r.attending === 'maybe' || !r.attending).length;
+
+          // Calculate total guests coming (including plus ones)
+          const totalGuestsComing = rsvps
+            .filter(r => r.attending === 'yes')
+            .reduce((sum, r) => sum + (r.guest_count || 1), 0);
+
+          setRsvpStats({
+            attending,
+            notAttending,
+            pending,
+            total: rsvps.length,
+            totalGuestsComing
+          });
+        } catch (err) {
+          console.error('Error loading RSVP stats:', err);
+          // Silent fail - RSVP stats are not critical
         }
       } else {
         setError(`No wedding found with ID: ${weddingSlug}`);
@@ -354,59 +380,193 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           </Stack>
         </Paper>
 
-        {/* Quick Info Cards */}
+        {/* Wedding Details & RSVP Summary */}
         {weddingData && (
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            {/* Couple Name Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', width: 48, height: 48 }}>
-                  <People />
-                </Avatar>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600 }}>Couple</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
-                    {weddingData.couple_name || 'Not set'}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
+          <Paper sx={{
+            p: 4,
+            borderRadius: '16px',
+            bgcolor: '#fafafa',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            '&:hover': {
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+              Wedding Summary
+            </Typography>
 
-            {/* Date Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: alpha('#8B5CF6', 0.1), color: '#8B5CF6', width: 48, height: 48 }}>
-                  <CalendarMonth />
-                </Avatar>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600 }}>Wedding Date</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
-                    {weddingData.wedding_date_display || 'Not set'}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
+            <Grid container spacing={3}>
+              {/* Wedding Details */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Stack spacing={2.5}>
+                  {/* Couple */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', width: 40, height: 40 }}>
+                      <People fontSize="small" />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Couple
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
+                        {weddingData.couple_name || 'Not set'}
+                      </Typography>
+                    </Box>
+                  </Box>
 
-            {/* Venue Card */}
-            <Card sx={{ flex: '1 1 280px', minWidth: 280, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981', width: 48, height: 48 }}>
-                  <LocationOn />
-                </Avatar>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600 }}>Venue</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
-                    {weddingData.venue_name || 'Not set'}
+                  {/* Date */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: alpha('#8B5CF6', 0.1), color: '#8B5CF6', width: 40, height: 40 }}>
+                      <CalendarMonth fontSize="small" />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Wedding Date
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
+                        {weddingData.wedding_date_display || 'Not set'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Venue */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981', width: 40, height: 40 }}>
+                      <LocationOn fontSize="small" />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Venue
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
+                        {weddingData.venue_name || 'Not set'}
+                      </Typography>
+                      {weddingData.venue_location && (
+                        <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>
+                          {weddingData.venue_location}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Stack>
+              </Grid>
+
+              {/* RSVP Stats */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box sx={{
+                  bgcolor: 'white',
+                  borderRadius: '12px',
+                  p: 3,
+                  border: '1px solid rgba(0, 0, 0, 0.06)',
+                  height: '100%'
+                }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                    Guest Responses
                   </Typography>
-                  {weddingData.venue_location && (
-                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                      {weddingData.venue_flag} {weddingData.venue_location}
-                    </Typography>
-                  )}
+
+                  <Stack spacing={2}>
+                    {/* Attending */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: '#10B981'
+                        }} />
+                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                          Attending
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#10B981' }}>
+                        {rsvpStats.attending}
+                      </Typography>
+                    </Box>
+
+                    {/* Not Attending */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: '#EF4444'
+                        }} />
+                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                          Not Attending
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF4444' }}>
+                        {rsvpStats.notAttending}
+                      </Typography>
+                    </Box>
+
+                    {/* Pending */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: '#F59E0B'
+                        }} />
+                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                          Pending
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#F59E0B' }}>
+                        {rsvpStats.pending}
+                      </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 1 }} />
+
+                    {/* Total Guests Coming */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: alpha('#10B981', 0.08), borderRadius: '8px', p: 1.5 }}>
+                      <Typography variant="body2" sx={{ color: '#10B981', fontWeight: 700 }}>
+                        Total Guests Coming
+                      </Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700, color: '#10B981' }}>
+                        {rsvpStats.totalGuestsComing}
+                      </Typography>
+                    </Box>
+
+                    {/* Total RSVPs */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 600 }}>
+                        Total RSVPs
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {rsvpStats.total}
+                      </Typography>
+                    </Box>
+
+                    {/* View Details Button */}
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      onClick={() => router.push(`/admin/onboarding/${weddingSlug}/guests`)}
+                      sx={{
+                        mt: 1,
+                        borderColor: '#DE3F5E',
+                        color: '#DE3F5E',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          borderColor: '#C8365A',
+                          bgcolor: alpha('#DE3F5E', 0.05),
+                        },
+                      }}
+                    >
+                      View All Responses
+                    </Button>
+                  </Stack>
                 </Box>
-              </CardContent>
-            </Card>
-          </Box>
+              </Grid>
+            </Grid>
+          </Paper>
         )}
 
         {/* Quick Links */}

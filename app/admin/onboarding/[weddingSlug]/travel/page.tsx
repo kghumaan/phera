@@ -17,13 +17,17 @@ import {
   FormControlLabel,
   Checkbox,
   Snackbar,
+  Card,
+  CardContent,
+  Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -41,6 +45,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+  const [previewSlide, setPreviewSlide] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -152,20 +157,234 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     );
   }
 
+  // Mobile Preview Component
+  const MobilePreview = () => {
+    const currentPreviewCard = cards[previewSlide];
+
+    return (
+      <MobilePreviewFrame
+        title="Travel & Stay"
+        backgroundImage="/images/backgrounds/rose-quartz.png"
+        overlay={
+          cards.length > 1 && (
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 32,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: 1.5,
+                zIndex: 10,
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={() => setPreviewSlide((prev) => (prev - 1 + cards.length) % cards.length)}
+                sx={{
+                  width: 36,
+                  height: 36,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  '&:hover': {
+                    backgroundColor: '#fff',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <ChevronLeft fontSize="medium" sx={{ color: '#1a1a1a' }} />
+              </IconButton>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  px: 2.5,
+                  py: 1,
+                  backgroundColor: '#DE3F5E',
+                  borderRadius: '20px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#fff',
+                  boxShadow: '0 2px 8px rgba(222, 63, 94, 0.3)',
+                }}
+              >
+                {previewSlide + 1} / {cards.length}
+              </Box>
+              <IconButton
+                size="small"
+                onClick={() => setPreviewSlide((prev) => (prev + 1) % cards.length)}
+                sx={{
+                  width: 36,
+                  height: 36,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  '&:hover': {
+                    backgroundColor: '#fff',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <ChevronRight fontSize="medium" sx={{ color: '#1a1a1a' }} />
+              </IconButton>
+            </Box>
+          )
+        }
+      >
+        {cards.length === 0 ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Box sx={{
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: '12px',
+              p: 3,
+              boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+            }}>
+              <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
+                Add a card to see preview
+              </Typography>
+            </Box>
+          </Box>
+        ) : currentPreviewCard ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', pb: 6 }}>
+            <Card
+              sx={{
+                width: '100%',
+                maxWidth: '90%',
+                height: '85%',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                border: 'none',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <CardContent
+                sx={{
+                  p: { xs: 2.5, lg: 3 },
+                  flexGrow: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start',
+                  overflow: 'auto',
+                }}
+              >
+                <Stack spacing={1.5}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontWeight: 400,
+                      fontSize: { xs: 24, lg: 22 },
+                      lineHeight: 1.3,
+                      color: '#141414',
+                      textAlign: 'left',
+                    }}
+                  >
+                    {currentPreviewCard.title || 'Untitled Card'}
+                  </Typography>
+                  {currentPreviewCard.content && Array.isArray(currentPreviewCard.content) && (
+                    <Stack spacing={1}>
+                      {currentPreviewCard.content.slice(0, 2).map((paragraph: string, index: number) => (
+                        <Typography
+                          key={index}
+                          variant="body2"
+                          sx={{
+                            fontFamily: 'Outfit',
+                            fontWeight: 400,
+                            fontSize: { xs: 16, lg: 15 },
+                            lineHeight: 1.5,
+                            color: '#474747',
+                            textAlign: 'left',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {paragraph}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  )}
+                </Stack>
+                <Box sx={{ flex: 1 }} />
+                {currentPreviewCard.button_text && (
+                  <Box sx={{ mt: 'auto', pt: 2 }}>
+                    <Button
+                      variant={currentPreviewCard.is_whatsapp_button ? "contained" : "outlined"}
+                      disabled={currentPreviewCard.is_disabled}
+                      fullWidth
+                      sx={{
+                        borderRadius: '80px',
+                        padding: { xs: '12px 20px', lg: '11px 18px' },
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        fontSize: { xs: 15, lg: 14 },
+                        letterSpacing: '6.25%',
+                        ...(currentPreviewCard.is_whatsapp_button ? {
+                          backgroundColor: currentPreviewCard.is_disabled ? '#BCBCBC' : '#000',
+                          color: '#fff',
+                        } : {
+                          color: currentPreviewCard.is_disabled ? '#BCBCBC' : '#DE3F5E',
+                          borderColor: currentPreviewCard.is_disabled ? '#BCBCBC' : '#DE3F5E',
+                        })
+                      }}
+                    >
+                      {currentPreviewCard.button_text}
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+
+              {currentPreviewCard.image_url && (
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '45%',
+                    minHeight: 160,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={currentPreviewCard.image_url}
+                    alt={currentPreviewCard.title}
+                    sx={{
+                      width: '120%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                    }}
+                  />
+                </Box>
+              )}
+            </Card>
+          </Box>
+        ) : null}
+      </MobilePreviewFrame>
+    );
+  };
+
   return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-            Travel & Stay Information
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-            Create carousel cards with travel and accommodation details
-          </Typography>
-        </Box>
+    <Container maxWidth="xl">
+      <Grid container spacing={{ xs: 4, lg: 8 }}>
+        {/* Left Column - Form Controls */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING}>
+            <Box>
+              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                Travel & Stay Information
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                Create carousel cards with travel and accommodation details
+              </Typography>
+            </Box>
 
-
-        <Button 
+            <Button 
           variant="contained" 
           startIcon={<Add />} 
           onClick={handleAdd}
@@ -376,22 +595,34 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
           </DialogActions>
         </Dialog>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
+            {/* Toast Notification */}
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={6000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert
+                onClose={() => setSnackbarOpen(false)}
+                severity={snackbarSeverity}
+                sx={{ width: '100%' }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </Stack>
+        </Grid>
+
+        {/* Right Column - Sticky Mobile Preview (Desktop only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <MobilePreview />
+        </Grid>
+
+        {/* Mobile Preview at Bottom (Mobile only) */}
+        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
+          <MobilePreview />
+        </Grid>
+      </Grid>
     </Container>
   );
 }

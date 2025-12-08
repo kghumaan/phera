@@ -15,11 +15,13 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, ArrowBack, ChevronRight } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -133,90 +135,163 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     );
   }
 
-  return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-            Registry Funds
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-            Manage your wedding registry contribution funds
+  // Mobile Preview Component
+  const MobilePreview = () => (
+    <MobilePreviewFrame title="Registry" backgroundImage="#E8D5E8">
+      {registry.length === 0 ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <Typography sx={{ fontFamily: 'Outfit', fontSize: 14, color: '#6a6a6a', textAlign: 'center' }}>
+            Add a registry item to see preview
           </Typography>
         </Box>
-
-
-        <Button 
-          variant="contained" 
-          startIcon={<Add />} 
-          onClick={handleAdd}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            '&:hover': {
-              bgcolor: '#C8365A',
-            },
-          }}
-        >
-          Add Fund
-        </Button>
-
-        <Stack spacing={2}>
+      ) : (
+        <Stack spacing={3}>
           {registry.map((item) => (
-            <Paper key={item.id} sx={{ 
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h4" sx={{ mb: 1 }}>
-                    {item.emoji}
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                    {item.fund_name}
-                  </Typography>
-                  {item.description && (
-                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                      {item.description}
-                    </Typography>
-                  )}
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <IconButton onClick={() => handleEdit(item)}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(item.id)} color="error">
-                    <Delete />
-                  </IconButton>
-                </Stack>
-              </Stack>
-            </Paper>
+            <Box
+              key={item.id}
+              component="button"
+              sx={{
+                display: 'block',
+                width: '100%',
+                textDecoration: 'none',
+                border: 'none',
+                borderRadius: '20px',
+                overflow: 'hidden',
+                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease-in-out',
+                '&:hover': {
+                  boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
+                  transform: 'translateY(-4px)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2,
+                  padding: 4,
+                  backgroundColor: '#ffffff',
+                }}
+              >
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontFamily: 'Outfit',
+                    fontWeight: 600,
+                    fontSize: 28,
+                    lineHeight: 1,
+                    color: '#141414',
+                  }}
+                >
+                  {item.emoji} {item.fund_name}
+                </Typography>
+                <ChevronRight sx={{ color: '#141414', fontSize: 40, flexShrink: 0 }} />
+              </Box>
+            </Box>
           ))}
-
-          {registry.length === 0 && (
-            <Paper sx={{ 
-              p: 4, 
-              textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
-                No registry funds yet. Add your first fund.
-              </Typography>
-            </Paper>
-          )}
         </Stack>
+      )}
+    </MobilePreviewFrame>
+  );
 
-        <Dialog 
+  return (
+    <Container maxWidth="xl">
+      <Grid container spacing={4}>
+        {/* Left Column - Form Controls */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING}>
+            <Box>
+              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                Registry Funds
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                Manage your wedding registry contribution funds
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={handleAdd}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: '#C8365A',
+                },
+              }}
+            >
+              Add Fund
+            </Button>
+
+            <Stack spacing={2}>
+              {registry.map((item) => (
+                <Paper key={item.id} sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  bgcolor: '#fafafa',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  }
+                }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>
+                        {item.emoji}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {item.fund_name}
+                      </Typography>
+                      {item.description && (
+                        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                          {item.description}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                      <IconButton onClick={() => handleEdit(item)} color="error">
+                        <Edit />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(item.id)} color="error">
+                        <Delete />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                </Paper>
+              ))}
+
+              {registry.length === 0 && (
+                <Paper sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  borderRadius: '16px',
+                  bgcolor: 'white',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                }}>
+                  <Typography sx={{ color: '#6a6a6a' }}>
+                    No registry funds yet. Add your first fund.
+                  </Typography>
+                </Paper>
+              )}
+            </Stack>
+          </Stack>
+        </Grid>
+
+        {/* Right Column - Mobile Preview (Desktop Only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <MobilePreview />
+        </Grid>
+      </Grid>
+
+      {/* Edit Dialog */}
+      <Dialog 
           open={editDialogOpen} 
           onClose={() => setEditDialogOpen(false)} 
           maxWidth="sm" 
@@ -286,24 +361,23 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               Save
             </Button>
           </DialogActions>
-        </Dialog>
+      </Dialog>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
+      {/* Toast Notification */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
           onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
         >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
