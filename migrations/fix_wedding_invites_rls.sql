@@ -14,3 +14,15 @@ DROP POLICY IF EXISTS "Users can delete their own invites" ON wedding_invites;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+

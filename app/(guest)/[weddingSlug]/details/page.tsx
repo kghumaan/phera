@@ -186,7 +186,7 @@ export default function DetailsPage() {
   }, [weddingSlug]);
 
   const handleBack = () => {
-    router.push('/');
+    router.push(`/${weddingSlug}`);
   };
 
   const handleMenuItemClick = (item: string) => {
@@ -208,6 +208,9 @@ export default function DetailsPage() {
         break;
       case 'Registry':
         router.push(`/${weddingSlug}/registry`);
+        break;
+      case 'Travel Details':
+        router.push(`/${weddingSlug}/travel-details`);
         break;
       case 'Change RSVP':
         router.push(`/${weddingSlug}/rsvp`);
@@ -383,6 +386,16 @@ export default function DetailsPage() {
                       <MenuItem 
                         title="Registry" 
                         onClick={() => handleMenuItemClick('Registry')} 
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {/* Travel Details - Only show for guests who RSVP'd yes */}
+                  {rsvpResponse === 'yes' && (
+                    <>
+                      <MenuItem 
+                        title="Travel Details" 
+                        onClick={() => handleMenuItemClick('Travel Details')} 
                       />
                       <DiamondDecoration />
                     </>

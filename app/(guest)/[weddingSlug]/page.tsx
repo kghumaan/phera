@@ -5,12 +5,9 @@ import {
   Container,
   Typography,
   Button,
-  Paper,
   useTheme,
   useMediaQuery,
   Stack,
-  Avatar,
-  Chip,
   IconButton,
   Menu,
   MenuItem
@@ -19,11 +16,9 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  FavoriteOutlined,
   LocationOnOutlined,
   CalendarTodayOutlined,
-  Logout as LogoutIcon,
-  CheckCircle as CheckCircleIcon
+  Logout as LogoutIcon
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
@@ -34,7 +29,8 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -96,16 +92,16 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: { xs: 4, lg: 4.25, xl: 4.5 },
-        py: { xs: 1.5, lg: 1.625, xl: 1.75 },
+        px: { xs: 4, md: 6, lg: 7, xl: 8 },
+        py: { xs: 1.5, md: 2, lg: 2.5, xl: 3 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: { xs: 400, lg: 420, xl: 440 },
+        maxWidth: '100%', // Let parent wrapper control width
       }}
     >
       <Stack 
         direction="row" 
-        spacing={{ xs: 3, lg: 3.5, xl: 4 }}
+        spacing={{ xs: 3, md: 4, lg: 5, xl: 6 }}
         justifyContent="center" 
         alignItems="center"
       >
@@ -115,7 +111,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             alignItems="center" 
             spacing={0}
             sx={{ 
-              minWidth: { xs: 35, sm: 40, lg: 45, xl: 50 }, // Fixed width for each column
+              minWidth: { xs: 35, sm: 40, md: 55, lg: 65, xl: 75 }, // Fixed width for each column
             }}
           >
             <Typography
@@ -123,7 +119,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.75rem', xl: '2rem' }, // 24px from Figma
+                fontSize: { xs: '1.5rem', sm: '1.5rem', md: '2.25rem', lg: '2.75rem', xl: '3.25rem' },
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
@@ -135,7 +131,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' }, // 12px from Figma
+                fontSize: { xs: '0.85rem', sm: '0.75rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
                 textAlign: 'center',
@@ -255,12 +251,16 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
 
 export default function HomePage() {
   const params = useParams();
-  const weddingId = params.weddingId as string;
+  const weddingSlug = params.weddingSlug as string;
+  // Keep weddingId for backward compatibility with other components that expect it
+  const weddingId = weddingSlug;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const router = useRouter();
   const [currentBackground, setCurrentBackground] = useState(0);
   const [customBackground, setCustomBackground] = useState<string>('');
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
@@ -571,18 +571,402 @@ export default function HomePage() {
           backgroundColor: '#f5f5f5',
         }}
       >
-        <Typography variant="h6" sx={{ color: '#666' }}>
-          Loading...
-        </Typography>
+        <LoadingSpinner />
       </Box>
     );
   }
 
-  return (
-    <OptimizedBackground
-      useAppDefault={true}
-      className="min-h-screen flex flex-col"
+  // Desktop layout component
+  const DesktopLayout = () => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative',
+      }}
     >
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <LoadingSpinner />
+        </Box>
+      )}
+      {/* Full-width Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          backgroundColor: 'transparent',
+        }}
+      >
+        <AppHeader
+          variant="transparent"
+          onLoginClick={() => setLoginDialogOpen(true)}
+        />
+      </Box>
+
+      {/* Main Content Area */}
+      <Box
+        sx={{
+          display: 'flex',
+          flex: 1,
+          width: '100%',
+          pt: { md: 15, lg: 15, xl: 15 }, // Account for fixed header (120px)
+        }}
+      >
+        {/* Left Side - Scrollable Content */}
+        <Box
+          sx={{
+            flex: '1 1 50%',
+            maxWidth: '50%',
+            overflowY: 'auto',
+            height: 'calc(100vh - 120px)',
+            display: 'flex',
+            justifyContent: 'center',
+            pl: { md: 4, lg: 5, xl: 6 }, // Outer padding
+            pr: { md: 0, lg: 0, xl: 0 }, // No padding on right (inner side) to bring columns closer
+            py: { md: 6, lg: 8, xl: 10 }, // Push content down more
+          }}
+        >
+          {/* Wedding Details Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ maxWidth: { md: 600, lg: 700, xl: 800 } }}>
+              {/* Names - Large italic serif */}
+              <Typography
+                variant="h2"
+                sx={{
+                  fontSize: { md: '3.5rem', lg: '4.5rem', xl: '5.5rem' },
+                  color: '#000',
+                  lineHeight: 1.2,
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {coupleData.names}
+              </Typography>
+
+              {/* Date and Time with Action Icons */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#000',
+                      fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                      fontWeight: 600,
+                    }}
+                  >
+                    {coupleData.date}
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={2}>
+                  <IconButton
+                    sx={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                      border: '1px solid rgba(0, 0, 0, 0.25)',
+                      width: { md: 48, lg: 56, xl: 64 },
+                      height: { md: 48, lg: 56, xl: 64 },
+                      color: '#000',
+                      '&:hover': { 
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        borderColor: 'rgba(0, 0, 0, 0.35)',
+                      },
+                    }}
+                    onClick={() => {
+                      // Add to calendar functionality
+                      const event = {
+                        text: `${coupleData.names}`,
+                        dates: coupleData.weddingDate,
+                        location: coupleData.venue,
+                      };
+                      const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.text)}&location=${encodeURIComponent(event.location)}&dates=${coupleData.weddingDate.replace(/-/g, '')}/${coupleData.weddingDate.replace(/-/g, '')}`;
+                      window.open(googleCalUrl, '_blank');
+                    }}
+                  >
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' }, color: '#000' }} />
+                  </IconButton>
+                  <IconButton
+                    sx={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                      border: '1px solid rgba(0, 0, 0, 0.25)',
+                      width: { md: 48, lg: 56, xl: 64 },
+                      height: { md: 48, lg: 56, xl: 64 },
+                      color: '#000',
+                      '&:hover': { 
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        borderColor: 'rgba(0, 0, 0, 0.35)',
+                      },
+                    }}
+                    onClick={() => {
+                      // Share functionality
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `${coupleData.names}`,
+                          text: `Join us for our wedding on ${coupleData.date}!`,
+                          url: window.location.href,
+                        });
+                      }
+                    }}
+                  >
+                    <Box
+                      component="svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      sx={{
+                        width: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                        height: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                        color: '#000',
+                      }}
+                    >
+                      <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M20 14V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </Box>
+                  </IconButton>
+                </Stack>
+              </Box>
+
+              {/* Location - Show actual venue if RSVP'd, otherwise show prompt */}
+              <Box
+                onClick={() => {
+                  if ((user && hasRSVPed) || isBypassPin) {
+                    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coupleData.venue)}`;
+                    window.open(mapsUrl, '_blank');
+                  }
+                }}
+                sx={{
+                  cursor: ((user && hasRSVPed) || isBypassPin) ? 'pointer' : 'default',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
+                }}
+              >
+                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }} />
+                {((user && hasRSVPed) || isBypassPin) ? (
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#000',
+                        fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {coupleData.venue}
+                    </Typography>
+                    <Typography sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }}>
+                      {coupleData.flag}
+                    </Typography>
+                  </Stack>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#000',
+                      fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                    }}
+                  >
+                    <strong>RSVP</strong> to see location
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Description */}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#333',
+                  fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                  lineHeight: 1.6,
+                  maxWidth: { md: 550, lg: 650, xl: 750 },
+                }}
+              >
+                Come celebrate with us under the stars. A little romance, a lot of partying. You won&apos;t want to miss it.
+              </Typography>
+
+              {/* Countdown Timer */}
+              <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                <CountdownTimer targetDate={coupleData.weddingDate} />
+              </Box>
+
+              {/* Guest List Section - Only show if user has RSVP'd OR using bypass PIN */}
+              {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+                <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true, margin: '-100px' }}
+                  >
+                    <GuestList weddingId={weddingId} />
+                  </motion.div>
+                </Box>
+              )}
+
+              {/* Extra bottom padding for scrollable content */}
+              <Box sx={{ height: 120 }} />
+            </Stack>
+          </motion.div>
+        </Box>
+
+        {/* Right Side - Sticky Couple Image */}
+        <Box
+          sx={{
+            flex: '1 1 50%',
+            maxWidth: '50%',
+            position: 'sticky',
+            top: 120, // Account for fixed header (120px on desktop)
+            height: 'calc(100vh - 120px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pl: { md: 0, lg: 0, xl: 0 }, // No padding on left (inner side) to bring columns closer
+            pr: { md: 4, lg: 5, xl: 6 }, // Outer padding
+            py: { md: 4, lg: 6, xl: 8 },
+            gap: 3,
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: { md: 500, lg: 600, xl: 700 },
+                aspectRatio: '1',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                },
+                '&:active': {
+                  transform: 'scale(0.98)',
+                },
+              }}
+            >
+              {/* Frame Background */}
+              <Image
+                src="/images/frames/frame-27.png"
+                alt="Decorative frame"
+                fill
+                priority
+                sizes="(max-width: 1200px) 500px, (max-width: 1600px) 600px, 700px"
+                style={{
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  zIndex: 1,
+                }}
+              />
+              
+              {/* Couple Image */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '7%',
+                  left: '7%',
+                  width: '87%',
+                  height: '87%',
+                  overflow: 'hidden',
+                  zIndex: 2,
+                }}
+              >
+                <CoupleImageCarousel size={500} />
+              </Box>
+            </Box>
+          </motion.div>
+
+          {/* View Details Button */}
+          {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+            <Box sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 700 } }}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                style={{ width: '100%' }}
+              >
+                <Button
+                  onClick={() => {
+                    setIsNavigating(true);
+                    router.push(`/${weddingSlug}/details`);
+                  }}
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={isNavigating}
+                  sx={{
+                    backgroundColor: '#DE3F5E',
+                    color: 'white',
+                    py: { md: 2, lg: 2.25, xl: 2.5 },
+                    fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
+                    fontWeight: 700,
+                    borderRadius: '16px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '6.25%',
+                    fontFamily: 'Outfit',
+                    '&:hover': {
+                      backgroundColor: '#C8365A',
+                    },
+                  }}
+                >
+                  View Details
+                </Button>
+              </motion.div>
+            </Box>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  // Mobile layout component (existing layout)
+  const MobileLayout = () => (
+    <>
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <LoadingSpinner />
+        </Box>
+      )}
       {/* Header Section */}
       <AppHeader
         variant="transparent"
@@ -602,7 +986,7 @@ export default function HomePage() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: { xs: 320, lg: 340, xl: 360 },
+                maxWidth: { xs: 320, sm: 340 },
                 aspectRatio: '1',
                 mx: 'auto',
                 mb: 2,
@@ -659,7 +1043,7 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#000',
-                  fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                  fontSize: { xs: '1rem', sm: '1.125rem' },
                   letterSpacing: '0.5px',
                 }}
               >
@@ -670,7 +1054,7 @@ export default function HomePage() {
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.25rem', xl: '3.5rem' },
+                  fontSize: { xs: '2.5rem', sm: '3rem' },
                   color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
@@ -700,23 +1084,17 @@ export default function HomePage() {
                 }}
               >
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="center" mb={2}>
-                  {/* <LocationOnOutlined 
-                    sx={{ 
-                      color: '#000', 
-                      fontSize: '1.2rem' 
-                    }} 
-                  /> */}
                   <Typography
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
+                      fontSize: { xs: '1.1rem', sm: '1.2rem' },
                       textDecoration: 'underline',
                     }}
                   >
                     {coupleData.venue}
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.3rem', xl: '1.4rem' } }}>
+                  <Typography sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem' } }}>
                     {coupleData.flag}
                   </Typography>
                 </Stack>
@@ -736,17 +1114,6 @@ export default function HomePage() {
       </Container>
 
       {/* Wedding Community Section - Only show if user has RSVP'd OR using bypass PIN */}
-      {(() => {
-        console.log('Guest content visibility check:', {
-          isLoading,
-          isCheckingRSVP,
-          user: !!user,
-          hasRSVPed,
-          isBypassPin,
-          shouldShowContent: !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin)
-        });
-        return null;
-      })()}
       {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
           <motion.div
@@ -759,6 +1126,16 @@ export default function HomePage() {
           </motion.div>
         </Container>
       )}
+    </>
+  );
+
+  return (
+    <OptimizedBackground
+      useAppDefault={true}
+      className="min-h-screen flex flex-col"
+    >
+      {/* Render desktop or mobile layout based on breakpoint */}
+      {isMobile ? <MobileLayout /> : <DesktopLayout />}
 
       {/* User Menu */}
       <Menu
@@ -791,7 +1168,8 @@ export default function HomePage() {
       />
 
       {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd (but NOT for bypass PIN users) */}
-      {!isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
+      {/* Only show on mobile, desktop has inline buttons */}
+      {isMobile && !isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
         <Box
           sx={{
             position: 'fixed',
@@ -823,8 +1201,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: { xs: 2, lg: 2.25, xl: 2.5 },
-                    fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
+                    py: 2,
+                    fontSize: '1.1rem',
                     fontWeight: 600,
                     borderRadius: '32px',
                     textTransform: 'uppercase',
@@ -845,12 +1223,12 @@ export default function HomePage() {
                 variant="body2"
                 sx={{
                   color: '#777',
-                  fontSize: { xs: '0.9rem', lg: '0.95rem', xl: '1rem' },
+                  fontSize: '0.9rem',
                   textAlign: 'center',
                   lineHeight: 1.4,
                 }}
               >
-                Let us know you're coming by {coupleData.rsvpDeadline}
+                Let us know you&apos;re coming by {coupleData.rsvpDeadline}
               </Typography>
             </Stack>
           </Container>
@@ -858,18 +1236,8 @@ export default function HomePage() {
       )}
 
       {/* View Details Button - Show when user has RSVP'd OR using bypass PIN */}
-      {(() => {
-        console.log('View Details button visibility check:', {
-          isLoading,
-          isCheckingRSVP,
-          user: !!user,
-          hasRSVPed,
-          isBypassPin,
-          shouldShowButton: !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin)
-        });
-        return null;
-      })()}
-      {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+      {/* Only show on mobile, desktop has inline buttons */}
+      {isMobile && !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
         <Box
           sx={{
             position: 'fixed',
@@ -893,16 +1261,19 @@ export default function HomePage() {
                 style={{ width: '100%' }}
               >
                 <Button
-                  component={Link}
-                  href="/details"
+                  onClick={() => {
+                    setIsNavigating(true);
+                    router.push(`/${weddingSlug}/details`);
+                  }}
                   variant="contained"
                   size="large"
                   fullWidth
+                  disabled={isNavigating}
                   sx={{
                     backgroundColor: '#DE3F5E',
                     color: 'white',
-                    py: { xs: 1.5, lg: 1.75, xl: 2 },
-                    fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
+                    py: 1.5,
+                    fontSize: '1rem',
                     fontWeight: 700,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
@@ -916,15 +1287,13 @@ export default function HomePage() {
                   View Details
                 </Button>
               </motion.div>
-              
-              {/* RSVP Deadline - removed for RSVP'd users */}
             </Stack>
           </Container>
         </Box>
       )}
 
-      {/* Add bottom padding to prevent content from being hidden behind sticky footer */}
-      <Box sx={{ height: 100 }} />
+      {/* Add bottom padding to prevent content from being hidden behind sticky footer - only on mobile */}
+      {isMobile && <Box sx={{ height: 100 }} />}
     </OptimizedBackground>
   );
 } 

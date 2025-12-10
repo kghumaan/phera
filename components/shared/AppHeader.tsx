@@ -38,6 +38,8 @@ export default function AppHeader({
   
   // Check if we're on the landing page
   const isLandingPage = pathname === '/';
+  // Check if we're on a wedding page (desktop layout needs full width header)
+  const isWeddingPage = pathname?.includes('/') && pathname !== '/' && !pathname.includes('/admin');
   
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe" AND not on landing page
   const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
@@ -87,8 +89,7 @@ export default function AppHeader({
         <Container
           maxWidth={false}
           sx={{
-            maxWidth: isLandingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
-            px: { xs: 2, md: 4 },
+            maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
           }}
         >
@@ -123,8 +124,8 @@ export default function AppHeader({
               <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                 <Box
                   sx={{
-                    width: { xs: 36, sm: 50, md: 160 },
-                    height: { xs: 36, sm: 50, md: 160 },
+                    width: { xs: 100, sm: 120, md: 160 },
+                    height: { xs: 40, sm: 48, md: 60 },
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',

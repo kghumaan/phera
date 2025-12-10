@@ -156,7 +156,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           .from('wedding_settings')
           .select('pin_codes')
           .eq('wedding_id', wedding.id)
-          .single();
+          .maybeSingle();
 
         if (settingsError) {
           console.error('Error fetching wedding settings:', settingsError);
@@ -164,8 +164,11 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           return;
         }
 
+        // If no settings exist yet, use empty pin_codes (admin hasn't configured PINs)
         if (settings && settings.pin_codes) {
           setWeddingSettings({ pin_codes: settings.pin_codes as PinCode[] });
+        } else {
+          setWeddingSettings({ pin_codes: [] });
         }
       } catch (error) {
         console.error('Unexpected error fetching settings:', error);

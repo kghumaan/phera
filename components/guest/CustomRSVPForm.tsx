@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
+import { upsertGuestFlight } from '@/lib/supabase/travel-service';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Confetti from 'react-confetti';
@@ -81,6 +82,18 @@ interface RSVPFormData {
   selectedGif?: GifData;
   arrivalOption: 'known' | 'not_sure' | '';
   arrivalDate: string;
+  
+  // Flight Details (optional)
+  flightAirline: string;
+  flightNumber: string;
+  flightDepartureAirport: string;
+  flightArrivalAirport: string;
+  flightDepartureDate: string;
+  flightDepartureTime: string;
+  flightArrivalDate: string;
+  flightArrivalTime: string;
+  shuttlePreferenceTime: string;
+  shuttlePreferenceNote: string;
 }
 
 const initialFormData: RSVPFormData = {
@@ -105,6 +118,17 @@ const initialFormData: RSVPFormData = {
   selectedGif: undefined,
   arrivalOption: '',
   arrivalDate: '',
+  // Flight Details
+  flightAirline: '',
+  flightNumber: '',
+  flightDepartureAirport: '',
+  flightArrivalAirport: '',
+  flightDepartureDate: '',
+  flightDepartureTime: '',
+  flightArrivalDate: '',
+  flightArrivalTime: '',
+  shuttlePreferenceTime: '',
+  shuttlePreferenceNote: '',
 };
 
 const foodPreferences = [
@@ -179,6 +203,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     }
   }, [allowsPlusOne]);
 
+  // Determine if we should show the flight details step
+  const showFlightStep = formData.arrivalOption === 'known' && formData.attending === 'yes';
+
   const steps = allowsPlusOne ? [
     'Basic Information',
     'Attendance Details',
@@ -186,6 +213,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     'Event Preferences',
     'Personal Details',
     'Arrival Plans',
+    ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
   ] : [
     'Basic Information',
@@ -193,6 +221,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     'Event Preferences',
     'Personal Details',
     'Arrival Plans',
+    ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
   ];
 
@@ -304,21 +333,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
     
-    // Adjust step numbers based on whether plus-ones are allowed
-    const getActualStepType = (step: number) => {
-      if (allowsPlusOne) {
-        return step; // No adjustment needed
-      } else {
-        // When plus-ones not allowed, shift steps after attendance
-        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
-        return step;
-      }
-    };
+    // Get the step name to determine validation
+    const stepName = steps[step];
     
-    const actualStep = getActualStepType(step);
-    
-    switch (actualStep) {
-      case 0: // Basic Information
+    switch (stepName) {
+      case 'Basic Information':
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
         if (!formData.email.trim()) newErrors.email = 'Email is required';
@@ -331,45 +350,43 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         }
         break;
       
-      case 1: // Attendance Details
+      case 'Attendance Details':
         if (!formData.attending) newErrors.attending = 'Please select attendance';
         break;
       
-      case 2: // Plus One Details (only when allowsPlusOne is true)
-        if (allowsPlusOne) {
-          if (formData.attending === 'yes' && !formData.plusOne) {
-            newErrors.plusOne = 'Please select plus one option';
+      case 'Plus One Details':
+        if (formData.attending === 'yes' && !formData.plusOne) {
+          newErrors.plusOne = 'Please select plus one option';
+        }
+        if (formData.attending === 'yes' && formData.plusOne === 'yes') {
+          if (!formData.plusOneName.trim()) {
+            newErrors.plusOneName = 'Plus one name is required';
           }
-          if (formData.attending === 'yes' && formData.plusOne === 'yes') {
-            if (!formData.plusOneName.trim()) {
-              newErrors.plusOneName = 'Plus one name is required';
-            }
-            if (!formData.plusOneEmail.trim()) {
-              newErrors.plusOneEmail = 'Plus one email is required';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
-              newErrors.plusOneEmail = 'Please enter a valid email';
-            }
-            // Plus one phone is now optional, but if provided, validate format
-            if (formData.plusOnePhone && formData.plusOnePhone.replace(/\D/g, '').length > 0 && formData.plusOnePhone.replace(/\D/g, '').length < 10) {
-              newErrors.plusOnePhone = 'Please enter a valid phone number (at least 10 digits)';
-            }
+          if (!formData.plusOneEmail.trim()) {
+            newErrors.plusOneEmail = 'Plus one email is required';
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
+            newErrors.plusOneEmail = 'Please enter a valid email';
+          }
+          // Plus one phone is now optional, but if provided, validate format
+          if (formData.plusOnePhone && formData.plusOnePhone.replace(/\D/g, '').length > 0 && formData.plusOnePhone.replace(/\D/g, '').length < 10) {
+            newErrors.plusOnePhone = 'Please enter a valid phone number (at least 10 digits)';
           }
         }
         break;
       
-      case 3: // Event Preferences
+      case 'Event Preferences':
         if (formData.attending === 'yes' && formData.foodPreference.length === 0) {
           newErrors.foodPreference = 'Please select at least one food preference';
         }
         break;
 
-      case 4: // Personal Details
+      case 'Personal Details':
         if (!formData.weddingSide) {
           newErrors.weddingSide = 'Please select which side of the wedding';
         }
         break;
 
-      case 5: // Arrival Plans
+      case 'Arrival Plans':
         if (!formData.arrivalOption) {
           newErrors.arrivalOption = 'Please select an arrival option';
         }
@@ -378,7 +395,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         }
         break;
 
-      case 6: // Fun & Messages
+      case 'Flight Details':
+        // All flight fields are optional - no validation needed
+        break;
+
+      case 'Fun & Messages':
         // No required fields in this step - both song request and special message are optional
         break;
     }
@@ -399,9 +420,13 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         }
       }, 100);
 
-      // If plus-ones are not allowed, or if not attending, skip the plus-one section
-      if (allowsPlusOne && currentStep === 1 && formData.attending !== 'yes') {
-        setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip plus one section
+      const currentStepName = steps[currentStep];
+      
+      // If plus-ones are allowed and user is not attending yes, skip the plus-one section
+      if (currentStepName === 'Attendance Details' && allowsPlusOne && formData.attending !== 'yes') {
+        // Find the index of Event Preferences and go there
+        const eventPrefsIndex = steps.indexOf('Event Preferences');
+        setCurrentStep(eventPrefsIndex);
       } else {
         setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
       }
@@ -425,6 +450,31 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       
       if (result.success) {
         console.log('RSVP submitted successfully, result:', result);
+        
+        // If there's any flight data, save it
+        const hasFlightData = formData.flightAirline || formData.flightNumber || 
+          formData.flightArrivalDate || formData.shuttlePreferenceTime;
+        
+        if (hasFlightData && result.guestId) {
+          try {
+            await upsertGuestFlight(result.guestId, weddingId, {
+              airline: formData.flightAirline,
+              flightNumber: formData.flightNumber,
+              departureAirport: formData.flightDepartureAirport,
+              arrivalAirport: formData.flightArrivalAirport,
+              departureDate: formData.flightDepartureDate,
+              departureTime: formData.flightDepartureTime,
+              arrivalDate: formData.flightArrivalDate,
+              arrivalTime: formData.flightArrivalTime,
+              shuttlePreferenceTime: formData.shuttlePreferenceTime,
+              shuttlePreferenceNote: formData.shuttlePreferenceNote,
+            });
+            console.log('Flight data saved successfully');
+          } catch (flightError) {
+            console.error('Error saving flight data:', flightError);
+            // Don't fail the whole submission if flight data fails
+          }
+        }
         
         // Refresh authentication to pick up the new guest auth
         await refreshAuth();
@@ -812,21 +862,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   }
 
   const renderStep = () => {
-    // Adjust step numbers based on whether plus-ones are allowed
-    const getActualStepType = (step: number) => {
-      if (allowsPlusOne) {
-        return step; // No adjustment needed
-      } else {
-        // When plus-ones not allowed, shift steps after attendance
-        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
-        return step;
-      }
-    };
+    // Get step name to determine which content to render
+    const stepName = steps[currentStep];
     
-    const actualStep = getActualStepType(currentStep);
-    
-    switch (actualStep) {
-      case 0: // Basic Information
+    switch (stepName) {
+      case 'Basic Information':
         return (
           <Stack spacing={2}>
             <Typography 
@@ -1106,7 +1146,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 1: // Attendance Details
+      case 'Attendance Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1305,8 +1345,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 2: // Plus One Details (only when allowsPlusOne is true)
-        if (!allowsPlusOne) return null; // Safety check
+      case 'Plus One Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1784,7 +1823,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 3: // Event Preferences
+      case 'Event Preferences':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1939,7 +1978,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 4: // Personal Details
+      case 'Personal Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2042,7 +2081,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 5: // Arrival Plans
+      case 'Arrival Plans':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2183,7 +2222,301 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           </Stack>
         );
 
-      case 6: // Fun & Messages
+      case 'Flight Details':
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 2 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Share your flight details ✈️
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontFamily: 'Outfit',
+                  lineHeight: 1.5,
+                }}
+              >
+                This helps us coordinate airport pickups and shuttles. All fields are optional - you can add this later!
+              </Typography>
+            </Box>
+            
+            {/* Airline and Flight Number */}
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Airline
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. Thai Airways"
+                    value={formData.flightAirline}
+                    onChange={(e) => handleInputChange('flightAirline', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      color: formData.flightAirline ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Flight Number
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. TG123"
+                    value={formData.flightNumber}
+                    onChange={(e) => handleInputChange('flightNumber', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      color: formData.flightNumber ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Departure and Arrival Airports */}
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Departing From
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. LAX or Los Angeles"
+                    value={formData.flightDepartureAirport}
+                    onChange={(e) => handleInputChange('flightDepartureAirport', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      color: formData.flightDepartureAirport ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Arriving At
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.24)',
+                    borderRadius: '8px',
+                    padding: '12px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. BKK or Bangkok"
+                    value={formData.flightArrivalAirport}
+                    onChange={(e) => handleInputChange('flightArrivalAirport', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      color: formData.flightArrivalAirport ? '#000' : '#C2C2C2',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Arrival Date and Time */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Arrival in Thailand
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                    type="date"
+                    value={formData.flightArrivalDate}
+                    onChange={(e) => handleInputChange('flightArrivalDate', e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      min: '2025-12-01',
+                      max: '2026-01-10',
+                      style: { fontFamily: 'Outfit', color: '#000' },
+                    }}
+                    sx={{ fontFamily: 'Outfit' }}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                    type="time"
+                    value={formData.flightArrivalTime}
+                    onChange={(e) => handleInputChange('flightArrivalTime', e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      style: { fontFamily: 'Outfit', color: '#000' },
+                    }}
+                    sx={{ fontFamily: 'Outfit' }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Shuttle Preference */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Preferred Shuttle Pickup Time (from Bangkok to Hua Hin)
+              </Typography>
+              <TextField
+                type="time"
+                value={formData.shuttlePreferenceTime}
+                onChange={(e) => handleInputChange('shuttlePreferenceTime', e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  style: { fontFamily: 'Outfit', color: '#000' },
+                }}
+                sx={{ fontFamily: 'Outfit', mb: 1 }}
+              />
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  display: 'block',
+                  fontFamily: 'Outfit',
+                  fontStyle: 'italic'
+                }}
+              >
+                This is your preferred time. We'll confirm the closest available shuttle slot.
+              </Typography>
+            </Box>
+
+            {/* Shuttle Notes */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Any notes about your travel? (optional)
+              </Typography>
+              <Box
+                sx={{
+                  border: '1px solid rgba(0, 0, 0, 0.24)',
+                  borderRadius: '8px',
+                  padding: '12px 12px',
+                  backgroundColor: 'white',
+                  cursor: 'text',
+                  minHeight: '80px',
+                  '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                  '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                }}
+              >
+                <textarea
+                  placeholder="e.g. Traveling with luggage, need wheelchair access, etc."
+                  value={formData.shuttlePreferenceNote}
+                  onChange={(e) => handleInputChange('shuttlePreferenceNote', e.target.value)}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    width: '100%',
+                    height: '60px',
+                    resize: 'none',
+                    fontFamily: 'Outfit',
+                    color: formData.shuttlePreferenceNote ? '#000' : '#C2C2C2',
+                    backgroundColor: 'transparent',
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'rgba(0, 0, 0, 0.72)', 
+                p: 2, 
+                backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                borderRadius: '8px',
+                lineHeight: 1.5,
+                fontFamily: 'Outfit'
+              }}
+            >
+              Don't have your flight booked yet? No worries! You can add or update this info anytime from your Travel Details page after completing RSVP.
+            </Typography>
+          </Stack>
+        );
+
+      case 'Fun & Messages':
         return (
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -2522,7 +2855,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           
           {currentStep < steps.length - 1 ? (
             <Button
-              onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
+              onClick={steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? handleSubmit : handleNext}
               variant="contained"
               sx={{ 
                 flex: 1,
@@ -2544,7 +2877,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               }}
               disabled={false}
             >
-              {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+              {steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? 'Submit' : 'Next'}
             </Button>
           ) : (
             <Button

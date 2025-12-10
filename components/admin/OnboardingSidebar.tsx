@@ -17,6 +17,7 @@ import {
   People,
   Edit,
   Groups,
+  AirportShuttle,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -38,6 +39,7 @@ const sections: SidebarSection[] = [
   { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
   { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
   { id: 'travel', label: 'Travel & Stay', icon: <Flight />, path: '/travel' },
+  { id: 'travel-coordination', label: 'Travel Coordination', icon: <AirportShuttle />, path: '/travel-coordination' },
   { id: 'faq', label: 'FAQ', icon: <HelpOutline />, path: '/faq' },
   { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },
   { id: 'shopping', label: 'Shopping Guide', icon: <ShoppingBag />, path: '/shopping' },
