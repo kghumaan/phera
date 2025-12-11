@@ -308,7 +308,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
 
   const handleConfirmExit = () => {
     setShowExitConfirmation(false);
-    router.push('/');
+    router.push(`/${weddingId}`);
   };
 
   const handleCancelExit = () => {

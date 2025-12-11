@@ -629,7 +629,7 @@ export default function HomePage() {
           display: 'flex',
           flex: 1,
           width: '100%',
-          pt: { md: 15, lg: 15, xl: 15 }, // Account for fixed header (120px)
+          pt: 0, // Remove padding to center relative to full screen
         }}
       >
         {/* Left Side - Scrollable Content */}
@@ -638,12 +638,14 @@ export default function HomePage() {
             flex: '1 1 50%',
             maxWidth: '50%',
             overflowY: 'auto',
-            height: 'calc(100vh - 120px)',
+            height: '100vh',
             display: 'flex',
-            justifyContent: 'center',
-            pl: { md: 4, lg: 5, xl: 6 }, // Outer padding
-            pr: { md: 0, lg: 0, xl: 0 }, // No padding on right (inner side) to bring columns closer
-            py: { md: 6, lg: 8, xl: 10 }, // Push content down more
+            justifyContent: 'center', // Center align to match image behavior
+            pl: { md: 6, lg: 8, xl: 10 }, // Outer padding
+            pr: { md: 18, lg: 20, xl: 22 }, // Inner gap - User set
+            py: { md: 0, lg: 0, xl: 0 }, // Reset vertical padding so flex centers it
+            alignItems: 'flex-end', // Align content to the right (towards center)
+            flexDirection: 'column',
           }}
         >
           {/* Wedding Details Section */}
@@ -651,8 +653,9 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
           >
-            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ maxWidth: { md: 600, lg: 700, xl: 800 } }}>
+            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 700 } }}>
               {/* Names - Large italic serif */}
               <Typography
                 variant="h2"
@@ -811,6 +814,55 @@ export default function HomePage() {
                 <CountdownTimer targetDate={coupleData.weddingDate} />
               </Box>
 
+              {/* RSVP Button - Desktop (Same width as CountdownTimer) */}
+              {!isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
+                <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                   <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{ width: '100%' }}
+                  >
+                    <Button
+                      component={Link}
+                      href="/rsvp"
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      sx={{
+                        backgroundColor: '#DE3F5E',
+                        color: 'white',
+                        py: 2,
+                        fontSize: { md: '1.25rem', lg: '1.5rem' },
+                        fontWeight: 600,
+                        borderRadius: '32px', // Matches mobile button style
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                        '&:hover': {
+                          backgroundColor: '#C8365A',
+                          boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                        },
+                      }}
+                    >
+                      RSVP
+                    </Button>
+                  </motion.div>
+                   {/* RSVP Deadline */}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#777',
+                      fontSize: '0.9rem',
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                      mt: 1.5
+                    }}
+                  >
+                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
+                  </Typography>
+                </Box>
+              )}
+
               {/* Guest List Section - Only show if user has RSVP'd OR using bypass PIN */}
               {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
                 <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
@@ -825,8 +877,7 @@ export default function HomePage() {
                 </Box>
               )}
 
-              {/* Extra bottom padding for scrollable content */}
-              <Box sx={{ height: 120 }} />
+
             </Stack>
           </motion.div>
         </Box>
@@ -837,29 +888,29 @@ export default function HomePage() {
             flex: '1 1 50%',
             maxWidth: '50%',
             position: 'sticky',
-            top: 120, // Account for fixed header (120px on desktop)
-            height: 'calc(100vh - 120px)',
+            top: 0, // Start at top of screen
+            height: '100vh',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
             justifyContent: 'center',
-            pl: { md: 0, lg: 0, xl: 0 }, // No padding on left (inner side) to bring columns closer
-            pr: { md: 4, lg: 5, xl: 6 }, // Outer padding
-            py: { md: 4, lg: 6, xl: 8 },
+            pl: { md: 6, lg: 8, xl: 10 }, // Inner gap - INCREASED from 3 to 6+
+            pr: { md: 6, lg: 8, xl: 10 }, // Outer padding
+            py: { md: 0, lg: 0, xl: 0 },
             gap: 3,
+            alignItems: 'flex-start', // Align content to the left (towards center)
           }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}
           >
             <Box
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: { md: 500, lg: 600, xl: 700 },
+                maxWidth: { md: 500, lg: 600, xl: 700 }, // Match text column width constraint
                 aspectRatio: '1',
                 cursor: 'pointer',
                 transition: 'transform 0.2s ease-in-out',
