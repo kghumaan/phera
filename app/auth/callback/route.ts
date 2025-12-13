@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { Database } from '@/lib/supabase/types';
 
 // Helper function to process pending wedding invites for a user
-async function processPendingInvites(supabase: ReturnType<typeof createRouteHandlerClient>, userId: string, userEmail: string): Promise<number> {
+async function processPendingInvites(supabase: ReturnType<typeof createServerClient<Database>>, userId: string, userEmail: string): Promise<number> {
   try {
     // Find all pending invites for this email
     const { data: invites, error: fetchError } = await supabase
@@ -89,12 +90,41 @@ export async function GET(request: NextRequest) {
   // Handle successful authentication
   if (code) {
     try {
+      console.log('[Callback] Received code, exchanging for session...');
       const cookieStore = await cookies();
-      const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+      const supabase = createServerClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return cookieStore.getAll()
+            },
+            setAll(cookiesToSet) {
+              try {
+                cookiesToSet.forEach(({ name, value, options }) =>
+                  cookieStore.set(name, value, options)
+                )
+              } catch {
+                // The `setAll` method was called from a Server Component.
+                // This can be ignored if you have middleware refreshing
+                // user sessions.
+              }
+            },
+          },
+        }
+      );
 
       // Exchange the code for a session
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-      
+
+      console.log('[Callback] Exchange result:', {
+        hasSession: !!data.session,
+        hasUser: !!data.session?.user,
+        error: exchangeError
+      });
+
       if (exchangeError) throw exchangeError;
 
       // Process any pending wedding invites for this user
@@ -105,56 +135,50 @@ export async function GET(request: NextRequest) {
       // Determine redirect destination
       let redirectUrl: URL;
 
-      // Priority 1: Use explicit redirect parameter (from login/signup flows)
+      // Priority 1: Use explicit redirect parameter
       if (redirectParam) {
         redirectUrl = new URL(redirectParam, origin);
-      } 
+
+        // Special handling: If redirecting to /admin/onboarding/new/overview,
+        // check if user already has weddings and redirect to existing wedding instead
+        if (redirectParam === '/admin/onboarding/new/overview' && data.session?.user?.id) {
+          // Check if user has any existing weddings
+          const { data: weddings } = await supabase
+            .from('weddings')
+            .select('slug')
+            .eq('created_by', data.session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          // If user has existing weddings, redirect to their most recent one
+          if (weddings && weddings.length > 0) {
+            const weddingSlug = weddings[0].slug;
+            redirectUrl = new URL(`/admin/onboarding/${weddingSlug}/overview`, origin);
+            console.log(`[Callback] User has existing wedding, redirecting to: ${weddingSlug}`);
+          } else {
+            // Also check if they're an admin of any weddings
+            const { data: adminWeddings } = await supabase
+              .from('wedding_admins')
+              .select('wedding_id, weddings(slug)')
+              .eq('user_id', data.session.user.id)
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
+              const weddingSlug = (adminWeddings[0].weddings as any).slug;
+              redirectUrl = new URL(`/admin/onboarding/${weddingSlug}/overview`, origin);
+              console.log(`[Callback] User is admin of wedding, redirecting to: ${weddingSlug}`);
+            }
+          }
+        }
+      }
       // Priority 2: Use next parameter (alternative name)
       else if (nextParam) {
         redirectUrl = new URL(nextParam, origin);
       }
-      // Priority 3: Check if user has access to any wedding (created or invited)
-      else if (data.session) {
-        // First check for weddings they created
-        const { data: ownedWeddings } = await supabase
-          .from('weddings')
-          .select('slug')
-          .eq('created_by', data.session.user.id)
-          .limit(1);
-
-        if (ownedWeddings && ownedWeddings.length > 0) {
-          // User has their own wedding, send to their wedding's onboarding overview
-          redirectUrl = new URL(`/admin/onboarding/${ownedWeddings[0].slug}/overview`, origin);
-        } else {
-          // Check if they have access via wedding_admins (from invite)
-          const { data: adminWeddings } = await supabase
-            .from('wedding_admins')
-            .select('wedding_id')
-            .eq('user_id', data.session.user.id)
-            .limit(1);
-
-          if (adminWeddings && adminWeddings.length > 0) {
-            // Get the wedding slug for this wedding
-            const { data: wedding } = await supabase
-              .from('weddings')
-              .select('slug')
-              .eq('id', adminWeddings[0].wedding_id)
-              .single();
-
-            if (wedding) {
-              redirectUrl = new URL(`/admin/onboarding/${wedding.slug}/overview`, origin);
-            } else {
-              redirectUrl = new URL('/admin/onboarding/new/overview', origin);
-            }
-          } else {
-            // New user with no wedding - send straight to onboarding
-            redirectUrl = new URL('/admin/onboarding/new/overview', origin);
-          }
-        }
-      }
-      // Priority 4: Default to onboarding for new signups
+      // Priority 3: Default to /rsvp for guest flows
       else {
-        redirectUrl = new URL('/admin/onboarding/new/overview', origin);
+        redirectUrl = new URL('/rsvp', origin);
       }
 
       // Preserve PIN verification state (for guest flows only)

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
 import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [rsvpResponse, setRsvpResponse] = useState<'yes' | 'no' | 'maybe' | null>(null);
   const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isCheckingAuthRef = useRef(false);
 
   const generateInitials = (name: string) => {
     return name
@@ -303,8 +304,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuthStatus = async () => {
+    // Prevent multiple simultaneous auth checks using ref to avoid Strict Mode issues
+    if (isCheckingAuthRef.current) {
+      console.log('checkAuthStatus: Skipping - already checking');
+      return;
+    }
+
+    console.log('checkAuthStatus: Starting auth check');
+    isCheckingAuthRef.current = true;
     try {
+      // FIRST: Check if we even have a session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('checkAuthStatus: Session check:', {
+        hasSession: !!session,
+        user: session?.user?.email,
+        error: sessionError
+      });
+
+      if (!session) {
+        console.log('checkAuthStatus: No session found, stopping');
+        setUser(null);
+        setIsLoading(false);
+        isCheckingAuthRef.current = false;
+        return;
+      }
+
       // First check for Supabase auth
+      console.log('checkAuthStatus: Calling getCurrentUser...');
       const result = await getCurrentUser();
       if (result.success && result.user) {
         const userData: User = {
@@ -413,6 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     } finally {
       setIsLoading(false);
+      isCheckingAuthRef.current = false;
     }
   };
 

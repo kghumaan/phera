@@ -25,10 +25,10 @@ import {
   alpha,
   CircularProgress,
 } from '@mui/material';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { supabase } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -37,8 +37,6 @@ export default function SignupPage() {
   const [weddingName, setWeddingName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const supabase = createClientComponentClient();
 
   const generateSlug = (name: string): string => {
     return name
@@ -121,9 +119,9 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Build the callback URL - let callback route handle routing logic
-      // This ensures it works across all environments using the same hostname
+      // Build the callback URL with redirect to admin/onboarding
       const callbackUrl = new URL('/auth/callback', window.location.origin);
+      callbackUrl.searchParams.set('redirect', '/admin/onboarding/new/overview');
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

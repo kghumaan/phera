@@ -17,7 +17,7 @@ import { usePathname } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
-import LoginModal from '@/components/auth/LoginModal';
+import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
@@ -26,26 +26,28 @@ interface AppHeaderProps {
   variant?: 'transparent' | 'solid';
 }
 
-export default function AppHeader({ 
-  showBackButton = false, 
+export default function AppHeader({
+  showBackButton = false,
   backHref = '/',
   title,
   variant = 'transparent',
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut } = useAuth();
   const pathname = usePathname();
-  
+
   // Check if we're on the landing page
   const isLandingPage = pathname === '/';
   // Check if we're on a wedding page (desktop layout needs full width header)
   const isWeddingPage = pathname?.includes('/') && pathname !== '/' && !pathname.includes('/admin');
-  
+
+  // Get the current wedding slug for RSVP link
+  const weddingSlug = getCurrentWeddingId();
+
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe" AND not on landing page
   const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -252,8 +254,9 @@ export default function AppHeader({
                 {/* WhatsApp Button - Hidden for non-authenticated users since they can't have RSVP'd */}
 
                 <Button
+                  component={Link}
+                  href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
                   variant="contained"
-                  onClick={() => setLoginModalOpen(true)}
                   sx={{
                     backgroundColor: '#000',
                     color: '#fff',
@@ -346,9 +349,9 @@ export default function AppHeader({
             },
           }}
         >
-          <MenuItem 
+          <MenuItem
             component={Link}
-            href="/rsvp"
+            href={`/${weddingSlug}/rsvp`}
             onClick={() => setRsvpMenuAnchor(null)}
             sx={{
               color: '#666',
@@ -364,14 +367,10 @@ export default function AppHeader({
         </Menu>
       )}
 
-
-
-      
-      {/* Login Modal */}
-      <LoginModal
-        open={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
-        onSuccess={() => setLoginModalOpen(false)}
+      {/* WhatsApp Channel Modal */}
+      <WhatsAppChannelModal
+        open={whatsAppModalOpen}
+        onClose={() => setWhatsAppModalOpen(false)}
       />
     </>
   );

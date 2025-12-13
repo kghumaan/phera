@@ -264,11 +264,18 @@ export default function HomePage() {
 
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
-  
+
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isCheckingPin, setIsCheckingPin] = useState(true);
   const [isBypassPin, setIsBypassPin] = useState(false);
+
+  // Consolidated loading state - wait for ALL checks to complete
+  // IMPORTANT: Also consider loading if user exists but RSVP hasn't been checked yet
+  // This prevents a flash where auth completes but RSVP check hasn't started
+  // Exception: bypass PIN users don't need RSVP check
+  const needsRSVPCheck = user && !isBypassPin && !hasRSVPed && rsvpResponse === null && !isCheckingRSVP;
+  const isPageLoading = isLoading || isCheckingPin || isCheckingRSVP || needsRSVPCheck;
   
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -313,9 +320,11 @@ export default function HomePage() {
           
           localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
           console.log('Created temporary guest auth in handlePinVerified');
-          
-          // Try to refresh auth once - prevent multiple calls
-          setTimeout(() => refreshAuth(), 100);
+
+          // Try to refresh auth once - prevent multiple calls (only if not already loading)
+          if (!isLoading) {
+            setTimeout(() => refreshAuth(), 100);
+          }
         }
       }
     }
@@ -338,7 +347,7 @@ export default function HomePage() {
   // Safety timeout to prevent infinite loading
   useEffect(() => {
     const safetyTimeout = setTimeout(() => {
-      if (isLoading || isCheckingPin) {
+      if (isPageLoading) {
         console.warn('Safety timeout triggered - forcing loading completion');
         setIsCheckingPin(false);
         // If we have PIN verification but no user, that's OK for guest access
@@ -358,17 +367,18 @@ export default function HomePage() {
           }
         }
       }
-    }, 3000); // 3 second safety timeout - should be much faster now
+    }, 5000); // 5 second safety timeout for all checks
 
     return () => clearTimeout(safetyTimeout);
-  }, [isLoading, isCheckingPin]);
+  }, [isPageLoading]);
 
   // Check for pin verification on component mount and auth changes
   useEffect(() => {
     const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
         // FIRST: If user is authenticated, consider PIN verified (auth bypass)
-        if (!isLoading && user) {
+        // Note: We can check this even while isLoading, since we have the user object
+        if (user) {
           setIsPinVerified(true);
           setIsCheckingPin(false); // Important: Stop checking PIN when user is authenticated
           return;
@@ -405,9 +415,11 @@ export default function HomePage() {
                 
                 localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
                 console.log('Created temporary guest auth for bypass PIN user');
-                
-                // Only trigger auth refresh if we just created the auth - prevent infinite loops
-                setTimeout(() => refreshAuth(), 100);
+
+                // Only trigger auth refresh if we just created the auth AND auth is not currently loading
+                if (!isLoading) {
+                  setTimeout(() => refreshAuth(), 100);
+                }
               }
               
               setIsPinVerified(true);
@@ -437,9 +449,12 @@ export default function HomePage() {
         // Force auth refresh if coming from magic link callback
         if (authSuccess === 'true') {
           console.log('Magic link authentication detected, refreshing auth...');
-          setTimeout(() => {
-            refreshAuth(); // Force refresh auth status
-          }, 100);
+          // Only refresh if not already loading
+          if (!isLoading) {
+            setTimeout(() => {
+              refreshAuth(); // Force refresh auth status
+            }, 100);
+          }
           
           // Clean up URL params
           const newUrl = new URL(window.location.href);
@@ -470,10 +485,12 @@ export default function HomePage() {
               newUrl.searchParams.delete('allows_plus_one');
               window.history.replaceState({}, '', newUrl.toString());
               
-              // Force refresh auth status after callback
-              setTimeout(() => {
-                refreshAuth();
-              }, 500);
+              // Force refresh auth status after callback (only if not already loading)
+              if (!isLoading) {
+                setTimeout(() => {
+                  refreshAuth();
+                }, 500);
+              }
               
               setIsCheckingPin(false);
               return;
@@ -522,45 +539,50 @@ export default function HomePage() {
     };
 
     // Early return if user is authenticated - no need to check PIN
-    if (!isLoading && user) {
+    // We check user without waiting for isLoading since user object is available immediately
+    if (user) {
       setIsPinVerified(true);
       setIsCheckingPin(false);
       return;
     }
-    
-    checkPinVerification();
-  }, [user, isLoading]); // Removed refreshAuth from dependencies to prevent infinite loop
 
-  // Scroll to top when main content becomes visible after PIN verification
+    checkPinVerification();
+  }, [user]); // Only depend on user, not isLoading
+
+  // Scroll to top when main content becomes visible after all checks complete
   useEffect(() => {
-    if (isPinVerified && !isLoading && !isCheckingPin) {
+    if (isPinVerified && !isPageLoading) {
       const timer = setTimeout(() => {
         if (typeof window !== 'undefined') {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }, 300);
-      
+
       return () => clearTimeout(timer);
     }
-  }, [isPinVerified, isLoading, isCheckingPin]);
+  }, [isPinVerified, isPageLoading]);
 
-  // Show pin entry screen if user is not authenticated AND pin is not verified
-  if (!isCheckingPin && !user && !isPinVerified) {
-    return <PinEntry onPinVerified={handlePinVerified} weddingSlug={weddingId} />;
-  }
-
-  // Show loading screen while checking authentication or pin
-  if (isLoading || isCheckingPin) {
+  // IMPORTANT: Check loading state FIRST before showing PIN entry
+  // Show loading screen while checking ANY state (auth, pin, or RSVP)
+  if (isPageLoading) {
     // Debug logging to understand loading state
     console.log('HomePage loading state:', {
       isLoading,
       isCheckingPin,
+      isCheckingRSVP,
+      needsRSVPCheck,
+      hasRSVPed,
+      rsvpResponse,
       user: !!user,
       isPinVerified,
-      reason: isLoading ? 'auth loading' : isCheckingPin ? 'checking PIN' : 'unknown',
+      reason: isLoading ? 'auth loading'
+            : isCheckingPin ? 'checking PIN'
+            : isCheckingRSVP ? 'checking RSVP'
+            : needsRSVPCheck ? 'waiting for RSVP check to start'
+            : 'unknown',
       timestamp: new Date().toISOString()
     });
-    
+
     return (
       <Box
         sx={{
@@ -574,6 +596,12 @@ export default function HomePage() {
         <LoadingSpinner />
       </Box>
     );
+  }
+
+  // Show pin entry screen if user is not authenticated AND pin is not verified
+  // This check comes AFTER loading check to prevent PIN entry from flashing during load
+  if (!user && !isPinVerified) {
+    return <PinEntry onPinVerified={handlePinVerified} weddingSlug={weddingId} />;
   }
 
   // Desktop layout component
@@ -628,7 +656,8 @@ export default function HomePage() {
           display: 'flex',
           flex: 1,
           width: '100%',
-          pt: 0, // Remove padding to center relative to full screen
+          position: 'relative',
+          minHeight: '100vh',
         }}
       >
         {/* Left Side - Scrollable Content */}
@@ -636,21 +665,22 @@ export default function HomePage() {
           sx={{
             flex: '1 1 50%',
             maxWidth: '50%',
-            overflowY: 'auto',
-            height: '100vh',
+            minHeight: '100vh',
             display: 'flex',
-            justifyContent: (user && hasRSVPed) || isBypassPin ? 'flex-start' : 'center', // Top-align when RSVP'ed (for comment section), center otherwise
+            justifyContent: 'flex-start', // Start from top, don't center
             pl: { md: 6, lg: 8, xl: 10 }, // Outer padding
             pr: { md: 18, lg: 20, xl: 22 }, // Inner gap - User set
-            py: (user && hasRSVPed) || isBypassPin ? { md: 15, lg: 15, xl: 15 } : { md: 0, lg: 0, xl: 0 }, // Add top padding when RSVP'ed
+            // Align with top of the centered image on the right
+            // Image max sizes: md: 500px, lg: 600px, xl: 700px
+            // Top of image = 50vh - (image height / 2)
+            pt: {
+              md: 'calc(50vh - 250px)', // 500px / 2 = 250px
+              lg: 'calc(50vh - 300px)', // 600px / 2 = 300px
+              xl: 'calc(50vh - 350px)'  // 700px / 2 = 350px
+            },
+            pb: { md: 15, lg: 15, xl: 15 }, // Bottom padding
             alignItems: 'flex-end', // Align content to the right (towards center)
             flexDirection: 'column',
-            // Hide scrollbar while maintaining scroll functionality
-            scrollbarWidth: 'none', // Firefox
-            msOverflowStyle: 'none', // IE/Edge
-            '&::-webkit-scrollbar': {
-              display: 'none', // Chrome, Safari, Opera
-            },
           }}
         >
           {/* Wedding Details Section */}
@@ -820,7 +850,7 @@ export default function HomePage() {
               </Box>
 
               {/* RSVP Button - Desktop (Same width as CountdownTimer) */}
-              {!isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
+              {!isPageLoading && isPinVerified && !isBypassPin && (!user || !hasRSVPed) && (
                 <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
                    <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -869,7 +899,7 @@ export default function HomePage() {
               )}
 
               {/* Guest List Section - Only show if user has RSVP'd OR using bypass PIN */}
-              {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+              {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
                 <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
                   <motion.div
                     initial={{ opacity: 0, y: 40 }}
@@ -887,22 +917,24 @@ export default function HomePage() {
           </motion.div>
         </Box>
 
-        {/* Right Side - Sticky Couple Image */}
+        {/* Right Side - Fixed Couple Image */}
         <Box
           sx={{
-            flex: '1 1 50%',
-            maxWidth: '50%',
-            position: 'sticky',
-            top: 0, // Start at top of screen
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            width: '50%',
             height: '100vh',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            pl: { md: 6, lg: 8, xl: 10 }, // Inner gap - INCREASED from 3 to 6+
+            pl: { md: 6, lg: 8, xl: 10 }, // Inner gap
             pr: { md: 6, lg: 8, xl: 10 }, // Outer padding
-            py: { md: 0, lg: 0, xl: 0 },
+            pt: { md: 0, lg: 0, xl: 0 }, // Remove padding - let centering handle it
+            pb: { md: 0, lg: 0, xl: 0 }, // Remove padding - let centering handle it
             gap: 3,
             alignItems: 'flex-start', // Align content to the left (towards center)
+            pointerEvents: 'auto', // Ensure buttons are clickable
           }}
         >
           <motion.div
@@ -959,7 +991,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* View Details Button */}
-          {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+          {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
             <Box sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 700 } }}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -1169,7 +1201,7 @@ export default function HomePage() {
       </Container>
 
       {/* Wedding Community Section - Only show if user has RSVP'd OR using bypass PIN */}
-      {!isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+      {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -1224,7 +1256,7 @@ export default function HomePage() {
 
       {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd (but NOT for bypass PIN users) */}
       {/* Only show on mobile, desktop has inline buttons */}
-      {isMobile && !isLoading && !isCheckingPin && isPinVerified && !isBypassPin && (!user || (user && !isCheckingRSVP && !hasRSVPed)) && (
+      {isMobile && !isPageLoading && isPinVerified && !isBypassPin && (!user || !hasRSVPed) && (
         <Box
           sx={{
             position: 'fixed',
@@ -1292,7 +1324,7 @@ export default function HomePage() {
 
       {/* View Details Button - Show when user has RSVP'd OR using bypass PIN */}
       {/* Only show on mobile, desktop has inline buttons */}
-      {isMobile && !isLoading && !isCheckingRSVP && ((user && hasRSVPed) || isBypassPin) && (
+      {isMobile && !isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
         <Box
           sx={{
             position: 'fixed',

@@ -15,22 +15,20 @@ import {
   alpha,
   CircularProgress,
 } from '@mui/material';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { supabase } from '@/lib/supabase/client';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/admin';
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
     // Check if user is already logged in
