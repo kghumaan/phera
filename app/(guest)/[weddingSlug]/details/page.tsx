@@ -9,7 +9,8 @@ import {
   useTheme,
   useMediaQuery,
   IconButton,
-  Avatar
+  Avatar,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -17,6 +18,7 @@ import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import AppHeader from '@/components/shared/AppHeader';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -140,6 +142,7 @@ export default function DetailsPage() {
   const [hasScheduleData, setHasScheduleData] = useState(false);
   const [hasRegistryData, setHasRegistryData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
 
   // Fetch data availability for each section
@@ -186,12 +189,16 @@ export default function DetailsPage() {
   }, [weddingSlug]);
 
   const handleBack = () => {
+    setIsNavigating(true);
     router.push(`/${weddingSlug}`);
   };
 
   const handleMenuItemClick = (item: string) => {
     // Navigate to specific sections with the weddingSlug parameter
     if (!weddingSlug) return;
+    
+    // Show loading state
+    setIsNavigating(true);
     
     switch (item) {
       case 'Travel & Stay':
@@ -216,6 +223,7 @@ export default function DetailsPage() {
         router.push(`/${weddingSlug}/rsvp`);
         break;
       default:
+        setIsNavigating(false);
         console.log(`Navigate to ${item}`);
     }
   };
@@ -237,69 +245,111 @@ export default function DetailsPage() {
         overflow: 'hidden',
       }}
     >
-      {/* Header with back button */}
-      <Box
-        sx={{
-          position: 'absolute', // Changed to absolute positioning
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 2,
-          pt: 2,
-          pb: 2,
-        }}
-      >
-        <Container 
-          maxWidth={false}
+      {/* Navigation Loading Overlay */}
+      {isNavigating && (
+        <Box
           sx={{
-            maxWidth: { xs: 361, md: 600, lg: 650, xl: 700 },
-            px: { xs: 2, md: 3 },
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <IconButton
-              onClick={handleBack}
-              sx={{
-                color: '#000',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                width: { xs: 40, lg: 44, xl: 48 },
-                height: { xs: 40, lg: 44, xl: 48 },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                },
-                '& .MuiSvgIcon-root': {
-                  fontSize: { xs: '1.5rem', lg: '1.625rem', xl: '1.75rem' },
-                },
-              }}
-            >
-              <ArrowBack />
-            </IconButton>
-            
-            {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
-            {shouldShowWhatsApp && (
+          <CircularProgress size={40} sx={{ color: '#000' }} />
+        </Box>
+      )}
+
+      {/* Desktop Header - AppHeader with consistent styling */}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'transparent',
+          }}
+        >
+          <AppHeader
+            variant="transparent"
+            showBackButton={true}
+            backHref={`/${weddingSlug}`}
+          />
+        </Box>
+      )}
+
+      {/* Mobile Header with back button */}
+      {isMobile && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            pt: 2,
+            pb: 2,
+          }}
+        >
+          <Container 
+            maxWidth={false}
+            sx={{
+              maxWidth: { xs: 361, md: 600, lg: 650, xl: 700 },
+              px: { xs: 2, md: 3 },
+            }}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
               <IconButton
-                onClick={() => setWhatsAppModalOpen(true)}
+                onClick={handleBack}
                 sx={{
-                  width: { xs: 32, lg: 36, xl: 40 },
-                  height: { xs: 32, lg: 36, xl: 40 },
-                  backgroundColor: '#000',
-                  color: '#fff',
+                  color: '#000',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  width: { xs: 40, lg: 44, xl: 48 },
+                  height: { xs: 40, lg: 44, xl: 48 },
                   '&:hover': {
-                    backgroundColor: '#333',
-                    transform: 'scale(1.05)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   },
-                  transition: 'all 0.2s ease',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: { xs: '1.5rem', lg: '1.625rem', xl: '1.75rem' },
+                  },
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
-                </svg>
+                <ArrowBack />
               </IconButton>
-            )}
-          </Stack>
-        </Container>
-      </Box>
+              
+              {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
+              {shouldShowWhatsApp && (
+                <IconButton
+                  onClick={() => setWhatsAppModalOpen(true)}
+                  sx={{
+                    width: { xs: 32, lg: 36, xl: 40 },
+                    height: { xs: 32, lg: 36, xl: 40 },
+                    backgroundColor: '#000',
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#333',
+                      transform: 'scale(1.05)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+                  </svg>
+                </IconButton>
+              )}
+            </Stack>
+          </Container>
+        </Box>
+      )}
 
       {/* Main Content */}
       <Box
@@ -335,7 +385,12 @@ export default function DetailsPage() {
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
               {isLoading ? (
-                <Typography sx={{ color: '#141414', fontFamily: 'Outfit' }}>Loading...</Typography>
+                <LoadingSpinner 
+                  message="" 
+                  size={40} 
+                  color="#000" 
+                  minHeight="100px" 
+                />
               ) : (
                 <Stack
                   spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}

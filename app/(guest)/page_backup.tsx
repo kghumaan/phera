@@ -582,7 +582,6 @@ export default function HomePage() {
       {/* Header Section */}
       <AppHeader
         variant="transparent"
-        onLoginClick={() => setLoginDialogOpen(true)}
       />
 
       {/* Main Landing Section */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, IconButton, Paper, Typography } from '@mui/material';
+import { Box, Container, IconButton, Paper, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { ReactNode, useState, useEffect } from 'react';
@@ -20,6 +20,8 @@ export default function FullScreenFormContainer({
   maxWidth = 'sm',
   paperHeight,
 }: FullScreenFormContainerProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [viewportHeight, setViewportHeight] = useState('100vh');
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function FullScreenFormContainer({
     updateHeight();
     window.addEventListener('resize', updateHeight);
     window.addEventListener('orientationchange', updateHeight);
-    window.addEventListener('scroll', updateHeight); // Add scroll listener
+    window.addEventListener('scroll', updateHeight);
 
     return () => {
       window.removeEventListener('resize', updateHeight);
@@ -42,28 +44,30 @@ export default function FullScreenFormContainer({
   return (
     <Box
       sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: viewportHeight, // Use dynamic height
+        position: isMobile ? 'fixed' : 'relative',
+        top: isMobile ? 0 : 'auto',
+        left: isMobile ? 0 : 'auto',
+        right: isMobile ? 0 : 'auto',
+        height: isMobile ? viewportHeight : 'auto',
+        width: isMobile ? 'auto' : '100%',
+        maxWidth: isMobile ? 'none' : { md: 700, lg: 800, xl: 900 },
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        zIndex: 1400, // High z-index for modal-like behavior
+        zIndex: isMobile ? 1400 : 1,
       }}
     >
       <Container 
-        maxWidth={maxWidth} 
+        maxWidth={isMobile ? maxWidth : false}
         sx={{ 
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-start',
+          justifyContent: isMobile ? 'flex-start' : 'center',
           alignItems: 'center',
-          height: '100%', // Changed from minHeight: '100vh'
+          height: isMobile ? '100%' : 'auto',
           pt: 0,
-          pb: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 3, md: 4 },
+          pb: { xs: 2, sm: 3, md: 0 },
+          px: { xs: 2, sm: 3, md: 0 },
           overflow: 'hidden',
         }}
       >
@@ -73,72 +77,75 @@ export default function FullScreenFormContainer({
           transition={{ duration: 0.6 }}
           style={{ 
             width: '100%', 
-            height: '100%', // Add height: '100%' to fill container
+            height: isMobile ? '100%' : 'auto',
             display: 'flex', 
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          {/* Header */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            width: '100%',
-            height: 56,
-            mb: { xs: 0.5, sm: 1 }, 
-            flexShrink: 0,
-          }}>
-            <IconButton
-              onClick={onClose}
-              sx={{
-                color: '#000',
-                backgroundColor: 'transparent',
-                p: { xs: 1, sm: 1.5 },
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-            
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontFamily: 'Outfit', 
-                color: '#141414', 
-                fontWeight: 400,
-                lineHeight: '1.26em',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                textAlign: 'center'
-              }}
-            >
-              {title}
-            </Typography>
-            
-            {/* Spacer to center the title */}
-            <Box sx={{ width: { xs: 40, sm: 48 } }} />
-          </Box>
+          {/* Header - Only show on mobile */}
+          {isMobile && (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              width: '100%',
+              height: 56,
+              mb: { xs: 0.5, sm: 1 }, 
+              flexShrink: 0,
+            }}>
+              <IconButton
+                onClick={onClose}
+                sx={{
+                  color: '#000',
+                  backgroundColor: 'transparent',
+                  p: { xs: 1, sm: 1.5 },
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+              
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontFamily: 'Outfit', 
+                  color: '#141414', 
+                  fontWeight: 400,
+                  lineHeight: '1.26em',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  textAlign: 'center'
+                }}
+              >
+                {title}
+              </Typography>
+              
+              {/* Spacer to center the title */}
+              <Box sx={{ width: { xs: 40, sm: 48 } }} />
+            </Box>
+          )}
 
           {/* White Container (Paper) */}
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 1.5, sm: 2.5 },
-              borderRadius: 1,
+              p: { xs: 1.5, sm: 2.5, md: 4 },
+              borderRadius: { xs: 1, md: 2 },
               border: '1px solid #000',
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
               color: '#000000',
               display: 'flex',
               flexDirection: 'column',
-              flex: 1, // Changed to flex:1 to fill remaining space
+              flex: isMobile ? 1 : 'none',
               width: '100%',
               overflow: 'hidden',
-              minHeight: 0, // Allow it to shrink if needed
-              height: paperHeight, // Apply paperHeight if provided
+              minHeight: isMobile ? 0 : { md: 600, lg: 650 },
+              maxHeight: isMobile ? 'none' : { md: '80vh', lg: '85vh' },
+              height: isMobile ? paperHeight : 'auto',
             }}
           >
             {children}
@@ -147,4 +154,4 @@ export default function FullScreenFormContainer({
       </Container>
     </Box>
   );
-} 
+}

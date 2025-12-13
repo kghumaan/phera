@@ -5,9 +5,16 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 interface LoadingSpinnerProps {
   message?: string;
   size?: number;
+  color?: string;
+  minHeight?: string | number;
 }
 
-export default function LoadingSpinner({ message = 'Loading...', size = 48 }: LoadingSpinnerProps) {
+export default function LoadingSpinner({ 
+  message = 'Loading...', 
+  size = 48,
+  color = '#DE3F5E',
+  minHeight = '400px'
+}: LoadingSpinnerProps) {
   return (
     <Box
       sx={{
@@ -15,7 +22,7 @@ export default function LoadingSpinner({ message = 'Loading...', size = 48 }: Lo
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '400px',
+        minHeight: minHeight,
         gap: 2,
       }}
     >
@@ -23,7 +30,7 @@ export default function LoadingSpinner({ message = 'Loading...', size = 48 }: Lo
         size={size}
         thickness={4}
         sx={{
-          color: '#DE3F5E',
+          color: color,
         }}
       />
       {message && (
@@ -40,4 +47,3 @@ export default function LoadingSpinner({ message = 'Loading...', size = 48 }: Lo
     </Box>
   );
 }
-

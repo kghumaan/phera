@@ -17,13 +17,13 @@ import { usePathname } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
+import LoginModal from '@/components/auth/LoginModal';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
   backHref?: string;
   title?: string;
   variant?: 'transparent' | 'solid';
-  onLoginClick?: () => void;
 }
 
 export default function AppHeader({ 
@@ -31,7 +31,6 @@ export default function AppHeader({
   backHref = '/',
   title,
   variant = 'transparent',
-  onLoginClick
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut } = useAuth();
   const pathname = usePathname();
@@ -46,6 +45,7 @@ export default function AppHeader({
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -91,6 +91,7 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
+            px: { xs: 2, md: 4 },
           }}
         >
           <Box
@@ -252,7 +253,7 @@ export default function AppHeader({
 
                 <Button
                   variant="contained"
-                  onClick={onLoginClick}
+                  onClick={() => setLoginModalOpen(true)}
                   sx={{
                     backgroundColor: '#000',
                     color: '#fff',
@@ -363,10 +364,14 @@ export default function AppHeader({
         </Menu>
       )}
 
-      {/* WhatsApp Channel Modal */}
-      <WhatsAppChannelModal 
-        open={whatsAppModalOpen}
-        onClose={() => setWhatsAppModalOpen(false)}
+
+
+      
+      {/* Login Modal */}
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onSuccess={() => setLoginModalOpen(false)}
       />
     </>
   );

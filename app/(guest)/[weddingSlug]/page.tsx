@@ -619,7 +619,6 @@ export default function HomePage() {
       >
         <AppHeader
           variant="transparent"
-          onLoginClick={() => setLoginDialogOpen(true)}
         />
       </Box>
 
@@ -640,12 +639,18 @@ export default function HomePage() {
             overflowY: 'auto',
             height: '100vh',
             display: 'flex',
-            justifyContent: 'center', // Center align to match image behavior
+            justifyContent: (user && hasRSVPed) || isBypassPin ? 'flex-start' : 'center', // Top-align when RSVP'ed (for comment section), center otherwise
             pl: { md: 6, lg: 8, xl: 10 }, // Outer padding
             pr: { md: 18, lg: 20, xl: 22 }, // Inner gap - User set
-            py: { md: 0, lg: 0, xl: 0 }, // Reset vertical padding so flex centers it
+            py: (user && hasRSVPed) || isBypassPin ? { md: 15, lg: 15, xl: 15 } : { md: 0, lg: 0, xl: 0 }, // Add top padding when RSVP'ed
             alignItems: 'flex-end', // Align content to the right (towards center)
             flexDirection: 'column',
+            // Hide scrollbar while maintaining scroll functionality
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // IE/Edge
+            '&::-webkit-scrollbar': {
+              display: 'none', // Chrome, Safari, Opera
+            },
           }}
         >
           {/* Wedding Details Section */}
@@ -824,7 +829,7 @@ export default function HomePage() {
                   >
                     <Button
                       component={Link}
-                      href="/rsvp"
+                      href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       size="large"
                       fullWidth
@@ -1021,7 +1026,6 @@ export default function HomePage() {
       {/* Header Section */}
       <AppHeader
         variant="transparent"
-        onLoginClick={() => setLoginDialogOpen(true)}
       />
 
       {/* Main Landing Section */}
@@ -1245,7 +1249,7 @@ export default function HomePage() {
               >
                 <Button
                   component={Link}
-                  href="/rsvp"
+                  href={`/${weddingSlug}/rsvp`}
                   variant="contained"
                   size="large"
                   fullWidth

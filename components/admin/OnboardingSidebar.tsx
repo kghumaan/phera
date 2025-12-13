@@ -174,7 +174,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             return true;
           })
           .map((section) => {
-            const isActive = pathname.includes(section.path);
+            const isActive = pathname.endsWith(section.path) || pathname.endsWith(section.path + '/');
 
             return (
               <ListItemButton

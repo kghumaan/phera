@@ -105,7 +105,7 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       arrivalDate: rsvp.arrival_date || '',
     }
 
-    return { success: true, data: formData }
+    return { success: true, data: formData, guestId: guest.id }
   } catch (error) {
     console.error('Error fetching existing RSVP:', error)
     return { success: false, error }

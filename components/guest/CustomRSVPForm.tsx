@@ -42,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
-import { upsertGuestFlight } from '@/lib/supabase/travel-service';
+import { upsertGuestFlight, getGuestFlight } from '@/lib/supabase/travel-service';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Confetti from 'react-confetti';
@@ -252,6 +252,48 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               ...prev,
               ...result.data
             }));
+            
+            // Fetch flight details if guestId is available
+            if (result.guestId) {
+              try {
+                const flightData = await getGuestFlight(result.guestId, weddingId);
+                console.log('CustomRSVPForm: Flight data result:', flightData);
+                if (flightData) {
+                  // Parse datetime strings to extract date and time
+                  let departureDate = '';
+                  let departureTime = '';
+                  let arrivalDate = '';
+                  let arrivalTime = '';
+                  
+                  if (flightData.departure_datetime) {
+                    const depDateTime = new Date(flightData.departure_datetime);
+                    departureDate = depDateTime.toISOString().split('T')[0];
+                    departureTime = depDateTime.toTimeString().slice(0, 5);
+                  }
+                  if (flightData.arrival_datetime) {
+                    const arrDateTime = new Date(flightData.arrival_datetime);
+                    arrivalDate = arrDateTime.toISOString().split('T')[0];
+                    arrivalTime = arrDateTime.toTimeString().slice(0, 5);
+                  }
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    flightAirline: flightData.airline || '',
+                    flightNumber: flightData.flight_number || '',
+                    flightDepartureAirport: flightData.departure_airport || '',
+                    flightArrivalAirport: flightData.arrival_airport || '',
+                    flightDepartureDate: departureDate,
+                    flightDepartureTime: departureTime,
+                    flightArrivalDate: arrivalDate,
+                    flightArrivalTime: arrivalTime,
+                    shuttlePreferenceTime: flightData.shuttle_preference_time || '',
+                    shuttlePreferenceNote: flightData.shuttle_preference_note || '',
+                  }));
+                }
+              } catch (flightError) {
+                console.log('CustomRSVPForm: Error fetching flight data (may not exist):', flightError);
+              }
+            }
           } else {
             console.log('CustomRSVPForm: No existing RSVP found, starting fresh');
             // Pre-fill user info if available
@@ -546,26 +588,29 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         )}
         <Box
           sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            position: isMobile ? 'fixed' : 'relative',
+            top: isMobile ? 0 : 'auto',
+            left: isMobile ? 0 : 'auto',
+            right: isMobile ? 0 : 'auto',
+            bottom: isMobile ? 0 : 'auto',
+            width: isMobile ? 'auto' : '100%',
+            maxWidth: isMobile ? 'none' : { md: 700, lg: 800, xl: 900 },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            zIndex: isMobile ? 1400 : 1,
           }}
         >
           <Container 
-            maxWidth="sm" 
+            maxWidth={isMobile ? 'sm' : false}
             sx={{ 
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              minHeight: '100svh',
+              minHeight: isMobile ? '100svh' : 'auto',
               py: 0,
-              px: { xs: 2, sm: 3, md: 4 },
+              px: { xs: 2, sm: 3, md: 0 },
               overflow: 'hidden',
             }}
           >
@@ -573,23 +618,24 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               initial="hidden"
               animate="visible"
               variants={containerVariants}
-              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+              style={{ width: '100%', height: isMobile ? '100%' : 'auto', display: 'flex', flexDirection: 'column' }}
             >
               {/* Form Content - Same structure as regular form */}
               <Paper
                 elevation={0}
                 sx={{
-                  borderRadius: 1,
+                  p: { xs: 1.5, sm: 2.5, md: 4 },
+                  borderRadius: { xs: 1, md: 2 },
                   border: '1px solid #000',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   color: '#000000',
-                  flex: 1,
+                  flex: isMobile ? 1 : 'none',
                   display: 'flex',
                   flexDirection: 'column',
-                  mt: 6,
-                  minHeight: '180px',
-                  maxHeight: 'calc(100svh - 160px)',
+                  mt: isMobile ? 6 : 0,
+                  minHeight: isMobile ? '180px' : { md: 600, lg: 650 },
+                  maxHeight: isMobile ? 'calc(100svh - 160px)' : { md: '80vh', lg: '85vh' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -829,7 +875,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     flexShrink: 0,
                   }}>
                     <Button
-                      onClick={() => router.push('/')}
+                      onClick={() => router.push(`/${weddingId}`)}
                       variant="contained"
                       size="large"
                       fullWidth
@@ -877,7 +923,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 lineHeight: 1.3,
                 mb: 2,
                 fontFamily: 'Outfit',
-                fontSize: '1.75rem',
+                fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
               Let's make this celebration official! ✨
@@ -2754,12 +2800,12 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         paperHeight="85vh" // Set to 85% of viewport height as per user request
       >
         {/* Progress Bar */}
-        <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+        <Box sx={{ mb: { xs: 1.5, sm: 2, md: 3 } }}>
           <Box
             sx={{
               display: 'flex',
               gap: '4px',
-              height: { xs: '3px', sm: '4px' },
+              height: { xs: '3px', sm: '4px', md: '5px' },
               borderRadius: '2px',
               overflow: 'hidden',
               backgroundColor: '#F5F5F5',
@@ -2792,8 +2838,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           flex: 1, 
           overflowY: 'auto', 
           minHeight: 0,
-          pr: { xs: 0.5, sm: 1 },
-          px: { xs: 1, sm: 0 },
+          pr: { xs: 0.5, sm: 1, md: 2 },
+          px: { xs: 1, sm: 0, md: 2 },
           '&::-webkit-scrollbar': {
             width: { xs: '4px', sm: '6px' },
           },
@@ -2829,7 +2875,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           pt: { xs: 2, sm: 2.5 },
           display: 'flex',
           alignItems: 'center',
-          gap: { xs: 1, sm: 1.5 },
+          gap: { xs: 1, sm: 1.5, md: 2 },
           flexShrink: 0,
           mt: 'auto',
         }}>
@@ -2837,8 +2883,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             <IconButton
               onClick={handleBack}
               sx={{
-                width: { xs: 44, sm: 48 },
-                height: { xs: 44, sm: 48 },
+                width: { xs: 44, sm: 48, md: 56 },
+                height: { xs: 44, sm: 48, md: 56 },
                 borderRadius: '50%',
                 backgroundColor: 'rgba(0, 0, 0, 0.16)',
                 color: '#141414',
@@ -2859,10 +2905,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               variant="contained"
               sx={{ 
                 flex: 1,
-                height: { xs: 44, sm: 48 },
+                height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: '#DE3F5E',
                 color: 'white',
                 fontWeight: 700,
+                fontSize: { xs: '0.9rem', md: '1.1rem' },
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',

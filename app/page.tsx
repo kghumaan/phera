@@ -607,7 +607,6 @@ export default function LandingPage() {
     >
       <AppHeader
         variant="transparent"
-        onLoginClick={() => setLoginDialogOpen(true)}
       />
 
       <Box component="main" sx={{ flexGrow: 1 }}>

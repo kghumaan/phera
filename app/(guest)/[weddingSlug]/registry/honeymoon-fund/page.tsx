@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 export default function HoneymoonFundPage() {
   const params = useParams();
-  const weddingId = params.weddingId as string;
+  const weddingId = params.weddingSlug as string;
   
   const router = useRouter();
   

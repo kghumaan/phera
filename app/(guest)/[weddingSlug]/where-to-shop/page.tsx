@@ -1,8 +1,9 @@
 'use client';
 
-import { Box, Container, Typography, IconButton, Stack, Link } from '@mui/material';
+import { Box, Container, Typography, IconButton, Stack, Link, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import AppHeader from '@/components/shared/AppHeader';
 import { useRouter } from 'next/navigation';
 import { ArrowBack } from '@mui/icons-material';
 import { useParams } from 'next/navigation';
@@ -58,8 +59,10 @@ const stores = [
 
 export default function WhereToShopPage() {
   const params = useParams();
-  const weddingId = params.weddingId as string;
+  const weddingId = params.weddingSlug as string;
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
 
   return (
@@ -67,66 +70,88 @@ export default function WhereToShopPage() {
       src="/images/backgrounds/aquarium.png"
       className="min-h-screen"
     >
-      {/* Header */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 2,
-          pt: 2,
-          pb: 2,
-        }}
-      >
-        <Container 
-          maxWidth={false}
+      {/* Desktop Header - AppHeader with consistent styling */}
+      {!isMobile && (
+        <Box
           sx={{
-            maxWidth: { xs: 361, md: 600, lg: 700 },
-            px: { xs: 2, md: 3 },
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'transparent',
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <IconButton
-              onClick={() => router.push(`/${weddingId}/events`)}
-              sx={{
-                color: '#000',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                },
-              }}
-            >
-              <ArrowBack />
-            </IconButton>
-            <Typography
-              variant="h6"
-              sx={{
-                fontFamily: 'Outfit',
-                fontWeight: 400,
-                fontSize: 18,
-                lineHeight: 1.5,
-                letterSpacing: '5.56%',
-                textTransform: 'uppercase',
-                color: '#141414',
-              }}
-            >
-              Where to Shop
-            </Typography>
-            <Box sx={{ width: 48 }} /> {/* Spacer */}
-          </Stack>
-        </Container>
-      </Box>
+          <AppHeader
+            variant="transparent"
+            showBackButton={true}
+            backHref={`/${weddingId}/events`}
+          />
+        </Box>
+      )}
+
+      {/* Mobile Header */}
+      {isMobile && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            pt: 2,
+            pb: 2,
+          }}
+        >
+          <Container 
+            maxWidth={false}
+            sx={{
+              maxWidth: { xs: 361, md: 600, lg: 700 },
+              px: { xs: 2, md: 3 },
+            }}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <IconButton
+                onClick={() => router.push(`/${weddingId}/events`)}
+                sx={{
+                  color: '#000',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                }}
+              >
+                <ArrowBack />
+              </IconButton>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'Outfit',
+                  fontWeight: 400,
+                  fontSize: 18,
+                  lineHeight: 1.5,
+                  letterSpacing: '5.56%',
+                  textTransform: 'uppercase',
+                  color: '#141414',
+                }}
+              >
+                Where to Shop
+              </Typography>
+              <Box sx={{ width: 48 }} /> {/* Spacer */}
+            </Stack>
+          </Container>
+        </Box>
+      )}
 
       {/* Main Content */}
       <Container 
         maxWidth={false}
         sx={{
-          maxWidth: { xs: '100%', md: 600, lg: 700 },
-          px: { xs: 2, md: 3 },
+          maxWidth: { xs: '100%', md: 800, lg: 900 },
+          px: { xs: 2, md: 4 },
           pb: 4,
-          pt: 10,
+          pt: { xs: 10, md: 14 },
         }}
       >
         <motion.div
