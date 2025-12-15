@@ -80,6 +80,7 @@ export default function TravelFormPage() {
       return;
     }
 
+    console.log('Starting form submission...');
     setLoading(true);
 
     try {
@@ -113,15 +114,31 @@ export default function TravelFormPage() {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit. Please try again.');
     } finally {
+      console.log('Form submission finished');
       setLoading(false);
     }
   };
 
   const handleInputChange = (field: keyof TravelFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    // Handle mutual exclusivity for return trips
+    if (field === 'huahin_to_airport' && value === true) {
+      setFormData(prev => ({
+        ...prev,
+        huahin_to_sukhumvit: false, // Uncheck the other option
+        [field]: value,
+      }));
+    } else if (field === 'huahin_to_sukhumvit' && value === true) {
+      setFormData(prev => ({
+        ...prev,
+        huahin_to_airport: false, // Uncheck the other option
+        [field]: value,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
 
     // Clear field error when user starts typing
     if (errors[field]) {
@@ -179,7 +196,7 @@ export default function TravelFormPage() {
                   fontFamily: 'var(--font-instrument-serif)',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
-                  color: '#1a1a1a',
+                  color: '#000000',
                 }}
               >
                 All Set!
@@ -188,7 +205,7 @@ export default function TravelFormPage() {
                 variant="body1"
                 sx={{
                   mb: 4,
-                  color: '#666',
+                  color: '#333333',
                   fontSize: { xs: '1rem', md: '1.125rem' },
                 }}
               >
@@ -232,7 +249,7 @@ export default function TravelFormPage() {
                       fontFamily: 'var(--font-instrument-serif)',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
-                      color: '#1a1a1a',
+                      color: '#000000',
                     }}
                   >
                     Shuttle Sign-Up
@@ -240,11 +257,11 @@ export default function TravelFormPage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#666',
+                      color: '#333333',
                       fontSize: { xs: '0.95rem', md: '1.05rem' },
                     }}
                   >
-                    Reserve your seat on our group shuttles (~$20/person)
+                    We are attempting to help book 40 person buses if we get enough people interested (~$20/person)
                   </Typography>
                 </Box>
 
@@ -262,9 +279,26 @@ export default function TravelFormPage() {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '16px',
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: '#000000',
+                      '& fieldset': {
+                        borderColor: '#999999',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#666666',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: '#666666',
+                      '&.Mui-focused': {
+                        color: '#DE3F5E',
+                      },
+                    },
+                    '& .MuiInputBase-input': {
+                        color: '#000000',
                     },
                   }}
                 />
@@ -284,9 +318,26 @@ export default function TravelFormPage() {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '16px',
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: '#000000',
+                      '& fieldset': {
+                         borderColor: '#999999',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#666666',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: '#666666',
+                      '&.Mui-focused': {
+                        color: '#DE3F5E',
+                      },
+                    },
+                     '& .MuiInputBase-input': {
+                        color: '#000000',
                     },
                   }}
                 />
@@ -307,14 +358,34 @@ export default function TravelFormPage() {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '16px',
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                      color: '#000000',
+                       '& fieldset': {
+                         borderColor: '#999999',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#666666',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
+                       color: '#666666',
+                      '&.Mui-focused': {
+                        color: '#DE3F5E',
+                      },
                     },
+                     '& .MuiInputBase-input': {
+                        color: '#000000',
+                    },
+                     '& .MuiFormHelperText-root': {
+                         color: '#666666'
+                     }
                   }}
                 />
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 1, borderColor: '#E0E0E0' }} />
 
                 {/* Bus Options */}
                 <Box>
@@ -323,11 +394,11 @@ export default function TravelFormPage() {
                     sx={{
                       fontWeight: 600,
                       mb: 2,
-                      color: '#1a1a1a',
+                      color: '#000000',
                       fontSize: { xs: '1.05rem', md: '1.15rem' },
                     }}
                   >
-                    Select Your Shuttle(s)
+                    Select shuttles you would like to join
                   </Typography>
 
                   <Stack spacing={2}>
@@ -338,7 +409,7 @@ export default function TravelFormPage() {
                         borderRadius: '16px',
                         border: formData.bangkok_to_huahin
                           ? '2px solid #DE3F5E'
-                          : '1px solid #E0E0E0',
+                          : '1px solid #999999',
                         bgcolor: formData.bangkok_to_huahin
                           ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
@@ -358,7 +429,7 @@ export default function TravelFormPage() {
                             }
                             disabled={loading}
                             sx={{
-                              color: '#DE3F5E',
+                              color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
@@ -372,6 +443,7 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
+                                color: '#000000',
                               }}
                             >
                               Bangkok → Hua Hin
@@ -379,7 +451,7 @@ export default function TravelFormPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#666',
+                                color: '#333333',
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -390,24 +462,50 @@ export default function TravelFormPage() {
                         sx={{ width: '100%', m: 0 }}
                       />
                     </Paper>
+                    
+                    {/* Notice for Return Trips */}
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: '#666666',
+                            fontStyle: 'italic',
+                             mt: 1,
+                             display: 'block'
+                        }}
+                    >
+                        Note: You can only select one return trip option. The Airport shuttle goes directly to BKK, while the Sukhumvit shuttle goes to Bangkok central.
+                    </Typography>
 
                     {/* Hua Hin to Airport */}
                     <Paper
                       sx={{
                         p: 2,
-                        borderRadius: '16px',
+                        borderRadius: '16px', // Reduced border radius slightly
                         border: formData.huahin_to_airport
                           ? '2px solid #DE3F5E'
-                          : '1px solid #E0E0E0',
+                          : '1px solid #999999',
                         bgcolor: formData.huahin_to_airport
                           ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
-                        cursor: 'pointer',
+                         opacity: formData.huahin_to_sukhumvit ? 0.6 : 1, // Visual cue for disabled state
+                        cursor: formData.huahin_to_sukhumvit ? 'not-allowed' : 'pointer', // Cursor change
                         transition: 'all 0.2s',
+                         pointerEvents: formData.huahin_to_sukhumvit ? 'none' : 'auto',
                       }}
-                      onClick={() =>
-                        handleInputChange('huahin_to_airport', !formData.huahin_to_airport)
-                      }
+                       // Only allow click if the other option is not selected OR if we are unselecting this one.
+                       // Actually, better UX: clicking selects this and unselects other automatically. The handleInputChange logic handles that.
+                       // So we can keep it clickable always and just let logic swap.
+                       // BUT user asked "only one of those should be clickable".
+                       // That implies radio button behavior visually or physically.
+                       // The logic I wrote swaps them. So both ARE clickable, just mutually exclusive.
+                       // "Make a small notice that only the first Hua Hin -> Bangkok option goes straight to the airport, the other will go to Bangkok central."
+                       // "Only one of those should be clickable" -> Use radio buttons? Or just swap logic?
+                       // Given it's checkboxes, swap logic is standard "radio-like" behavior for checkboxes.
+                       // I will make them behave like radio buttons where clicking one deselects the other.
+                       // I will NOT disable them visually so user CAN switch.
+                        onClick={() =>
+                            handleInputChange('huahin_to_airport', !formData.huahin_to_airport)
+                          }
                     >
                       <FormControlLabel
                         control={
@@ -418,7 +516,7 @@ export default function TravelFormPage() {
                             }
                             disabled={loading}
                             sx={{
-                              color: '#DE3F5E',
+                              color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
@@ -432,14 +530,15 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
+                                color: '#000000',
                               }}
                             >
-                              Hua Hin → Bangkok Airport
+                              Hua Hin → Bangkok Airport (Suvarnabhumi)
                             </Typography>
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#666',
+                                color: '#333333',
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -458,14 +557,16 @@ export default function TravelFormPage() {
                         borderRadius: '16px',
                         border: formData.huahin_to_sukhumvit
                           ? '2px solid #DE3F5E'
-                          : '1px solid #E0E0E0',
+                          : '1px solid #999999',
                         bgcolor: formData.huahin_to_sukhumvit
                           ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
-                        cursor: 'pointer',
+                        // opacity: formData.huahin_to_airport ? 0.6 : 1,
+                        // cursor: formData.huahin_to_airport ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s',
+                        // pointerEvents: formData.huahin_to_airport ? 'none' : 'auto',
                       }}
-                      onClick={() =>
+                       onClick={() =>
                         handleInputChange('huahin_to_sukhumvit', !formData.huahin_to_sukhumvit)
                       }
                     >
@@ -478,7 +579,7 @@ export default function TravelFormPage() {
                             }
                             disabled={loading}
                             sx={{
-                              color: '#DE3F5E',
+                              color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
@@ -492,6 +593,7 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
+                                color: '#000000',
                               }}
                             >
                               Hua Hin → Bangkok Sukhumvit
@@ -499,7 +601,7 @@ export default function TravelFormPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#666',
+                                color: '#333333',
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -519,7 +621,7 @@ export default function TravelFormPage() {
                   )}
                 </Box>
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 1, borderColor: '#E0E0E0' }} />
 
                 {/* Additional Options Note */}
                 <Paper
@@ -528,7 +630,7 @@ export default function TravelFormPage() {
                     borderRadius: '16px',
                     bgcolor: alpha('#20C997', 0.05),
                     border: '1px solid',
-                    borderColor: alpha('#20C997', 0.2),
+                    borderColor: '#20C997',
                   }}
                 >
                   <Stack spacing={1.5}>
@@ -536,7 +638,7 @@ export default function TravelFormPage() {
                       variant="subtitle2"
                       sx={{
                         fontWeight: 600,
-                        color: '#1a1a1a',
+                        color: '#000000',
                         fontSize: { xs: '0.95rem', md: '1.05rem' },
                       }}
                     >
@@ -545,38 +647,76 @@ export default function TravelFormPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#666',
+                        color: '#333333',
                         fontSize: { xs: '0.9rem', md: '1rem' },
                       }}
                     >
                       <strong>Small Group Shuttles (max 6 people):</strong> Contact Linda via WhatsApp
                     </Typography>
-                    <Button
-                      component="a"
-                      href="https://wa.me/66882959254"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      startIcon={<WhatsApp />}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        borderColor: '#25D366',
-                        color: '#25D366',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontSize: { xs: '0.9rem', md: '1rem' },
-                        '&:hover': {
-                          borderColor: '#1ead54',
-                          bgcolor: alpha('#25D366', 0.05),
-                        },
-                      }}
-                    >
-                      +66 88 295 9254
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        <Button
+                          component="a"
+                          href="https://wa.me/66882959254"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          startIcon={<WhatsApp />}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            borderColor: '#25D366',
+                            color: '#25D366',
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontSize: { xs: '0.9rem', md: '1rem' },
+                            '&:hover': {
+                              borderColor: '#1ead54',
+                              bgcolor: alpha('#25D366', 0.05),
+                            },
+                          }}
+                        >
+                          +66 88 295 9254
+                        </Button>
+                    </Box>
+                     <Divider sx={{ my: 1, borderColor: alpha('#20C997', 0.2) }} />
+                     
+                     <Typography
+                        variant="body2"
+                        sx={{
+                            color: '#333333',
+                             fontSize: { xs: '0.9rem', md: '1rem' },
+                        }}
+                     >
+                        <strong>City Transport:</strong> Download Grab in advance to get around in Bangkok via electric bikes
+                     </Typography>
+                     
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                         <Button
+                          component="a"
+                          href="https://apps.apple.com/us/app/grab-taxi-ride-food-delivery/id647268330"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            borderColor: '#00B14F',
+                            color: '#00B14F',
+                            borderRadius: '12px',
+                             textTransform: 'none',
+                             fontSize: { xs: '0.9rem', md: '1rem' },
+                             '&:hover': {
+                                 borderColor: '#008a3d',
+                                 bgcolor: alpha('#00B14F', 0.05)
+                             }
+                          }}
+                        >
+                            Download Grab App
+                        </Button>
+                      </Box>
+
                     <Typography
                       variant="caption"
                       sx={{
-                        color: '#666',
+                        color: '#666666',
                         fontSize: { xs: '0.85rem', md: '0.9rem' },
                       }}
                     >
@@ -620,7 +760,7 @@ export default function TravelFormPage() {
                   variant="caption"
                   sx={{
                     textAlign: 'center',
-                    color: '#999',
+                    color: '#666666',
                     fontSize: { xs: '0.85rem', md: '0.9rem' },
                   }}
                 >

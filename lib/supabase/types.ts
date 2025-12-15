@@ -119,6 +119,44 @@ export interface Database {
         Insert: Omit<Comment, 'id' | 'created_at'>
         Update: Partial<Comment>
       }
+      travel_bus_signups: {
+        Row: {
+          id: string
+          wedding_id: string
+          name: string
+          email: string
+          party_size: number
+          bangkok_to_huahin: boolean
+          huahin_to_airport: boolean
+          huahin_to_sukhumvit: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          name: string
+          email: string
+          party_size?: number
+          bangkok_to_huahin?: boolean
+          huahin_to_airport?: boolean
+          huahin_to_sukhumvit?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          name?: string
+          email?: string
+          party_size?: number
+          bangkok_to_huahin?: boolean
+          huahin_to_airport?: boolean
+          huahin_to_sukhumvit?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 } 
