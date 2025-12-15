@@ -77,37 +77,46 @@ export default function TravelFormPage() {
     setError(null);
 
     if (!validateForm()) {
+      console.log('Validation failed');
       return;
     }
 
-    console.log('Starting form submission...');
+    console.log('Starting form submission with data:', formData);
     setLoading(true);
 
     try {
+      const submissionData = {
+        wedding_id: 'sim-kv',
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        party_size: formData.party_size,
+        bangkok_to_huahin: formData.bangkok_to_huahin,
+        huahin_to_airport: formData.huahin_to_airport,
+        huahin_to_sukhumvit: formData.huahin_to_sukhumvit,
+      };
+
+      console.log('Submitting to Supabase:', submissionData);
+
       const { data, error: submitError } = await supabase
         .from('travel_bus_signups')
-        .upsert(
-          {
-            wedding_id: 'sim-kv',
-            name: formData.name.trim(),
-            email: formData.email.trim().toLowerCase(),
-            party_size: formData.party_size,
-            bangkok_to_huahin: formData.bangkok_to_huahin,
-            huahin_to_airport: formData.huahin_to_airport,
-            huahin_to_sukhumvit: formData.huahin_to_sukhumvit,
-          },
-          {
-            onConflict: 'wedding_id,email',
-          }
-        )
+        .upsert(submissionData, {
+          onConflict: 'wedding_id,email',
+        })
         .select()
         .single();
 
+      console.log('Supabase response:', { data, error: submitError });
+
       if (submitError) {
         console.error('Submission error:', submitError);
+        // Check if it's a table doesn't exist error
+        if (submitError.message.includes('relation') && submitError.message.includes('does not exist')) {
+          throw new Error('Database table not set up yet. Please run the migration first.');
+        }
         throw new Error(submitError.message);
       }
 
+      console.log('Submission successful!', data);
       setSuccess(true);
       setFormData(initialFormData);
     } catch (err: any) {
@@ -261,7 +270,7 @@ export default function TravelFormPage() {
                       fontSize: { xs: '0.95rem', md: '1.05rem' },
                     }}
                   >
-                    We are attempting to help book 40 person buses if we get enough people interested (~$20/person)
+                    We are attempting to help book 35 person buses if we get enough people interested ($15-20/person per trip)
                   </Typography>
                 </Box>
 
@@ -298,7 +307,26 @@ export default function TravelFormPage() {
                       },
                     },
                     '& .MuiInputBase-input': {
-                        color: '#000000',
+                      color: '#000000',
+                      '&:-webkit-autofill': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                        caretColor: '#000000',
+                        borderRadius: 'inherit',
+                        transition: 'background-color 5000s ease-in-out 0s',
+                      },
+                      '&:-webkit-autofill:hover': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:focus': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:active': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
                     },
                   }}
                 />
@@ -336,8 +364,27 @@ export default function TravelFormPage() {
                         color: '#DE3F5E',
                       },
                     },
-                     '& .MuiInputBase-input': {
-                        color: '#000000',
+                    '& .MuiInputBase-input': {
+                      color: '#000000',
+                      '&:-webkit-autofill': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                        caretColor: '#000000',
+                        borderRadius: 'inherit',
+                        transition: 'background-color 5000s ease-in-out 0s',
+                      },
+                      '&:-webkit-autofill:hover': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:focus': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:active': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
                     },
                   }}
                 />
@@ -376,12 +423,31 @@ export default function TravelFormPage() {
                         color: '#DE3F5E',
                       },
                     },
-                     '& .MuiInputBase-input': {
-                        color: '#000000',
+                    '& .MuiInputBase-input': {
+                      color: '#000000',
+                      '&:-webkit-autofill': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                        caretColor: '#000000',
+                        borderRadius: 'inherit',
+                        transition: 'background-color 5000s ease-in-out 0s',
+                      },
+                      '&:-webkit-autofill:hover': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:focus': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
+                      '&:-webkit-autofill:active': {
+                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
+                        WebkitTextFillColor: '#000000 !important',
+                      },
                     },
-                     '& .MuiFormHelperText-root': {
-                         color: '#666666'
-                     }
+                    '& .MuiFormHelperText-root': {
+                      color: '#666666'
+                    }
                   }}
                 />
 
@@ -487,10 +553,8 @@ export default function TravelFormPage() {
                         bgcolor: formData.huahin_to_airport
                           ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
-                         opacity: formData.huahin_to_sukhumvit ? 0.6 : 1, // Visual cue for disabled state
-                        cursor: formData.huahin_to_sukhumvit ? 'not-allowed' : 'pointer', // Cursor change
+                        cursor: 'pointer',
                         transition: 'all 0.2s',
-                         pointerEvents: formData.huahin_to_sukhumvit ? 'none' : 'auto',
                       }}
                        // Only allow click if the other option is not selected OR if we are unselecting this one.
                        // Actually, better UX: clicking selects this and unselects other automatically. The handleInputChange logic handles that.
@@ -561,10 +625,8 @@ export default function TravelFormPage() {
                         bgcolor: formData.huahin_to_sukhumvit
                           ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
-                        // opacity: formData.huahin_to_airport ? 0.6 : 1,
-                        // cursor: formData.huahin_to_airport ? 'not-allowed' : 'pointer',
+                        cursor: 'pointer',
                         transition: 'all 0.2s',
-                        // pointerEvents: formData.huahin_to_airport ? 'none' : 'auto',
                       }}
                        onClick={() =>
                         handleInputChange('huahin_to_sukhumvit', !formData.huahin_to_sukhumvit)
@@ -651,7 +713,7 @@ export default function TravelFormPage() {
                         fontSize: { xs: '0.9rem', md: '1rem' },
                       }}
                     >
-                      <strong>Small Group Shuttles (max 6 people):</strong> Contact Linda via WhatsApp
+                      <strong>Small Group Shuttles (max 6 people):</strong> <br />Contact Lynda via WhatsApp
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                         <Button
@@ -686,7 +748,7 @@ export default function TravelFormPage() {
                              fontSize: { xs: '0.9rem', md: '1rem' },
                         }}
                      >
-                        <strong>City Transport:</strong> Download Grab in advance to get around in Bangkok via electric bikes
+                        <strong>City Transport:</strong> <br />Download Grab in advance to get around in Bangkok via motor bikes / taxis
                      </Typography>
                      
                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
