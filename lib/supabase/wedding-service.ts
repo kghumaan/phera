@@ -251,6 +251,27 @@ export class WeddingService {
       return null;
     }
 
+    // Automatically create wedding_admins entry for the creator
+    if (data && wedding.created_by) {
+      const adminEntry = {
+        wedding_id: data.id,
+        user_id: wedding.created_by,
+        role: 'owner' as const,
+      };
+
+      const { error: adminError } = await this.supabase
+        .from('wedding_admins')
+        .insert([adminEntry]);
+
+      if (adminError) {
+        console.error('Error creating wedding_admins entry:', adminError);
+        // Don't fail the wedding creation if admin entry fails
+        // The wedding is still created, just log the error
+      } else {
+        console.log('✅ Created wedding_admins entry for user:', wedding.created_by);
+      }
+    }
+
     return data;
   }
 

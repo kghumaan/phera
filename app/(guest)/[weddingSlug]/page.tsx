@@ -92,26 +92,26 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: { xs: 4, md: 6, lg: 7, xl: 8 },
-        py: { xs: 1.5, md: 2, lg: 2.5, xl: 3 },
+        px: { xs: 4, sm: 4.5, md: 5, lg: 6.5, xl: 8 },
+        py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
         maxWidth: '100%', // Let parent wrapper control width
       }}
     >
-      <Stack 
-        direction="row" 
-        spacing={{ xs: 3, md: 4, lg: 5, xl: 6 }}
-        justifyContent="center" 
+      <Stack
+        direction="row"
+        spacing={{ xs: 3, sm: 3.5, md: 3.5, lg: 4.5, xl: 6 }}
+        justifyContent="center"
         alignItems="center"
       >
         {timeUnits.map((unit, index) => (
-          <Stack 
-            key={unit.label} 
-            alignItems="center" 
+          <Stack
+            key={unit.label}
+            alignItems="center"
             spacing={0}
-            sx={{ 
-              minWidth: { xs: 35, sm: 40, md: 55, lg: 65, xl: 75 }, // Fixed width for each column
+            sx={{
+              minWidth: { xs: 35, sm: 40, md: 45, lg: 60, xl: 75 }, // Smoother progression
             }}
           >
             <Typography
@@ -119,7 +119,14 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.5rem', sm: '1.5rem', md: '2.25rem', lg: '2.75rem', xl: '3.25rem' },
+                // Smoother font size progression to prevent overflow on small desktop
+                fontSize: {
+                  xs: '1.5rem',   // 360px+ (mobile)
+                  sm: '1.5rem',   // 600px+ (large mobile)
+                  md: '1.75rem',  // 900px+ (small desktop) - reduced from 2.25rem
+                  lg: '2.5rem',   // 1200px+ (desktop) - reduced from 2.75rem
+                  xl: '3.25rem'   // 1536px+ (large desktop)
+                },
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
@@ -131,7 +138,14 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.75rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                // Smoother label size progression
+                fontSize: {
+                  xs: '0.85rem',   // mobile
+                  sm: '0.75rem',   // large mobile
+                  md: '0.875rem',  // small desktop - reduced from 1rem
+                  lg: '1rem',      // desktop - reduced from 1.125rem
+                  xl: '1.25rem'    // large desktop
+                },
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
                 textAlign: 'center',

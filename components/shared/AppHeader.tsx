@@ -10,14 +10,15 @@ import {
   Menu,
   MenuItem
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon } from '@mui/icons-material';
+import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
+import { supabase } from '@/lib/supabase/client';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
@@ -48,6 +49,8 @@ export default function AppHeader({
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminWeddingSlug, setAdminWeddingSlug] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     try {
@@ -57,6 +60,73 @@ export default function AppHeader({
       console.error('Error signing out:', error);
     }
   };
+
+  // Check if user is admin of any wedding
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user || !user.id) {
+        setIsAdmin(false);
+        setAdminWeddingSlug(null);
+        return;
+      }
+
+      console.log('🔍 [AppHeader] Checking admin status for user:', user.id, user.email);
+
+      try {
+        // First check if user created any weddings
+        const { data: createdWeddings, error: createdError } = await supabase
+          .from('weddings')
+          .select('slug')
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        console.log('🔍 [AppHeader] Created weddings check:', {
+          data: createdWeddings,
+          error: createdError,
+          userId: user.id
+        });
+
+        if (createdWeddings && createdWeddings.length > 0) {
+          console.log('✅ [AppHeader] User created wedding:', createdWeddings[0].slug);
+          setIsAdmin(true);
+          setAdminWeddingSlug(createdWeddings[0].slug);
+          return;
+        }
+
+        // Then check if user is an admin of any wedding
+        const { data: adminWeddings, error: adminError } = await supabase
+          .from('wedding_admins')
+          .select('wedding_id, weddings(slug)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        console.log('🔍 [AppHeader] Admin weddings check:', {
+          data: adminWeddings,
+          error: adminError,
+          userId: user.id
+        });
+
+        if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
+          const weddingSlug = (adminWeddings[0].weddings as any).slug;
+          console.log('✅ [AppHeader] User is admin of wedding:', weddingSlug);
+          setIsAdmin(true);
+          setAdminWeddingSlug(weddingSlug);
+        } else {
+          console.log('❌ [AppHeader] No admin weddings found');
+          setIsAdmin(false);
+          setAdminWeddingSlug(null);
+        }
+      } catch (error) {
+        console.error('❌ [AppHeader] Error checking admin status:', error);
+        setIsAdmin(false);
+        setAdminWeddingSlug(null);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user?.id]);
 
   const formatRSVPResponse = (response: 'yes' | 'no' | 'maybe' | null): string => {
     switch (response) {
@@ -308,7 +378,26 @@ export default function AppHeader({
             },
           }}
         >
-          <MenuItem 
+          {/* Admin Dashboard - Show if user is admin */}
+          {isAdmin && adminWeddingSlug && (
+            <MenuItem
+              component={Link}
+              href={`/admin/onboarding/${adminWeddingSlug}/overview`}
+              onClick={() => setUserMenuAnchor(null)}
+              sx={{
+                color: '#666',
+                gap: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              <DashboardIcon fontSize="small" />
+              Admin Dashboard
+            </MenuItem>
+          )}
+
+          <MenuItem
             onClick={handleSignOut}
             sx={{
               color: '#666',
