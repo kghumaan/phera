@@ -12,7 +12,6 @@ export interface TravelFormSubmission {
   bangkok_to_huahin: boolean;
   huahin_to_airport: boolean;
   huahin_to_sukhumvit: boolean;
-  passport_image_path?: string | null;
 }
 
 /**
@@ -37,7 +36,6 @@ export async function submitTravelSignup(
       bangkok_to_huahin: data.bangkok_to_huahin,
       huahin_to_airport: data.huahin_to_airport,
       huahin_to_sukhumvit: data.huahin_to_sukhumvit,
-      passport_image_path: data.passport_image_path || null,
     } as TravelBusSignupInsert;
 
     console.log('[TravelService] About to call supabase.from()...');

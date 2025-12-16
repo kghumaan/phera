@@ -129,7 +129,6 @@ export interface Database {
           bangkok_to_huahin: boolean
           huahin_to_airport: boolean
           huahin_to_sukhumvit: boolean
-          passport_image_path: string | null
           created_at: string
           updated_at: string
         }
@@ -142,7 +141,6 @@ export interface Database {
           bangkok_to_huahin?: boolean
           huahin_to_airport?: boolean
           huahin_to_sukhumvit?: boolean
-          passport_image_path?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -155,7 +153,6 @@ export interface Database {
           bangkok_to_huahin?: boolean
           huahin_to_airport?: boolean
           huahin_to_sukhumvit?: boolean
-          passport_image_path?: string | null
           created_at?: string
           updated_at?: string
         }
