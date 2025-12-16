@@ -424,10 +424,11 @@ export default function TravelFormPage() {
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: '12px',
                                     textAlign: 'center',
+                                    color: '#000000',
                                     '& fieldset': { borderColor: '#999' },
                                     '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
                                 },
-                                '& input': { textAlign: 'center' }
+                                '& input': { textAlign: 'center', color: '#000000' }
                             }}
                             value={formData.party_size}
                             onChange={(e) => {
