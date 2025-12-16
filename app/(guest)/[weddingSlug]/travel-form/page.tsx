@@ -472,15 +472,21 @@ export default function TravelFormPage() {
                         control={
                           <Checkbox
                             checked={formData.bangkok_to_huahin}
-                            onChange={(e) =>
-                              handleInputChange('bangkok_to_huahin', e.target.checked)
-                            }
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                             disabled={loading}
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
+                              pointerEvents: 'none',
                             }}
                           />
                         }
@@ -507,7 +513,7 @@ export default function TravelFormPage() {
                             </Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', m: 0 }}
+                        sx={{ width: '100%', m: 0, pointerEvents: 'none' }}
                       />
                     </Paper>
                     
@@ -528,7 +534,7 @@ export default function TravelFormPage() {
                     <Paper
                       sx={{
                         p: 2,
-                        borderRadius: '16px', // Reduced border radius slightly
+                        borderRadius: '16px',
                         border: formData.huahin_to_airport
                           ? '2px solid #DE3F5E'
                           : '1px solid #999999',
@@ -538,34 +544,29 @@ export default function TravelFormPage() {
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                       }}
-                       // Only allow click if the other option is not selected OR if we are unselecting this one.
-                       // Actually, better UX: clicking selects this and unselects other automatically. The handleInputChange logic handles that.
-                       // So we can keep it clickable always and just let logic swap.
-                       // BUT user asked "only one of those should be clickable".
-                       // That implies radio button behavior visually or physically.
-                       // The logic I wrote swaps them. So both ARE clickable, just mutually exclusive.
-                       // "Make a small notice that only the first Hua Hin -> Bangkok option goes straight to the airport, the other will go to Bangkok central."
-                       // "Only one of those should be clickable" -> Use radio buttons? Or just swap logic?
-                       // Given it's checkboxes, swap logic is standard "radio-like" behavior for checkboxes.
-                       // I will make them behave like radio buttons where clicking one deselects the other.
-                       // I will NOT disable them visually so user CAN switch.
-                        onClick={() =>
-                            handleInputChange('huahin_to_airport', !formData.huahin_to_airport)
-                          }
+                      onClick={() =>
+                        handleInputChange('huahin_to_airport', !formData.huahin_to_airport)
+                      }
                     >
                       <FormControlLabel
                         control={
                           <Checkbox
                             checked={formData.huahin_to_airport}
-                            onChange={(e) =>
-                              handleInputChange('huahin_to_airport', e.target.checked)
-                            }
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                             disabled={loading}
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
+                              pointerEvents: 'none',
                             }}
                           />
                         }
@@ -592,7 +593,7 @@ export default function TravelFormPage() {
                             </Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', m: 0 }}
+                        sx={{ width: '100%', m: 0, pointerEvents: 'none' }}
                       />
                     </Paper>
 
@@ -610,7 +611,7 @@ export default function TravelFormPage() {
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                       }}
-                       onClick={() =>
+                      onClick={() =>
                         handleInputChange('huahin_to_sukhumvit', !formData.huahin_to_sukhumvit)
                       }
                     >
@@ -618,15 +619,21 @@ export default function TravelFormPage() {
                         control={
                           <Checkbox
                             checked={formData.huahin_to_sukhumvit}
-                            onChange={(e) =>
-                              handleInputChange('huahin_to_sukhumvit', e.target.checked)
-                            }
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                             disabled={loading}
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
                                 color: '#DE3F5E',
                               },
+                              pointerEvents: 'none',
                             }}
                           />
                         }
@@ -653,7 +660,7 @@ export default function TravelFormPage() {
                             </Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', m: 0 }}
+                        sx={{ width: '100%', m: 0, pointerEvents: 'none' }}
                       />
                     </Paper>
                   </Stack>
