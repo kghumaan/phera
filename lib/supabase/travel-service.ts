@@ -139,3 +139,5 @@ export async function getTravelSignupByEmail(weddingId: string, email: string) {
     return { data: null, error: err };
   }
 }
+
+
