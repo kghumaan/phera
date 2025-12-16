@@ -16,8 +16,9 @@ import {
   Divider,
   alpha,
 } from '@mui/material';
-import { DirectionsBus, CheckCircle, WhatsApp } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase/client';
+import { DirectionsBus, CheckCircle, WhatsApp, CloudUpload, Lock } from '@mui/icons-material';
+import { submitTravelSignup } from '@/lib/supabase/travel-service';
+import { uploadPassportImage } from '@/lib/supabase/storage-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
 
@@ -28,6 +29,7 @@ interface TravelFormData {
   bangkok_to_huahin: boolean;
   huahin_to_airport: boolean;
   huahin_to_sukhumvit: boolean;
+  passport_image_path?: string | null;
 }
 
 const initialFormData: TravelFormData = {
@@ -37,10 +39,13 @@ const initialFormData: TravelFormData = {
   bangkok_to_huahin: false,
   huahin_to_airport: false,
   huahin_to_sukhumvit: false,
+  passport_image_path: null,
 };
 
 export default function TravelFormPage() {
   const [formData, setFormData] = useState<TravelFormData>(initialFormData);
+  const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0); // Optional for enhancing UX
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +90,15 @@ export default function TravelFormPage() {
     setLoading(true);
 
     try {
+      let imagePath = null;
+      if (passportFile) {
+         console.log('Uploading passport image...');
+         const { path, error: uploadError } = await uploadPassportImage(passportFile, 'sim-kv');
+         if (uploadError) throw uploadError;
+         imagePath = path;
+         console.log('Passport uploaded to:', imagePath);
+      }
+
       const submissionData = {
         wedding_id: 'sim-kv',
         name: formData.name.trim(),
@@ -93,27 +107,17 @@ export default function TravelFormPage() {
         bangkok_to_huahin: formData.bangkok_to_huahin,
         huahin_to_airport: formData.huahin_to_airport,
         huahin_to_sukhumvit: formData.huahin_to_sukhumvit,
+        passport_image_path: imagePath,
       };
 
-      console.log('Submitting to Supabase:', submissionData);
+      console.log('Calling TravelService with:', submissionData);
 
-      const { data, error: submitError } = await supabase
-        .from('travel_bus_signups')
-        .upsert(submissionData, {
-          onConflict: 'wedding_id,email',
-        })
-        .select()
-        .single();
+      const { data, error: submitError } = await submitTravelSignup(submissionData);
 
-      console.log('Supabase response:', { data, error: submitError });
+      console.log('TravelService response:', { data, error: submitError });
 
       if (submitError) {
-        console.error('Submission error:', submitError);
-        // Check if it's a table doesn't exist error
-        if (submitError.message.includes('relation') && submitError.message.includes('does not exist')) {
-          throw new Error('Database table not set up yet. Please run the migration first.');
-        }
-        throw new Error(submitError.message);
+        throw submitError;
       }
 
       console.log('Submission successful!', data);
@@ -121,7 +125,12 @@ export default function TravelFormPage() {
       setFormData(initialFormData);
     } catch (err: any) {
       console.error('Error submitting form:', err);
-      setError(err.message || 'Failed to submit. Please try again.');
+      // Nice user-friendly error message
+      let message = err.message || 'Failed to submit. Please try again.';
+      if (message.includes('Database table not set up')) {
+        message = 'System configuration error: Database not ready.';
+      }
+      setError(message);
     } finally {
       console.log('Form submission finished');
       setLoading(false);
@@ -388,6 +397,51 @@ export default function TravelFormPage() {
                     },
                   }}
                 />
+
+                {/* Passport Upload */}
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#333' }}>
+                    Passport (Recommended for faster check-in)
+                  </Typography>
+                  <Button
+                    component="label"
+                    fullWidth
+                    variant="outlined"
+                    startIcon={passportFile ? <CheckCircle /> : <CloudUpload />}
+                    sx={{
+                      py: 2,
+                      border: '1px dashed',
+                      borderColor: passportFile ? '#4CAF50' : '#999',
+                      color: passportFile ? '#4CAF50' : '#666',
+                      borderRadius: '16px',
+                      textTransform: 'none',
+                      bgcolor: passportFile ? alpha('#4CAF50', 0.05) : 'transparent',
+                      '&:hover': {
+                         border: '1px dashed',
+                         borderColor: passportFile ? '#4CAF50' : '#666',
+                         bgcolor: passportFile ? alpha('#4CAF50', 0.1) : alpha('#000', 0.05),
+                      }
+                    }}
+                  >
+                    {passportFile ? `Selected: ${passportFile.name}` : 'Securely Upload Passport Image'}
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setPassportFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </Button>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+                     <Lock sx={{ fontSize: 14, color: '#666' }} />
+                     <Typography variant="caption" sx={{ color: '#666' }}>
+                        Your data is encrypted and securely stored.
+                     </Typography>
+                  </Stack>
+                </Box>
 
                 {/* Party Size */}
                 <TextField
