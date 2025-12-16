@@ -16,7 +16,7 @@ import {
   Divider,
   alpha,
 } from '@mui/material';
-import { DirectionsBus, CheckCircle, WhatsApp, CloudUpload, Lock } from '@mui/icons-material';
+import { DirectionsBus, CheckCircle, WhatsApp, CloudUpload, Lock, Add, Remove } from '@mui/icons-material';
 import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import { uploadPassportImage } from '@/lib/supabase/storage-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -398,10 +398,75 @@ export default function TravelFormPage() {
                   }}
                 />
 
+                {/* Party Size */}
+                <Box>
+                    <Typography gutterBottom sx={{ color: '#666' }}>
+                        Party Size
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                        <Button
+                            variant="outlined"
+                            sx={{ 
+                                minWidth: '48px', 
+                                width: '48px', 
+                                height: '48px',
+                                borderRadius: '12px',
+                                borderColor: '#999',
+                                color: '#333',
+                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                            }}
+                            onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
+                        >
+                            <Remove />
+                        </Button>
+                        <TextField
+                            sx={{
+                                width: '80px',
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                    '& fieldset': { borderColor: '#999' },
+                                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                },
+                                '& input': { textAlign: 'center' }
+                            }}
+                            value={formData.party_size}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '') {
+                                    handleInputChange('party_size', 0); // Handle empty as 0 temporarily
+                                } else {
+                                    const num = parseInt(val);
+                                    if (!isNaN(num)) handleInputChange('party_size', num);
+                                }
+                            }}
+                            onBlur={() => {
+                                if (formData.party_size < 1) handleInputChange('party_size', 1);
+                            }}
+                            inputProps={{ min: 1, type: 'number', style: { textAlign: 'center' } }}
+                        />
+                         <Button
+                            variant="outlined"
+                            sx={{ 
+                                minWidth: '48px', 
+                                width: '48px', 
+                                height: '48px',
+                                borderRadius: '12px',
+                                borderColor: '#999',
+                                color: '#333',
+                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                            }}
+                            onClick={() => handleInputChange('party_size', formData.party_size + 1)}
+                        >
+                            <Add />
+                        </Button>
+                    </Stack>
+                </Box>
+
                 {/* Passport Upload */}
                 <Box>
                   <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#333' }}>
-                    Passport (Recommended for faster check-in)
+                    Passport Image
                   </Typography>
                   <Button
                     component="label"
@@ -435,75 +500,16 @@ export default function TravelFormPage() {
                       }}
                     />
                   </Button>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#666', lineHeight: 1.4 }}>
+                     Optional: Determine for a faster check-in process when you arrive.
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
                      <Lock sx={{ fontSize: 14, color: '#666' }} />
                      <Typography variant="caption" sx={{ color: '#666' }}>
                         Your data is encrypted and securely stored.
                      </Typography>
                   </Stack>
                 </Box>
-
-                {/* Party Size */}
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Party Size"
-                  value={formData.party_size}
-                  onChange={(e) => handleInputChange('party_size', parseInt(e.target.value) || 1)}
-                  error={!!errors.party_size}
-                  helperText={errors.party_size || 'How many people (including yourself)?'}
-                  disabled={loading}
-                  required
-                  inputProps={{ min: 1, max: 20 }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '16px',
-                      fontSize: { xs: '1rem', md: '1.125rem' },
-                      color: '#000000',
-                       '& fieldset': {
-                         borderColor: '#999999',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#666666',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      fontSize: { xs: '1rem', md: '1.125rem' },
-                       color: '#666666',
-                      '&.Mui-focused': {
-                        color: '#DE3F5E',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#000000',
-                      '&:-webkit-autofill': {
-                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
-                        WebkitTextFillColor: '#000000 !important',
-                        caretColor: '#000000',
-                        borderRadius: 'inherit',
-                        transition: 'background-color 5000s ease-in-out 0s',
-                      },
-                      '&:-webkit-autofill:hover': {
-                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
-                        WebkitTextFillColor: '#000000 !important',
-                      },
-                      '&:-webkit-autofill:focus': {
-                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
-                        WebkitTextFillColor: '#000000 !important',
-                      },
-                      '&:-webkit-autofill:active': {
-                        WebkitBoxShadow: '0 0 0 1000px white inset !important',
-                        WebkitTextFillColor: '#000000 !important',
-                      },
-                    },
-                    '& .MuiFormHelperText-root': {
-                      color: '#666666'
-                    }
-                  }}
-                />
 
                 <Divider sx={{ my: 1, borderColor: '#E0E0E0' }} />
 
