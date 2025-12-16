@@ -227,11 +227,10 @@ export default function TravelFormPage() {
                   fontSize: { xs: '1rem', md: '1.125rem' },
                 }}
               >
-                Your shuttle registration has been received. We'll send you confirmation details via email.
+                Your shuttle registration has been received. We'll send you confirmation details via email. You are now free to close this window.
               </Typography>
               <Button
-                component={Link}
-                href="/sim-kv"
+                onClick={() => window.close()}
                 variant="contained"
                 sx={{
                   bgcolor: '#DE3F5E',
@@ -246,7 +245,7 @@ export default function TravelFormPage() {
                   },
                 }}
               >
-                Back to Wedding Site
+                Close browser window
               </Button>
             </Box>
           ) : (
