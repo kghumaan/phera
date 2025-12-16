@@ -261,11 +261,11 @@ export default function HomePage() {
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
   
-  // Pin verification state - TEMPORARILY DISABLED
-  // Defaulting to verified=true and checking=false allows users to bypass PIN entry
+  // Pin verification state - DISABLED
+  // PIN entry is completely bypassed - users go directly to the wedding website
   const [isPinVerified, setIsPinVerified] = useState(true);
   const [isCheckingPin, setIsCheckingPin] = useState(false);
-  const [isBypassPin, setIsBypassPin] = useState(false);
+  const [isBypassPin, setIsBypassPin] = useState(true); // Always set to true to bypass RSVP requirement
   
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -360,173 +360,20 @@ export default function HomePage() {
     return () => clearTimeout(safetyTimeout);
   }, [isLoading, isCheckingPin]);
 
-  // Check for pin verification on component mount and auth changes
+  // PIN verification is now disabled - users go directly to the wedding website
   useEffect(() => {
-    const checkPinVerification = () => {
-      if (typeof window !== 'undefined') {
-        // FIRST: If user is authenticated, consider PIN verified (auth bypass)
-        if (!isLoading && user) {
-          setIsPinVerified(true);
-          setIsCheckingPin(false); // Important: Stop checking PIN when user is authenticated
-          return;
-        }
-        
-        // CHECK: Handle bypass PIN case - create temporary guest auth
-        const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
-        const bypassPinVerified = localStorage.getItem('phera_pin_verified');
-        const bypassPinTimestamp = localStorage.getItem('phera_pin_timestamp');
-        
-        if (bypassFlag === 'true' && bypassPinVerified === 'true' && bypassPinTimestamp) {
-          try {
-            const timestamp = parseInt(bypassPinTimestamp);
-            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
-            if (isRecent) {
-              // Set local bypass PIN state immediately
-              setIsBypassPin(true);
-              console.log('Setting bypass PIN state to true');
-              
-              // Create temporary guest auth for bypass PIN users - but make it more robust
-              const existingGuestAuth = localStorage.getItem('phera_guest_auth');
-              if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
-                const tempGuestInfo = {
-                  id: 'temp-bypass-guest',
-                  email: 'bypass@guest.local',
-                  name: 'Wedding Guest',
-                  phone: undefined,
-                  weddingId: 'sim-kv',
-                  avatar_style: undefined,
-                  avatar_seed: undefined,
-                  avatar_svg: undefined,
-                  timestamp: Date.now()
-                };
-                
-                localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
-                console.log('Created temporary guest auth for bypass PIN user');
-                
-                // Only trigger auth refresh if we just created the auth - prevent infinite loops
-                setTimeout(() => refreshAuth(), 100);
-              }
-              
-              setIsPinVerified(true);
-              setIsCheckingPin(false);
-              return;
-            }
-          } catch (error) {
-            console.error('Error handling bypass PIN verification:', error);
-          }
-        }
+    // Always allow access - PIN entry is disabled
+    setIsPinVerified(true);
+    setIsCheckingPin(false);
+    setIsBypassPin(true);
 
-        // Existing checks...
-        // First check for auth errors from callback
-        const urlParams = new URLSearchParams(window.location.search);
-        const authError = urlParams.get('auth_error');
-        const authSuccess = urlParams.get('auth_success');
-        
-        if (authError) {
-          console.error('Authentication error:', authError);
-          // You could show a toast notification here
-          // Clean up URL params
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('auth_error');
-          window.history.replaceState({}, '', newUrl.toString());
-        }
-        
-        // Force auth refresh if coming from magic link callback
-        if (authSuccess === 'true') {
-          console.log('Magic link authentication detected, refreshing auth...');
-          setTimeout(() => {
-            refreshAuth(); // Force refresh auth status
-          }, 100);
-          
-          // Clean up URL params
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('auth_success');
-          window.history.replaceState({}, '', newUrl.toString());
-        }
-        
-        // Check for PIN restoration from auth callback
-        const restorePin = urlParams.get('restore_pin');
-        const restoredTimestamp = urlParams.get('pin_timestamp');
-        const restoredAllowsPlusOne = urlParams.get('allows_plus_one');
-        
-        if (restorePin === 'true' && restoredTimestamp) {
-          try {
-            const timestamp = parseInt(restoredTimestamp);
-            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
-            if (isRecent) {
-              // Restore PIN verification state
-              localStorage.setItem('phera_pin_verified', 'true');
-              localStorage.setItem('phera_pin_timestamp', restoredTimestamp);
-              localStorage.setItem('phera_allows_plus_one', restoredAllowsPlusOne || 'false');
-              setIsPinVerified(true);
-              
-              // Clean up URL params
-              const newUrl = new URL(window.location.href);
-              newUrl.searchParams.delete('restore_pin');
-              newUrl.searchParams.delete('pin_timestamp');
-              newUrl.searchParams.delete('allows_plus_one');
-              window.history.replaceState({}, '', newUrl.toString());
-              
-              // Force refresh auth status after callback
-              setTimeout(() => {
-                refreshAuth();
-              }, 500);
-              
-              setIsCheckingPin(false);
-              return;
-            }
-          } catch (error) {
-            console.error('Error restoring PIN verification:', error);
-          }
-        }
-        
-        // Check existing PIN verification
-        const pinVerified = localStorage.getItem('phera_pin_verified');
-        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
-        
-        if (pinVerified === 'true' && pinTimestamp) {
-          try {
-            const timestamp = parseInt(pinTimestamp);
-            const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
-            if (isRecent) {
-              setIsPinVerified(true);
-              
-              // Also check if this is a bypass PIN
-              const existingBypassFlag = localStorage.getItem('phera_bypass_rsvp');
-              if (existingBypassFlag === 'true') {
-                setIsBypassPin(true);
-              }
-            } else {
-              // Remove expired pin verification
-              localStorage.removeItem('phera_pin_verified');
-              localStorage.removeItem('phera_pin_timestamp');
-              localStorage.removeItem('phera_allows_plus_one');
-              localStorage.removeItem('phera_bypass_rsvp');
-              setIsPinVerified(false);
-              setIsBypassPin(false);
-            }
-          } catch (error) {
-            console.error('Error checking pin verification:', error);
-            setIsPinVerified(false);
-            setIsBypassPin(false);
-          }
-        } else {
-          setIsPinVerified(false);
-          setIsBypassPin(false);
-        }
-      }
-      setIsCheckingPin(false);
-    };
-
-    // Early return if user is authenticated - no need to check PIN
-    if (!isLoading && user) {
-      setIsPinVerified(true);
-      setIsCheckingPin(false);
-      return;
+    // Clean up any old PIN verification data
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('phera_bypass_rsvp', 'true');
+      localStorage.setItem('phera_pin_verified', 'true');
+      localStorage.setItem('phera_pin_timestamp', Date.now().toString());
     }
-    
-    checkPinVerification();
-  }, [user, isLoading]); // Removed refreshAuth from dependencies to prevent infinite loop
+  }, []); // Run once on mount
 
   // Scroll to top when main content becomes visible after PIN verification
   useEffect(() => {
@@ -541,10 +388,8 @@ export default function HomePage() {
     }
   }, [isPinVerified, isLoading, isCheckingPin]);
 
-  // Show pin entry screen if user is not authenticated AND pin is not verified
-  if (!isCheckingPin && !user && !isPinVerified) {
-    return <PinEntry onPinVerified={handlePinVerified} />;
-  }
+  // PIN entry is disabled - users go directly to the wedding website
+  // (PinEntry component will never be shown)
 
   // Show loading screen while checking authentication or pin
   if (isLoading || isCheckingPin) {

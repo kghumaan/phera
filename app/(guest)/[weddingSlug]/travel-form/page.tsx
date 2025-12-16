@@ -212,26 +212,8 @@ export default function TravelFormPage() {
                   fontSize: { xs: '1rem', md: '1.125rem' },
                 }}
               >
-                Your shuttle registration has been received. We'll send you confirmation details via email. You are now free to close this window.
+                Your shuttle preference has been received. We'll forward these details to our agent and you'll hear from us in next few days as things are finalized. Please note that if one of these buses doesn't make sense then please schedule a taxi/grab for yourself. You are now free to close this window.
               </Typography>
-              <Button
-                onClick={() => window.close()}
-                variant="contained"
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  borderRadius: '16px',
-                  px: 4,
-                  py: 1.5,
-                  fontSize: { xs: '1rem', md: '1.125rem' },
-                  textTransform: 'none',
-                  '&:hover': {
-                    bgcolor: '#C8365A',
-                  },
-                }}
-              >
-                Close browser window
-              </Button>
             </Box>
           ) : (
             <Box component="form" onSubmit={handleSubmit}>
