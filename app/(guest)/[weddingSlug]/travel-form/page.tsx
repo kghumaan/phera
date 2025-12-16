@@ -196,10 +196,11 @@ export default function TravelFormPage() {
               <Typography
                 variant="h4"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
                   color: '#000000',
+                  fontWeight: 400,
                 }}
               >
                 All Set!
@@ -230,10 +231,11 @@ export default function TravelFormPage() {
                   <Typography
                     variant="h4"
                     sx={{
-                      fontFamily: 'var(--font-instrument-serif)',
+                      fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
                       color: '#000000',
+                      fontWeight: 400,
                     }}
                   >
                     Shuttle Sign-Up
