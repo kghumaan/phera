@@ -261,9 +261,10 @@ export default function HomePage() {
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
   
-  // Pin verification state
-  const [isPinVerified, setIsPinVerified] = useState(false);
-  const [isCheckingPin, setIsCheckingPin] = useState(true);
+  // Pin verification state - TEMPORARILY DISABLED
+  // Defaulting to verified=true and checking=false allows users to bypass PIN entry
+  const [isPinVerified, setIsPinVerified] = useState(true);
+  const [isCheckingPin, setIsCheckingPin] = useState(false);
   const [isBypassPin, setIsBypassPin] = useState(false);
   
   // Login dialog state
