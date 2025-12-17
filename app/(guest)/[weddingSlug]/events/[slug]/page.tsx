@@ -545,7 +545,7 @@ export default function EventDetailPage() {
           sx={{
             position: 'relative',
             zIndex: 2,
-            py: 2,
+            py: 3,
             flexShrink: 0,
             display: 'flex',
             justifyContent: 'center',
@@ -599,7 +599,7 @@ export default function EventDetailPage() {
           sx={{
             position: 'relative',
             zIndex: 2,
-            pb: 3,
+            py: 3,
             flexShrink: 0,
           }}
         >
