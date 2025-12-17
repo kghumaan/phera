@@ -75,7 +75,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   const [events, setEvents] = useState<WeddingEvent[]>([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [carouselDialogOpen, setCarouselDialogOpen] = useState(false);
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Partial<WeddingEvent> | null>(null);
   const [currentSlide, setCurrentSlide] = useState<Partial<CarouselSlide> | null>(null);
@@ -164,11 +163,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     setEditDialogOpen(true);
   };
 
-  const handleEditCarousel = (event: WeddingEvent) => {
-    setCurrentEvent(event);
-    setPreviewSlideIndex(0);
-    setCarouselDialogOpen(true);
-  };
 
   const handlePreviewEventClick = (index: number) => {
     setPreviewEventIndex(index);
@@ -268,7 +262,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
       await loadData();
       setEditDialogOpen(false);
-      setCarouselDialogOpen(false);
       setCurrentEvent(null);
       setSuccess(true);
       showToast('Event saved successfully!', 'success');
@@ -438,25 +431,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Box>
         ) : (
           <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Back button */}
-            <Box sx={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}>
-              <IconButton
-                onClick={handleBackToEventsList}
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </IconButton>
-            </Box>
-
             {/* Carousel */}
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, pt: 6 }}>
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
               {slides.map((slide, index) => (
                 <Box
                   key={index}
@@ -541,20 +517,20 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   size="small"
                   onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
                   disabled={previewSlideIndex === 0}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.8)' }}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
                 >
-                  <ChevronLeft />
+                  <ChevronLeft sx={{ color: '#000' }} />
                 </IconButton>
-                <Typography sx={{ fontSize: 12 }}>
+                <Typography sx={{ fontSize: 12, color: '#000' }}>
                   {previewSlideIndex + 1} / {slides.length}
                 </Typography>
                 <IconButton
                   size="small"
                   onClick={() => setPreviewSlideIndex(Math.min(slides.length - 1, previewSlideIndex + 1))}
                   disabled={previewSlideIndex === slides.length - 1}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.8)' }}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
                 >
-                  <ChevronRight />
+                  <ChevronRight sx={{ color: '#000' }} />
                 </IconButton>
               </Box>
             )}
@@ -654,11 +630,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                         <IconButton onClick={() => handleEdit(event)} size="small" sx={{ color: '#DE3F5E' }}>
                           <Edit fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => handleEditCarousel(event)} size="small" sx={{ color: '#1a1a1a' }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-                          </svg>
-                        </IconButton>
                         <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: '#DE3F5E' }}>
                           <Delete fontSize="small" />
                         </IconButton>
@@ -693,8 +664,21 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       </Grid>
 
       {/* Template Selection Dialog */}
-      <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Choose an Event Template</DialogTitle>
+      <Dialog
+        open={templateDialogOpen}
+        onClose={() => setTemplateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+          Choose an Event Template
+        </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             {EVENT_TEMPLATES.map((template) => (
@@ -714,14 +698,29 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             ))}
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setTemplateDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+          <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#6a6a6a' }}>
+            Cancel
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Basic Event Edit Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>{currentEvent?.id ? 'Edit Event' : 'New Event'}</DialogTitle>
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+          {currentEvent?.id ? 'Edit Event' : 'New Event'}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 2 }}>
             <TextField
@@ -863,96 +862,103 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               onChange={(e) => updateCurrentEvent('ritual_description', e.target.value)}
               sx={textFieldSx}
             />
+
+            {/* Carousel Slides Section */}
+            <Box sx={{ mt: 4, pt: 3, borderTop: '2px solid #f0f0f0' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Carousel Slides
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+                Add and manage slides that will appear when guests view this event
+              </Typography>
+
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={handleAddSlide}
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  mb: 2,
+                  '&:hover': { bgcolor: '#C8365A' },
+                }}
+              >
+                Add Slide
+              </Button>
+
+              <Stack spacing={2}>
+                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
+                  <Paper key={index} sx={{ p: 2, borderRadius: '12px', bgcolor: '#fafafa' }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                          Slide {index + 1}: {slide.type}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 13 }}>
+                          {slide.heading || slide.src || 'No content'}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={0.5}>
+                        <IconButton size="small" onClick={() => handleMoveSlide(index, 'up')} disabled={index === 0}>
+                          <ArrowUpward fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleMoveSlide(index, 'down')}
+                          disabled={index === ((currentEvent?.carousel_slides as CarouselSlide[]) || []).length - 1}
+                        >
+                          <ArrowDownward fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleEditSlide(index)} sx={{ color: '#DE3F5E' }}>
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleDeleteSlide(index)} sx={{ color: '#DE3F5E' }}>
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))}
+
+                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).length === 0 && (
+                  <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '12px', bgcolor: 'white' }}>
+                    <Typography sx={{ color: '#6a6a6a' }}>
+                      No carousel slides yet. Add your first slide to get started.
+                    </Typography>
+                  </Paper>
+                )}
+              </Stack>
+            </Box>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveEvent} sx={{ bgcolor: '#DE3F5E' }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveEvent} sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' } }}>
             Save Event
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Carousel Management Dialog */}
-      <Dialog open={carouselDialogOpen} onClose={() => setCarouselDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Manage Carousel - {currentEvent?.name}
-          <Typography variant="caption" display="block" sx={{ color: '#6a6a6a', mt: 0.5 }}>
-            Create and manage carousel slides for this event
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={handleAddSlide}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': { bgcolor: '#C8365A' },
-              }}
-            >
-              Add Slide
-            </Button>
-
-            {((currentEvent?.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
-              <Paper key={index} sx={{ p: 2, borderRadius: '12px' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      Slide {index + 1}: {slide.type}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 13 }}>
-                      {slide.heading || slide.src || 'No content'}
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton size="small" onClick={() => handleMoveSlide(index, 'up')} disabled={index === 0}>
-                      <ArrowUpward fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleMoveSlide(index, 'down')}
-                      disabled={index === ((currentEvent?.carousel_slides as CarouselSlide[]) || []).length - 1}
-                    >
-                      <ArrowDownward fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleEditSlide(index)} sx={{ color: '#DE3F5E' }}>
-                      <Edit fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDeleteSlide(index)} sx={{ color: '#DE3F5E' }}>
-                      <Delete fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </Stack>
-              </Paper>
-            ))}
-
-            {((currentEvent?.carousel_slides as CarouselSlide[]) || []).length === 0 && (
-              <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '12px' }}>
-                <Typography sx={{ color: '#6a6a6a' }}>
-                  No carousel slides yet. Add your first slide to get started.
-                </Typography>
-              </Paper>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setCarouselDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveEvent} sx={{ bgcolor: '#DE3F5E' }}>
-            Save Event & Carousel
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Slide Edit Dialog */}
-      <Dialog open={slideDialogOpen} onClose={() => setSlideDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{currentSlideIndex >= 0 ? 'Edit Slide' : 'Add Slide'}</DialogTitle>
-        <DialogContent>
+      <Dialog
+        open={slideDialogOpen}
+        onClose={() => setSlideDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+          {currentSlideIndex >= 0 ? 'Edit Slide' : 'Add Slide'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'white' }}>
           <Stack spacing={3} sx={{ mt: 2 }}>
             <FormControl fullWidth>
               <InputLabel>Slide Type</InputLabel>
@@ -1035,9 +1041,22 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSlideDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveSlide} sx={{ bgcolor: '#DE3F5E' }}>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+          <Button onClick={() => setSlideDialogOpen(false)} sx={{ color: '#6a6a6a' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveSlide}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#C8365A' },
+            }}
+          >
             Save Slide
           </Button>
         </DialogActions>
