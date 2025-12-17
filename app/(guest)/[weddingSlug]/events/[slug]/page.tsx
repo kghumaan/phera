@@ -369,7 +369,8 @@ export default function EventDetailPage() {
     }
   };
 
-  if (loading) {
+  // Only show loading if we're loading AND we don't have the event yet
+  if (loading && !event) {
     return (
       <OptimizedBackground
         src="/images/backgrounds/aquarium.png"
