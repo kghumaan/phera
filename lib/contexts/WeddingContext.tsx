@@ -25,36 +25,74 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
   const [settings, setSettings] = useState<WeddingSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchWeddingData = async () => {
+  // Helper function to add timeout to promises
+  const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number = 10000): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+      ),
+    ]);
+  };
+
+  const fetchWeddingData = async (isRetry: boolean = false) => {
     try {
       setIsLoading(true);
-      setError(null);
+      if (!isRetry) {
+        setError(null);
+        setRetryCount(0);
+      }
 
-      // Fetch wedding by slug
-      const weddingData = await weddingService.getWeddingBySlug(weddingSlug);
-      
+      console.log(`🔄 Fetching wedding data (attempt ${retryCount + 1})...`);
+
+      // Fetch wedding by slug with timeout
+      const weddingData = await withTimeout(
+        weddingService.getWeddingBySlug(weddingSlug),
+        10000 // 10 second timeout
+      );
+
       if (!weddingData) {
         setError('Wedding not found');
         setIsLoading(false);
         return;
       }
 
+      console.log('✅ Wedding data loaded successfully');
       setWedding(weddingData);
 
-      // Fetch related data in parallel
-      const [eventsData, settingsData] = await Promise.all([
-        weddingService.getWeddingEvents(weddingData.id),
-        weddingService.getSettings(weddingData.id),
-      ]);
+      // Fetch related data in parallel with timeout
+      const [eventsData, settingsData] = await withTimeout(
+        Promise.all([
+          weddingService.getWeddingEvents(weddingData.id),
+          weddingService.getSettings(weddingData.id),
+        ]),
+        10000 // 10 second timeout
+      );
 
       setEvents(eventsData);
       setSettings(settingsData);
+      setRetryCount(0); // Reset retry count on success
     } catch (err) {
-      console.error('Error fetching wedding data:', err);
-      setError('Failed to load wedding data');
+      console.error('❌ Error fetching wedding data:', err);
+
+      // Retry logic: retry up to 2 times
+      if (retryCount < 2) {
+        console.log(`🔄 Retrying in 2 seconds... (attempt ${retryCount + 2}/3)`);
+        setRetryCount(retryCount + 1);
+        setTimeout(() => {
+          fetchWeddingData(true);
+        }, 2000);
+        return;
+      }
+
+      setError('Failed to load wedding data. Please refresh the page.');
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we're not going to retry
+      if (retryCount >= 2) {
+        setIsLoading(false);
+      }
     }
   };
 

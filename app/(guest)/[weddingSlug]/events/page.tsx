@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Typography, IconButton, Stack, Button, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Container, Typography, IconButton, Stack, Button, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
@@ -11,88 +11,19 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-
-// Sample events data - this would come from your backend/config in the future
-const weddingEvents = [
-  {
-    id: 1,
-    slug: 'welcome-lunch-haldi',
-    name: 'Welcome Lunch & Haldi',
-    dress_code: 'Shades of Yellow',
-    dress_code_emoji: '🌻',
-    date: 'January 4',
-    time: '12 PM',
-  },
-  {
-    id: 2,
-    slug: 'baraat-varmala-jaggo',
-    name: 'Baraat, Varmala, & Jaggo',
-    dress_code: 'Vibrant Indian Festive',
-    dress_code_emoji: '🎊',
-    date: 'January 4',
-    time: '4 PM',
-  },
-  {
-    id: 3,
-    slug: 'anand-karaj',
-    name: 'Anand Karaj',
-    dress_code: 'Pastel Indian Traditional',
-    dress_code_emoji: '🌸',
-    date: 'January 5',
-    time: '9:30 AM',
-  },
-  {
-    id: 4,
-    slug: 'pool-party',
-    name: 'Pool Party',
-    dress_code: 'Boho Beach Festival',
-    dress_code_emoji: '☀️',
-    date: 'January 5',
-    time: '2 PM',
-  },
-  {
-    id: 5,
-    slug: 'reception',
-    name: 'Sangeet & Reception',
-    dress_code: 'Cocktail Glam',
-    dress_code_emoji: '🪩',
-    date: 'January 5',
-    time: '7:30 PM',
-  },
-];
-// Helper function to format date
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const day = date.getDate();
-  return `${month} ${day}`;
-};
-
-export const getGradientImage = (slug: string) => {
-  switch(slug) {
-    case 'welcome-lunch-haldi':
-      return 'GradientYellow.png';
-    case 'baraat-varmala-jaggo':
-      return 'GradientJaggo.png';
-    case 'anand-karaj':
-      return 'GradientCottonCandy.png';
-    case 'pool-party':
-      return 'GradientPoolParty.png';
-    case 'reception':
-      return 'GradientJaggo.png';
-    default:
-      return null;
-  }
-};
+import { useWedding } from '@/lib/contexts/WeddingContext';
 
 export default function GuestEventsPage() {
   const params = useParams();
-  const weddingId = params.weddingSlug as string;
+  const weddingSlug = params.weddingSlug as string;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse } = useAuth();
+
+  // Use WeddingContext instead of fetching directly
+  const { events: weddingEvents, isLoading: loading, error } = useWedding();
 
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
@@ -117,7 +48,7 @@ export default function GuestEventsPage() {
           <AppHeader
             variant="transparent"
             showBackButton={true}
-            backHref={`/${weddingId}/details`}
+            backHref={`/${weddingSlug}/details`}
           />
         </Box>
       )}
@@ -144,7 +75,7 @@ export default function GuestEventsPage() {
           >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <IconButton
-                onClick={() => router.push(`/${weddingId}/details`)}
+                onClick={() => router.push(`/${weddingSlug}/details`)}
                 sx={{
                   color: '#000',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -200,7 +131,7 @@ export default function GuestEventsPage() {
       )}
 
       {/* Main Content */}
-      <Container 
+      <Container
         maxWidth={false}
         sx={{
           maxWidth: { xs: '100%', md: 800, lg: 900 },
@@ -209,21 +140,42 @@ export default function GuestEventsPage() {
           pt: { xs: 10, md: 14 },
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          {/* Event Cards */}
-          <Stack spacing={2}>
-            {weddingEvents.map((event, index) => (
+        {/* Loading State - Only show if loading AND no events yet */}
+        {loading && weddingEvents.length === 0 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress sx={{ color: '#DE3F5E' }} />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography variant="h6" color="error" gutterBottom>
+              {error}
+            </Typography>
+            <Button onClick={() => window.location.reload()} variant="contained" sx={{ mt: 2, backgroundColor: '#DE3F5E' }}>
+              Retry
+            </Button>
+          </Box>
+        )}
+
+        {/* Events List - Show if we have events OR if not loading */}
+        {(weddingEvents.length > 0 || !loading) && !error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Event Cards */}
+            <Stack spacing={2}>
+              {weddingEvents.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
-                <Link href={`/${weddingId}/events/${event.slug}`} style={{ textDecoration: 'none' }}>
+                <Link href={`/${weddingSlug}/events/${event.slug}`} style={{ textDecoration: 'none' }}>
                   <Box
                     sx={{
                       borderRadius: '16px',
@@ -238,15 +190,15 @@ export default function GuestEventsPage() {
                     }}
                   >
                     <Box sx={{ display: 'flex' }}>
-                      {getGradientImage(event.slug) && (
-                        <Box 
-                          sx={{ 
-                            width: 8, 
-                            flexShrink: 0, 
-                            backgroundImage: `url(/images/backgrounds/${getGradientImage(event.slug)})`, 
+                      {event.gradient_background && (
+                        <Box
+                          sx={{
+                            width: 8,
+                            flexShrink: 0,
+                            backgroundImage: `url(/images/backgrounds/${event.gradient_background})`,
                             backgroundSize: 'cover',
-                            backgroundPosition: 'center' 
-                          }} 
+                            backgroundPosition: 'center'
+                          }}
                         />
                       )}
                       <Box 
@@ -322,9 +274,10 @@ export default function GuestEventsPage() {
                   </Box>
                 </Link>
               </motion.div>
-            ))}
-          </Stack>
-        </motion.div>
+              ))}
+            </Stack>
+          </motion.div>
+        )}
       </Container>
 
       {/* Sticky "Where to Shop" Footer */}
@@ -358,7 +311,7 @@ export default function GuestEventsPage() {
             >
               <Button
                 component={Link}
-                href={`/${weddingId}/where-to-shop`}
+                href={`/${weddingSlug}/where-to-shop`}
                 variant="contained"
                 size="large"
                 fullWidth

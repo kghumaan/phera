@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 import AppHeader from '@/components/shared/AppHeader';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -143,37 +144,31 @@ export default function DetailsPage() {
   const [hasRegistryData, setHasRegistryData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [weddingId, setWeddingId] = useState<string | null>(null);
 
-  // Fetch data availability for each section
+  // Use WeddingContext for wedding and events data (already loaded)
+  const { wedding, events, isLoading: contextLoading } = useWedding();
+  const weddingId = wedding?.id || null;
+
+  // Fetch data availability for each section (excluding wedding and events which we get from context)
   useEffect(() => {
     const fetchSectionData = async () => {
+      if (!weddingId) return;
+
       try {
         setIsLoading(true);
-        
-        // Get wedding by slug to get the wedding ID
-        const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-        if (!wedding) {
-          setIsLoading(false);
-          return;
-        }
 
-        const id = wedding.id;
-        setWeddingId(id);
-
-        // Fetch all section data in parallel
-        const [travelCards, faqs, events, schedule, registry] = await Promise.all([
-          weddingService.getTravelCards(id),
-          weddingService.getFAQs(id),
-          weddingService.getWeddingEvents(id),
-          weddingService.getWeddingSchedule(id),
-          weddingService.getRegistry(id),
+        // Fetch remaining section data in parallel (wedding and events already in context)
+        const [travelCards, faqs, schedule, registry] = await Promise.all([
+          weddingService.getTravelCards(weddingId),
+          weddingService.getFAQs(weddingId),
+          weddingService.getWeddingSchedule(weddingId),
+          weddingService.getRegistry(weddingId),
         ]);
 
         // Check if each section has data
         setHasTravelData(travelCards.length > 0);
         setHasFAQData(faqs.length > 0);
-        setHasEventsData(events.length > 0);
+        setHasEventsData(events.length > 0); // Use events from context
         setHasScheduleData(schedule.length > 0);
         setHasRegistryData(registry.length > 0);
       } catch (error) {
@@ -183,10 +178,10 @@ export default function DetailsPage() {
       }
     };
 
-    if (weddingSlug) {
+    if (weddingId) {
       fetchSectionData();
     }
-  }, [weddingSlug]);
+  }, [weddingId, events]);
 
   const handleBack = () => {
     setIsNavigating(true);

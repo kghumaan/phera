@@ -33,6 +33,17 @@ export interface Wedding {
   updated_at: string;
 }
 
+export interface CarouselSlide {
+  type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual';
+  title?: string;
+  subtitle?: string;
+  heading?: string;
+  description?: string;
+  src?: string; // For image slides
+  women?: string[]; // For outfit_ideas slides
+  men?: string[]; // For outfit_ideas slides
+}
+
 export interface WeddingEvent {
   id: string;
   wedding_id: string;
@@ -48,7 +59,9 @@ export interface WeddingEvent {
   ritual_name: string | null;
   ritual_description: string | null;
   carousel_images: string[];
+  carousel_slides: CarouselSlide[]; // New field for structured carousel content
   gradient_background: string | null;
+  text_color: string; // New field for text color (#141414 or #FFFFFF)
   order_index: number;
   is_template: boolean;
   created_at: string;
