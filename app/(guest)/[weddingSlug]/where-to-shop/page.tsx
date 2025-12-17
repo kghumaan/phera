@@ -173,7 +173,7 @@ export default function WhereToShopPage() {
                 mb: 2,
               }}
             >
-              For our US-based guests: online boutiques that ship stateside with reasonable timelines and prices.
+             Online boutiques that ship internationally with reasonable timelines and prices.
             </Typography>
 
             {/* Store Cards */}
@@ -234,6 +234,7 @@ export default function WhereToShopPage() {
                           {store.details.split('\n').map((detail, idx) => (
                             <Typography
                               key={idx}
+                              component="div"
                               variant="body2"
                               sx={{
                                 fontFamily: 'Outfit',
@@ -247,12 +248,14 @@ export default function WhereToShopPage() {
                               }}
                             >
                               <Box
+                                component="span"
                                 sx={{
                                   width: 4,
                                   height: 4,
                                   backgroundColor: '#141414',
                                   borderRadius: '50%',
                                   flexShrink: 0,
+                                  display: 'inline-block',
                                 }}
                               />
                               <span>{detail}</span>

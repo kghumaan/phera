@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from './client';
 
 // Types for wedding data
 export interface Wedding {
@@ -173,11 +172,7 @@ export interface TeamMember {
 
 // Wedding CRUD operations
 export class WeddingService {
-  private supabase;
-
-  constructor() {
-    this.supabase = createClientComponentClient();
-  }
+  private supabase = supabase;
 
   // Weddings
   async getWeddingBySlug(slug: string): Promise<Wedding | null> {

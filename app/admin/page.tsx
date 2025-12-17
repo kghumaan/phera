@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 import {
   Box,
   CircularProgress,
@@ -11,7 +11,6 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
 export default function AdminPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

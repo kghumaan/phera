@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase/client';
 import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 
 interface User {
-  id: string;
+  id: string; // auth.users.id - used for admin checks
+  guestId?: string | null; // guests.id - used for guest-specific operations
   email: string;
   name: string;
   phone?: string;
@@ -23,6 +24,8 @@ interface AuthContextType {
   hasRSVPed: boolean;
   rsvpResponse: 'yes' | 'no' | 'maybe' | null;
   isCheckingRSVP: boolean;
+  isAdmin: boolean;
+  adminWeddingSlug: string | null;
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -38,7 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [rsvpResponse, setRsvpResponse] = useState<'yes' | 'no' | 'maybe' | null>(null);
   const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminWeddingSlug, setAdminWeddingSlug] = useState<string | null>(null);
   const isCheckingAuthRef = useRef(false);
+  const hasCheckedAdminRef = useRef(false);
 
   const generateInitials = (name: string) => {
     return name
@@ -62,6 +68,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Check if user is admin of any wedding (only runs once per session)
+  const checkAdminStatus = async (userId: string) => {
+    // Skip if already checked for this user
+    if (hasCheckedAdminRef.current) {
+      return;
+    }
+
+    console.log('🔍 [AuthContext] Checking admin status for user:', userId);
+    hasCheckedAdminRef.current = true;
+
+    try {
+      // First check if user created any weddings
+      const { data: createdWeddings, error: createdError } = await supabase
+        .from('weddings')
+        .select('slug')
+        .eq('created_by', userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (createdWeddings && createdWeddings.length > 0) {
+        console.log('✅ [AuthContext] User created wedding:', createdWeddings[0].slug);
+        setIsAdmin(true);
+        setAdminWeddingSlug(createdWeddings[0].slug);
+        return;
+      }
+
+      // Then check if user is an admin of any wedding
+      const { data: adminWeddings, error: adminError } = await supabase
+        .from('wedding_admins')
+        .select('wedding_id, weddings(slug)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
+        const weddingSlug = (adminWeddings[0].weddings as any).slug;
+        console.log('✅ [AuthContext] User is admin of wedding:', weddingSlug);
+        setIsAdmin(true);
+        setAdminWeddingSlug(weddingSlug);
+      } else {
+        console.log('ℹ️ [AuthContext] User is not an admin of any wedding');
+        setIsAdmin(false);
+        setAdminWeddingSlug(null);
+      }
+    } catch (error) {
+      console.error('❌ [AuthContext] Error checking admin status:', error);
+      setIsAdmin(false);
+      setAdminWeddingSlug(null);
+    }
   };
 
   const checkRSVPStatus = async () => {
@@ -335,6 +392,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.success && result.user) {
         const userData: User = {
           id: result.user.id,
+          guestId: result.user.guestId,
           email: result.user.email,
           name: result.user.name,
           phone: result.user.phone,
@@ -345,6 +403,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatar_svg: result.user.avatar_svg,
         };
         setUser(userData);
+        // Check admin status for authenticated user
+        checkAdminStatus(result.user.id);
       } else {
         // Check for guest authentication (after RSVP)
         if (typeof window !== 'undefined') {
@@ -457,6 +517,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setHasRSVPed(false);
       setRsvpResponse(null);
+      // Reset admin status
+      setIsAdmin(false);
+      setAdminWeddingSlug(null);
+      hasCheckedAdminRef.current = false;
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -591,6 +655,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setHasRSVPed(false);
             setRsvpResponse(null);
+            setIsAdmin(false);
+            setAdminWeddingSlug(null);
+            hasCheckedAdminRef.current = false;
           }
         } catch (error) {
           console.error('Auth state change error:', error);
@@ -655,6 +722,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasRSVPed, 
         rsvpResponse,
         isCheckingRSVP,
+        isAdmin,
+        adminWeddingSlug,
         checkRSVPStatus, 
         signOut,
         refreshAuth,

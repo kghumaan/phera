@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 
 export interface UploadResult {
   success: boolean;
@@ -91,8 +91,6 @@ export async function uploadImage(
   bucket: string = 'wedding-images'
 ): Promise<UploadResult> {
   try {
-    const supabase = createClientComponentClient();
-
     // First, compress the image
     const compressedFile = await compressImage(file);
 
@@ -149,8 +147,6 @@ export async function deleteImage(
   bucket: string = 'wedding-images'
 ): Promise<boolean> {
   try {
-    const supabase = createClientComponentClient();
-
     // Extract path from URL
     const urlParts = url.split('/');
     const bucketIndex = urlParts.findIndex(part => part === bucket);

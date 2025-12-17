@@ -11,11 +11,9 @@ import {
   Stack,
   Paper,
   Alert,
-  Link as MuiLink,
   alpha,
   CircularProgress,
 } from '@mui/material';
-import Link from 'next/link';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 
@@ -48,16 +46,50 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // First try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        setError(error.message);
-      } else if (data.session) {
+      if (signInError) {
+        // If invalid credentials, try to sign up (user might not exist)
+        if (signInError.message.includes('Invalid login credentials')) {
+          console.log('User not found, attempting signup...');
+          
+          // Validate password length for signup
+          if (password.length < 6) {
+            setError('Password must be at least 6 characters for a new account');
+            return;
+          }
+          
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+            },
+          });
+
+          if (signUpError) {
+            setError(signUpError.message);
+          } else if (signUpData.user) {
+            // If email confirmation is disabled, user will be signed in automatically
+            if (signUpData.session) {
+              router.push(redirectTo);
+              router.refresh();
+            } else {
+              // Email confirmation is enabled, inform user
+              setMessage('Account created! Check your email to confirm your account.');
+            }
+          }
+        } else {
+          setError(signInError.message);
+        }
+      } else if (signInData.session) {
         router.push(redirectTo);
         router.refresh();
       }
@@ -90,39 +122,6 @@ function LoginContent() {
       }
     } catch (err) {
       setError('Failed to sign in with Google');
-      setLoading(false);
-    }
-  };
-
-  const handleMagicLink = async () => {
-    if (!email) {
-      setError('Please enter your email');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Build the callback URL with redirect parameter
-      const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', redirectTo);
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: callbackUrl.toString(),
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setMessage('Check your email for the magic link!');
-      }
-    } catch (err) {
-      setError('Failed to send magic link');
-    } finally {
       setLoading(false);
     }
   };
@@ -331,7 +330,7 @@ function LoginContent() {
                       },
                     }}
                   >
-                    {loading ? 'Signing in...' : 'Sign In'}
+                    {loading ? 'Signing in...' : 'Sign In / Sign Up'}
                   </Button>
                 </Stack>
               </form>
@@ -385,50 +384,6 @@ function LoginContent() {
               >
                 {loading ? 'Connecting to Google...' : 'Continue with Google'}
               </Button>
-
-              <Button
-                variant="outlined"
-                size="large"
-                fullWidth
-                onClick={handleMagicLink}
-                disabled={loading}
-                sx={{
-                  borderRadius: '32px',
-                  py: 1.5,
-                  borderColor: '#1a1a1a',
-                  color: '#1a1a1a',
-                  borderWidth: '1.5px',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.05),
-                    borderWidth: '1.5px',
-                  },
-                }}
-              >
-                Send Magic Link
-              </Button>
-
-              <Box textAlign="center">
-                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                  Don't have an account?{' '}
-                  <MuiLink
-                    component={Link}
-                    href="/auth/signup"
-                    sx={{
-                      color: '#DE3F5E',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    Sign up
-                  </MuiLink>
-                </Typography>
-              </Box>
             </Stack>
           </Paper>
         </Container>

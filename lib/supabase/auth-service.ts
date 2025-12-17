@@ -168,7 +168,8 @@ export async function getCurrentUser(): Promise<AuthResult> {
     const result = {
       success: true,
       user: {
-        id: guestData?.id || user.id,
+        id: user.id, // Always use auth.users.id for admin checks and auth purposes
+        guestId: guestData?.id || null, // Guest table ID for guest-specific operations
         email: user.email || '',
         name: guestData?.name || user.user_metadata?.full_name || user.email || user.phone || '',
         phone: guestData?.phone || user.phone,

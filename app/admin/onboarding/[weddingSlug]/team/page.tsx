@@ -42,7 +42,7 @@ import {
   CheckCircle,
 } from '@mui/icons-material';
 import { weddingService, WeddingInvite, TeamMember } from '@/lib/supabase/wedding-service';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 
@@ -103,8 +103,6 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
-
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
     loadData();
