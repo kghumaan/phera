@@ -314,7 +314,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   const MobilePreview = () => {
     if (previewMode === 'list') {
       return (
-        <MobilePreviewFrame title="Events & Dress Code">
+        <MobilePreviewFrame title="Events & Dress Code" onBackClick={undefined}>
           {events.length === 0 ? (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               <Box sx={{
@@ -422,7 +422,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     const slides = (event.carousel_slides as CarouselSlide[]) || [];
 
     return (
-      <MobilePreviewFrame title={event.name}>
+      <MobilePreviewFrame title={event.name} onBackClick={handleBackToEventsList}>
         {slides.length === 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography sx={{ fontFamily: 'Outfit', fontSize: 14, color: '#6a6a6a', textAlign: 'center' }}>
@@ -784,32 +784,41 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               sx={textFieldSx}
             />
 
-            <FormControl fullWidth>
-              <InputLabel>Gradient Background</InputLabel>
+            <FormControl fullWidth sx={textFieldSx}>
+              <InputLabel sx={{ color: '#1a1a1a' }}>Gradient Background</InputLabel>
               <Select
                 value={currentEvent?.gradient_background || 'GradientYellow.png'}
                 onChange={(e) => updateCurrentEvent('gradient_background', e.target.value)}
                 label="Gradient Background"
+                sx={{ color: '#1a1a1a' }}
               >
                 {GRADIENT_BACKGROUNDS.map((bg) => (
-                  <MenuItem key={bg.value} value={bg.value}>{bg.label}</MenuItem>
+                  <MenuItem key={bg.value} value={bg.value} sx={{ color: '#1a1a1a' }}>{bg.label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
 
             <FormControl component="fieldset">
-              <FormLabel>Text Color (for gradient slides)</FormLabel>
+              <FormLabel sx={{ color: '#1a1a1a', fontWeight: 600, mb: 1 }}>Text Color (for gradient slides)</FormLabel>
               <RadioGroup
                 row
                 value={currentEvent?.text_color || '#141414'}
                 onChange={(e) => updateCurrentEvent('text_color', e.target.value)}
               >
-                <FormControlLabel value="#141414" control={<Radio />} label="Black" />
-                <FormControlLabel value="#FFFFFF" control={<Radio />} label="White" />
+                <FormControlLabel
+                  value="#141414"
+                  control={<Radio sx={{ color: '#1a1a1a', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                  label={<span style={{ color: '#1a1a1a' }}>Black</span>}
+                />
+                <FormControlLabel
+                  value="#FFFFFF"
+                  control={<Radio sx={{ color: '#1a1a1a', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                  label={<span style={{ color: '#1a1a1a' }}>White</span>}
+                />
               </RadioGroup>
             </FormControl>
 
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>Outfit Ideas - Women</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>Outfit Ideas - Women</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_women as string[]) || []).map((idea, idx) => (
                 <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('women', idx)} sx={{ bgcolor: '#f5f5f5' }} />
@@ -827,7 +836,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               />
             </Stack>
 
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>Outfit Ideas - Men</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>Outfit Ideas - Men</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_men as string[]) || []).map((idea, idx) => (
                 <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('men', idx)} sx={{ bgcolor: '#f5f5f5' }} />
@@ -960,30 +969,32 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
         </DialogTitle>
         <DialogContent sx={{ bgcolor: 'white' }}>
           <Stack spacing={3} sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Slide Type</InputLabel>
+            <FormControl fullWidth sx={textFieldSx}>
+              <InputLabel sx={{ color: '#1a1a1a' }}>Slide Type</InputLabel>
               <Select
                 value={currentSlide?.type || 'dress_code'}
                 onChange={(e) => setCurrentSlide({ ...currentSlide, type: e.target.value as any })}
                 label="Slide Type"
+                sx={{ color: '#1a1a1a' }}
               >
-                <MenuItem value="dress_code">Dress Code</MenuItem>
-                <MenuItem value="image">Image</MenuItem>
-                <MenuItem value="outfit_ideas">Outfit Ideas</MenuItem>
-                <MenuItem value="ritual">Ritual/Vibe</MenuItem>
+                <MenuItem value="dress_code" sx={{ color: '#1a1a1a' }}>Dress Code</MenuItem>
+                <MenuItem value="image" sx={{ color: '#1a1a1a' }}>Image</MenuItem>
+                <MenuItem value="outfit_ideas" sx={{ color: '#1a1a1a' }}>Outfit Ideas</MenuItem>
+                <MenuItem value="ritual" sx={{ color: '#1a1a1a' }}>Ritual/Vibe</MenuItem>
               </Select>
             </FormControl>
 
             {currentSlide?.type === 'image' && (
-              <FormControl fullWidth>
-                <InputLabel>Select Image</InputLabel>
+              <FormControl fullWidth sx={textFieldSx}>
+                <InputLabel sx={{ color: '#1a1a1a' }}>Select Image</InputLabel>
                 <Select
                   value={currentSlide?.src || ''}
                   onChange={(e) => setCurrentSlide({ ...currentSlide, src: e.target.value })}
                   label="Select Image"
+                  sx={{ color: '#1a1a1a' }}
                 >
                   {ALL_IMAGES.map((img) => (
-                    <MenuItem key={img} value={img}>{img}</MenuItem>
+                    <MenuItem key={img} value={img} sx={{ color: '#1a1a1a' }}>{img}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -1019,7 +1030,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
             {currentSlide?.type === 'outfit_ideas' && (
               <>
-                <Typography variant="subtitle2">Women Ideas (comma separated)</Typography>
+                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>Women Ideas (comma separated)</Typography>
                 <TextField
                   fullWidth
                   multiline
@@ -1028,7 +1039,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   onChange={(e) => setCurrentSlide({ ...currentSlide, women: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                   sx={textFieldSx}
                 />
-                <Typography variant="subtitle2">Men Ideas (comma separated)</Typography>
+                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>Men Ideas (comma separated)</Typography>
                 <TextField
                   fullWidth
                   multiline

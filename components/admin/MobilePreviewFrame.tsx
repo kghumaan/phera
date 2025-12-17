@@ -6,6 +6,7 @@ interface MobilePreviewFrameProps {
   backgroundImage?: string;
   children: ReactNode;
   overlay?: ReactNode; // Optional overlay content (e.g., navigation controls)
+  onBackClick?: () => void; // Optional back button handler
 }
 
 /**
@@ -16,7 +17,8 @@ export default function MobilePreviewFrame({
   title,
   backgroundImage = '/images/backgrounds/lavendar.png',
   children,
-  overlay
+  overlay,
+  onBackClick
 }: MobilePreviewFrameProps) {
   return (
     <Box
@@ -69,6 +71,7 @@ export default function MobilePreviewFrame({
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {/* Back Button */}
               <Box
+                onClick={onBackClick}
                 sx={{
                   width: 28,
                   height: 28,
@@ -78,6 +81,10 @@ export default function MobilePreviewFrame({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: onBackClick ? 'pointer' : 'default',
+                  '&:hover': onBackClick ? {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  } : {},
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
