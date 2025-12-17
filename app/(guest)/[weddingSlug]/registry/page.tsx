@@ -7,37 +7,81 @@ import {
   IconButton,
   Stack,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowBack, ChevronRight } from '@mui/icons-material';
+import { ArrowBack, ChevronRight, OpenInNew } from '@mui/icons-material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import AppHeader from '@/components/shared/AppHeader';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import type { WeddingRegistry } from '@/lib/supabase/wedding-service';
 
 export default function RegistryPage() {
   const params = useParams();
-  const weddingId = params.weddingSlug as string;
+  const weddingSlug = params.weddingSlug as string;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse } = useAuth();
 
+  const [registry, setRegistry] = useState<WeddingRegistry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedRegistry, setSelectedRegistry] = useState<WeddingRegistry | null>(null);
+
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
 
+  useEffect(() => {
+    loadRegistry();
+  }, [weddingSlug]);
+
+  const loadRegistry = async () => {
+    try {
+      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+      if (wedding) {
+        const data = await weddingService.getRegistry(wedding.id);
+        setRegistry(data);
+      }
+    } catch (error) {
+      console.error('Error loading registry:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegistryClick = (item: WeddingRegistry) => {
+    setSelectedRegistry(item);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmRedirect = () => {
+    if (selectedRegistry?.external_url) {
+      window.open(selectedRegistry.external_url, '_blank', 'noopener,noreferrer');
+    }
+    setConfirmDialogOpen(false);
+    setSelectedRegistry(null);
+  };
+
   const handleBack = () => {
-    router.push(`/${weddingId}/details`);
+    router.push(`/${weddingSlug}/details`);
   };
 
   return (
-    <OptimizedBackground 
+    <OptimizedBackground
       src="/images/backgrounds/lavendar.png"
       className="min-h-screen"
     >
@@ -56,7 +100,7 @@ export default function RegistryPage() {
           <AppHeader
             variant="transparent"
             showBackButton={true}
-            backHref={`/${weddingId}/details`}
+            backHref={`/${weddingSlug}/details`}
           />
         </Box>
       )}
@@ -74,7 +118,7 @@ export default function RegistryPage() {
             pb: 2,
           }}
         >
-          <Container 
+          <Container
             maxWidth={false}
             sx={{
               maxWidth: { xs: 361, md: 600, lg: 700 },
@@ -109,7 +153,7 @@ export default function RegistryPage() {
               >
                 Registry
               </Typography>
-              
+
               {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
               {shouldShowWhatsApp ? (
                 <IconButton
@@ -149,141 +193,189 @@ export default function RegistryPage() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          minHeight: '80vh',
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          style={{ width: '100%' }}
-        >
-          <Stack spacing={{ xs: 3, md: 4 }} alignItems="center">
-            {/* Fund Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              style={{ width: '100%' }}
+        {loading ? (
+          <CircularProgress sx={{ color: '#DE3F5E' }} />
+        ) : registry.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Typography
+              sx={{
+                fontFamily: 'Outfit',
+                fontSize: 18,
+                color: '#6a6a6a',
+                textAlign: 'center',
+              }}
             >
-              <Box
-                component="button"
-                onClick={() => router.push(`/${weddingId}/registry/new-home-fund`)}
-                sx={{
-                  display: 'block',
-                  width: '100%',
-                  textDecoration: 'none',
-                  border: 'none',
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
-                    transform: 'translateY(-4px)',
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 3,
-                    padding: { xs: 4, md: 5 },
-                    backgroundColor: '#ffffff',
-                  }}
+              No registry links available yet.
+            </Typography>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{ width: '100%' }}
+          >
+            <Stack spacing={{ xs: 3, md: 4 }} alignItems="center">
+              {registry.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  style={{ width: '100%' }}
                 >
-                  {/* Fund Name */}
-                  <Typography
-                    variant="h4"
+                  <Box
+                    component="button"
+                    onClick={() => handleRegistryClick(item)}
                     sx={{
-                      fontFamily: 'Outfit',
-                      fontWeight: 600,
-                      fontSize: { xs: 28, md: 32, lg: 36 },
-                      lineHeight: 1,
-                      color: '#141414',
+                      display: 'block',
+                      width: '100%',
+                      textDecoration: 'none',
+                      border: 'none',
+                      borderRadius: '20px',
+                      overflow: 'hidden',
+                      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
+                        transform: 'translateY(-4px)',
+                      },
                     }}
                   >
-                    🏠 New Home Fund
-                  </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 3,
+                        padding: { xs: 4, md: 5 },
+                        backgroundColor: '#ffffff',
+                      }}
+                    >
+                      {/* Registry Name with Emoji */}
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          fontFamily: 'Outfit',
+                          fontWeight: 600,
+                          fontSize: { xs: 28, md: 32, lg: 36 },
+                          lineHeight: 1,
+                          color: '#141414',
+                        }}
+                      >
+                        {item.emoji} {item.fund_name}
+                      </Typography>
 
-                  <ChevronRight
-                    sx={{
-                      color: '#141414',
-                      fontSize: { xs: 40, md: 48 },
-                      flexShrink: 0,
-                    }}
-                  />
-                </Box>
-              </Box>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              style={{ width: '100%' }}
-            >
-              <Box
-                component="button"
-                onClick={() => router.push(`/${weddingId}/registry/honeymoon-fund`)}
-                sx={{
-                  display: 'block',
-                  width: '100%',
-                  textDecoration: 'none',
-                  border: 'none',
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.25)',
-                    transform: 'translateY(-4px)',
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 3,
-                    padding: { xs: 4, md: 5 },
-                    backgroundColor: '#ffffff',
-                  }}
-                >
-                  {/* Fund Name */}
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      fontFamily: 'Outfit',
-                      fontWeight: 600,
-                      fontSize: { xs: 28, md: 32, lg: 36 },
-                      lineHeight: 1,
-                      color: '#141414',
-                    }}
-                  >
-                    ✈️ Honeymoon Fund
-                  </Typography>
-
-                  <ChevronRight
-                    sx={{
-                      color: '#141414',
-                      fontSize: { xs: 40, md: 48 },
-                      flexShrink: 0,
-                    }}
-                  />
-                </Box>
-              </Box>
-            </motion.div>
-          </Stack>
-        </motion.div>
+                      <ChevronRight
+                        sx={{
+                          color: '#141414',
+                          fontSize: { xs: 40, md: 48 },
+                          flexShrink: 0,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </motion.div>
+              ))}
+            </Stack>
+          </motion.div>
+        )}
       </Container>
 
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+            p: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          fontFamily: 'Outfit',
+          fontWeight: 600,
+          fontSize: 24,
+          color: '#141414',
+          textAlign: 'center',
+          pt: 3,
+        }}>
+          Leaving Site
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
+            <OpenInNew sx={{ fontSize: 48, color: '#DE3F5E' }} />
+            <Typography
+              sx={{
+                fontFamily: 'Outfit',
+                fontSize: 16,
+                color: '#4a4a4a',
+                textAlign: 'center',
+              }}
+            >
+              You're about to be redirected to an external registry site:
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: 'Outfit',
+                fontSize: 18,
+                fontWeight: 600,
+                color: '#141414',
+                textAlign: 'center',
+              }}
+            >
+              {selectedRegistry?.fund_name}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+          <Button
+            onClick={() => setConfirmDialogOpen(false)}
+            sx={{
+              color: '#6a6a6a',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.05)',
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmRedirect}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              '&:hover': {
+                bgcolor: '#C8365A',
+              },
+            }}
+          >
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* WhatsApp Channel Modal */}
-      <WhatsAppChannelModal 
+      <WhatsAppChannelModal
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />

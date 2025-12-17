@@ -18,13 +18,12 @@ import {
   Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save, ArrowBack, ChevronRight } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, ChevronRight } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
-// Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function RegistryPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -73,8 +72,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       wedding_id: weddingId,
       fund_name: '',
       emoji: '💝',
-      description: '',
-      stripe_product_id: '',
+      external_url: '',
       order_index: registry.length,
     });
     setEditDialogOpen(true);
@@ -86,8 +84,18 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleSave = async () => {
-    if (!currentItem?.fund_name || !currentItem?.emoji) {
-      const errorMessage = 'Please fill in fund name and emoji';
+    if (!currentItem?.fund_name || !currentItem?.emoji || !currentItem?.external_url) {
+      const errorMessage = 'Please fill in all required fields (name, emoji, and URL)';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(currentItem.external_url);
+    } catch {
+      const errorMessage = 'Please enter a valid URL (e.g., https://www.zola.com/registry/yourname)';
       setError(errorMessage);
       showToast(errorMessage, 'error');
       return;
@@ -103,25 +111,25 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       setEditDialogOpen(false);
       setCurrentItem(null);
       setSuccess(true);
-      showToast('Changes saved!', 'success');
+      showToast('Registry link saved!', 'success');
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error('Error saving registry item:', err);
-      const errorMessage = 'Failed to save registry item';
+      const errorMessage = 'Failed to save registry link';
       setError(errorMessage);
       showToast(errorMessage, 'error');
     }
   };
 
   const handleDelete = async (itemId: string) => {
-    if (!confirm('Delete this fund?')) return;
+    if (!confirm('Delete this registry link?')) return;
     try {
       await weddingService.deleteRegistryItem(itemId);
       await loadData();
       setSuccess(true);
-      showToast('Fund deleted successfully', 'success');
+      showToast('Registry link deleted successfully', 'success');
     } catch (err) {
-      const errorMessage = 'Failed to delete fund';
+      const errorMessage = 'Failed to delete registry link';
       setError(errorMessage);
       showToast(errorMessage, 'error');
     }
@@ -141,7 +149,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       {registry.length === 0 ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <Typography sx={{ fontFamily: 'Outfit', fontSize: 14, color: '#6a6a6a', textAlign: 'center' }}>
-            Add a registry item to see preview
+            Add a registry link to see preview
           </Typography>
         </Box>
       ) : (
@@ -205,10 +213,13 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           <Stack spacing={ENHANCED_SECTION_SPACING}>
             <Box>
               <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-                Registry Funds
+                Registry Links
               </Typography>
-              <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-                Manage your wedding registry contribution funds
+              <Typography variant="body1" sx={{ color: '#4a4a4a', mb: 1 }}>
+                Link to your external registry sites (Zola, Amazon, The Knot, etc.)
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
+                Guests will be redirected to your registry site when they click on a link
               </Typography>
             </Box>
 
@@ -227,7 +238,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                 },
               }}
             >
-              Add Fund
+              Add Registry Link
             </Button>
 
             <Stack spacing={2}>
@@ -246,17 +257,17 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                       <Typography variant="h4" sx={{ mb: 1 }}>
                         {item.emoji}
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                         {item.fund_name}
                       </Typography>
-                      {item.description && (
-                        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                          {item.description}
+                      {item.external_url && (
+                        <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all' }}>
+                          {item.external_url}
                         </Typography>
                       )}
                     </Box>
                     <Stack direction="row" spacing={1}>
-                      <IconButton onClick={() => handleEdit(item)} color="error">
+                      <IconButton onClick={() => handleEdit(item)} color="primary">
                         <Edit />
                       </IconButton>
                       <IconButton onClick={() => handleDelete(item.id)} color="error">
@@ -276,7 +287,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                 }}>
                   <Typography sx={{ color: '#6a6a6a' }}>
-                    No registry funds yet. Add your first fund.
+                    No registry links yet. Add your first registry link to get started.
                   </Typography>
                 </Paper>
               )}
@@ -291,10 +302,10 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       </Grid>
 
       {/* Edit Dialog */}
-      <Dialog 
-          open={editDialogOpen} 
-          onClose={() => setEditDialogOpen(false)} 
-          maxWidth="sm" 
+      <Dialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          maxWidth="sm"
           fullWidth
           PaperProps={{
             sx: {
@@ -303,49 +314,43 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
             }
           }}
         >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentItem?.id ? 'Edit Fund' : 'New Fund'}</DialogTitle>
+          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+            {currentItem?.id ? 'Edit Registry Link' : 'New Registry Link'}
+          </DialogTitle>
           <DialogContent sx={{ bgcolor: 'white' }}>
             <Stack spacing={3} sx={{ mt: 2 }}>
               <TextField
-                label="Fund Name *"
+                label="Registry Name *"
                 fullWidth
                 value={currentItem?.fund_name || ''}
                 onChange={(e) => setCurrentItem({ ...currentItem, fund_name: e.target.value })}
-                placeholder="e.g., Honeymoon Fund"
+                placeholder="e.g., Zola Registry, Amazon Registry"
                 sx={textFieldSx}
               />
               <TextField
-                label="Emoji *"
+                label="Icon/Emoji *"
                 fullWidth
                 value={currentItem?.emoji || ''}
                 onChange={(e) => setCurrentItem({ ...currentItem, emoji: e.target.value })}
-                placeholder="e.g., 🏖️"
+                placeholder="e.g., 🎁 🏠 ✈️"
                 sx={textFieldSx}
               />
               <TextField
-                label="Description"
+                label="External URL *"
                 fullWidth
-                multiline
-                rows={2}
-                value={currentItem?.description || ''}
-                onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Stripe Product ID (Optional)"
-                fullWidth
-                value={currentItem?.stripe_product_id || ''}
-                onChange={(e) => setCurrentItem({ ...currentItem, stripe_product_id: e.target.value })}
-                helperText="For payment integration"
+                value={currentItem?.external_url || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, external_url: e.target.value })}
+                placeholder="https://www.zola.com/registry/yourname"
+                helperText="Full URL to your registry site"
                 sx={textFieldSx}
               />
             </Stack>
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
             <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              startIcon={<Save />} 
+            <Button
+              variant="contained"
+              startIcon={<Save />}
               onClick={handleSave}
               sx={{
                 bgcolor: '#DE3F5E',
@@ -381,4 +386,3 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     </Container>
   );
 }
-

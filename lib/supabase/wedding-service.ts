@@ -123,6 +123,7 @@ export interface WeddingRegistry {
   fund_name: string;
   emoji: string;
   description: string | null;
+  external_url: string | null;
   stripe_product_id: string | null;
   order_index: number;
   created_at: string;
