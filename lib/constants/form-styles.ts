@@ -7,13 +7,17 @@ export const ENHANCED_TEXT_FIELD_SX = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '16px',
     bgcolor: 'white',
-    fontSize: '1.1rem',
+    fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
     '& input': {
-      py: 2.5,
-      fontSize: '1.1rem',
+      py: { xs: 2, md: 2.5, lg: 3 },
+      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
     },
     '& textarea': {
-      fontSize: '1.1rem',
+      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
+    },
+    '& .MuiSelect-select': {
+      py: { xs: 2, md: 2.5, lg: 3 },
+      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
     },
     '& fieldset': {
       borderColor: 'rgba(0, 0, 0, 0.23)',
@@ -34,7 +38,7 @@ export const ENHANCED_TEXT_FIELD_SX = {
   },
   '& .MuiInputLabel-root': {
     color: '#4a4a4a',
-    fontSize: '1.25rem',
+    fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' },
     fontWeight: 500,
     lineHeight: 1.5,
     '&.Mui-disabled': {
@@ -60,7 +64,7 @@ export const ENHANCED_TEXT_FIELD_SX = {
   },
   '& .MuiFormHelperText-root': {
     color: '#6a6a6a',
-    fontSize: '0.875rem',
+    fontSize: { xs: '0.875rem', md: '0.9375rem', lg: '1rem' },
   },
 };
 

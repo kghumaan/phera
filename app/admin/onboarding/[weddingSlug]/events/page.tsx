@@ -676,7 +676,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           }
         }}
       >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.75rem' } }}>
           Choose an Event Template
         </DialogTitle>
         <DialogContent>
@@ -718,7 +718,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           }
         }}
       >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.75rem' } }}>
           {currentEvent?.id ? 'Edit Event' : 'New Event'}
         </DialogTitle>
         <DialogContent>
@@ -828,7 +828,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               </RadioGroup>
             </FormControl>
 
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>Outfit Ideas - Women</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' } }}>Outfit Ideas - Women</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_women as string[]) || []).map((idea, idx) => (
                 <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('women', idx)} sx={{ bgcolor: '#f5f5f5', color: '#1a1a1a' }} />
@@ -842,11 +842,28 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     (e.target as HTMLInputElement).value = '';
                   }
                 }}
-                sx={{ minWidth: '200px' }}
+                sx={{
+                  minWidth: '200px',
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: '#1a1a1a',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#1a1a1a',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#DE3F5E',
+                    },
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#4a4a4a',
+                    opacity: 1,
+                  },
+                }}
               />
             </Stack>
 
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>Outfit Ideas - Men</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' } }}>Outfit Ideas - Men</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_men as string[]) || []).map((idea, idx) => (
                 <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('men', idx)} sx={{ bgcolor: '#f5f5f5', color: '#1a1a1a' }} />
@@ -860,7 +877,24 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     (e.target as HTMLInputElement).value = '';
                   }
                 }}
-                sx={{ minWidth: '200px' }}
+                sx={{
+                  minWidth: '200px',
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: '#1a1a1a',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#1a1a1a',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#DE3F5E',
+                    },
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#4a4a4a',
+                    opacity: 1,
+                  },
+                }}
               />
             </Stack>
 
@@ -884,10 +918,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
             {/* Carousel Slides Section */}
             <Box sx={{ mt: 4, pt: 3, borderTop: '2px solid #f0f0f0' }}>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a', fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.625rem' } }}>
                 Carousel Slides
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' } }}>
                 Add and manage slides that will appear when guests view this event
               </Typography>
 
@@ -902,6 +936,9 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   textTransform: 'none',
                   fontWeight: 600,
                   mb: 2,
+                  fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' },
+                  py: { xs: 1, md: 1.5, lg: 1.75 },
+                  px: { xs: 2, md: 3, lg: 3.5 },
                   '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
@@ -985,8 +1022,21 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveEvent} sx={{ bgcolor: '#DE3F5E', color: 'white', '&:hover': { bgcolor: '#C8365A' } }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a', fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' } }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveEvent}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' },
+              py: { xs: 1, md: 1.25, lg: 1.5 },
+              px: { xs: 2, md: 3, lg: 3.5 },
+              '&:hover': { bgcolor: '#C8365A' }
+            }}
+          >
             Save Event
           </Button>
         </DialogActions>
@@ -1005,7 +1055,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           }
         }}
       >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.75rem' } }}>
           {currentSlideIndex >= 0 ? 'Edit Slide' : 'Add Slide'}
         </DialogTitle>
         <DialogContent sx={{ bgcolor: 'white' }}>
