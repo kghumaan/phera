@@ -23,7 +23,6 @@ import {
   InputLabel,
   Card,
   CardContent,
-  Divider,
   Radio,
   RadioGroup,
   FormControlLabel,
@@ -37,8 +36,6 @@ import {
   Save,
   ArrowUpward,
   ArrowDownward,
-  Image as ImageIcon,
-  Palette,
   ChevronLeft,
   ChevronRight,
 } from '@mui/icons-material';
@@ -83,6 +80,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   const [currentEvent, setCurrentEvent] = useState<Partial<WeddingEvent> | null>(null);
   const [currentSlide, setCurrentSlide] = useState<Partial<CarouselSlide> | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(-1);
+  const [previewMode, setPreviewMode] = useState<'list' | 'carousel'>('list');
+  const [previewEventIndex, setPreviewEventIndex] = useState(0);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -169,6 +168,18 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     setCurrentEvent(event);
     setPreviewSlideIndex(0);
     setCarouselDialogOpen(true);
+  };
+
+  const handlePreviewEventClick = (index: number) => {
+    setPreviewEventIndex(index);
+    setPreviewMode('carousel');
+    setPreviewSlideIndex(0);
+  };
+
+  const handleBackToEventsList = () => {
+    setPreviewMode('list');
+    setPreviewEventIndex(0);
+    setPreviewSlideIndex(0);
   };
 
   const handleAddSlide = () => {
@@ -306,23 +317,146 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     updateCurrentEvent(field, current.filter((_, i) => i !== index));
   };
 
-  // Mobile Preview Component
+  // Mobile Preview Component - Always visible showing events list or carousel
   const MobilePreview = () => {
-    if (!currentEvent) return null;
-    const slides = (currentEvent.carousel_slides as CarouselSlide[]) || [];
+    if (previewMode === 'list') {
+      return (
+        <MobilePreviewFrame title="Events & Dress Code">
+          {events.length === 0 ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              <Box sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '12px',
+                p: 3,
+                boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+              }}>
+                <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
+                  Add an event to see preview
+                </Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {events.map((event, index) => (
+                <Box
+                  key={event.id}
+                  onClick={() => handlePreviewEventClick(index)}
+                  sx={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      boxShadow: '0px 0px 40px 0px rgba(0, 0, 0, 0.16)',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  <Box sx={{ display: 'flex' }}>
+                    {event.gradient_background && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          flexShrink: 0,
+                          backgroundImage: `url(/images/backgrounds/${event.gradient_background})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }}
+                      />
+                    )}
+                    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', px: 2, py: 2, backgroundColor: '#fff' }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Outfit',
+                            fontWeight: 600,
+                            fontSize: 12,
+                            lineHeight: 1.5,
+                            letterSpacing: '0.07em',
+                            textTransform: 'uppercase',
+                            color: '#474747',
+                            mb: 0.5,
+                          }}
+                        >
+                          {event.name}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Outfit',
+                            fontWeight: 500,
+                            fontSize: 18,
+                            lineHeight: 1.3,
+                            color: '#000',
+                            mb: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                        >
+                          {event.dress_code_emoji} {event.dress_code}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Outfit',
+                            fontWeight: 300,
+                            fontSize: 14,
+                            lineHeight: 1.5,
+                            color: '#858585',
+                          }}
+                        >
+                          {event.date} @ {event.time}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </MobilePreviewFrame>
+      );
+    }
+
+    // Carousel preview mode
+    const event = events[previewEventIndex];
+    if (!event) return null;
+    const slides = (event.carousel_slides as CarouselSlide[]) || [];
 
     return (
-      <MobilePreviewFrame title={currentEvent.name || 'Event Preview'}>
+      <MobilePreviewFrame title={event.name}>
         {slides.length === 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography sx={{ fontFamily: 'Outfit', fontSize: 14, color: '#6a6a6a', textAlign: 'center' }}>
-              Add carousel slides to see preview
+              No carousel slides for this event
             </Typography>
           </Box>
         ) : (
           <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* Back button */}
+            <Box sx={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}>
+              <IconButton
+                onClick={handleBackToEventsList}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </IconButton>
+            </Box>
+
             {/* Carousel */}
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, pt: 6 }}>
               {slides.map((slide, index) => (
                 <Box
                   key={index}
@@ -334,13 +468,12 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     height: '100%',
                   }}
                 >
-                  {/* Slide Preview */}
                   <Card
                     sx={{
                       width: '100%',
                       height: '100%',
                       backgroundColor: index % 2 === 0 ? 'transparent' : '#FFFFFF',
-                      backgroundImage: index % 2 === 0 ? `url(/images/backgrounds/${currentEvent.gradient_background})` : 'none',
+                      backgroundImage: index % 2 === 0 ? `url(/images/backgrounds/${event.gradient_background})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       borderRadius: '12px',
@@ -361,58 +494,35 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                           }}
                         />
                       ) : (
-                        <Stack spacing={2} alignItems="center" sx={{ textAlign: 'center' }}>
+                        <Stack spacing={1} alignItems="center" sx={{ textAlign: 'center' }}>
                           {slide.subtitle && (
-                            <Typography
-                              sx={{
-                                fontFamily: 'Outfit',
-                                fontSize: 10,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                color: currentEvent.text_color || '#141414',
-                                opacity: 0.7,
-                              }}
-                            >
+                            <Typography sx={{ fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: event.text_color || '#141414', opacity: 0.7 }}>
                               {slide.subtitle}
                             </Typography>
                           )}
                           {slide.heading && (
-                            <Typography
-                              sx={{
-                                fontFamily: 'Instrument Serif',
-                                fontSize: 20,
-                                fontWeight: 400,
-                                fontStyle: 'italic',
-                                color: currentEvent.text_color || '#141414',
-                              }}
-                            >
+                            <Typography sx={{ fontFamily: 'Instrument Serif', fontSize: 20, fontWeight: 400, fontStyle: 'italic', color: event.text_color || '#141414' }}>
                               {slide.heading}
                             </Typography>
                           )}
                           {slide.description && (
-                            <Typography
-                              sx={{
-                                fontFamily: 'Outfit',
-                                fontSize: 12,
-                                color: currentEvent.text_color || '#141414',
-                              }}
-                            >
+                            <Typography sx={{ fontFamily: 'Outfit', fontSize: 11, color: event.text_color || '#141414' }}>
                               {slide.description}
                             </Typography>
                           )}
-                          {slide.women && (
+                          {slide.women && slide.women.length > 0 && (
                             <Box>
-                              <Typography sx={{ fontSize: 10, fontWeight: 600 }}>Women</Typography>
+                              <Typography sx={{ fontSize: 9, fontWeight: 600, color: event.text_color || '#141414' }}>Women</Typography>
                               {slide.women.map((item, i) => (
-                                <Typography key={i} sx={{ fontSize: 11 }}>{item}</Typography>
+                                <Typography key={i} sx={{ fontSize: 10, color: event.text_color || '#141414' }}>{item}</Typography>
                               ))}
                             </Box>
                           )}
-                          {slide.men && (
+                          {slide.men && slide.men.length > 0 && (
                             <Box>
-                              <Typography sx={{ fontSize: 10, fontWeight: 600 }}>Men</Typography>
+                              <Typography sx={{ fontSize: 9, fontWeight: 600, color: event.text_color || '#141414' }}>Men</Typography>
                               {slide.men.map((item, i) => (
-                                <Typography key={i} sx={{ fontSize: 11 }}>{item}</Typography>
+                                <Typography key={i} sx={{ fontSize: 10, color: event.text_color || '#141414' }}>{item}</Typography>
                               ))}
                             </Box>
                           )}
@@ -465,8 +575,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   return (
     <Container maxWidth="xl">
       <Grid container spacing={4}>
-        {/* Left Column - Events List */}
-        <Grid size={{ xs: 12, lg: carouselDialogOpen ? 7 : 12 }}>
+        {/* Left Column - Events List & Forms */}
+        <Grid size={{ xs: 12, lg: 7 }}>
           <Stack spacing={ENHANCED_SECTION_SPACING}>
             <Box>
               <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
@@ -545,7 +655,9 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                           <Edit fontSize="small" />
                         </IconButton>
                         <IconButton onClick={() => handleEditCarousel(event)} size="small" sx={{ color: '#1a1a1a' }}>
-                          <ImageIcon fontSize="small" />
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                          </svg>
                         </IconButton>
                         <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: '#DE3F5E' }}>
                           <Delete fontSize="small" />
@@ -567,12 +679,17 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Stack>
         </Grid>
 
-        {/* Right Column - Mobile Preview (only show when editing carousel) */}
-        {carouselDialogOpen && (
-          <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'sticky', top: 20, height: 'fit-content' }}>
+        {/* Right Column - Sticky Mobile Preview (always visible) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <Box sx={{ position: 'sticky', top: 20, height: 'fit-content' }}>
             <MobilePreview />
-          </Grid>
-        )}
+          </Box>
+        </Grid>
+
+        {/* Mobile Preview at Bottom (Mobile only) */}
+        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
+          <MobilePreview />
+        </Grid>
       </Grid>
 
       {/* Template Selection Dialog */}
@@ -696,12 +813,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             <Typography variant="h6" sx={{ fontWeight: 600 }}>Outfit Ideas - Women</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_women as string[]) || []).map((idea, idx) => (
-                <Chip
-                  key={idx}
-                  label={idea}
-                  onDelete={() => removeOutfitIdea('women', idx)}
-                  sx={{ bgcolor: '#f5f5f5' }}
-                />
+                <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('women', idx)} sx={{ bgcolor: '#f5f5f5' }} />
               ))}
               <TextField
                 size="small"
@@ -719,12 +831,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             <Typography variant="h6" sx={{ fontWeight: 600 }}>Outfit Ideas - Men</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
               {((currentEvent?.outfit_ideas_men as string[]) || []).map((idea, idx) => (
-                <Chip
-                  key={idx}
-                  label={idea}
-                  onDelete={() => removeOutfitIdea('men', idx)}
-                  sx={{ bgcolor: '#f5f5f5' }}
-                />
+                <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('men', idx)} sx={{ bgcolor: '#f5f5f5' }} />
               ))}
               <TextField
                 size="small"
@@ -767,13 +874,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       </Dialog>
 
       {/* Carousel Management Dialog */}
-      <Dialog
-        open={carouselDialogOpen}
-        onClose={() => setCarouselDialogOpen(false)}
-        maxWidth="lg"
-        fullWidth
-        fullScreen
-      >
+      <Dialog open={carouselDialogOpen} onClose={() => setCarouselDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           Manage Carousel - {currentEvent?.name}
           <Typography variant="caption" display="block" sx={{ color: '#6a6a6a', mt: 0.5 }}>
@@ -781,75 +882,64 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 7 }}>
-              <Stack spacing={2}>
-                <Button
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={handleAddSlide}
-                  sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': { bgcolor: '#C8365A' },
-                  }}
-                >
-                  Add Slide
-                </Button>
+          <Stack spacing={2} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={handleAddSlide}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { bgcolor: '#C8365A' },
+              }}
+            >
+              Add Slide
+            </Button>
 
-                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
-                  <Paper key={index} sx={{ p: 2, borderRadius: '12px' }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                          Slide {index + 1}: {slide.type}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 13 }}>
-                          {slide.heading || slide.src || 'No content'}
-                        </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={0.5}>
-                        <IconButton size="small" onClick={() => handleMoveSlide(index, 'up')} disabled={index === 0}>
-                          <ArrowUpward fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleMoveSlide(index, 'down')}
-                          disabled={index === ((currentEvent?.carousel_slides as CarouselSlide[]) || []).length - 1}
-                        >
-                          <ArrowDownward fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleEditSlide(index)} sx={{ color: '#DE3F5E' }}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteSlide(index)} sx={{ color: '#DE3F5E' }}>
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                ))}
-
-                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).length === 0 && (
-                  <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '12px' }}>
-                    <Typography sx={{ color: '#6a6a6a' }}>
-                      No carousel slides yet. Add your first slide to get started.
+            {((currentEvent?.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
+              <Paper key={index} sx={{ p: 2, borderRadius: '12px' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      Slide {index + 1}: {slide.type}
                     </Typography>
-                  </Paper>
-                )}
-              </Stack>
-            </Grid>
+                    <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 13 }}>
+                      {slide.heading || slide.src || 'No content'}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton size="small" onClick={() => handleMoveSlide(index, 'up')} disabled={index === 0}>
+                      <ArrowUpward fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleMoveSlide(index, 'down')}
+                      disabled={index === ((currentEvent?.carousel_slides as CarouselSlide[]) || []).length - 1}
+                    >
+                      <ArrowDownward fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => handleEditSlide(index)} sx={{ color: '#DE3F5E' }}>
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => handleDeleteSlide(index)} sx={{ color: '#DE3F5E' }}>
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              </Paper>
+            ))}
 
-            {/* Mobile Preview on desktop */}
-            <Grid size={{ xs: 12, md: 5 }} sx={{ display: { xs: 'none', md: 'block' } }}>
-              <Box sx={{ position: 'sticky', top: 20 }}>
-                <MobilePreview />
-              </Box>
-            </Grid>
-          </Grid>
+            {((currentEvent?.carousel_slides as CarouselSlide[]) || []).length === 0 && (
+              <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '12px' }}>
+                <Typography sx={{ color: '#6a6a6a' }}>
+                  No carousel slides yet. Add your first slide to get started.
+                </Typography>
+              </Paper>
+            )}
+          </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={() => setCarouselDialogOpen(false)}>Cancel</Button>
