@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha, CircularProgress } from '@mui/material';
+import Image from 'next/image';
 import {
   Home,
   Event,
@@ -95,8 +96,31 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Progress Indicator Section */}
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 1, borderColor: alpha('#000', 0.05) }}>
+      {/* Logo and Progress Indicator Section */}
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderBottom: 1, borderColor: alpha('#000', 0.05) }}>
+        {/* Phera Logo */}
+        <Box
+          sx={{
+            position: 'relative',
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Image
+            src="/logo.svg"
+            alt="Phera"
+            fill
+            priority
+            style={{
+              objectFit: 'contain',
+            }}
+          />
+        </Box>
+
+        {/* Progress Circle */}
         <Box sx={{ position: 'relative', display: 'inline-flex' }}>
           {/* Background circle (track) */}
           <CircularProgress
@@ -140,7 +164,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
           </Box>
         </Box>
         {isMobile && (
-          <IconButton 
+          <IconButton
             onClick={handleDrawerToggle}
             sx={{
               position: 'absolute',
@@ -151,16 +175,6 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             <Close />
           </IconButton>
         )}
-      </Box>
-
-      {/* Header Section */}
-      <Box sx={{ p: 3, borderBottom: 1, borderColor: alpha('#000', 0.1), textAlign: { xs: 'center', md: 'left' } }}>
-        <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a' }}>
-          Wedding Setup
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 0.5, color: '#4a4a4a' }}>
-          {wedding?.couple_name || weddingSlug}
-        </Typography>
       </Box>
 
       {/* Navigation List */}
