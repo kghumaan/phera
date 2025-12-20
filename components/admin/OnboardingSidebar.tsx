@@ -97,16 +97,17 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Logo and Progress Indicator Section */}
-      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderBottom: 1, borderColor: alpha('#000', 0.05) }}>
+      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, borderBottom: 1, borderColor: alpha('#000', 0.05), position: 'relative' }}>
         {/* Phera Logo */}
         <Box
           sx={{
             position: 'relative',
-            width: 40,
-            height: 40,
+            width: 96,
+            height: 96,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            filter: 'brightness(0)', // This converts white to black
           }}
         >
           <Image
