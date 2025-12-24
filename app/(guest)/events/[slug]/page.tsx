@@ -175,7 +175,7 @@ const weddingEvents = [
     dress_code: 'Vibrant Indian Festive',
     dress_code_emoji: '🎊',
     date: 'January 4',
-    time: '4 PM',
+    time: '3:30 PM',
   },
   {
     id: 3,

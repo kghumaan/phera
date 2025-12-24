@@ -40,19 +40,19 @@ const weddingSchedule = [
         location: 'Thaipas'
       },
       {
-        time: '4 PM',
+        time: '3:30 PM',
         name: '🐎 KV\'s Baarat (Grooms Side)',
         description: 'Drums, music, and procession—join the vibrant celebration as we parade through the streets.',
         location: 'Resort Entrance'
       },
       {
-        time: '5:30 PM',
+        time: '5 PM',
         name: '🌺 Varmala & Vows',
         description: 'Exchange garlands and vows under a sunset sky—an intimate, colorful moment you won\'t want to miss.',
         location: 'Lawn'
       },
       {
-        time: '7 - 10 PM',
+        time: '6:30 - 10 PM',
         name: '🥁 Dinner & Jaggo',
         description: 'Eat, dance, repeat—savor the feast then let loose to pounding dhol beats.',
         location: 'Lawn'
@@ -89,7 +89,7 @@ const weddingSchedule = [
         location: 'Ballroom'
       },
       {
-        time: '12 - 3 AM',
+        time: '12 - Late',
         name: '🪩 Afterparty',
         location: 'Ballroom'
       }
