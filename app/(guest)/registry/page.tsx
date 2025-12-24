@@ -158,8 +158,8 @@ export default function RegistryPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 3,
-                    padding: { xs: 4, md: 5 },
+                    gap: { xs: 2, sm: 2.5, md: 3 },
+                    padding: { xs: 3, sm: 3.5, md: 4, lg: 5 },
                     backgroundColor: '#ffffff',
                   }}
                 >
@@ -169,8 +169,8 @@ export default function RegistryPage() {
                     sx={{
                       fontFamily: 'Outfit',
                       fontWeight: 600,
-                      fontSize: { xs: 28, md: 32, lg: 36 },
-                      lineHeight: 1,
+                      fontSize: { xs: 20, sm: 24, md: 28, lg: 32 },
+                      lineHeight: 1.2,
                       color: '#141414',
                     }}
                   >
@@ -180,7 +180,7 @@ export default function RegistryPage() {
                   <ChevronRight
                     sx={{
                       color: '#141414',
-                      fontSize: { xs: 40, md: 48 },
+                      fontSize: { xs: 28, sm: 32, md: 40, lg: 48 },
                       flexShrink: 0,
                     }}
                   />
@@ -218,8 +218,8 @@ export default function RegistryPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 3,
-                    padding: { xs: 4, md: 5 },
+                    gap: { xs: 2, sm: 2.5, md: 3 },
+                    padding: { xs: 3, sm: 3.5, md: 4, lg: 5 },
                     backgroundColor: '#ffffff',
                   }}
                 >
@@ -229,8 +229,8 @@ export default function RegistryPage() {
                     sx={{
                       fontFamily: 'Outfit',
                       fontWeight: 600,
-                      fontSize: { xs: 28, md: 32, lg: 36 },
-                      lineHeight: 1,
+                      fontSize: { xs: 20, sm: 24, md: 28, lg: 32 },
+                      lineHeight: 1.2,
                       color: '#141414',
                     }}
                   >
@@ -240,7 +240,7 @@ export default function RegistryPage() {
                   <ChevronRight
                     sx={{
                       color: '#141414',
-                      fontSize: { xs: 40, md: 48 },
+                      fontSize: { xs: 28, sm: 32, md: 40, lg: 48 },
                       flexShrink: 0,
                     }}
                   />
