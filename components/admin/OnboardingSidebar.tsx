@@ -111,7 +111,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
           }}
         >
           <Image
-            src="/logo.svg"
+            src="/logo-flower.svg"
             alt="Phera"
             fill
             priority
