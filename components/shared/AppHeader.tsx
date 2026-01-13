@@ -68,7 +68,7 @@ export default function AppHeader({
   const handleAdminDashboardClick = () => {
     setIsNavigatingToAdmin(true);
     setUserMenuAnchor(null);
-    router.push(`/admin/onboarding/${adminWeddingSlug}/overview`);
+    router.push(`/admin/${adminWeddingSlug}/overview`);
   };
 
   const formatRSVPResponse = (response: 'yes' | 'no' | 'maybe' | null): string => {

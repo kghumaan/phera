@@ -139,9 +139,9 @@ export async function GET(request: NextRequest) {
       if (redirectParam) {
         redirectUrl = new URL(redirectParam, origin);
 
-        // Special handling: If redirecting to /admin/onboarding/new/overview,
+        // Special handling: If redirecting to /admin/new/overview,
         // check if user already has weddings and redirect to existing wedding instead
-        if (redirectParam === '/admin/onboarding/new/overview' && data.session?.user?.id) {
+        if (redirectParam === '/admin/new/overview' && data.session?.user?.id) {
           // Check if user has any existing weddings
           const { data: weddings } = await supabase
             .from('weddings')
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
           // If user has existing weddings, redirect to their most recent one
           if (weddings && weddings.length > 0) {
             const weddingSlug = weddings[0].slug;
-            redirectUrl = new URL(`/admin/onboarding/${weddingSlug}/overview`, origin);
+            redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
             console.log(`[Callback] User has existing wedding, redirecting to: ${weddingSlug}`);
           } else {
             // Also check if they're an admin of any weddings
@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
 
             if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
               const weddingSlug = (adminWeddings[0].weddings as any).slug;
-              redirectUrl = new URL(`/admin/onboarding/${weddingSlug}/overview`, origin);
+              redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
               console.log(`[Callback] User is admin of wedding, redirecting to: ${weddingSlug}`);
             }
           }

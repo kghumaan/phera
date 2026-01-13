@@ -101,8 +101,8 @@ export default function SignupPage() {
       });
 
       if (wedding) {
-        // Redirect to onboarding
-        router.push(`/admin/onboarding/${slug}/overview`);
+        // Redirect to admin overview
+        router.push(`/admin/${slug}/overview`);
       } else {
         setError('Failed to create wedding. Please try again.');
         setLoading(false);
@@ -119,9 +119,9 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Build the callback URL with redirect to admin/onboarding
+      // Build the callback URL with redirect to admin
       const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', '/admin/onboarding/new/overview');
+      callbackUrl.searchParams.set('redirect', '/admin/new/overview');
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

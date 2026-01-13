@@ -52,7 +52,7 @@ export default function NewWeddingPage() {
 
       if (existingWeddings && existingWeddings.length > 0) {
         // User already has a wedding, redirect to it
-        router.push(`/admin/onboarding/${existingWeddings[0].slug}/overview`);
+        router.push(`/admin/${existingWeddings[0].slug}/overview`);
         return;
       }
 
@@ -67,7 +67,7 @@ export default function NewWeddingPage() {
       if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
         // User is admin of a wedding, redirect to it
         const weddingSlug = (adminWeddings[0].weddings as any).slug;
-        router.push(`/admin/onboarding/${weddingSlug}/overview`);
+        router.push(`/admin/${weddingSlug}/overview`);
         return;
       }
 
@@ -134,7 +134,7 @@ export default function NewWeddingPage() {
 
       if (wedding) {
         // Redirect to onboarding
-        router.push(`/admin/onboarding/${slug}/overview`);
+        router.push(`/admin/${slug}/overview`);
       } else {
         setError('Failed to create wedding. Please try again.');
         setLoading(false);

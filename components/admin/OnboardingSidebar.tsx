@@ -87,8 +87,8 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
   const handleSectionClick = (section: SidebarSection) => {
     // Immediately show loading state
     onNavigating?.(true);
-    
-    router.push(`/admin/onboarding/${weddingSlug}${section.path}`);
+
+    router.push(`/admin/${weddingSlug}${section.path}`);
     if (isMobile) {
       setMobileOpen(false);
     }

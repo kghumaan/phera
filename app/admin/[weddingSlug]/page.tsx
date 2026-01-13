@@ -10,7 +10,7 @@ export default function OnboardingHomePage({ params }: { params: Promise<{ weddi
 
   useEffect(() => {
     // Redirect to overview section by default
-    router.push(`/admin/onboarding/${weddingSlug}/overview`);
+    router.push(`/admin/${weddingSlug}/overview`);
   }, [weddingSlug, router]);
 
   return null;

@@ -48,9 +48,10 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // For onboarding routes, verify wedding ownership
-    if (pathname.startsWith('/admin/onboarding/')) {
-      const weddingSlugMatch = pathname.match(/\/admin\/onboarding\/([^\/]+)/);
+    // For wedding-specific admin routes, verify wedding ownership
+    // Exclude general admin pages like /admin/page, /admin/dashboard, etc.
+    if (pathname.match(/^\/admin\/[^\/]+/) && !pathname.match(/^\/admin\/(page|dashboard|events|guests|settings|new)($|\/)/)) {
+      const weddingSlugMatch = pathname.match(/\/admin\/([^\/]+)/);
       if (weddingSlugMatch) {
         const weddingSlug = weddingSlugMatch[1];
         

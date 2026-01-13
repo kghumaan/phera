@@ -355,7 +355,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         if (finalSlug !== weddingSlug) {
           setSuccess(true);
           setTimeout(() => {
-            router.push(`/admin/onboarding/${finalSlug}/details`);
+            router.push(`/admin/${finalSlug}/details`);
           }, 1000);
           return;
         }

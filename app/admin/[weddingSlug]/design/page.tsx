@@ -445,7 +445,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
                   <MuiLink
                     component="button"
                     variant="body2"
-                    onClick={() => router.push(`/admin/onboarding/${weddingSlug}/pins`)}
+                    onClick={() => router.push(`/admin/${weddingSlug}/pins`)}
                     sx={{
                       color: '#DE3F5E',
                       textDecoration: 'none',

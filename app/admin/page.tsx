@@ -111,14 +111,14 @@ export default function AdminPage() {
           // PGRST116 = no rows returned
           console.error('[Admin] Error fetching wedding:', error);
         } else if (weddingData) {
-          // User has a wedding, redirect to onboarding overview (main editing interface)
-          console.log('[Admin] Wedding found, redirecting to onboarding overview...');
-          router.replace(`/admin/onboarding/${weddingData.slug}/overview`);
+          // User has a wedding, redirect to overview (main editing interface)
+          console.log('[Admin] Wedding found, redirecting to overview...');
+          router.replace(`/admin/${weddingData.slug}/overview`);
           return;
         } else {
-          // No wedding found - redirect to onboarding
-          console.log('[Admin] No wedding found, redirecting to onboarding...');
-          router.replace('/admin/onboarding/new/overview');
+          // No wedding found - redirect to new wedding page
+          console.log('[Admin] No wedding found, redirecting to new wedding...');
+          router.replace('/admin/new/overview');
           return;
         }
       } catch (err) {

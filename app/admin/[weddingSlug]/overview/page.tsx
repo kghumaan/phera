@@ -172,7 +172,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
       
       showToast('Wedding URL updated successfully!', 'success');
       setTimeout(() => {
-        router.push(`/admin/onboarding/${cleanSlug}/overview`);
+        router.push(`/admin/${cleanSlug}/overview`);
       }, 1000);
     } catch (error) {
       console.error('Failed to update slug:', error);
@@ -546,7 +546,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       fullWidth
                       variant="outlined"
                       size="small"
-                      onClick={() => router.push(`/admin/onboarding/${weddingSlug}/guests`)}
+                      onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
                       sx={{
                         mt: 1,
                         borderColor: '#DE3F5E',
@@ -579,7 +579,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => router.push(`/admin/onboarding/${weddingSlug}/details`)}
+                onClick={() => router.push(`/admin/${weddingSlug}/details`)}
                 sx={{
                   py: 2,
                   borderRadius: '12px',
@@ -602,7 +602,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => router.push(`/admin/onboarding/${weddingSlug}/guests`)}
+                onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
                 sx={{
                   py: 2,
                   borderRadius: '12px',
@@ -625,7 +625,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => router.push(`/admin/onboarding/${weddingSlug}/events`)}
+                onClick={() => router.push(`/admin/${weddingSlug}/events`)}
                 sx={{
                   py: 2,
                   borderRadius: '12px',
