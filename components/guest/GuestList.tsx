@@ -1037,11 +1037,11 @@ export default function GuestList({ weddingId }: GuestListProps) {
                   sx={{
                     backgroundColor: '#D6D6D6',
                     color: '#000000',
-                    height: 20,
-                    minWidth: 20,
+                    height: 24,
+                    minWidth: 24,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '12px',
                       fontWeight: 600,
                       letterSpacing: '6%',
                       textTransform: 'uppercase',
@@ -1056,11 +1056,11 @@ export default function GuestList({ weddingId }: GuestListProps) {
                   sx={{
                     backgroundColor: '#D6D6D6',
                     color: '#000000',
-                    height: 20,
-                    minWidth: 20,
+                    height: 24,
+                    minWidth: 24,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '12px',
                       fontWeight: 600,
                       letterSpacing: '6%',
                       textTransform: 'uppercase',

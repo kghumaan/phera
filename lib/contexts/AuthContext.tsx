@@ -1,11 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
+import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 
 interface User {
-  id: string;
+  id: string; // auth.users.id - used for admin checks
+  guestId?: string | null; // guests.id - used for guest-specific operations
   email: string;
   name: string;
   phone?: string;
@@ -22,6 +24,8 @@ interface AuthContextType {
   hasRSVPed: boolean;
   rsvpResponse: 'yes' | 'no' | 'maybe' | null;
   isCheckingRSVP: boolean;
+  isAdmin: boolean;
+  adminWeddingSlug: string | null;
   checkRSVPStatus: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -37,6 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [rsvpResponse, setRsvpResponse] = useState<'yes' | 'no' | 'maybe' | null>(null);
   const [isCheckingRSVP, setIsCheckingRSVP] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminWeddingSlug, setAdminWeddingSlug] = useState<string | null>(null);
+  const isCheckingAuthRef = useRef(false);
+  const hasCheckedAdminRef = useRef(false);
 
   const generateInitials = (name: string) => {
     return name
@@ -62,8 +70,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Check if user is admin of any wedding (only runs once per session)
+  const checkAdminStatus = async (userId: string) => {
+    // Skip if already checked for this user
+    if (hasCheckedAdminRef.current) {
+      return;
+    }
+
+    console.log('🔍 [AuthContext] Checking admin status for user:', userId);
+    hasCheckedAdminRef.current = true;
+
+    try {
+      // First check if user created any weddings
+      const { data: createdWeddings, error: createdError } = await supabase
+        .from('weddings')
+        .select('slug')
+        .eq('created_by', userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (createdWeddings && createdWeddings.length > 0) {
+        console.log('✅ [AuthContext] User created wedding:', createdWeddings[0].slug);
+        setIsAdmin(true);
+        setAdminWeddingSlug(createdWeddings[0].slug);
+        return;
+      }
+
+      // Then check if user is an admin of any wedding
+      const { data: adminWeddings, error: adminError } = await supabase
+        .from('wedding_admins')
+        .select('wedding_id, weddings(slug)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
+        const weddingSlug = (adminWeddings[0].weddings as any).slug;
+        console.log('✅ [AuthContext] User is admin of wedding:', weddingSlug);
+        setIsAdmin(true);
+        setAdminWeddingSlug(weddingSlug);
+      } else {
+        console.log('ℹ️ [AuthContext] User is not an admin of any wedding');
+        setIsAdmin(false);
+        setAdminWeddingSlug(null);
+      }
+    } catch (error) {
+      console.error('❌ [AuthContext] Error checking admin status:', error);
+      setIsAdmin(false);
+      setAdminWeddingSlug(null);
+    }
+  };
+
   const checkRSVPStatus = async () => {
     if (!user || isCheckingRSVP || !user.email) {
+      return;
+    }
+
+    // Skip RSVP checks for landing page
+    if (typeof window !== 'undefined' && isOnLandingPage()) {
+      console.log('Skipping RSVP check for landing page');
+      setIsCheckingRSVP(false);
+      return;
+    }
+
+    // Skip RSVP checks for admin routes
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      console.log('Skipping RSVP check for admin route');
+      setIsCheckingRSVP(false);
       return;
     }
 
@@ -288,12 +361,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuthStatus = async () => {
+    // Prevent multiple simultaneous auth checks using ref to avoid Strict Mode issues
+    if (isCheckingAuthRef.current) {
+      console.log('checkAuthStatus: Skipping - already checking');
+      return;
+    }
+
+    console.log('checkAuthStatus: Starting auth check');
+    isCheckingAuthRef.current = true;
     try {
+      // FIRST: Check if we even have a session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('checkAuthStatus: Session check:', {
+        hasSession: !!session,
+        user: session?.user?.email,
+        error: sessionError
+      });
+
+      if (!session) {
+        console.log('checkAuthStatus: No session found, stopping');
+        setUser(null);
+        setIsLoading(false);
+        isCheckingAuthRef.current = false;
+        return;
+      }
+
       // First check for Supabase auth
+      console.log('checkAuthStatus: Calling getCurrentUser...');
       const result = await getCurrentUser();
       if (result.success && result.user) {
         const userData: User = {
           id: result.user.id,
+          guestId: result.user.guestId,
           email: result.user.email,
           name: result.user.name,
           phone: result.user.phone,
@@ -304,6 +403,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatar_svg: result.user.avatar_svg,
         };
         setUser(userData);
+        // Check admin status for authenticated user
+        checkAdminStatus(result.user.id);
       } else {
         // Check for guest authentication (after RSVP)
         if (typeof window !== 'undefined') {
@@ -398,6 +499,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     } finally {
       setIsLoading(false);
+      isCheckingAuthRef.current = false;
     }
   };
 
@@ -415,6 +517,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setHasRSVPed(false);
       setRsvpResponse(null);
+      // Reset admin status
+      setIsAdmin(false);
+      setAdminWeddingSlug(null);
+      hasCheckedAdminRef.current = false;
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -549,6 +655,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setHasRSVPed(false);
             setRsvpResponse(null);
+            setIsAdmin(false);
+            setAdminWeddingSlug(null);
+            hasCheckedAdminRef.current = false;
           }
         } catch (error) {
           console.error('Auth state change error:', error);
@@ -568,11 +677,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Add a safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
-      if (mounted) {
-        console.warn('Auth initialization timed out, forcing completion');
+      if (mounted && isLoading) {
+        console.warn('Auth initialization timed out after 5s, forcing completion');
         setIsLoading(false);
       }
-    }, 10000); // 10 second timeout
+    }, 5000); // 5 second timeout (reduced from 10s)
 
     return () => {
       mounted = false;
@@ -584,6 +693,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user && !isLoading) {
+      // Skip RSVP checks on landing page
+      if (typeof window !== 'undefined' && isOnLandingPage()) {
+        setHasRSVPed(false);
+        setRsvpResponse(null);
+        setIsCheckingRSVP(false);
+        return;
+      }
+      
       // Add a small delay to ensure database is consistent
       const timer = setTimeout(() => {
         checkRSVPStatus();
@@ -605,6 +722,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasRSVPed, 
         rsvpResponse,
         isCheckingRSVP,
+        isAdmin,
+        adminWeddingSlug,
         checkRSVPStatus, 
         signOut,
         refreshAuth,

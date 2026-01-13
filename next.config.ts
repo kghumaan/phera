@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     // Configure responsive image sizes for your wedding platform
     deviceSizes: [480, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [64, 96, 128, 256, 384],
+    // Configure allowed quality values (required in Next.js 16+)
+    qualities: [75, 85, 90, 100],
     // Enable image optimization
     unoptimized: false,
     // Configure domains for external images if needed
@@ -29,8 +31,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Enable static optimization for better performance
-  output: 'standalone',
 };
 
 export default nextConfig;

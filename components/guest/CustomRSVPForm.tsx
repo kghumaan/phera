@@ -31,6 +31,8 @@ import {
   DialogContent,
   DialogActions,
   FormHelperText,
+  CircularProgress,
+  alpha,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -42,8 +44,10 @@ import {
 } from '@mui/icons-material';
 import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
-import { useRouter } from 'next/navigation';
+import { upsertGuestFlight, getGuestFlight } from '@/lib/supabase/travel-service';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
 import { GifData } from '@/lib/supabase/types';
@@ -55,6 +59,7 @@ interface RSVPFormData {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
   countryCode: string;
   phone: string;
   
@@ -81,12 +86,25 @@ interface RSVPFormData {
   selectedGif?: GifData;
   arrivalOption: 'known' | 'not_sure' | '';
   arrivalDate: string;
+  
+  // Flight Details (optional)
+  flightAirline: string;
+  flightNumber: string;
+  flightDepartureAirport: string;
+  flightArrivalAirport: string;
+  flightDepartureDate: string;
+  flightDepartureTime: string;
+  flightArrivalDate: string;
+  flightArrivalTime: string;
+  shuttlePreferenceTime: string;
+  shuttlePreferenceNote: string;
 }
 
 const initialFormData: RSVPFormData = {
   firstName: '',
   lastName: '',
   email: '',
+  password: '',
   countryCode: '+1',
   phone: '',
   attending: '',
@@ -105,6 +123,17 @@ const initialFormData: RSVPFormData = {
   selectedGif: undefined,
   arrivalOption: '',
   arrivalDate: '',
+  // Flight Details
+  flightAirline: '',
+  flightNumber: '',
+  flightDepartureAirport: '',
+  flightArrivalAirport: '',
+  flightDepartureDate: '',
+  flightDepartureTime: '',
+  flightArrivalDate: '',
+  flightArrivalTime: '',
+  shuttlePreferenceTime: '',
+  shuttlePreferenceNote: '',
 };
 
 const foodPreferences = [
@@ -122,29 +151,67 @@ const weddingSideOptions = [
 ];
 
 const countryCodes = [
+  // North America
   { code: '+1', country: 'US/CA', flag: '🇺🇸' },
+  { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  // Europe
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+32', country: 'Belgium', flag: '🇧🇪' },
+  { code: '+31', country: 'Netherlands', flag: '🇳🇱' },
+  { code: '+39', country: 'Italy', flag: '🇮🇹' },
+  { code: '+34', country: 'Spain', flag: '🇪🇸' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+  { code: '+43', country: 'Austria', flag: '🇦🇹' },
+  { code: '+45', country: 'Denmark', flag: '🇩🇰' },
+  { code: '+46', country: 'Sweden', flag: '🇸🇪' },
+  { code: '+47', country: 'Norway', flag: '🇳🇴' },
+  { code: '+358', country: 'Finland', flag: '🇫🇮' },
+  { code: '+48', country: 'Poland', flag: '🇵🇱' },
+  { code: '+353', country: 'Ireland', flag: '🇮🇪' },
+  { code: '+30', country: 'Greece', flag: '🇬🇷' },
+  { code: '+420', country: 'Czech Republic', flag: '🇨🇿' },
+  { code: '+36', country: 'Hungary', flag: '🇭🇺' },
+  { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  // Asia Pacific
   { code: '+91', country: 'India', flag: '🇮🇳' },
   { code: '+66', country: 'Thailand', flag: '🇹🇭' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
   { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
-  { code: '+49', country: 'Germany', flag: '🇩🇪' },
-  { code: '+61', country: 'Australia', flag: '🇦🇺' },
-  { code: '+971', country: 'UAE', flag: '🇦🇪' },
   { code: '+65', country: 'Singapore', flag: '🇸🇬' },
-  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+  { code: '+63', country: 'Philippines', flag: '🇵🇭' },
+  { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
   { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+82', country: 'South Korea', flag: '🇰🇷' },
   { code: '+86', country: 'China', flag: '🇨🇳' },
-  { code: '+7', country: 'Russia', flag: '🇷🇺' },
-  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
-  { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  { code: '+852', country: 'Hong Kong', flag: '🇭🇰' },
+  { code: '+886', country: 'Taiwan', flag: '🇹🇼' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
+  // Middle East
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: '+972', country: 'Israel', flag: '🇮🇱' },
+  { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+  // Africa
   { code: '+27', country: 'South Africa', flag: '🇿🇦' },
   { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
-  { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
-  { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
-  { code: '+63', country: 'Philippines', flag: '🇵🇭' },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
+  // South America
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+56', country: 'Chile', flag: '🇨🇱' },
 ];
 
-export default function CustomRSVPForm() {
+interface CustomRSVPFormProps {
+  weddingId?: string;
+}
+
+export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -157,6 +224,11 @@ export default function CustomRSVPForm() {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  
+  // Authentication states for Account Creation step
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if plus-ones are allowed based on PIN
   const allowsPlusOne = typeof window !== 'undefined' ? 
@@ -175,20 +247,27 @@ export default function CustomRSVPForm() {
     }
   }, [allowsPlusOne]);
 
+  // Determine if we should show the flight details step
+  const showFlightStep = formData.arrivalOption === 'known' && formData.attending === 'yes';
+
   const steps = allowsPlusOne ? [
     'Basic Information',
+    'Account Creation',
     'Attendance Details',
     'Plus One Details',
     'Event Preferences',
     'Personal Details',
     'Arrival Plans',
+    ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
   ] : [
     'Basic Information',
+    'Account Creation',
     'Attendance Details',
     'Event Preferences',
     'Personal Details',
     'Arrival Plans',
+    ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
   ];
 
@@ -208,7 +287,7 @@ export default function CustomRSVPForm() {
           );
           
           const result = await Promise.race([
-            getExistingRSVP(user.email, 'sim-kv'),
+            getExistingRSVP(user.email, weddingId),
             timeoutPromise
           ]);
           console.log('CustomRSVPForm: getExistingRSVP result:', result);
@@ -219,6 +298,48 @@ export default function CustomRSVPForm() {
               ...prev,
               ...result.data
             }));
+            
+            // Fetch flight details if guestId is available
+            if (result.guestId) {
+              try {
+                const flightData = await getGuestFlight(result.guestId, weddingId);
+                console.log('CustomRSVPForm: Flight data result:', flightData);
+                if (flightData) {
+                  // Parse datetime strings to extract date and time
+                  let departureDate = '';
+                  let departureTime = '';
+                  let arrivalDate = '';
+                  let arrivalTime = '';
+                  
+                  if (flightData.departure_datetime) {
+                    const depDateTime = new Date(flightData.departure_datetime);
+                    departureDate = depDateTime.toISOString().split('T')[0];
+                    departureTime = depDateTime.toTimeString().slice(0, 5);
+                  }
+                  if (flightData.arrival_datetime) {
+                    const arrDateTime = new Date(flightData.arrival_datetime);
+                    arrivalDate = arrDateTime.toISOString().split('T')[0];
+                    arrivalTime = arrDateTime.toTimeString().slice(0, 5);
+                  }
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    flightAirline: flightData.airline || '',
+                    flightNumber: flightData.flight_number || '',
+                    flightDepartureAirport: flightData.departure_airport || '',
+                    flightArrivalAirport: flightData.arrival_airport || '',
+                    flightDepartureDate: departureDate,
+                    flightDepartureTime: departureTime,
+                    flightArrivalDate: arrivalDate,
+                    flightArrivalTime: arrivalTime,
+                    shuttlePreferenceTime: flightData.shuttle_preference_time || '',
+                    shuttlePreferenceNote: flightData.shuttle_preference_note || '',
+                  }));
+                }
+              } catch (flightError) {
+                console.log('CustomRSVPForm: Error fetching flight data (may not exist):', flightError);
+              }
+            }
           } else {
             console.log('CustomRSVPForm: No existing RSVP found, starting fresh');
             // Pre-fill user info if available
@@ -245,6 +366,52 @@ export default function CustomRSVPForm() {
     };
 
     fetchExistingRSVP();
+  }, [user]);
+
+  // Check if user is already authenticated and restore form state from OAuth redirect
+  useEffect(() => {
+    // Check if user is already authenticated
+    if (user && user.email) {
+      setIsAuthenticated(true);
+      // Pre-fill email from authenticated user
+      setFormData(prev => ({
+        ...prev,
+        email: user.email,
+      }));
+      
+      // Find the Account Creation step index and Attendance Details index
+      const accountStepIndex = steps.indexOf('Account Creation');
+      const attendanceStepIndex = steps.indexOf('Attendance Details');
+      
+      // Restore form state from localStorage if returning from OAuth
+      if (typeof window !== 'undefined') {
+        const savedFormProgress = localStorage.getItem('phera_rsvp_form_progress');
+        if (savedFormProgress) {
+          try {
+            const { formData: savedData } = JSON.parse(savedFormProgress);
+            if (savedData) {
+              setFormData(prev => ({
+                ...prev,
+                ...savedData,
+                email: user.email, // Always use authenticated email
+              }));
+            }
+            // Clear the saved progress
+            localStorage.removeItem('phera_rsvp_form_progress');
+          } catch (error) {
+            console.error('Error restoring form progress:', error);
+            localStorage.removeItem('phera_rsvp_form_progress');
+          }
+        }
+        
+        // If user is authenticated and on Basic Info or Account Creation step, 
+        // move them to Attendance Details
+        if (currentStep <= accountStepIndex) {
+          console.log('User authenticated, advancing to Attendance Details step');
+          setCurrentStep(attendanceStepIndex);
+        }
+      }
+    }
   }, [user]);
 
   const handleInputChange = (field: keyof RSVPFormData, value: any) => {
@@ -275,7 +442,7 @@ export default function CustomRSVPForm() {
 
   const handleConfirmExit = () => {
     setShowExitConfirmation(false);
-    router.push('/');
+    router.push(`/${weddingId}`);
   };
 
   const handleCancelExit = () => {
@@ -297,75 +464,191 @@ export default function CustomRSVPForm() {
     }));
   };
 
+  // Handle email/password authentication
+  const handleEmailPasswordAuth = async () => {
+    setAuthError(null);
+    
+    // Validate email and password
+    if (!formData.email.trim()) {
+      setAuthError('Please enter your email');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setAuthError('Please enter a valid email');
+      return;
+    }
+    if (!formData.password.trim()) {
+      setAuthError('Please enter a password');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setAuthError('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsAuthenticating(true);
+
+    try {
+      // First try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        // If invalid credentials, try to sign up
+        if (signInError.message.includes('Invalid login credentials')) {
+          console.log('User not found, attempting signup...');
+          
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          });
+
+          if (signUpError) {
+            setAuthError(signUpError.message);
+            return;
+          }
+
+          if (signUpData.user) {
+            console.log('Signup successful:', signUpData.user.email);
+            // Refresh auth context
+            await refreshAuth();
+            setIsAuthenticated(true);
+            // Move to next step
+            setCurrentStep(prev => prev + 1);
+          }
+        } else {
+          setAuthError(signInError.message);
+        }
+      } else if (signInData.user) {
+        console.log('Sign in successful:', signInData.user.email);
+        // Refresh auth context
+        await refreshAuth();
+        setIsAuthenticated(true);
+        // Move to next step
+        setCurrentStep(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      setAuthError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Handle Google OAuth authentication
+  const handleGoogleAuth = async () => {
+    setAuthError(null);
+    setIsAuthenticating(true);
+
+    try {
+      // Save form state to localStorage before redirect
+      const formProgress = {
+        formData: {
+          ...formData,
+          password: '', // Don't save password
+        },
+        step: currentStep, // Save current step (Account Creation)
+      };
+      localStorage.setItem('phera_rsvp_form_progress', JSON.stringify(formProgress));
+
+      // Build callback URL that returns to RSVP page
+      const callbackUrl = new URL('/auth/callback', window.location.origin);
+      callbackUrl.searchParams.set('redirect', `/${weddingId}/rsvp`);
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        localStorage.removeItem('phera_rsvp_form_progress');
+      }
+    } catch (error) {
+      console.error('Google auth error:', error);
+      setAuthError('Failed to connect with Google. Please try again.');
+      localStorage.removeItem('phera_rsvp_form_progress');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
     
-    // Adjust step numbers based on whether plus-ones are allowed
-    const getActualStepType = (step: number) => {
-      if (allowsPlusOne) {
-        return step; // No adjustment needed
-      } else {
-        // When plus-ones not allowed, shift steps after attendance
-        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
-        return step;
-      }
-    };
+    // Get the step name to determine validation
+    const stepName = steps[step];
     
-    const actualStep = getActualStepType(step);
-    
-    switch (actualStep) {
-      case 0: // Basic Information
+    switch (stepName) {
+      case 'Basic Information':
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (!formData.email.trim()) newErrors.email = 'Email is required';
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = 'Please enter a valid email';
-        }
-        // Phone is now optional, but if provided, validate format
-        if (formData.phone && formData.phone.replace(/\D/g, '').length > 0 && formData.phone.replace(/\D/g, '').length < 10) {
+        // Phone is now required
+        if (!formData.phone.trim()) {
+          newErrors.phone = 'Phone number is required';
+        } else if (formData.phone.replace(/\D/g, '').length < 10) {
           newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
         }
         break;
       
-      case 1: // Attendance Details
+      case 'Account Creation':
+        // If already authenticated, no validation needed
+        if (isAuthenticated) break;
+        
+        if (!formData.email.trim()) newErrors.email = 'Email is required';
+        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Please enter a valid email';
+        }
+        if (!formData.password.trim()) newErrors.password = 'Password is required';
+        if (formData.password && formData.password.length < 6) {
+          newErrors.password = 'Password must be at least 6 characters';
+        }
+        break;
+      
+      case 'Attendance Details':
         if (!formData.attending) newErrors.attending = 'Please select attendance';
         break;
       
-      case 2: // Plus One Details (only when allowsPlusOne is true)
-        if (allowsPlusOne) {
-          if (formData.attending === 'yes' && !formData.plusOne) {
-            newErrors.plusOne = 'Please select plus one option';
+      case 'Plus One Details':
+        if (formData.attending === 'yes' && !formData.plusOne) {
+          newErrors.plusOne = 'Please select plus one option';
+        }
+        if (formData.attending === 'yes' && formData.plusOne === 'yes') {
+          if (!formData.plusOneName.trim()) {
+            newErrors.plusOneName = 'Plus one name is required';
           }
-          if (formData.attending === 'yes' && formData.plusOne === 'yes') {
-            if (!formData.plusOneName.trim()) {
-              newErrors.plusOneName = 'Plus one name is required';
-            }
-            if (!formData.plusOneEmail.trim()) {
-              newErrors.plusOneEmail = 'Plus one email is required';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
-              newErrors.plusOneEmail = 'Please enter a valid email';
-            }
-            // Plus one phone is now optional, but if provided, validate format
-            if (formData.plusOnePhone && formData.plusOnePhone.replace(/\D/g, '').length > 0 && formData.plusOnePhone.replace(/\D/g, '').length < 10) {
-              newErrors.plusOnePhone = 'Please enter a valid phone number (at least 10 digits)';
-            }
+          if (!formData.plusOneEmail.trim()) {
+            newErrors.plusOneEmail = 'Plus one email is required';
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.plusOneEmail)) {
+            newErrors.plusOneEmail = 'Please enter a valid email';
+          }
+          // Plus one phone is now optional, but if provided, validate format
+          if (formData.plusOnePhone && formData.plusOnePhone.replace(/\D/g, '').length > 0 && formData.plusOnePhone.replace(/\D/g, '').length < 10) {
+            newErrors.plusOnePhone = 'Please enter a valid phone number (at least 10 digits)';
           }
         }
         break;
       
-      case 3: // Event Preferences
+      case 'Event Preferences':
         if (formData.attending === 'yes' && formData.foodPreference.length === 0) {
           newErrors.foodPreference = 'Please select at least one food preference';
         }
         break;
 
-      case 4: // Personal Details
+      case 'Personal Details':
         if (!formData.weddingSide) {
           newErrors.weddingSide = 'Please select which side of the wedding';
         }
         break;
 
-      case 5: // Arrival Plans
+      case 'Arrival Plans':
         if (!formData.arrivalOption) {
           newErrors.arrivalOption = 'Please select an arrival option';
         }
@@ -374,7 +657,11 @@ export default function CustomRSVPForm() {
         }
         break;
 
-      case 6: // Fun & Messages
+      case 'Flight Details':
+        // All flight fields are optional - no validation needed
+        break;
+
+      case 'Fun & Messages':
         // No required fields in this step - both song request and special message are optional
         break;
     }
@@ -384,6 +671,21 @@ export default function CustomRSVPForm() {
   };
 
   const handleNext = () => {
+    const currentStepName = steps[currentStep];
+    
+    // Special handling for Account Creation step
+    if (currentStepName === 'Account Creation') {
+      // If already authenticated, skip validation and proceed
+      if (isAuthenticated) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setCurrentStep(prev => prev + 1);
+        return;
+      }
+      // Otherwise, don't proceed - user must authenticate via buttons
+      setErrors({ auth: 'Please sign in or sign up to continue' });
+      return;
+    }
+    
     if (validateStep(currentStep)) {
       // Reset zoom and scroll position
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -394,10 +696,12 @@ export default function CustomRSVPForm() {
           viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
         }
       }, 100);
-
-      // If plus-ones are not allowed, or if not attending, skip the plus-one section
-      if (allowsPlusOne && currentStep === 1 && formData.attending !== 'yes') {
-        setCurrentStep(prev => Math.min(prev + 2, steps.length - 1)); // Skip plus one section
+      
+      // If plus-ones are allowed and user is not attending yes, skip the plus-one section
+      if (currentStepName === 'Attendance Details' && allowsPlusOne && formData.attending !== 'yes') {
+        // Find the index of Event Preferences and go there
+        const eventPrefsIndex = steps.indexOf('Event Preferences');
+        setCurrentStep(eventPrefsIndex);
       } else {
         setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
       }
@@ -417,10 +721,35 @@ export default function CustomRSVPForm() {
       // Directly pass form data - the service handles all normalization
       console.log('Submitting form data:', formData);
       
-      const result = await submitRSVP(formData, 'sim-kv');
+      const result = await submitRSVP(formData, weddingId);
       
       if (result.success) {
         console.log('RSVP submitted successfully, result:', result);
+        
+        // If there's any flight data, save it
+        const hasFlightData = formData.flightAirline || formData.flightNumber || 
+          formData.flightArrivalDate || formData.shuttlePreferenceTime;
+        
+        if (hasFlightData && result.guestId) {
+          try {
+            await upsertGuestFlight(result.guestId, weddingId, {
+              airline: formData.flightAirline,
+              flightNumber: formData.flightNumber,
+              departureAirport: formData.flightDepartureAirport,
+              arrivalAirport: formData.flightArrivalAirport,
+              departureDate: formData.flightDepartureDate,
+              departureTime: formData.flightDepartureTime,
+              arrivalDate: formData.flightArrivalDate,
+              arrivalTime: formData.flightArrivalTime,
+              shuttlePreferenceTime: formData.shuttlePreferenceTime,
+              shuttlePreferenceNote: formData.shuttlePreferenceNote,
+            });
+            console.log('Flight data saved successfully');
+          } catch (flightError) {
+            console.error('Error saving flight data:', flightError);
+            // Don't fail the whole submission if flight data fails
+          }
+        }
         
         // Refresh authentication to pick up the new guest auth
         await refreshAuth();
@@ -492,26 +821,29 @@ export default function CustomRSVPForm() {
         )}
         <Box
           sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            position: isMobile ? 'fixed' : 'relative',
+            top: isMobile ? 0 : 'auto',
+            left: isMobile ? 0 : 'auto',
+            right: isMobile ? 0 : 'auto',
+            bottom: isMobile ? 0 : 'auto',
+            width: isMobile ? 'auto' : '100%',
+            maxWidth: isMobile ? 'none' : { md: 700, lg: 800, xl: 900 },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            zIndex: isMobile ? 1400 : 1,
           }}
         >
           <Container 
-            maxWidth="sm" 
+            maxWidth={isMobile ? 'sm' : false}
             sx={{ 
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              minHeight: '100svh',
+              minHeight: isMobile ? '100svh' : 'auto',
               py: 0,
-              px: { xs: 2, sm: 3, md: 4 },
+              px: { xs: 2, sm: 3, md: 0 },
               overflow: 'hidden',
             }}
           >
@@ -519,23 +851,24 @@ export default function CustomRSVPForm() {
               initial="hidden"
               animate="visible"
               variants={containerVariants}
-              style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+              style={{ width: '100%', height: isMobile ? '100%' : 'auto', display: 'flex', flexDirection: 'column' }}
             >
               {/* Form Content - Same structure as regular form */}
               <Paper
                 elevation={0}
                 sx={{
-                  borderRadius: 1,
+                  p: { xs: 1.5, sm: 2.5, md: 4 },
+                  borderRadius: { xs: 1, md: 2 },
                   border: '1px solid #000',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   color: '#000000',
-                  flex: 1,
+                  flex: isMobile ? 1 : 'none',
                   display: 'flex',
                   flexDirection: 'column',
-                  mt: 6,
-                  minHeight: '180px',
-                  maxHeight: 'calc(100svh - 160px)',
+                  mt: isMobile ? 6 : 0,
+                  minHeight: isMobile ? '180px' : { md: 600, lg: 650 },
+                  maxHeight: isMobile ? 'calc(100svh - 160px)' : { md: '80vh', lg: '85vh' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -775,7 +1108,7 @@ export default function CustomRSVPForm() {
                     flexShrink: 0,
                   }}>
                     <Button
-                      onClick={() => router.push('/')}
+                      onClick={() => router.push(`/${weddingId}`)}
                       variant="contained"
                       size="large"
                       fullWidth
@@ -808,21 +1141,11 @@ export default function CustomRSVPForm() {
   }
 
   const renderStep = () => {
-    // Adjust step numbers based on whether plus-ones are allowed
-    const getActualStepType = (step: number) => {
-      if (allowsPlusOne) {
-        return step; // No adjustment needed
-      } else {
-        // When plus-ones not allowed, shift steps after attendance
-        if (step >= 2) return step + 1; // Event Preferences becomes case 3, etc.
-        return step;
-      }
-    };
+    // Get step name to determine which content to render
+    const stepName = steps[currentStep];
     
-    const actualStep = getActualStepType(currentStep);
-    
-    switch (actualStep) {
-      case 0: // Basic Information
+    switch (stepName) {
+      case 'Basic Information':
         return (
           <Stack spacing={2}>
             <Typography 
@@ -833,7 +1156,7 @@ export default function CustomRSVPForm() {
                 lineHeight: 1.3,
                 mb: 2,
                 fontFamily: 'Outfit',
-                fontSize: '1.75rem',
+                fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
               Let's make this celebration official! ✨
@@ -848,28 +1171,29 @@ export default function CustomRSVPForm() {
                 lineHeight: 1.5,
               }}
             >
-              First, we need some basics to create your guest account:
+              First, tell us a bit about yourself:
             </Typography>
             
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row' }}>
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.24)',
-                    borderRadius: '8px',
-                    padding: '12px 12px',
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
                     backgroundColor: 'white',
                     cursor: 'text',
-                    height: '40px',
+                    height: { xs: '40px', md: '52px' },
                     display: 'flex',
                     alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
                     '&:hover': {
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
                       borderColor: '#DAA520',
                       borderWidth: '2px',
-                      padding: '11px 11px',
+                      padding: { xs: '11px 11px', md: '13px 15px' },
                     },
                   }}
                 >
@@ -883,7 +1207,8 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      color: formData.firstName ? '#000' : '#C2C2C2',
+                      fontSize: 'inherit',
+                      color: formData.firstName ? '#000' : '#888888',
                       backgroundColor: 'transparent',
                     }}
                   />
@@ -898,21 +1223,22 @@ export default function CustomRSVPForm() {
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.24)',
-                    borderRadius: '8px',
-                    padding: '12px 12px',
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
                     backgroundColor: 'white',
                     cursor: 'text',
-                    height: '40px',
+                    height: { xs: '40px', md: '52px' },
                     display: 'flex',
                     alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
                     '&:hover': {
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
                       borderColor: '#DAA520',
                       borderWidth: '2px',
-                      padding: '11px 11px',
+                      padding: { xs: '11px 11px', md: '13px 15px' },
                     },
                   }}
                 >
@@ -926,7 +1252,8 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      color: formData.lastName ? '#000' : '#C2C2C2',
+                      fontSize: 'inherit',
+                      color: formData.lastName ? '#000' : '#888888',
                       backgroundColor: 'transparent',
                     }}
                   />
@@ -942,55 +1269,12 @@ export default function CustomRSVPForm() {
             <Box>
               <Box
                 sx={{
-                  border: '1px solid rgba(0, 0, 0, 0.24)',
-                  borderRadius: '8px',
-                  padding: '12px 12px',
+                  border: '1px solid rgba(0, 0, 0, 0.4)',
+                  borderRadius: { xs: '8px', md: '10px' },
+                  padding: { xs: '12px 12px', md: '14px 16px' },
                   backgroundColor: 'white',
                   cursor: 'text',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:hover': {
-                    borderColor: 'rgba(0, 0, 0, 0.4)',
-                  },
-                  '&:focus-within': {
-                    borderColor: '#DAA520',
-                    borderWidth: '2px',
-                    padding: '11px 11px',
-                  },
-                }}
-              >
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  style={{
-                    border: 'none',
-                    outline: 'none',
-                    width: '100%',
-                    fontFamily: 'Outfit',
-                    color: formData.email ? '#000' : '#C2C2C2',
-                    backgroundColor: 'transparent',
-                  }}
-                />
-              </Box>
-              {errors.email && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                  {errors.email}
-                </Typography>
-              )}
-            </Box>
-            
-            <Box>
-              <Box
-                sx={{
-                  border: '1px solid rgba(0, 0, 0, 0.24)',
-                  borderRadius: '8px',
-                  padding: '12px 12px',
-                  backgroundColor: 'white',
-                  cursor: 'text',
-                  height: '40px',
+                  height: { xs: '40px', md: '52px' },
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
@@ -1000,7 +1284,7 @@ export default function CustomRSVPForm() {
                   '&:focus-within': {
                     borderColor: '#DAA520',
                     borderWidth: '2px',
-                    padding: '11px 11px',
+                    padding: { xs: '11px 11px', md: '13px 15px' },
                   },
                 }}
               >
@@ -1073,8 +1357,9 @@ export default function CustomRSVPForm() {
                     border: 'none',
                     outline: 'none',
                     flex: 1,
-                    fontFamily: 'Outfit',
-                    color: formData.phone ? '#000' : '#C2C2C2',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.phone ? '#000' : '#888888',
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
                   }}
@@ -1097,12 +1382,236 @@ export default function CustomRSVPForm() {
                 lineHeight: 1.4,
               }}
             >
-              <strong>Note:</strong> We're creating your account so you can easily access wedding updates and never have to find that invitation code again! Phone number is required for hotel confirmations and important updates.
+              <strong>Note:</strong> Phone number is required for hotel confirmations and important updates.
             </Typography>
           </Stack>
         );
 
-      case 1: // Attendance Details
+      case 'Account Creation':
+        return (
+          <Stack spacing={2}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                color: '#000', 
+                fontWeight: 400,
+                lineHeight: 1.3,
+                mb: 2,
+                fontFamily: 'Outfit',
+                fontSize: { xs: '1.75rem', md: '2.25rem' },
+              }}
+            >
+              Create Your Login 🔐
+            </Typography>
+            
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#808080 !important', 
+                mb: 3,
+                fontFamily: 'Outfit',
+                lineHeight: 1.5,
+              }}
+            >
+              This will let you revisit event details anytime without needing an invite code.
+            </Typography>
+
+            {authError && (
+              <Alert 
+                severity="error" 
+                onClose={() => setAuthError(null)}
+                sx={{ borderRadius: '12px', mb: 2 }}
+              >
+                {authError}
+              </Alert>
+            )}
+
+            {isAuthenticated ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <CheckCircleOutlined sx={{ fontSize: 64, color: '#4CAF50', mb: 2 }} />
+                <Typography variant="h6" sx={{ color: '#000', fontFamily: 'Outfit', mb: 1 }}>
+                  You're all set!
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#666', fontFamily: 'Outfit' }}>
+                  Logged in as {formData.email || user?.email}
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <Box>
+                  <Box
+                    sx={{
+                      border: '1px solid rgba(0, 0, 0, 0.4)',
+                      borderRadius: { xs: '8px', md: '10px' },
+                      padding: { xs: '12px 12px', md: '14px 16px' },
+                      backgroundColor: 'white',
+                      cursor: 'text',
+                      height: { xs: '40px', md: '52px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.4)',
+                      },
+                      '&:focus-within': {
+                        borderColor: '#DAA520',
+                        borderWidth: '2px',
+                        padding: { xs: '11px 11px', md: '13px 15px' },
+                      },
+                    }}
+                  >
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      disabled={isAuthenticating}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.email ? '#000' : '#888888',
+                        backgroundColor: 'transparent',
+                      }}
+                    />
+                  </Box>
+                  {errors.email && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                      {errors.email}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box>
+                  <Box
+                    sx={{
+                      border: '1px solid rgba(0, 0, 0, 0.4)',
+                      borderRadius: { xs: '8px', md: '10px' },
+                      padding: { xs: '12px 12px', md: '14px 16px' },
+                      backgroundColor: 'white',
+                      cursor: 'text',
+                      height: { xs: '40px', md: '52px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': {
+                        borderColor: 'rgba(0, 0, 0, 0.4)',
+                      },
+                      '&:focus-within': {
+                        borderColor: '#DAA520',
+                        borderWidth: '2px',
+                        padding: { xs: '11px 11px', md: '13px 15px' },
+                      },
+                    }}
+                  >
+                    <input
+                      type="password"
+                      placeholder="Password (min 6 characters)"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      disabled={isAuthenticating}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.password ? '#000' : '#888888',
+                        backgroundColor: 'transparent',
+                      }}
+                    />
+                  </Box>
+                  {errors.password && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                      {errors.password}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleEmailPasswordAuth}
+                  disabled={isAuthenticating}
+                  sx={{
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    py: 1.5,
+                    borderRadius: '32px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                    '&:hover': {
+                      bgcolor: '#C8365A',
+                      boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
+                    },
+                    '&:disabled': {
+                      bgcolor: alpha('#DE3F5E', 0.5),
+                    },
+                  }}
+                >
+                  {isAuthenticating ? (
+                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                  ) : (
+                    'Sign In / Sign Up'
+                  )}
+                </Button>
+
+                <Box sx={{ textAlign: 'center', my: 2 }}>
+                  <Typography variant="body2" sx={{ color: '#666' }}>
+                    or
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleGoogleAuth}
+                  disabled={isAuthenticating}
+                  startIcon={
+                    isAuthenticating ? (
+                      <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                        <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                        <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                      </svg>
+                    )
+                  }
+                  sx={{
+                    borderRadius: '32px',
+                    py: 1.5,
+                    borderColor: '#1a1a1a',
+                    color: '#1a1a1a',
+                    borderWidth: '1.5px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    bgcolor: 'white',
+                    '&:hover': {
+                      borderColor: '#DE3F5E',
+                      bgcolor: alpha('#DE3F5E', 0.05),
+                      borderWidth: '1.5px',
+                    },
+                    '&:disabled': {
+                      borderColor: '#1a1a1a',
+                      color: '#1a1a1a',
+                      bgcolor: 'white',
+                      opacity: 0.7,
+                      borderWidth: '1.5px',
+                    },
+                  }}
+                >
+                  {isAuthenticating ? 'Connecting...' : 'Continue with Google'}
+                </Button>
+              </>
+            )}
+          </Stack>
+        );
+
+      case 'Attendance Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1196,8 +1705,8 @@ export default function CustomRSVPForm() {
                       <Box sx={{ mt: 2, mb: 2 }}>
                         <Box
                           sx={{
-                            border: '1px solid rgba(0, 0, 0, 0.24)',
-                            borderRadius: '8px',
+                            border: '1px solid rgba(0, 0, 0, 0.4)',
+                            borderRadius: { xs: '8px', md: '10px' },
                             padding: '8px 12px',
                             backgroundColor: 'white',
                             cursor: 'text',
@@ -1223,6 +1732,7 @@ export default function CustomRSVPForm() {
                               height: '70px',
                               resize: 'none',
                               fontFamily: 'Outfit',
+                              fontSize: 'inherit',
                               color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
                               backgroundColor: 'transparent',
                             }}
@@ -1237,7 +1747,7 @@ export default function CustomRSVPForm() {
                             gap: 1,
                             p: 2, 
                             backgroundColor: 'rgba(0, 0, 0, 0.08)', 
-                            borderRadius: '8px',
+                            borderRadius: { xs: '8px', md: '10px' },
                             color: 'rgba(0, 0, 0, 0.72)',
                             mt: 2
                           }}
@@ -1284,7 +1794,7 @@ export default function CustomRSVPForm() {
                   gap: 1,
                   p: 2, 
                   backgroundColor: 'rgba(0, 0, 0, 0.08)', 
-                  borderRadius: '8px',
+                  borderRadius: { xs: '8px', md: '10px' },
                   color: 'rgba(0, 0, 0, 0.72)',
                   mt: 2
                 }}
@@ -1301,8 +1811,7 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 2: // Plus One Details (only when allowsPlusOne is true)
-        if (!allowsPlusOne) return null; // Safety check
+      case 'Plus One Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1408,12 +1917,12 @@ export default function CustomRSVPForm() {
                   <Box sx={{ flex: 1 }}>
                     <Box
                       sx={{
-                        border: '1px solid rgba(0, 0, 0, 0.24)',
-                        borderRadius: '8px',
-                        padding: '12px 12px',
+                        border: '1px solid rgba(0, 0, 0, 0.4)',
+                        borderRadius: { xs: '8px', md: '10px' },
+                        padding: { xs: '12px 12px', md: '14px 16px' },
                         backgroundColor: 'white',
                         cursor: 'text',
-                        height: '40px',
+                        height: { xs: '40px', md: '52px' },
                         display: 'flex',
                         alignItems: 'center',
                         '&:hover': {
@@ -1422,7 +1931,7 @@ export default function CustomRSVPForm() {
                         '&:focus-within': {
                           borderColor: '#DAA520',
                           borderWidth: '2px',
-                          padding: '11px 11px',
+                          padding: { xs: '11px 11px', md: '13px 15px' },
                         },
                       }}
                     >
@@ -1439,7 +1948,8 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          color: formData.plusOneName.split(' ')[0] ? '#000' : '#C2C2C2',
+                          fontSize: 'inherit',
+                          color: formData.plusOneName.split(' ')[0] ? '#000' : '#888888',
                           backgroundColor: 'transparent',
                         }}
                       />
@@ -1454,12 +1964,12 @@ export default function CustomRSVPForm() {
                   <Box sx={{ flex: 1 }}>
                     <Box
                       sx={{
-                        border: '1px solid rgba(0, 0, 0, 0.24)',
-                        borderRadius: '8px',
-                        padding: '12px 12px',
+                        border: '1px solid rgba(0, 0, 0, 0.4)',
+                        borderRadius: { xs: '8px', md: '10px' },
+                        padding: { xs: '12px 12px', md: '14px 16px' },
                         backgroundColor: 'white',
                         cursor: 'text',
-                        height: '40px',
+                        height: { xs: '40px', md: '52px' },
                         display: 'flex',
                         alignItems: 'center',
                         '&:hover': {
@@ -1468,7 +1978,7 @@ export default function CustomRSVPForm() {
                         '&:focus-within': {
                           borderColor: '#DAA520',
                           borderWidth: '2px',
-                          padding: '11px 11px',
+                          padding: { xs: '11px 11px', md: '13px 15px' },
                         },
                       }}
                     >
@@ -1485,7 +1995,8 @@ export default function CustomRSVPForm() {
                           outline: 'none',
                           width: '100%',
                           fontFamily: 'Outfit',
-                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#C2C2C2',
+                          fontSize: 'inherit',
+                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#888888',
                           backgroundColor: 'transparent',
                         }}
                       />
@@ -1497,12 +2008,12 @@ export default function CustomRSVPForm() {
                 <Box sx={{ mb: 2 }}>
                   <Box
                     sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.24)',
-                      borderRadius: '8px',
-                      padding: '12px 12px',
+                      border: '1px solid rgba(0, 0, 0, 0.4)',
+                      borderRadius: { xs: '8px', md: '10px' },
+                      padding: { xs: '12px 12px', md: '14px 16px' },
                       backgroundColor: 'white',
                       cursor: 'text',
-                      height: '40px',
+                      height: { xs: '40px', md: '52px' },
                       display: 'flex',
                       alignItems: 'center',
                       '&:hover': {
@@ -1511,7 +2022,7 @@ export default function CustomRSVPForm() {
                       '&:focus-within': {
                         borderColor: '#DAA520',
                         borderWidth: '2px',
-                        padding: '11px 11px',
+                        padding: { xs: '11px 11px', md: '13px 15px' },
                       },
                     }}
                   >
@@ -1525,7 +2036,8 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         width: '100%',
                         fontFamily: 'Outfit',
-                        color: formData.plusOneEmail ? '#000' : '#C2C2C2',
+                        fontSize: 'inherit',
+                        color: formData.plusOneEmail ? '#000' : '#888888',
                         backgroundColor: 'transparent',
                       }}
                     />
@@ -1541,8 +2053,8 @@ export default function CustomRSVPForm() {
                 <Box sx={{ mb: 2 }}>
                   <Box
                     sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.24)',
-                      borderRadius: '8px',
+                      border: '1px solid rgba(0, 0, 0, 0.4)',
+                      borderRadius: { xs: '8px', md: '10px' },
                       padding: '6px 8px', // smaller padding
                       backgroundColor: 'white',
                       cursor: 'text',
@@ -1629,7 +2141,8 @@ export default function CustomRSVPForm() {
                         outline: 'none',
                         flex: 1,
                         fontFamily: 'Outfit',
-                        color: formData.plusOnePhone ? '#000' : '#C2C2C2',
+                        fontSize: 'inherit',
+                        color: formData.plusOnePhone ? '#000' : '#888888',
                         backgroundColor: 'transparent',
                         marginLeft: '8px',
                         fontSize: '1rem',
@@ -1721,7 +2234,7 @@ export default function CustomRSVPForm() {
                 alignItems: 'center', 
                 gap: 0,
                 border: '1px solid rgba(0, 0, 0, 0.12)',
-                borderRadius: '8px',
+                borderRadius: { xs: '8px', md: '10px' },
                 p: 0,
                 maxWidth: 180,
                 backgroundColor: 'white',
@@ -1780,7 +2293,7 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 3: // Event Preferences
+      case 'Event Preferences':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -1898,8 +2411,8 @@ export default function CustomRSVPForm() {
                <Box sx={{ mt: 3 }}>
                  <Box
                    sx={{
-                     border: '1px solid rgba(0, 0, 0, 0.24)',
-                     borderRadius: '8px',
+                     border: '1px solid rgba(0, 0, 0, 0.4)',
+                     borderRadius: { xs: '8px', md: '10px' },
                      padding: '16px 12px',
                      backgroundColor: 'white',
                      cursor: 'text',
@@ -1925,6 +2438,7 @@ export default function CustomRSVPForm() {
                        height: '20px',
                        resize: 'none',
                        fontFamily: 'Outfit',
+                       fontSize: 'inherit',
                        color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
                        backgroundColor: 'transparent',
                      }}
@@ -1935,7 +2449,7 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 4: // Personal Details
+      case 'Personal Details':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2038,7 +2552,7 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 5: // Arrival Plans
+      case 'Arrival Plans':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2143,7 +2657,7 @@ export default function CustomRSVPForm() {
                             fontFamily: 'Outfit',
                             border: '1px solid #ccc',
                             color: '#000',
-                            borderRadius: '8px',
+                            borderRadius: { xs: '8px', md: '10px' },
                           },
                         }}
                         sx={{
@@ -2169,7 +2683,7 @@ export default function CustomRSVPForm() {
                 color: 'rgba(0, 0, 0, 0.72)', 
                 p: 2, 
                 backgroundColor: 'rgba(0, 0, 0, 0.08)', 
-                borderRadius: '8px',
+                borderRadius: { xs: '8px', md: '10px' },
                 lineHeight: 1.5,
                 fontFamily: 'Outfit'
               }}
@@ -2179,7 +2693,310 @@ export default function CustomRSVPForm() {
           </Stack>
         );
 
-      case 6: // Fun & Messages
+      case 'Flight Details':
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ textAlign: 'left', mb: 2 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#000', 
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  mb: 2,
+                  fontFamily: 'Outfit'
+                }}
+              >
+                Share your flight details ✈️
+              </Typography>
+              
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  fontWeight: 400,
+                  mt: 1,
+                  fontFamily: 'Outfit',
+                  lineHeight: 1.5,
+                }}
+              >
+                This helps us coordinate airport pickups and shuttles. All fields are optional - you can add this later!
+              </Typography>
+            </Box>
+            
+            {/* Airline and Flight Number */}
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Airline
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. Thai Airways"
+                    value={formData.flightAirline}
+                    onChange={(e) => handleInputChange('flightAirline', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.flightAirline ? '#000' : '#888888',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Flight Number
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. TG123"
+                    value={formData.flightNumber}
+                    onChange={(e) => handleInputChange('flightNumber', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.flightNumber ? '#000' : '#888888',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Departure and Arrival Airports */}
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Departing From
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. LAX or Los Angeles"
+                    value={formData.flightDepartureAirport}
+                    onChange={(e) => handleInputChange('flightDepartureAirport', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.flightDepartureAirport ? '#000' : '#888888',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                  Arriving At
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                    '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. BKK or Bangkok"
+                    value={formData.flightArrivalAirport}
+                    onChange={(e) => handleInputChange('flightArrivalAirport', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.flightArrivalAirport ? '#000' : '#888888',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Arrival Date and Time */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Arrival in Thailand
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                    type="date"
+                    value={formData.flightArrivalDate}
+                    onChange={(e) => handleInputChange('flightArrivalDate', e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      min: '2025-12-01',
+                      max: '2026-01-10',
+                      style: { fontFamily: 'Outfit', color: '#000' },
+                    }}
+                    sx={{ fontFamily: 'Outfit' }}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                    type="time"
+                    value={formData.flightArrivalTime}
+                    onChange={(e) => handleInputChange('flightArrivalTime', e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      style: { fontFamily: 'Outfit', color: '#000' },
+                    }}
+                    sx={{ fontFamily: 'Outfit' }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Shuttle Preference */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Preferred Shuttle Pickup Time (from Bangkok to Hua Hin)
+              </Typography>
+              <TextField
+                type="time"
+                value={formData.shuttlePreferenceTime}
+                onChange={(e) => handleInputChange('shuttlePreferenceTime', e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  style: { fontFamily: 'Outfit', color: '#000' },
+                }}
+                sx={{ fontFamily: 'Outfit', mb: 1 }}
+              />
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'rgba(0, 0, 0, 0.48)', 
+                  display: 'block',
+                  fontFamily: 'Outfit',
+                  fontStyle: 'italic'
+                }}
+              >
+                This is your preferred time. We'll confirm the closest available shuttle slot.
+              </Typography>
+            </Box>
+
+            {/* Shuttle Notes */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
+                Any notes about your travel? (optional)
+              </Typography>
+              <Box
+                sx={{
+                  border: '1px solid rgba(0, 0, 0, 0.4)',
+                  borderRadius: { xs: '8px', md: '10px' },
+                  padding: { xs: '12px 12px', md: '14px 16px' },
+                  backgroundColor: 'white',
+                  cursor: 'text',
+                  minHeight: '80px',
+                  '&:hover': { borderColor: 'rgba(0, 0, 0, 0.4)' },
+                  '&:focus-within': { borderColor: '#DAA520', borderWidth: '2px', padding: '11px 11px' },
+                }}
+              >
+                <textarea
+                  placeholder="e.g. Traveling with luggage, need wheelchair access, etc."
+                  value={formData.shuttlePreferenceNote}
+                  onChange={(e) => handleInputChange('shuttlePreferenceNote', e.target.value)}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    width: '100%',
+                    height: '60px',
+                    resize: 'none',
+                    fontFamily: 'Outfit',
+                    fontSize: 'inherit',
+                    color: formData.shuttlePreferenceNote ? '#000' : '#888888',
+                    backgroundColor: 'transparent',
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'rgba(0, 0, 0, 0.72)', 
+                p: 2, 
+                backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                borderRadius: { xs: '8px', md: '10px' },
+                lineHeight: 1.5,
+                fontFamily: 'Outfit'
+              }}
+            >
+              Don't have your flight booked yet? No worries! You can add or update this info anytime from your Travel Details page after completing RSVP.
+            </Typography>
+          </Stack>
+        );
+
+      case 'Fun & Messages':
         return (
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -2214,21 +3031,22 @@ export default function CustomRSVPForm() {
                 
                 <Box
                   sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.24)',
-                    borderRadius: '8px',
-                    padding: '12px 12px',
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
                     backgroundColor: 'white',
                     cursor: 'text',
-                    height: '40px',
+                    height: { xs: '40px', md: '52px' },
                     display: 'flex',
                     alignItems: 'center',
+                    fontSize: { xs: '1rem', md: '1.125rem' },
                     '&:hover': {
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
                       borderColor: '#DAA520',
                       borderWidth: '2px',
-                      padding: '11px 11px',
+                      padding: { xs: '11px 11px', md: '13px 15px' },
                     },
                   }}
                 >
@@ -2242,7 +3060,8 @@ export default function CustomRSVPForm() {
                       outline: 'none',
                       width: '100%',
                       fontFamily: 'Outfit',
-                      color: formData.songRequest ? '#000' : '#C2C2C2',
+                      fontSize: 'inherit',
+                      color: formData.songRequest ? '#000' : '#888888',
                       backgroundColor: 'transparent',
                     }}
                   />
@@ -2280,8 +3099,8 @@ export default function CustomRSVPForm() {
                 
                 <Box
                   sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.24)',
-                    borderRadius: '8px',
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
                     padding: '8px 12px',
                     backgroundColor: 'white',
                     cursor: 'text',
@@ -2310,7 +3129,8 @@ export default function CustomRSVPForm() {
                       height: '60px',
                       resize: 'none',
                       fontFamily: 'Outfit',
-                      color: formData.specialMessage ? '#000' : '#C2C2C2',
+                      fontSize: 'inherit',
+                      color: formData.specialMessage ? '#000' : '#888888',
                       backgroundColor: 'transparent',
                     }}
                   />
@@ -2417,12 +3237,12 @@ export default function CustomRSVPForm() {
         paperHeight="85vh" // Set to 85% of viewport height as per user request
       >
         {/* Progress Bar */}
-        <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+        <Box sx={{ mb: { xs: 1.5, sm: 2, md: 3 } }}>
           <Box
             sx={{
               display: 'flex',
               gap: '4px',
-              height: { xs: '3px', sm: '4px' },
+              height: { xs: '3px', sm: '4px', md: '5px' },
               borderRadius: '2px',
               overflow: 'hidden',
               backgroundColor: '#F5F5F5',
@@ -2455,8 +3275,8 @@ export default function CustomRSVPForm() {
           flex: 1, 
           overflowY: 'auto', 
           minHeight: 0,
-          pr: { xs: 0.5, sm: 1 },
-          px: { xs: 1, sm: 0 },
+          pr: { xs: 0.5, sm: 1, md: 2 },
+          px: { xs: 1, sm: 0, md: 2 },
           '&::-webkit-scrollbar': {
             width: { xs: '4px', sm: '6px' },
           },
@@ -2492,7 +3312,7 @@ export default function CustomRSVPForm() {
           pt: { xs: 2, sm: 2.5 },
           display: 'flex',
           alignItems: 'center',
-          gap: { xs: 1, sm: 1.5 },
+          gap: { xs: 1, sm: 1.5, md: 2 },
           flexShrink: 0,
           mt: 'auto',
         }}>
@@ -2500,13 +3320,13 @@ export default function CustomRSVPForm() {
             <IconButton
               onClick={handleBack}
               sx={{
-                width: { xs: 44, sm: 48 },
-                height: { xs: 44, sm: 48 },
+                width: { xs: 44, sm: 48, md: 56 },
+                height: { xs: 44, sm: 48, md: 56 },
                 borderRadius: '50%',
                 backgroundColor: 'rgba(0, 0, 0, 0.16)',
                 color: '#141414',
                 '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.24)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
                 },
               }}
             >
@@ -2518,14 +3338,15 @@ export default function CustomRSVPForm() {
           
           {currentStep < steps.length - 1 ? (
             <Button
-              onClick={currentStep === 1 && formData.attending === 'no' ? handleSubmit : handleNext}
+              onClick={steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? handleSubmit : handleNext}
               variant="contained"
               sx={{ 
                 flex: 1,
-                height: { xs: 44, sm: 48 },
+                height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: '#DE3F5E',
                 color: 'white',
                 fontWeight: 700,
+                fontSize: { xs: '0.9rem', md: '1.1rem' },
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
@@ -2540,7 +3361,7 @@ export default function CustomRSVPForm() {
               }}
               disabled={false}
             >
-              {currentStep === 1 && formData.attending === 'no' ? 'Submit' : 'Next'}
+              {steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? 'Submit' : 'Next'}
             </Button>
           ) : (
             <Button

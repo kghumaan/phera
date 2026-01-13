@@ -105,7 +105,7 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       arrivalDate: rsvp.arrival_date || '',
     }
 
-    return { success: true, data: formData }
+    return { success: true, data: formData, guestId: guest.id }
   } catch (error) {
     console.error('Error fetching existing RSVP:', error)
     return { success: false, error }
@@ -400,6 +400,16 @@ export async function deleteComment(commentId: string, guestId: string) {
     .delete()
     .eq('id', commentId)
     .eq('guest_id', guestId)
+
+  if (error) throw error
+  return { success: true }
+}
+
+export async function deleteRSVP(rsvpId: string) {
+  const { error } = await supabase
+    .from('rsvps')
+    .delete()
+    .eq('id', rsvpId)
 
   if (error) throw error
   return { success: true }

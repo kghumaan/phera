@@ -77,6 +77,18 @@ export interface RSVPFormData {
   arrivalOption: 'known' | 'not_sure' | ''
   arrivalDate: string
   
+  // Flight Details (optional)
+  flightAirline?: string
+  flightNumber?: string
+  flightDepartureAirport?: string
+  flightArrivalAirport?: string
+  flightDepartureDate?: string
+  flightDepartureTime?: string
+  flightArrivalDate?: string
+  flightArrivalTime?: string
+  shuttlePreferenceTime?: string
+  shuttlePreferenceNote?: string
+  
   // Backward compatibility (optional fields)
   ceremonyAttending?: string[]
   relationshipToBride?: string
@@ -101,6 +113,46 @@ export interface Comment {
   gif_preview_url?: string
 }
 
+export interface GuestFlight {
+  id: string
+  guest_id: string
+  wedding_id: string
+  airline?: string
+  flight_number?: string
+  departure_airport?: string
+  arrival_airport?: string
+  departure_datetime?: string
+  arrival_datetime?: string
+  shuttle_preference_time?: string
+  shuttle_preference_note?: string
+  created_at: string
+  updated_at: string
+  guest?: Guest
+}
+
+export interface GuestChecklistItem {
+  id: string
+  guest_id: string
+  wedding_id: string
+  item_key: string
+  completed: boolean
+  completed_at?: string
+  created_at: string
+}
+
+export interface FlightFormData {
+  airline: string
+  flightNumber: string
+  departureAirport: string
+  arrivalAirport: string
+  departureDate: string
+  departureTime: string
+  arrivalDate: string
+  arrivalTime: string
+  shuttlePreferenceTime: string
+  shuttlePreferenceNote: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -118,6 +170,16 @@ export interface Database {
         Row: Comment
         Insert: Omit<Comment, 'id' | 'created_at'>
         Update: Partial<Comment>
+      }
+      guest_flights: {
+        Row: GuestFlight
+        Insert: Omit<GuestFlight, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<GuestFlight>
+      }
+      guest_checklist_items: {
+        Row: GuestChecklistItem
+        Insert: Omit<GuestChecklistItem, 'id' | 'created_at'>
+        Update: Partial<GuestChecklistItem>
       }
       travel_bus_signups: {
         Row: {
@@ -159,4 +221,4 @@ export interface Database {
       }
     }
   }
-} 
+}

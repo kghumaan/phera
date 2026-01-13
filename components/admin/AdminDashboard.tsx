@@ -15,6 +15,7 @@ import {
   AppBar,
   Toolbar,
   IconButton,
+  alpha,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -25,6 +26,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import EventIcon from '@mui/icons-material/Event';
 import ChatIcon from '@mui/icons-material/Chat';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import OptimizedBackground from '@/components/ui/OptimizedBackground';
 
 interface TableStats {
   guests: number;
@@ -203,9 +205,10 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <Box sx={{ flexGrow: 1, minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      {/* Header */}
-      <AppBar position="static" sx={{ backgroundColor: '#141414', boxShadow: 'none' }}>
+    <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
+      <Box sx={{ flexGrow: 1, minHeight: '100vh' }}>
+        {/* Header */}
+        <AppBar position="static" sx={{ bgcolor: alpha('#1a1a1a', 0.95), backdropFilter: 'blur(10px)', boxShadow: 'none' }}>
         <Toolbar>
           <Box
             component="img"
@@ -250,10 +253,9 @@ const AdminDashboard = () => {
             variant="h4"
             sx={{
               fontFamily: 'var(--font-instrument-serif), serif',
-              fontWeight: 400,
-              color: '#141414',
+              fontWeight: 700,
+              color: '#1a1a1a',
               mb: 1,
-              fontStyle: 'italic',
             }}
           >
             Wedding Data Management
@@ -262,7 +264,7 @@ const AdminDashboard = () => {
             variant="body1"
             sx={{
               fontFamily: 'var(--font-outfit), sans-serif',
-              color: '#666',
+              color: '#4a4a4a',
               mb: 4,
             }}
           >
@@ -300,8 +302,11 @@ const AdminDashboard = () => {
                 <Card 
                   sx={{ 
                     height: '100%',
-                    background: `linear-gradient(135deg, ${stat.color}15 0%, ${stat.color}05 100%)`,
-                    border: `1px solid ${stat.color}20`,
+                    borderRadius: '24px',
+                    bgcolor: alpha('#fff', 0.95),
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+                    border: `2px solid ${alpha(stat.color, 0.2)}`,
                   }}
                 >
                   <CardContent sx={{ textAlign: 'center', py: 3 }}>
@@ -322,7 +327,7 @@ const AdminDashboard = () => {
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        color: '#666',
+                        color: '#4a4a4a',
                         fontFamily: 'var(--font-outfit), sans-serif',
                         fontWeight: 500,
                       }}
@@ -346,10 +351,9 @@ const AdminDashboard = () => {
             variant="h5"
             sx={{
               fontFamily: 'var(--font-instrument-serif), serif',
-              fontWeight: 400,
-              color: '#141414',
+              fontWeight: 700,
+              color: '#1a1a1a',
               mb: 3,
-              fontStyle: 'italic',
             }}
           >
             Data Export Options
@@ -366,10 +370,14 @@ const AdminDashboard = () => {
                   <Card 
                     sx={{ 
                       height: '100%',
-                      transition: 'all 0.2s ease-in-out',
+                      borderRadius: '24px',
+                      bgcolor: alpha('#fff', 0.95),
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+                      transition: 'all 0.3s ease-in-out',
                       '&:hover': {
                         transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 25px rgba(0,0,0,0.12)',
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
                       },
                     }}
                   >
@@ -395,7 +403,7 @@ const AdminDashboard = () => {
                               sx={{
                                 fontFamily: 'var(--font-outfit), sans-serif',
                                 fontWeight: 600,
-                                color: '#141414',
+                                color: '#1a1a1a',
                               }}
                             >
                               {option.name}
@@ -416,7 +424,7 @@ const AdminDashboard = () => {
                           <Typography
                             variant="body2"
                             sx={{
-                              color: '#666',
+                              color: '#4a4a4a',
                               fontFamily: 'var(--font-outfit), sans-serif',
                               mb: 2,
                             }}
@@ -429,18 +437,21 @@ const AdminDashboard = () => {
                             onClick={() => exportTableToCSV(option.key, option.name)}
                             disabled={exportLoading === option.key || loading}
                             sx={{
-                              backgroundColor: option.color,
+                              bgcolor: option.color === '#DE3F5E' ? option.color : '#DE3F5E',
                               color: 'white',
-                              borderRadius: '8px',
+                              py: 1.2,
+                              borderRadius: '32px',
+                              fontSize: '1rem',
+                              fontWeight: 600,
                               textTransform: 'none',
                               fontFamily: 'var(--font-outfit), sans-serif',
-                              fontWeight: 600,
+                              boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                               '&:hover': {
-                                backgroundColor: option.color,
-                                filter: 'brightness(0.9)',
+                                bgcolor: '#C8365A',
+                                boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                               },
                               '&:disabled': {
-                                backgroundColor: `${option.color}50`,
+                                bgcolor: alpha('#DE3F5E', 0.5),
                               },
                             }}
                           >
@@ -457,11 +468,11 @@ const AdminDashboard = () => {
         </motion.div>
 
         {/* Footer */}
-        <Box sx={{ mt: 6, pt: 3, borderTop: '1px solid #e0e0e0', textAlign: 'center' }}>
+        <Box sx={{ mt: 6, pt: 3, borderTop: '1px solid rgba(0,0,0,0.1)', textAlign: 'center' }}>
           <Typography
             variant="body2"
             sx={{
-              color: '#999',
+              color: '#6a6a6a',
               fontFamily: 'var(--font-outfit), sans-serif',
             }}
           >
@@ -469,7 +480,8 @@ const AdminDashboard = () => {
           </Typography>
         </Box>
       </Container>
-    </Box>
+      </Box>
+    </OptimizedBackground>
   );
 };
 

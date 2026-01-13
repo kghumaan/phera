@@ -18,14 +18,37 @@ import LoginModal from '@/components/auth/LoginModal';
 
 interface PinEntryProps {
   onPinVerified: () => void;
+  weddingSlug: string;
+}
+
+interface PinCode {
+  pin: string;
+  type: string;
+  allows_plus_one: boolean;
+  skip_rsvp?: boolean;
+}
+
+interface WeddingSettings {
+  pin_codes: PinCode[];
 }
 
 
 
-const PinEntry = ({ onPinVerified }: PinEntryProps) => {
+const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  
+  // Pin entry customization state
+  const [pinEntryText, setPinEntryText] = useState<string | null>(null);
+  const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
+  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.png');
+  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
+  const [pinEntryFontColor, setPinEntryFontColor] = useState('#000');
+  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
+  const [coupleName, setCoupleName] = useState('');
 
   const { refreshAuth, user, isLoading } = useAuth();
   const inputRefs = [
@@ -96,26 +119,93 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     }
   };
 
+  // Fetch wedding settings and customizations on mount
+  useEffect(() => {
+    const fetchWeddingSettings = async () => {
+      setIsLoadingSettings(true);
+      try {
+        // Get the wedding data including pin entry customizations
+        const { data: wedding, error: weddingError } = await supabase
+          .from('weddings')
+          .select('id, couple_name, pin_entry_text, pin_entry_subtitle_text, pin_entry_background, pin_entry_primary_color, pin_entry_font_color, pin_entry_button_font_color')
+          .eq('slug', weddingSlug)
+          .single();
+
+        if (weddingError || !wedding) {
+          console.error('Error fetching wedding:', weddingError);
+          setIsLoadingSettings(false);
+          return;
+        }
+
+        // Set couple name
+        setCoupleName(wedding.couple_name || '');
+
+        // Set pin entry customizations with defaults
+        const defaultText = `Please join ${wedding.couple_name} on their special night`;
+        const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
+        
+        setPinEntryText(wedding.pin_entry_text || defaultText);
+        setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
+        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
+        setPinEntryFontColor(wedding.pin_entry_font_color || '#000');
+        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
+
+        // Now fetch the wedding settings for PIN codes
+        const { data: settings, error: settingsError } = await supabase
+          .from('wedding_settings')
+          .select('pin_codes')
+          .eq('wedding_id', wedding.id)
+          .maybeSingle();
+
+        if (settingsError) {
+          console.error('Error fetching wedding settings:', settingsError);
+          setIsLoadingSettings(false);
+          return;
+        }
+
+        // If no settings exist yet, use empty pin_codes (admin hasn't configured PINs)
+        if (settings && settings.pin_codes) {
+          setWeddingSettings({ pin_codes: settings.pin_codes as PinCode[] });
+        } else {
+          setWeddingSettings({ pin_codes: [] });
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching settings:', error);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    fetchWeddingSettings();
+  }, [weddingSlug]);
+
   const handleContinue = async () => {
     const enteredPin = pin.join('');
     
-    // PIN codes for different guest types
-    const PIN_WITH_PLUS_ONE = '7834';
-    const PIN_NO_PLUS_ONE = '2591';
-    const PIN_BYPASS_RSVP = '9876'; // Bypass RSVP - goes straight to guest home page
-    
-    if (enteredPin === PIN_WITH_PLUS_ONE || enteredPin === PIN_NO_PLUS_ONE || enteredPin === PIN_BYPASS_RSVP) {
+    if (!weddingSettings || !weddingSettings.pin_codes) {
+      setError(true);
+      return;
+    }
+
+    // Check if entered PIN matches any valid PIN for this wedding
+    const matchedPin = weddingSettings.pin_codes.find(
+      (pinConfig) => pinConfig.pin === enteredPin
+    );
+
+    if (matchedPin) {
       // Set pin verification flag and store settings
       if (typeof window !== 'undefined') {
-        localStorage.setItem('phera_pin_verified', 'true');
-        localStorage.setItem('phera_pin_timestamp', Date.now().toString());
-        localStorage.setItem('phera_allows_plus_one', enteredPin === PIN_WITH_PLUS_ONE ? 'true' : 'false');
+        localStorage.setItem(`phera_pin_verified_${weddingSlug}`, 'true');
+        localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, Date.now().toString());
+        localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, matchedPin.allows_plus_one ? 'true' : 'false');
+        localStorage.setItem(`phera_pin_type_${weddingSlug}`, matchedPin.type);
         
-        // Set bypass flag for PIN 1234
-        if (enteredPin === PIN_BYPASS_RSVP) {
-          localStorage.setItem('phera_bypass_rsvp', 'true');
+        // Store skip_rsvp flag if present
+        if (matchedPin.skip_rsvp) {
+          localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
         } else {
-          localStorage.removeItem('phera_bypass_rsvp');
+          localStorage.removeItem(`phera_skip_rsvp_${weddingSlug}`);
         }
         
         // Call the callback to notify parent component
@@ -130,6 +220,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   };
 
   const isPinComplete = pin.every(digit => digit !== '');
+  const isReady = !isLoadingSettings && weddingSettings !== null;
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
@@ -174,23 +265,24 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           return;
         }
 
-        // Check for stored PIN verification
-        const pinVerified = localStorage.getItem('phera_pin_verified');
-        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+        // Check for stored PIN verification (wedding-specific)
+        const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+        const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
         
         if (pinVerified === 'true' && pinTimestamp) {
           try {
             const timestamp = parseInt(pinTimestamp);
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
             if (isRecent) {
-              console.log('Recent PIN verification found, bypassing...');
+              console.log('Recent PIN verification found for this wedding, bypassing...');
               triggerBypass();
               return;
             } else {
               // Remove expired pin verification
-              localStorage.removeItem('phera_pin_verified');
-              localStorage.removeItem('phera_pin_timestamp');
-              localStorage.removeItem('phera_allows_plus_one');
+              localStorage.removeItem(`phera_pin_verified_${weddingSlug}`);
+              localStorage.removeItem(`phera_pin_timestamp_${weddingSlug}`);
+              localStorage.removeItem(`phera_allows_plus_one_${weddingSlug}`);
+              localStorage.removeItem(`phera_pin_type_${weddingSlug}`);
             }
           } catch (error) {
             console.error('Error checking pin verification:', error);
@@ -234,10 +326,20 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     };
   }, [user, isLoading, onPinVerified]);
 
+  // Generate display text with couple name replacement
+  const displayText = pinEntryText 
+    ? pinEntryText.replace(/\{couple_name\}/g, coupleName)
+    : coupleName 
+      ? `Please join ${coupleName} on their special night`
+      : "You're Invited!";
+  const displaySubtitle = pinEntrySubtitleText 
+    ? pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName)
+    : 'Enter your invitation code to see all the details and RSVP for our celebration';
+
   // Background setup similar to home page
   return (
     <OptimizedBackground 
-      src="/images/backgrounds/pearl.png"
+      src={pinEntryBackground}
       className="min-h-screen flex flex-col"
     >
       {/* Top Left Decorative Image */}
@@ -321,14 +423,14 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             sx={{
               fontFamily: 'var(--font-instrument-serif), serif',
               fontWeight: 400,
-              color: '#000',
+              color: pinEntryFontColor,
               fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
               lineHeight: 1.4,
               textAlign: 'center',
               fontStyle: 'italic',
             }}
           >
-            You're Invited!
+            {displayText}
           </Typography>
 
           {/* Subtitle */}
@@ -336,7 +438,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             variant="body1"
             sx={{
               fontFamily: 'var(--font-outfit), sans-serif',
-              color: '#000',
+              color: pinEntryFontColor,
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
               lineHeight: 1.5,
               maxWidth: { xs: 355, sm: 400, lg: 450, xl: 500 },
@@ -346,7 +448,7 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               px: 2,
             }}
           >
-            Enter your invitation code to see all the details and RSVP for our celebration
+            {displaySubtitle}
           </Typography>
         </motion.div>
 
@@ -391,10 +493,10 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
                     border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
                     boxShadow: 'none',
                     '&:hover': {
-                      border: error ? '1px solid #f44336' : '1px solid rgba(0,0,0,0.3)',
+                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
                     },
                     '&.Mui-focused': {
-                      border: error ? '1px solid #f44336' : '1px solid #141414',
+                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
                       boxShadow: 'none',
                     },
                     transition: 'all 0.2s ease-in-out',
@@ -468,10 +570,10 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
           {/* Continue Button */}
           <Button
             onClick={handleContinue}
-            disabled={!isPinComplete}
+            disabled={!isPinComplete || !isReady}
             sx={{
-              backgroundColor: '#141414',
-              color: '#FFFFFF',
+              backgroundColor: pinEntryPrimaryColor,
+              color: pinEntryButtonFontColor,
               borderRadius: '16px',
               px: { xs: '20px', lg: '22px', xl: '24px' },
               py: { xs: '12px', lg: '13px', xl: '14px' },
@@ -484,18 +586,20 @@ const PinEntry = ({ onPinVerified }: PinEntryProps) => {
               maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#2A2A2A',
+                backgroundColor: pinEntryPrimaryColor,
+                opacity: 0.9,
                 boxShadow: 'none',
               },
               '&:disabled': {
-                backgroundColor: 'rgba(20, 20, 20, 0.3)',
-                color: 'rgba(255,255,255,0.5)',
+                backgroundColor: pinEntryPrimaryColor,
+                opacity: 0.3,
+                color: pinEntryButtonFontColor,
                 boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            Continue
+            {isLoadingSettings ? 'Loading...' : 'Continue'}
           </Button>
 
           {/* Or Divider */}

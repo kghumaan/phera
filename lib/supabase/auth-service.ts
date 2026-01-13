@@ -15,12 +15,19 @@ export interface AuthResult {
 }
 
 // Google Sign In
-export async function signInWithGoogle(): Promise<AuthResult> {
+export async function signInWithGoogle(redirectTo?: string): Promise<AuthResult> {
   try {
+    // Build the callback URL with redirect parameter
+    const callbackUrl = new URL('/auth/callback', window.location.origin);
+
+    // Use provided redirect or default to /rsvp
+    const finalRedirect = redirectTo || '/rsvp';
+    callbackUrl.searchParams.set('redirect', finalRedirect);
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/rsvp`,
+        redirectTo: callbackUrl.toString(),
       }
     })
 
@@ -30,9 +37,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return { success: true }
   } catch (error) {
     console.error('Google sign in error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to sign in with Google' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to sign in with Google'
     }
   }
 }
@@ -161,7 +168,8 @@ export async function getCurrentUser(): Promise<AuthResult> {
     const result = {
       success: true,
       user: {
-        id: guestData?.id || user.id,
+        id: user.id, // Always use auth.users.id for admin checks and auth purposes
+        guestId: guestData?.id || null, // Guest table ID for guest-specific operations
         email: user.email || '',
         name: guestData?.name || user.user_metadata?.full_name || user.email || user.phone || '',
         phone: guestData?.phone || user.phone,
