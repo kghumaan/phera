@@ -400,33 +400,23 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               <Grid size={{ xs: 12, md: 6 }}>
                 <Stack spacing={2.5}>
                   {/* Couple */}
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <People fontSize="small" />
                     </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Couple
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
-                        {weddingData.couple_name || 'Not set'}
-                      </Typography>
-                    </Box>
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      {weddingData.couple_name || 'Not set'}
+                    </Typography>
                   </Box>
 
                   {/* Date */}
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <CalendarMonth fontSize="small" />
                     </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Wedding Date
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
-                        {weddingData.wedding_date_display || 'Not set'}
-                      </Typography>
-                    </Box>
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      {weddingData.wedding_date_display || 'Not set'}
+                    </Typography>
                   </Box>
 
                   {/* Venue */}
@@ -435,10 +425,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       <LocationOn fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Venue
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', mt: 0.5 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                         {weddingData.venue_name || 'Not set'}
                       </Typography>
                       {weddingData.venue_location && (
@@ -479,7 +466,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                         </Typography>
                       </Box>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
-                        {rsvpStats.attending}
+                        {rsvpStats.totalGuestsComing}
                       </Typography>
                     </Box>
 
@@ -519,44 +506,22 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       </Typography>
                     </Box>
 
-                    <Divider sx={{ my: 1 }} />
-
-                    {/* Total Guests Coming */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: alpha('#10B981', 0.08), borderRadius: '8px', p: 1.5 }}>
-                      <Typography variant="body2" sx={{ color: '#10B981', fontWeight: 700 }}>
-                        Total Guests Coming
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 700, color: '#10B981' }}>
-                        {rsvpStats.totalGuestsComing}
-                      </Typography>
-                    </Box>
-
-                    {/* Total RSVPs */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 600 }}>
-                        Total RSVPs
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {rsvpStats.total}
-                      </Typography>
-                    </Box>
-
                     {/* View Details Button */}
                     <Button
                       fullWidth
-                      variant="outlined"
-                      size="small"
+                      variant="contained"
+                      size="large"
                       onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
                       sx={{
-                        mt: 1,
-                        borderColor: '#DE3F5E',
-                        color: '#DE3F5E',
-                        borderRadius: '8px',
+                        mt: 2,
+                        bgcolor: '#DE3F5E',
+                        color: 'white',
+                        borderRadius: '12px',
                         textTransform: 'none',
                         fontWeight: 600,
+                        py: 1.5,
                         '&:hover': {
-                          borderColor: '#C8365A',
-                          bgcolor: alpha('#DE3F5E', 0.05),
+                          bgcolor: '#C8365A',
                         },
                       }}
                     >
