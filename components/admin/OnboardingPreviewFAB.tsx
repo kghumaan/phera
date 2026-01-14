@@ -236,7 +236,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#DE3F5E',
+                      color: '#1a1a1a',
                       fontWeight: 600,
                       fontFamily: 'monospace',
                       fontSize: '0.9rem',
@@ -404,9 +404,6 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 {savingStatus && weddingStatus === 'live' ? 'Unpublishing...' : 'Unpublish'}
               </Button>
             </Box>
-            <Typography variant="caption" sx={{ color: '#6a6a6a', textAlign: 'center', display: 'block', mt: 1.5 }}>
-              {weddingStatus === 'draft' ? 'Your website is currently private' : '🎉 Your website is live!'}
-            </Typography>
           </Box>
         </Stack>
       </Popover>
