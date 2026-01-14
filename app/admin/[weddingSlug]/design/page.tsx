@@ -189,7 +189,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             Look & Feel
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a' }}>
             Customize the visual design of your wedding website and pin entry screen
           </Typography>
         </Box>

@@ -148,7 +148,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             Travel Coordination
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a' }}>
             Manage guest flights, shuttle preferences, and travel checklist progress
           </Typography>
         </Box>

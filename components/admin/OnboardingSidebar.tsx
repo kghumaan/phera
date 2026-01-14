@@ -102,7 +102,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
         <Box
           sx={{
             position: 'relative',
-            width: 180,
+            width: '100%',
             height: 120,
             display: 'flex',
             alignItems: 'center',

@@ -189,7 +189,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             Settings & Publish
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a', fontSize: '1.1rem' }}>
             Manage your wedding website settings and publish when ready
           </Typography>
         </Box>
