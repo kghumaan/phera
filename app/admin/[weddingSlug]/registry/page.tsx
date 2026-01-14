@@ -206,8 +206,8 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   );
 
   return (
-    <Container maxWidth="xl">
-      <Grid container spacing={4}>
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+      <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
           <Stack spacing={ENHANCED_SECTION_SPACING}>
@@ -295,9 +295,23 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           </Stack>
         </Grid>
 
-        {/* Right Column - Mobile Preview (Desktop Only) */}
-        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' } }}>
-          <MobilePreview />
+        {/* Right Column - Fixed Mobile Preview (Desktop Only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              left: '79.17%',
+              transform: 'translate(-50%, -50%)',
+              width: { lg: '460px' },
+              maxWidth: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MobilePreview />
+          </Box>
         </Grid>
       </Grid>
 

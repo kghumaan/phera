@@ -15,11 +15,13 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, LocationOnOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -206,6 +208,138 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
+  // Mobile Preview Component
+  const MobilePreview = () => (
+    <MobilePreviewFrame 
+      title="SCHEDULE" 
+      backgroundImage="/images/backgrounds/jade.png"
+    >
+      <Box sx={{ pt: 2 }}>
+        {scheduleData.length === 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: 200,
+            bgcolor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '16px',
+            p: 3,
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+          }}>
+            <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontFamily: 'Outfit' }}>
+              Add a day to see preview
+            </Typography>
+          </Box>
+        ) : (
+          <Stack spacing={2}>
+            {scheduleData.map((day) => (
+              <Box
+                key={day.id}
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '16px',
+                  p: 3,
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                {/* Day Header */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Outfit',
+                      fontWeight: 600,
+                      color: '#141414',
+                      fontSize: '1.5rem',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {day.date}
+                  </Typography>
+                </Box>
+
+                {/* Events */}
+                <Stack spacing={3}>
+                  {day.events?.map((event: any, index: number) => (
+                    <Box
+                      key={event.id}
+                      sx={{
+                        pb: index < day.events.length - 1 ? 3 : 0,
+                        borderBottom: index < day.events.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1,
+                          gap: 2,
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 600,
+                              color: '#141414',
+                              fontSize: '1rem',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {event.name}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          sx={{
+                            color: '#DE3F5E',
+                            fontWeight: 600,
+                            fontSize: '0.95rem',
+                            letterSpacing: '0.07em',
+                            textTransform: 'uppercase',
+                            textAlign: 'right',
+                            flexShrink: 0,
+                            fontFamily: 'Outfit',
+                          }}
+                        >
+                          {event.time}
+                        </Typography>
+                      </Box>
+                      {event.location && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LocationOnOutlined 
+                            sx={{ fontSize: 16, color: '#858585' }} 
+                          />
+                          <Typography
+                            sx={{
+                              color: '#858585',
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              fontFamily: 'Outfit',
+                            }}
+                          >
+                            {event.location}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                  {(!day.events || day.events.length === 0) && (
+                    <Typography sx={{ fontSize: 13, color: '#8d8d8d', fontStyle: 'italic', fontFamily: 'Outfit' }}>
+                      No events yet
+                    </Typography>
+                  )}
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Box>
+    </MobilePreviewFrame>
+  );
+
   if (loading) {
     return (
       <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
@@ -215,338 +349,366 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   }
 
   return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Wedding Schedule
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Build your day-by-day schedule
-          </Typography>
-        </Box>
-
-
-        <Button 
-          variant="contained" 
-          startIcon={<Add />} 
-          onClick={handleAddDay}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            '&:hover': {
-              bgcolor: '#C8365A',
-            },
-          }}
-        >
-          Add Day
-        </Button>
-
-        <Stack spacing={3}>
-          {scheduleData.map((day) => (
-            <Paper key={day.id} sx={{ 
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                    {day.date}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                    {day.day_name}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
-                    setCurrentDay(day); 
-                    setDayFieldErrors({});
-                    setEditDialogOpen(true); 
-                  }}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDeleteDay(day.id)} color="error">
-                    <Delete />
-                  </IconButton>
-                </Stack>
-              </Stack>
-
-              <Stack spacing={2} mb={2}>
-                {day.events?.map((item: any) => (
-                  <Box key={item.id} sx={{ 
-                    pl: 2, 
-                    py: 1.5,
-                    borderLeft: 3, 
-                    borderColor: '#DE3F5E',
-                    bgcolor: 'rgba(222, 63, 94, 0.02)',
-                    borderRadius: '0 8px 8px 0',
-                  }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                          {item.time} - {item.name}
-                        </Typography>
-                        {item.description && (
-                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                            {item.description}
-                          </Typography>
-                        )}
-                        {item.location && (
-                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                            📍 {item.location}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Stack direction="row" spacing={1}>
-                        <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
-                          setCurrentItem(item); 
-                          setItemFieldErrors({});
-                          setItemDialogOpen(true); 
-                        }}>
-                          <Edit />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteItem(item.id)} color="error">
-                          <Delete />
-                        </IconButton>
-                      </Stack>
-                    </Stack>
-                  </Box>
-                ))}
-              </Stack>
-
-              <Button
-                size="small"
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => handleAddItem(day.id)}
-                sx={{
-                  alignSelf: 'flex-start',
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2.5,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    bgcolor: '#C8365A',
-                    boxShadow: 'none',
-                  },
-                }}
-              >
-                Add Event
-              </Button>
-            </Paper>
-          ))}
-
-          {scheduleData.length === 0 && (
-            <Paper sx={{ 
-              p: 4, 
-              textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
-                No schedule days yet. Add your first day to get started.
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+      <Grid container spacing={6}>
+        {/* Left Column - Schedule Form */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Wedding Schedule
               </Typography>
-            </Paper>
-          )}
-        </Stack>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Build your day-by-day schedule
+              </Typography>
+            </Box>
 
-        {/* Day Dialog */}
-        <Dialog 
-          open={editDialogOpen} 
-          onClose={() => setEditDialogOpen(false)} 
-          maxWidth="sm" 
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-            }
-          }}
-        >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentDay?.id ? 'Edit Day' : 'New Day'}</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
-            <Stack spacing={3} sx={{ mt: 2 }}>
-              <TextField
-                label="Day Name *"
-                fullWidth
-                value={currentDay?.day_name || ''}
-                onChange={(e) => {
-                  setCurrentDay({ ...currentDay, day_name: e.target.value });
-                  if (dayFieldErrors.day_name) {
-                    setDayFieldErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.day_name;
-                      return newErrors;
-                    });
-                  }
-                }}
-                placeholder="e.g., Sunday"
-                error={dayFieldErrors.day_name}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Date *"
-                type="date"
-                fullWidth
-                value={currentDay?.date || ''}
-                onChange={(e) => {
-                  setCurrentDay({ ...currentDay, date: e.target.value });
-                  if (dayFieldErrors.date) {
-                    setDayFieldErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.date;
-                      return newErrors;
-                    });
-                  }
-                }}
-                InputLabelProps={{ shrink: true }}
-                error={dayFieldErrors.date}
-                sx={textFieldSx}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
             <Button 
               variant="contained" 
-              startIcon={<Save />} 
-              onClick={handleSaveDay}
+              startIcon={<Add />} 
+              onClick={handleAddDay}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
+                alignSelf: 'flex-start',
                 '&:hover': {
                   bgcolor: '#C8365A',
                 },
               }}
             >
-              Save
+              Add Day
             </Button>
-          </DialogActions>
-        </Dialog>
 
-        {/* Item Dialog */}
-        <Dialog 
-          open={itemDialogOpen} 
-          onClose={() => setItemDialogOpen(false)} 
-          maxWidth="sm" 
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-            }
-          }}
-        >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentItem?.id ? 'Edit Event' : 'New Event'}</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
-            <Stack spacing={3} sx={{ mt: 2 }}>
-              <TextField
-                label="Time *"
-                fullWidth
-                value={currentItem?.time || ''}
-                onChange={(e) => {
-                  setCurrentItem({ ...currentItem, time: e.target.value });
-                  if (itemFieldErrors.time) {
-                    setItemFieldErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.time;
-                      return newErrors;
-                    });
+            <Stack spacing={3}>
+              {scheduleData.map((day) => (
+                <Paper key={day.id} sx={{ 
+                  p: 3,
+                  borderRadius: '16px',
+                  bgcolor: '#fafafa',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   }
-                }}
-                placeholder="e.g., 11:00 AM"
-                error={itemFieldErrors.time}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Event Name *"
-                fullWidth
-                value={currentItem?.name || ''}
-                onChange={(e) => {
-                  setCurrentItem({ ...currentItem, name: e.target.value });
-                  if (itemFieldErrors.name) {
-                    setItemFieldErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.name;
-                      return newErrors;
-                    });
-                  }
-                }}
-                error={itemFieldErrors.name}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Description"
-                fullWidth
-                multiline
-                rows={2}
-                value={currentItem?.description || ''}
-                onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Location"
-                fullWidth
-                value={currentItem?.location || ''}
-                onChange={(e) => setCurrentItem({ ...currentItem, location: e.target.value })}
-                sx={textFieldSx}
-              />
+                }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {day.date}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                        {day.day_name}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                      <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
+                        setCurrentDay(day); 
+                        setDayFieldErrors({});
+                        setEditDialogOpen(true); 
+                      }}>
+                        <Edit />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDeleteDay(day.id)} color="error">
+                        <Delete />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+
+                  <Stack spacing={2} mb={2}>
+                    {day.events?.map((item: any) => (
+                      <Box key={item.id} sx={{ 
+                        pl: 2, 
+                        py: 1.5,
+                        borderLeft: 3, 
+                        borderColor: '#DE3F5E',
+                        bgcolor: 'rgba(222, 63, 94, 0.02)',
+                        borderRadius: '0 8px 8px 0',
+                      }}>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                              {item.time} - {item.name}
+                            </Typography>
+                            {item.description && (
+                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                {item.description}
+                              </Typography>
+                            )}
+                            {item.location && (
+                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                📍 {item.location}
+                              </Typography>
+                            )}
+                          </Box>
+                          <Stack direction="row" spacing={1}>
+                            <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
+                              setCurrentItem(item); 
+                              setItemFieldErrors({});
+                              setItemDialogOpen(true); 
+                            }}>
+                              <Edit />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleDeleteItem(item.id)} color="error">
+                              <Delete />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => handleAddItem(day.id)}
+                    sx={{
+                      alignSelf: 'flex-start',
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 2.5,
+                      boxShadow: 'none',
+                      '&:hover': {
+                        bgcolor: '#C8365A',
+                        boxShadow: 'none',
+                      },
+                    }}
+                  >
+                    Add Event
+                  </Button>
+                </Paper>
+              ))}
+
+              {scheduleData.length === 0 && (
+                <Paper sx={{ 
+                  p: 4, 
+                  textAlign: 'center',
+                  borderRadius: '16px',
+                  bgcolor: 'white',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                }}>
+                  <Typography sx={{ color: '#6a6a6a' }}>
+                    No schedule days yet. Add your first day to get started.
+                  </Typography>
+                </Paper>
+              )}
             </Stack>
-          </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              startIcon={<Save />} 
-              onClick={handleSaveItem}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#C8365A',
-                },
-              }}
-            >
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </Stack>
+        </Grid>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
+        {/* Right Column - Fixed Mobile Preview (always visible on large screens) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              left: '79.17%',
+              transform: 'translate(-50%, -50%)',
+              width: { lg: '460px' },
+              maxWidth: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
+            <MobilePreview />
+          </Box>
+        </Grid>
+
+        {/* Mobile Preview at Bottom (Mobile only) */}
+        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
+          <MobilePreview />
+        </Grid>
+      </Grid>
+
+      {/* Day Dialog */}
+      <Dialog 
+        open={editDialogOpen} 
+        onClose={() => setEditDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentDay?.id ? 'Edit Day' : 'New Day'}</DialogTitle>
+        <DialogContent sx={{ bgcolor: 'white' }}>
+          <Stack spacing={3} sx={{ mt: 2 }}>
+            <TextField
+              label="Day Name *"
+              fullWidth
+              value={currentDay?.day_name || ''}
+              onChange={(e) => {
+                setCurrentDay({ ...currentDay, day_name: e.target.value });
+                if (dayFieldErrors.day_name) {
+                  setDayFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.day_name;
+                    return newErrors;
+                  });
+                }
+              }}
+              placeholder="e.g., Sunday"
+              error={dayFieldErrors.day_name}
+              sx={textFieldSx}
+            />
+            <TextField
+              label="Date *"
+              type="date"
+              fullWidth
+              value={currentDay?.date || ''}
+              onChange={(e) => {
+                setCurrentDay({ ...currentDay, date: e.target.value });
+                if (dayFieldErrors.date) {
+                  setDayFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.date;
+                    return newErrors;
+                  });
+                }
+              }}
+              InputLabelProps={{ shrink: true }}
+              error={dayFieldErrors.date}
+              sx={textFieldSx}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            startIcon={<Save />} 
+            onClick={handleSaveDay}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: '#C8365A',
+              },
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Item Dialog */}
+      <Dialog 
+        open={itemDialogOpen} 
+        onClose={() => setItemDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            bgcolor: 'white',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentItem?.id ? 'Edit Event' : 'New Event'}</DialogTitle>
+        <DialogContent sx={{ bgcolor: 'white' }}>
+          <Stack spacing={3} sx={{ mt: 2 }}>
+            <TextField
+              label="Time *"
+              fullWidth
+              value={currentItem?.time || ''}
+              onChange={(e) => {
+                setCurrentItem({ ...currentItem, time: e.target.value });
+                if (itemFieldErrors.time) {
+                  setItemFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.time;
+                    return newErrors;
+                  });
+                }
+              }}
+              placeholder="e.g., 11:00 AM"
+              error={itemFieldErrors.time}
+              sx={textFieldSx}
+            />
+            <TextField
+              label="Event Name *"
+              fullWidth
+              value={currentItem?.name || ''}
+              onChange={(e) => {
+                setCurrentItem({ ...currentItem, name: e.target.value });
+                if (itemFieldErrors.name) {
+                  setItemFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.name;
+                    return newErrors;
+                  });
+                }
+              }}
+              error={itemFieldErrors.name}
+              sx={textFieldSx}
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={2}
+              value={currentItem?.description || ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
+              sx={textFieldSx}
+            />
+            <TextField
+              label="Location"
+              fullWidth
+              value={currentItem?.location || ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, location: e.target.value })}
+              sx={textFieldSx}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+          <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            startIcon={<Save />} 
+            onClick={handleSaveItem}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: '#C8365A',
+              },
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
-

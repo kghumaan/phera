@@ -294,7 +294,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
       <Stack spacing={4}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

@@ -19,14 +19,15 @@ import {
   Checkbox,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Save, Check, Add, ArrowForward, Delete, Edit, Cancel } from '@mui/icons-material';
+import { Save, Check, Add, ArrowForward, Delete, Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -38,9 +39,14 @@ interface DetailsFormData {
   wedding_date_display: string;
   venue_name: string;
   venue_location: string;
+  venue_flag: string | null;
   rsvp_deadline: string;
   couple_image_url: string | null;
   frame_image_url: string | null;
+  background_image?: string;
+  primary_color?: string;
+  font_color?: string;
+  button_font_color?: string;
 }
 
 // Helper function to generate couple name from first names
@@ -57,17 +63,31 @@ const generateCoupleName = (brideName: string, groomName: string): string => {
 const formatWeddingDateDisplay = (startDate: Date | null, endDate: Date | null): string => {
   if (!startDate) return '';
   
-  if (!endDate || startDate.getTime() === endDate.getTime()) {
+  if (!endDate) {
     // Single day event
     return format(startDate, 'd MMMM, yyyy').toUpperCase();
   }
   
   const startDay = format(startDate, 'd');
   const endDay = format(endDate, 'd');
-  const month = format(startDate, 'MMMM').toUpperCase();
-  const year = format(startDate, 'yyyy');
+  const startMonth = format(startDate, 'MMMM').toUpperCase();
+  const endMonth = format(endDate, 'MMMM').toUpperCase();
+  const startYear = format(startDate, 'yyyy');
+  const endYear = format(endDate, 'yyyy');
   
-  return `${startDay}-${endDay} ${month}, ${year}`;
+  if (startYear !== endYear) {
+    return `${format(startDate, 'd MMMM, yyyy').toUpperCase()} - ${format(endDate, 'd MMMM, yyyy').toUpperCase()}`;
+  }
+  
+  if (startMonth !== endMonth) {
+    return `${startDay} ${startMonth} - ${endDay} ${endMonth}, ${startYear}`;
+  }
+  
+  if (startDay === endDay) {
+    return format(startDate, 'd MMMM, yyyy').toUpperCase();
+  }
+  
+  return `${startDay}-${endDay} ${startMonth}, ${startYear}`;
 };
 
 export default function DetailsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -104,10 +124,81 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     wedding_date_display: '',
     venue_name: '',
     venue_location: '',
+    venue_flag: null,
     rsvp_deadline: '',
     couple_image_url: null,
     frame_image_url: null,
   });
+
+  // Countdown timer logic for preview
+  const calculateTimeLeft = (targetDate: Date | null) => {
+    if (!targetDate) return { months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
+    const difference = targetDate.getTime() - new Date().getTime();
+    if (difference <= 0) return { months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+    return {
+      months: Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44)),
+      days: Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((difference % (1000 * 60)) / 1000),
+    };
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(weddingDateStart));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(weddingDateStart));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [weddingDateStart]);
+
+  const PreviewCountdown = () => {
+    const timeUnits = [
+      { label: 'months', value: timeLeft.months },
+      { label: 'days', value: timeLeft.days },
+      { label: 'hours', value: timeLeft.hours },
+      { label: 'mins', value: timeLeft.minutes },
+      { label: 'secs', value: timeLeft.seconds }
+    ];
+
+    return (
+      <Box sx={{
+        bgcolor: '#FFFFFF',
+        borderRadius: 8,
+        p: 3, // Increased padding
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        width: '100%',
+        maxWidth: 340, // Wider
+      }}>
+        <Stack direction="row" spacing={2.5} justifyContent="center" alignItems="center">
+          {timeUnits.map((unit) => (
+            <Stack key={unit.label} alignItems="center" spacing={0} sx={{ minWidth: 40 }}>
+              <Typography sx={{ 
+                fontWeight: 400, 
+                color: '#000000', 
+                fontSize: 24, // Much bigger digits
+                fontFamily: 'Outfit',
+                lineHeight: 1.2
+              }}>
+                {unit.value}
+              </Typography>
+              <Typography sx={{ 
+                color: '#000000', 
+                fontSize: 11, // Bigger label
+                fontFamily: 'Outfit', 
+                textAlign: 'center',
+                opacity: 0.7
+              }}>
+                {unit.label}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
+    );
+  };
 
   useEffect(() => {
     loadWeddingData();
@@ -163,9 +254,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           wedding_date_display: wedding.wedding_date_display || '',
           venue_name: wedding.venue_name || '',
           venue_location: wedding.venue_location || '',
+          venue_flag: wedding.venue_flag || null,
           rsvp_deadline: wedding.rsvp_deadline || '',
           couple_image_url: wedding.couple_image_url || null,
           frame_image_url: wedding.frame_image_url || null,
+          background_image: wedding.background_image || '',
+          primary_color: wedding.primary_color || '#DE3F5E',
+          font_color: wedding.font_color || '#1a1a1a',
+          button_font_color: wedding.button_font_color || '#FFFFFF',
         });
         
         // Load couple images (support both old single image and new array)
@@ -390,9 +486,200 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     );
   }
 
+  // Mobile Preview Component
+  const MobilePreview = () => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const activeImages = coupleImages.filter(img => img !== null) as string[];
+
+    useEffect(() => {
+      if (activeImages.length <= 1) return;
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % activeImages.length);
+      }, 4000);
+      return () => clearInterval(interval);
+    }, [activeImages.length]);
+
+    return (
+      <MobilePreviewFrame 
+        title="Preview" 
+        backgroundImage={formData.background_image || '/images/backgrounds/lavendar.png'}
+        overlay={
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 32,
+              left: 24,
+              right: 24,
+              zIndex: 4,
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(4px)',
+              borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+              px: 2,
+              py: 2,
+              borderRadius: '24px', // More rounded
+              boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                bgcolor: formData.primary_color || '#DE3F5E',
+                color: formData.button_font_color || '#FFFFFF',
+                borderRadius: '16px',
+                py: 1.5,
+                fontSize: 14,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: 'Outfit',
+                '&:hover': {
+                  bgcolor: formData.primary_color || '#DE3F5E',
+                  opacity: 0.9,
+                },
+              }}
+            >
+              View Details
+            </Button>
+          </Box>
+        }
+      >
+        <Box sx={{ pt: 2, pb: 14 }}>
+          <Stack spacing={3} alignItems="center" textAlign="center">
+            {/* Couple Photo Section */}
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: 280,
+                aspectRatio: '1',
+                mx: 'auto',
+              }}
+            >
+              {/* Frame Background */}
+              <Box
+                component="img"
+                src="/images/frames/frame-27.png"
+                alt="Decorative frame"
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  zIndex: 1,
+                }}
+              />
+              
+              {/* Couple Image */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '7%',
+                  left: '7%',
+                  width: '87%',
+                  height: '87%',
+                  overflow: 'hidden',
+                  zIndex: 2,
+                }}
+              >
+                {activeImages.length > 0 ? (
+                  <Box
+                    component="img"
+                    key={activeImages[currentImageIndex]}
+                    src={activeImages[currentImageIndex]}
+                    alt="Couple Photo"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      transition: 'opacity 0.8s ease-in-out',
+                      animation: activeImages.length > 1 ? 'fadeIn 0.8s ease-in-out' : 'none',
+                      '@keyframes fadeIn': {
+                        from: { opacity: 0.5, filter: 'blur(5px)' },
+                        to: { opacity: 1, filter: 'blur(0px)' }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    bgcolor: '#f5f5f5', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    <Typography variant="caption" color="text.secondary">No Photo</Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            <Stack spacing={1} alignItems="center">
+              {/* Date */}
+              <Typography
+                sx={{
+                  color: formData.font_color || '#000',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.5px',
+                  fontFamily: 'Outfit',
+                  textTransform: 'uppercase'
+                }}
+              >
+                {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd)}
+              </Typography>
+
+            {/* Names */}
+            <Typography
+              variant="h4"
+              sx={{
+                fontSize: '1.75rem',
+                color: formData.font_color || '#000',
+                lineHeight: 1.2,
+                fontFamily: 'var(--font-instrument-serif)',
+                fontStyle: 'italic',
+              }}
+            >
+              {formData.couple_name || 'Couple Names'}
+            </Typography>
+
+            {/* Venue */}
+            <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="center" sx={{ mb: 1 }}>
+              <LocationOnOutlined sx={{ fontSize: 14, color: '#666' }} />
+              <Typography
+                sx={{
+                  color: formData.font_color || '#000',
+                  fontSize: '0.85rem',
+                  textDecoration: 'underline',
+                  fontFamily: 'Outfit',
+                }}
+              >
+                {formData.venue_name || 'Venue Name'}
+              </Typography>
+              {(formData.venue_flag || formData.venue_location) && (
+                <Typography sx={{ fontSize: '1rem' }}>
+                  {formData.venue_flag || formData.venue_location?.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g)?.[0] || ''}
+                </Typography>
+              )}
+            </Stack>
+
+            {/* Countdown Timer */}
+            <PreviewCountdown />
+          </Stack>
+        </Stack>
+      </Box>
+    </MobilePreviewFrame>
+  );
+};
+
   return (
-    <Container maxWidth="xl">
-      <Stack spacing={4}>
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+      <Grid container spacing={6}>
+        {/* Left Column - Form Controls */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
@@ -580,8 +867,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       <IconButton
                         size="small"
                         onClick={() => {
-                          setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd));
-                          setEditingDateDisplay(true);
+                          if (weddingDateStart) {
+                            setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd));
+                            setEditingDateDisplay(true);
+                          }
                         }}
                         sx={{
                           color: '#DE3F5E',
@@ -893,7 +1182,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                               {/* Frame background - at zIndex 1 (behind) */}
                               <Box
                                 component="img"
-                                src={formData.frame_image_url}
+                                src={formData.frame_image_url || ''}
                                 alt="Decorative frame"
                                 sx={{
                                   position: 'absolute',
@@ -921,7 +1210,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                               >
                                 <Box
                                   component="img"
-                                  src={coupleImages[0]}
+                                  src={coupleImages[0] || ''}
                                   alt="Couple photo"
                                   sx={{
                                     width: '100%',
@@ -1013,7 +1302,33 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             {snackbarMessage}
           </Alert>
         </Snackbar>
-      </Stack>
+          </Stack>
+        </Grid>
+
+        {/* Right Column - Fixed Mobile Preview (Desktop only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              left: '79.17%',
+              transform: 'translate(-50%, -50%)',
+              width: { lg: '460px' },
+              maxWidth: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MobilePreview />
+          </Box>
+        </Grid>
+
+        {/* Mobile Preview at Bottom (Mobile only) */}
+        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
+          <MobilePreview />
+        </Grid>
+      </Grid>
     </Container>
   );
 }

@@ -44,6 +44,11 @@ interface WeddingData {
   status: 'draft' | 'live';
 }
 
+interface RSVPData {
+  attending: 'yes' | 'no' | 'maybe';
+  guest_count: number;
+}
+
 export default function OverviewPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
@@ -98,7 +103,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
         // Load RSVP stats - use weddingSlug instead of wedding.id
         try {
-          const rsvps = await getAllRSVPs(weddingSlug);
+          const rsvps = await getAllRSVPs(weddingSlug) as unknown as RSVPData[];
           const attending = rsvps.filter(r => r.attending === 'yes').length;
           const notAttending = rsvps.filter(r => r.attending === 'no').length;
           const pending = rsvps.filter(r => r.attending === 'maybe' || !r.attending).length;
@@ -214,7 +219,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
       <Stack spacing={4}>
         {/* Header */}
         <Box>

@@ -33,7 +33,7 @@ export default function OptimizedBackground({
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative ${className}`}>
       {/* Background Image Container */}
       <motion.div
         initial={{ opacity: 0 }}

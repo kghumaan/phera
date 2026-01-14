@@ -59,7 +59,8 @@ export default function OnboardingLayout({
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, md: 4 },
+            p: { xs: 2, md: 2 },
+            pt: { xs: 4, md: 8 },
             minHeight: '100vh',
             position: 'relative',
           }}

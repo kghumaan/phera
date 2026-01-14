@@ -31,6 +31,8 @@ import AppHeader from '@/components/shared/AppHeader';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { useWedding } from '@/lib/contexts/WeddingContext';
+import { format, parseISO } from 'date-fns';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -160,26 +162,13 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   );
 };
 
-// Wedding data from centralized config
-const coupleData = {
-  names: WEDDING_CONFIG.coupleNames,
-  date: WEDDING_CONFIG.weddingDateDisplay,
-  weddingDate: WEDDING_CONFIG.weddingDate,
-  venue: WEDDING_CONFIG.venue,
-  flag: WEDDING_CONFIG.venueFlag,
-  rsvpDeadline: WEDDING_CONFIG.rsvpDeadline,
-  coupleImage: WEDDING_CONFIG.coupleImage,
-  frameImage: WEDDING_CONFIG.frameImage
-};
-
 // Couple Image Carousel Component
-const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
+const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, images?: string[] }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   
-  const coupleImages = [
+  const carouselImages = images.length > 0 ? images : [
     '/images/couple/couple-1.jpg',
     '/images/couple/couple-2.jpg',
     '/images/couple/couple-3.jpeg',
@@ -190,40 +179,42 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
     '/images/couple/couple-9.jpeg'
   ];
 
-  const advanceToNextImage = () => {
+  const advanceToNextImage = (numImages: number) => {
+    if (numImages <= 1) return;
     setIsTransitioning(true);
     
     setTimeout(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % coupleImages.length);
+      setCurrentImageIndex((prev) => (prev + 1) % numImages);
       setIsTransitioning(false);
-    }, 300); // Half of transition duration
+    }, 300);
   };
 
   const handleImageClick = () => {
-    // Clear existing interval
+    if (carouselImages.length <= 1) return;
+    
     if (intervalId) {
       clearInterval(intervalId);
     }
     
-    // Advance to next image
-    advanceToNextImage();
+    advanceToNextImage(carouselImages.length);
     
-    // Restart auto-cycle timer
     const newInterval = setInterval(() => {
-      advanceToNextImage();
+      advanceToNextImage(carouselImages.length);
     }, 4000);
     
     setIntervalId(newInterval);
   };
 
   useEffect(() => {
+    if (carouselImages.length <= 1) return;
+    
     const interval = setInterval(() => {
-      advanceToNextImage();
-    }, 4000); // Change image every 4 seconds
+      advanceToNextImage(carouselImages.length);
+    }, 4000);
 
     setIntervalId(interval);
     return () => clearInterval(interval);
-  }, [coupleImages.length]);
+  }, [carouselImages.length]);
 
   return (
     <Box
@@ -233,14 +224,14 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
-        cursor: 'pointer',
+        cursor: carouselImages.length > 1 ? 'pointer' : 'default',
       }}
     >
       <Image
-        src={coupleImages[currentImageIndex]}
+        src={carouselImages[currentImageIndex]}
         alt="Couple Photo"
         fill
-        priority={currentImageIndex === 0} // Priority for first image
+        priority={currentImageIndex === 0}
         sizes="(max-width: 768px) 320px, 400px"
         style={{
           objectFit: 'cover',
@@ -248,16 +239,6 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
           transition: 'filter 0.6s ease-in-out',
           filter: isTransitioning ? 'blur(5px)' : 'blur(0px)',
         }}
-        onLoad={() => setImageLoaded(true)}
-        placeholder="blur"
-        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-      />
-      
-      {/* Preload next image */}
-      <link
-        rel="preload"
-        as="image"
-        href={coupleImages[(currentImageIndex + 1) % coupleImages.length]}
       />
     </Box>
   );
@@ -278,6 +259,22 @@ export default function HomePage() {
 
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
+  
+  // Wedding data from context
+  const { wedding, isLoading: weddingLoading } = useWedding();
+  
+  // Use data from context if available, otherwise fallback to config
+  const coupleData = {
+    names: wedding?.couple_name || WEDDING_CONFIG.coupleNames,
+    date: wedding?.wedding_date_display || WEDDING_CONFIG.weddingDateDisplay,
+    weddingDate: wedding?.wedding_date || WEDDING_CONFIG.weddingDate,
+    venue: wedding?.venue_name || WEDDING_CONFIG.venue,
+    flag: wedding?.venue_flag || WEDDING_CONFIG.venueFlag,
+    rsvpDeadline: wedding?.rsvp_deadline || WEDDING_CONFIG.rsvpDeadline,
+    coupleImage: wedding?.couple_image_url || WEDDING_CONFIG.coupleImage,
+    frameImage: wedding?.frame_image_url || WEDDING_CONFIG.frameImage,
+    coupleImages: wedding?.couple_images || []
+  };
 
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
@@ -289,7 +286,7 @@ export default function HomePage() {
   // This prevents a flash where auth completes but RSVP check hasn't started
   // Exception: bypass PIN users don't need RSVP check
   const needsRSVPCheck = user && !isBypassPin && !hasRSVPed && rsvpResponse === null && !isCheckingRSVP;
-  const isPageLoading = isLoading || isCheckingPin || isCheckingRSVP || needsRSVPCheck;
+  const isPageLoading = isLoading || isCheckingPin || isCheckingRSVP || needsRSVPCheck || weddingLoading;
   
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -1127,7 +1124,7 @@ export default function HomePage() {
                   zIndex: 2,
                 }}
               >
-                <CoupleImageCarousel size={300} />
+                <CoupleImageCarousel images={coupleData.coupleImages} />
               </Box>
             </Box>
           </motion.div>

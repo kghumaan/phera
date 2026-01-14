@@ -157,7 +157,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   }
 
   return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>

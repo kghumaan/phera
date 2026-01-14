@@ -23,14 +23,12 @@ export default function MobilePreviewFrame({
   return (
     <Box
       sx={{
-        position: { xs: 'relative', lg: 'sticky' },
-        top: { lg: 0 },
-        height: { xs: 'auto', lg: '100vh' },
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        py: { xs: 4, lg: 3 },
+        py: { xs: 4, lg: 0 },
+        height: '100%',
       }}
     >
       {/* Phone Frame */}

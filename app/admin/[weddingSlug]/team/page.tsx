@@ -401,7 +401,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
       <Stack spacing={4}>
         {/* Header */}
         <Box>
