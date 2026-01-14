@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Drawer, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextField, Divider } from '@mui/material';
+import { Box, Drawer, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextField, Divider, CircularProgress } from '@mui/material';
 import { Visibility, Close, DesktopWindows, PhoneAndroid, Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 
@@ -75,6 +75,11 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
       await weddingService.updateWedding(weddingId, { status: newStatus });
       setWeddingStatus(newStatus);
       onStatusChange?.(newStatus);
+
+      // Close popover after successful update
+      setTimeout(() => {
+        handlePublishClose();
+      }, 500);
     } catch (error) {
       console.error('Failed to update status:', error);
       alert('Failed to update status. Please try again.');
@@ -278,6 +283,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
+                      '& fieldset': {
+                        borderColor: '#1a1a1a',
+                        borderWidth: '1px',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#1a1a1a',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#DE3F5E',
+                      },
                     },
                   }}
                 />
@@ -292,6 +307,12 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                     sx={{
                       borderRadius: '8px',
                       textTransform: 'none',
+                      borderColor: '#DE3F5E',
+                      color: '#DE3F5E',
+                      '&:hover': {
+                        borderColor: '#C8365A',
+                        bgcolor: alpha('#DE3F5E', 0.05),
+                      },
                     }}
                   >
                     Cancel
@@ -305,8 +326,13 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                       borderRadius: '8px',
                       textTransform: 'none',
                       bgcolor: '#DE3F5E',
+                      color: 'white',
                       '&:hover': {
                         bgcolor: '#C8365A',
+                      },
+                      '&.Mui-disabled': {
+                        bgcolor: alpha('#DE3F5E', 0.5),
+                        color: 'rgba(255, 255, 255, 0.7)',
                       },
                     }}
                   >
@@ -325,44 +351,53 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
               Website Status
             </Typography>
             <Box sx={{ display: 'flex', gap: 1.5 }}>
+              {/* Publish Button - Primary Style */}
               <Button
                 fullWidth
-                variant={weddingStatus === 'live' ? 'contained' : 'outlined'}
-                startIcon={<Publish />}
+                variant="contained"
+                startIcon={savingStatus && weddingStatus === 'draft' ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Publish />}
                 onClick={() => handleStatusUpdate('live')}
                 disabled={savingStatus}
                 sx={{
-                  bgcolor: weddingStatus === 'live' ? '#10B981' : 'transparent',
-                  color: weddingStatus === 'live' ? 'white' : '#10B981',
-                  borderColor: '#10B981',
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
                   py: 1.5,
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   '&:hover': {
-                    bgcolor: weddingStatus === 'live' ? '#059669' : alpha('#10B981', 0.05),
-                    borderColor: '#059669',
+                    bgcolor: '#C8365A',
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: alpha('#DE3F5E', 0.5),
+                    color: 'rgba(255, 255, 255, 0.7)',
                   },
                 }}
               >
                 {savingStatus && weddingStatus === 'draft' ? 'Publishing...' : 'Publish'}
               </Button>
+
+              {/* Unpublish Button - Secondary Style */}
               <Button
                 fullWidth
-                variant={weddingStatus === 'draft' ? 'contained' : 'outlined'}
+                variant="outlined"
+                startIcon={savingStatus && weddingStatus === 'live' ? <CircularProgress size={16} sx={{ color: '#DE3F5E' }} /> : null}
                 onClick={() => handleStatusUpdate('draft')}
                 disabled={savingStatus}
                 sx={{
-                  bgcolor: weddingStatus === 'draft' ? '#6a6a6a' : 'transparent',
-                  color: weddingStatus === 'draft' ? 'white' : '#6a6a6a',
-                  borderColor: '#6a6a6a',
+                  borderColor: '#DE3F5E',
+                  color: '#DE3F5E',
                   py: 1.5,
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   '&:hover': {
-                    borderColor: '#1a1a1a',
-                    bgcolor: weddingStatus === 'draft' ? '#1a1a1a' : alpha('#1a1a1a', 0.05),
+                    borderColor: '#C8365A',
+                    bgcolor: alpha('#DE3F5E', 0.05),
+                  },
+                  '&.Mui-disabled': {
+                    borderColor: alpha('#DE3F5E', 0.5),
+                    color: alpha('#DE3F5E', 0.5),
                   },
                 }}
               >
