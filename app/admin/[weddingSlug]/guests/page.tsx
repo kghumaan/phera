@@ -41,7 +41,6 @@ import {
   ExpandLess,
   MusicNote,
   Delete,
-  Edit,
   Download,
 } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -314,7 +313,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               sx={{
                 position: 'fixed',
                 top: { xs: 16, md: 24 },
-                right: { xs: 96, md: 220 }, // Increased offset for desktop to avoid overlap
+                right: { xs: 360, md: 408 }, // Positioned to the left of Preview button with equal spacing
                 zIndex: 1000,
                 borderColor: '#DE3F5E',
                 color: '#DE3F5E',
@@ -326,7 +325,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 height: { xs: 64, md: 56 },
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                 px: { xs: 0, md: 4 },
-                fontSize: { xs: '1.1rem', md: '1.15rem' },
+                fontSize: { xs: '1.1rem', md: '1.1rem' },
                 fontWeight: 600,
                 textTransform: 'none',
                 '&:hover': {
@@ -345,9 +344,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 },
               }}
             >
-              <Download sx={{ 
-                fontSize: { xs: 28, md: 32 }, 
-                mr: { xs: 0, md: 1.5 } 
+              <Download sx={{
+                fontSize: { xs: 28, md: 28 },
+                mr: { xs: 0, md: 1.5 }
               }} />
               <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
                 Export Data
@@ -387,8 +386,17 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
         {/* Stats Cards */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Card 
-            sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white', cursor: 'pointer' }}
+          <Card
+            sx={{
+              flex: '1 1 200px',
+              minWidth: 180,
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: 'white',
+              cursor: 'pointer',
+              border: activeTab === 0 ? '2px solid #DE3F5E' : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
             onClick={() => setActiveTab(0)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -402,8 +410,17 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card 
-            sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white', cursor: 'pointer' }}
+          <Card
+            sx={{
+              flex: '1 1 200px',
+              minWidth: 180,
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: 'white',
+              cursor: 'pointer',
+              border: activeTab === 1 ? '2px solid #DE3F5E' : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
             onClick={() => setActiveTab(1)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -411,14 +428,26 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <CheckCircle />
               </Avatar>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.attending}</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.totalGuests}</Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Attending</Typography>
+                <Typography variant="caption" sx={{ color: '#9a9a9a', fontSize: '0.7rem', display: 'block', mt: 0.25 }}>
+                  including plus-ones
+                </Typography>
               </Box>
             </CardContent>
           </Card>
 
-          <Card 
-            sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white', cursor: 'pointer' }}
+          <Card
+            sx={{
+              flex: '1 1 200px',
+              minWidth: 180,
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: 'white',
+              cursor: 'pointer',
+              border: activeTab === 3 ? '2px solid #DE3F5E' : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
             onClick={() => setActiveTab(3)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -432,8 +461,17 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </CardContent>
           </Card>
 
-          <Card 
-            sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', bgcolor: 'white', cursor: 'pointer' }}
+          <Card
+            sx={{
+              flex: '1 1 200px',
+              minWidth: 180,
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: 'white',
+              cursor: 'pointer',
+              border: activeTab === 2 ? '2px solid #DE3F5E' : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
             onClick={() => setActiveTab(2)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -443,18 +481,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               <Box>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.notAttending}</Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Not Attending</Typography>
-              </Box>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ flex: '1 1 200px', minWidth: 180, borderRadius: '16px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '2px solid #DE3F5E', bgcolor: 'white' }}>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: '#DE3F5E', color: 'white' }}>
-                <People />
-              </Avatar>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#DE3F5E' }}>{stats.totalGuests}</Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Total Guests Coming</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -550,7 +576,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             }}
           >
             <Tab label={`RSVPs (${stats.total})`} />
-            <Tab label={`Attending (${stats.attending})`} />
+            <Tab label={`Attending (${stats.totalGuests})`} />
             <Tab label={`Not Attending (${stats.notAttending})`} />
             <Tab label={`Maybe (${stats.maybe})`} />
             <Tab label="Food Preferences" />
@@ -562,14 +588,13 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: alpha('#DE3F5E', 0.05) }}>
+                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
                     <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Guest</TableCell>
                     {activeTab <= 3 && (
                       <>
                         <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Contact</TableCell>
                         <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Status</TableCell>
                         <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Party Size</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Side</TableCell>
                       </>
                     )}
                     {activeTab === 4 && (
@@ -668,19 +693,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 {rsvp.guest_count}
                               </Typography>
                             </TableCell>
-                            <TableCell>
-                              {rsvp.guest?.wedding_side && (
-                                <Chip
-                                  label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: alpha('#6B7280', 0.1),
-                                    color: '#6B7280',
-                                    fontWeight: 500,
-                                  }}
-                                />
-                              )}
-                            </TableCell>
                           </>
                         )}
 
@@ -721,13 +733,13 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                         <TableCell>
                           <Tooltip title="Delete RSVP">
-                            <IconButton 
-                              size="small" 
+                            <IconButton
+                              size="small"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteClick(rsvp.id);
                               }}
-                              sx={{ 
+                              sx={{
                                 color: '#EF4444',
                                 '&:hover': { bgcolor: alpha('#EF4444', 0.1) }
                               }}
@@ -744,7 +756,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                       </TableRow>
                       {expandedRows.has(rsvp.id) && (
                         <TableRow>
-                          <TableCell colSpan={activeTab <= 3 ? 7 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
+                          <TableCell colSpan={activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
                             <Box sx={{ px: 2 }}>
                               <Stack spacing={2}>
                                 {/* Main details in one row with proper spacing */}
@@ -793,6 +805,25 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                       {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
                                     </Typography>
                                   </Box>
+
+                                  {rsvp.guest?.wedding_side && (
+                                    <Box sx={{ minWidth: 150 }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                        Wedding Side
+                                      </Typography>
+                                      <Box sx={{ mt: 0.5 }}>
+                                        <Chip
+                                          label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
+                                          size="small"
+                                          sx={{
+                                            bgcolor: alpha('#6B7280', 0.1),
+                                            color: '#6B7280',
+                                            fontWeight: 500,
+                                          }}
+                                        />
+                                      </Box>
+                                    </Box>
+                                  )}
 
                                   <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>

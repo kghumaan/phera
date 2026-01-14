@@ -41,6 +41,12 @@ export default function OnboardingLayout({
     }
   };
 
+  const handleSlugChange = async (newSlug: string) => {
+    if (wedding) {
+      setWedding({ ...wedding, slug: newSlug });
+    }
+  };
+
   return (
     <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -77,11 +83,12 @@ export default function OnboardingLayout({
 
       {/* Preview FAB - accessible from all onboarding pages */}
       <OnboardingPreviewFAB
-        weddingSlug={weddingSlug}
+        weddingSlug={wedding?.slug || weddingSlug}
         coupleName={wedding?.couple_name}
         weddingStatus={wedding?.status as 'draft' | 'live' | undefined}
         weddingId={wedding?.id}
         onStatusChange={handleStatusChange}
+        onSlugChange={handleSlugChange}
       />
     </OptimizedBackground>
   );

@@ -11,9 +11,10 @@ interface OnboardingPreviewFABProps {
   weddingStatus?: 'draft' | 'live';
   weddingId?: string;
   onStatusChange?: (status: 'draft' | 'live') => void;
+  onSlugChange?: (newSlug: string) => void;
 }
 
-export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingStatus: initialStatus = 'draft', weddingId, onStatusChange }: OnboardingPreviewFABProps) {
+export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingStatus: initialStatus = 'draft', weddingId, onStatusChange, onSlugChange }: OnboardingPreviewFABProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [publishAnchorEl, setPublishAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -21,7 +22,10 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
   const [customSlug, setCustomSlug] = useState(weddingSlug);
   const [editingSlug, setEditingSlug] = useState(false);
   const [urlCopied, setUrlCopied] = useState(false);
+  const [slugSaved, setSlugSaved] = useState(false);
+  const [statusSaved, setStatusSaved] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [savingSlug, setSavingSlug] = useState(false);
 
   const publishOpen = Boolean(publishAnchorEl);
 
@@ -76,10 +80,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
       setWeddingStatus(newStatus);
       onStatusChange?.(newStatus);
 
+      // Show success state
+      setStatusSaved(true);
+
       // Close popover after successful update
       setTimeout(() => {
         handlePublishClose();
       }, 500);
+
+      // Reset success state after 2 seconds
+      setTimeout(() => setStatusSaved(false), 2000);
     } catch (error) {
       console.error('Failed to update status:', error);
       alert('Failed to update status. Please try again.');
@@ -94,19 +104,35 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
       return;
     }
 
+    setSavingSlug(true);
     try {
-      const isAvailable = await weddingService.checkSlugAvailability(customSlug);
+      const cleanSlug = customSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      const isAvailable = await weddingService.checkSlugAvailability(cleanSlug);
       if (!isAvailable) {
         alert('This wedding ID is already taken. Please choose another.');
+        setSavingSlug(false);
         return;
       }
 
-      await weddingService.updateWedding(weddingId, { slug: customSlug });
-      // Reload page with new slug
-      window.location.href = `/admin/${customSlug}/overview`;
+      await weddingService.updateWedding(weddingId, { slug: cleanSlug });
+
+      // Notify parent of slug change
+      onSlugChange?.(cleanSlug);
+
+      // Show success state
+      setSlugSaved(true);
+      setEditingSlug(false);
+
+      // Update the URL without reloading
+      window.history.replaceState(null, '', `/admin/${cleanSlug}/overview`);
+
+      // Reset success state after 2 seconds
+      setTimeout(() => setSlugSaved(false), 2000);
     } catch (error) {
       console.error('Failed to update slug:', error);
       alert('Failed to update wedding ID. Please try again.');
+    } finally {
+      setSavingSlug(false);
     }
   };
 
@@ -161,16 +187,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
           aria-label="publish"
           onClick={handlePublishClick}
           sx={{
-            bgcolor: '#DE3F5E',
+            bgcolor: statusSaved ? '#10B981' : '#DE3F5E',
             color: 'white',
             '&:hover': {
-              bgcolor: '#C8365A',
+              bgcolor: statusSaved ? '#059669' : '#C8365A',
               transform: 'scale(1.05)',
             },
-            boxShadow: '0 4px 20px rgba(222, 63, 94, 0.4)',
+            boxShadow: statusSaved ? '0 4px 20px rgba(16, 185, 129, 0.4)' : '0 4px 20px rgba(222, 63, 94, 0.4)',
             transition: 'all 0.2s ease',
-            minWidth: { xs: 64, md: 'auto' },
-            width: { xs: 64, md: 'auto' },
+            minWidth: { xs: 64, md: 170 },
+            width: { xs: 64, md: 170 },
             height: { xs: 64, md: 56 },
             borderRadius: { xs: '50%', md: '28px' },
             px: { xs: 0, md: 4 },
@@ -178,9 +204,13 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             fontWeight: 600,
           }}
         >
-          <Publish sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
+          {statusSaved ? (
+            <Check sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
+          ) : (
+            <Publish sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
+          )}
           <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-            Publish
+            {statusSaved ? 'Published' : 'Publish'}
           </Box>
         </Fab>
       </Box>
@@ -262,14 +292,15 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   size="small"
                   onClick={() => setEditingSlug(true)}
                   sx={{
-                    bgcolor: alpha('#DE3F5E', 0.1),
-                    color: '#DE3F5E',
+                    bgcolor: slugSaved ? '#10B981' : alpha('#DE3F5E', 0.1),
+                    color: slugSaved ? 'white' : '#DE3F5E',
                     '&:hover': {
-                      bgcolor: alpha('#DE3F5E', 0.2),
+                      bgcolor: slugSaved ? '#059669' : alpha('#DE3F5E', 0.2),
                     },
+                    transition: 'all 0.2s ease',
                   }}
                 >
-                  <Edit fontSize="small" />
+                  {slugSaved ? <Check fontSize="small" /> : <Edit fontSize="small" />}
                 </IconButton>
               </Box>
             ) : (

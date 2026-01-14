@@ -464,4 +464,29 @@ export async function deleteRSVP(rsvpId: string) {
 
   if (error) throw error
   return { success: true }
+}
+
+export async function updateRSVP(rsvpId: string, updates: Partial<{
+  attending: 'yes' | 'no' | 'maybe';
+  guest_count: number;
+  plus_one: boolean;
+  plus_one_name: string | null;
+  plus_one_email: string | null;
+  plus_one_country_code: string | null;
+  plus_one_phone: string | null;
+  food_preference: string[] | null;
+  dietary_restrictions: string | null;
+  song_request: string | null;
+  special_message: string | null;
+  maybe_comment: string | null;
+}>) {
+  const { data, error } = await supabase
+    .from('rsvps')
+    .update(updates)
+    .eq('id', rsvpId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return { success: true, data }
 } 
