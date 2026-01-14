@@ -11,7 +11,6 @@ import {
   CardGiftcard,
   ShoppingBag,
   Palette,
-  Settings,
   VpnKey,
   Menu as MenuIcon,
   Close,
@@ -46,7 +45,6 @@ const sections: SidebarSection[] = [
   { id: 'shopping', label: 'Shopping Guide', icon: <ShoppingBag />, path: '/shopping' },
   { id: 'pins', label: 'PIN Management', icon: <VpnKey />, path: '/pins', required: true },
   { id: 'team', label: 'Team', icon: <Groups />, path: '/team' },
-  { id: 'settings', label: 'Publish', icon: <Settings />, path: '/settings', required: true },
 ];
 
 interface OnboardingSidebarProps {
