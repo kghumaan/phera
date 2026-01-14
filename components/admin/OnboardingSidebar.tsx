@@ -96,22 +96,21 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Logo and Progress Indicator Section */}
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, borderBottom: 1, borderColor: alpha('#000', 0.05), position: 'relative' }}>
+      {/* Logo Section */}
+      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: 1, borderColor: alpha('#000', 0.05), position: 'relative' }}>
         {/* Phera Logo */}
         <Box
           sx={{
             position: 'relative',
-            width: 96,
-            height: 96,
+            width: 120,
+            height: 120,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            filter: 'brightness(0)', // This converts white to black
           }}
         >
           <Image
-            src="/logo-flower.svg"
+            src="/logo.svg"
             alt="Phera"
             fill
             priority
@@ -119,50 +118,6 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
               objectFit: 'contain',
             }}
           />
-        </Box>
-
-        {/* Progress Circle */}
-        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-          {/* Background circle (track) */}
-          <CircularProgress
-            variant="determinate"
-            value={100}
-            size={96}
-            thickness={5}
-            sx={{
-              color: 'rgba(222, 63, 94, 0.15)',
-              position: 'absolute',
-            }}
-          />
-          {/* Progress circle */}
-          <CircularProgress
-            variant="determinate"
-            value={calculateProgress(wedding)}
-            size={96}
-            thickness={5}
-            sx={{
-              color: '#DE3F5E',
-              '& .MuiCircularProgress-circle': {
-                strokeLinecap: 'round',
-              },
-            }}
-          />
-          <Box
-            sx={{
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              position: 'absolute',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-              {calculateProgress(wedding)}%
-            </Typography>
-          </Box>
         </Box>
         {isMobile && (
           <IconButton
@@ -253,12 +208,58 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
           })}
       </List>
 
-      {/* Footer */}
+      {/* Footer with Progress */}
       <Box sx={{ p: 2, borderTop: 1, borderColor: alpha('#000', 0.1) }}>
-        <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#6a6a6a' }}>
+        {/* Progress Circle */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+            {/* Background circle (track) */}
+            <CircularProgress
+              variant="determinate"
+              value={100}
+              size={80}
+              thickness={5}
+              sx={{
+                color: 'rgba(222, 63, 94, 0.15)',
+                position: 'absolute',
+              }}
+            />
+            {/* Progress circle */}
+            <CircularProgress
+              variant="determinate"
+              value={calculateProgress(wedding)}
+              size={80}
+              thickness={5}
+              sx={{
+                color: '#DE3F5E',
+                '& .MuiCircularProgress-circle': {
+                  strokeLinecap: 'round',
+                },
+              }}
+            />
+            <Box
+              sx={{
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                position: 'absolute',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
+                {calculateProgress(wedding)}%
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#6a6a6a', textAlign: 'center' }}>
           Progress auto-saves
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
           <Box
             sx={{
               width: 8,
