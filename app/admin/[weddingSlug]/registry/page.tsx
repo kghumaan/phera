@@ -215,7 +215,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
                 Registry Links
               </Typography>
-              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+              <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', mb: 1 }}>
                 Link to your external registry sites (Zola, Amazon, The Knot, etc.)
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>

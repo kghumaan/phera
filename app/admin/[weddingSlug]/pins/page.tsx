@@ -164,7 +164,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             PIN Management
           </Typography>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a', fontSize: '1.1rem' }}>
+          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>
             Create and manage unique PIN codes for your guests to access the wedding website
           </Typography>
         </Box>

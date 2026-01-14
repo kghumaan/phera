@@ -416,7 +416,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           >
             Team
           </Typography>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a', fontSize: '1.1rem' }}>
+          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>
             Manage who can access and edit your wedding website
           </Typography>
         </Box>

@@ -245,7 +245,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
                 Frequently Asked Questions
               </Typography>
-              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a' }}>
                 Add common questions and answers for your guests
               </Typography>
             </Box>

@@ -221,7 +221,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             Wedding Schedule
           </Typography>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a' }}>
             Build your day-by-day schedule
           </Typography>
         </Box>
