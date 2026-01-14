@@ -102,11 +102,12 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
         <Box
           sx={{
             position: 'relative',
-            width: 120,
+            width: 180,
             height: 120,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            filter: 'brightness(0)', // Converts to black
           }}
         >
           <Image
