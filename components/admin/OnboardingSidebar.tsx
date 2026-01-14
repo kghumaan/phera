@@ -175,7 +175,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
                 <ListItemIcon
                   sx={{
                     minWidth: 40,
-                    color: isActive ? 'inherit' : '#DE3F5E',
+                    color: isActive ? 'inherit' : '#4a4a4a',
                   }}
                 >
                   {section.icon}
