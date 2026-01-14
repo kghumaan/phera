@@ -1,17 +1,39 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Drawer, Fab, IconButton, Typography, alpha, Stack } from '@mui/material';
-import { Visibility, Close, DesktopWindows, PhoneAndroid } from '@mui/icons-material';
+import { Box, Drawer, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextField, Divider } from '@mui/material';
+import { Visibility, Close, DesktopWindows, PhoneAndroid, Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
+import { weddingService } from '@/lib/supabase/wedding-service';
 
 interface OnboardingPreviewFABProps {
   weddingSlug: string;
   coupleName?: string;
+  weddingStatus?: 'draft' | 'live';
+  weddingId?: string;
+  onStatusChange?: (status: 'draft' | 'live') => void;
 }
 
-export default function OnboardingPreviewFAB({ weddingSlug, coupleName }: OnboardingPreviewFABProps) {
+export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingStatus: initialStatus = 'draft', weddingId, onStatusChange }: OnboardingPreviewFABProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [publishAnchorEl, setPublishAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>(initialStatus);
+  const [customSlug, setCustomSlug] = useState(weddingSlug);
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [urlCopied, setUrlCopied] = useState(false);
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  const publishOpen = Boolean(publishAnchorEl);
+
+  // Update status when prop changes
+  useEffect(() => {
+    setWeddingStatus(initialStatus);
+  }, [initialStatus]);
+
+  // Update slug when prop changes
+  useEffect(() => {
+    setCustomSlug(weddingSlug);
+  }, [weddingSlug]);
 
   // Listen for messages from preview iframe
   useEffect(() => {
@@ -25,42 +47,333 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName }: Onboar
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  const handlePublishClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setPublishAnchorEl(event.currentTarget);
+  };
+
+  const handlePublishClose = () => {
+    setPublishAnchorEl(null);
+    setEditingSlug(false);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setUrlCopied(true);
+    setTimeout(() => setUrlCopied(false), 2000);
+  };
+
+  const handleStatusUpdate = async (newStatus: 'draft' | 'live') => {
+    if (!weddingId) return;
+
+    if (newStatus === 'live') {
+      const confirmed = window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.');
+      if (!confirmed) return;
+    }
+
+    setSavingStatus(true);
+    try {
+      await weddingService.updateWedding(weddingId, { status: newStatus });
+      setWeddingStatus(newStatus);
+      onStatusChange?.(newStatus);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('Failed to update status. Please try again.');
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
+  const handleSlugUpdate = async () => {
+    if (!weddingId || !customSlug || customSlug === weddingSlug) {
+      setEditingSlug(false);
+      return;
+    }
+
+    try {
+      const isAvailable = await weddingService.checkSlugAvailability(customSlug);
+      if (!isAvailable) {
+        alert('This wedding ID is already taken. Please choose another.');
+        return;
+      }
+
+      await weddingService.updateWedding(weddingId, { slug: customSlug });
+      // Reload page with new slug
+      window.location.href = `/admin/${customSlug}/overview`;
+    } catch (error) {
+      console.error('Failed to update slug:', error);
+      alert('Failed to update wedding ID. Please try again.');
+    }
+  };
+
   return (
     <>
-      {/* Floating Action Button */}
-      <Fab
-        variant="extended"
-        color="primary"
-        aria-label="preview"
-        onClick={() => setPreviewOpen(true)}
+      {/* Floating Action Buttons */}
+      <Box
         sx={{
           position: 'fixed',
           top: { xs: 16, md: 24 },
           right: { xs: 16, md: 24 },
           zIndex: 1000,
-          bgcolor: '#DE3F5E',
-          color: 'white',
-          '&:hover': {
-            bgcolor: '#C8365A',
-            transform: 'scale(1.05)',
-          },
-          boxShadow: '0 4px 20px rgba(222, 63, 94, 0.4)',
-          transition: 'all 0.2s ease',
-          // Larger sizes
-          minWidth: { xs: 64, md: 'auto' },
-          width: { xs: 64, md: 'auto' },
-          height: { xs: 64, md: 56 },
-          borderRadius: { xs: '50%', md: '28px' },
-          px: { xs: 0, md: 4 },
-          fontSize: { xs: '1.1rem', md: '1.15rem' },
-          fontWeight: 600,
+          display: 'flex',
+          gap: 2,
         }}
       >
-        <Visibility sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 32 } }} />
-        <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-          Preview
-        </Box>
-      </Fab>
+        {/* Preview Button (Outlined) */}
+        <Fab
+          variant="extended"
+          aria-label="preview"
+          onClick={() => setPreviewOpen(true)}
+          sx={{
+            bgcolor: 'white',
+            color: '#DE3F5E',
+            border: '2px solid #DE3F5E',
+            '&:hover': {
+              bgcolor: alpha('#DE3F5E', 0.05),
+              border: '2px solid #C8365A',
+              transform: 'scale(1.05)',
+            },
+            boxShadow: '0 4px 20px rgba(222, 63, 94, 0.2)',
+            transition: 'all 0.2s ease',
+            minWidth: { xs: 56, md: 'auto' },
+            width: { xs: 56, md: 'auto' },
+            height: { xs: 56, md: 48 },
+            borderRadius: { xs: '50%', md: '24px' },
+            px: { xs: 0, md: 3 },
+            fontSize: { xs: '1rem', md: '1rem' },
+            fontWeight: 600,
+          }}
+        >
+          <Visibility sx={{ mr: { xs: 0, md: 1 }, fontSize: { xs: 24, md: 24 } }} />
+          <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+            Preview
+          </Box>
+        </Fab>
+
+        {/* Publish Button (Solid) */}
+        <Fab
+          variant="extended"
+          color="primary"
+          aria-label="publish"
+          onClick={handlePublishClick}
+          sx={{
+            bgcolor: '#DE3F5E',
+            color: 'white',
+            '&:hover': {
+              bgcolor: '#C8365A',
+              transform: 'scale(1.05)',
+            },
+            boxShadow: '0 4px 20px rgba(222, 63, 94, 0.4)',
+            transition: 'all 0.2s ease',
+            minWidth: { xs: 56, md: 'auto' },
+            width: { xs: 56, md: 'auto' },
+            height: { xs: 56, md: 48 },
+            borderRadius: { xs: '50%', md: '24px' },
+            px: { xs: 0, md: 3 },
+            fontSize: { xs: '1rem', md: '1rem' },
+            fontWeight: 600,
+          }}
+        >
+          <Publish sx={{ mr: { xs: 0, md: 1 }, fontSize: { xs: 24, md: 24 } }} />
+          <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+            Publish
+          </Box>
+        </Fab>
+      </Box>
+
+      {/* Publish Popover */}
+      <Popover
+        open={publishOpen}
+        anchorEl={publishAnchorEl}
+        onClose={handlePublishClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          mt: 1,
+        }}
+        PaperProps={{
+          sx: {
+            width: 400,
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            p: 3,
+          },
+        }}
+      >
+        <Stack spacing={2.5}>
+          {/* Title */}
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            Publish Settings
+          </Typography>
+
+          {/* Wedding URL */}
+          <Box>
+            <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1, display: 'block' }}>
+              Your Wedding URL
+            </Typography>
+            {!editingSlug ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    bgcolor: alpha('#DE3F5E', 0.05),
+                    p: 1.5,
+                    borderRadius: '8px',
+                    border: '1px solid rgba(222, 63, 94, 0.2)',
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#DE3F5E',
+                      fontWeight: 600,
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    phera.io/{weddingSlug}
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => copyToClipboard(`${window.location.origin}/${weddingSlug}`)}
+                  sx={{
+                    bgcolor: urlCopied ? '#10B981' : alpha('#DE3F5E', 0.1),
+                    color: urlCopied ? 'white' : '#DE3F5E',
+                    '&:hover': {
+                      bgcolor: urlCopied ? '#059669' : alpha('#DE3F5E', 0.2),
+                    },
+                  }}
+                >
+                  {urlCopied ? <Check fontSize="small" /> : <ContentCopy fontSize="small" />}
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => setEditingSlug(true)}
+                  sx={{
+                    bgcolor: alpha('#DE3F5E', 0.1),
+                    color: '#DE3F5E',
+                    '&:hover': {
+                      bgcolor: alpha('#DE3F5E', 0.2),
+                    },
+                  }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </Box>
+            ) : (
+              <Stack spacing={1}>
+                <TextField
+                  size="small"
+                  value={customSlug}
+                  onChange={(e) => setCustomSlug(e.target.value)}
+                  placeholder="wedding-id"
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                    },
+                  }}
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setCustomSlug(weddingSlug);
+                      setEditingSlug(false);
+                    }}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleSlugUpdate}
+                    disabled={customSlug === weddingSlug || !customSlug}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      bgcolor: '#DE3F5E',
+                      '&:hover': {
+                        bgcolor: '#C8365A',
+                      },
+                    }}
+                  >
+                    Save
+                  </Button>
+                </Box>
+              </Stack>
+            )}
+          </Box>
+
+          <Divider />
+
+          {/* Status Controls */}
+          <Box>
+            <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5, display: 'block' }}>
+              Website Status
+            </Typography>
+            <Stack spacing={1.5}>
+              {weddingStatus === 'draft' ? (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<Publish />}
+                  onClick={() => handleStatusUpdate('live')}
+                  disabled={savingStatus}
+                  sx={{
+                    bgcolor: '#10B981',
+                    color: 'white',
+                    py: 1.5,
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      bgcolor: '#059669',
+                    },
+                  }}
+                >
+                  {savingStatus ? 'Publishing...' : 'Publish Website'}
+                </Button>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => handleStatusUpdate('draft')}
+                  disabled={savingStatus}
+                  sx={{
+                    borderColor: '#6a6a6a',
+                    color: '#6a6a6a',
+                    py: 1.5,
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      borderColor: '#1a1a1a',
+                      bgcolor: alpha('#1a1a1a', 0.05),
+                    },
+                  }}
+                >
+                  {savingStatus ? 'Unpublishing...' : 'Unpublish Website'}
+                </Button>
+              )}
+              <Typography variant="caption" sx={{ color: '#6a6a6a', textAlign: 'center' }}>
+                {weddingStatus === 'draft' ? 'Your website is currently private' : '🎉 Your website is live!'}
+              </Typography>
+            </Stack>
+          </Box>
+        </Stack>
+      </Popover>
 
       {/* Preview Drawer */}
       <Drawer
