@@ -220,7 +220,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
           {/* Wedding URL */}
           <Box>
             <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1, display: 'block' }}>
-              Your Wedding URL
+              Your Wedding ID
             </Typography>
             {!editingSlug ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -273,14 +273,14 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 </IconButton>
               </Box>
             ) : (
-              <Stack spacing={1}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField
                   size="small"
                   value={customSlug}
                   onChange={(e) => setCustomSlug(e.target.value)}
                   placeholder="wedding-id"
-                  fullWidth
                   sx={{
+                    flex: 1,
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
                       '& fieldset': {
@@ -293,53 +293,58 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                       '&.Mui-focused fieldset': {
                         borderColor: '#DE3F5E',
                       },
+                      '& input': {
+                        color: '#1a1a1a',
+                      },
                     },
                   }}
                 />
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => {
-                      setCustomSlug(weddingSlug);
-                      setEditingSlug(false);
-                    }}
-                    sx={{
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      borderColor: '#DE3F5E',
-                      color: '#DE3F5E',
-                      '&:hover': {
-                        borderColor: '#C8365A',
-                        bgcolor: alpha('#DE3F5E', 0.05),
-                      },
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    onClick={handleSlugUpdate}
-                    disabled={customSlug === weddingSlug || !customSlug}
-                    sx={{
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
-                      '&:hover': {
-                        bgcolor: '#C8365A',
-                      },
-                      '&.Mui-disabled': {
-                        bgcolor: alpha('#DE3F5E', 0.5),
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                  >
-                    Save
-                  </Button>
-                </Box>
-              </Stack>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => {
+                    setCustomSlug(weddingSlug);
+                    setEditingSlug(false);
+                  }}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    borderColor: '#DE3F5E',
+                    color: '#DE3F5E',
+                    minWidth: 'auto',
+                    px: 2,
+                    '&:hover': {
+                      borderColor: '#C8365A',
+                      bgcolor: alpha('#DE3F5E', 0.05),
+                    },
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleSlugUpdate}
+                  disabled={customSlug === weddingSlug || !customSlug}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    minWidth: 'auto',
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: '#C8365A',
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: alpha('#DE3F5E', 0.5),
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                >
+                  Save
+                </Button>
+              </Box>
             )}
           </Box>
 
@@ -347,9 +352,6 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
 
           {/* Status Controls */}
           <Box>
-            <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5, display: 'block' }}>
-              Website Status
-            </Typography>
             <Box sx={{ display: 'flex', gap: 1.5 }}>
               {/* Publish Button - Primary Style */}
               <Button
