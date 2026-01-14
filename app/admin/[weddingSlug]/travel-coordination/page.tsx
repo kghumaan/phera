@@ -145,7 +145,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
       <Stack spacing={4}>
         {/* Header */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Travel Coordination
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

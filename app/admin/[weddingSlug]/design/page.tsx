@@ -186,7 +186,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
     <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Look & Feel
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

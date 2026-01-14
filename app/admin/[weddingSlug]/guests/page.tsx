@@ -300,7 +300,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Guest Responses
             </Typography>
             <Typography variant="body1" sx={{ color: '#4a4a4a' }}>

@@ -186,7 +186,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     <Container maxWidth="xl">
       <Stack spacing={5}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Settings & Publish
           </Typography>
           <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>

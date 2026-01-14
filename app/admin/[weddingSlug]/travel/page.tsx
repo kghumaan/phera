@@ -376,7 +376,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
         <Grid size={{ xs: 12, lg: 7 }}>
           <Stack spacing={ENHANCED_SECTION_SPACING}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Travel & Stay Information
               </Typography>
               <Typography variant="body1" sx={{ color: '#4a4a4a' }}>

@@ -134,16 +134,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             },
             boxShadow: '0 4px 20px rgba(222, 63, 94, 0.2)',
             transition: 'all 0.2s ease',
-            minWidth: { xs: 56, md: 'auto' },
-            width: { xs: 56, md: 'auto' },
-            height: { xs: 56, md: 48 },
-            borderRadius: { xs: '50%', md: '24px' },
-            px: { xs: 0, md: 3 },
-            fontSize: { xs: '1rem', md: '1rem' },
+            minWidth: { xs: 64, md: 'auto' },
+            width: { xs: 64, md: 'auto' },
+            height: { xs: 64, md: 56 },
+            borderRadius: { xs: '50%', md: '28px' },
+            px: { xs: 0, md: 4 },
+            fontSize: { xs: '1.1rem', md: '1.1rem' },
             fontWeight: 600,
           }}
         >
-          <Visibility sx={{ mr: { xs: 0, md: 1 }, fontSize: { xs: 24, md: 24 } }} />
+          <Visibility sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
           <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
             Preview
           </Box>
@@ -164,16 +164,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             },
             boxShadow: '0 4px 20px rgba(222, 63, 94, 0.4)',
             transition: 'all 0.2s ease',
-            minWidth: { xs: 56, md: 'auto' },
-            width: { xs: 56, md: 'auto' },
-            height: { xs: 56, md: 48 },
-            borderRadius: { xs: '50%', md: '24px' },
-            px: { xs: 0, md: 3 },
-            fontSize: { xs: '1rem', md: '1rem' },
+            minWidth: { xs: 64, md: 'auto' },
+            width: { xs: 64, md: 'auto' },
+            height: { xs: 64, md: 56 },
+            borderRadius: { xs: '50%', md: '28px' },
+            px: { xs: 0, md: 4 },
+            fontSize: { xs: '1.1rem', md: '1.1rem' },
             fontWeight: 600,
           }}
         >
-          <Publish sx={{ mr: { xs: 0, md: 1 }, fontSize: { xs: 24, md: 24 } }} />
+          <Publish sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
           <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
             Publish
           </Box>
