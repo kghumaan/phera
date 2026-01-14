@@ -401,7 +401,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 <Stack spacing={2.5}>
                   {/* Couple */}
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <People fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
@@ -416,7 +416,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
                   {/* Date */}
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#8B5CF6', 0.1), color: '#8B5CF6', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <CalendarMonth fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
@@ -431,7 +431,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
                   {/* Venue */}
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <LocationOn fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
@@ -478,7 +478,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           Attending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#10B981' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
                         {rsvpStats.attending}
                       </Typography>
                     </Box>
@@ -496,7 +496,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           Not Attending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF4444' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
                         {rsvpStats.notAttending}
                       </Typography>
                     </Box>
@@ -514,7 +514,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           Pending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#F59E0B' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
                         {rsvpStats.pending}
                       </Typography>
                     </Box>
