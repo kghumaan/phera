@@ -276,6 +276,57 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       await supabase.from('comments').insert(commentData);
     }
 
+    // Handle WhatsApp opt-in if selected
+    if (formData.whatsappOptIn && fullPhone) {
+      try {
+        console.log('Processing WhatsApp opt-in for', formData.email);
+        
+        // Create opt-in record
+        const optInResponse = await fetch('/api/whatsapp/opt-in', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'opt-in',
+            guestId,
+            weddingId,
+            phoneNumber: fullPhone,
+            method: 'rsvp_form',
+          }),
+        });
+
+        if (optInResponse.ok) {
+          console.log('✅ WhatsApp opt-in successful');
+          
+          // Send RSVP confirmation message (only if opted in)
+          try {
+            await fetch('/api/whatsapp/send-template', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                guestId,
+                weddingId,
+                templateName: 'rsvp_confirmation',
+                parameters: {
+                  guest_name: formData.firstName,
+                  couple_names: 'Sim & KV', // TODO: Get from wedding config
+                  wedding_date: 'February 14, 2026', // TODO: Get from wedding config
+                },
+              }),
+            });
+            console.log('✅ WhatsApp confirmation sent');
+          } catch (messageError) {
+            console.error('⚠️ Failed to send WhatsApp confirmation:', messageError);
+            // Don't fail the RSVP if message sending fails
+          }
+        } else {
+          console.error('⚠️ Failed to create WhatsApp opt-in');
+        }
+      } catch (whatsappError) {
+        console.error('⚠️ WhatsApp integration error:', whatsappError);
+        // Don't fail the RSVP if WhatsApp fails
+      }
+    }
+
     // Store user info in local storage for auto-login (with avatar data)
     if (typeof window !== 'undefined') {
       const guestInfo = {

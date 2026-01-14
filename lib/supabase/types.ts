@@ -89,6 +89,9 @@ export interface RSVPFormData {
   shuttlePreferenceTime?: string
   shuttlePreferenceNote?: string
   
+  // WhatsApp opt-in
+  whatsappOptIn?: boolean
+  
   // Backward compatibility (optional fields)
   ceremonyAttending?: string[]
   relationshipToBride?: string
@@ -217,6 +220,176 @@ export interface Database {
           huahin_to_sukhumvit?: boolean
           created_at?: string
           updated_at?: string
+        }
+      }
+      whatsapp_opt_ins: {
+        Row: {
+          id: string
+          guest_id: string
+          wedding_id: string
+          phone_number: string
+          opted_in: boolean
+          opt_in_method: string | null
+          opted_in_at: string
+          opted_out_at: string | null
+        }
+        Insert: {
+          id?: string
+          guest_id: string
+          wedding_id: string
+          phone_number: string
+          opted_in?: boolean
+          opt_in_method?: string | null
+          opted_in_at?: string
+          opted_out_at?: string | null
+        }
+        Update: {
+          id?: string
+          guest_id?: string
+          wedding_id?: string
+          phone_number?: string
+          opted_in?: boolean
+          opt_in_method?: string | null
+          opted_in_at?: string
+          opted_out_at?: string | null
+        }
+      }
+      whatsapp_templates: {
+        Row: {
+          id: string
+          name: string
+          category: string
+          language: string
+          content: string
+          parameters: any
+          meta_template_id: string | null
+          status: string
+          created_at: string
+          approved_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          category: string
+          language?: string
+          content: string
+          parameters?: any
+          meta_template_id?: string | null
+          status?: string
+          created_at?: string
+          approved_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          category?: string
+          language?: string
+          content?: string
+          parameters?: any
+          meta_template_id?: string | null
+          status?: string
+          created_at?: string
+          approved_at?: string | null
+        }
+      }
+      whatsapp_messages: {
+        Row: {
+          id: string
+          guest_id: string
+          wedding_id: string
+          phone_number: string
+          template_name: string | null
+          message_type: string | null
+          content: string | null
+          parameters: any
+          wa_message_id: string | null
+          status: string | null
+          sent_at: string | null
+          delivered_at: string | null
+          read_at: string | null
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          guest_id: string
+          wedding_id: string
+          phone_number: string
+          template_name?: string | null
+          message_type?: string | null
+          content?: string | null
+          parameters?: any
+          wa_message_id?: string | null
+          status?: string | null
+          sent_at?: string | null
+          delivered_at?: string | null
+          read_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          guest_id?: string
+          wedding_id?: string
+          phone_number?: string
+          template_name?: string | null
+          message_type?: string | null
+          content?: string | null
+          parameters?: any
+          wa_message_id?: string | null
+          status?: string | null
+          sent_at?: string | null
+          delivered_at?: string | null
+          read_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+      }
+      whatsapp_broadcasts: {
+        Row: {
+          id: string
+          wedding_id: string
+          name: string
+          template_name: string
+          filters: any
+          scheduled_at: string | null
+          sent_at: string | null
+          total_recipients: number | null
+          successful_sends: number
+          failed_sends: number
+          status: string
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          name: string
+          template_name: string
+          filters?: any
+          scheduled_at?: string | null
+          sent_at?: string | null
+          total_recipients?: number | null
+          successful_sends?: number
+          failed_sends?: number
+          status?: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          name?: string
+          template_name?: string
+          filters?: any
+          scheduled_at?: string | null
+          sent_at?: string | null
+          total_recipients?: number | null
+          successful_sends?: number
+          failed_sends?: number
+          status?: string
+          created_by?: string | null
+          created_at?: string
         }
       }
     }

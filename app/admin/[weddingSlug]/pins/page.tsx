@@ -161,7 +161,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             PIN Management
           </Typography>
           <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>

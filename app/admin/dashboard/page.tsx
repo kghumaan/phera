@@ -30,10 +30,13 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import Link from 'next/link';
+import WhatsAppAnalytics from '@/components/admin/WhatsAppAnalytics';
+import BroadcastForm from '@/components/admin/BroadcastForm';
 
 export default function AdminDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [broadcastDialogOpen, setBroadcastDialogOpen] = useState(false);
 
   // Mock data - replace with real data from Google Sheets API
   const dashboardData = {
@@ -305,9 +308,39 @@ export default function AdminDashboard() {
           </Grid>
         </motion.div>
 
+        {/* WhatsApp Analytics */}
+        <motion.div variants={itemVariants}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5" fontWeight={600}>
+              WhatsApp Engagement
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<WhatsAppIcon />}
+              onClick={() => setBroadcastDialogOpen(true)}
+              sx={{
+                bgcolor: '#25D366',
+                '&:hover': {
+                  bgcolor: '#128C7E',
+                },
+              }}
+            >
+              Send Broadcast
+            </Button>
+          </Box>
+          <WhatsAppAnalytics weddingId="sim-kv" />
+        </motion.div>
+
+        {/* Broadcast Dialog */}
+        <BroadcastForm
+          open={broadcastDialogOpen}
+          onClose={() => setBroadcastDialogOpen(false)}
+          weddingId="sim-kv"
+        />
+
         {/* Quick Actions */}
         <motion.div variants={itemVariants}>
-          <Typography variant="h5" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h5" gutterBottom sx={{ mb: 3, mt: 6, fontWeight: 600 }}>
             Quick Actions
           </Typography>
           <Grid container spacing={3}>

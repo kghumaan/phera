@@ -98,6 +98,9 @@ interface RSVPFormData {
   flightArrivalTime: string;
   shuttlePreferenceTime: string;
   shuttlePreferenceNote: string;
+  
+  // WhatsApp opt-in
+  whatsappOptIn: boolean;
 }
 
 const initialFormData: RSVPFormData = {
@@ -134,6 +137,7 @@ const initialFormData: RSVPFormData = {
   flightArrivalTime: '',
   shuttlePreferenceTime: '',
   shuttlePreferenceNote: '',
+  whatsappOptIn: false,
 };
 
 const foodPreferences = [
@@ -2548,6 +2552,77 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   )}
                 </Box>
               </FormControl>
+            </Box>
+
+            {/* WhatsApp Opt-in */}
+            <Box 
+              sx={{ 
+                mt: 4,
+                p: 3,
+                backgroundColor: 'rgba(37, 211, 102, 0.06)',
+                borderRadius: '12px',
+                border: '1px solid rgba(37, 211, 102, 0.2)',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 2,
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleInputChange('whatsappOptIn', !formData.whatsappOptIn)}
+              >
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '6px',
+                    border: `2px solid ${formData.whatsappOptIn ? '#25D366' : 'rgba(0, 0, 0, 0.3)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: formData.whatsappOptIn ? '#25D366' : 'transparent',
+                    flexShrink: 0,
+                    mt: 0.5,
+                  }}
+                >
+                  {formData.whatsappOptIn && (
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '2px',
+                        backgroundColor: 'white',
+                      }}
+                    />
+                  )}
+                </Box>
+                <Box>
+                  <Typography 
+                    sx={{ 
+                      color: '#000',
+                      fontWeight: 500,
+                      fontFamily: 'Outfit',
+                      lineHeight: 1.4,
+                      mb: 0.5,
+                    }}
+                  >
+                    📱 Get wedding updates via WhatsApp
+                  </Typography>
+                  <Typography 
+                    variant="caption"
+                    sx={{ 
+                      color: 'rgba(0, 0, 0, 0.6)',
+                      fontFamily: 'Outfit',
+                      lineHeight: 1.4,
+                      display: 'block',
+                    }}
+                  >
+                    Receive event reminders, shuttle updates, and venue changes directly to your phone. Reply STOP anytime to unsubscribe.
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </Stack>
         );

@@ -218,10 +218,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Wedding Schedule
           </Typography>
-          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Build your day-by-day schedule
           </Typography>
         </Box>

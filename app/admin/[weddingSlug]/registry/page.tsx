@@ -212,7 +212,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
         <Grid size={{ xs: 12, lg: 7 }}>
           <Stack spacing={ENHANCED_SECTION_SPACING}>
             <Box>
-              <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Registry Links
               </Typography>
               <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', mb: 1 }}>

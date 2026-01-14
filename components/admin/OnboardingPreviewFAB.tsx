@@ -198,10 +198,11 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
         }}
         PaperProps={{
           sx: {
-            width: 400,
+            width: 500,
             borderRadius: '16px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
             p: 3,
+            bgcolor: 'white',
           },
         }}
       >
@@ -323,54 +324,54 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5, display: 'block' }}>
               Website Status
             </Typography>
-            <Stack spacing={1.5}>
-              {weddingStatus === 'draft' ? (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<Publish />}
-                  onClick={() => handleStatusUpdate('live')}
-                  disabled={savingStatus}
-                  sx={{
-                    bgcolor: '#10B981',
-                    color: 'white',
-                    py: 1.5,
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': {
-                      bgcolor: '#059669',
-                    },
-                  }}
-                >
-                  {savingStatus ? 'Publishing...' : 'Publish Website'}
-                </Button>
-              ) : (
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => handleStatusUpdate('draft')}
-                  disabled={savingStatus}
-                  sx={{
-                    borderColor: '#6a6a6a',
-                    color: '#6a6a6a',
-                    py: 1.5,
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': {
-                      borderColor: '#1a1a1a',
-                      bgcolor: alpha('#1a1a1a', 0.05),
-                    },
-                  }}
-                >
-                  {savingStatus ? 'Unpublishing...' : 'Unpublish Website'}
-                </Button>
-              )}
-              <Typography variant="caption" sx={{ color: '#6a6a6a', textAlign: 'center' }}>
-                {weddingStatus === 'draft' ? 'Your website is currently private' : '🎉 Your website is live!'}
-              </Typography>
-            </Stack>
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
+                fullWidth
+                variant={weddingStatus === 'live' ? 'contained' : 'outlined'}
+                startIcon={<Publish />}
+                onClick={() => handleStatusUpdate('live')}
+                disabled={savingStatus}
+                sx={{
+                  bgcolor: weddingStatus === 'live' ? '#10B981' : 'transparent',
+                  color: weddingStatus === 'live' ? 'white' : '#10B981',
+                  borderColor: '#10B981',
+                  py: 1.5,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    bgcolor: weddingStatus === 'live' ? '#059669' : alpha('#10B981', 0.05),
+                    borderColor: '#059669',
+                  },
+                }}
+              >
+                {savingStatus && weddingStatus === 'draft' ? 'Publishing...' : 'Publish'}
+              </Button>
+              <Button
+                fullWidth
+                variant={weddingStatus === 'draft' ? 'contained' : 'outlined'}
+                onClick={() => handleStatusUpdate('draft')}
+                disabled={savingStatus}
+                sx={{
+                  bgcolor: weddingStatus === 'draft' ? '#6a6a6a' : 'transparent',
+                  color: weddingStatus === 'draft' ? 'white' : '#6a6a6a',
+                  borderColor: '#6a6a6a',
+                  py: 1.5,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: '#1a1a1a',
+                    bgcolor: weddingStatus === 'draft' ? '#1a1a1a' : alpha('#1a1a1a', 0.05),
+                  },
+                }}
+              >
+                {savingStatus && weddingStatus === 'live' ? 'Unpublishing...' : 'Unpublish'}
+              </Button>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#6a6a6a', textAlign: 'center', display: 'block', mt: 1.5 }}>
+              {weddingStatus === 'draft' ? 'Your website is currently private' : '🎉 Your website is live!'}
+            </Typography>
           </Box>
         </Stack>
       </Popover>
