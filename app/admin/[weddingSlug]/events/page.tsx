@@ -43,7 +43,7 @@ import { weddingService, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedd
 import { EVENT_TEMPLATES, EventTemplate } from '@/components/admin/EventTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -553,7 +553,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       <Grid container spacing={6}>
         {/* Left Column - Events List & Forms */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Events & Dress Code
@@ -583,17 +583,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                 variant="outlined"
                 startIcon={<Add />}
                 onClick={handleAddCustom}
-                sx={{
-                  borderColor: '#DE3F5E',
-                  color: '#DE3F5E',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#C8365A',
-                    bgcolor: 'rgba(222, 63, 94, 0.05)',
-                  },
-                }}
+                sx={SECONDARY_BUTTON_SX}
               >
                 Add Custom Event
               </Button>
@@ -658,7 +648,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',
@@ -696,10 +686,20 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             {EVENT_TEMPLATES.map((template) => (
               <Grid size={{ xs: 12, sm: 6 }} key={template.slug}>
                 <Paper
-                  sx={{ p: 2, cursor: 'pointer', borderRadius: '12px', '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' } }}
+                  sx={{
+                    p: 2,
+                    cursor: 'pointer',
+                    borderRadius: '12px',
+                    bgcolor: '#f5f5f5',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    '&:hover': {
+                      bgcolor: '#ececec',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                    }
+                  }}
                   onClick={() => handleAddFromTemplate(template)}
                 >
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
                     {template.dress_code_emoji} {template.name}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

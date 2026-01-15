@@ -20,22 +20,22 @@ export const PRIMARY_BUTTON_SX: SxProps<Theme> = {
 };
 
 /**
- * Secondary Button Style (Pink Outlined)
+ * Secondary Button Style (Black Outlined)
  * Use for cancel, secondary actions, or less important actions
  */
 export const SECONDARY_BUTTON_SX: SxProps<Theme> = {
-  borderColor: '#DE3F5E',
-  color: '#DE3F5E',
+  borderColor: '#000',
+  color: '#000',
   borderRadius: '12px',
   textTransform: 'none',
   fontWeight: 600,
   '&:hover': {
-    borderColor: '#C8365A',
-    bgcolor: alpha('#DE3F5E', 0.05),
+    borderColor: '#333',
+    bgcolor: alpha('#000', 0.05),
   },
   '&.Mui-disabled': {
-    borderColor: alpha('#DE3F5E', 0.5),
-    color: alpha('#DE3F5E', 0.5),
+    borderColor: alpha('#000', 0.3),
+    color: alpha('#000', 0.3),
   },
 };
 

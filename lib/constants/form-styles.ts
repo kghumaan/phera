@@ -91,3 +91,34 @@ export const ENHANCED_SECTION_SPACING = 5;
  */
 export const ENHANCED_CONTAINER_MAX_WIDTH = 'xl' as const;
 
+/**
+ * Primary button styling (used throughout the platform)
+ * Pink/red color scheme
+ */
+export const PRIMARY_BUTTON_SX = {
+  bgcolor: '#DE3F5E',
+  color: 'white',
+  borderRadius: '12px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  '&:hover': {
+    bgcolor: '#C8365A',
+  },
+};
+
+/**
+ * Secondary button styling
+ * White background with black text and border
+ */
+export const SECONDARY_BUTTON_SX = {
+  bgcolor: 'white',
+  color: 'black',
+  borderColor: 'black',
+  borderRadius: '12px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  '&:hover': {
+    bgcolor: 'rgba(0, 0, 0, 0.04)',
+    borderColor: 'black',
+  },
+};

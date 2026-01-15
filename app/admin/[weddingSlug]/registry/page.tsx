@@ -210,16 +210,13 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Registry Links
               </Typography>
-              <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', mb: 1 }}>
-                Link to your external registry sites (Zola, Amazon, The Knot, etc.)
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
-                Guests will be redirected to your registry site when they click on a link
+              <Typography variant="body2" sx={{ color: '#6a6a6a'}}>
+                Link to your external registry sites (Stripe Payment Link, Zola, Amazon, etc.)
               </Typography>
             </Box>
 
@@ -233,6 +230,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
+                alignSelf: 'flex-start',
                 '&:hover': {
                   bgcolor: '#C8365A',
                 },
@@ -252,22 +250,29 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   }
                 }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="h4" sx={{ mb: 1 }}>
-                        {item.emoji}
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
-                        {item.fund_name}
-                      </Typography>
+                      {/* First Row: Emoji and Name */}
+                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: item.external_url ? 1 : 0 }}>
+                        <Typography variant="h4">
+                          {item.emoji}
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {item.fund_name}
+                        </Typography>
+                      </Stack>
+                      {/* Second Row: Link */}
                       {item.external_url && (
-                        <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all' }}>
+                        <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all', pl: 0 }}>
                           {item.external_url}
                         </Typography>
                       )}
                     </Box>
                     <Stack direction="row" spacing={1}>
-                      <IconButton onClick={() => handleEdit(item)} color="primary">
+                      <IconButton
+                        onClick={() => handleEdit(item)}
+                        sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(222, 63, 94, 0.08)' } }}
+                      >
                         <Edit />
                       </IconButton>
                       <IconButton onClick={() => handleDelete(item.id)} color="error">
@@ -303,7 +308,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

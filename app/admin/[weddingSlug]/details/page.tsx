@@ -27,6 +27,7 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
+import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use enhanced TextField styling
@@ -167,29 +168,29 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       <Box sx={{
         bgcolor: '#FFFFFF',
         borderRadius: 8,
-        p: 3, // Increased padding
+        p: 3,
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: 340, // Wider
+        width: '100%', // Full width
       }}>
         <Stack direction="row" spacing={2.5} justifyContent="center" alignItems="center">
           {timeUnits.map((unit) => (
-            <Stack key={unit.label} alignItems="center" spacing={0} sx={{ minWidth: 40 }}>
-              <Typography sx={{ 
-                fontWeight: 400, 
-                color: '#000000', 
-                fontSize: 24, // Much bigger digits
+            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: 60 }}>
+              <Typography sx={{
+                fontWeight: 700,
+                color: '#000000',
+                fontSize: 64,
                 fontFamily: 'Outfit',
-                lineHeight: 1.2
+                lineHeight: 1
               }}>
                 {unit.value}
               </Typography>
-              <Typography sx={{ 
-                color: '#000000', 
-                fontSize: 11, // Bigger label
-                fontFamily: 'Outfit', 
+              <Typography sx={{
+                color: '#000000',
+                fontSize: 11,
+                fontFamily: 'Outfit',
                 textAlign: 'center',
-                opacity: 0.7
+                opacity: 0.7,
+                textTransform: 'lowercase'
               }}>
                 {unit.label}
               </Typography>
@@ -507,17 +508,17 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           <Box
             sx={{
               position: 'absolute',
-              bottom: 32,
-              left: 24,
-              right: 24,
+              bottom: 16,
+              left: 16,
+              right: 16,
               zIndex: 4,
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(4px)',
-              borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-              px: 2,
-              py: 2,
-              borderRadius: '24px', // More rounded
-              boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(8px)',
+              borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+              px: 3,
+              py: 2.5,
+              borderRadius: '0px 0px 20px 20px',
+              boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
             }}
           >
             <Button
@@ -551,7 +552,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: 280,
+                maxWidth: 320,
                 aspectRatio: '1',
                 mx: 'auto',
               }}
@@ -617,19 +618,18 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               </Box>
             </Box>
 
-            <Stack spacing={1} alignItems="center">
-              {/* Date */}
-              <Typography
-                sx={{
-                  color: formData.font_color || '#000',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.5px',
-                  fontFamily: 'Outfit',
-                  textTransform: 'uppercase'
-                }}
-              >
-                {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd)}
-              </Typography>
+            {/* Date */}
+            <Typography
+              sx={{
+                color: formData.font_color || '#000',
+                fontSize: '0.85rem',
+                letterSpacing: '0.5px',
+                fontFamily: 'Outfit',
+                textTransform: 'uppercase'
+              }}
+            >
+              {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd)}
+            </Typography>
 
             {/* Names */}
             <Typography
@@ -646,7 +646,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             </Typography>
 
             {/* Venue */}
-            <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="center" sx={{ mb: 1 }}>
+            <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="center">
               <LocationOnOutlined sx={{ fontSize: 14, color: '#666' }} />
               <Typography
                 sx={{
@@ -658,18 +658,28 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               >
                 {formData.venue_name || 'Venue Name'}
               </Typography>
-              {(formData.venue_flag || formData.venue_location) && (
+              {formData.venue_location && (
+                <Typography sx={{ fontSize: '0.85rem', color: formData.font_color || '#000', fontFamily: 'Outfit' }}>
+                  {formData.venue_location}
+                </Typography>
+              )}
+              {formData.venue_flag && (
                 <Typography sx={{ fontSize: '1rem' }}>
-                  {formData.venue_flag || formData.venue_location?.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g)?.[0] || ''}
+                  {formData.venue_flag}
                 </Typography>
               )}
             </Stack>
 
             {/* Countdown Timer */}
             <PreviewCountdown />
+
+            {/* Comments Section */}
+            <Box sx={{ width: '100%' }}>
+              <ReadOnlyComments />
+            </Box>
           </Stack>
-        </Stack>
-      </Box>
+        </Box>
+
     </MobilePreviewFrame>
   );
 };
@@ -679,7 +689,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
@@ -1313,7 +1323,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

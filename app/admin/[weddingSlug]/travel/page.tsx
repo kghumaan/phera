@@ -374,7 +374,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Travel & Stay Information
@@ -384,9 +384,9 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
               </Typography>
             </Box>
 
-            <Button 
-          variant="contained" 
-          startIcon={<Add />} 
+            <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={handleAdd}
           sx={{
             bgcolor: '#DE3F5E',
@@ -394,6 +394,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
             borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
+            alignSelf: 'flex-start',
             '&:hover': {
               bgcolor: '#C8365A',
             },
@@ -557,9 +558,20 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                   <Checkbox
                     checked={currentCard?.is_whatsapp_button || false}
                     onChange={(e) => setCurrentCard({ ...currentCard, is_whatsapp_button: e.target.checked })}
+                    sx={{
+                      color: '#6a6a6a',
+                      '&.Mui-checked': {
+                        color: '#DE3F5E',
+                      },
+                    }}
                   />
                 }
                 label="WhatsApp Button"
+                sx={{
+                  '& .MuiFormControlLabel-label': {
+                    color: '#1a1a1a',
+                  },
+                }}
               />
 
               <FormControlLabel
@@ -567,9 +579,20 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                   <Checkbox
                     checked={currentCard?.is_disabled || false}
                     onChange={(e) => setCurrentCard({ ...currentCard, is_disabled: e.target.checked })}
+                    sx={{
+                      color: '#6a6a6a',
+                      '&.Mui-checked': {
+                        color: '#DE3F5E',
+                      },
+                    }}
                   />
                 }
                 label="Disable Button"
+                sx={{
+                  '& .MuiFormControlLabel-label': {
+                    color: '#1a1a1a',
+                  },
+                }}
               />
             </Stack>
           </DialogContent>
@@ -621,7 +644,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

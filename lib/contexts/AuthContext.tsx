@@ -371,14 +371,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isCheckingAuthRef.current = true;
     try {
       // FIRST: Check if we even have a session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('checkAuthStatus: Session check:', {
-        hasSession: !!session,
-        user: session?.user?.email,
-        error: sessionError
+      // FIRST: Check if we even have a valid user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('checkAuthStatus: User check:', {
+        hasUser: !!user,
+        user: user?.email,
+        error: userError
       });
 
-      if (!session) {
+      if (!user) {
         console.log('checkAuthStatus: No session found, stopping');
         setUser(null);
         setIsLoading(false);

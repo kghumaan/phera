@@ -26,6 +26,7 @@ import { Wedding } from '@/lib/supabase/wedding-service';
 interface SidebarSection {
   id: string;
   label: string;
+  subtitle?: string;
   icon: React.ReactNode;
   path: string;
   required?: boolean;
@@ -35,15 +36,15 @@ const sections: SidebarSection[] = [
   { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview', required: true },
   { id: 'guests', label: 'Guest Responses', icon: <People />, path: '/guests' },
   { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
+  { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
   { id: 'events', label: 'Events', icon: <Event />, path: '/events', required: true },
   { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
-  { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
   { id: 'travel', label: 'Travel & Stay', icon: <Flight />, path: '/travel' },
-  { id: 'travel-coordination', label: 'Travel Coordination', icon: <AirportShuttle />, path: '/travel-coordination' },
   { id: 'faq', label: 'FAQ', icon: <HelpOutline />, path: '/faq' },
   { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },
   { id: 'shopping', label: 'Shopping Guide', icon: <ShoppingBag />, path: '/shopping' },
   { id: 'pins', label: 'PIN Management', icon: <VpnKey />, path: '/pins', required: true },
+  { id: 'travel-coordination', label: 'Travel Coordination', icon: <AirportShuttle />, path: '/travel-coordination' },
   { id: 'team', label: 'Team', icon: <Groups />, path: '/team' },
 ];
 
@@ -196,9 +197,17 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
                       )}
                     </Box>
                   }
+                  secondary={section.subtitle}
                   primaryTypographyProps={{
                     sx: {
                       fontWeight: isActive ? 600 : 500,
+                    }
+                  }}
+                  secondaryTypographyProps={{
+                    sx: {
+                      fontSize: '0.75rem',
+                      color: isActive ? 'rgba(255, 255, 255, 0.8)' : '#6a6a6a',
+                      mt: 0.25,
                     }
                   }}
                 />

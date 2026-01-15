@@ -23,17 +23,17 @@ export default function AdminPage() {
       try {
         console.log('[Admin] Attempt', retryCount + 1, '- Fetching user and wedding...');
         
-        // First try to get session (reads from cookies, more reliable after OAuth)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // First try to get user (re-authenticates with server, more secure)
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        console.log('[Admin] Session check:', session ? 'Found' : 'Not found', sessionError || '');
+        console.log('[Admin] User check:', user ? 'Found' : 'Not found', userError || '');
         
-        if (!session) {
+        if (!user) {
           retryCount++;
           
           // Retry a few times before giving up (for OAuth flow)
           if (retryCount < MAX_RETRIES) {
-            console.log(`[Admin] No session yet, retrying in ${retryCount}s... (${retryCount}/${MAX_RETRIES})`);
+            console.log(`[Admin] No user yet, retrying in ${retryCount}s... (${retryCount}/${MAX_RETRIES})`);
             setTimeout(() => {
               if (isMounted) {
                 fetchUserAndWedding();
@@ -45,13 +45,17 @@ export default function AdminPage() {
           // After retries, set up listener for future auth events
           console.log('[Admin] Max retries reached, setting up auth listener...');
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, newSession) => {
+            async (event, session) => {
               if (!isMounted) return;
               
-              console.log('[Admin] Auth state changed:', event, 'Has session:', !!newSession);
+              console.log('[Admin] Auth state changed:', event, 'Has session:', !!session);
               
-              if (event === 'SIGNED_IN' && newSession) {
-                await fetchUserAndWeddingWithUser(newSession.user);
+              if (event === 'SIGNED_IN' && session) {
+                // For SIGNED_IN, we can use session.user but getUser() is still safer if we want to confirm
+                const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+                if (verifiedUser) {
+                  await fetchUserAndWeddingWithUser(verifiedUser);
+                }
               } else if (event === 'SIGNED_OUT') {
                 if (isMounted) {
                   setIsLoading(false);
@@ -73,9 +77,9 @@ export default function AdminPage() {
           return;
         }
         
-        // Session exists, proceed with user
-        console.log('[Admin] Session found, fetching wedding...');
-        await fetchUserAndWeddingWithUser(session.user);
+        // User exists, proceed
+        console.log('[Admin] User found, fetching wedding...');
+        await fetchUserAndWeddingWithUser(user);
         
       } catch (err) {
         console.error('[Admin] Unexpected error:', err);

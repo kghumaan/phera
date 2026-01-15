@@ -3,7 +3,7 @@
 import { Box, Typography, Paper, Stack, Avatar, Chip, Divider } from '@mui/material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 // Helper function to get initials from name
 const getInitials = (name: string): string => {
@@ -34,10 +34,7 @@ const mockComments = [
       initials: 'PS',
       avatar_color: '#E91E63',
     },
-    message: '',
-    gif_url: 'https://media.giphy.com/media/l0HlQ4ZJe9fZjVKpO/giphy.gif',
-    gif_preview_url: 'https://media.giphy.com/media/l0HlQ4ZJe9fZjVKpO/giphy.gif',
-    gif_title: 'Indian Women Dancing',
+    message: "Can't wait to celebrate this special day with you both! So excited! 💃✨",
     created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
@@ -98,7 +95,7 @@ const formatTimeAgo = (dateString: string) => {
   return `${diffInWeeks}w`;
 };
 
-export default function ReadOnlyComments() {
+function ReadOnlyComments() {
   const tabs = ['Activity', 'Going', 'Maybe'];
   const [activeTab, setActiveTab] = useState(0);
 
@@ -221,12 +218,7 @@ export default function ReadOnlyComments() {
           {activeTab === 0 && (
             <Stack spacing={0}>
               {mockComments.map((comment, index) => (
-                <motion.div
-                  key={comment.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
+                <Box key={comment.id}>
                   <Box>
                     <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
                       <Avatar
@@ -319,7 +311,7 @@ export default function ReadOnlyComments() {
                       <Divider sx={{ borderColor: '#EBEBEB' }} />
                     )}
                   </Box>
-                </motion.div>
+                </Box>
               ))}
             </Stack>
           )}
@@ -328,12 +320,7 @@ export default function ReadOnlyComments() {
           {activeTab === 1 && (
             <Stack spacing={0}>
               {mockGoingGuests.map((guestName, index) => (
-                <motion.div
-                  key={`going-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                >
+                <Box key={`going-${index}`}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2.5 }}>
                       <Avatar
@@ -367,7 +354,7 @@ export default function ReadOnlyComments() {
                       <Divider sx={{ borderColor: '#EBEBEB' }} />
                     )}
                   </Box>
-                </motion.div>
+                </Box>
               ))}
             </Stack>
           )}
@@ -376,12 +363,7 @@ export default function ReadOnlyComments() {
           {activeTab === 2 && (
             <Stack spacing={0}>
               {mockMaybeGuests.map((guestName, index) => (
-                <motion.div
-                  key={`maybe-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                >
+                <Box key={`maybe-${index}`}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2.5 }}>
                       <Avatar
@@ -415,7 +397,7 @@ export default function ReadOnlyComments() {
                       <Divider sx={{ borderColor: '#EBEBEB' }} />
                     )}
                   </Box>
-                </motion.div>
+                </Box>
               ))}
             </Stack>
           )}
@@ -425,3 +407,4 @@ export default function ReadOnlyComments() {
   );
 }
 
+export default memo(ReadOnlyComments);

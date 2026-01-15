@@ -1717,8 +1717,11 @@ export default function LandingPage() {
                 textAlign: 'center',
               }}
             >
-              <Typography variant="body2" sx={{ color: '#5a5a5a' }}>
-                © {new Date().getFullYear()} Phera. All rights reserved.
+              <Typography variant="body2" sx={{ color: '#5a5a5a', fontWeight: 500 }}>
+                © 2025 Phera Events, a Ghumaan Ventures LLC company
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#9a9a9a', display: 'block', mt: 0.5 }}>
+                All Rights Reserved.
               </Typography>
             </Box>
           </Container>

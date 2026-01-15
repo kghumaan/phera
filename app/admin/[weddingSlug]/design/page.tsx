@@ -17,13 +17,16 @@ import {
   Divider,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Save, Palette, Check, VpnKey } from '@mui/icons-material';
+import { Save, Palette, Check, VpnKey, LocationOnOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
+import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_PAPER_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { useRouter } from 'next/navigation';
+import { parseISO } from 'date-fns';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -41,19 +44,13 @@ const BACKGROUND_OPTIONS = [
 const COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
   { name: 'Rose', value: '#DE3F5E' },
-  { name: 'Purple', value: '#8B5CF6' },
-  { name: 'Blue', value: '#3B82F6' },
-  { name: 'Green', value: '#10B981' },
-  { name: 'Pink', value: '#EC4899' },
-  { name: 'Teal', value: '#14B8A6' },
   { name: 'Orange', value: '#F97316' },
-  { name: 'Indigo', value: '#6366F1' },
+  { name: 'Blue', value: '#479AB4' },
+  { name: 'Midnight Green', value: '#003139' },
 ];
 
 const FONT_COLOR_OPTIONS = [
   { name: 'Black', value: '#000000' },
-  { name: 'Dark Gray', value: '#4a4a4a' },
-  { name: 'Medium Gray', value: '#6a6a6a' },
   { name: 'White', value: '#FFFFFF' },
 ];
 
@@ -64,6 +61,11 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
   const [saving, setSaving] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [coupleName, setCoupleName] = useState('');
+  const [weddingDate, setWeddingDate] = useState('');
+  const [venueName, setVenueName] = useState('');
+  const [venueLocation, setVenueLocation] = useState('');
+  const [venueFlag, setVenueFlag] = useState<string | null>(null);
+  const [coupleImageUrl, setCoupleImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
@@ -87,6 +89,35 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
 
+  // Countdown timer state
+  const [weddingDateStart, setWeddingDateStart] = useState<Date | null>(null);
+  const [timeLeft, setTimeLeft] = useState({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  // Countdown timer logic
+  useEffect(() => {
+    if (!weddingDateStart) return;
+
+    const calculateTimeLeft = () => {
+      const difference = weddingDateStart.getTime() - new Date().getTime();
+      if (difference <= 0) {
+        setTimeLeft({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44));
+      const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ months, days, hours, minutes, seconds });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [weddingDateStart]);
+
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
@@ -103,6 +134,21 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
       if (wedding) {
         setWeddingId(wedding.id);
         setCoupleName(wedding.couple_name);
+        setWeddingDate(wedding.wedding_date_display || '');
+        setVenueName(wedding.venue_name || '');
+        setVenueLocation(wedding.venue_location || '');
+        setVenueFlag(wedding.venue_flag || null);
+        setCoupleImageUrl(wedding.couple_image_url || null);
+
+        // Parse wedding date for countdown
+        if (wedding.wedding_date) {
+          try {
+            const parsedDate = parseISO(wedding.wedding_date);
+            setWeddingDateStart(parsedDate);
+          } catch (err) {
+            console.error('Error parsing wedding date:', err);
+          }
+        }
 
         // Main website styling
         setBackground(wedding.background_image || '');
@@ -182,17 +228,251 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
   const previewText = pinEntryText.replace(/\{couple_name\}/g, coupleName);
   const previewSubtitle = pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName);
 
-  return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Look & Feel
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Customize the visual design of your wedding website and pin entry screen
-          </Typography>
+  // Countdown Timer Component
+  const PreviewCountdown = () => {
+    const timeUnits = [
+      { label: 'months', value: timeLeft.months },
+      { label: 'days', value: timeLeft.days },
+      { label: 'hours', value: timeLeft.hours },
+      { label: 'mins', value: timeLeft.minutes },
+      { label: 'secs', value: timeLeft.seconds }
+    ];
+
+    return (
+      <Box sx={{
+        bgcolor: '#FFFFFF',
+        borderRadius: 8,
+        p: 3,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        width: '100%',
+      }}>
+        <Stack direction="row" spacing={2.5} justifyContent="center" alignItems="center">
+          {timeUnits.map((unit) => (
+            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: 60 }}>
+              <Typography sx={{
+                fontWeight: 700,
+                color: '#000000',
+                fontSize: 64,
+                fontFamily: 'Outfit',
+                lineHeight: 1
+              }}>
+                {unit.value}
+              </Typography>
+              <Typography sx={{
+                color: '#000000',
+                fontSize: 11,
+                fontFamily: 'Outfit',
+                textAlign: 'center',
+                opacity: 0.7,
+                textTransform: 'lowercase'
+              }}>
+                {unit.label}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
+    );
+  };
+
+  // Mobile Preview Component
+  const MobilePreview = () => (
+    <MobilePreviewFrame
+      title="Preview"
+      backgroundImage={customBackground || background}
+      overlay={
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(8px)',
+            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+            px: 3,
+            py: 2.5,
+            borderRadius: '0px 0px 20px 20px',
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              bgcolor: primaryColor,
+              color: buttonFontColor,
+              borderRadius: '16px',
+              py: 1.5,
+              fontSize: 14,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontFamily: 'Outfit',
+              '&:hover': {
+                bgcolor: primaryColor,
+                opacity: 0.9,
+              },
+            }}
+          >
+            View Details
+          </Button>
         </Box>
+      }
+    >
+      <Box sx={{ pt: 2, pb: 14, px: 2 }}>
+        <Stack spacing={3} alignItems="center" textAlign="center">
+          {/* Couple Photo Section */}
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: 320,
+              aspectRatio: '1',
+              mx: 'auto',
+            }}
+          >
+            {/* Frame Background */}
+            <Box
+              component="img"
+              src="/images/frames/frame-27.png"
+              alt="Decorative frame"
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Couple Image */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '7%',
+                left: '7%',
+                width: '87%',
+                height: '87%',
+                overflow: 'hidden',
+                zIndex: 2,
+              }}
+            >
+              {coupleImageUrl ? (
+                <Box
+                  component="img"
+                  src={coupleImageUrl}
+                  alt="Couple Photo"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    bgcolor: '#f5f5f5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    No Photo
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+
+          {/* Date */}
+          <Typography
+            sx={{
+              color: fontColor,
+              fontSize: '0.85rem',
+              letterSpacing: '0.5px',
+              fontFamily: 'Outfit',
+              textTransform: 'uppercase',
+            }}
+          >
+            {weddingDate || '1 JANUARY, 2026'}
+          </Typography>
+
+          {/* Names */}
+          <Typography
+            variant="h4"
+            sx={{
+              fontSize: '1.75rem',
+              color: fontColor,
+              lineHeight: 1.2,
+              fontFamily: 'var(--font-instrument-serif)',
+              fontStyle: 'italic',
+            }}
+          >
+            {coupleName || 'Couple Names'}
+          </Typography>
+
+          {/* Venue */}
+          <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="center">
+            <LocationOnOutlined sx={{ fontSize: 14, color: '#666' }} />
+            <Typography
+              sx={{
+                color: fontColor,
+                fontSize: '0.85rem',
+                textDecoration: 'underline',
+                fontFamily: 'Outfit',
+              }}
+            >
+              {venueName || 'Venue Name'}
+            </Typography>
+            {venueLocation && (
+              <Typography sx={{ fontSize: '0.85rem', color: fontColor }}>
+                {venueLocation}
+              </Typography>
+            )}
+            {venueFlag && (
+              <Typography sx={{ fontSize: '1rem' }}>
+                {venueFlag}
+              </Typography>
+            )}
+          </Stack>
+
+          {/* Countdown Timer */}
+          {weddingDateStart && (
+            <Box sx={{ width: '100%' }}>
+              <PreviewCountdown />
+            </Box>
+          )}
+
+          {/* Comments Section */}
+          <Box sx={{ width: '100%' }}>
+            <ReadOnlyComments />
+          </Box>
+        </Stack>
+      </Box>
+    </MobilePreviewFrame>
+  );
+
+  return (
+    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+      <Grid container spacing={6}>
+        {/* Left Column - Form Controls */}
+        <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Look & Feel
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Customize your website theme and styling
+              </Typography>
+            </Box>
 
         <Paper sx={ENHANCED_PAPER_SX}>
           <Stack spacing={ENHANCED_SECTION_SPACING}>
@@ -201,25 +481,48 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Background Image
               </Typography>
-              
-              <Grid container spacing={2} mb={3}>
+
+              {/* Horizontal Scrollable Background Options */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  overflowX: 'auto',
+                  pb: 2,
+                  mb: 3,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: alpha('#000', 0.05),
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: alpha('#DE3F5E', 0.5),
+                    borderRadius: '4px',
+                    '&:hover': {
+                      backgroundColor: '#DE3F5E',
+                    },
+                  },
+                }}
+              >
                 {BACKGROUND_OPTIONS.map((bg) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3 }} key={bg.url}>
+                  <Box key={bg.url} sx={{ flexShrink: 0 }}>
                     <Box
                       onClick={() => {
                         setBackground(bg.url);
                         setCustomBackground(null);
                       }}
                       sx={{
-                        width: '100%',
+                        width: 160,
                         height: 120,
                         backgroundImage: `url(${bg.url})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
-                        borderRadius: 1,
+                        borderRadius: '12px',
                         cursor: 'pointer',
                         border: 3,
-                        borderColor: background === bg.url ? '#DE3F5E' : 'transparent',
+                        borderColor: background === bg.url && !customBackground ? '#DE3F5E' : 'transparent',
                         transition: 'all 0.2s',
                         '&:hover': {
                           borderColor: '#DE3F5E',
@@ -227,12 +530,12 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
                         },
                       }}
                     />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
                       {bg.name}
                     </Typography>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
 
               {weddingId && (
                 <ImageUpload
@@ -496,37 +799,61 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
                 <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                   Background Image
                 </Typography>
-                <Grid container spacing={2} mb={2}>
+
+                {/* Horizontal Scrollable Background Options */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    overflowX: 'auto',
+                    pb: 2,
+                    mb: 2,
+                    '&::-webkit-scrollbar': {
+                      height: 8,
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: alpha('#000', 0.05),
+                      borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: alpha('#DE3F5E', 0.5),
+                      borderRadius: '4px',
+                      '&:hover': {
+                        backgroundColor: '#DE3F5E',
+                      },
+                    },
+                  }}
+                >
                   {BACKGROUND_OPTIONS.map((bg) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={bg.url}>
+                    <Box key={bg.url} sx={{ flexShrink: 0 }}>
                       <Box
                         onClick={() => {
                           setPinEntryBackground(bg.url);
                           setCustomPinEntryBackground(null);
                         }}
                         sx={{
-                          width: '100%',
+                          width: 160,
                           height: 100,
                           backgroundImage: `url(${bg.url})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          borderRadius: 1,
+                          borderRadius: '12px',
                           cursor: 'pointer',
-                          border: 2.5,
+                          border: 3,
                           borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
                           transition: 'all 0.2s',
                           '&:hover': {
                             borderColor: '#DE3F5E',
-                            transform: 'scale(1.03)',
+                            transform: 'scale(1.05)',
                           },
                         }}
                       />
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', fontSize: '0.7rem' }}>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
                         {bg.name}
                       </Typography>
-                    </Grid>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
                 {weddingId && (
                   <ImageUpload
                     label="Upload Custom Background"
@@ -894,22 +1221,44 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
           </Stack>
         </Paper>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
+            {/* Toast Notification */}
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={6000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert
+                onClose={() => setSnackbarOpen(false)}
+                severity={snackbarSeverity}
+                sx={{ width: '100%' }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </Stack>
+        </Grid>
+
+        {/* Right Column - Fixed Mobile Preview (Desktop only) */}
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '50%',
+              left: '79.17%',
+              transform: 'translate(-50%, -50%)',
+              width: { lg: '520px' },
+              height: '100vh',
+              maxWidth: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
+            <MobilePreview />
+          </Box>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

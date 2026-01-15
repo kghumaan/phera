@@ -157,24 +157,24 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
             PIN Management
           </Typography>
-          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>
+          <Typography variant="body1" sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
             Create and manage unique PIN codes for your guests to access the wedding website
           </Typography>
         </Box>
 
         {/* PIN Management Section */}
-        <Paper sx={{ 
-          p: { xs: 4, md: 6 }, 
-          borderRadius: '24px', 
+        <Paper sx={{
+          p: { xs: 4, md: 6 },
+          borderRadius: '24px',
           bgcolor: 'white',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' 
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
         }}>
           <Stack spacing={4}>
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
@@ -183,14 +183,14 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   Guest PIN Codes
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
-                  {(settings?.pin_codes?.length || 0) > 0 
+                  {(settings?.pin_codes?.length || 0) > 0
                     ? `You have ${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
                     : 'Add unique PIN codes for your guests to access the wedding website'}
                 </Typography>
               </Box>
-              <Button 
-                variant="contained" 
-                startIcon={<Add />} 
+              <Button
+                variant="contained"
+                startIcon={<Add />}
                 onClick={() => setPinDialogOpen(true)}
                 size="large"
                 sx={{
@@ -214,11 +214,11 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             </Box>
 
             {(!settings?.pin_codes || settings.pin_codes.length === 0) ? (
-              <Box 
-                sx={{ 
-                  textAlign: 'center', 
-                  py: 8, 
-                  bgcolor: alpha('#f5f5f5', 0.5), 
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  py: 8,
+                  bgcolor: alpha('#f5f5f5', 0.5),
                   borderRadius: '16px',
                   border: '2px dashed #e0e0e0'
                 }}
@@ -252,48 +252,48 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                     secondaryAction={
                       <Box display="flex" alignItems="center" gap={2}>
                         <Stack direction="row" spacing={1.5}>
-                          <Chip 
-                            label={pinData.type} 
-                            size="medium" 
-                            sx={{ 
-                              fontSize: '1rem', 
+                          <Chip
+                            label={pinData.type}
+                            size="medium"
+                            sx={{
+                              fontSize: '1rem',
                               height: 36,
                               bgcolor: alpha('#DE3F5E', 0.1),
                               color: '#DE3F5E',
                               fontWeight: 600,
                               px: 1,
-                            }} 
+                            }}
                           />
                           {pinData.skip_rsvp ? (
-                            <Chip 
-                              label="Skip RSVP" 
-                              size="medium" 
-                              sx={{ 
-                                fontSize: '1rem', 
+                            <Chip
+                              label="Skip RSVP"
+                              size="medium"
+                              sx={{
+                                fontSize: '1rem',
                                 height: 36,
                                 bgcolor: alpha('#F59E0B', 0.1),
                                 color: '#F59E0B',
                                 fontWeight: 600,
                                 px: 1,
-                              }} 
+                              }}
                             />
                           ) : (
-                            <Chip 
-                              label={pinData.allows_plus_one ? 'Plus One Allowed' : 'No Plus One'} 
-                              size="medium" 
-                              sx={{ 
-                                fontSize: '1rem', 
+                            <Chip
+                              label={pinData.allows_plus_one ? 'Plus One Allowed' : 'No Plus One'}
+                              size="medium"
+                              sx={{
+                                fontSize: '1rem',
                                 height: 36,
                                 bgcolor: pinData.allows_plus_one ? alpha('#10B981', 0.1) : alpha('#6a6a6a', 0.1),
                                 color: pinData.allows_plus_one ? '#10B981' : '#6a6a6a',
                                 fontWeight: 600,
                                 px: 1,
-                              }} 
+                              }}
                             />
                           )}
                         </Stack>
-                        <IconButton 
-                          edge="end" 
+                        <IconButton
+                          edge="end"
                           onClick={() => handleEditPin(pinData, index)}
                           sx={{
                             color: '#DE3F5E',
@@ -305,8 +305,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         >
                           <Edit />
                         </IconButton>
-                        <IconButton 
-                          edge="end" 
+                        <IconButton
+                          edge="end"
                           onClick={() => handleDeletePin(pinData.pin)}
                           sx={{
                             color: '#EF4444',
@@ -336,10 +336,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         </Paper>
 
         {/* PIN Dialog */}
-        <Dialog 
-          open={pinDialogOpen} 
-          onClose={handleCloseDialog} 
-          maxWidth="sm" 
+        <Dialog
+          open={pinDialogOpen}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
           fullWidth
           PaperProps={{
             sx: {
@@ -373,9 +373,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 helperText="Optional: Categorize this PIN"
                 sx={textFieldSx}
               />
-              <Box sx={{ 
-                p: 2, 
-                borderRadius: '12px', 
+              <Box sx={{
+                p: 2,
+                borderRadius: '12px',
                 bgcolor: alpha('#F59E0B', 0.05),
                 border: `1px solid ${alpha('#F59E0B', 0.2)}`
               }}>
@@ -406,15 +406,15 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   </Button>
                 </Box>
                 <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                  {newPin.skip_rsvp 
+                  {newPin.skip_rsvp
                     ? 'This PIN will skip the RSVP process (useful for vendors or guests who don\'t need to RSVP)'
                     : 'This PIN will require RSVP. You can configure plus one options below.'}
                 </Typography>
               </Box>
               {!newPin.skip_rsvp && (
-                <Box sx={{ 
-                  p: 2, 
-                  borderRadius: '12px', 
+                <Box sx={{
+                  p: 2,
+                  borderRadius: '12px',
                   bgcolor: alpha('#10B981', 0.05),
                   border: `1px solid ${alpha('#10B981', 0.2)}`
                 }}>
@@ -450,9 +450,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 3 }}>
             <Button onClick={handleCloseDialog} sx={{ color: '#6a6a6a', fontSize: '1rem' }}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              startIcon={editingPinIndex !== null ? <Edit /> : <Add />} 
+            <Button
+              variant="contained"
+              startIcon={editingPinIndex !== null ? <Edit /> : <Add />}
               onClick={handleAddPin}
               sx={{
                 bgcolor: '#DE3F5E',
@@ -479,8 +479,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           onClose={() => setSnackbarOpen(false)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
             severity={snackbarSeverity}
             sx={{ width: '100%' }}
           >
@@ -491,4 +491,3 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     </Container>
   );
 }
-

@@ -240,7 +240,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
       <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Frequently Asked Questions
@@ -250,9 +250,9 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               </Typography>
             </Box>
 
-            <Button 
-          variant="contained" 
-          startIcon={<Add />} 
+            <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={handleAdd}
           sx={{
             bgcolor: '#DE3F5E',
@@ -260,6 +260,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
             borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
+            alignSelf: 'flex-start',
             '&:hover': {
               bgcolor: '#C8365A',
             },
@@ -418,7 +419,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

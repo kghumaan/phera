@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Box, Drawer, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextField, Divider, CircularProgress } from '@mui/material';
 import { Visibility, Close, DesktopWindows, PhoneAndroid, Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 interface OnboardingPreviewFABProps {
   weddingSlug: string;
@@ -149,21 +150,20 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
           gap: 2,
         }}
       >
-        {/* Preview Button (Outlined) */}
+        {/* Preview Button (Secondary Style) */}
         <Fab
           variant="extended"
           aria-label="preview"
           onClick={() => setPreviewOpen(true)}
           sx={{
-            bgcolor: 'white',
-            color: '#DE3F5E',
-            border: '2px solid #DE3F5E',
+            ...SECONDARY_BUTTON_SX,
+            border: '2px solid black',
             '&:hover': {
-              bgcolor: alpha('#DE3F5E', 0.05),
-              border: '2px solid #C8365A',
+              ...SECONDARY_BUTTON_SX['&:hover'],
+              border: '2px solid black',
               transform: 'scale(1.05)',
             },
-            boxShadow: '0 4px 20px rgba(222, 63, 94, 0.2)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
             transition: 'all 0.2s ease',
             minWidth: { xs: 64, md: 'auto' },
             width: { xs: 64, md: 'auto' },
@@ -171,7 +171,6 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             borderRadius: { xs: '50%', md: '28px' },
             px: { xs: 0, md: 4 },
             fontSize: { xs: '1.1rem', md: '1.1rem' },
-            fontWeight: 600,
           }}
         >
           <Visibility sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
@@ -414,23 +413,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
               <Button
                 fullWidth
                 variant="outlined"
-                startIcon={savingStatus && weddingStatus === 'live' ? <CircularProgress size={16} sx={{ color: '#DE3F5E' }} /> : null}
+                startIcon={savingStatus && weddingStatus === 'live' ? <CircularProgress size={16} sx={{ color: 'black' }} /> : null}
                 onClick={() => handleStatusUpdate('draft')}
                 disabled={savingStatus}
                 sx={{
-                  borderColor: '#DE3F5E',
-                  color: '#DE3F5E',
+                  ...SECONDARY_BUTTON_SX,
                   py: 1.5,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#C8365A',
-                    bgcolor: alpha('#DE3F5E', 0.05),
-                  },
                   '&.Mui-disabled': {
-                    borderColor: alpha('#DE3F5E', 0.5),
-                    color: alpha('#DE3F5E', 0.5),
+                    bgcolor: 'rgba(255, 255, 255, 0.5)',
+                    borderColor: 'rgba(0, 0, 0, 0.3)',
+                    color: 'rgba(0, 0, 0, 0.3)',
                   },
                 }}
               >

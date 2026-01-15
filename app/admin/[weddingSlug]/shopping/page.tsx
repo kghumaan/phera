@@ -23,7 +23,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { SHOP_TEMPLATES, ShopTemplate } from '@/components/admin/ShopTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -227,7 +227,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
       <Grid container spacing={6}>
         {/* Left Column - Form Controls */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Shopping Guide
@@ -261,19 +261,9 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
             variant="outlined"
             startIcon={<Add />}
             onClick={handleAddCustom}
-            sx={{
-              borderColor: '#DE3F5E',
-              color: '#DE3F5E',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                borderColor: '#C8365A',
-                bgcolor: 'rgba(222, 63, 94, 0.05)',
-              },
-            }}
+            sx={SECONDARY_BUTTON_SX}
           >
-            Create Custom Shop
+            Add Custom Shop
           </Button>
         </Stack>
 
@@ -469,7 +459,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

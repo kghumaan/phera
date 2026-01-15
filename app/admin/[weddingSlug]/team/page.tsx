@@ -401,7 +401,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+    <Container maxWidth="xl">
       <Stack spacing={4}>
         {/* Header */}
         <Box>
@@ -416,7 +416,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           >
             Team
           </Typography>
-          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>
+          <Typography variant="body1" sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
             Manage who can access and edit your wedding website
           </Typography>
         </Box>

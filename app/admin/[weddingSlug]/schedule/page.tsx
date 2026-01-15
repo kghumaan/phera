@@ -22,7 +22,7 @@ import { Add, Edit, Delete, Save, LocationOnOutlined } from '@mui/icons-material
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -353,7 +353,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       <Grid container spacing={6}>
         {/* Left Column - Schedule Form */}
         <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
+          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Wedding Schedule
@@ -461,22 +461,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
                   <Button
                     size="small"
-                    variant="contained"
+                    variant="outlined"
                     startIcon={<Add />}
                     onClick={() => handleAddItem(day.id)}
                     sx={{
+                      ...SECONDARY_BUTTON_SX,
                       alignSelf: 'flex-start',
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
                       px: 2.5,
                       boxShadow: 'none',
-                      '&:hover': {
-                        bgcolor: '#C8365A',
-                        boxShadow: 'none',
-                      },
                     }}
                   >
                     Add Event
@@ -509,7 +501,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               top: '50%',
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
-              width: { lg: '460px' },
+              width: { lg: '520px' },
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

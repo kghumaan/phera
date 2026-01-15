@@ -32,21 +32,21 @@ export default function NewWeddingPage() {
 
   const checkAuthAndRedirect = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (!session) {
+      if (!user) {
         // Not authenticated, redirect to signup
         router.push('/auth/signup');
         return;
       }
 
-      setUserId(session.user.id);
+      setUserId(user.id);
 
       // Check if user already has weddings
       const { data: existingWeddings } = await supabase
         .from('weddings')
         .select('slug')
-        .eq('created_by', session.user.id)
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -60,7 +60,7 @@ export default function NewWeddingPage() {
       const { data: adminWeddings } = await supabase
         .from('wedding_admins')
         .select('wedding_id, weddings(slug)')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1);
 

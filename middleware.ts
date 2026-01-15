@@ -33,15 +33,15 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session if expired
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Check if the route requires authentication
   const pathname = request.nextUrl.pathname;
 
   // Protect admin routes
   if (pathname.startsWith('/admin')) {
-    if (!session) {
+    if (!user) {
       // Redirect to login with return URL
       const redirectUrl = new URL('/auth/login', request.url);
       redirectUrl.searchParams.set('redirect', pathname);
@@ -62,13 +62,13 @@ export async function middleware(request: NextRequest) {
           .eq('slug', weddingSlug)
           .single();
 
-        if (wedding && wedding.created_by !== session.user.id) {
+        if (wedding && wedding.created_by !== user.id) {
           // Check if user is an admin
           const { data: adminData } = await supabase
             .from('wedding_admins')
             .select('id')
             .eq('wedding_id', wedding.id)
-            .eq('user_id', session.user.id)
+            .eq('user_id', user.id)
             .single();
 
           if (!adminData) {

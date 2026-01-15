@@ -28,14 +28,14 @@ export default function MobilePreviewFrame({
         alignItems: 'center',
         justifyContent: 'center',
         py: { xs: 4, lg: 0 },
-        height: '100%',
+        width: '100%',
       }}
     >
       {/* Phone Frame */}
       <Box
         sx={{
           width: '100%',
-          maxWidth: { xs: 375, lg: 460 },
+          maxWidth: { xs: 375, lg: 520 },
           mx: 'auto',
           aspectRatio: '375/667',
           backgroundColor: '#000',
@@ -90,20 +90,23 @@ export default function MobilePreviewFrame({
                 </svg>
               </Box>
 
-              {/* Title */}
-              <Typography
-                sx={{
-                  fontFamily: 'Outfit',
-                  fontWeight: 400,
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  letterSpacing: '5.56%',
-                  textTransform: 'uppercase',
-                  color: '#141414',
-                }}
-              >
-                {title}
-              </Typography>
+              {/* Title - Hidden for "Preview" */}
+              {title !== 'Preview' && (
+                <Typography
+                  sx={{
+                    fontFamily: 'Outfit',
+                    fontWeight: 400,
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    letterSpacing: '5.56%',
+                    textTransform: 'uppercase',
+                    color: '#141414',
+                  }}
+                >
+                  {title}
+                </Typography>
+              )}
+              {title === 'Preview' && <Box sx={{ width: 28 }} />}
 
               {/* WhatsApp Button */}
               <Box
@@ -133,6 +136,20 @@ export default function MobilePreviewFrame({
         {/* Optional Overlay Content (e.g., navigation controls) */}
         {overlay}
       </Box>
+
+      {/* Preview Note */}
+      <Typography
+        variant="caption"
+        sx={{
+          mt: 2,
+          textAlign: 'center',
+          color: '#6a6a6a',
+          fontSize: '0.75rem',
+          fontStyle: 'italic',
+        }}
+      >
+        Quick preview of the published version. Final appearance may vary.
+      </Typography>
     </Box>
   );
 }

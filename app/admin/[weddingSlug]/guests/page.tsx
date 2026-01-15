@@ -47,6 +47,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { getAllRSVPs, deleteRSVP } from '@/lib/supabase/rsvp-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
+import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 interface RSVPData {
   id: string;
@@ -295,7 +296,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   return (
     <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
-      <Stack spacing={4}>
+      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
@@ -311,12 +312,12 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               variant="outlined"
               onClick={handleDownloadMenuOpen}
               sx={{
+                ...SECONDARY_BUTTON_SX,
                 position: 'fixed',
                 top: { xs: 16, md: 24 },
                 right: { xs: 360, md: 408 }, // Positioned to the left of Preview button with equal spacing
                 zIndex: 1000,
-                borderColor: '#DE3F5E',
-                color: '#DE3F5E',
+                border: '2px solid black',
                 bgcolor: 'rgba(255, 255, 255, 0.9)',
                 backdropFilter: 'blur(8px)',
                 borderRadius: { xs: '50%', md: '28px' },
@@ -326,11 +327,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                 px: { xs: 0, md: 4 },
                 fontSize: { xs: '1.1rem', md: '1.1rem' },
-                fontWeight: 600,
-                textTransform: 'none',
                 '&:hover': {
-                  borderColor: '#C8365A',
-                  bgcolor: 'rgba(222, 63, 94, 0.05)',
+                  ...SECONDARY_BUTTON_SX['&:hover'],
+                  border: '2px solid black',
                   transform: 'scale(1.05)',
                 },
                 transition: 'all 0.2s ease',
