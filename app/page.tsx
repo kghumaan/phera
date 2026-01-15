@@ -1718,10 +1718,10 @@ export default function LandingPage() {
               }}
             >
               <Typography variant="body2" sx={{ color: '#5a5a5a', fontWeight: 500 }}>
-                © 2025 Phera Events, a Ghumaan Ventures LLC company
+                © 2026 Phera Events. All rights reserved.
               </Typography>
               <Typography variant="caption" sx={{ color: '#9a9a9a', display: 'block', mt: 0.5 }}>
-                All Rights Reserved.
+                Phera Events is owned and operated by Ghumaan Ventures, LLC.
               </Typography>
             </Box>
           </Container>
