@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import AppHeader from '@/components/shared/AppHeader';
 
+import OptimizedBackground from '@/components/ui/OptimizedBackground';
+
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -22,10 +24,11 @@ export default function PrivacyPage() {
   const theme = useTheme();
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
-      <AppHeader variant="transparent" />
+    <OptimizedBackground useAppDefault={true}>
+      <Box sx={{ minHeight: '100vh' }}>
+        <AppHeader variant="transparent" />
 
-      <Container maxWidth="md" sx={{ pt: { xs: 12, md: 16 }, pb: 12 }}>
+        <Container maxWidth="md" sx={{ pt: { xs: 12, md: 16 }, pb: 12 }}>
         <motion.div initial="hidden" animate="visible" variants={fadeIn}>
           <Breadcrumbs sx={{ mb: 4 }}>
             <Link href="/" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors text-sm font-medium">
@@ -127,6 +130,7 @@ export default function PrivacyPage() {
           </Stack>
         </motion.div>
       </Container>
-    </Box>
+      </Box>
+    </OptimizedBackground>
   );
 }
