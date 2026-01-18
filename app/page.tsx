@@ -1683,7 +1683,7 @@ export default function LandingPage() {
                   <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Contact
                   </Link>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/privacy" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Privacy
                   </Link>
                 </Stack>
