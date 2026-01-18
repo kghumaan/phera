@@ -5,7 +5,7 @@ import OnboardingSidebar from '@/components/admin/OnboardingSidebar';
 import OnboardingPreviewFAB from '@/components/admin/OnboardingPreviewFAB';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { use, useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 
 export default function OnboardingLayout({
@@ -17,18 +17,25 @@ export default function OnboardingLayout({
 }) {
   const { weddingSlug } = use(params);
   const [wedding, setWedding] = useState<Wedding | undefined>(undefined);
+  const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     const fetchWedding = async () => {
+      setIsLoadingWedding(true);
       const weddingData = await weddingService.getWeddingBySlug(weddingSlug);
       if (weddingData) {
         setWedding(weddingData);
       }
+      setIsLoadingWedding(false);
     };
     fetchWedding();
   }, [weddingSlug]);
+
+  if (!isLoadingWedding && !wedding) {
+    notFound();
+  }
 
   // Reset navigating state when pathname changes
   useEffect(() => {

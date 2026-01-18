@@ -39,6 +39,42 @@ export async function middleware(request: NextRequest) {
   // Check if the route requires authentication
   const pathname = request.nextUrl.pathname;
 
+  // --- WhatsApp /go/ Redirection Engine ---
+  // Handle paths like /go/[pageKey]/[weddingSlug] for WhatsApp compatibility
+  // where placeholders must be at the end of the URL
+  if (pathname.startsWith('/go/')) {
+    const parts = pathname.split('/').filter(Boolean); // ['go', 'pageKey', 'weddingSlug']
+    
+    if (parts.length >= 2) {
+      const pageKey = parts[1];
+      const weddingSlug = parts[2] || ''; // Slug might be optional or empty for some reasons
+
+      // Mapping table for short keys to actual app paths
+      const pathMap: Record<string, string> = {
+        'events': 'events',
+        'schedule': 'schedule',
+        'travel': 'travel',
+        'shopping': 'where-to-shop',
+        'faq': 'faq',
+        'registry': 'registry',
+        'rsvp': 'rsvp',
+        'travel-details': 'travel-details',
+        'details': 'details'
+      };
+
+      const targetPath = pathMap[pageKey];
+      
+      if (targetPath) {
+        // Construct the final destination URL
+        const destination = weddingSlug 
+          ? `/${weddingSlug}/${targetPath}`
+          : `/${targetPath}`; // Fallback if slug is missing (though usually required)
+          
+        return NextResponse.redirect(new URL(destination, request.url));
+      }
+    }
+  }
+
   // Protect admin routes
   if (pathname.startsWith('/admin')) {
     if (!user) {

@@ -86,6 +86,7 @@ Supports 6 integrated methods:
 ### Code Patterns
 - **Service Layer**: Business logic isolated in `lib/supabase/*-service.ts`.
 - **Ref Patterns**: Use `wedding_id` (UUID) for data operations and `wedding_slug` for URL routing.
+- **Redirection Engine**: A `/go/[pageKey]/[weddingSlug]` pattern in `middleware.ts` handles WhatsApp's requirement for dynamic parameters at the end of URLs, mapping short keys (e.g., `events`, `shopping`) to their actual app paths.
 - **Theme**: Centralized M3 theme in `lib/theme/m3-theme.ts` with responsive scale.
 
 ---

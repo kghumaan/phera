@@ -1,7 +1,17 @@
 'use client';
 
-import { WeddingProvider } from '@/lib/contexts/WeddingContext';
-import { useParams } from 'next/navigation';
+import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
+import { useParams, notFound } from 'next/navigation';
+
+function WeddingLayoutContent({ children }: { children: React.ReactNode }) {
+  const { error, isLoading } = useWedding();
+  
+  if (!isLoading && error === 'Wedding not found') {
+    notFound();
+  }
+  
+  return <>{children}</>;
+}
 
 export default function WeddingLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -9,7 +19,9 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
 
   return (
     <WeddingProvider weddingSlug={weddingSlug}>
-      {children}
+      <WeddingLayoutContent>
+        {children}
+      </WeddingLayoutContent>
     </WeddingProvider>
   );
 }
