@@ -10,13 +10,15 @@ const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600"],
+  display: 'swap',
 });
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
   weight: ["400"],
-  style: ["italic"],
+  style: ["normal", "italic"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
