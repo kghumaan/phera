@@ -48,6 +48,9 @@ import {
   FlightTakeoff,
   ArrowBack,
   Verified,
+  Domain,
+  Send,
+  Dashboard,
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -988,69 +991,165 @@ export default function LandingPage() {
           </Container>
         </Box>
 
-        {/* --- HOW IT WORKS --- */}
-        <Container maxWidth="lg" sx={{ py: 10 }}>
+
+        {/* --- WEDDING ROADMAP SECTION --- */}
+        <Container maxWidth="xl" sx={{ py: 14 }}>
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <Typography
-              variant="h2"
-              align="center"
-              sx={{
-                fontFamily: 'var(--font-instrument-serif)',
-                mb: 8,
-                fontSize: { xs: '2rem', md: '3rem' },
-                color: '#1a1a1a',
+            <Stack spacing={2} sx={{ textAlign: 'center', mb: 12, alignItems: 'center' }}>
+              <Typography
+                variant="overline"
+                sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
+              >
+                HOW IT WORKS
+              </Typography>
+              <Typography
+                variant="h2"
+                align="center"
+                sx={{
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
+                  color: '#1a1a1a',
+                  lineHeight: 1.1,
+                }}
+              >
+                Your Journey, Simplified.
+              </Typography>
+              <Typography variant="h6" sx={{ color: '#4a4a4a', fontWeight: 400, maxWidth: '600px', mx: 'auto', textAlign: 'center' }}>
+                Launch your wedding in minutes, not months.
+              </Typography>
+            </Stack>
+
+            <Box 
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' },
+                gap: 4,
+                position: 'relative'
               }}
             >
-              From Engaged to Married in 4 Steps
-            </Typography>
-            <Grid container spacing={4}>
+              {/* Connector Line (Desktop Only) */}
+              <Box sx={{
+                position: 'absolute',
+                top: '40px',
+                left: '12%',
+                right: '12%',
+                height: '2px',
+                borderTop: '2px dashed #e0e0e0',
+                display: { xs: 'none', md: 'block' },
+                zIndex: 0
+              }} />
+
               {[
-                'Create Your Wedding',
-                'Enable Power Features',
-                'Invite Your Guests',
-                'Manage with Ease',
-              ].map((step, idx) => (
-                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={idx}>
-                  <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
-                    <Box
+                {
+                  step: '01',
+                  title: 'Spin Up Your Site',
+                  desc: 'Customize your design, add events, and setup details in 10 minutes.',
+                  icon: <Domain fontSize="large" />
+                },
+                {
+                  step: '02',
+                  title: 'Activate Concierge',
+                  desc: 'Enable advanced features like WhatsApp Concierge and Travel Coordination.',
+                  icon: <SupportAgent fontSize="large" />
+                },
+                {
+                  step: '03',
+                  title: 'Send & Sync',
+                  desc: 'Share your beautiful website. Guests RSVP and get details instantly.',
+                  icon: <Send fontSize="large" />
+                },
+                {
+                  step: '04',
+                  title: 'Cruise Control',
+                  desc: 'Track RSVPs, coordinate logistics, and broadcast updates to everyone.',
+                  icon: <Dashboard fontSize="large" />
+                }
+              ].map((item, idx) => (
+                <Box key={idx} sx={{ position: 'relative', zIndex: 1 }}>
+                  <motion.div
+                    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                  >
+                    <Paper
+                      elevation={0}
                       sx={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: '50%',
-                        bgcolor: '#DE3F5E',
-                        color: 'white',
+                        p: 4,
+                        height: '100%',
+                        borderRadius: '24px',
+                        border: '1px solid',
+                        borderColor: alpha('#000', 0.05),
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        mb: 2,
+                        textAlign: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        bgcolor: 'white',
+                        '&:hover': {
+                          borderColor: alpha('#DE3F5E', 0.2),
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
+                          '& .step-number': {
+                            color: alpha('#DE3F5E', 0.1),
+                            transform: 'scale(1.1)',
+                          }
+                        }
                       }}
                     >
-                      {idx + 1}
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                      {step}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                      {idx === 0 &&
-                        'Customize your design, add events, and setup details in 10 minutes.'}
-                      {idx === 1 &&
-                        'Enable advanced features like WhatsApp Concierge and Travel Coordination.'}
-                      {idx === 2 &&
-                        'Share your beautiful website. Guests RSVP and get details instantly.'}
-                      {idx === 3 &&
-                        'Track RSVPs, coordinate logistics, and broadcast updates to everyone.'}
-                    </Typography>
-                  </Stack>
-                </Grid>
+                      {/* Giant Number Background */}
+                      <Typography
+                        className="step-number"
+                        sx={{
+                          position: 'absolute',
+                          top: -20,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          fontSize: '8rem',
+                          fontFamily: 'var(--font-instrument-serif)',
+                          color: alpha('#000', 0.03),
+                          fontWeight: 900,
+                          transition: 'all 0.3s ease',
+                          pointerEvents: 'none',
+                          zIndex: 0
+                        }}
+                      >
+                        {item.step}
+                      </Typography>
+
+                      <Box 
+                        sx={{ 
+                          width: 80, 
+                          height: 80, 
+                          borderRadius: '50%', 
+                          bgcolor: 'white',
+                          border: '1px solid #eee',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 3,
+                          color: '#DE3F5E',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
+                          zIndex: 1
+                        }}
+                      >
+                        {item.icon}
+                      </Box>
+                      
+                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, fontFamily: 'var(--font-instrument-serif)', zIndex: 1, color: '#1a1a1a' }}>
+                        {item.title}
+                      </Typography>
+                      
+                      <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.6, zIndex: 1 }}>
+                        {item.desc}
+                      </Typography>
+                    </Paper>
+                  </motion.div>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           </motion.div>
         </Container>
 
