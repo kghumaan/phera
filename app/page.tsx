@@ -54,7 +54,7 @@ import {
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import LoginModal from '@/components/auth/LoginModal';
 
 // --- Data & Content ---
@@ -225,12 +225,12 @@ interface FeatureCardProps {
   large?: boolean;
 }
 
-const FeatureCard = ({ 
-  title, 
-  description, 
-  icon, 
-  badge, 
-  height = '100%', 
+const FeatureCard = ({
+  title,
+  description,
+  icon,
+  badge,
+  height = '100%',
   gradient,
   accentColor,
   isDark = false,
@@ -245,7 +245,7 @@ const FeatureCard = ({
       <Paper
         elevation={0}
         sx={{
-          p: large ? { xs: 4, md: 6 } : 4,
+          p: large ? { xs: 2.5, md: 6 } : { xs: 2.5, md: 4 },
           height: height,
           borderRadius: '24px',
           background: gradient || (isDark ? (accentColor || '#1a1a1a') : '#fff'),
@@ -266,15 +266,16 @@ const FeatureCard = ({
         <Box>
           <Stack
             direction="row"
-            sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}
+            sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 1.5, md: 3 } }}
           >
-            <Box sx={{ 
-              p: 1.5, 
-              borderRadius: '16px', 
+            <Box sx={{
+              p: { xs: 1, md: 1.5 },
+              borderRadius: '16px',
               bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#DE3F5E', 0.05),
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              '& svg': { fontSize: { xs: '1.5rem', md: '2.5rem' } }
             }}>
               {icon}
             </Box>
@@ -283,40 +284,42 @@ const FeatureCard = ({
                 label={badge}
                 size="small"
                 sx={{
-                  bgcolor: isDark 
-                    ? alpha('#fff', 0.2) 
+                  bgcolor: isDark
+                    ? alpha('#fff', 0.2)
                     : (badge === 'PRO' ? '#FFEAEE' : '#F5F5F5'),
-                  color: isDark 
-                    ? '#fff' 
+                  color: isDark
+                    ? '#fff'
                     : (badge === 'PRO' ? '#DE3F5E' : '#666'),
                   fontWeight: 800,
-                  fontSize: '0.7rem',
+                  fontSize: { xs: '0.6rem', md: '0.7rem' },
                   letterSpacing: '0.5px',
-                  border: badge === 'PRO' ? '1px solid rgba(222, 63, 94, 0.1)' : 'none'
+                  border: badge === 'PRO' ? '1px solid rgba(222, 63, 94, 0.1)' : 'none',
+                  height: { xs: '18px', md: '24px' }
                 }}
               />
             )}
           </Stack>
-          
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              fontWeight: 800, 
-              mb: 2, 
+
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 800,
+              mb: { xs: 1, md: 2 },
               fontFamily: 'var(--font-instrument-serif)',
-              fontSize: large ? { xs: '2rem', md: '3rem' } : { xs: '1.5rem', md: '1.75rem' },
+              fontStyle: 'italic',
+              fontSize: large ? { xs: '1.2rem', md: '3rem' } : { xs: '1rem', md: '1.75rem' },
               lineHeight: 1.1
             }}
           >
             {title}
           </Typography>
-          
-          <Typography 
-            variant="body1" 
-            sx={{ 
+
+          <Typography
+            variant="body1"
+            sx={{
               color: isDark ? alpha('#fff', 0.8) : '#4a4a4a',
               lineHeight: 1.6,
-              fontSize: large ? '1.25rem' : '1.1rem',
+              fontSize: large ? { xs: '0.8rem', md: '1.25rem' } : { xs: '0.75rem', md: '1.1rem' },
               maxWidth: '95%'
             }}
           >
@@ -353,6 +356,42 @@ const FeatureCard = ({
 export default function LandingPage() {
   const theme = useTheme();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
+  const [painPointsIndex, setPainPointsIndex] = useState(0);
+  const [solutionIndex, setSolutionIndex] = useState(0);
+  const [roadmapIndex, setRoadmapIndex] = useState(0);
+
+  const painPointsRef = useRef<HTMLDivElement>(null);
+  const solutionRef = useRef<HTMLDivElement>(null);
+  const roadmapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = (ref: React.RefObject<HTMLDivElement>, setIndex: (i: number) => void, itemCount: number) => {
+      if (!ref.current) return;
+      const scrollLeft = ref.current.scrollLeft;
+      const itemWidth = ref.current.scrollWidth / itemCount;
+      const index = Math.round(scrollLeft / itemWidth);
+      setIndex(Math.min(index, itemCount - 1));
+    };
+
+    const painPointsEl = painPointsRef.current;
+    const solutionEl = solutionRef.current;
+    const roadmapEl = roadmapRef.current;
+
+    const painPointsHandler = () => handleScroll(painPointsRef, setPainPointsIndex, painPoints.length);
+    const solutionHandler = () => handleScroll(solutionRef, setSolutionIndex, 5); // 5 solution items
+    const roadmapHandler = () => handleScroll(roadmapRef, setRoadmapIndex, 4); // 4 roadmap items
+
+    painPointsEl?.addEventListener('scroll', painPointsHandler);
+    solutionEl?.addEventListener('scroll', solutionHandler);
+    roadmapEl?.addEventListener('scroll', roadmapHandler);
+
+    return () => {
+      painPointsEl?.removeEventListener('scroll', painPointsHandler);
+      solutionEl?.removeEventListener('scroll', solutionHandler);
+      roadmapEl?.removeEventListener('scroll', roadmapHandler);
+    };
+  }, []);
 
   return (
     <OptimizedBackground
@@ -365,21 +404,25 @@ export default function LandingPage() {
 
       <Box component="main" sx={{ flexGrow: 1 }}>
         {/* --- HERO SECTION --- */}
-        <Container maxWidth="lg" sx={{ pt: { xs: 16, md: 24 }, pb: 10 }}>
+        <Container maxWidth="lg" sx={{ pt: { xs: 12, md: 24 }, pb: { xs: 4, md: 10 } }}>
           <motion.div initial="hidden" animate="visible" variants={fadeIn}>
             <Stack spacing={4} sx={{ alignItems: 'center', textAlign: 'center' }}>
               <Typography
                 variant="h1"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
-                  fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
+                  fontStyle: 'italic',
+                  fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
                   maxWidth: '1000px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                Destination Wedding,
-                <br />
+                <Box>Destination Wedding,</Box>
                 <Box
                   component="span"
                   sx={{
@@ -409,7 +452,7 @@ export default function LandingPage() {
               <Typography
                 variant="h5"
                 sx={{
-                  fontSize: { xs: '1.25rem', md: '1.75rem' },
+                  fontSize: { xs: '0.95rem', md: '1.75rem' },
                   color: '#1a1a1a',
                   maxWidth: '800px',
                   lineHeight: 1.4,
@@ -421,14 +464,15 @@ export default function LandingPage() {
               <Typography
                 variant="body1"
                 sx={{
-                  fontSize: { xs: '1rem', md: '1.25rem' },
+                  fontSize: { xs: '0.75rem', md: '1.25rem' },
                   color: '#4a4a4a',
                   maxWidth: '800px',
-                  lineHeight: 1.6,
+                  lineHeight: 1.5,
                   fontWeight: 400,
+                  px: { xs: 2, md: 0 }
                 }}
               >
-                RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge 
+                RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge
                 <br />
                 all on one platform.
               </Typography>
@@ -446,10 +490,10 @@ export default function LandingPage() {
                   sx={{
                     bgcolor: '#DE3F5E',
                     color: 'white',
-                    px: 5,
-                    py: 1.5,
+                    px: { xs: 2.5, md: 5 },
+                    py: { xs: 0.8, md: 1.5 },
                     borderRadius: '32px',
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '0.85rem', md: '1.1rem' },
                     textTransform: 'none',
                     '&:hover': { bgcolor: '#C8365A' },
                   }}
@@ -464,10 +508,10 @@ export default function LandingPage() {
                   sx={{
                     borderColor: '#DE3F5E',
                     color: '#DE3F5E',
-                    px: 5,
-                    py: 1.5,
+                    px: { xs: 2.5, md: 5 },
+                    py: { xs: 0.8, md: 1.5 },
                     borderRadius: '32px',
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '0.85rem', md: '1.1rem' },
                     textTransform: 'none',
                     '&:hover': {
                       borderColor: '#C8365A',
@@ -483,7 +527,7 @@ export default function LandingPage() {
         </Container>
 
         {/* --- PROBLEM SECTION --- */}
-        <Container maxWidth="xl" sx={{ py: 14 }}>
+        <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -495,23 +539,36 @@ export default function LandingPage() {
               align="center"
               sx={{
                 fontFamily: 'var(--font-instrument-serif)',
-                mb: 10,
-                fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
+                fontStyle: 'italic',
+                mb: { xs: 4, md: 10 },
+                fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
                 color: '#1a1a1a',
                 maxWidth: '1000px',
                 mx: 'auto',
                 lineHeight: 1.1,
+                px: { xs: 2, md: 0 }
               }}
             >
-              Wedding Planning shouldn't feel like a <Box component="span" sx={{ color: '#DE3F5E', fontStyle: 'italic' }}>Second Job</Box>
+              Wedding Planning shouldn't feel like a <Box component="span" sx={{ color: '#DE3F5E' }}>Second Job</Box>
             </Typography>
 
-            <Box 
-              sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
-                gap: { xs: 4, lg: 6 },
+            <Box
+              ref={painPointsRef}
+              sx={{
+                display: { xs: 'flex', sm: 'grid' },
+                overflowX: { xs: 'auto', md: 'visible' },
+                scrollSnapType: { xs: 'x mandatory', md: 'none' },
+                gap: { xs: 2, lg: 6 },
                 perspective: '1200px',
+                pb: { xs: 2, md: 0 },
+                px: { xs: 2, md: 0 },
+                mx: { xs: -2, md: 0 }, // Negative margin to allow items to touch edges while scrolling
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+                gridTemplateColumns: { sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
+                maxWidth: { xs: '280px', md: '100%' },
+                mx: { xs: 'auto', md: 0 },
               }}
             >
               {painPoints.map((point, idx) => (
@@ -526,26 +583,33 @@ export default function LandingPage() {
                       transition: { delay: idx * 0.1 }
                     }
                   }}
-                  whileHover={{ 
-                    rotate: 0, 
+                  whileHover={{
+                    rotate: 0,
                     scale: 1.02,
                     zIndex: 10,
                     transition: { type: 'spring', stiffness: 200 }
+                  }}
+                  style={{
+                    scrollSnapAlign: 'center',
+                    flex: '0 0 auto',
+                    width: '100%'
                   }}
                 >
                   <Paper
                     elevation={0}
                     sx={{
-                      p: { xs: 4, md: 6 },
+                      p: { xs: 2.5, md: 6 },
                       height: '100%',
-                      minHeight: { md: '350px' },
+                      aspectRatio: { xs: '1/1', md: 'auto' },
+                      minHeight: { xs: 'auto', md: '350px' },
                       bgcolor: point.color,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 3,
+                      justifyContent: 'center',
+                      gap: { xs: 1.25, md: 3 },
                       position: 'relative',
                       // Post-it Fold Effect: The polygon clips the top-right corner
-                      clipPath: 'polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 0 100%)',
+                      clipPath: 'polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%)',
                       // Use filter: drop-shadow instead of boxShadow to follow the clipped shape
                       filter: 'drop-shadow(8px 8px 0px rgba(0,0,0,0.02))',
                       transition: 'filter 0.3s ease',
@@ -554,44 +618,49 @@ export default function LandingPage() {
                         position: 'absolute',
                         top: 0,
                         right: 0,
-                        width: '40px',
-                        height: '40px',
+                        width: '30px',
+                        height: '30px',
                         bgcolor: alpha('#000', 0.1),
                         clipPath: 'polygon(0 0, 100% 100%, 0 100%)',
                         zIndex: 2,
                       }
                     }}
                   >
-                    <Box sx={{ minHeight: '80px', display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: { xs: 0.75, md: 2 } }}>
                       {typeof point.icon === 'string' ? (
-                        <Typography sx={{ fontSize: '4rem' }}>
+                        <Typography sx={{ fontSize: { xs: '2.25rem', md: '4rem' } }}>
                           {point.icon}
                         </Typography>
                       ) : (
-                        point.icon
+                        <Box sx={{ '& svg': { fontSize: { xs: '2.25rem', md: '4rem' } } }}>
+                          {point.icon}
+                        </Box>
                       )}
                     </Box>
-                    
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontWeight: 800, 
+
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 800,
                         color: '#1a1a1a',
                         fontFamily: 'var(--font-instrument-serif)',
+                        fontStyle: 'italic',
                         lineHeight: 1.1,
-                        fontSize: { xs: '1.5rem', md: '2rem' }
+                        fontSize: { xs: '1rem', md: '2rem' },
+                        textAlign: 'center'
                       }}
                     >
                       {point.title}
                     </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
+
+                    <Typography
+                      variant="body1"
+                      sx={{
                         color: '#4a4a4a',
-                        lineHeight: 1.6,
+                        lineHeight: 1.35,
                         fontWeight: 450,
-                        fontSize: { xs: '1rem', md: '1.15rem' }
+                        fontSize: { xs: '0.85rem', md: '1.15rem' },
+                        textAlign: 'center'
                       }}
                     >
                       {point.description}
@@ -600,9 +669,9 @@ export default function LandingPage() {
                     <Box 
                       sx={{ 
                         position: 'absolute', 
-                        bottom: -20, 
-                        right: -20, 
-                        fontSize: '10rem', 
+                        bottom: -15, 
+                        right: -15, 
+                        fontSize: { xs: '6rem', md: '10rem' }, 
                         opacity: 0.02, 
                         fontWeight: 900,
                         userSelect: 'none',
@@ -615,11 +684,36 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </Box>
+
+            {/* Breadcrumbs for Pain Points (Mobile Only) */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                justifyContent: 'center',
+                mt: 2,
+                pb: 2
+              }}
+            >
+              {painPoints.map((_, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: painPointsIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              ))}
+            </Stack>
           </motion.div>
         </Container>
 
         {/* --- SOLUTION & FEATURES (Bento Grid) --- */}
-        <Box sx={{ bgcolor: alpha('#DE3F5E', 0.03), py: 14 }}>
+        <Box sx={{ bgcolor: alpha('#DE3F5E', 0.03), py: { xs: 3, md: 14 } }}>
           <Container maxWidth="xl">
             <motion.div
               initial="hidden"
@@ -627,10 +721,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <Stack spacing={2} sx={{ textAlign: 'center', mb: 10, alignItems: 'center' }}>
+              <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 4, md: 10 }, alignItems: 'center' }}>
                 <Typography
                   variant="overline"
-                  sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
+                  sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.65rem', md: '0.75rem' } }}
                 >
                   THE SOLUTION
                 </Typography>
@@ -638,7 +732,8 @@ export default function LandingPage() {
                   variant="h2"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
-                    fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
+                    fontStyle: 'italic',
+                    fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
                     color: '#1a1a1a',
                     lineHeight: 1.1,
                   }}
@@ -651,27 +746,42 @@ export default function LandingPage() {
                   sx={{
                     maxWidth: '900px',
                     color: '#4a4a4a',
-                    fontSize: { xs: '1.1rem', md: '1.35rem' },
+                    fontSize: { xs: '0.8rem', md: '1.35rem' },
                     lineHeight: 1.6,
                     mt: 3,
-                    opacity: 0.9
+                    opacity: 0.9,
+                    px: { xs: 2, md: 0 }
                   }}
                 >
-                  Ditch the messy spreadsheets and fragmented group chats. Phera brings your 
+                  Ditch the messy spreadsheets and fragmented group chats. Phera brings your
                   entire wedding coordination into one powerful, integrated system.
                 </Typography>
               </Stack>
 
               <Box
+                ref={solutionRef}
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-                  gridAutoRows: 'minmax(250px, auto)',
+                  display: { xs: 'flex', md: 'grid' },
+                  overflowX: { xs: 'auto', md: 'visible' },
+                  scrollSnapType: { xs: 'x mandatory', md: 'none' },
                   gap: 3,
+                  pb: { xs: 2, md: 0 },
+                  px: { xs: 2, md: 0 },
+                  mx: { xs: -2, md: 0 },
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none',
+                  gridTemplateColumns: { md: 'repeat(3, 1fr)' },
+                  gridAutoRows: 'minmax(250px, auto)',
                 }}
               >
                 {/* 1. Smart RSVP & Multi-Event (Large Feature) */}
-                <Box sx={{ gridColumn: { md: '1 / span 2' }, gridRow: { md: '1 / span 2' } }}>
+                <Box sx={{ 
+                  gridColumn: { md: '1 / span 2' }, 
+                  gridRow: { md: '1 / span 2' },
+                  flex: { xs: '0 0 85%', md: 'auto' },
+                  scrollSnapAlign: 'center'
+                }}>
                   <FeatureCard 
                     title="Unified Guest Management"
                     description="From Smart RSVPs that track plus-ones and dietary needs to native support for Haldi, Mehendi, and Sangeet. Everything is synced instantly."
@@ -684,7 +794,12 @@ export default function LandingPage() {
                 </Box>
 
                 {/* 2. WhatsApp Concierge (Featured Pro) */}
-                <Box sx={{ gridColumn: { md: '3 / span 1' }, gridRow: { md: '1 / span 2' } }}>
+                <Box sx={{ 
+                  gridColumn: { md: '3 / span 1' }, 
+                  gridRow: { md: '1 / span 2' },
+                  flex: { xs: '0 0 85%', md: 'auto' },
+                  scrollSnapAlign: 'center'
+                }}>
                    <FeatureCard 
                     title="WhatsApp Concierge"
                     description="Our AI agent answers guest questions 24/7. Broadcast updates instantly to everyone's phone."
@@ -697,7 +812,7 @@ export default function LandingPage() {
                 </Box>
 
                 {/* 3. Travel & Logistics */}
-                <Box>
+                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
                   <FeatureCard 
                     title="Travel Coordination"
                     description="Collect flight details and organize airport pickups seamlessly."
@@ -707,7 +822,7 @@ export default function LandingPage() {
                 </Box>
 
                 {/* 4. PIN Privacy */}
-                <Box>
+                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
                   <FeatureCard 
                     title="VIP Privacy"
                     description="PIN-based access codes for family, individuals, and VIPs."
@@ -717,7 +832,7 @@ export default function LandingPage() {
                 </Box>
 
                 {/* 5. Gift Registry */}
-                <Box>
+                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
                   <FeatureCard 
                     title="Modern Registry"
                     description="Secure cash gifts and honeymoon funds via Stripe."
@@ -726,25 +841,50 @@ export default function LandingPage() {
                   />
                 </Box>
               </Box>
+
+              {/* Breadcrumbs for Solution Items (Mobile Only) */}
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  display: { xs: 'flex', md: 'none' },
+                  justifyContent: 'center',
+                  mt: 2,
+                  pb: 2
+                }}
+              >
+                {[0, 1, 2, 3, 4].map((idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: solutionIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
+                ))}
+              </Stack>
             </motion.div>
           </Container>
         </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
-        <Box sx={{ py: { xs: 8, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ py: { xs: 4, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
           {/* Decorative background circle */}
           <Box sx={{
             position: 'absolute',
             top: -100,
             right: -100,
-            width: 400,
-            height: 400,
+            width: { xs: 200, md: 400 },
+            height: { xs: 200, md: 400 },
             bgcolor: 'rgba(255,255,255,0.1)',
             borderRadius: '50%',
           }} />
-          
+
           <Container maxWidth="xl">
-            <Grid container spacing={8} alignItems="center">
+            <Grid container spacing={{ xs: 3, md: 8 }} alignItems="center">
               <Grid size={{ xs: 12, md: 6 }}>
                 <motion.div
                   initial="hidden"
@@ -752,43 +892,46 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   variants={fadeIn}
                 >
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                    <WhatsApp sx={{ fontSize: { xs: '3rem', md: '5rem' }, color: '#25D366' }} />
+                  <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
+                    <WhatsApp sx={{ fontSize: { xs: '2rem', md: '5rem' }, color: '#25D366' }} />
                     <Typography
                       variant="h2"
                       sx={{
                         fontFamily: 'var(--font-instrument-serif)',
-                        fontSize: { xs: '2.5rem', md: '4rem', lg: '5rem' },
+                        fontStyle: 'italic',
+                        fontSize: { xs: '1.5rem', md: '4rem', lg: '5rem' },
                         lineHeight: 1.1,
                       }}
                     >
                       Your 24/7 Wedding Concierge
                     </Typography>
                   </Stack>
-                  <Typography variant="h6" sx={{ mb: 6, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.1rem', md: '1.4rem' }, lineHeight: 1.4 }}>
+                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '0.85rem', md: '1.4rem' }, lineHeight: 1.4 }}>
                     Stop being your guests' personal assistant. Let our intelligent WhatsApp
                     Concierge handle the repetitive questions so you can focus on your celebration.
                   </Typography>
                   
-                  <List sx={{ mb: 4 }}>
+                  <List sx={{ mb: { xs: 1, md: 2 } }}>
                     {[
                       { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
                       { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
                       { icon: <Campaign />, text: "Broadcasts urgent updates to your entire guest list" },
                       { icon: <Check />, text: "All data comes directly from your wedding website" }
                     ].map((item, idx) => (
-                      <ListItem key={idx} sx={{ px: 0 }}>
-                        <ListItemIcon sx={{ color: '#25D366', minWidth: 40 }}>
-                          {item.icon}
+                      <ListItem key={idx} sx={{ px: 0, py: { xs: 0.25, md: 0.5 } }}>
+                        <ListItemIcon sx={{ color: '#25D366', minWidth: { xs: 28, md: 40 } }}>
+                          <Box sx={{ '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } } }}>
+                            {item.icon}
+                          </Box>
                         </ListItemIcon>
-                        <ListItemText 
-                          primary={item.text} 
-                          primaryTypographyProps={{ fontSize: '1.25rem' }}
+                        <ListItemText
+                          primary={item.text}
+                          primaryTypographyProps={{ fontSize: { xs: '0.75rem', md: '1.25rem' } }}
                         />
                       </ListItem>
                     ))}
                   </List>
-                  
+
                   <Button
                     component={Link}
                     href="/admin"
@@ -797,13 +940,13 @@ export default function LandingPage() {
                     sx={{
                       bgcolor: '#25D366',
                       color: 'white',
-                      px: 5,
-                      py: 2,
+                      px: { xs: 3, md: 5 },
+                      py: { xs: 1, md: 2 },
                       borderRadius: '32px',
-                      fontSize: '1.25rem',
+                      fontSize: { xs: '0.85rem', md: '1.25rem' },
                       fontWeight: 'bold',
                       textTransform: 'none',
-                      mt: 2,
+                      mt: { xs: 1.5, md: 2 },
                       '&:hover': { bgcolor: '#128C7E' },
                     }}
                   >
@@ -811,7 +954,7 @@ export default function LandingPage() {
                   </Button>
                 </motion.div>
               </Grid>
-              
+
               <Grid size={{ xs: 12, md: 6 }}>
                 <motion.div
                   initial="hidden"
@@ -826,13 +969,14 @@ export default function LandingPage() {
                     elevation={20}
                     sx={{
                       p: 0, // Remove padding to let header flush
-                      borderRadius: '50px',
+                      borderRadius: { xs: '24px', md: '50px' },
                       bgcolor: '#EFE7DE', // WhatsApp chat bg (classic beige/pattern) or use image
-                      width: '440px', // Wider phone
-                      height: '900px', // Taller phone
+                      width: { xs: '100%', sm: '320px' }, // Narrower phone for mobile
+                      height: { xs: '450px', md: '900px' }, // Shorter phone for mobile
+                      maxWidth: { xs: '320px', md: '440px' },
                       mx: 'auto',
                       position: 'relative',
-                      border: '18px solid #1a1a1a',
+                      border: { xs: '8px solid #1a1a1a', md: '18px solid #1a1a1a' },
                       overflow: 'hidden',
                       backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', // WhatsApp background subtlety
                       backgroundSize: 'cover',
@@ -841,25 +985,25 @@ export default function LandingPage() {
                     }}
                   >
                      {/* Dynamic Island / Notch */}
-                     <Box sx={{ 
-                       position: 'absolute', 
-                       top: 0, 
-                       left: '50%', 
-                       transform: 'translateX(-50%)', 
-                       width: '120px', 
-                       height: '30px', 
-                       bgcolor: '#1a1a1a', 
-                       borderBottomLeftRadius: '16px',
-                       borderBottomRightRadius: '16px',
+                     <Box sx={{
+                       position: 'absolute',
+                       top: 0,
+                       left: '50%',
+                       transform: 'translateX(-50%)',
+                       width: { xs: '80px', md: '120px' },
+                       height: { xs: '20px', md: '30px' },
+                       bgcolor: '#1a1a1a',
+                       borderBottomLeftRadius: { xs: '12px', md: '16px' },
+                       borderBottomRightRadius: { xs: '12px', md: '16px' },
                        zIndex: 20
                      }} />
 
                      {/* Custom WhatsApp Header */}
-                     <Box sx={{ 
+                     <Box sx={{
                        bgcolor: '#202C33', // Dark header
                        color: 'primary.contrastText',
-                       pt: 6, // Space for notch/status bar
-                       pb: 1.5,
+                       pt: { xs: 4, md: 6 }, // Space for notch/status bar
+                       pb: { xs: 1, md: 1.5 },
                        px: 1,
                        display: 'flex',
                        alignItems: 'center',
@@ -867,120 +1011,120 @@ export default function LandingPage() {
                        zIndex: 10
                      }}>
                         <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1, color: 'white' }}>
-                          <ArrowBack sx={{ fontSize: '1.75rem' }} />
+                          <ArrowBack sx={{ fontSize: { xs: '1.25rem', md: '1.75rem' } }} />
                         </Stack>
 
-                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1 }}>
-                          <Avatar 
-                            src="/Phera Logomark.jpg" 
-                            sx={{ width: 42, height: 42 }}
+                        <Stack direction="row" alignItems="center" spacing={{ xs: 1, md: 1.5 }} sx={{ flexGrow: 1 }}>
+                          <Avatar
+                            src="/Phera Logomark.jpg"
+                            sx={{ width: { xs: 32, md: 42 }, height: { xs: 32, md: 42 } }}
                           />
                           <Box>
                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: '1.1rem' }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                                 Phera
                               </Typography>
-                              <Verified sx={{ fontSize: '1.1rem', color: '#2979FF' }} />
+                              <Verified sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' }, color: '#2979FF' }} />
                             </Stack>
                           </Box>
                         </Stack>
                      </Box>
 
                      {/* Chat Area */}
-                     <Stack spacing={2} sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
+                     <Stack spacing={{ xs: 1.5, md: 2 }} sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1, overflowY: 'auto' }}>
                        {/* Date Separator */}
-                       <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: 1.5, py: 0.5, borderRadius: '8px', mb: 2 }}>
-                         <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: 1, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)' }}>
+                       <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: { xs: 1, md: 1.5 }, py: 0.5, borderRadius: '8px', mb: { xs: 1, md: 2 } }}>
+                         <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: { xs: 0.75, md: 1 }, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)', fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
                            Today
                          </Typography>
                        </Box>
 
                        {/* Chat Bubble Guest */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-                         
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem', lineHeight: 1.3 }}>
+
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
                            Hey! What time is the shuttle for the Sangeet leaving?
                          </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
                            10:42 AM
                          </Typography>
                        </Box>
 
                        {/* Chat Bubble Bot */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
 
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem', lineHeight: 1.3 }}>
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
                            Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>.
                          </Typography>
-                         <Typography variant="body2" sx={{ mt: 1, color: '#111b21', fontSize: '0.95rem' }}>
+                         <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            Would you like to reserve a seat? 🚐
                          </Typography>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
-                           10:42 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                           10:42 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
                          </Typography>
                        </Box>
-                       
+
                        {/* Chat Bubble Guest */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
 
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            Yes please, for 2 people.
                          </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
                            10:43 AM
                          </Typography>
                        </Box>
 
                        {/* Chat Bubble Bot */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
 
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.
                          </Typography>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
-                           10:43 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                           10:43 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
                          </Typography>
                        </Box>
 
                        {/* Chat Bubble Guest (Kill Time) */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
 
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            We have some free time before the reception. Any recommendations nearby?
                          </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
                            11:15 AM
                          </Typography>
                        </Box>
 
                        {/* Chat Bubble Bot (Recommendation) */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
                           {/* Triangle */}
                           <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
 
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.
                          </Typography>
-                         <Typography variant="body2" sx={{ mt: 1, color: '#111b21', fontSize: '0.95rem' }}>
+                         <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
                            Check out the full guide here:
                          </Typography>
                          {/* Link Preview Mockup */}
-                         <Box sx={{ mt: 1, bgcolor: '#CFE9BA', p: 1, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
-                           <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600 }}>maps.google.com</Typography>
-                           <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
+                         <Box sx={{ mt: { xs: 0.75, md: 1 }, bgcolor: '#CFE9BA', p: { xs: 0.75, md: 1 }, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
+                           <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600, fontSize: { xs: '0.6rem', md: '0.75rem' } }}>maps.google.com</Typography>
+                           <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.85rem' }, color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
                          </Box>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
-                           11:15 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                           11:15 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
                          </Typography>
                        </Box>
                      </Stack>
@@ -993,17 +1137,17 @@ export default function LandingPage() {
 
 
         {/* --- WEDDING ROADMAP SECTION --- */}
-        <Container maxWidth="xl" sx={{ py: 14 }}>
+        <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <Stack spacing={2} sx={{ textAlign: 'center', mb: 12, alignItems: 'center' }}>
+            <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 3, md: 12 }, alignItems: 'center' }}>
               <Typography
                 variant="overline"
-                sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
+                sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.65rem', md: '0.75rem' } }}
               >
                 HOW IT WORKS
               </Typography>
@@ -1012,24 +1156,34 @@ export default function LandingPage() {
                 align="center"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
-                  fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
+                  fontStyle: 'italic',
+                  fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
                   color: '#1a1a1a',
                   lineHeight: 1.1,
                 }}
               >
                 Your Journey, Simplified.
               </Typography>
-              <Typography variant="h6" sx={{ color: '#4a4a4a', fontWeight: 400, maxWidth: '600px', mx: 'auto', textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ color: '#4a4a4a', fontWeight: 400, maxWidth: '600px', mx: 'auto', textAlign: 'center', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
                 Launch your wedding in minutes, not months.
               </Typography>
             </Stack>
 
-            <Box 
-              sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' },
-                gap: 4,
-                position: 'relative'
+            <Box
+              ref={roadmapRef}
+              sx={{
+                display: { xs: 'flex', md: 'grid' },
+                overflowX: { xs: 'auto', md: 'visible' },
+                scrollSnapType: { xs: 'x mandatory', md: 'none' },
+                gridTemplateColumns: { md: 'repeat(4, 1fr)' },
+                gap: { xs: 2, md: 4 },
+                position: 'relative',
+                pb: { xs: 2, md: 0 },
+                px: { xs: 2, md: 0 },
+                mx: { xs: -2, md: 0 },
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
               }}
             >
               {/* Connector Line (Desktop Only) */}
@@ -1070,16 +1224,25 @@ export default function LandingPage() {
                   icon: <Dashboard fontSize="large" />
                 }
               ].map((item, idx) => (
-                <Box key={idx} sx={{ position: 'relative', zIndex: 1 }}>
+                <Box 
+                  key={idx} 
+                  sx={{ 
+                    position: 'relative', 
+                    zIndex: 1,
+                    flex: { xs: '0 0 75%', md: 'auto' },
+                    minWidth: { xs: '220px', md: 'auto' },
+                    scrollSnapAlign: 'center'
+                  }}
+                >
                   <motion.div
                     whileHover={{ y: -10, transition: { duration: 0.3 } }}
                   >
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 4,
+                        p: { xs: 2.5, md: 4 },
                         height: '100%',
-                        borderRadius: '24px',
+                        borderRadius: { xs: '16px', md: '24px' },
                         border: '1px solid',
                         borderColor: alpha('#000', 0.05),
                         display: 'flex',
@@ -1093,27 +1256,25 @@ export default function LandingPage() {
                           borderColor: alpha('#DE3F5E', 0.2),
                           boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
                           '& .step-number': {
-                            color: alpha('#DE3F5E', 0.1),
-                            transform: 'scale(1.1)',
+                            color: alpha('#DE3F5E', 0.3),
                           }
                         }
                       }}
                     >
-                      {/* Giant Number Background */}
+                      {/* Step Number in Corner */}
                       <Typography
                         className="step-number"
                         sx={{
                           position: 'absolute',
-                          top: -20,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          fontSize: '8rem',
+                          top: { xs: 8, md: 12 },
+                          right: { xs: 12, md: 16 },
+                          fontSize: { xs: '1.5rem', md: '2rem' },
                           fontFamily: 'var(--font-instrument-serif)',
-                          color: alpha('#000', 0.03),
-                          fontWeight: 900,
+                          fontStyle: 'italic',
+                          color: alpha('#DE3F5E', 0.2),
+                          fontWeight: 700,
                           transition: 'all 0.3s ease',
-                          pointerEvents: 'none',
-                          zIndex: 0
+                          zIndex: 1
                         }}
                       >
                         {item.step}
@@ -1121,28 +1282,29 @@ export default function LandingPage() {
 
                       <Box 
                         sx={{ 
-                          width: 80, 
-                          height: 80, 
+                          width: { xs: 50, md: 80 }, 
+                          height: { xs: 50, md: 80 }, 
                           borderRadius: '50%', 
                           bgcolor: 'white',
                           border: '1px solid #eee',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          mb: 3,
+                          mb: { xs: 1.5, md: 3 },
                           color: '#DE3F5E',
                           boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
-                          zIndex: 1
+                          zIndex: 1,
+                          '& svg': { fontSize: { xs: '1.5rem', md: '2rem' } }
                         }}
                       >
                         {item.icon}
                       </Box>
                       
-                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, fontFamily: 'var(--font-instrument-serif)', zIndex: 1, color: '#1a1a1a' }}>
+                      <Typography variant="h5" sx={{ fontWeight: 800, mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
                         {item.title}
                       </Typography>
                       
-                      <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.6, zIndex: 1 }}>
+                      <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
                         {item.desc}
                       </Typography>
                     </Paper>
@@ -1150,101 +1312,164 @@ export default function LandingPage() {
                 </Box>
               ))}
             </Box>
+
+            {/* Breadcrumbs for Roadmap (Mobile Only) */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                justifyContent: 'center',
+                mt: 2,
+                pb: 2
+              }}
+            >
+              {[0, 1, 2, 3].map((idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: roadmapIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              ))}
+            </Stack>
           </motion.div>
         </Container>
 
         {/* --- PRICING --- */}
-        <Box sx={{ bgcolor: '#F0F2F5', py: 14 }}>
+        <Box sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 14 } }}>
           <Container maxWidth="lg">
-            <Stack spacing={2} sx={{ textAlign: 'center', mb: 8 }}>
+            <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 8 } }}>
               <Typography
                 variant="h2"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
+                  fontStyle: 'italic',
+                  fontSize: { xs: '1.5rem', md: '3.5rem' },
                   color: '#1a1a1a',
                 }}
               >
                 Simple, Transparent Pricing
               </Typography>
-              <Typography variant="h6" sx={{ color: '#4a4a4a' }}>
-                Start free, upgrade for power features. No hidden fees.
+              <Typography variant="h6" sx={{ color: '#4a4a4a', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
+                Start free, upgrade for power features.
               </Typography>
             </Stack>
 
-            <Grid container spacing={4} sx={{ alignItems: 'flex-start', justifyContent: 'center' }}>
+            {/* Mobile Toggle Buttons */}
+            <Stack direction="row" spacing={1} sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mb: 3 }}>
               {pricingTiers.map((tier, idx) => (
-                <Grid size={{ xs: 12, md: 5 }} key={idx}>
+                <Button
+                  key={idx}
+                  variant={selectedPricingTier === idx ? 'contained' : 'outlined'}
+                  onClick={() => setSelectedPricingTier(idx)}
+                  sx={{
+                    flex: 1,
+                    borderRadius: '20px',
+                    py: 1,
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    bgcolor: selectedPricingTier === idx ? '#DE3F5E' : 'transparent',
+                    borderColor: '#DE3F5E',
+                    color: selectedPricingTier === idx ? 'white' : '#DE3F5E',
+                    '&:hover': {
+                      bgcolor: selectedPricingTier === idx ? '#C8365A' : alpha('#DE3F5E', 0.05),
+                      borderColor: '#DE3F5E',
+                    },
+                  }}
+                >
+                  {tier.name}
+                </Button>
+              ))}
+            </Stack>
+
+            <Grid container spacing={{ xs: 1.5, md: 4 }} sx={{ alignItems: 'stretch', justifyContent: 'center' }}>
+              {pricingTiers.map((tier, idx) => (
+                <Grid
+                  size={{ xs: 12, md: 5 }}
+                  key={idx}
+                  sx={{
+                    display: {
+                      xs: selectedPricingTier === idx ? 'block' : 'none',
+                      md: 'block'
+                    }
+                  }}
+                >
                   <Paper
                     elevation={tier.highlight ? 8 : 0}
                     sx={{
-                      p: 4,
-                      borderRadius: '24px',
+                      p: { xs: 1.5, md: 4 },
+                      height: '100%',
+                      borderRadius: { xs: '12px', md: '24px' },
                       bgcolor: 'white',
                       color: '#1a1a1a',
                       border: tier.highlight
                         ? '2px solid #DE3F5E'
                         : '1px solid #E0E0E0',
                       position: 'relative',
-                      top: tier.highlight ? -20 : 0,
                       transition: 'transform 0.2s',
+                      display: 'flex',
+                      flexDirection: 'column',
                       '&:hover': {
-                        transform: 'translateY(-5px)',
+                        transform: { md: 'translateY(-5px)' },
                       }
                     }}
                   >
                     {tier.highlight && (
                       <Chip
-                        label="MOST POPULAR"
+                        label="POPULAR"
+                        size="small"
                         sx={{
                           position: 'absolute',
-                          top: -12,
-                          right: 24,
+                          top: { xs: -8, md: -12 },
+                          right: { xs: 8, md: 24 },
                           bgcolor: '#DE3F5E',
                           color: 'white',
                           fontWeight: 'bold',
+                          fontSize: { xs: '0.6rem', md: '0.8rem' },
+                          height: { xs: '18px', md: '24px' }
                         }}
                       />
                     )}
                     <Typography
                       variant="overline"
-                      sx={{ fontWeight: 'bold', opacity: 0.7, color: '#DE3F5E' }}
+                      sx={{ fontWeight: 'bold', opacity: 0.7, color: '#DE3F5E', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
                     >
                       {tier.name}
                     </Typography>
-                    <Box sx={{ my: 2 }}>
-                      <Typography variant="h3" sx={{ fontWeight: 'bold', display: 'inline' }}>
+                    <Box sx={{ my: { xs: 0.5, md: 2 } }}>
+                      <Typography variant="h3" sx={{ fontWeight: 'bold', display: 'inline', fontSize: { xs: '1.5rem', md: '3rem' } }}>
                         {tier.price}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ mb: 4, color: '#4a4a4a' }}>
+                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 4 }, color: '#4a4a4a', fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
                       {tier.description}
                     </Typography>
 
-                    <List dense sx={{ mb: 4 }}>
+                    <List dense sx={{ mb: { xs: 1, md: 4 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (
-                        <ListItem key={fIdx} disableGutters>
-                          <ListItemIcon sx={{ minWidth: 36 }}>
+                        <ListItem key={fIdx} disableGutters sx={{ py: { xs: 0.25, md: 0.5 } }}>
+                          <ListItemIcon sx={{ minWidth: { xs: 24, md: 36 } }}>
                             <CheckCircle
                               sx={{
                                 color: '#DE3F5E',
-                                fontSize: 20,
+                                fontSize: { xs: 16, md: 20 },
                               }}
                             />
                           </ListItemIcon>
-                          <ListItemText 
-                            primary={
-                              feature.includes('WhatsApp') ? (
-                                <Stack direction="row" alignItems="center" spacing={1}>
-                                  <Box component="span">{feature}</Box>
-                                  <WhatsApp sx={{ color: '#25D366', fontSize: '1.2rem' }} />
-                                </Stack>
-                              ) : (
-                                feature
-                              )
-                            }
+                          <ListItemText
+                            primary={feature.replace('WhatsApp Concierge Agent', 'WhatsApp Agent')}
                             primaryTypographyProps={{
-                              sx: { color: '#1a1a1a', fontWeight: feature.includes('WhatsApp') ? 600 : 400 }
+                              sx: {
+                                color: '#1a1a1a',
+                                fontWeight: feature.includes('WhatsApp') ? 600 : 400,
+                                fontSize: { xs: '0.8rem', md: '0.875rem' },
+                                lineHeight: 1.4
+                              }
                             }}
                           />
                         </ListItem>
@@ -1256,9 +1481,11 @@ export default function LandingPage() {
                       component={Link}
                       href="/admin"
                       variant={tier.highlight ? 'contained' : 'outlined'}
+                      size="small"
                       sx={{
-                        borderRadius: '32px',
-                        py: 1.5,
+                        borderRadius: { xs: '16px', md: '32px' },
+                        py: { xs: 0.75, md: 1.5 },
+                        fontSize: { xs: '0.7rem', md: '1rem' },
                         bgcolor: tier.highlight ? '#DE3F5E' : 'transparent',
                         borderColor: '#DE3F5E',
                         color: tier.highlight ? 'white' : '#DE3F5E',
@@ -1270,7 +1497,7 @@ export default function LandingPage() {
                         },
                       }}
                     >
-                      {tier.buttonText}
+                      {tier.buttonText.replace('Upgrade to Pro', 'Go Pro')}
                     </Button>
                   </Paper>
                 </Grid>
@@ -1280,18 +1507,18 @@ export default function LandingPage() {
         </Box>
 
         {/* --- FAQ --- */}
-        <Container maxWidth="lg" sx={{ py: 14 }}>
-          <Stack spacing={2} sx={{ textAlign: 'center', mb: 8, alignItems: 'center' }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 14 } }}>
+          <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 3, md: 8 }, alignItems: 'center' }}>
             <Typography
               variant="overline"
-              sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
+              sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.65rem', md: '0.75rem' } }}
             >
               FAQ
             </Typography>
             <Typography
               variant="h2"
               align="center"
-              sx={{ fontFamily: 'var(--font-instrument-serif)', fontSize: { xs: '2.5rem', md: '3.5rem' }, color: '#1a1a1a' }}
+              sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3.5rem' }, color: '#1a1a1a' }}
             >
               Common Questions
             </Typography>
@@ -1322,24 +1549,25 @@ export default function LandingPage() {
                     }
                   }}
                 >
-                  <AccordionSummary 
-                    expandIcon={<Box sx={{ 
-                      bgcolor: alpha('#DE3F5E', 0.05), 
-                      color: '#DE3F5E', 
-                      borderRadius: '50%', 
-                      p: 0.5,
-                      display: 'flex'
+                  <AccordionSummary
+                    expandIcon={<Box sx={{
+                      bgcolor: alpha('#DE3F5E', 0.05),
+                      color: '#DE3F5E',
+                      borderRadius: '50%',
+                      p: { xs: 0.3, md: 0.5 },
+                      display: 'flex',
+                      '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } }
                     }}>
                       <ExpandMore />
                     </Box>}
-                    sx={{ px: 4, py: 2 }}
+                    sx={{ px: { xs: 2, md: 4 }, py: { xs: 0.75, md: 2 } }}
                   >
-                    <Typography variant="h6" sx={{ fontSize: '1.6rem', fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '0.9rem', md: '1.6rem' }, fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
                       {faq.q}
                     </Typography>
                   </AccordionSummary>
-                  <AccordionDetails sx={{ px: 4, pb: 4, pt: 0 }}>
-                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.7, fontSize: '1.05rem' }}>
+                  <AccordionDetails sx={{ px: { xs: 2, md: 4 }, pb: { xs: 2, md: 4 }, pt: 0 }}>
+                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.7, fontSize: { xs: '0.8rem', md: '1.05rem' } }}>
                       {faq.a}
                     </Typography>
                   </AccordionDetails>
@@ -1350,11 +1578,11 @@ export default function LandingPage() {
         </Container>
 
         {/* --- FINAL CTA --- */}
-        <Container maxWidth="lg" sx={{ pb: 12 }}>
+        <Container maxWidth="lg" sx={{ pb: { xs: 3, md: 12 } }}>
           <Paper
             sx={{
-              p: { xs: 4, md: 8 },
-              borderRadius: '40px',
+              p: { xs: 3, md: 8 },
+              borderRadius: { xs: '24px', md: '40px' },
               background: 'linear-gradient(135deg, rgba(222, 63, 94, 0.05) 0%, rgba(255, 142, 83, 0.05) 100%)',
               border: '1px solid rgba(222, 63, 94, 0.1)',
               color: '#1a1a1a',
@@ -1366,17 +1594,18 @@ export default function LandingPage() {
             <Box sx={{ position: 'relative', zIndex: 2 }}>
               <Typography
                 variant="h2"
-                sx={{ fontFamily: 'var(--font-instrument-serif)', mb: 3, color: '#1a1a1a' }}
+                sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: '#1a1a1a', fontSize: { xs: '1.5rem', md: '2.5rem' } }}
               >
                 Your Wedding, Your Way
               </Typography>
               <Typography
                 variant="h6"
                 sx={{
-                  mb: 5,
+                  mb: { xs: 3, md: 5 },
                   color: '#4a4a4a',
                   maxWidth: '600px',
                   mx: 'auto',
+                  fontSize: { xs: '0.8rem', md: '1.25rem' }
                 }}
               >
                 Join the couples who are planning beautiful Indian weddings
@@ -1395,10 +1624,10 @@ export default function LandingPage() {
                   sx={{
                     bgcolor: '#DE3F5E',
                     color: 'white',
-                    px: 5,
-                    py: 1.5,
+                    px: { xs: 3, md: 5 },
+                    py: { xs: 1, md: 1.5 },
                     borderRadius: '32px',
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '0.85rem', md: '1.1rem' },
                     fontWeight: 'bold',
                     '&:hover': { bgcolor: '#C8365A' },
                   }}
@@ -1446,6 +1675,7 @@ export default function LandingPage() {
                   variant="h5"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
+                    fontStyle: 'italic',
                     color: '#DE3F5E',
                     mb: 2,
                   }}
