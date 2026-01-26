@@ -292,6 +292,38 @@ export interface Database {
           approved_at?: string | null
         }
       }
+      whatsapp_chat_history: {
+        Row: {
+          id: string
+          wedding_id: string
+          guest_id: string
+          role: 'user' | 'assistant' | 'system'
+          content: string
+          wa_message_id: string | null
+          metadata: any
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          guest_id: string
+          role: 'user' | 'assistant' | 'system'
+          content: string
+          wa_message_id?: string | null
+          metadata?: any
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          guest_id?: string
+          role?: 'user' | 'assistant' | 'system'
+          content?: string
+          wa_message_id?: string | null
+          metadata?: any
+          created_at?: string
+        }
+      }
       whatsapp_messages: {
         Row: {
           id: string

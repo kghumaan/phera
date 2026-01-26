@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseStatusUpdate, updateMessageStatus, verifySignature } from '@/lib/whatsapp/webhooks';
+import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingMessage, logChatMessage } from '@/lib/whatsapp/webhooks';
+import { supabase } from '@/lib/supabase/client';
+import { whatsappClient } from '@/lib/whatsapp/client';
 
 /**
  * GET handler for webhook verification
@@ -63,25 +65,108 @@ export async function POST(request: NextRequest) {
     // Parse status updates from payload
     const statuses = parseStatusUpdate(payload);
 
-    if (statuses.length === 0) {
-      // Not a status update webhook, might be a message received event
-      console.log('ℹ️ Webhook received but no status updates found');
-      return NextResponse.json({ success: true });
+    if (statuses.length > 0) {
+      // Update each message status in database
+      const updatePromises = statuses.map(status =>
+        updateMessageStatus(
+          status.id,
+          status.status,
+          status.timestamp,
+          status.error
+        )
+      );
+      await Promise.all(updatePromises);
+      console.log(`✅ Processed ${statuses.length} status updates`);
     }
 
-    // Update each message status in database
-    const updatePromises = statuses.map(status =>
-      updateMessageStatus(
-        status.id,
-        status.status,
-        status.timestamp,
-        status.error
-      )
-    );
+    // Parse incoming messages from payload
+    const incomingMessages = parseIncomingMessage(payload);
 
-    await Promise.all(updatePromises);
+    if (incomingMessages.length > 0) {
+      for (const msg of incomingMessages) {
+        console.log(`📩 Incoming message from ${msg.senderName} (${msg.from}):`, msg.type);
 
-    console.log(`✅ Processed ${statuses.length} status updates`);
+        // 1. Find the guest by phone number to get wedding context
+        // Phone from WhatsApp is usually like "1234567890" (no +)
+        const recipientPhone = `+${msg.from}`;
+        
+        const { data: guestData } = await supabase
+          .from('guests')
+          .select('*, weddings(*)')
+          .eq('phone', recipientPhone)
+          .maybeSingle();
+
+        const guest = guestData as any;
+
+        if (!guest || !guest.weddings) {
+          console.log(`⚠️ No guest or wedding found for phone ${recipientPhone}`);
+          continue;
+        }
+
+        const wedding = guest.weddings;
+        const guestName = guest.name?.split(' ')[0] || 'Guest';
+
+        // 📝 Log incoming message to history
+        await logChatMessage({
+          weddingId: wedding.id,
+          guestId: guest.id,
+          role: 'user',
+          content: msg.text || (msg.type === 'interactive' ? `[Interactive: ${msg.interactive?.id}]` : '[Unsupported message type]'),
+          metadata: { 
+            type: msg.type,
+            button_id: msg.interactive?.id,
+            timestamp: msg.timestamp 
+          }
+        });
+
+        // 2. Handle based on message type
+        if (msg.type === 'interactive' && msg.interactive) {
+          const buttonId = msg.interactive.id;
+          console.log(`🔘 Button click: ${buttonId}`);
+
+          let responseText = '';
+          
+          // Tailored responses based on button IDs
+          if (buttonId === 'GET_SCHEDULE') {
+            responseText = `Hi ${guestName}! Here is the schedule for ${wedding.couple_name}'s wedding: ${process.env.NEXT_PUBLIC_APP_URL}/go/schedule/${wedding.slug}`;
+          } else if (buttonId === 'GET_DETAILS') {
+            responseText = `Sure ${guestName}! You can find all the wedding details here: ${process.env.NEXT_PUBLIC_APP_URL}/go/details/${wedding.slug}`;
+          } else {
+            responseText = `Hi ${guestName}, thanks for your interest! You can find everything you need here: ${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`;
+          }
+
+          await whatsappClient.sendMessage(msg.from, responseText);
+          
+          // 📝 Log response to history
+          await logChatMessage({
+            weddingId: wedding.id,
+            guestId: guest.id,
+            role: 'assistant',
+            content: responseText,
+            metadata: { trigger_button_id: buttonId }
+          });
+
+        } else if (msg.type === 'text') {
+          console.log(`💬 Text message: ${msg.text}`);
+
+          // Generic placeholder for AI/LLM
+          const genericResponse = `Hi ${guestName}! I've received your message: "${msg.text}". Our wedding assistant is processing this and will get back to you shortly! In the meantime, you can check the wedding site here: ${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`;
+          
+          await whatsappClient.sendMessage(msg.from, genericResponse);
+
+          // 📝 Log response to history
+          await logChatMessage({
+            weddingId: wedding.id,
+            guestId: guest.id,
+            role: 'assistant',
+            content: genericResponse,
+            metadata: { trigger_text: msg.text }
+          });
+        }
+      }
+      console.log(`✅ Processed ${incomingMessages.length} incoming messages`);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error processing webhook:', error);

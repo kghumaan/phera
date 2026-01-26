@@ -17,6 +17,89 @@ export interface WebhookStatus {
   };
 }
 
+export interface IncomingMessage {
+  from: string;
+  senderName: string;
+  timestamp: string;
+  type: 'text' | 'interactive' | 'other';
+  text?: string;
+  interactive?: {
+    type: 'button_reply' | 'list_reply';
+    id: string;
+    title: string;
+  };
+}
+
+/**
+ * Parse WhatsApp webhook payload to extract incoming messages
+ */
+export function parseIncomingMessage(payload: any): IncomingMessage[] {
+  const messages: IncomingMessage[] = [];
+
+  try {
+    if (!payload.entry || !Array.isArray(payload.entry)) {
+      return messages;
+    }
+
+    for (const entry of payload.entry) {
+      if (!entry.changes || !Array.isArray(entry.changes)) {
+        continue;
+      }
+
+      for (const change of entry.changes) {
+        if (change.field !== 'messages') {
+          continue;
+        }
+
+        const value = change.value;
+
+        // Parse profile name (optional)
+        const contact = value.contacts?.[0];
+        const senderName = contact?.profile?.name || 'Guest';
+
+        if (value.messages && Array.isArray(value.messages)) {
+          for (const message of value.messages) {
+            const incoming: IncomingMessage = {
+              from: message.from,
+              senderName,
+              timestamp: new Date(parseInt(message.timestamp) * 1000).toISOString(),
+              type: 'other',
+            };
+
+            if (message.type === 'text') {
+              incoming.type = 'text';
+              incoming.text = message.text?.body;
+            } else if (message.type === 'interactive') {
+              incoming.type = 'interactive';
+              const interactive = message.interactive;
+              
+              if (interactive.type === 'button_reply') {
+                incoming.interactive = {
+                  type: 'button_reply',
+                  id: interactive.button_reply?.id,
+                  title: interactive.button_reply?.title,
+                };
+              } else if (interactive.type === 'list_reply') {
+                incoming.interactive = {
+                  type: 'list_reply',
+                  id: interactive.list_reply?.id,
+                  title: interactive.list_reply?.title,
+                };
+              }
+            }
+
+            messages.push(incoming);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing incoming messages:', error);
+  }
+
+  return messages;
+}
+
 /**
  * Parse WhatsApp webhook payload to extract status updates
  */
@@ -119,8 +202,45 @@ export async function updateMessageStatus(
 }
 
 /**
+ * Log a message to the chat history for AI memory
+ */
+export async function logChatMessage({
+  weddingId,
+  guestId,
+  role,
+  content,
+  waMessageId,
+  metadata = {}
+}: {
+  weddingId: string;
+  guestId: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  waMessageId?: string | null;
+  metadata?: any;
+}): Promise<void> {
+  try {
+    const { error } = await (supabase
+      .from('whatsapp_chat_history') as any)
+      .insert({
+        wedding_id: weddingId,
+        guest_id: guestId,
+        role,
+        content,
+        wa_message_id: waMessageId,
+        metadata,
+      });
+
+    if (error) {
+      console.error('Error logging chat message:', error);
+    }
+  } catch (err) {
+    console.error('Failed to log chat message:', err);
+  }
+}
+
+/**
  * Verify WhatsApp webhook signature
- * Meta signs webhook payloads with SHA256 HMAC
  */
 export async function verifySignature(
   payload: string,

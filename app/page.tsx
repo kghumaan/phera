@@ -20,15 +20,12 @@ import {
   AccordionSummary,
   AccordionDetails,
   IconButton,
-  TextField,
-  Alert,
-  CircularProgress,
+  Avatar,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowForward,
   SentimentDissatisfied,
   Warning,
   Flight,
@@ -36,87 +33,96 @@ import {
   EventAvailable,
   WhatsApp,
   CalendarMonth,
-  People,
-  Web,
   CheckCircle,
-  Handyman,
-  Public,
-  ExpandMore,
   Storefront,
-  Groups,
-  Star,
+  ExpandMore,
   Instagram,
   Twitter,
   LinkedIn,
+  Check,
+  DirectionsBus,
+  Campaign,
+  SupportAgent,
+  Groups,
+  EventBusy,
+  FlightTakeoff,
+  ArrowBack,
+  Verified,
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import LoginModal from '@/components/auth/LoginModal';
-import AgentCard from '@/components/landing/AgentCard';
-import AgentModal from '@/components/landing/AgentModal';
 
 // --- Data & Content ---
 
 const painPoints = [
   {
     title: 'The Coordination Nightmare',
-    description: 'Hundreds of guests, multiple events, different venues—chaos.',
-    icon: <SentimentDissatisfied color="error" fontSize="large" />,
+    description: 'Hundreds of guests, multiple events, different venues—absolute chaos.',
+    icon: <Groups sx={{ fontSize: '4rem', color: '#DE3F5E' }} />,
+    rotation: -3,
+    color: '#FFEAEE',
   },
   {
     title: 'RSVP Chaos',
-    description: 'Texts, calls, spreadsheets. Who is actually coming?',
-    icon: <Warning color="error" fontSize="large" />,
+    description: 'Texts, calls, spreadsheets. Who is actually coming? Nobody knows.',
+    icon: <EventBusy sx={{ fontSize: '4rem', color: '#FBC02D' }} />,
+    rotation: 2,
+    color: '#FFF8E1',
   },
   {
     title: 'Travel Coordination',
-    description: 'Tracking flights, hotels, and 50+ airport pickups.',
-    icon: <Flight color="error" fontSize="large" />,
+    description: 'Tracking flights, hotels, and 50+ airport pickups manually.',
+    icon: <FlightTakeoff sx={{ fontSize: '4rem', color: '#1976D2' }} />,
+    rotation: -2,
+    color: '#E3F2FD',
   },
   {
     title: 'The WhatsApp Spiral',
-    description: 'Five groups, lost messages, info buried under spam.',
-    icon: <Chat color="error" fontSize="large" />,
+    description: 'Five groups, lost messages, info buried under endless spam.',
+    icon: <WhatsApp sx={{ fontSize: '4rem', color: '#25D366' }} />,
+    rotation: 4,
+    color: '#E8F5E9',
   },
 ];
 
 const keyFeatures = [
   {
     title: 'Smart RSVP',
-    description: 'Digital invites, plus-ones, and real-time tracking.',
+    description: 'Digital invites with plus-ones, dietary tracking, and real-time responses.',
     icon: <EventAvailable fontSize="large" sx={{ color: '#DE3F5E' }} />,
     badge: 'FREE',
   },
   {
-    title: 'Privacy & Control',
-    description: 'Secure PIN access. You decide who sees what.',
+    title: 'Multi-Event Support',
+    description: 'Native support for Haldi, Mehendi, Sangeet, Baraat, and custom ceremonies.',
+    icon: <CalendarMonth fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    badge: 'FREE',
+  },
+  {
+    title: 'Travel Coordination',
+    description: 'Collect flight details, organize airport pickups, and coordinate shuttles.',
+    icon: <Flight fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    badge: 'PRO',
+  },
+  {
+    title: 'PIN-Based Privacy',
+    description: 'Family, individual, and VIP access codes. You control who sees what.',
     icon: <CheckCircle fontSize="large" sx={{ color: '#DE3F5E' }} />,
-    badge: 'NEW',
+    badge: 'FREE',
   },
   {
-    title: 'Team Collaboration',
-    description: 'Invite parents or planners to help manage the chaos.',
-    icon: <Groups fontSize="large" sx={{ color: '#DE3F5E' }} />,
-    badge: 'NEW',
-  },
-  {
-    title: 'Shopping Guide',
-    description: 'Share curated shops and outfit ideas for every event.',
-    icon: <Storefront fontSize="large" sx={{ color: '#DE3F5E' }} />,
-    badge: 'NEW',
-  },
-  {
-    title: 'WhatsApp-Native',
-    description: 'One click for guests to join your official group.',
+    title: 'WhatsApp Concierge',
+    description: 'AI-powered assistant answers guest questions 24/7. Broadcast updates instantly.',
     icon: <WhatsApp fontSize="large" sx={{ color: '#DE3F5E' }} />,
-    badge: 'INCLUDED',
+    badge: 'PRO',
   },
   {
-    title: 'Custom Event Pages',
-    description: 'Share your story, registry, and itinerary beautifully.',
-    icon: <Web fontSize="large" sx={{ color: '#DE3F5E' }} />,
-    badge: 'INCLUDED',
+    title: 'Gift Registry',
+    description: 'Honeymoon funds and cash gifts with secure Stripe payments.',
+    icon: <Storefront fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    badge: 'PRO',
   },
 ];
 
@@ -129,307 +135,31 @@ const pricingTiers = [
       'Custom wedding website',
       'Unlimited RSVP collection',
       'Guest list management',
-      'Multi-event pages',
-      'WhatsApp integration',
-      'Photo galleries',
-      'Registry pages',
-      'Schedule display',
+      'Multi-event pages (Haldi, Mehendi, etc.)',
+      'PIN-based guest access',
+      'Event schedule & details',
+      'FAQ management',
+      'Real-time guest wall',
     ],
     buttonText: 'Start Free',
     highlight: false,
   },
   {
-    name: 'DESTINATION BUNDLE',
-    price: '$179',
-    originalPrice: '$247',
-    description: 'Essential agents for destination weddings',
+    name: 'PRO',
+    price: '$199',
+    description: 'Advanced features for destination weddings',
     features: [
-      'Travel Expert agent',
-      'Emcee agent',
-      'Chef agent',
-      'Guest Concierge agent',
-      'Timeline Orchestrator agent',
-      'Save $68 vs. individual purchase',
+      'Everything in Free, plus:',
+      'WhatsApp Concierge Agent',
+      'Shuttle transportation coordination',
+      'Advanced website styling',
+      'Registry with Stripe payments',
+      'Broadcast messages to guests',
+      'Priority support',
+      'All future features included',
     ],
-    buttonText: 'Join Waitlist',
+    buttonText: 'Upgrade to Pro',
     highlight: true,
-    badge: 'COMING SOON',
-  },
-  {
-    name: 'FULL SERVICE',
-    price: '$299',
-    originalPrice: '$423',
-    description: 'All 12 agents for complete coverage',
-    features: [
-      'All agents included',
-      'Travel, Emcee, Chef, DJ',
-      'Concierge, Vendor Liaison',
-      'Photography, Timeline',
-      'Stylist, Budget, Cultural Guide',
-      'Registry Concierge',
-      'Save $124 vs. individual purchase',
-    ],
-    buttonText: 'Join Waitlist',
-    highlight: false,
-    badge: 'COMING SOON',
-  },
-];
-
-const comparisonData = [
-  { item: 'Wedding Planner', cost: '$3,000 - $10,000' },
-  { item: 'Day-of Coordinator', cost: '$1,000 - $3,000' },
-  { item: 'RSVP Service', cost: '$200 - $500' },
-  { item: 'Travel Coordination', cost: '$500 - $1,500' },
-];
-
-const audienceTypes = [
-  {
-    title: 'Destination Weddings',
-    icon: <Flight sx={{ fontSize: 40 }} />,
-    text: 'Planning from abroad? We handle the complex coordination.',
-  },
-  {
-    title: 'Multi-Day Events',
-    icon: <CalendarMonth sx={{ fontSize: 40 }} />,
-    text: 'Mehndi, Sangeet, Haldi? Manage every event in one place.',
-  },
-  {
-    title: 'DIY Couples',
-    icon: <Handyman sx={{ fontSize: 40 }} />,
-    text: 'Professional-grade tools without the professional price tag.',
-  },
-  {
-    title: 'Cross-Cultural',
-    icon: <Public sx={{ fontSize: 40 }} />,
-    text: 'Help non-Indian guests understand traditions and customs.',
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      'We had guests coming from 7 different countries. Phera was a lifesaver—everyone knew exactly where to be and when.',
-    author: 'Priya & Arjun',
-    detail: 'Bay Area → Goa Wedding',
-  },
-  {
-    quote:
-      'I was ready to hire a $5,000 coordinator. Phera did everything they would have done for a fraction of the cost.',
-    author: 'Simran & Raj',
-    detail: 'London → Udaipur Wedding',
-  },
-  {
-    quote:
-      'The RSVP tracking alone was worth it. We had 400 guests across 5 events. I knew exactly who was coming to what.',
-    author: 'Meera & Vikram',
-    detail: 'Chicago Wedding',
-  },
-];
-
-const weddingAgents = [
-  {
-    id: 'travel-expert',
-    name: 'Travel Expert',
-    persona: 'Maya',
-    emoji: '🌍',
-    tagline: 'Your wedding coordinator',
-    problem: 'Coordinating 50+ flights and shuttles?',
-    solution: 'Aggregates flight details and groups arrivals automatically.',
-    keyPoints: [
-      'Collects flight details',
-      'Groups by arrival time',
-      'Coordinates shuttles',
-    ],
-    pricing: 49,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'emcee',
-    name: 'Emcee',
-    persona: 'Rohan',
-    emoji: '📢',
-    tagline: 'Your event announcer',
-    problem: 'Guests missing updates?',
-    solution: 'Sends WhatsApp broadcasts to keep everyone in the loop.',
-    keyPoints: [
-      'WhatsApp broadcasts',
-      'Real-time updates',
-      'Multi-language',
-    ],
-    pricing: 39,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'chef',
-    name: 'Chef',
-    persona: 'Anjali',
-    emoji: '👨‍🍳',
-    tagline: 'Your culinary coordinator',
-    problem: 'Overwhelmed by dietary needs?',
-    solution: 'Analyzes allergies and suggests safe, balanced menus.',
-    keyPoints: [
-      'Tracks restrictions',
-      'Suggests menus',
-      'Local alternatives',
-    ],
-    pricing: 59,
-    badge: 'COMING SOON',
-    ctaType: 'pre-order' as const,
-  },
-  {
-    id: 'dj',
-    name: 'DJ',
-    persona: 'Karan',
-    emoji: '🎵',
-    tagline: 'Your music curator',
-    problem: 'Chaotic song requests?',
-    solution: 'Curates cultural playlists and filters the noise.',
-    keyPoints: [
-      'Curates playlists',
-      'Balances styles',
-      'Filters content',
-    ],
-    pricing: 29,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'concierge',
-    name: 'Guest Concierge',
-    persona: 'Priya',
-    emoji: '🛎️',
-    tagline: 'Your 24/7 guest assistant',
-    problem: 'Answering repetitive questions?',
-    solution: 'An AI chatbot that answers guests via WhatsApp/SMS.',
-    keyPoints: [
-      'AI guest chatbot',
-      'Local recommendations',
-      'Cultural context',
-    ],
-    pricing: 49,
-    badge: 'COMING SOON',
-    ctaType: 'learn-more' as const,
-  },
-  {
-    id: 'vendor-liaison',
-    name: 'Vendor Liaison',
-    persona: 'Aditya',
-    emoji: '📋',
-    tagline: 'Your vendor coordinator',
-    problem: 'Juggling contracts and timelines?',
-    solution: 'Tracks payments and manages day-of vendor check-ins.',
-    keyPoints: [
-      'Tracks contracts',
-      'Timeline updates',
-      'Vendor check-ins',
-    ],
-    pricing: 39,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'photographer',
-    name: 'Photography Coordinator',
-    persona: 'Nisha',
-    emoji: '📸',
-    tagline: 'Your photo organizer',
-    problem: 'Missing special moments?',
-    solution: 'Creates shot lists and collects guest photos in one place.',
-    keyPoints: [
-      'Creates shot lists',
-      'Collects guest photos',
-      'Organizes groups',
-    ],
-    pricing: 29,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'timeline',
-    name: 'Timeline Orchestrator',
-    persona: 'Vikram',
-    emoji: '⏰',
-    tagline: 'Your schedule keeper',
-    problem: 'Worried about delays?',
-    solution: 'Builds dynamic timelines and alerts the wedding party.',
-    keyPoints: [
-      'Detailed timelines',
-      'Party alerts',
-      'Live adjustments',
-    ],
-    pricing: 39,
-    badge: 'COMING SOON',
-    ctaType: 'pre-order' as const,
-  },
-  {
-    id: 'stylist',
-    name: 'Outfit Stylist',
-    persona: 'Kavya',
-    emoji: '👗',
-    tagline: 'Your fashion advisor',
-    problem: 'Guests confused about attire?',
-    solution: 'Suggests outfits and explains cultural dress codes.',
-    keyPoints: [
-      'Outfit suggestions',
-      'Color coordination',
-      'Cultural guides',
-    ],
-    pricing: 29,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'budget',
-    name: 'Budget Advisor',
-    persona: 'Rahul',
-    emoji: '💰',
-    tagline: 'Your financial planner',
-    problem: 'Losing track of expenses?',
-    solution: 'Tracks spending and suggests cost-saving alternatives.',
-    keyPoints: [
-      'Tracks expenses',
-      'Suggests savings',
-      'Spending reports',
-    ],
-    pricing: 39,
-    badge: 'COMING SOON',
-    ctaType: 'learn-more' as const,
-  },
-  {
-    id: 'cultural-guide',
-    name: 'Cultural Guide',
-    persona: 'Lakshmi',
-    emoji: '🕉️',
-    tagline: 'Your tradition educator',
-    problem: 'Guests confused by rituals?',
-    solution: 'Explains traditions and etiquette to non-Indian guests.',
-    keyPoints: [
-      'Explains rituals',
-      'Etiquette guides',
-      'Multi-language',
-    ],
-    pricing: 19,
-    badge: 'COMING SOON',
-    ctaType: 'waitlist' as const,
-  },
-  {
-    id: 'registry',
-    name: 'Registry Concierge',
-    persona: 'Sanjay',
-    emoji: '🎁',
-    tagline: 'Your gift coordinator',
-    problem: 'Registry chaos?',
-    solution: 'Coordinates group gifts and tracks all contributions.',
-    keyPoints: [
-      'Gift coordination',
-      'Group gifting',
-      'Tracks contributions',
-    ],
-    pricing: 29,
-    badge: 'COMING SOON',
-    ctaType: 'pre-order' as const,
   },
 ];
 
@@ -455,20 +185,12 @@ const faqs = [
     a: 'Yes, we use bank-level encryption to keep your guest information private and secure.',
   },
   {
-    q: 'What are "Smart Agents" and how do they work?',
-    a: 'Smart Agents are specialized AI-powered assistants that handle specific wedding tasks like travel coordination, guest communication, or menu planning. You start free and add only the agents you need.',
+    q: 'What is the WhatsApp Concierge?',
+    a: 'It is an intelligent automated assistant that guests can text to get answers about your wedding schedule, events, and travel details. It saves you from answering the same questions repeatedly.',
   },
   {
-    q: 'When will agents be available?',
-    a: 'We\'re launching agents in phases starting Q2 2025. Join the waitlist for early access and exclusive discounts.',
-  },
-  {
-    q: 'Do I have to buy all the agents?',
-    a: 'Not at all! Each agent is optional. Pick only what you need—one agent, a bundle, or none. The core platform stays free forever.',
-  },
-  {
-    q: 'Can I try agents before buying?',
-    a: 'Yes! We\'ll offer free trials for all agents once they launch. Pre-order customers get extended trial periods.',
+    q: 'Can I upgrade to Pro later?',
+    a: 'Yes, you can start with the Free plan and upgrade to Pro whenever you need the advanced features like travel coordination or the WhatsApp agent.',
   },
 ];
 
@@ -488,107 +210,146 @@ const staggerContainer = {
   },
 };
 
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  badge?: string;
+  height?: string | number;
+  gradient?: string;
+  accentColor?: string;
+  isDark?: boolean;
+  large?: boolean;
+}
+
+const FeatureCard = ({ 
+  title, 
+  description, 
+  icon, 
+  badge, 
+  height = '100%', 
+  gradient,
+  accentColor,
+  isDark = false,
+  large = false
+}: FeatureCardProps) => {
+  return (
+    <motion.div
+      variants={fadeIn}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      style={{ height: '100%' }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          p: large ? { xs: 4, md: 6 } : 4,
+          height: height,
+          borderRadius: '24px',
+          background: gradient || (isDark ? (accentColor || '#1a1a1a') : '#fff'),
+          color: isDark ? '#fff' : '#1a1a1a',
+          border: '1px solid',
+          borderColor: isDark ? 'transparent' : alpha('#000', 0.05),
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
+          }
+        }}
+      >
+        <Box>
+          <Stack
+            direction="row"
+            sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}
+          >
+            <Box sx={{ 
+              p: 1.5, 
+              borderRadius: '16px', 
+              bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#DE3F5E', 0.05),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {icon}
+            </Box>
+            {badge && (
+              <Chip
+                label={badge}
+                size="small"
+                sx={{
+                  bgcolor: isDark 
+                    ? alpha('#fff', 0.2) 
+                    : (badge === 'PRO' ? '#FFEAEE' : '#F5F5F5'),
+                  color: isDark 
+                    ? '#fff' 
+                    : (badge === 'PRO' ? '#DE3F5E' : '#666'),
+                  fontWeight: 800,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.5px',
+                  border: badge === 'PRO' ? '1px solid rgba(222, 63, 94, 0.1)' : 'none'
+                }}
+              />
+            )}
+          </Stack>
+          
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 800, 
+              mb: 2, 
+              fontFamily: 'var(--font-instrument-serif)',
+              fontSize: large ? { xs: '2rem', md: '3rem' } : { xs: '1.5rem', md: '1.75rem' },
+              lineHeight: 1.1
+            }}
+          >
+            {title}
+          </Typography>
+          
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: isDark ? alpha('#fff', 0.8) : '#4a4a4a',
+              lineHeight: 1.6,
+              fontSize: large ? '1.25rem' : '1.1rem',
+              maxWidth: '95%'
+            }}
+          >
+            {description}
+          </Typography>
+        </Box>
+
+        {large && (
+           <Box 
+            sx={{ 
+              position: 'absolute', 
+              bottom: 0, 
+              right: -30, 
+              width: '400px',
+              height: '150px',
+              opacity: 0.05, 
+              display: { xs: 'none', md: 'block' },
+              pointerEvents: 'none'
+            }}
+          >
+             <Image 
+              src="/logo-flower.svg" 
+              alt="" 
+              fill 
+              style={{ objectFit: 'contain', filter: 'brightness(0)' }} 
+            />
+          </Box>
+        )}
+      </Paper>
+    </motion.div>
+  );
+};
+
 export default function LandingPage() {
   const theme = useTheme();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<typeof weddingAgents[0] | null>(null);
-  const [agentModalOpen, setAgentModalOpen] = useState(false);
-  const [agentModalType, setAgentModalType] = useState<'waitlist' | 'pre-order' | 'learn-more'>('waitlist');
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistLoading, setWaitlistLoading] = useState(false);
-  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
-  const [waitlistError, setWaitlistError] = useState('');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [thumbWidth, setThumbWidth] = useState(83); // Default to ~33% of 250px
-
-  const handleAgentClick = (agentId: string, ctaType: string) => {
-    const agent = weddingAgents.find((a) => a.id === agentId);
-    if (agent) {
-      setSelectedAgent(agent);
-      if (ctaType === 'card-click' || ctaType === 'learn-more') {
-        setAgentModalType('learn-more');
-      } else {
-        setAgentModalType(ctaType as 'waitlist' | 'pre-order' | 'learn-more');
-      }
-      setAgentModalOpen(true);
-    }
-  };
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const updateScrollProgress = () => {
-      const scrollLeft = container.scrollLeft;
-      const scrollWidth = container.scrollWidth - container.clientWidth;
-      const progress = scrollWidth > 0 ? scrollLeft / scrollWidth : 0;
-      setScrollProgress(progress);
-      
-      // Calculate thumb width (250px is the scrollbar track width)
-      const visibleWidth = container.clientWidth;
-      const totalWidth = container.scrollWidth;
-      const calculatedThumbWidth = Math.max(30, (visibleWidth / totalWidth) * 250);
-      setThumbWidth(calculatedThumbWidth);
-    };
-
-    container.addEventListener('scroll', updateScrollProgress);
-    updateScrollProgress(); // Initial calculation
-
-    // Also update on resize
-    const resizeObserver = new ResizeObserver(updateScrollProgress);
-    resizeObserver.observe(container);
-
-    return () => {
-      container.removeEventListener('scroll', updateScrollProgress);
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  const handleWaitlistSubmit = async () => {
-    if (!waitlistEmail) return;
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(waitlistEmail)) {
-      setWaitlistError('Please enter a valid email address');
-      return;
-    }
-
-    setWaitlistLoading(true);
-    setWaitlistError('');
-
-    try {
-      // Submit to waitlist for all agents (general waitlist)
-      const response = await fetch('/api/agents/waitlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: waitlistEmail,
-          agent_id: 'all-agents',
-          cta_type: 'waitlist',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit');
-      }
-
-      setWaitlistSuccess(true);
-      setWaitlistEmail('');
-
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        setWaitlistSuccess(false);
-      }, 3000);
-    } catch (err) {
-      setWaitlistError('Something went wrong. Please try again.');
-    } finally {
-      setWaitlistLoading(false);
-    }
-  };
 
   return (
     <OptimizedBackground
@@ -604,41 +365,69 @@ export default function LandingPage() {
         <Container maxWidth="lg" sx={{ pt: { xs: 16, md: 24 }, pb: 10 }}>
           <motion.div initial="hidden" animate="visible" variants={fadeIn}>
             <Stack spacing={4} sx={{ alignItems: 'center', textAlign: 'center' }}>
-              {/* <Chip
-                label="Welcome to Phera"
-                sx={{
-                  bgcolor: alpha('#DE3F5E', 0.1),
-                  color: '#DE3F5E',
-                  fontWeight: 600,
-                  borderRadius: '16px',
-                  px: 1,
-                }}
-              /> */}
               <Typography
                 variant="h1"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
-                  fontSize: { xs: '2.5rem', md: '4.5rem', lg: '5.5rem' },
+                  fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
                   maxWidth: '1000px',
                 }}
               >
-                Your Indian Wedding,
-                <br /> Minus the Chaos
+                Destination Wedding,
+                <br />
+                <Box
+                  component="span"
+                  sx={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      width: '100%',
+                      height: '3px',
+                      bgcolor: '#DE3F5E',
+                      transform: 'scaleX(0)',
+                      transformOrigin: 'left',
+                      animation: 'strikethrough 0.8s ease-out 1s forwards',
+                    },
+                    '@keyframes strikethrough': {
+                      '0%': { transform: 'scaleX(0)' },
+                      '100%': { transform: 'scaleX(1)' },
+                    },
+                  }}
+                >
+                  Minus the Chaos
+                </Box>
               </Typography>
               <Typography
                 variant="h5"
                 sx={{
-                  fontSize: { xs: '1.1rem', md: '1.5rem' },
+                  fontSize: { xs: '1.25rem', md: '1.75rem' },
+                  color: '#1a1a1a',
+                  maxWidth: '800px',
+                  lineHeight: 1.4,
+                  fontWeight: 500,
+                }}
+              >
+                Wedding Planner in your Pocket
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: { xs: '1rem', md: '1.25rem' },
                   color: '#4a4a4a',
                   maxWidth: '800px',
                   lineHeight: 1.6,
                   fontWeight: 400,
                 }}
               >
-                Start free. Add smart AI agents only when you need extra help.
-                Your wedding, your way.
+                RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge 
+                <br />
+                all on one platform.
               </Typography>
 
               <Stack
@@ -691,7 +480,7 @@ export default function LandingPage() {
         </Container>
 
         {/* --- PROBLEM SECTION --- */}
-        <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Container maxWidth="xl" sx={{ py: 14 }}>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -703,57 +492,142 @@ export default function LandingPage() {
               align="center"
               sx={{
                 fontFamily: 'var(--font-instrument-serif)',
-                mb: 6,
-                fontSize: { xs: '2rem', md: '3rem' },
+                mb: 10,
+                fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
                 color: '#1a1a1a',
+                maxWidth: '1000px',
+                mx: 'auto',
+                lineHeight: 1.1,
               }}
             >
-              Planning Shouldn't Feel Like a Full-Time Job
+              Wedding Planning shouldn't feel like a <Box component="span" sx={{ color: '#DE3F5E', fontStyle: 'italic' }}>Second Job</Box>
             </Typography>
-            <Grid container spacing={3}>
+
+            <Box 
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
+                gap: { xs: 4, lg: 6 },
+                perspective: '1200px',
+              }}
+            >
               {painPoints.map((point, idx) => (
-                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={idx}>
+                <motion.div
+                  key={idx}
+                  variants={{
+                    hidden: { opacity: 0, y: 20, rotate: point.rotation },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0, 
+                      rotate: point.rotation,
+                      transition: { delay: idx * 0.1 }
+                    }
+                  }}
+                  whileHover={{ 
+                    rotate: 0, 
+                    scale: 1.02,
+                    zIndex: 10,
+                    transition: { type: 'spring', stiffness: 200 }
+                  }}
+                >
                   <Paper
+                    elevation={0}
                     sx={{
-                      p: 3,
+                      p: { xs: 4, md: 6 },
                       height: '100%',
-                      borderRadius: '24px',
-                      bgcolor: alpha('#fff', 0.9),
-                      backdropFilter: 'blur(10px)',
-                      color: '#1a1a1a',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                      minHeight: { md: '350px' },
+                      bgcolor: point.color,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                      position: 'relative',
+                      // Post-it Fold Effect: The polygon clips the top-right corner
+                      clipPath: 'polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 0 100%)',
+                      // Use filter: drop-shadow instead of boxShadow to follow the clipped shape
+                      filter: 'drop-shadow(8px 8px 0px rgba(0,0,0,0.02))',
+                      transition: 'filter 0.3s ease',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '40px',
+                        height: '40px',
+                        bgcolor: alpha('#000', 0.1),
+                        clipPath: 'polygon(0 0, 100% 100%, 0 100%)',
+                        zIndex: 2,
+                      }
                     }}
                   >
-                    <Stack spacing={2}>
-                      {point.icon}
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                        {point.title}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                        {point.description}
-                      </Typography>
-                    </Stack>
+                    <Box sx={{ minHeight: '80px', display: 'flex', alignItems: 'center' }}>
+                      {typeof point.icon === 'string' ? (
+                        <Typography sx={{ fontSize: '4rem' }}>
+                          {point.icon}
+                        </Typography>
+                      ) : (
+                        point.icon
+                      )}
+                    </Box>
+                    
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 800, 
+                        color: '#1a1a1a',
+                        fontFamily: 'var(--font-instrument-serif)',
+                        lineHeight: 1.1,
+                        fontSize: { xs: '1.5rem', md: '2rem' }
+                      }}
+                    >
+                      {point.title}
+                    </Typography>
+                    
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        color: '#4a4a4a',
+                        lineHeight: 1.6,
+                        fontWeight: 450,
+                        fontSize: { xs: '1rem', md: '1.15rem' }
+                      }}
+                    >
+                      {point.description}
+                    </Typography>
+
+                    <Box 
+                      sx={{ 
+                        position: 'absolute', 
+                        bottom: -20, 
+                        right: -20, 
+                        fontSize: '10rem', 
+                        opacity: 0.02, 
+                        fontWeight: 900,
+                        userSelect: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      {idx + 1}
+                    </Box>
                   </Paper>
-                </Grid>
+                </motion.div>
               ))}
-            </Grid>
+            </Box>
           </motion.div>
         </Container>
 
-        {/* --- SOLUTION & FEATURES --- */}
-        <Box sx={{ bgcolor: alpha('#DE3F5E', 0.03), py: 10 }}>
-          <Container maxWidth="lg">
+        {/* --- SOLUTION & FEATURES (Bento Grid) --- */}
+        <Box sx={{ bgcolor: alpha('#DE3F5E', 0.03), py: 14 }}>
+          <Container maxWidth="xl">
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <Stack spacing={2} sx={{ textAlign: 'center', mb: 8, alignItems: 'center' }}>
+              <Stack spacing={2} sx={{ textAlign: 'center', mb: 10, alignItems: 'center' }}>
                 <Typography
                   variant="overline"
-                  color="primary"
-                  sx={{ fontWeight: 'bold', fontSize: '1rem' }}
+                  sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
                 >
                   THE SOLUTION
                 </Typography>
@@ -761,362 +635,356 @@ export default function LandingPage() {
                   variant="h2"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
-                    fontSize: { xs: '2.5rem', md: '3.5rem' },
+                    fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
                     color: '#1a1a1a',
+                    lineHeight: 1.1,
                   }}
                 >
-                  One Platform. Every Detail. Zero Stress.
+                  Everything You Need, <br />
+                  <Box component="span" sx={{ color: '#DE3F5E' }}>All in One Place.</Box>
                 </Typography>
                 <Typography
                   variant="body1"
                   sx={{
-                    maxWidth: '700px',
-                    mx: 'auto',
+                    maxWidth: '900px',
                     color: '#4a4a4a',
-                    textAlign: 'center',
+                    fontSize: { xs: '1.1rem', md: '1.35rem' },
+                    lineHeight: 1.6,
+                    mt: 3,
+                    opacity: 0.9
                   }}
                 >
-                  Phera is the modern wedding platform built specifically for
-                  Indian weddings. We've combined everything you need into one
-                  beautiful system.
+                  Ditch the messy spreadsheets and fragmented group chats. Phera brings your 
+                  entire wedding coordination into one powerful, integrated system.
                 </Typography>
               </Stack>
 
-              <Grid container spacing={4}>
-                {keyFeatures.map((feature, idx) => (
-                  <Grid size={{ xs: 12, md: 4 }} key={idx}>
-                    <motion.div variants={fadeIn}>
-                      <Paper
-                        sx={{
-                          p: 4,
-                          height: '100%',
-                          borderRadius: '24px',
-                          color: '#1a1a1a',
-                          bgcolor: 'white',
-                          transition: 'all 0.3s',
-                          '&:hover': {
-                            transform: 'translateY(-5px)',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                          },
-                        }}
-                      >
-                        <Stack spacing={2}>
-                          <Stack
-                            direction="row"
-                            sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
-                          >
-                            {feature.icon}
-                            <Chip
-                              label={feature.badge}
-                              size="small"
-                              sx={{
-                                bgcolor:
-                                  feature.badge === 'FREE'
-                                    ? '#E0F2F1'
-                                    : '#F3E5F5',
-                                color:
-                                  feature.badge === 'FREE'
-                                    ? '#00695C'
-                                    : '#7B1FA2',
-                                fontWeight: 700,
-                              }}
-                            />
-                          </Stack>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                            {feature.title}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ lineHeight: 1.6, color: '#4a4a4a' }}
-                          >
-                            {feature.description}
-                          </Typography>
-                        </Stack>
-                      </Paper>
-                    </motion.div>
-                  </Grid>
-                ))}
-              </Grid>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                  gridAutoRows: 'minmax(250px, auto)',
+                  gap: 3,
+                }}
+              >
+                {/* 1. Smart RSVP & Multi-Event (Large Feature) */}
+                <Box sx={{ gridColumn: { md: '1 / span 2' }, gridRow: { md: '1 / span 2' } }}>
+                  <FeatureCard 
+                    title="Unified Guest Management"
+                    description="From Smart RSVPs that track plus-ones and dietary needs to native support for Haldi, Mehendi, and Sangeet. Everything is synced instantly."
+                    icon={keyFeatures[0].icon}
+                    badge="FREE"
+                    height="100%"
+                    gradient="linear-gradient(135deg, #fff 0%, #fff 100%)"
+                    large
+                  />
+                </Box>
+
+                {/* 2. WhatsApp Concierge (Featured Pro) */}
+                <Box sx={{ gridColumn: { md: '3 / span 1' }, gridRow: { md: '1 / span 2' } }}>
+                   <FeatureCard 
+                    title="WhatsApp Concierge"
+                    description="Our AI agent answers guest questions 24/7. Broadcast updates instantly to everyone's phone."
+                    icon={<WhatsApp sx={{ fontSize: '3rem', color: '#25D366' }} />}
+                    badge="PRO"
+                    accentColor="#075E54"
+                    height="100%"
+                    isDark
+                  />
+                </Box>
+
+                {/* 3. Travel & Logistics */}
+                <Box>
+                  <FeatureCard 
+                    title="Travel Coordination"
+                    description="Collect flight details and organize airport pickups seamlessly."
+                    icon={keyFeatures[2].icon}
+                    badge="PRO"
+                  />
+                </Box>
+
+                {/* 4. PIN Privacy */}
+                <Box>
+                  <FeatureCard 
+                    title="VIP Privacy"
+                    description="PIN-based access codes for family, individuals, and VIPs."
+                    icon={keyFeatures[3].icon}
+                    badge="FREE"
+                  />
+                </Box>
+
+                {/* 5. Gift Registry */}
+                <Box>
+                  <FeatureCard 
+                    title="Modern Registry"
+                    description="Secure cash gifts and honeymoon funds via Stripe."
+                    icon={keyFeatures[5].icon}
+                    badge="PRO"
+                  />
+                </Box>
+              </Box>
             </motion.div>
           </Container>
         </Box>
 
-        {/* --- SMART WEDDING AGENTS --- */}
-        <Box sx={{ py: 2, bgcolor: alpha('#DE3F5E', 0.02) }}>
-          {/* Header Section - Within Container */}
-          <Container maxWidth="lg">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-            >
-              <Stack spacing={2} sx={{ textAlign: 'center', mb: 3, alignItems: 'center' }}>
-                <Typography
-                  variant="h2"
-                  sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontSize: { xs: '2.5rem', md: '4rem' },
-                    color: '#1a1a1a',
-                  }}
+        {/* --- WHATSAPP AGENT SHOWCASE --- */}
+        <Box sx={{ py: { xs: 8, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative background circle */}
+          <Box sx={{
+            position: 'absolute',
+            top: -100,
+            right: -100,
+            width: 400,
+            height: 400,
+            bgcolor: 'rgba(255,255,255,0.1)',
+            borderRadius: '50%',
+          }} />
+          
+          <Container maxWidth="xl">
+            <Grid container spacing={8} alignItems="center">
+              <Grid size={{ xs: 12, md: 6 }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeIn}
                 >
-                  Meet Your Wedding Dream Team
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    maxWidth: '800px',
-                    mx: 'auto',
-                    color: '#4a4a4a',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                    fontSize: { xs: '1.1rem', md: '1.3rem' },
-                  }}
-                >
-                  We're not here to take away the magic—just to handle the tedious logistics and administrative tasks that bog you down. Get personalized starting points for the not-so-fun stuff, so you can focus on what truly matters: celebrating your love.
-                </Typography>
-              </Stack>
-            </motion.div>
-          </Container>
-
-          {/* Horizontal Scroll Container - Full Width */}
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              sx={{
-                width: '90%',
-                maxWidth: '100%',
-              }}
-            >
-              <Box
-                ref={scrollContainerRef}
-                sx={{
-                  display: 'flex',
-                  gap: 3,
-                  overflowX: 'auto',
-                  overflowY: 'visible',
-                  pb: 2,
-                  minHeight: '675px',
-                  alignItems: 'flex-start',
-                  scrollbarWidth: 'none', // Firefox
-                  '&::-webkit-scrollbar': {
-                    display: 'none', // Chrome, Safari
-                  },
-                }}
-              >
-                {weddingAgents.map((agent) => (
-                  <Box key={agent.id} sx={{ flexShrink: 0 }}>
-                    <AgentCard
-                      {...agent}
-                      onCtaClick={handleAgentClick}
-                    />
-                  </Box>
-                ))}
-              </Box>
-              
-              {/* Custom Scrollbar Indicator */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  width: '100%',
-                  mt: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '250px',
-                    height: '6px',
-                    bgcolor: 'rgba(0, 0, 0, 0.05)',
-                    borderRadius: '3px',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      height: '100%',
-                      width: `${thumbWidth}px`,
-                      bgcolor: '#DE3F5E',
-                      borderRadius: '3px',
-                      transform: `translateX(${scrollProgress * (250 - thumbWidth)}px)`,
-                      transition: 'transform 0.1s ease-out',
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Waitlist Form - Under Horizontal Scroll */}
-          <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-            >
-              <Stack spacing={3} sx={{ alignItems: 'center' }}>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 600,
-                    color: '#1a1a1a',
-                    textAlign: 'center',
-                  }}
-                >
-                  Get notified when agents are available
-                </Typography>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2}
-                  sx={{ width: '100%', maxWidth: '600px' }}
-                >
-                  <TextField
-                    fullWidth
-                    type="email"
-                    placeholder="Enter your email"
-                    value={waitlistEmail}
-                    onChange={(e) => {
-                      setWaitlistEmail(e.target.value);
-                      setWaitlistError('');
-                    }}
-                    disabled={waitlistLoading || waitlistSuccess}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        bgcolor: 'white',
-                        '& fieldset': {
-                          borderColor: waitlistError ? '#d32f2f' : 'rgba(0, 0, 0, 0.23)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: waitlistError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
-                        },
-                      },
-                    }}
-                  />
-                  <Button
-                    variant="contained"
-                    onClick={handleWaitlistSubmit}
-                    disabled={waitlistLoading || waitlistSuccess || !waitlistEmail}
-                    sx={{
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 4,
-                      py: 1.5,
-                      minWidth: { xs: '100%', sm: '180px' },
-                      '&:hover': {
-                        bgcolor: '#C8365A',
-                      },
-                      '&:disabled': {
-                        bgcolor: '#ccc',
-                      },
-                    }}
-                  >
-                    {waitlistLoading ? (
-                      <CircularProgress size={24} sx={{ color: 'white' }} />
-                    ) : waitlistSuccess ? (
-                      'Subscribed!'
-                    ) : (
-                      'Notify Me'
-                    )}
-                  </Button>
-                </Stack>
-                {waitlistError && (
-                  <Alert
-                    severity="error"
-                    onClose={() => setWaitlistError('')}
-                    sx={{ width: '100%', maxWidth: '600px', borderRadius: '12px' }}
-                  >
-                    {waitlistError}
-                  </Alert>
-                )}
-                {waitlistSuccess && (
-                  <Alert
-                    severity="success"
-                    sx={{ width: '100%', maxWidth: '600px', borderRadius: '12px' }}
-                  >
-                    🎉 You're on the list! Check your email for confirmation.
-                  </Alert>
-                )}
-              </Stack>
-            </motion.div>
-          </Container>
-
-          {/* Bundle Deals Section - Within Container */}
-          <Container maxWidth="lg">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-            >
-              <Box sx={{ textAlign: 'center', mt: 6 }}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2}
-                  sx={{ justifyContent: 'center', alignItems: 'center' }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: '#1a1a1a',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Want them all?
-                  </Typography>
-                  <Stack direction="row" spacing={2}>
-                    <Paper
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                    <WhatsApp sx={{ fontSize: { xs: '3rem', md: '5rem' }, color: '#25D366' }} />
+                    <Typography
+                      variant="h2"
                       sx={{
-                        px: 3,
-                        py: 1.5,
-                        bgcolor: 'rgba(222, 63, 94, 0.05)',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(222, 63, 94, 0.2)',
+                        fontFamily: 'var(--font-instrument-serif)',
+                        fontSize: { xs: '2.5rem', md: '4rem', lg: '5rem' },
+                        lineHeight: 1.1,
                       }}
                     >
-                      <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                        Destination Bundle
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-                        $179 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$247</Typography>
-                      </Typography>
-                    </Paper>
-                    <Paper
-                      sx={{
-                        px: 3,
-                        py: 1.5,
-                        bgcolor: 'rgba(222, 63, 94, 0.08)',
-                        borderRadius: '12px',
-                        border: '2px solid #DE3F5E',
-                      }}
-                    >
-                      <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                        Full Service Bundle
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-                        $299 <Typography component="span" variant="caption" sx={{ color: '#999', textDecoration: 'line-through' }}>$423</Typography>
-                      </Typography>
-                    </Paper>
+                      Your 24/7 Wedding Concierge
+                    </Typography>
                   </Stack>
-                </Stack>
-              </Box>
-            </motion.div>
+                  <Typography variant="h6" sx={{ mb: 6, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.1rem', md: '1.4rem' }, lineHeight: 1.4 }}>
+                    Stop being your guests' personal assistant. Let our intelligent WhatsApp
+                    Concierge handle the repetitive questions so you can focus on your celebration.
+                  </Typography>
+                  
+                  <List sx={{ mb: 4 }}>
+                    {[
+                      { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
+                      { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
+                      { icon: <Campaign />, text: "Broadcasts urgent updates to your entire guest list" },
+                      { icon: <Check />, text: "All data comes directly from your wedding website" }
+                    ].map((item, idx) => (
+                      <ListItem key={idx} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ color: '#25D366', minWidth: 40 }}>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={item.text} 
+                          primaryTypographyProps={{ fontSize: '1.25rem' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  
+                  <Button
+                    component={Link}
+                    href="/admin"
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      bgcolor: '#25D366',
+                      color: 'white',
+                      px: 5,
+                      py: 2,
+                      borderRadius: '32px',
+                      fontSize: '1.25rem',
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      mt: 2,
+                      '&:hover': { bgcolor: '#128C7E' },
+                    }}
+                  >
+                    Get the WhatsApp Concierge
+                  </Button>
+                </motion.div>
+              </Grid>
+              
+              <Grid size={{ xs: 12, md: 6 }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={{
+                    hidden: { opacity: 0, x: 20 },
+                    visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
+                  }}
+                >
+                  <Paper
+                    elevation={20}
+                    sx={{
+                      p: 0, // Remove padding to let header flush
+                      borderRadius: '50px',
+                      bgcolor: '#EFE7DE', // WhatsApp chat bg (classic beige/pattern) or use image
+                      width: '440px', // Wider phone
+                      height: '900px', // Taller phone
+                      mx: 'auto',
+                      position: 'relative',
+                      border: '18px solid #1a1a1a',
+                      overflow: 'hidden',
+                      backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', // WhatsApp background subtlety
+                      backgroundSize: 'cover',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                     {/* Dynamic Island / Notch */}
+                     <Box sx={{ 
+                       position: 'absolute', 
+                       top: 0, 
+                       left: '50%', 
+                       transform: 'translateX(-50%)', 
+                       width: '120px', 
+                       height: '30px', 
+                       bgcolor: '#1a1a1a', 
+                       borderBottomLeftRadius: '16px',
+                       borderBottomRightRadius: '16px',
+                       zIndex: 20
+                     }} />
+
+                     {/* Custom WhatsApp Header */}
+                     <Box sx={{ 
+                       bgcolor: '#202C33', // Dark header
+                       color: 'primary.contrastText',
+                       pt: 6, // Space for notch/status bar
+                       pb: 1.5,
+                       px: 1,
+                       display: 'flex',
+                       alignItems: 'center',
+                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                       zIndex: 10
+                     }}>
+                        <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1, color: 'white' }}>
+                          <ArrowBack sx={{ fontSize: '1.75rem' }} />
+                        </Stack>
+
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1 }}>
+                          <Avatar 
+                            src="/Phera Logomark.jpg" 
+                            sx={{ width: 42, height: 42 }}
+                          />
+                          <Box>
+                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: '1.1rem' }}>
+                                Phera
+                              </Typography>
+                              <Verified sx={{ fontSize: '1.1rem', color: '#2979FF' }} />
+                            </Stack>
+                          </Box>
+                        </Stack>
+                     </Box>
+
+                     {/* Chat Area */}
+                     <Stack spacing={2} sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
+                       {/* Date Separator */}
+                       <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: 1.5, py: 0.5, borderRadius: '8px', mb: 2 }}>
+                         <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: 1, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)' }}>
+                           Today
+                         </Typography>
+                       </Box>
+
+                       {/* Chat Bubble Guest */}
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
+                         
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem', lineHeight: 1.3 }}>
+                           Hey! What time is the shuttle for the Sangeet leaving?
+                         </Typography>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                           10:42 AM
+                         </Typography>
+                       </Box>
+
+                       {/* Chat Bubble Bot */}
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem', lineHeight: 1.3 }}>
+                           Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>.
+                         </Typography>
+                         <Typography variant="body2" sx={{ mt: 1, color: '#111b21', fontSize: '0.95rem' }}>
+                           Would you like to reserve a seat? 🚐
+                         </Typography>
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
+                           10:42 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         </Typography>
+                       </Box>
+                       
+                       {/* Chat Bubble Guest */}
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
+
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                           Yes please, for 2 people.
+                         </Typography>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                           10:43 AM
+                         </Typography>
+                       </Box>
+
+                       {/* Chat Bubble Bot */}
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                           Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.
+                         </Typography>
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
+                           10:43 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         </Typography>
+                       </Box>
+
+                       {/* Chat Bubble Guest (Kill Time) */}
+                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: 1.5, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
+
+                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                           We have some free time before the reception. Any recommendations nearby?
+                         </Typography>
+                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: '0.7rem' }}>
+                           11:15 AM
+                         </Typography>
+                       </Box>
+
+                       {/* Chat Bubble Bot (Recommendation) */}
+                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: 1.5, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                          {/* Triangle */}
+                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: '0.95rem' }}>
+                           Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.
+                         </Typography>
+                         <Typography variant="body2" sx={{ mt: 1, color: '#111b21', fontSize: '0.95rem' }}>
+                           Check out the full guide here:
+                         </Typography>
+                         {/* Link Preview Mockup */}
+                         <Box sx={{ mt: 1, bgcolor: '#CFE9BA', p: 1, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
+                           <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600 }}>maps.google.com</Typography>
+                           <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
+                         </Box>
+                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: '0.7rem', gap: 0.5 }}>
+                           11:15 AM <Check sx={{ fontSize: '1rem', color: '#53bdeb' }} />
+                         </Typography>
+                       </Box>
+                     </Stack>
+                  </Paper>
+                </motion.div>
+              </Grid>
+            </Grid>
           </Container>
         </Box>
 
@@ -1143,7 +1011,7 @@ export default function LandingPage() {
             <Grid container spacing={4}>
               {[
                 'Create Your Wedding',
-                'Pick Your Modules',
+                'Enable Power Features',
                 'Invite Your Guests',
                 'Manage with Ease',
               ].map((step, idx) => (
@@ -1171,13 +1039,13 @@ export default function LandingPage() {
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
                       {idx === 0 &&
-                        'Customize your design and add details in 10 minutes.'}
+                        'Customize your design, add events, and setup details in 10 minutes.'}
                       {idx === 1 &&
-                        'Start free, add agents later. Pick only the helpers you need—travel, chef, DJ, and more.'}
+                        'Enable advanced features like WhatsApp Concierge and Travel Coordination.'}
                       {idx === 2 &&
-                        'Share your beautiful website. Guests RSVP and get details.'}
+                        'Share your beautiful website. Guests RSVP and get details instantly.'}
                       {idx === 3 &&
-                        'Track RSVPs, coordinate logistics, and handle vendors.'}
+                        'Track RSVPs, coordinate logistics, and broadcast updates to everyone.'}
                     </Typography>
                   </Stack>
                 </Grid>
@@ -1198,16 +1066,16 @@ export default function LandingPage() {
                   color: '#1a1a1a',
                 }}
               >
-                Choose Your Experience
+                Simple, Transparent Pricing
               </Typography>
               <Typography variant="h6" sx={{ color: '#4a4a4a' }}>
-                Start free, add what you need. No hidden fees.
+                Start free, upgrade for power features. No hidden fees.
               </Typography>
             </Stack>
 
-            <Grid container spacing={4} sx={{ alignItems: 'flex-start' }}>
+            <Grid container spacing={4} sx={{ alignItems: 'flex-start', justifyContent: 'center' }}>
               {pricingTiers.map((tier, idx) => (
-                <Grid size={{ xs: 12, md: 4 }} key={idx}>
+                <Grid size={{ xs: 12, md: 5 }} key={idx}>
                   <Paper
                     elevation={tier.highlight ? 8 : 0}
                     sx={{
@@ -1239,21 +1107,6 @@ export default function LandingPage() {
                         }}
                       />
                     )}
-                    {(tier as any).badge && (
-                      <Chip
-                        label={(tier as any).badge}
-                        size="small"
-                        sx={{
-                          position: 'absolute',
-                          top: 16,
-                          right: 16,
-                          bgcolor: '#FFF3E0',
-                          color: '#E65100',
-                          fontWeight: 700,
-                          fontSize: '0.7rem',
-                        }}
-                      />
-                    )}
                     <Typography
                       variant="overline"
                       sx={{ fontWeight: 'bold', opacity: 0.7, color: '#DE3F5E' }}
@@ -1264,19 +1117,6 @@ export default function LandingPage() {
                       <Typography variant="h3" sx={{ fontWeight: 'bold', display: 'inline' }}>
                         {tier.price}
                       </Typography>
-                      {(tier as any).originalPrice && (
-                        <Typography
-                          component="span"
-                          variant="h6"
-                          sx={{
-                            ml: 2,
-                            textDecoration: 'line-through',
-                            color: '#999',
-                          }}
-                        >
-                          {(tier as any).originalPrice}
-                        </Typography>
-                      )}
                     </Box>
                     <Typography variant="body2" sx={{ mb: 4, color: '#4a4a4a' }}>
                       {tier.description}
@@ -1305,6 +1145,8 @@ export default function LandingPage() {
 
                     <Button
                       fullWidth
+                      component={Link}
+                      href="/admin"
                       variant={tier.highlight ? 'contained' : 'outlined'}
                       sx={{
                         borderRadius: '32px',
@@ -1323,155 +1165,6 @@ export default function LandingPage() {
                       {tier.buttonText}
                     </Button>
                   </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </Box>
-
-        {/* --- COST SAVINGS & AUDIENCE --- */}
-        <Container maxWidth="lg" sx={{ py: 10 }}>
-          <Grid container spacing={8}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography
-                variant="h3"
-                sx={{ fontFamily: 'var(--font-instrument-serif)', mb: 4, color: '#1a1a1a' }}
-              >
-                What You're Replacing
-              </Typography>
-              <Stack spacing={2}>
-                {comparisonData.map((row, idx) => (
-                  <Stack
-                    key={idx}
-                    direction="row"
-                    sx={{ justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.1)', pb: 1 }}
-                  >
-                    <Typography variant="body1" sx={{ fontWeight: '500', color: '#1a1a1a' }}>
-                      {row.item}
-                    </Typography>
-                    <Typography variant="body1" color="error.main">
-                      {row.cost}
-                    </Typography>
-                  </Stack>
-                ))}
-                <Stack
-                  direction="row"
-                  sx={{ justifyContent: 'space-between', pt: 2 }}
-                >
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                    Total Potential Cost
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold' }} color="error.main">
-                    $5,000+
-                  </Typography>
-                </Stack>
-                <Box
-                  sx={{
-                    p: 3,
-                    bgcolor: '#E0F2F1',
-                    borderRadius: '16px',
-                    mt: 2,
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <Typography
-                      variant="h6"
-                      color="primary.dark"
-                      sx={{ fontWeight: 'bold' }}
-                    >
-                      Phera Full Package
-                    </Typography>
-                    <Typography
-                      variant="h4"
-                      color="primary.dark"
-                      sx={{ fontWeight: 'bold' }}
-                    >
-                      $599
-                    </Typography>
-                  </Stack>
-                </Box>
-              </Stack>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography
-                variant="h3"
-                sx={{ fontFamily: 'var(--font-instrument-serif)', mb: 4, color: '#1a1a1a' }}
-              >
-                Built For You
-              </Typography>
-              <Grid container spacing={2}>
-                {audienceTypes.map((type, idx) => (
-                  <Grid size={{ xs: 12, sm: 6 }} key={idx}>
-                    <Card
-                      sx={{
-                        p: 3,
-                        height: '100%',
-                        borderRadius: '20px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                        bgcolor: 'white',
-                        color: '#1a1a1a',
-                      }}
-                    >
-                      <Box sx={{ color: '#DE3F5E', mb: 2 }}>{type.icon}</Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                        {type.title}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                        {type.text}
-                      </Typography>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
-          </Grid>
-        </Container>
-
-        {/* --- TESTIMONIALS --- */}
-        <Box sx={{ bgcolor: '#FFF5F5', py: 10 }}>
-          <Container maxWidth="lg">
-            <Typography
-              variant="h2"
-              align="center"
-              sx={{ fontFamily: 'var(--font-instrument-serif)', mb: 8, color: '#1a1a1a' }}
-            >
-              Real Couples, Real Relief
-            </Typography>
-            <Grid container spacing={4}>
-              {testimonials.map((t, idx) => (
-                <Grid size={{ xs: 12, md: 4 }} key={idx}>
-                  <Card
-                    sx={{
-                      p: 4,
-                      height: '100%',
-                      borderRadius: '24px',
-                      border: 'none',
-                      boxShadow: '0 8px 30px rgba(222, 63, 94, 0.08)',
-                      bgcolor: 'white',
-                      color: '#1a1a1a',
-                      }}
-                    >
-                    <Stack spacing={2} sx={{ height: '100%', justifyContent: 'space-between' }}>
-                      <Typography
-                        variant="body1"
-                        sx={{ fontStyle: 'italic', fontSize: '1.1rem', color: '#4a4a4a' }}
-                      >
-                        "{t.quote}"
-                      </Typography>
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1a1a1a' }}>
-                          {t.author}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#5a5a5a' }}>
-                          {t.detail}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Card>
                 </Grid>
               ))}
             </Grid>
@@ -1545,7 +1238,7 @@ export default function LandingPage() {
                 }}
               >
                 Join the couples who are planning beautiful Indian weddings
-                without the burnout. Start free, add what you need.
+                without the burnout. Start free, upgrade when you need to.
               </Typography>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
@@ -1570,28 +1263,7 @@ export default function LandingPage() {
                 >
                   Create Your Wedding Free
                 </Button>
-                <Button
-                  component={Link}
-                  href="/demo"
-                  variant="outlined"
-                  size="large"
-                  sx={{
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
-                    px: 5,
-                    py: 1.5,
-                    borderRadius: '32px',
-                    fontSize: '1.1rem',
-                    border: '2px solid',
-                    '&:hover': {
-                      borderColor: '#C8365A',
-                      bgcolor: alpha('#DE3F5E', 0.05),
-                      border: '2px solid',
-                    },
-                  }}
-                >
-                  Schedule a Demo
-                </Button>
+                {/* Demo button can be linked to Calendly or kept as is for now with clear label */}
               </Stack>
               <Stack
                 direction="row"
@@ -1657,13 +1329,13 @@ export default function LandingPage() {
                   Platform
                 </Typography>
                 <Stack spacing={1}>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Features
                   </Link>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Pricing
                   </Link>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/sim-kv" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Demo
                   </Link>
                 </Stack>
@@ -1677,10 +1349,10 @@ export default function LandingPage() {
                   Company
                 </Typography>
                 <Stack spacing={1}>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/about" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     About Us
                   </Link>
-                  <Link href="#" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="/contact" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Contact
                   </Link>
                   <Link href="/privacy" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
@@ -1734,16 +1406,6 @@ export default function LandingPage() {
         onSuccess={() => {
           console.log('Login successful');
         }}
-      />
-
-      <AgentModal
-        open={agentModalOpen}
-        onClose={() => {
-          setAgentModalOpen(false);
-          setSelectedAgent(null);
-        }}
-        agent={selectedAgent}
-        modalType={agentModalType}
       />
     </OptimizedBackground>
   );

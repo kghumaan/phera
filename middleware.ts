@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
           })
@@ -92,11 +92,13 @@ export async function middleware(request: NextRequest) {
         const weddingSlug = weddingSlugMatch[1];
         
         // Fetch wedding to check ownership
-        const { data: wedding } = await supabase
+        const { data: weddingData } = await supabase
           .from('weddings')
           .select('id, created_by')
           .eq('slug', weddingSlug)
           .single();
+
+        const wedding = weddingData as any;
 
         if (wedding && wedding.created_by !== user.id) {
           // Check if user is an admin

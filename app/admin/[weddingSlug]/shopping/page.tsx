@@ -23,7 +23,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { SHOP_TEMPLATES, ShopTemplate } from '@/components/admin/ShopTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -261,9 +261,19 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
             variant="outlined"
             startIcon={<Add />}
             onClick={handleAddCustom}
-            sx={SECONDARY_BUTTON_SX}
+            sx={{
+              borderColor: '#DE3F5E',
+              color: '#DE3F5E',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: '#C8365A',
+                bgcolor: 'rgba(222, 63, 94, 0.05)',
+              },
+            }}
           >
-            Add Custom Shop
+            Create Custom Shop
           </Button>
         </Stack>
 
