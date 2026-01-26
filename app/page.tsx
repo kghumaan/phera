@@ -1154,7 +1154,7 @@ export default function LandingPage() {
         </Container>
 
         {/* --- PRICING --- */}
-        <Box sx={{ bgcolor: '#FAFAFA', py: 12 }}>
+        <Box sx={{ bgcolor: '#F0F2F5', py: 14 }}>
           <Container maxWidth="lg">
             <Stack spacing={2} sx={{ textAlign: 'center', mb: 8 }}>
               <Typography
@@ -1233,9 +1233,18 @@ export default function LandingPage() {
                             />
                           </ListItemIcon>
                           <ListItemText 
-                            primary={feature}
+                            primary={
+                              feature.includes('WhatsApp') ? (
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                  <Box component="span">{feature}</Box>
+                                  <WhatsApp sx={{ color: '#25D366', fontSize: '1.2rem' }} />
+                                </Stack>
+                              ) : (
+                                feature
+                              )
+                            }
                             primaryTypographyProps={{
-                              sx: { color: '#1a1a1a' }
+                              sx: { color: '#1a1a1a', fontWeight: feature.includes('WhatsApp') ? 600 : 400 }
                             }}
                           />
                         </ListItem>
@@ -1271,39 +1280,73 @@ export default function LandingPage() {
         </Box>
 
         {/* --- FAQ --- */}
-        <Container maxWidth="md" sx={{ py: 10 }}>
-          <Typography
-            variant="h2"
-            align="center"
-            sx={{ fontFamily: 'var(--font-instrument-serif)', mb: 6, color: '#1a1a1a' }}
-          >
-            Questions? We've Got Answers.
-          </Typography>
-          <Stack spacing={2}>
-            {faqs.map((faq, idx) => (
-              <Accordion
-                key={idx}
-                elevation={0}
-                sx={{
-                  bgcolor: 'white',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  borderRadius: '16px !important',
-                  '&:before': { display: 'none' },
-                }}
-              >
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: '500', color: '#1a1a1a' }}>
-                    {faq.q}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-                    {faq.a}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
+        <Container maxWidth="lg" sx={{ py: 14 }}>
+          <Stack spacing={2} sx={{ textAlign: 'center', mb: 8, alignItems: 'center' }}>
+            <Typography
+              variant="overline"
+              sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px' }}
+            >
+              FAQ
+            </Typography>
+            <Typography
+              variant="h2"
+              align="center"
+              sx={{ fontFamily: 'var(--font-instrument-serif)', fontSize: { xs: '2.5rem', md: '3.5rem' }, color: '#1a1a1a' }}
+            >
+              Common Questions
+            </Typography>
           </Stack>
+          
+          <Container maxWidth="md">
+            <Stack spacing={3}>
+              {faqs.map((faq, idx) => (
+                <Accordion
+                  key={idx}
+                  elevation={0}
+                  sx={{
+                    bgcolor: 'white',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.06)',
+                    borderRadius: '24px !important',
+                    overflow: 'hidden',
+                    transition: 'all 0.2s ease',
+                    '&:before': { display: 'none' },
+                    '&:hover': {
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      transform: 'translateY(-2px)',
+                    },
+                    '&.Mui-expanded': {
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.06)',
+                      borderColor: 'transparent',
+                      m: 0, // Reset default margin expansion
+                    }
+                  }}
+                >
+                  <AccordionSummary 
+                    expandIcon={<Box sx={{ 
+                      bgcolor: alpha('#DE3F5E', 0.05), 
+                      color: '#DE3F5E', 
+                      borderRadius: '50%', 
+                      p: 0.5,
+                      display: 'flex'
+                    }}>
+                      <ExpandMore />
+                    </Box>}
+                    sx={{ px: 4, py: 2 }}
+                  >
+                    <Typography variant="h6" sx={{ fontSize: '1.25rem', fontWeight: 500, color: '#1a1a1a', fontFamily: 'var(--font-instrument-serif)' }}>
+                      {faq.q}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ px: 4, pb: 4, pt: 0 }}>
+                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.7, fontSize: '1.05rem' }}>
+                      {faq.a}
+                    </Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Stack>
+          </Container>
         </Container>
 
         {/* --- FINAL CTA --- */}
