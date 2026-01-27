@@ -398,7 +398,15 @@ export default function OnboardingPage() {
                       </Stack>
                     </Box>
 
-                    <Box id="checkout" sx={{ minHeight: '400px', borderRadius: '16px', overflow: 'hidden' }}>
+                    <Box id="checkout" sx={{ 
+                      width: '100%',
+                      minHeight: { xs: '400px', md: '500px' }, 
+                      borderRadius: '16px', 
+                      overflow: 'hidden',
+                      '& iframe': {
+                        width: '100% !important',
+                      }
+                    }}>
                       <EmbeddedCheckoutProvider
                         stripe={stripePromise}
                         options={{ clientSecret: checkoutClientSecret }}
