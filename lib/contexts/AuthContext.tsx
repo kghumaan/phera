@@ -723,12 +723,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user && !isLoading) {
-      // Skip RSVP checks on landing page
-      if (typeof window !== 'undefined' && isOnLandingPage()) {
-        setHasRSVPed(false);
-        setRsvpResponse(null);
-        setIsCheckingRSVP(false);
-        return;
+      // Skip RSVP checks on public/non-wedding routes
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (isOnLandingPage() || path.startsWith('/admin') || path.startsWith('/onboarding') || path.startsWith('/auth')) {
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+          setIsCheckingRSVP(false);
+          return;
+        }
       }
       
       // Add a small delay to ensure database is consistent
@@ -742,7 +745,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRsvpResponse(null);
       setIsCheckingRSVP(false);
     }
-  }, [user?.id, isLoading]); // Use user.id instead of user object to prevent unnecessary re-renders
+  }, [user?.id, isLoading]);
+
 
   return (
     <AuthContext.Provider 
