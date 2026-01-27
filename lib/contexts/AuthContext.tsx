@@ -5,6 +5,15 @@ import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
 import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 
+// Helper to detect public routes where auth check should be skipped
+// This prevents AbortError from Supabase's lock mechanism on pages without sessions
+function isPublicRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  const path = window.location.pathname;
+  const publicPaths = ['/', '/auth/signup', '/auth/login', '/auth/callback'];
+  return publicPaths.some(p => path === p) || path.startsWith('/auth/');
+}
+
 interface User {
   id: string; // auth.users.id - used for admin checks
   guestId?: string | null; // guests.id - used for guest-specific operations
@@ -90,22 +99,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .limit(1);
 
       if (createdWeddings && createdWeddings.length > 0) {
-        console.log('✅ [AuthContext] User created wedding:', createdWeddings[0].slug);
+        console.log('✅ [AuthContext] User created wedding:', (createdWeddings[0] as any).slug);
         setIsAdmin(true);
-        setAdminWeddingSlug(createdWeddings[0].slug);
+        setAdminWeddingSlug((createdWeddings[0] as any).slug);
         return;
       }
 
       // Then check if user is an admin of any wedding
       const { data: adminWeddings, error: adminError } = await supabase
-        .from('wedding_admins')
+        .from('wedding_admins' as any)
         .select('wedding_id, weddings(slug)')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
-        const weddingSlug = (adminWeddings[0].weddings as any).slug;
+      if (adminWeddings && adminWeddings.length > 0 && (adminWeddings[0] as any).weddings) {
+        const weddingSlug = (adminWeddings[0] as any).weddings.slug;
         console.log('✅ [AuthContext] User is admin of wedding:', weddingSlug);
         setIsAdmin(true);
         setAdminWeddingSlug(weddingSlug);
@@ -136,6 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Skip RSVP checks for admin routes
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
       console.log('Skipping RSVP check for admin route');
+      setIsCheckingRSVP(false);
+      return;
+    }
+
+    // Skip RSVP checks for onboarding route
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/onboarding')) {
+      console.log('Skipping RSVP check for onboarding route');
       setIsCheckingRSVP(false);
       return;
     }
@@ -190,19 +206,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (rsvpData) {
           setHasRSVPed(true);
-          setRsvpResponse(rsvpData.attending);
+          setRsvpResponse((rsvpData as any).attending);
           console.log('Plus one RSVP Status:', {
             user: user.email,
             hasRSVP: true,
-            rsvpResponse: rsvpData.attending,
+            rsvpResponse: (rsvpData as any).attending,
             rsvpData: rsvpData
           });
           return;
         }
       } else {
         // For main guests, use the existing logic
-        // First, let's try a direct RSVP query to see if the user has any RSVPs
-        const { data: rsvpData, error: rsvpError } = await supabase
+        const { data: rsvpData, error: rsvpError } = await (supabase as any)
           .from('rsvps')
           .select(`
             id,
@@ -219,8 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         console.log('All RSVPs in database:', rsvpData);
 
-        // Now check specifically for this user's RSVPs using the guest relationship
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('guests')
           .select(`
             id,
@@ -361,7 +375,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuthStatus = async () => {
-    // Prevent multiple simultaneous auth checks using ref to avoid Strict Mode issues
+    // Prevent multiple simultaneous auth checks using ref
     if (isCheckingAuthRef.current) {
       console.log('checkAuthStatus: Skipping - already checking');
       return;
@@ -370,59 +384,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('checkAuthStatus: Starting auth check');
     isCheckingAuthRef.current = true;
     try {
-      // FIRST: Check if we even have a session
-      // FIRST: Check if we even have a valid user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('checkAuthStatus: User check:', {
-        hasUser: !!user,
-        user: user?.email,
-        error: userError
-      });
-
-      if (!user) {
-        console.log('checkAuthStatus: No session found, stopping');
-        setUser(null);
-        setIsLoading(false);
-        isCheckingAuthRef.current = false;
-        return;
+      // Get the Supabase user once
+      const { data: { user: sbUser }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        if (userError.name === 'AbortError') {
+          console.log('checkAuthStatus: Auth check aborted');
+          // Don't clear loading yet if it was just an abort, let another check handle it
+          return;
+        }
+        console.error('checkAuthStatus: User check error:', userError);
       }
 
-      // First check for Supabase auth
-      console.log('checkAuthStatus: Calling getCurrentUser...');
-      const result = await getCurrentUser();
-      if (result.success && result.user) {
+      if (sbUser) {
+        console.log('checkAuthStatus: Found session for:', sbUser.email);
+
+        let guestData = null;
+        if (sbUser.email) {
+          try {
+            const { data: guest } = await (supabase as any)
+              .from('guests')
+              .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
+              .eq('email', sbUser.email.toLowerCase())
+              .eq('wedding_id', 'sim-kv')
+              .single();
+            guestData = guest;
+          } catch (err) {
+            console.error('checkAuthStatus: Error fetching guest data:', err);
+          }
+        }
+
         const userData: User = {
-          id: result.user.id,
-          guestId: result.user.guestId,
-          email: result.user.email,
-          name: result.user.name,
-          phone: result.user.phone,
-          initials: generateInitials(result.user.name),
-          avatar_color: generateAvatarColor(result.user.name),
-          avatar_style: result.user.avatar_style,
-          avatar_seed: result.user.avatar_seed,
-          avatar_svg: result.user.avatar_svg,
+          id: sbUser.id,
+          guestId: guestData?.id || null,
+          email: sbUser.email || '',
+          name: guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || '',
+          phone: guestData?.phone || sbUser.phone,
+          initials: generateInitials(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
+          avatar_color: generateAvatarColor(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
+          avatar_style: guestData?.avatar_style,
+          avatar_seed: guestData?.avatar_seed,
+          avatar_svg: guestData?.avatar_svg,
         };
+        
         setUser(userData);
-        // Check admin status for authenticated user
-        checkAdminStatus(result.user.id);
+        checkAdminStatus(sbUser.id);
       } else {
-        // Check for guest authentication (after RSVP)
+        // Fallback to guest authentication if no Supabase session
         if (typeof window !== 'undefined') {
           const guestAuthData = localStorage.getItem('phera_guest_auth');
           if (guestAuthData) {
             try {
               const guestInfo = JSON.parse(guestAuthData);
-              // Check if the authentication is recent (within 24 hours)
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
+              
               if (isRecent && guestInfo.email && (guestInfo.id !== 'temp-guest' || guestInfo.id === 'temp-bypass-guest')) {
-                // Check if this is a plus one authentication or bypass guest
                 const isPlusOne = guestInfo.id?.startsWith('plus-one-');
                 const isBypassGuest = guestInfo.id === 'temp-bypass-guest';
                 
                 if (isPlusOne || isBypassGuest) {
-                  // For plus ones, we don't need to fetch avatar data from guests table
-                  // since they don't have entries there
                   const userData: User = {
                     id: guestInfo.id,
                     email: guestInfo.email,
@@ -436,9 +456,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   };
                   setUser(userData);
                 } else {
-                  // For main guests, handle avatar data fetching as before
+                  // Fetch updated guest data if missing
                   if (!guestInfo.avatar_svg && guestInfo.email) {
-                    console.log('Avatar data missing in localStorage, fetching from database...');
                     try {
                       const { data: guestData } = await supabase
                         .from('guests')
@@ -448,24 +467,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         .single();
                       
                       if (guestData) {
-                        // Update localStorage with complete data
-                        const updatedGuestInfo = {
+                        guestInfo.avatar_style = (guestData as any).avatar_style;
+                        guestInfo.avatar_seed = (guestData as any).avatar_seed;
+                        guestInfo.avatar_svg = (guestData as any).avatar_svg;
+                        localStorage.setItem('phera_guest_auth', JSON.stringify({
                           ...guestInfo,
-                          avatar_style: guestData.avatar_style,
-                          avatar_seed: guestData.avatar_seed,
-                          avatar_svg: guestData.avatar_svg,
-                        };
-                        localStorage.setItem('phera_guest_auth', JSON.stringify(updatedGuestInfo));
-                        guestInfo.avatar_style = guestData.avatar_style;
-                        guestInfo.avatar_seed = guestData.avatar_seed;
-                        guestInfo.avatar_svg = guestData.avatar_svg;
+                          timestamp: Date.now() // Keep it fresh
+                        }));
                       }
-                    } catch (error) {
-                      console.error('Error fetching avatar data:', error);
+                    } catch (err) {
+                      console.error('checkAuthStatus: Guest data fetch failed:', err);
                     }
                   }
                   
-                  const userData: User = {
+                  setUser({
                     id: guestInfo.id,
                     email: guestInfo.email,
                     name: guestInfo.name,
@@ -475,17 +490,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     avatar_style: guestInfo.avatar_style,
                     avatar_seed: guestInfo.avatar_seed,
                     avatar_svg: guestInfo.avatar_svg,
-                  };
-                  setUser(userData);
+                  });
                 }
               } else {
-                // Remove expired or temp guest auth
                 localStorage.removeItem('phera_guest_auth');
                 setUser(null);
               }
-            } catch (error) {
-              console.error('Error parsing guest auth data:', error);
-              localStorage.removeItem('phera_guest_auth');
+            } catch (err) {
+              console.error('checkAuthStatus: Guest parse error:', err);
               setUser(null);
             }
           } else {
@@ -496,7 +508,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.error('checkAuthStatus: Critical error:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -636,6 +648,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     
     const initAuth = async () => {
+      // Skip auth check on public routes to prevent AbortError
+      if (isPublicRoute()) {
+        console.log('Skipping auth check on public route:', window.location.pathname);
+        setIsLoading(false);
+        return;
+      }
+      
       if (mounted) {
         await checkAuthStatus();
       }
@@ -643,25 +662,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     initAuth().catch(console.error);
 
-    // Listen for auth changes
+    // Listen for auth changes - SIMPLIFIED to avoid lock conflicts
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
-        try {
-          if (event === 'SIGNED_IN' && session) {
-            console.log('Auth state changed to SIGNED_IN, refreshing auth status');
-            await checkAuthStatus();
-          } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-            setHasRSVPed(false);
-            setRsvpResponse(null);
-            setIsAdmin(false);
-            setAdminWeddingSlug(null);
-            hasCheckedAdminRef.current = false;
-          }
-        } catch (error) {
-          console.error('Auth state change error:', error);
+        console.log('Auth state changed:', event);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Set user directly from session to avoid calling getUser() again
+          // This prevents the AbortError lock conflict
+          const sbUser = session.user;
+          const userData: User = {
+            id: sbUser.id,
+            email: sbUser.email || '',
+            name: sbUser.user_metadata?.full_name || sbUser.email || '',
+            phone: sbUser.phone,
+            initials: generateInitials(sbUser.user_metadata?.full_name || sbUser.email || ''),
+            avatar_color: generateAvatarColor(sbUser.user_metadata?.full_name || sbUser.email || ''),
+          };
+          setUser(userData);
+          setIsLoading(false);
+          console.log('User set from SIGNED_IN event:', userData.email);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setHasRSVPed(false);
+          setRsvpResponse(null);
+          setIsAdmin(false);
+          setAdminWeddingSlug(null);
+          hasCheckedAdminRef.current = false;
+          setIsLoading(false);
         }
       }
     );
@@ -676,13 +706,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Add a safety timeout to prevent infinite loading
+    // Safety timeout to prevent infinite loading (silent)
     const safetyTimeout = setTimeout(() => {
       if (mounted && isLoading) {
-        console.warn('Auth initialization timed out after 5s, forcing completion');
         setIsLoading(false);
       }
-    }, 5000); // 5 second timeout (reduced from 10s)
+    }, 10000);
 
     return () => {
       mounted = false;

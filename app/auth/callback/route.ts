@@ -135,13 +135,24 @@ export async function GET(request: NextRequest) {
       // Determine redirect destination
       let redirectUrl: URL;
 
+      // Check onboarding status
+      const { data: settings } = await supabase
+        .from('user_settings')
+        .select('onboarding_completed')
+        .eq('user_id', data.session.user.id)
+        .single();
+
+      const onboardingCompleted = settings?.onboarding_completed || false;
+
       // Priority 1: Use explicit redirect parameter
       if (redirectParam) {
         redirectUrl = new URL(redirectParam, origin);
 
-        // Special handling: If redirecting to /admin/new/overview,
-        // check if user already has weddings and redirect to existing wedding instead
-        if (redirectParam === '/admin/new/overview' && data.session?.user?.id) {
+        // Special handling: If redirecting to /admin, check onboarding first
+        if (redirectParam.startsWith('/admin') && !onboardingCompleted) {
+          redirectUrl = new URL('/onboarding', origin);
+          console.log('[Callback] Onboarding not completed, redirecting to /onboarding instead of admin');
+        } else if (redirectParam === '/admin/new/overview' && data.session?.user?.id) {
           // Check if user has any existing weddings
           const { data: weddings } = await supabase
             .from('weddings')
@@ -155,30 +166,20 @@ export async function GET(request: NextRequest) {
             const weddingSlug = weddings[0].slug;
             redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
             console.log(`[Callback] User has existing wedding, redirecting to: ${weddingSlug}`);
-          } else {
-            // Also check if they're an admin of any weddings
-            const { data: adminWeddings } = await supabase
-              .from('wedding_admins')
-              .select('wedding_id, weddings(slug)')
-              .eq('user_id', data.session.user.id)
-              .order('created_at', { ascending: false })
-              .limit(1);
-
-            if (adminWeddings && adminWeddings.length > 0 && adminWeddings[0].weddings) {
-              const weddingSlug = (adminWeddings[0].weddings as any).slug;
-              redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
-              console.log(`[Callback] User is admin of wedding, redirecting to: ${weddingSlug}`);
-            }
           }
         }
       }
-      // Priority 2: Use next parameter (alternative name)
+      // Priority 2: Use next parameter
       else if (nextParam) {
         redirectUrl = new URL(nextParam, origin);
       }
-      // Priority 3: Default to /rsvp for guest flows
+      // Priority 3: Default behavior based on onboarding status
       else {
-        redirectUrl = new URL('/rsvp', origin);
+        if (!onboardingCompleted) {
+          redirectUrl = new URL('/onboarding', origin);
+        } else {
+          redirectUrl = new URL('/admin', origin);
+        }
       }
 
       // Preserve PIN verification state (for guest flows only)

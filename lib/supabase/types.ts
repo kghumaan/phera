@@ -159,6 +159,152 @@ export interface FlightFormData {
 export interface Database {
   public: {
     Tables: {
+      user_settings: {
+        Row: {
+          id: string
+          user_id: string
+          account_type: 'couple' | 'planner' | null
+          onboarding_completed: boolean
+          enabled_features: string[]
+          subscription_tier: 'free' | 'pro'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          account_type?: 'couple' | 'planner' | null
+          onboarding_completed?: boolean
+          enabled_features?: string[]
+          subscription_tier?: 'free' | 'pro'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          account_type?: 'couple' | 'planner' | null
+          onboarding_completed?: boolean
+          enabled_features?: string[]
+          subscription_tier?: 'free' | 'pro'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      weddings: {
+        Row: {
+          id: string
+          slug: string
+          couple_name: string
+          bride_name: string | null
+          groom_name: string | null
+          wedding_date: string
+          wedding_date_display: string
+          venue_name: string
+          venue_location: string
+          venue_flag: string | null
+          rsvp_deadline: string
+          status: 'draft' | 'preview' | 'live'
+          couple_image_url: string | null
+          frame_image_url: string | null
+          background_image: string
+          primary_color: string
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          couple_name: string
+          bride_name?: string | null
+          groom_name?: string | null
+          wedding_date: string
+          wedding_date_display: string
+          venue_name: string
+          venue_location: string
+          venue_flag?: string | null
+          rsvp_deadline: string
+          status?: 'draft' | 'preview' | 'live'
+          couple_image_url?: string | null
+          frame_image_url?: string | null
+          background_image?: string
+          primary_color?: string
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          couple_name?: string
+          bride_name?: string | null
+          groom_name?: string | null
+          wedding_date?: string
+          wedding_date_display?: string
+          venue_name?: string
+          venue_location?: string
+          venue_flag?: string | null
+          rsvp_deadline?: string
+          status?: 'draft' | 'preview' | 'live'
+          couple_image_url?: string | null
+          frame_image_url?: string | null
+          background_image?: string
+          primary_color?: string
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_admins: {
+        Row: {
+          id: string
+          wedding_id: string
+          user_id: string
+          role: 'owner' | 'admin' | 'viewer'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          user_id: string
+          role?: 'owner' | 'admin' | 'viewer'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          user_id?: string
+          role?: 'owner' | 'admin' | 'viewer'
+          created_at?: string
+        }
+      }
+      wedding_invites: {
+        Row: {
+          id: string
+          wedding_id: string
+          email: string
+          role: 'admin' | 'viewer'
+          invited_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          email: string
+          role: 'admin' | 'viewer'
+          invited_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          email?: string
+          role?: 'admin' | 'viewer'
+          invited_by?: string
+          created_at?: string
+        }
+      }
       guests: {
         Row: Guest
         Insert: Omit<Guest, 'id' | 'created_at' | 'initials' | 'avatar_color'>

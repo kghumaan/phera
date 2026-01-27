@@ -95,7 +95,20 @@ export default function AdminPage() {
       try {
         console.log('[Admin] User found:', currentUser.email);
 
-        // Fetch user's wedding
+        // 1. Check Onboarding Status
+        const { data: settings, error: settingsError } = await supabase
+          .from('user_settings')
+          .select('onboarding_completed')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        if (!settings?.onboarding_completed) {
+          console.log('[Admin] Onboarding not completed, redirecting...');
+          router.replace('/onboarding');
+          return;
+        }
+
+        // 2. Fetch user's wedding
         console.log('[Admin] Fetching wedding for user:', currentUser.id);
         
         const { data: weddingData, error } = await supabase

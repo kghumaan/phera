@@ -34,16 +34,8 @@ export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [weddingName, setWeddingName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const generateSlug = (name: string): string => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,41 +64,8 @@ export default function SignupPage() {
         return;
       }
 
-      // Generate a unique wedding slug
-      let baseSlug = generateSlug(weddingName);
-      let slug = baseSlug;
-      let counter = 1;
-
-      // Check slug availability
-      let isAvailable = await weddingService.checkSlugAvailability(slug);
-      while (!isAvailable) {
-        slug = `${baseSlug}-${counter}`;
-        counter++;
-        isAvailable = await weddingService.checkSlugAvailability(slug);
-      }
-
-      // Create wedding
-      const wedding = await weddingService.createWedding({
-        slug,
-        couple_name: weddingName,
-        wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-        wedding_date_display: 'To be determined',
-        venue_name: 'To be determined',
-        venue_location: 'To be determined',
-        rsvp_deadline: 'To be determined',
-        status: 'draft',
-        created_by: authData.user.id,
-        background_image: '/images/backgrounds/pearl.png',
-        primary_color: '#DE3F5E',
-      });
-
-      if (wedding) {
-        // Redirect to admin overview
-        router.push(`/admin/${slug}/overview`);
-      } else {
-        setError('Failed to create wedding. Please try again.');
-        setLoading(false);
-      }
+      // Redirect to onboarding
+      router.push('/onboarding');
     } catch (err) {
       console.error('Signup error:', err);
       setError('An unexpected error occurred');
@@ -119,9 +78,9 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Build the callback URL with redirect to admin
+      // Build the callback URL with redirect to onboarding
       const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', '/admin/new/overview');
+      callbackUrl.searchParams.set('redirect', '/onboarding');
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -172,10 +131,7 @@ export default function SignupPage() {
                     color: '#1a1a1a',
                   }}
                 >
-                  Start Planning Free
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-                  Create your beautiful wedding website
+                  Start Planning
                 </Typography>
               </Box>
 
@@ -191,63 +147,7 @@ export default function SignupPage() {
 
               <form onSubmit={handleSignup}>
                 <Stack spacing={2.5}>
-                  <TextField
-                    label="Couple Names"
-                    fullWidth
-                    value={weddingName}
-                    onChange={(e) => setWeddingName(e.target.value)}
-                    placeholder="e.g., Sarah & John"
-                    required
-                    disabled={loading}
-                    helperText="This will be your wedding's unique identifier"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        bgcolor: 'white',
-                        '& fieldset': {
-                          borderColor: 'rgba(0, 0, 0, 0.23)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#DE3F5E',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
-                          borderWidth: '2px',
-                        },
-                        '&.Mui-disabled': {
-                          bgcolor: 'rgba(255, 255, 255, 0.8)',
-                          '& fieldset': {
-                            borderColor: 'rgba(0, 0, 0, 0.15)',
-                          },
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: '#4a4a4a',
-                        '&.Mui-disabled': {
-                          color: '#6a6a6a',
-                        },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#DE3F5E',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#1a1a1a',
-                        '&.Mui-disabled': {
-                          WebkitTextFillColor: '#4a4a4a',
-                          color: '#4a4a4a',
-                        },
-                        '&:-webkit-autofill': {
-                          WebkitBoxShadow: '0 0 0 100px white inset',
-                          WebkitTextFillColor: '#1a1a1a',
-                          caretColor: '#1a1a1a',
-                          borderRadius: 'inherit',
-                        },
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: '#6a6a6a',
-                      },
-                    }}
-                  />
+                  {/* Wedding Name removed for modular onboarding */}
                   <TextField
                     label="Email"
                     type="email"
