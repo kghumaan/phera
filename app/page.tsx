@@ -412,7 +412,7 @@ export default function LandingPage() {
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
-                  fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
+                  fontSize: { xs: '3.2rem', md: '4.5rem', lg: '6rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
                   maxWidth: '1000px',
@@ -452,7 +452,8 @@ export default function LandingPage() {
               <Typography
                 variant="h5"
                 sx={{
-                  fontSize: { xs: '0.95rem', md: '1.75rem' },
+                  fontSize: { xs: '1.35rem', md: '1.75rem' },
+                  fontWeight: 600,
                   color: '#1a1a1a',
                   maxWidth: '800px',
                   lineHeight: 1.4,
@@ -464,7 +465,7 @@ export default function LandingPage() {
               <Typography
                 variant="body1"
                 sx={{
-                  fontSize: { xs: '0.75rem', md: '1.25rem' },
+                  fontSize: { xs: '1rem', md: '1.25rem' },
                   color: '#4a4a4a',
                   maxWidth: '800px',
                   lineHeight: 1.5,
@@ -541,7 +542,7 @@ export default function LandingPage() {
                 fontFamily: 'var(--font-instrument-serif)',
                 fontStyle: 'italic',
                 mb: { xs: 4, md: 10 },
-                fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
+                fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
                 color: '#1a1a1a',
                 maxWidth: '1000px',
                 mx: 'auto',
@@ -733,7 +734,7 @@ export default function LandingPage() {
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
                     fontStyle: 'italic',
-                    fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
+                    fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
                     color: '#1a1a1a',
                     lineHeight: 1.1,
                   }}
@@ -746,7 +747,7 @@ export default function LandingPage() {
                   sx={{
                     maxWidth: '900px',
                     color: '#4a4a4a',
-                    fontSize: { xs: '0.8rem', md: '1.35rem' },
+                    fontSize: { xs: '1rem', md: '1.35rem' },
                     lineHeight: 1.6,
                     mt: 3,
                     opacity: 0.9,
@@ -899,14 +900,14 @@ export default function LandingPage() {
                       sx={{
                         fontFamily: 'var(--font-instrument-serif)',
                         fontStyle: 'italic',
-                        fontSize: { xs: '1.5rem', md: '4rem', lg: '5rem' },
+                        fontSize: { xs: '2rem', md: '4rem', lg: '5rem' },
                         lineHeight: 1.1,
                       }}
                     >
                       Your 24/7 Wedding Concierge
                     </Typography>
                   </Stack>
-                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '0.85rem', md: '1.4rem' }, lineHeight: 1.4 }}>
+                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4 }}>
                     Stop being your guests' personal assistant. Let our intelligent WhatsApp
                     Concierge handle the repetitive questions so you can focus on your celebration.
                   </Typography>
@@ -926,7 +927,7 @@ export default function LandingPage() {
                         </ListItemIcon>
                         <ListItemText
                           primary={item.text}
-                          primaryTypographyProps={{ fontSize: { xs: '0.75rem', md: '1.25rem' } }}
+                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' } }}
                         />
                       </ListItem>
                     ))}
@@ -969,16 +970,16 @@ export default function LandingPage() {
                     elevation={20}
                     sx={{
                       p: 0, // Remove padding to let header flush
-                      borderRadius: { xs: '24px', md: '50px' },
-                      bgcolor: '#EFE7DE', // WhatsApp chat bg (classic beige/pattern) or use image
-                      width: { xs: '100%', sm: '320px' }, // Narrower phone for mobile
-                      height: { xs: '450px', md: '900px' }, // Shorter phone for mobile
-                      maxWidth: { xs: '320px', md: '440px' },
+                      borderRadius: { xs: '24px', md: '48px' },
+                      bgcolor: '#EFE7DE', // WhatsApp chat bg
+                      width: { xs: '100%', sm: '340px', md: '380px' }, // Wider on desktop
+                      height: { xs: '500px', md: '780px' }, // Shorter to fix aspect ratio
+                      maxWidth: { xs: '320px', md: '420px' },
                       mx: 'auto',
                       position: 'relative',
-                      border: { xs: '8px solid #1a1a1a', md: '18px solid #1a1a1a' },
+                      border: { xs: '8px solid #1a1a1a', md: '14px solid #1a1a1a' },
                       overflow: 'hidden',
-                      backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', // WhatsApp background subtlety
+                      backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
                       backgroundSize: 'cover',
                       display: 'flex',
                       flexDirection: 'column'
@@ -991,10 +992,10 @@ export default function LandingPage() {
                        left: '50%',
                        transform: 'translateX(-50%)',
                        width: { xs: '80px', md: '120px' },
-                       height: { xs: '20px', md: '30px' },
+                       height: { xs: '20px', md: '28px' },
                        bgcolor: '#1a1a1a',
-                       borderBottomLeftRadius: { xs: '12px', md: '16px' },
-                       borderBottomRightRadius: { xs: '12px', md: '16px' },
+                       borderBottomLeftRadius: { xs: '12px', md: '14px' },
+                       borderBottomRightRadius: { xs: '12px', md: '14px' },
                        zIndex: 20
                      }} />
 
@@ -1236,6 +1237,7 @@ export default function LandingPage() {
                 >
                   <motion.div
                     whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                    style={{ height: '100%' }}
                   >
                     <Paper
                       elevation={0}
