@@ -99,6 +99,11 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
       <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: 1, borderColor: alpha('#000', 0.05), position: 'relative' }}>
         {/* Phera Logo */}
         <Box
+          onClick={() => {
+            if (window.confirm('Any unsaved changes may be lost. Are you sure you want to return to the home page?')) {
+              router.push('/');
+            }
+          }}
           sx={{
             position: 'relative',
             width: '100%',
@@ -107,6 +112,11 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             alignItems: 'center',
             justifyContent: 'center',
             filter: 'brightness(0)', // Converts to black
+            cursor: 'pointer',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'scale(1.02)',
+            },
           }}
         >
           <Image

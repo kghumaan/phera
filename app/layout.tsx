@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const outfit = Outfit({
@@ -24,7 +25,7 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Phera",
   description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
-  
+
   // Open Graph tags for rich link previews - Optimized for large rectangular format
   openGraph: {
     title: "Phera",
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     ],
     locale: "en_US",
   },
-  
+
   // Twitter Card tags - Using large image format for maximum impact
   twitter: {
     card: "summary_large_image",
@@ -52,13 +53,13 @@ export const metadata: Metadata = {
     images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`],
     creator: "@phera",
   },
-  
+
   // Additional metadata
   keywords: ["indian wedding", "wedding platform", "wedding website", "RSVP", "wedding planning", "destination wedding", "wedding management"],
   authors: [{ name: "Phera" }],
   creator: "Phera",
   publisher: "Phera",
-  
+
   // Icons - using lotus-flame logo
   icons: {
     icon: [
@@ -68,10 +69,10 @@ export const metadata: Metadata = {
     shortcut: '/logo-lotus-flame.svg',
     apple: '/logo-lotus-flame.svg',
   },
-  
+
   // Manifest
   manifest: '/manifest.json',
-  
+
   // Additional meta tags optimized for link sharing, including WhatsApp
   other: {
     'mobile-web-app-capable': 'yes',
@@ -79,7 +80,7 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Phera',
     'theme-color': '#D4AF37',
-    
+
     // Enhanced meta tags for better link previews
     'og:image:type': 'image/jpeg',
     'og:image:width': '1200',
@@ -111,6 +112,7 @@ export default function RootLayout({
               </AuthProvider>
             </ClientThemeProvider>
           </AppRouterCacheProvider>
+          <Toaster richColors position="bottom-right" />
         </ErrorBoundary>
       </body>
     </html>

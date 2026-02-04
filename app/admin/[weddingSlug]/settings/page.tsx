@@ -17,7 +17,6 @@ import {
   ListItemIcon,
   Divider,
   Fade,
-  Snackbar,
   alpha,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
@@ -25,6 +24,7 @@ import { Save, CheckCircle, Cancel, Launch, ContentCopy, Check } from '@mui/icon
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { toast } from 'sonner';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -38,9 +38,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
   const [settings, setSettings] = useState<any>(null);
   const [whatsappLink, setWhatsappLink] = useState('');
   const [googleSheetsId, setGoogleSheetsId] = useState('');
@@ -48,12 +45,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -63,12 +54,12 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         // Normalize status: convert 'preview' to 'draft', default to 'draft' if invalid or missing
         const normalizedStatus = (wedding.status === 'live') ? 'live' : 'draft';
         setStatus(normalizedStatus);
-        
+
         // If status was 'preview' or invalid, update it in the database
         if (wedding.status !== 'live' && wedding.status !== 'draft') {
           await weddingService.updateWedding(wedding.id, { status: 'draft' });
         }
-        
+
         const settingsData = await weddingService.getSettings(wedding.id);
         if (settingsData) {
           setSettings(settingsData);
@@ -80,7 +71,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       console.error('Error loading settings:', err);
       const errorMessage = 'Failed to load settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -112,12 +103,13 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         setSuccess(false);
         setShowSaveSuccess(false);
       }, 2500);
+      toast.success('Integrations saved!');
       await loadData();
     } catch (err) {
       console.error('Error saving settings:', err);
       const errorMessage = 'Failed to save settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -138,11 +130,11 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         draft: 'Wedding set to draft mode',
         live: '🎉 Wedding website is now live!'
       };
-      showToast(statusMessages[newStatus], 'success');
+      toast.success(statusMessages[newStatus]);
     } catch (err) {
       const errorMessage = 'Failed to update status';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     }
   };
 
@@ -170,6 +162,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       setSuccess(false);
       setShowSaveSuccess(false);
     }, 2000);
+    toast.success('Copied to clipboard!');
   };
 
   if (loading) {
@@ -316,7 +309,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
             Website Links
           </Typography>
-          
+
           <Stack spacing={3}>
             {/* Main Wedding URL */}
             <Box>
@@ -446,14 +439,14 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                     fontSize: '1rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    boxShadow: showSaveSuccess 
-                      ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
+                    boxShadow: showSaveSuccess
+                      ? '0 4px 12px rgba(16, 185, 129, 0.4)'
                       : '0 4px 12px rgba(222, 63, 94, 0.3)',
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                      boxShadow: showSaveSuccess 
-                        ? '0 6px 16px rgba(16, 185, 129, 0.5)' 
+                      boxShadow: showSaveSuccess
+                        ? '0 6px 16px rgba(16, 185, 129, 0.5)'
                         : '0 6px 16px rgba(222, 63, 94, 0.4)',
                     },
                     '&:disabled': {
@@ -463,25 +456,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 >
                   {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Integrations'}
                 </Button>
-                
-                {/* Success message below button */}
-                <Fade in={showSaveSuccess}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      mt: 1,
-                      color: '#10B981',
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    Integrations saved!
-                  </Typography>
-                </Fade>
+
               </Box>
             </Stack>
           </Stack>
@@ -506,7 +481,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 Make sure everything is ready before going live
               </Typography>
             </Box>
-            
+
             <List sx={{ bgcolor: 'white', borderRadius: '12px', p: 2 }}>
               <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
@@ -567,25 +542,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
             </List>
           </Stack>
         </Paper>
-
-
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </Stack>
     </Container>
   );
 }
-

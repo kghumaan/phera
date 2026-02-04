@@ -15,8 +15,6 @@ import {
   TextField,
   Grid,
   Chip,
-  Alert,
-  Snackbar,
   Select,
   MenuItem,
   FormControl,
@@ -33,7 +31,6 @@ import {
   Add,
   Edit,
   Delete,
-  Save,
   ArrowUpward,
   ArrowDownward,
   ChevronLeft,
@@ -44,6 +41,7 @@ import { EVENT_TEMPLATES, EventTemplate } from '@/components/admin/EventTemplate
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { toast } from 'sonner';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -82,22 +80,13 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   const [previewMode, setPreviewMode] = useState<'list' | 'carousel'>('list');
   const [previewEventIndex, setPreviewEventIndex] = useState(0);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+  const [error, setError] = useState<string | null>(null); // Kept for local usage if needed, but primary feedback is toast
+  // success state removed as replaced by toast
 
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -110,7 +99,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
     } catch (err) {
       console.error('Error loading events:', err);
-      showToast('Failed to load events', 'error');
+      toast.error('Failed to load events');
     } finally {
       setLoading(false);
     }
@@ -210,7 +199,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     setSlideDialogOpen(false);
     setCurrentSlide(null);
     setCurrentSlideIndex(-1);
-    showToast('Slide saved! Remember to save the event.', 'info');
+    toast.info('Slide saved! Remember to save the event.');
   };
 
   const handleDeleteSlide = (index: number) => {
@@ -218,7 +207,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     const slides = [...((currentEvent.carousel_slides as CarouselSlide[]) || [])];
     slides.splice(index, 1);
     setCurrentEvent({ ...currentEvent, carousel_slides: slides });
-    showToast('Slide deleted! Remember to save the event.', 'info');
+    toast.info('Slide deleted! Remember to save the event.');
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
@@ -229,7 +218,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
     [slides[index], slides[newIndex]] = [slides[newIndex], slides[index]];
     setCurrentEvent({ ...currentEvent, carousel_slides: slides });
-    showToast('Slide reordered! Remember to save the event.', 'info');
+    toast.info('Slide reordered! Remember to save the event.');
   };
 
   const handleSaveEvent = async () => {
@@ -244,14 +233,14 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
       if (Object.keys(newFieldErrors).length > 0) {
         setFieldErrors(newFieldErrors);
-        showToast('Please fill in required fields', 'error');
+        toast.error('Please fill in required fields');
         return;
       }
 
       setFieldErrors({});
 
       if (!currentEvent.slug) {
-        currentEvent.slug = currentEvent.name.toLowerCase().replace(/\s+/g, '-');
+        currentEvent.slug = (currentEvent.name || '').toLowerCase().replace(/\s+/g, '-');
       }
 
       if (currentEvent.id) {
@@ -263,12 +252,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       await loadData();
       setEditDialogOpen(false);
       setCurrentEvent(null);
-      setSuccess(true);
-      showToast('Event saved successfully!', 'success');
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success('Event saved successfully!');
     } catch (err) {
       console.error('Error saving event:', err);
-      showToast('Failed to save event', 'error');
+      toast.error('Failed to save event');
     }
   };
 
@@ -278,11 +265,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     try {
       await weddingService.deleteEvent(eventId);
       await loadData();
-      setSuccess(true);
-      showToast('Event deleted successfully', 'success');
+      toast.success('Event deleted successfully');
     } catch (err) {
       console.error('Error deleting event:', err);
-      showToast('Failed to delete event', 'error');
+      toast.error('Failed to delete event');
     }
   };
 
@@ -403,7 +389,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                       </Box>
                       <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </Box>
                     </Box>
@@ -1195,18 +1181,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Toast */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Container>
   );
 }

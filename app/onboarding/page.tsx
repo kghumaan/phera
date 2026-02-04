@@ -339,7 +339,7 @@ export default function OnboardingPage() {
           wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
           venue_name: 'TBD',
           venue_location: 'TBD',
-          rsvp_deadline: 'TBD',
+          rsvp_deadline: '',
           status: 'draft',
           created_by: data.userId,
           background_image: '/images/backgrounds/blue-clouds.jpg',

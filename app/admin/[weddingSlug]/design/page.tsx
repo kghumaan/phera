@@ -7,12 +7,10 @@ import {
   Button,
   Stack,
   Paper,
-  Alert,
   Grid,
   TextField,
   alpha,
   Fade,
-  Snackbar,
   Link as MuiLink,
   Divider,
 } from '@mui/material';
@@ -27,6 +25,7 @@ import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_PAPER_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { useRouter } from 'next/navigation';
 import { parseISO } from 'date-fns';
+import { toast } from 'sonner';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -69,9 +68,6 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
 
   // Main website styling
   const [background, setBackground] = useState('');
@@ -122,12 +118,6 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
     loadData();
   }, [weddingSlug]);
 
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
   const loadData = async () => {
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
@@ -171,7 +161,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
       console.error('Error loading design settings:', err);
       const errorMessage = 'Failed to load design settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -202,6 +192,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
 
       setSuccess(true);
       setShowSaveSuccess(true);
+      toast.success('Design saved successfully!');
       setTimeout(() => {
         setSuccess(false);
         setShowSaveSuccess(false);
@@ -210,7 +201,7 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
       console.error('Error saving design:', err);
       const errorMessage = 'Failed to save design settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -474,768 +465,733 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
               </Typography>
             </Box>
 
-        <Paper sx={ENHANCED_PAPER_SX}>
-          <Stack spacing={ENHANCED_SECTION_SPACING}>
-            {/* Background Selection */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Background Image
-              </Typography>
-
-              {/* Horizontal Scrollable Background Options */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  overflowX: 'auto',
-                  pb: 2,
-                  mb: 3,
-                  '&::-webkit-scrollbar': {
-                    height: 8,
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: alpha('#000', 0.05),
-                    borderRadius: '4px',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: alpha('#DE3F5E', 0.5),
-                    borderRadius: '4px',
-                    '&:hover': {
-                      backgroundColor: '#DE3F5E',
-                    },
-                  },
-                }}
-              >
-                {BACKGROUND_OPTIONS.map((bg) => (
-                  <Box key={bg.url} sx={{ flexShrink: 0 }}>
-                    <Box
-                      onClick={() => {
-                        setBackground(bg.url);
-                        setCustomBackground(null);
-                      }}
-                      sx={{
-                        width: 160,
-                        height: 120,
-                        backgroundImage: `url(${bg.url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: background === bg.url && !customBackground ? '#DE3F5E' : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#DE3F5E',
-                          transform: 'scale(1.05)',
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
-                      {bg.name}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-
-              {weddingId && (
-                <ImageUpload
-                  label="Upload Custom Background"
-                  value={customBackground}
-                  onChange={(url) => {
-                    setCustomBackground(url);
-                    if (url) setBackground('');
-                  }}
-                  path={getWeddingImagePath(weddingId, 'backgrounds')}
-                  helperText="Upload your own background image (recommended: 1920x1080px)"
-                  aspectRatio="16/9"
-                  maxWidth={600}
-                />
-              )}
-            </Box>
-
-            {/* Color Selection - Compact */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Colors
-              </Typography>
-
-              <Grid container spacing={3}>
-                {/* Primary Color */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                    Primary Color
+            <Paper sx={ENHANCED_PAPER_SX}>
+              <Stack spacing={ENHANCED_SECTION_SPACING}>
+                {/* Background Selection */}
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                    Background Image
                   </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                    {COLOR_OPTIONS.map((color) => (
-                      <Box
-                        key={color.value}
-                        onClick={() => setPrimaryColor(color.value)}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          backgroundColor: color.value,
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: 2.5,
-                          borderColor: primaryColor === color.value ? '#000' : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: '#666',
-                            transform: 'scale(1.1)',
-                          },
-                        }}
-                        title={color.name}
-                      />
-                    ))}
-                  </Stack>
-                  <TextField
-                    label="Custom (Hex)"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    size="small"
-                    placeholder="#DE3F5E"
-                    sx={{ ...textFieldSx, maxWidth: '100%' }}
-                  />
-                </Grid>
 
-                {/* Font Color */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                    Font Color
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                    {FONT_COLOR_OPTIONS.map((color) => (
-                      <Box
-                        key={color.value}
-                        onClick={() => setFontColor(color.value)}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          backgroundColor: color.value,
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: 2.5,
-                          borderColor: fontColor === color.value ? primaryColor : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: primaryColor,
-                            transform: 'scale(1.1)',
-                          },
-                          ...(color.value === '#FFFFFF' && {
-                            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                          }),
-                        }}
-                        title={color.name}
-                      />
-                    ))}
-                  </Stack>
-                  <TextField
-                    label="Custom (Hex)"
-                    value={fontColor}
-                    onChange={(e) => setFontColor(e.target.value)}
-                    size="small"
-                    placeholder="#1a1a1a"
-                    sx={{ ...textFieldSx, maxWidth: '100%' }}
-                  />
-                </Grid>
-
-                {/* Button Font Color */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                    Button Font Color
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                    {FONT_COLOR_OPTIONS.map((color) => (
-                      <Box
-                        key={color.value}
-                        onClick={() => setButtonFontColor(color.value)}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          backgroundColor: color.value,
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: 2.5,
-                          borderColor: buttonFontColor === color.value ? primaryColor : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: primaryColor,
-                            transform: 'scale(1.1)',
-                          },
-                          ...(color.value === '#FFFFFF' && {
-                            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                          }),
-                        }}
-                        title={color.name}
-                      />
-                    ))}
-                  </Stack>
-                  <TextField
-                    label="Custom (Hex)"
-                    value={buttonFontColor}
-                    onChange={(e) => setButtonFontColor(e.target.value)}
-                    size="small"
-                    placeholder="#FFFFFF"
-                    sx={{ ...textFieldSx, maxWidth: '100%' }}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-
-            {/* Preview */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Preview
-              </Typography>
-
-              <Box
-                sx={{
-                  width: '100%',
-                  height: 300,
-                  backgroundImage: `url(${customBackground || background})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  borderRadius: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2,
-                  p: 4,
-                }}
-              >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontWeight: 700,
-                    color: fontColor,
-                    textAlign: 'center',
-                  }}
-                >
-                  Sample Text
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{
-                    backgroundColor: primaryColor,
-                    color: buttonFontColor,
-                    '&:hover': {
-                      backgroundColor: primaryColor,
-                      opacity: 0.9,
-                    },
-                  }}
-                >
-                  Sample Button
-                </Button>
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Pin Entry Screen Section */}
-            <Box id="pin-entry-section">
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                  Pin Entry Screen
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 1 }}>
-                  Customize the styling and text for the pin entry screen that guests see when they first visit your site.
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <VpnKey sx={{ fontSize: 16, color: '#DE3F5E' }} />
-                  <MuiLink
-                    component="button"
-                    variant="body2"
-                    onClick={() => router.push(`/admin/${weddingSlug}/pins`)}
+                  {/* Horizontal Scrollable Background Options */}
+                  <Box
                     sx={{
-                      color: '#DE3F5E',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      '&:hover': {
-                        textDecoration: 'underline',
+                      display: 'flex',
+                      gap: 2,
+                      overflowX: 'auto',
+                      pb: 2,
+                      mb: 3,
+                      '&::-webkit-scrollbar': {
+                        height: 8,
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: alpha('#000', 0.05),
+                        borderRadius: '4px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: alpha('#DE3F5E', 0.5),
+                        borderRadius: '4px',
+                        '&:hover': {
+                          backgroundColor: '#DE3F5E',
+                        },
                       },
                     }}
                   >
-                    Manage invitation codes here
-                  </MuiLink>
+                    {BACKGROUND_OPTIONS.map((bg) => (
+                      <Box key={bg.url} sx={{ flexShrink: 0 }}>
+                        <Box
+                          onClick={() => {
+                            setBackground(bg.url);
+                            setCustomBackground(null);
+                          }}
+                          sx={{
+                            width: 160,
+                            height: 120,
+                            backgroundImage: `url(${bg.url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            border: 3,
+                            borderColor: background === bg.url && !customBackground ? '#DE3F5E' : 'transparent',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              borderColor: '#DE3F5E',
+                              transform: 'scale(1.05)',
+                            },
+                          }}
+                        />
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
+                          {bg.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  {weddingId && (
+                    <ImageUpload
+                      label="Upload Custom Background"
+                      value={customBackground}
+                      onChange={(url) => {
+                        setCustomBackground(url);
+                        if (url) setBackground('');
+                      }}
+                      path={getWeddingImagePath(weddingId, 'backgrounds')}
+                      helperText="Upload your own background image (recommended: 1920x1080px)"
+                      aspectRatio="16/9"
+                      maxWidth={600}
+                    />
+                  )}
                 </Box>
-              </Box>
 
-              {/* Pin Entry Text */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Welcome Text
-                </Typography>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Main Heading"
-                    value={pinEntryText}
-                    onChange={(e) => setPinEntryText(e.target.value)}
-                    placeholder={`Please join ${coupleName} on their special night`}
-                    fullWidth
-                    multiline
-                    rows={2}
-                    helperText="Use {couple_name} as a placeholder for the couple's name"
-                    sx={textFieldSx}
-                  />
-                  <TextField
-                    label="Subtitle Text"
-                    value={pinEntrySubtitleText}
-                    onChange={(e) => setPinEntrySubtitleText(e.target.value)}
-                    placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
-                    fullWidth
-                    multiline
-                    rows={2}
-                    helperText="This appears below the main heading"
-                    sx={textFieldSx}
-                  />
-                </Stack>
-              </Box>
+                {/* Color Selection - Compact */}
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                    Colors
+                  </Typography>
 
-              {/* Pin Entry Background */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Background Image
-                </Typography>
-
-                {/* Horizontal Scrollable Background Options */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 2,
-                    overflowX: 'auto',
-                    pb: 2,
-                    mb: 2,
-                    '&::-webkit-scrollbar': {
-                      height: 8,
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      backgroundColor: alpha('#000', 0.05),
-                      borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: alpha('#DE3F5E', 0.5),
-                      borderRadius: '4px',
-                      '&:hover': {
-                        backgroundColor: '#DE3F5E',
-                      },
-                    },
-                  }}
-                >
-                  {BACKGROUND_OPTIONS.map((bg) => (
-                    <Box key={bg.url} sx={{ flexShrink: 0 }}>
-                      <Box
-                        onClick={() => {
-                          setPinEntryBackground(bg.url);
-                          setCustomPinEntryBackground(null);
-                        }}
-                        sx={{
-                          width: 160,
-                          height: 100,
-                          backgroundImage: `url(${bg.url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          border: 3,
-                          borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: '#DE3F5E',
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
-                        {bg.name}
+                  <Grid container spacing={3}>
+                    {/* Primary Color */}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                        Primary Color
                       </Typography>
-                    </Box>
-                  ))}
+                      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                        {COLOR_OPTIONS.map((color) => (
+                          <Box
+                            key={color.value}
+                            onClick={() => setPrimaryColor(color.value)}
+                            sx={{
+                              width: 44,
+                              height: 44,
+                              backgroundColor: color.value,
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              border: 2.5,
+                              borderColor: primaryColor === color.value ? '#000' : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#666',
+                                transform: 'scale(1.1)',
+                              },
+                            }}
+                            title={color.name}
+                          />
+                        ))}
+                      </Stack>
+                      <TextField
+                        label="Custom (Hex)"
+                        value={primaryColor}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        size="small"
+                        placeholder="#DE3F5E"
+                        sx={{ ...textFieldSx, maxWidth: '100%' }}
+                      />
+                    </Grid>
+
+                    {/* Font Color */}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                        Font Color
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                        {FONT_COLOR_OPTIONS.map((color) => (
+                          <Box
+                            key={color.value}
+                            onClick={() => setFontColor(color.value)}
+                            sx={{
+                              width: 44,
+                              height: 44,
+                              backgroundColor: color.value,
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              border: 2.5,
+                              borderColor: fontColor === color.value ? primaryColor : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: primaryColor,
+                                transform: 'scale(1.1)',
+                              },
+                              ...(color.value === '#FFFFFF' && {
+                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                              }),
+                            }}
+                            title={color.name}
+                          />
+                        ))}
+                      </Stack>
+                      <TextField
+                        label="Custom (Hex)"
+                        value={fontColor}
+                        onChange={(e) => setFontColor(e.target.value)}
+                        size="small"
+                        placeholder="#1a1a1a"
+                        sx={{ ...textFieldSx, maxWidth: '100%' }}
+                      />
+                    </Grid>
+
+                    {/* Button Font Color */}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                        Button Font Color
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                        {FONT_COLOR_OPTIONS.map((color) => (
+                          <Box
+                            key={color.value}
+                            onClick={() => setButtonFontColor(color.value)}
+                            sx={{
+                              width: 44,
+                              height: 44,
+                              backgroundColor: color.value,
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              border: 2.5,
+                              borderColor: buttonFontColor === color.value ? primaryColor : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: primaryColor,
+                                transform: 'scale(1.1)',
+                              },
+                              ...(color.value === '#FFFFFF' && {
+                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                              }),
+                            }}
+                            title={color.name}
+                          />
+                        ))}
+                      </Stack>
+                      <TextField
+                        label="Custom (Hex)"
+                        value={buttonFontColor}
+                        onChange={(e) => setButtonFontColor(e.target.value)}
+                        size="small"
+                        placeholder="#FFFFFF"
+                        sx={{ ...textFieldSx, maxWidth: '100%' }}
+                      />
+                    </Grid>
+                  </Grid>
                 </Box>
-                {weddingId && (
-                  <ImageUpload
-                    label="Upload Custom Background"
-                    value={customPinEntryBackground}
-                    onChange={(url) => {
-                      setCustomPinEntryBackground(url);
-                      if (url) setPinEntryBackground('');
-                    }}
-                    path={getWeddingImagePath(weddingId, 'backgrounds')}
-                    helperText="Upload your own background image (recommended: 1920x1080px)"
-                    aspectRatio="16/9"
-                    maxWidth={600}
-                  />
-                )}
-              </Box>
 
-              {/* Pin Entry Colors - Compact */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Colors
-                </Typography>
-                <Grid container spacing={3}>
-                  {/* Button Color */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                      Button Color
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                      {COLOR_OPTIONS.map((color) => (
-                        <Box
-                          key={color.value}
-                          onClick={() => setPinEntryPrimaryColor(color.value)}
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            backgroundColor: color.value,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            border: 2.5,
-                            borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: '#666',
-                              transform: 'scale(1.1)',
-                            },
-                          }}
-                          title={color.name}
-                        />
-                      ))}
-                    </Stack>
-                    <TextField
-                      label="Custom (Hex)"
-                      value={pinEntryPrimaryColor}
-                      onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
-                      size="small"
-                      placeholder="#141414"
-                      sx={{ ...textFieldSx, maxWidth: '100%' }}
-                    />
-                  </Grid>
+                {/* Preview */}
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                    Preview
+                  </Typography>
 
-                  {/* Text Color */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                      Text Color
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                      {FONT_COLOR_OPTIONS.map((color) => (
-                        <Box
-                          key={color.value}
-                          onClick={() => setPinEntryFontColor(color.value)}
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            backgroundColor: color.value,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            border: 2.5,
-                            borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: pinEntryPrimaryColor,
-                              transform: 'scale(1.1)',
-                            },
-                            ...(color.value === '#FFFFFF' && {
-                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                            }),
-                          }}
-                          title={color.name}
-                        />
-                      ))}
-                    </Stack>
-                    <TextField
-                      label="Custom (Hex)"
-                      value={pinEntryFontColor}
-                      onChange={(e) => setPinEntryFontColor(e.target.value)}
-                      size="small"
-                      placeholder="#000000"
-                      sx={{ ...textFieldSx, maxWidth: '100%' }}
-                    />
-                  </Grid>
-
-                  {/* Button Text Color */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
-                      Button Text Color
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
-                      {FONT_COLOR_OPTIONS.map((color) => (
-                        <Box
-                          key={color.value}
-                          onClick={() => setPinEntryButtonFontColor(color.value)}
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            backgroundColor: color.value,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            border: 2.5,
-                            borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: pinEntryPrimaryColor,
-                              transform: 'scale(1.1)',
-                            },
-                            ...(color.value === '#FFFFFF' && {
-                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                            }),
-                          }}
-                          title={color.name}
-                        />
-                      ))}
-                    </Stack>
-                    <TextField
-                      label="Custom (Hex)"
-                      value={pinEntryButtonFontColor}
-                      onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
-                      size="small"
-                      placeholder="#FFFFFF"
-                      sx={{ ...textFieldSx, maxWidth: '100%' }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              {/* Pin Entry Preview */}
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Preview
-                </Typography>
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 400,
-                    position: 'relative',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
-                    backgroundImage: `url(${customPinEntryBackground || pinEntryBackground})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                >
-                  {/* Top Left Decorative Image */}
-                  <Box
-                    component="img"
-                    src="/images/overlays/entry-topleft.png"
-                    alt="Decorative Top Left"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1,
-                      width: '80px',
-                      height: 'auto',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Top Right Decorative Image */}
-                  <Box
-                    component="img"
-                    src="/images/overlays/entry-topright.png"
-                    alt="Decorative Top Right"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      zIndex: 1,
-                      width: '80px',
-                      height: 'auto',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Preview Content */}
                   <Box
                     sx={{
-                      position: 'relative',
-                      zIndex: 2,
+                      width: '100%',
+                      height: 300,
+                      backgroundImage: `url(${customBackground || background})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      borderRadius: 2,
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      height: '100%',
-                      p: 3,
                       gap: 2,
+                      p: 4,
                     }}
                   >
-                    {/* Logo */}
-                    <Box
-                      component="img"
-                      src="/logo-stacked.svg"
-                      alt="Phera Logo"
-                      sx={{
-                        height: 50,
-                        width: 'auto',
-                        filter: 'brightness(0)',
-                      }}
-                    />
-
-                    {/* Heading */}
                     <Typography
-                      variant="h5"
+                      variant="h4"
                       sx={{
-                        fontFamily: 'var(--font-instrument-serif), serif',
-                        fontWeight: 400,
-                        color: pinEntryFontColor,
-                        fontSize: '1.5rem',
-                        lineHeight: 1.3,
-                        textAlign: 'center',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      {previewText || `Please join ${coupleName} on their special night`}
-                    </Typography>
-
-                    {/* Subtitle */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: 'var(--font-outfit), sans-serif',
-                        color: pinEntryFontColor,
-                        fontSize: '0.875rem',
-                        lineHeight: 1.4,
-                        maxWidth: 300,
-                        mx: 'auto',
-                        fontWeight: 400,
+                        fontFamily: 'var(--font-instrument-serif)',
+                        fontWeight: 700,
+                        color: fontColor,
                         textAlign: 'center',
                       }}
                     >
-                      {previewSubtitle || 'Enter your invitation code to see all the details and RSVP for our celebration'}
+                      Sample Text
                     </Typography>
-
-                    {/* PIN Input Preview */}
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                      {[0, 1, 2, 3].map((index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: '50%',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #D6D6D6',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1rem',
-                            fontFamily: 'var(--font-outfit), sans-serif',
-                            fontWeight: 700,
-                            color: 'rgba(0, 0, 0, 0.2)',
-                          }}
-                        >
-                          {index === 0 ? '0' : ''}
-                        </Box>
-                      ))}
-                    </Stack>
-
-                    {/* Button Preview */}
                     <Button
                       variant="contained"
-                      size="small"
+                      size="large"
                       sx={{
-                        backgroundColor: pinEntryPrimaryColor,
-                        color: pinEntryButtonFontColor,
-                        borderRadius: '12px',
-                        px: '16px',
-                        py: '8px',
-                        fontSize: '0.875rem',
-                        fontFamily: 'var(--font-outfit), sans-serif',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '6.25%',
-                        minWidth: 150,
-                        boxShadow: 'none',
+                        backgroundColor: primaryColor,
+                        color: buttonFontColor,
                         '&:hover': {
-                          backgroundColor: pinEntryPrimaryColor,
+                          backgroundColor: primaryColor,
                           opacity: 0.9,
-                          boxShadow: 'none',
                         },
                       }}
                     >
-                      Continue
+                      Sample Button
                     </Button>
                   </Box>
                 </Box>
-              </Box>
-            </Box>
 
-            {/* Save Button with Inline Success */}
-            <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={showSaveSuccess ? <Check /> : <Save />}
-                onClick={handleSave}
-                disabled={saving}
-                sx={{
-                  bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                  color: 'white',
-                  py: 1.5,
-                  px: 4,
-                  borderRadius: '32px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: showSaveSuccess 
-                    ? '0 4px 12px rgba(16, 185, 129, 0.4)' 
-                    : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                    boxShadow: showSaveSuccess 
-                      ? '0 6px 16px rgba(16, 185, 129, 0.5)' 
-                      : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                  },
-                  '&:disabled': {
-                    bgcolor: 'rgba(222, 63, 94, 0.5)',
-                  },
-                }}
-              >
-                {saving ? 'Saving...' : showSaveSuccess ? 'Design Saved!' : 'Save Design'}
-              </Button>
-              
-              {/* Success message below button */}
-              <Fade in={showSaveSuccess}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    mt: 1,
-                    color: '#10B981',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Design saved successfully!
-                </Typography>
-              </Fade>
-            </Box>
-          </Stack>
-        </Paper>
+                <Divider sx={{ my: 2 }} />
 
-            {/* Toast Notification */}
-            <Snackbar
-              open={snackbarOpen}
-              autoHideDuration={6000}
-              onClose={() => setSnackbarOpen(false)}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <Alert
-                onClose={() => setSnackbarOpen(false)}
-                severity={snackbarSeverity}
-                sx={{ width: '100%' }}
-              >
-                {snackbarMessage}
-              </Alert>
-            </Snackbar>
+                {/* Pin Entry Screen Section */}
+                <Box id="pin-entry-section">
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                      Pin Entry Screen
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 1 }}>
+                      Customize the styling and text for the pin entry screen that guests see when they first visit your site.
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <VpnKey sx={{ fontSize: 16, color: '#DE3F5E' }} />
+                      <MuiLink
+                        component="button"
+                        variant="body2"
+                        onClick={() => router.push(`/admin/${weddingSlug}/pins`)}
+                        sx={{
+                          color: '#DE3F5E',
+                          textDecoration: 'none',
+                          fontWeight: 600,
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        Manage invitation codes here
+                      </MuiLink>
+                    </Box>
+                  </Box>
+
+                  {/* Pin Entry Text */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Welcome Text
+                    </Typography>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Main Heading"
+                        value={pinEntryText}
+                        onChange={(e) => setPinEntryText(e.target.value)}
+                        placeholder={`Please join ${coupleName} on their special night`}
+                        fullWidth
+                        multiline
+                        rows={2}
+                        helperText="Use {couple_name} as a placeholder for the couple's name"
+                        sx={textFieldSx}
+                      />
+                      <TextField
+                        label="Subtitle Text"
+                        value={pinEntrySubtitleText}
+                        onChange={(e) => setPinEntrySubtitleText(e.target.value)}
+                        placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        helperText="This appears below the main heading"
+                        sx={textFieldSx}
+                      />
+                    </Stack>
+                  </Box>
+
+                  {/* Pin Entry Background */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Background Image
+                    </Typography>
+
+                    {/* Horizontal Scrollable Background Options */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        overflowX: 'auto',
+                        pb: 2,
+                        mb: 2,
+                        '&::-webkit-scrollbar': {
+                          height: 8,
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          backgroundColor: alpha('#000', 0.05),
+                          borderRadius: '4px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: alpha('#DE3F5E', 0.5),
+                          borderRadius: '4px',
+                          '&:hover': {
+                            backgroundColor: '#DE3F5E',
+                          },
+                        },
+                      }}
+                    >
+                      {BACKGROUND_OPTIONS.map((bg) => (
+                        <Box key={bg.url} sx={{ flexShrink: 0 }}>
+                          <Box
+                            onClick={() => {
+                              setPinEntryBackground(bg.url);
+                              setCustomPinEntryBackground(null);
+                            }}
+                            sx={{
+                              width: 160,
+                              height: 100,
+                              backgroundImage: `url(${bg.url})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              border: 3,
+                              borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#DE3F5E',
+                                transform: 'scale(1.05)',
+                              },
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', fontSize: '0.75rem' }}>
+                            {bg.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                    {weddingId && (
+                      <ImageUpload
+                        label="Upload Custom Background"
+                        value={customPinEntryBackground}
+                        onChange={(url) => {
+                          setCustomPinEntryBackground(url);
+                          if (url) setPinEntryBackground('');
+                        }}
+                        path={getWeddingImagePath(weddingId, 'backgrounds')}
+                        helperText="Upload your own background image (recommended: 1920x1080px)"
+                        aspectRatio="16/9"
+                        maxWidth={600}
+                      />
+                    )}
+                  </Box>
+
+                  {/* Pin Entry Colors - Compact */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Colors
+                    </Typography>
+                    <Grid container spacing={3}>
+                      {/* Button Color */}
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                          Button Color
+                        </Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                          {COLOR_OPTIONS.map((color) => (
+                            <Box
+                              key={color.value}
+                              onClick={() => setPinEntryPrimaryColor(color.value)}
+                              sx={{
+                                width: 44,
+                                height: 44,
+                                backgroundColor: color.value,
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                border: 2.5,
+                                borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  borderColor: '#666',
+                                  transform: 'scale(1.1)',
+                                },
+                              }}
+                              title={color.name}
+                            />
+                          ))}
+                        </Stack>
+                        <TextField
+                          label="Custom (Hex)"
+                          value={pinEntryPrimaryColor}
+                          onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
+                          size="small"
+                          placeholder="#141414"
+                          sx={{ ...textFieldSx, maxWidth: '100%' }}
+                        />
+                      </Grid>
+
+                      {/* Text Color */}
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                          Text Color
+                        </Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                          {FONT_COLOR_OPTIONS.map((color) => (
+                            <Box
+                              key={color.value}
+                              onClick={() => setPinEntryFontColor(color.value)}
+                              sx={{
+                                width: 44,
+                                height: 44,
+                                backgroundColor: color.value,
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                border: 2.5,
+                                borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  borderColor: pinEntryPrimaryColor,
+                                  transform: 'scale(1.1)',
+                                },
+                                ...(color.value === '#FFFFFF' && {
+                                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                                }),
+                              }}
+                              title={color.name}
+                            />
+                          ))}
+                        </Stack>
+                        <TextField
+                          label="Custom (Hex)"
+                          value={pinEntryFontColor}
+                          onChange={(e) => setPinEntryFontColor(e.target.value)}
+                          size="small"
+                          placeholder="#000000"
+                          sx={{ ...textFieldSx, maxWidth: '100%' }}
+                        />
+                      </Grid>
+
+                      {/* Button Text Color */}
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: '#4a4a4a' }}>
+                          Button Text Color
+                        </Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1, mb: 1.5 }}>
+                          {FONT_COLOR_OPTIONS.map((color) => (
+                            <Box
+                              key={color.value}
+                              onClick={() => setPinEntryButtonFontColor(color.value)}
+                              sx={{
+                                width: 44,
+                                height: 44,
+                                backgroundColor: color.value,
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                border: 2.5,
+                                borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  borderColor: pinEntryPrimaryColor,
+                                  transform: 'scale(1.1)',
+                                },
+                                ...(color.value === '#FFFFFF' && {
+                                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                                }),
+                              }}
+                              title={color.name}
+                            />
+                          ))}
+                        </Stack>
+                        <TextField
+                          label="Custom (Hex)"
+                          value={pinEntryButtonFontColor}
+                          onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
+                          size="small"
+                          placeholder="#FFFFFF"
+                          sx={{ ...textFieldSx, maxWidth: '100%' }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  {/* Pin Entry Preview */}
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Preview
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: 400,
+                        position: 'relative',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        border: '1px solid rgba(0, 0, 0, 0.1)',
+                        backgroundImage: `url(${customPinEntryBackground || pinEntryBackground})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    >
+                      {/* Top Left Decorative Image */}
+                      <Box
+                        component="img"
+                        src="/images/overlays/entry-topleft.png"
+                        alt="Decorative Top Left"
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          zIndex: 1,
+                          width: '80px',
+                          height: 'auto',
+                          pointerEvents: 'none',
+                        }}
+                      />
+
+                      {/* Top Right Decorative Image */}
+                      <Box
+                        component="img"
+                        src="/images/overlays/entry-topright.png"
+                        alt="Decorative Top Right"
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          right: 0,
+                          zIndex: 1,
+                          width: '80px',
+                          height: 'auto',
+                          pointerEvents: 'none',
+                        }}
+                      />
+
+                      {/* Preview Content */}
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          zIndex: 2,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                          p: 3,
+                          gap: 2,
+                        }}
+                      >
+                        {/* Logo */}
+                        <Box
+                          component="img"
+                          src="/logo-stacked.svg"
+                          alt="Phera Logo"
+                          sx={{
+                            height: 50,
+                            width: 'auto',
+                            filter: 'brightness(0)',
+                          }}
+                        />
+
+                        {/* Heading */}
+                        <Typography
+                          variant="h5"
+                          sx={{
+                            fontFamily: 'var(--font-instrument-serif), serif',
+                            fontWeight: 400,
+                            color: pinEntryFontColor,
+                            fontSize: '1.5rem',
+                            lineHeight: 1.3,
+                            textAlign: 'center',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          {previewText || `Please join ${coupleName} on their special night`}
+                        </Typography>
+
+                        {/* Subtitle */}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontFamily: 'var(--font-outfit), sans-serif',
+                            color: pinEntryFontColor,
+                            fontSize: '0.875rem',
+                            lineHeight: 1.4,
+                            maxWidth: 300,
+                            mx: 'auto',
+                            fontWeight: 400,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {previewSubtitle || 'Enter your invitation code to see all the details and RSVP for our celebration'}
+                        </Typography>
+
+                        {/* PIN Input Preview */}
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                          {[0, 1, 2, 3].map((index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: '50%',
+                                backgroundColor: '#FFFFFF',
+                                border: '1px solid #D6D6D6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
+                                fontFamily: 'var(--font-outfit), sans-serif',
+                                fontWeight: 700,
+                                color: 'rgba(0, 0, 0, 0.2)',
+                              }}
+                            >
+                              {index === 0 ? '0' : ''}
+                            </Box>
+                          ))}
+                        </Stack>
+
+                        {/* Button Preview */}
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: pinEntryPrimaryColor,
+                            color: pinEntryButtonFontColor,
+                            borderRadius: '12px',
+                            px: '16px',
+                            py: '8px',
+                            fontSize: '0.875rem',
+                            fontFamily: 'var(--font-outfit), sans-serif',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '6.25%',
+                            minWidth: 150,
+                            boxShadow: 'none',
+                            '&:hover': {
+                              backgroundColor: pinEntryPrimaryColor,
+                              opacity: 0.9,
+                              boxShadow: 'none',
+                            },
+                          }}
+                        >
+                          Continue
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Save Button with Inline Success */}
+                <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={showSaveSuccess ? <Check /> : <Save />}
+                    onClick={handleSave}
+                    disabled={saving}
+                    sx={{
+                      bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
+                      color: 'white',
+                      py: 1.5,
+                      px: 4,
+                      borderRadius: '32px',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      boxShadow: showSaveSuccess
+                        ? '0 4px 12px rgba(16, 185, 129, 0.4)'
+                        : '0 4px 12px rgba(222, 63, 94, 0.3)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
+                        boxShadow: showSaveSuccess
+                          ? '0 6px 16px rgba(16, 185, 129, 0.5)'
+                          : '0 6px 16px rgba(222, 63, 94, 0.4)',
+                      },
+                      '&:disabled': {
+                        bgcolor: 'rgba(222, 63, 94, 0.5)',
+                      },
+                    }}
+                  >
+                    {saving ? 'Saving...' : showSaveSuccess ? 'Design Saved!' : 'Save Design'}
+                  </Button>
+                </Box>
+              </Stack>
+            </Paper>
           </Stack>
         </Grid>
 
@@ -1262,4 +1218,3 @@ export default function DesignPage({ params }: { params: Promise<{ weddingSlug: 
     </Container>
   );
 }
-

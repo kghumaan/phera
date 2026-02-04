@@ -52,3 +52,5 @@ public/couple-images/**/*.png
 public/couple-images/**/*.jpg
 public/couple-images/**/*.jpeg
 public/logo-white.png
+
+.gemini/

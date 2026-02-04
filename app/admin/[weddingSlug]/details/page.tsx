@@ -8,13 +8,10 @@ import {
   Stack,
   Paper,
   Button,
-  Alert,
   Grid,
   alpha,
   IconButton,
-  Fade,
   Chip,
-  Snackbar,
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
@@ -28,6 +25,7 @@ import ImageUpload from '@/components/admin/ImageUpload';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
@@ -100,15 +98,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
 
   // Date state for date pickers
   const [weddingDateStart, setWeddingDateStart] = useState<Date | null>(null);
@@ -209,12 +203,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     loadWeddingData();
   }, [weddingSlug]);
 
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
   const loadWeddingData = async () => {
     console.log('🔍 Loading wedding data for slug:', weddingSlug);
     try {
@@ -280,15 +268,12 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         console.log('✅ Form data set successfully');
       } else {
         console.warn('⚠️ No wedding found for slug:', weddingSlug);
-        const errorMessage = `No wedding found with ID: ${weddingSlug}`;
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
+        toast.error(`No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('❌ Error loading wedding:', err);
-      const errorMessage = `Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`;
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(`Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`);
+      setError(`Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`);
     } finally {
       console.log('✅ Setting loading to false');
       setLoading(false);
@@ -305,7 +290,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
 
     setFormData(updatedFormData);
-    setSuccess(false);
     // Clear field error when user starts typing
     if (fieldErrors[field]) {
       setFieldErrors(prev => {
@@ -351,11 +335,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const handleSave = async () => {
     setSaving(true);
     setError(null);
-    setSuccess(false);
 
     try {
       // Validation with field-level error tracking
       const newFieldErrors: Record<string, boolean> = {};
+
       if (!weddingDateStart) newFieldErrors.wedding_date_start = true;
       // weddingDateEnd is optional
       if (!formData.venue_name) newFieldErrors.venue_name = true;
@@ -364,7 +348,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         setFieldErrors(newFieldErrors);
         const errorMessage = 'Please fill in all required fields';
         setError(errorMessage);
-        showToast(errorMessage, 'error');
+        toast.error(errorMessage);
         setSaving(false);
         return;
       }
@@ -385,7 +369,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           // If not available, keep the old slug but warn user
           const errorMessage = `Wedding ID "${newSlug}" is taken. Keeping current ID "${weddingSlug}". You can customize it from the Overview page.`;
           setError(errorMessage);
-          showToast(errorMessage, 'error');
+          toast.error(errorMessage);
         }
       }
 
@@ -430,7 +414,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
         // If slug changed, redirect to new URL
         if (finalSlug !== weddingSlug) {
-          setSuccess(true);
+          toast.success('Changes saved! Redirecting...');
           setTimeout(() => {
             router.push(`/admin/${finalSlug}/details`);
           }, 1000);
@@ -443,17 +427,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         }
       }
 
-      setSuccess(true);
+      toast.success('Changes saved successfully!');
       setShowSaveSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setShowSaveSuccess(false);
-      }, 2500);
+      setTimeout(() => setShowSaveSuccess(false), 2000);
     } catch (err) {
       console.error('Error saving wedding:', err);
       const errorMessage = 'Failed to save changes';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -1378,14 +1359,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   </>
                 )}
 
-                {/* Save Button with Inline Success */}
+                {/* Save Button */}
                 <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
                   <Button
                     variant="contained"
                     size="large"
                     startIcon={showSaveSuccess ? <Check /> : <Save />}
                     onClick={handleSave}
-                    disabled={saving}
+                    disabled={saving || showSaveSuccess}
                     sx={{
                       mt: 2,
                       bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
@@ -1411,46 +1392,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       },
                     }}
                   >
-                    {saving ? 'Saving...' : showSaveSuccess ? 'Changes Saved!' : 'Save Changes'}
+                    {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Changes'}
                   </Button>
-
-                  {/* Success message below button */}
-                  <Fade in={showSaveSuccess}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        mt: 1,
-                        color: '#10B981',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Changes saved successfully!
-                    </Typography>
-                  </Fade>
                 </Box>
               </Stack>
             </Paper>
-
-            {/* Toast Notification */}
-            <Snackbar
-              open={snackbarOpen}
-              autoHideDuration={6000}
-              onClose={() => setSnackbarOpen(false)}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <Alert
-                onClose={() => setSnackbarOpen(false)}
-                severity={snackbarSeverity}
-                sx={{ width: '100%' }}
-              >
-                {snackbarMessage}
-              </Alert>
-            </Snackbar>
           </Stack>
         </Grid>
 
@@ -1463,6 +1409,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               left: '79.17%',
               transform: 'translate(-50%, -50%)',
               width: { lg: '520px' },
+              height: '100vh',
               maxWidth: '100%',
               display: 'flex',
               alignItems: 'center',

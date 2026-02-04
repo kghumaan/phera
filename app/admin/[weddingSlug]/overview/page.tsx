@@ -8,12 +8,10 @@ import {
   Stack,
   Paper,
   Button,
-  Alert,
   Grid,
   alpha,
   IconButton,
   Chip,
-  Snackbar,
   Divider,
   Dialog,
   DialogTitle,
@@ -30,6 +28,7 @@ import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { toast } from 'sonner';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -55,9 +54,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
   const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
   const [editSlugModalOpen, setEditSlugModalOpen] = useState(false);
   const [urlCopied, setUrlCopied] = useState(false);
@@ -69,12 +65,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   useEffect(() => {
     loadWeddingData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadWeddingData = async () => {
     console.log('🔍 Loading wedding data for slug:', weddingSlug);
@@ -126,13 +116,13 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         }
       } else {
         setError(`No wedding found with ID: ${weddingSlug}`);
-        showToast(`No wedding found with ID: ${weddingSlug}`, 'error');
+        toast.error(`No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('Error loading wedding:', err);
       const errorMessage = `Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`;
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -141,7 +131,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setUrlCopied(true);
-    showToast('URL copied to clipboard!', 'success');
+    toast.success('URL copied to clipboard!');
     setTimeout(() => setUrlCopied(false), 2000);
   };
 
@@ -155,33 +145,33 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
   const handleUpdateSlug = async () => {
     if (!customSlug || !weddingId) return;
-    
+
     setSavingSlug(true);
     try {
       const cleanSlug = generateSlug(customSlug);
-      
+
       if (cleanSlug === weddingSlug) {
-        showToast('This is already your current wedding ID.', 'info');
+        toast.info('This is already your current wedding ID.');
         setSavingSlug(false);
         return;
       }
-      
+
       const isAvailable = await weddingService.checkSlugAvailability(cleanSlug);
       if (!isAvailable) {
-        showToast('This wedding ID is already taken. Please choose another.', 'error');
+        toast.error('This wedding ID is already taken. Please choose another.');
         setSavingSlug(false);
         return;
       }
-      
+
       await weddingService.updateWedding(weddingId, { slug: cleanSlug });
-      
-      showToast('Wedding URL updated successfully!', 'success');
+
+      toast.success('Wedding URL updated successfully!');
       setTimeout(() => {
         router.push(`/admin/${cleanSlug}/overview`);
       }, 1000);
     } catch (error) {
       console.error('Failed to update slug:', error);
-      showToast('Failed to update wedding ID. Please try again.', 'error');
+      toast.error('Failed to update wedding ID. Please try again.');
     } finally {
       setSavingSlug(false);
     }
@@ -198,15 +188,15 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
     try {
       await weddingService.updateWedding(weddingId, { status: newStatus });
       setWeddingStatus(newStatus);
-      
+
       const statusMessages = {
         draft: 'Wedding set to draft mode',
         live: '🎉 Wedding website is now live!'
       };
-      showToast(statusMessages[newStatus], 'success');
+      toast.success(statusMessages[newStatus]);
     } catch (error) {
       console.error('Failed to update status:', error);
-      showToast('Failed to update status. Please try again.', 'error');
+      toast.error('Failed to update status. Please try again.');
     }
   };
 
@@ -463,22 +453,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           </Grid>
         </Paper>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setSnackbarOpen(false)} 
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-
         {/* Edit Wedding ID Modal */}
         <Dialog
           open={editSlugModalOpen}
@@ -497,11 +471,11 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             },
           }}
         >
-          <DialogTitle 
-            sx={{ 
-              fontFamily: 'var(--font-instrument-serif)', 
-              fontWeight: 700, 
-              color: '#1a1a1a', 
+          <DialogTitle
+            sx={{
+              fontFamily: 'var(--font-instrument-serif)',
+              fontWeight: 700,
+              color: '#1a1a1a',
               pb: 2,
               px: 0,
             }}
@@ -558,8 +532,8 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 px: 3,
                 textTransform: 'none',
                 fontWeight: 600,
-                '&:hover': { 
-                  bgcolor: '#C8365A' 
+                '&:hover': {
+                  bgcolor: '#C8365A'
                 },
                 '&.Mui-disabled': {
                   bgcolor: alpha('#DE3F5E', 0.5),

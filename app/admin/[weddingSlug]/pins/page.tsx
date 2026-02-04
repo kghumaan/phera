@@ -17,8 +17,6 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  Snackbar,
-  Alert,
   alpha,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
@@ -26,6 +24,7 @@ import { Add, Delete, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { toast } from 'sonner';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -37,19 +36,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
   const [newPin, setNewPin] = useState({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
 
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -63,7 +53,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       }
     } catch (err) {
       console.error('Error loading PIN settings:', err);
-      showToast('Failed to load PIN settings', 'error');
+      toast.error('Failed to load PIN settings');
     } finally {
       setLoading(false);
     }
@@ -71,7 +61,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
   const handleAddPin = async () => {
     if (!newPin.pin) {
-      showToast('Please enter a PIN code', 'error');
+      toast.error('Please enter a PIN code');
       return;
     }
 
@@ -106,10 +96,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       setEditingPinIndex(null);
       setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
       await loadData();
-      showToast(editingPinIndex !== null ? 'PIN updated successfully' : 'PIN added successfully', 'success');
+      toast.success(editingPinIndex !== null ? 'PIN updated successfully' : 'PIN added successfully');
     } catch (err) {
       console.error('Error saving PIN:', err);
-      showToast(editingPinIndex !== null ? 'Failed to update PIN' : 'Failed to add PIN', 'error');
+      toast.error(editingPinIndex !== null ? 'Failed to update PIN' : 'Failed to add PIN');
     }
   };
 
@@ -142,9 +132,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       });
 
       await loadData();
-      showToast('PIN deleted successfully', 'success');
+      toast.success('PIN deleted successfully');
     } catch (err) {
-      showToast('Failed to delete PIN', 'error');
+      toast.error('Failed to delete PIN');
     }
   };
 
@@ -471,22 +461,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             </Button>
           </DialogActions>
         </Dialog>
-
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </Stack>
     </Container>
   );

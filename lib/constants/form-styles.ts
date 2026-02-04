@@ -19,6 +19,9 @@ export const ENHANCED_TEXT_FIELD_SX = {
       py: { xs: 2, md: 2.5, lg: 3 },
       fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
     },
+    '& .MuiInputAdornment-root .MuiSvgIcon-root': {
+      color: '#666',
+    },
     '& fieldset': {
       borderColor: 'rgba(0, 0, 0, 0.23)',
     },

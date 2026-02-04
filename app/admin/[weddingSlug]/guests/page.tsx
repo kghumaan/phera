@@ -48,6 +48,7 @@ import { getAllRSVPs, deleteRSVP } from '@/lib/supabase/rsvp-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { toast } from 'sonner';
 
 interface RSVPData {
   id: string;
@@ -90,17 +91,19 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   const loadData = async () => {
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-      
+
       if (wedding) {
         setWeddingId(wedding.id);
         // Use weddingSlug instead of wedding.id since RSVPs are stored with slug as wedding_id
         const rsvpData = await getAllRSVPs(weddingSlug);
         setRsvps(rsvpData || []);
       } else {
+        toast.error(`No wedding found with ID: ${weddingSlug}`);
         setError(`No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('Error loading data:', err);
+      toast.error(`Failed to load data: ${(err as Error).message || 'Unknown error'}`);
       setError(`Failed to load data: ${(err as Error).message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -124,9 +127,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
       try {
         await deleteRSVP(id);
         setRsvps(prev => prev.filter(r => r.id !== id));
+        toast.success('RSVP deleted successfully');
       } catch (err) {
         console.error('Error deleting RSVP:', err);
-        alert('Failed to delete RSVP');
+        toast.error('Failed to delete RSVP');
       }
     }
   };
@@ -169,7 +173,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
     const ws = XLSX.utils.json_to_sheet(formattedData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "RSVPs");
-    
+
     const fileName = `wedding-rsvps-${filterType}-${new Date().toISOString().split('T')[0]}.csv`;
     XLSX.writeFile(wb, fileName);
     handleDownloadMenuClose();
@@ -182,12 +186,12 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
     const maybeData = prepareRSVPDataForExport(rsvps.filter(r => r.attending === 'maybe'));
 
     const wb = XLSX.utils.book_new();
-    
+
     if (allData.length > 0) {
       const wsAll = XLSX.utils.json_to_sheet(allData);
       XLSX.utils.book_append_sheet(wb, wsAll, "All RSVPs");
     }
-    
+
     if (attendingData.length > 0) {
       const wsAttending = XLSX.utils.json_to_sheet(attendingData);
       XLSX.utils.book_append_sheet(wb, wsAttending, "Attending");
@@ -493,30 +497,30 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, height: 12, borderRadius: 6, overflow: 'hidden', bgcolor: '#f5f5f5' }}>
               {stats.attending > 0 && (
-                <Box 
-                  sx={{ 
-                    width: `${(stats.attending / stats.total) * 100}%`, 
+                <Box
+                  sx={{
+                    width: `${(stats.attending / stats.total) * 100}%`,
                     bgcolor: '#10B981',
                     transition: 'width 0.3s ease'
-                  }} 
+                  }}
                 />
               )}
               {stats.maybe > 0 && (
-                <Box 
-                  sx={{ 
-                    width: `${(stats.maybe / stats.total) * 100}%`, 
+                <Box
+                  sx={{
+                    width: `${(stats.maybe / stats.total) * 100}%`,
                     bgcolor: '#F59E0B',
                     transition: 'width 0.3s ease'
-                  }} 
+                  }}
                 />
               )}
               {stats.notAttending > 0 && (
-                <Box 
-                  sx={{ 
-                    width: `${(stats.notAttending / stats.total) * 100}%`, 
+                <Box
+                  sx={{
+                    width: `${(stats.notAttending / stats.total) * 100}%`,
                     bgcolor: '#EF4444',
                     transition: 'width 0.3s ease'
-                  }} 
+                  }}
                 />
               )}
             </Box>
@@ -612,8 +616,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <TableBody>
                   {getFilteredRSVPs().map((rsvp) => (
                     <Fragment key={rsvp.id}>
-                      <TableRow 
-                        sx={{ 
+                      <TableRow
+                        sx={{
                           '&:hover': { bgcolor: alpha('#DE3F5E', 0.02) },
                           cursor: 'pointer',
                         }}
@@ -624,10 +628,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                             {rsvp.guest?.avatar_svg ? (
                               <Box
                                 dangerouslySetInnerHTML={{ __html: rsvp.guest.avatar_svg }}
-                                sx={{ 
-                                  width: 40, 
-                                  height: 40, 
-                                  borderRadius: '50%', 
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: '50%',
                                   overflow: 'hidden',
                                   bgcolor: rsvp.guest?.avatar_color || '#DE3F5E'
                                 }}
@@ -649,7 +653,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                             </Box>
                           </Box>
                         </TableCell>
-                        
+
                         {activeTab <= 3 && (
                           <>
                             <TableCell>
@@ -699,10 +703,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                           <TableCell>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                               {rsvp.food_preference && rsvp.food_preference.map((pref, i) => (
-                                <Chip 
-                                  key={i} 
-                                  label={pref} 
-                                  size="small" 
+                                <Chip
+                                  key={i}
+                                  label={pref}
+                                  size="small"
                                   sx={{
                                     bgcolor: alpha('#DE3F5E', 0.1),
                                     color: '#DE3F5E',
