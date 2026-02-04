@@ -122,10 +122,10 @@ export default function NewWeddingPage() {
         slug,
         couple_name: coupleName,
         wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-        wedding_date_display: 'To be determined',
-        venue_name: 'To be determined',
-        venue_location: 'To be determined',
-        rsvp_deadline: 'To be determined',
+        wedding_date_display: 'TBD',
+        venue_name: 'TBD',
+        venue_location: 'TBD',
+        rsvp_deadline: 'TBD',
         status: 'draft',
         created_by: userId,
         background_image: '/images/backgrounds/pearl.png',
@@ -134,7 +134,7 @@ export default function NewWeddingPage() {
 
       if (wedding) {
         // Redirect to onboarding
-        router.push(`/admin/${slug}/overview`);
+        router.push(`/admin/${slug}/details`);
       } else {
         setError('Failed to create wedding. Please try again.');
         setLoading(false);

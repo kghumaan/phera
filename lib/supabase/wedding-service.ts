@@ -5,14 +5,15 @@ export interface Wedding {
   id: string;
   slug: string;
   couple_name: string;
-  bride_name: string | null;
-  groom_name: string | null;
+  partner1_name: string | null;
+  partner2_name: string | null;
   wedding_date: string;
   wedding_date_end: string | null;
   wedding_date_display: string;
   venue_name: string;
   venue_location: string;
   venue_flag: string | null;
+  show_venue_location?: boolean;
   rsvp_deadline: string;
   status: 'draft' | 'live';
   couple_image_url: string | null;
@@ -192,7 +193,7 @@ export class WeddingService {
   async getWeddingBySlug(slug: string): Promise<Wedding | null> {
     try {
       console.log('🔍 WeddingService: Fetching wedding by slug:', slug);
-      
+
       const { data, error } = await this.supabase
         .from('weddings')
         .select('*')
@@ -912,7 +913,7 @@ export class WeddingService {
 
     // Get the owner's email from auth.users using a separate query
     const { data: { user: currentUser } } = await this.supabase.auth.getUser();
-    
+
     const teamMembers: TeamMember[] = [];
 
     // Add the owner as the first team member
@@ -1017,21 +1018,21 @@ export class WeddingService {
           hint: error?.hint,
           inviteData: invite,
         });
-        
+
         // Check if it's a table not found error
         if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
           const enhancedError = new Error('The wedding_invites table does not exist. Please run the migration first.');
           (enhancedError as any).originalError = error;
           throw enhancedError;
         }
-        
+
         // Check if it's an RLS policy error
         if (error?.code === '42501' || error?.message?.includes('permission denied') || error?.message?.includes('policy')) {
           const enhancedError = new Error('Permission denied. You may not have permission to invite team members for this wedding.');
           (enhancedError as any).originalError = error;
           throw enhancedError;
         }
-        
+
         // Create a more descriptive error
         const errorMessage = error?.message || error?.code || 'Unknown database error';
         const enhancedError = new Error(`Failed to create invite: ${errorMessage}`);
@@ -1045,7 +1046,7 @@ export class WeddingService {
       if (err.message && err.message !== 'Unknown database error') {
         throw err;
       }
-      
+
       // Otherwise, wrap it
       console.error('Unexpected error in createWeddingInvite:', err);
       throw new Error(`Failed to create invite: ${err?.message || 'Unknown error'}`);
@@ -1130,22 +1131,6 @@ export class WeddingService {
       .single();
 
     return !error && !!data;
-  }
-
-  async updateWedding(weddingId: string, updates: Partial<Wedding>): Promise<Wedding | null> {
-    const { data, error } = await this.supabase
-      .from('weddings')
-      .update(updates)
-      .eq('id', weddingId)
-      .select()
-      .single();
-      
-    if (error) {
-      console.error('Error updating wedding:', error);
-      return null;
-    }
-    
-    return data;
   }
 }
 

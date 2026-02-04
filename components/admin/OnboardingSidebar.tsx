@@ -33,7 +33,7 @@ interface SidebarSection {
 }
 
 const sections: SidebarSection[] = [
-  { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview', required: true },
+  { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview' },
   { id: 'guests', label: 'Guest Responses', icon: <People />, path: '/guests' },
   { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
   { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
@@ -63,18 +63,18 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
 
   const calculateProgress = (wedding?: Wedding): number => {
     if (!wedding) return 0;
-    
+
     const requiredFields = [
-      wedding.couple_name && wedding.couple_name !== 'To be determined',
-      wedding.bride_name,
-      wedding.groom_name,
-      wedding.wedding_date_display && wedding.wedding_date_display !== 'To be determined',
-      wedding.venue_name && wedding.venue_name !== 'To be determined',
-      wedding.venue_location && wedding.venue_location !== 'To be determined',
-      wedding.rsvp_deadline && wedding.rsvp_deadline !== 'To be determined',
+      wedding.couple_name && wedding.couple_name !== 'TBD' && wedding.couple_name !== 'To be determined',
+      wedding.partner1_name,
+      wedding.partner2_name,
+      wedding.wedding_date_display && wedding.wedding_date_display !== 'TBD' && wedding.wedding_date_display !== 'To be determined',
+      wedding.venue_name && wedding.venue_name !== 'TBD' && wedding.venue_name !== 'To be determined',
+      wedding.venue_location && wedding.venue_location !== 'TBD' && wedding.venue_location !== 'To be determined',
+      wedding.rsvp_deadline && wedding.rsvp_deadline !== 'TBD' && wedding.rsvp_deadline !== 'To be determined',
       wedding.couple_image_url,
     ];
-    
+
     const completed = requiredFields.filter(Boolean).length;
     return Math.round((completed / requiredFields.length) * 100);
   };

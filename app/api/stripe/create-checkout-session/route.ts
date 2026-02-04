@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, role, plan } = await request.json();
+    const { userId, email, role, plan, coupleName, partnerName, weddingDate, weddingEndDate, selectedFeatures } = await request.json();
 
     if (plan !== 'pro') {
       return NextResponse.json({ error: 'Only Pro plan requires a checkout session' }, { status: 400 });
@@ -35,6 +35,11 @@ export async function POST(request: NextRequest) {
       metadata: {
         userId,
         role,
+        coupleName: coupleName || '',
+        partnerName: partnerName || '',
+        weddingDate: weddingDate || '',
+        weddingEndDate: weddingEndDate || '',
+        selectedFeatures: JSON.stringify(selectedFeatures || []),
       },
       customer_email: email,
     });

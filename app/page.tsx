@@ -457,7 +457,6 @@ export default function LandingPage() {
                   color: '#1a1a1a',
                   maxWidth: '800px',
                   lineHeight: 1.4,
-                  fontWeight: 500,
                 }}
               >
                 Wedding Planner in your Pocket
@@ -491,11 +490,12 @@ export default function LandingPage() {
                   sx={{
                     bgcolor: '#DE3F5E',
                     color: 'white',
-                    px: { xs: 2.5, md: 5 },
-                    py: { xs: 0.8, md: 1.5 },
+                    px: { xs: 4, md: 6 },
+                    py: { xs: 1.2, md: 2 },
                     borderRadius: '32px',
-                    fontSize: { xs: '0.85rem', md: '1.1rem' },
+                    fontSize: { xs: '1rem', md: '1.25rem' },
                     textTransform: 'none',
+                    fontWeight: 700,
                     '&:hover': { bgcolor: '#C8365A' },
                   }}
                 >
@@ -509,11 +509,12 @@ export default function LandingPage() {
                   sx={{
                     borderColor: '#DE3F5E',
                     color: '#DE3F5E',
-                    px: { xs: 2.5, md: 5 },
-                    py: { xs: 0.8, md: 1.5 },
+                    px: { xs: 4, md: 6 },
+                    py: { xs: 1.2, md: 2 },
                     borderRadius: '32px',
-                    fontSize: { xs: '0.85rem', md: '1.1rem' },
+                    fontSize: { xs: '1rem', md: '1.25rem' },
                     textTransform: 'none',
+                    fontWeight: 700,
                     '&:hover': {
                       borderColor: '#C8365A',
                       bgcolor: alpha('#DE3F5E', 0.05),
@@ -563,7 +564,6 @@ export default function LandingPage() {
                 perspective: '1200px',
                 pb: { xs: 2, md: 0 },
                 px: { xs: 2, md: 0 },
-                mx: { xs: -2, md: 0 }, // Negative margin to allow items to touch edges while scrolling
                 '&::-webkit-scrollbar': { display: 'none' },
                 msOverflowStyle: 'none',
                 scrollbarWidth: 'none',

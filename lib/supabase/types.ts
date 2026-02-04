@@ -52,7 +52,7 @@ export interface RSVPFormData {
   email: string
   phone?: string
   countryCode?: string
-  
+
   // Attendance
   attending: 'yes' | 'no' | 'maybe' | '' | boolean // Support both new and old format
   plusOne: 'yes' | 'no' | '' | boolean // Support both string and boolean format
@@ -62,21 +62,21 @@ export interface RSVPFormData {
   plusOnePhone?: string
   guestCount: number
   maybeComment?: string
-  
+
   // Event-specific
   foodPreference: string[] // Array of food preferences
   dietaryRestrictions?: string
-  
+
   // Cultural & Personal
   weddingSide?: 'bride' | 'groom' | 'both' | ''
-  
+
   // Fun & Engagement
   songRequest?: string
   specialMessage?: string
   selectedGif?: GifData
   arrivalOption: 'known' | 'not_sure' | ''
   arrivalDate: string
-  
+
   // Flight Details (optional)
   flightAirline?: string
   flightNumber?: string
@@ -88,10 +88,10 @@ export interface RSVPFormData {
   flightArrivalTime?: string
   shuttlePreferenceTime?: string
   shuttlePreferenceNote?: string
-  
+
   // WhatsApp opt-in
   whatsappOptIn?: boolean
-  
+
   // Backward compatibility (optional fields)
   ceremonyAttending?: string[]
   relationshipToBride?: string
@@ -196,8 +196,8 @@ export interface Database {
           id: string
           slug: string
           couple_name: string
-          bride_name: string | null
-          groom_name: string | null
+          partner1_name: string | null
+          partner2_name: string | null
           wedding_date: string
           wedding_date_display: string
           venue_name: string
@@ -209,6 +209,17 @@ export interface Database {
           frame_image_url: string | null
           background_image: string
           primary_color: string
+          font_color: string | null
+          button_font_color: string | null
+          pin_entry_text: string | null
+          pin_entry_background: string | null
+          pin_entry_primary_color: string | null
+          pin_entry_font_color: string | null
+          pin_entry_button_font_color: string | null
+          pin_entry_subtitle_text: string | null
+          wedding_date_end: string | null
+          show_venue_location: boolean
+          couple_images: string[] | null
           created_by: string
           created_at: string
           updated_at: string
@@ -217,8 +228,8 @@ export interface Database {
           id?: string
           slug: string
           couple_name: string
-          bride_name?: string | null
-          groom_name?: string | null
+          partner1_name?: string | null
+          partner2_name?: string | null
           wedding_date: string
           wedding_date_display: string
           venue_name: string
@@ -230,6 +241,17 @@ export interface Database {
           frame_image_url?: string | null
           background_image?: string
           primary_color?: string
+          font_color?: string | null
+          button_font_color?: string | null
+          pin_entry_text?: string | null
+          pin_entry_background?: string | null
+          pin_entry_primary_color?: string | null
+          pin_entry_font_color?: string | null
+          pin_entry_button_font_color?: string | null
+          pin_entry_subtitle_text?: string | null
+          wedding_date_end?: string | null
+          show_venue_location?: boolean
+          couple_images?: string[] | null
           created_by: string
           created_at?: string
           updated_at?: string
@@ -238,8 +260,8 @@ export interface Database {
           id?: string
           slug?: string
           couple_name?: string
-          bride_name?: string | null
-          groom_name?: string | null
+          partner1_name?: string | null
+          partner2_name?: string | null
           wedding_date?: string
           wedding_date_display?: string
           venue_name?: string
@@ -251,6 +273,17 @@ export interface Database {
           frame_image_url?: string | null
           background_image?: string
           primary_color?: string
+          font_color?: string | null
+          button_font_color?: string | null
+          pin_entry_text?: string | null
+          pin_entry_background?: string | null
+          pin_entry_primary_color?: string | null
+          pin_entry_font_color?: string | null
+          pin_entry_button_font_color?: string | null
+          pin_entry_subtitle_text?: string | null
+          wedding_date_end?: string | null
+          show_venue_location?: boolean
+          couple_images?: string[] | null
           created_by?: string
           created_at?: string
           updated_at?: string
@@ -303,6 +336,325 @@ export interface Database {
           role?: 'admin' | 'viewer'
           invited_by?: string
           created_at?: string
+        }
+      }
+      wedding_events: {
+        Row: {
+          id: string
+          wedding_id: string
+          name: string
+          slug: string
+          date: string
+          time: string
+          dress_code: string
+          dress_code_emoji: string | null
+          dress_code_description: string | null
+          outfit_ideas_women: string[]
+          outfit_ideas_men: string[]
+          ritual_name: string | null
+          ritual_description: string | null
+          carousel_images: string[]
+          carousel_slides: any[]
+          gradient_background: string | null
+          text_color: string
+          order_index: number
+          is_template: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          name: string
+          slug: string
+          date: string
+          time: string
+          dress_code: string
+          dress_code_emoji?: string | null
+          dress_code_description?: string | null
+          outfit_ideas_women?: string[]
+          outfit_ideas_men?: string[]
+          ritual_name?: string | null
+          ritual_description?: string | null
+          carousel_images?: string[]
+          carousel_slides?: any[]
+          gradient_background?: string | null
+          text_color?: string
+          order_index?: number
+          is_template?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          name?: string
+          slug?: string
+          date?: string
+          time?: string
+          dress_code?: string
+          dress_code_emoji?: string | null
+          dress_code_description?: string | null
+          outfit_ideas_women?: string[]
+          outfit_ideas_men?: string[]
+          ritual_name?: string | null
+          ritual_description?: string | null
+          carousel_images?: string[]
+          carousel_slides?: any[]
+          gradient_background?: string | null
+          text_color?: string
+          order_index?: number
+          is_template?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_schedule: {
+        Row: {
+          id: string
+          wedding_id: string
+          day_name: string
+          date: string
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          day_name: string
+          date: string
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          day_name?: string
+          date?: string
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      schedule_items: {
+        Row: {
+          id: string
+          schedule_id: string
+          time: string
+          name: string
+          description: string | null
+          location: string | null
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          schedule_id: string
+          time: string
+          name: string
+          description?: string | null
+          location?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          schedule_id?: string
+          time?: string
+          name?: string
+          description?: string | null
+          location?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_travel_cards: {
+        Row: {
+          id: string
+          wedding_id: string
+          title: string
+          content: string[]
+          image_url: string
+          button_text: string | null
+          button_action: string | null
+          is_whatsapp_button: boolean
+          is_disabled: boolean
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          title: string
+          content: string[]
+          image_url: string
+          button_text?: string | null
+          button_action?: string | null
+          is_whatsapp_button?: boolean
+          is_disabled?: boolean
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          title?: string
+          content?: string[]
+          image_url?: string
+          button_text?: string | null
+          button_action?: string | null
+          is_whatsapp_button?: boolean
+          is_disabled?: boolean
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_faqs: {
+        Row: {
+          id: string
+          wedding_id: string
+          question: string
+          answer: string
+          button_text: string | null
+          button_link: string | null
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          question: string
+          answer: string
+          button_text?: string | null
+          button_link?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          question?: string
+          answer?: string
+          button_text?: string | null
+          button_link?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_registry: {
+        Row: {
+          id: string
+          wedding_id: string
+          fund_name: string
+          emoji: string
+          description: string | null
+          external_url: string | null
+          stripe_product_id: string | null
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          fund_name: string
+          emoji: string
+          description?: string | null
+          external_url?: string | null
+          stripe_product_id?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          fund_name?: string
+          emoji?: string
+          description?: string | null
+          external_url?: string | null
+          stripe_product_id?: string | null
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_shops: {
+        Row: {
+          id: string
+          wedding_id: string
+          name: string
+          details: string
+          url: string
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          name: string
+          details: string
+          url: string
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          name?: string
+          details?: string
+          url?: string
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wedding_settings: {
+        Row: {
+          id: string
+          wedding_id: string
+          pin_codes: any[]
+          whatsapp_group_link: string | null
+          lapse_event_codes: Record<string, string>
+          google_sheets_id: string | null
+          custom_domain: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          pin_codes?: any[]
+          whatsapp_group_link?: string | null
+          lapse_event_codes?: Record<string, string>
+          google_sheets_id?: string | null
+          custom_domain?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          wedding_id?: string
+          pin_codes?: any[]
+          whatsapp_group_link?: string | null
+          lapse_event_codes?: Record<string, string>
+          google_sheets_id?: string | null
+          custom_domain?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       guests: {

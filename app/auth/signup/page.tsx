@@ -32,14 +32,17 @@ import { supabase } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const isAnyLoading = emailLoading || googleLoading;
+
+   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setEmailLoading(true);
     setError(null);
 
     try {
@@ -54,13 +57,13 @@ export default function SignupPage() {
 
       if (authError) {
         setError(authError.message);
-        setLoading(false);
+        setEmailLoading(false);
         return;
       }
 
       if (!authData.user) {
         setError('Failed to create account');
-        setLoading(false);
+        setEmailLoading(false);
         return;
       }
 
@@ -69,12 +72,12 @@ export default function SignupPage() {
     } catch (err) {
       console.error('Signup error:', err);
       setError('An unexpected error occurred');
-      setLoading(false);
+      setEmailLoading(false);
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setLoading(true);
+   const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
     setError(null);
 
     try {
@@ -91,11 +94,11 @@ export default function SignupPage() {
 
       if (error) {
         setError(error.message);
-        setLoading(false);
+        setGoogleLoading(false);
       }
     } catch (err) {
       setError('Failed to sign up with Google');
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -148,14 +151,14 @@ export default function SignupPage() {
               <form onSubmit={handleSignup}>
                 <Stack spacing={2.5}>
                   {/* Wedding Name removed for modular onboarding */}
-                  <TextField
+                   <TextField
                     label="Email"
                     type="email"
                     fullWidth
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
@@ -208,7 +211,7 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     helperText="At least 6 characters"
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -276,32 +279,37 @@ export default function SignupPage() {
                     variant="contained"
                     size="large"
                     fullWidth
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     sx={{
                       bgcolor: '#DE3F5E',
                       color: 'white',
-                      py: 1.5,
+                      px: { xs: 4, md: 6 },
+                      py: { xs: 1.2, md: 2 },
                       borderRadius: '32px',
-                      fontSize: '1rem',
-                      fontWeight: 600,
+                      fontSize: { xs: '1rem', md: '1.25rem' },
+                      fontWeight: 700,
                       textTransform: 'none',
                       boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
                         bgcolor: '#C8365A',
                         boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                       },
                       '&:disabled': {
-                        bgcolor: alpha('#DE3F5E', 0.5),
+                        bgcolor: emailLoading ? '#DE3F5E' : alpha('#DE3F5E', 0.4),
+                        color: 'white',
+                        opacity: emailLoading ? 0.8 : 0.6,
+                        boxShadow: 'none',
                       },
                     }}
                   >
-                    {loading ? 'Creating account...' : 'Create Account'}
+                    {emailLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Create Account'}
                   </Button>
                 </Stack>
               </form>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500 }}>
                   or
                 </Typography>
               </Box>
@@ -311,9 +319,9 @@ export default function SignupPage() {
                 size="large"
                 fullWidth
                 onClick={handleGoogleSignup}
-                disabled={loading}
+                disabled={isAnyLoading}
                 startIcon={
-                  loading ? (
+                  googleLoading ? (
                     <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -326,28 +334,31 @@ export default function SignupPage() {
                 }
                 sx={{
                   borderRadius: '32px',
-                  py: 1.5,
+                  py: { xs: 1.2, md: 2 },
+                  px: { xs: 4, md: 6 },
                   borderColor: '#1a1a1a',
                   color: '#1a1a1a',
                   borderWidth: '1.5px',
                   textTransform: 'none',
-                  fontWeight: 500,
+                  fontWeight: 700,
+                  fontSize: { xs: '1rem', md: '1.25rem' },
                   bgcolor: 'white',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
                     borderColor: '#DE3F5E',
                     bgcolor: alpha('#DE3F5E', 0.05),
                     borderWidth: '1.5px',
                   },
                   '&:disabled': {
-                    borderColor: '#1a1a1a',
-                    color: '#1a1a1a',
+                    borderColor: googleLoading ? '#1a1a1a' : alpha('#1a1a1a', 0.3),
+                    color: googleLoading ? '#1a1a1a' : alpha('#1a1a1a', 0.3),
                     bgcolor: 'white',
-                    opacity: 1,
+                    opacity: googleLoading ? 0.8 : 0.6,
                     borderWidth: '1.5px',
                   },
                 }}
               >
-                {loading ? 'Connecting to Google...' : 'Continue with Google'}
+                {googleLoading ? 'Connecting...' : 'Continue with Google'}
               </Button>
 
               <Box textAlign="center">

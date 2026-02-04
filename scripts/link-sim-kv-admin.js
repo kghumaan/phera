@@ -49,7 +49,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function listAllWeddings() {
   console.log('\n📋 All weddings in database:\n');
-  
+
   const { data: weddings, error } = await supabase
     .from('weddings')
     .select('id, slug, couple_name, status, created_by, created_at')
@@ -108,12 +108,12 @@ async function checkWeddingState() {
   if (weddingError) {
     if (weddingError.code === 'PGRST116') {
       console.log('❌ Wedding "sim-kv" does NOT exist in the weddings table!');
-      
+
       if (legacyRsvpCount > 0 || legacyGuestCount > 0) {
         console.log('\n✅ But you have legacy RSVP/guest data that references "sim-kv".');
         console.log('   We need to create the wedding record in the weddings table.');
       }
-      
+
       console.log('\n📝 Next Steps:');
       console.log('  1. Get your Supabase user ID from Dashboard > Authentication > Users');
       console.log('     OR run this SQL: SELECT id, email FROM auth.users ORDER BY created_at DESC;');
@@ -194,7 +194,7 @@ async function updateWeddingOwner(userId) {
 
   if (error) {
     console.error('❌ Error updating wedding:', error.message);
-    
+
     // Check if it's an RLS policy issue
     if (error.message.includes('policy') || error.code === '42501') {
       console.log('\n⚠️  This might be an RLS policy issue.');
@@ -250,8 +250,8 @@ async function seedWedding(userId) {
     .insert({
       slug: 'sim-kv',
       couple_name: 'Simran & Karanvir',
-      bride_name: 'Simran',
-      groom_name: 'Karanvir',
+      partner1_name: 'Simran',
+      partner2_name: 'Karanvir',
       wedding_date: '2026-01-04T00:00:00+00:00',
       wedding_date_display: '4-6 JANUARY, 2026',
       venue_name: 'The Palayana',
@@ -270,12 +270,12 @@ async function seedWedding(userId) {
 
   if (weddingError) {
     console.error('❌ Error creating wedding:', weddingError.message);
-    
+
     if (weddingError.message.includes('policy') || weddingError.code === '42501') {
       console.log('\n⚠️  RLS policy issue. Run this SQL in Supabase SQL Editor:');
       console.log('─'.repeat(70));
       console.log(`INSERT INTO weddings (
-  slug, couple_name, bride_name, groom_name, wedding_date, wedding_date_display,
+  slug, couple_name, partner1_name, partner2_name, wedding_date, wedding_date_display,
   venue_name, venue_location, venue_flag, rsvp_deadline, status,
   couple_image_url, frame_image_url, background_image, primary_color, created_by
 ) VALUES (
@@ -295,7 +295,7 @@ async function seedWedding(userId) {
 
   // Now seed the wedding settings with PINs
   console.log('\n🔐 Creating wedding settings with PINs...');
-  
+
   const { error: settingsError } = await supabase
     .from('wedding_settings')
     .insert({

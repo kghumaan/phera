@@ -101,9 +101,9 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           await weddingService.updateWedding(wedding.id, { status: 'draft' });
         }
 
-        // Load RSVP stats - use weddingSlug instead of wedding.id
+        // Load RSVP stats - use wedding.id instead of weddingSlug
         try {
-          const rsvps = await getAllRSVPs(weddingSlug) as unknown as RSVPData[];
+          const rsvps = await getAllRSVPs(wedding.id) as unknown as RSVPData[];
           const attending = rsvps.filter(r => r.attending === 'yes').length;
           const notAttending = rsvps.filter(r => r.attending === 'no').length;
           const pending = rsvps.filter(r => r.attending === 'maybe' || !r.attending).length;
