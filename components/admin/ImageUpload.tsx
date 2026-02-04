@@ -30,7 +30,8 @@ export default function ImageUpload({
   value,
   onChange,
   path,
-  label = 'Upload Image',
+  label,
+  // label = 'Upload Image',
   helperText,
   aspectRatio = '16/9',
   maxWidth = 800,
@@ -106,9 +107,11 @@ export default function ImageUpload({
 
   return (
     <Stack spacing={2}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-        {label}
-      </Typography>
+      {label && (
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+          {label}
+        </Typography>
+      )}
 
       {helperText && (
         <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
@@ -147,7 +150,7 @@ export default function ImageUpload({
                   objectFit: 'cover',
                 }}
               />
-              
+
               {!uploading && (
                 <Box
                   sx={{
