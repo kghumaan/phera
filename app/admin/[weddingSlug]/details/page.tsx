@@ -18,6 +18,9 @@ import {
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { useState, useEffect, use } from 'react';
 import { Save, Check, Add, ArrowForward, Delete, Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
@@ -110,7 +113,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   // Date state for date pickers
   const [weddingDateStart, setWeddingDateStart] = useState<Date | null>(null);
   const [weddingDateEnd, setWeddingDateEnd] = useState<Date | null>(null);
-  const [isOneDayEvent, setIsOneDayEvent] = useState(true);
   const [dateDisplayManuallyEdited, setDateDisplayManuallyEdited] = useState(false);
 
   // Inline editing state
@@ -238,11 +240,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         } catch (err) {
           console.error('Error parsing dates:', err);
         }
-        const isSingleDay: boolean = !endDate || (startDate !== null && endDate !== null && startDate.getTime() === endDate.getTime());
-
         setWeddingDateStart(startDate);
         setWeddingDateEnd(endDate);
-        setIsOneDayEvent(isSingleDay);
 
         // Generate couple name from bride/groom names
         const autoCoupleName = generateCoupleName(
@@ -296,7 +295,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
   };
 
-  const handleChange = (field: keyof DetailsFormData, value: string) => {
+  const handleChange = (field: keyof DetailsFormData, value: any) => {
     const updatedFormData = { ...formData, [field]: value };
 
     // Auto-generate couple name when partner1 or partner2 name changes
@@ -318,17 +317,15 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   };
 
   // Handle date changes and auto-update display (string value from input)
-  const handleDateStartChange = (value: string) => {
-    const date = value ? parseISO(value) : null;
+  const handleDateStartChange = (date: Date | null) => {
     setWeddingDateStart(date);
     if (!dateDisplayManuallyEdited) {
-      const display = formatWeddingDateDisplay(date, isOneDayEvent ? null : weddingDateEnd);
+      const display = formatWeddingDateDisplay(date, weddingDateEnd);
       setFormData(prev => ({ ...prev, wedding_date_display: display }));
     }
   };
 
-  const handleDateEndChange = (value: string) => {
-    const date = value ? parseISO(value) : null;
+  const handleDateEndChange = (date: Date | null) => {
     setWeddingDateEnd(date);
     if (!dateDisplayManuallyEdited) {
       const display = formatWeddingDateDisplay(weddingDateStart, date);
@@ -336,25 +333,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
   };
 
-  const handleOneDayEventChange = (checked: boolean) => {
-    setIsOneDayEvent(checked);
-    if (checked) {
-      setWeddingDateEnd(null);
-      if (!dateDisplayManuallyEdited) {
-        const display = formatWeddingDateDisplay(weddingDateStart, null);
-        setFormData(prev => ({ ...prev, wedding_date_display: display }));
-      }
-    } else {
-      // If unchecking, set end date to same as start if not already set
-      if (!weddingDateEnd && weddingDateStart) {
-        setWeddingDateEnd(weddingDateStart);
-        if (!dateDisplayManuallyEdited) {
-          const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
-          setFormData(prev => ({ ...prev, wedding_date_display: display }));
-        }
-      }
-    }
-  };
+  // handleOneDayEventChange removed as we are no longer using it
 
   const handleDateDisplayChange = (value: string) => {
     setFormData(prev => ({ ...prev, wedding_date_display: value }));
@@ -377,12 +356,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     try {
       // Validation with field-level error tracking
       const newFieldErrors: Record<string, boolean> = {};
-      if (!formData.couple_name || !formData.partner1_name || !formData.partner2_name) {
-        if (!formData.partner1_name) newFieldErrors.partner1_name = true;
-        if (!formData.partner2_name) newFieldErrors.partner2_name = true;
-      }
       if (!weddingDateStart) newFieldErrors.wedding_date_start = true;
-      if (!isOneDayEvent && !weddingDateEnd) newFieldErrors.wedding_date_end = true;
+      // weddingDateEnd is optional
       if (!formData.venue_name) newFieldErrors.venue_name = true;
 
       if (Object.keys(newFieldErrors).length > 0) {
@@ -437,7 +412,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         partner1_name: formData.partner1_name,
         partner2_name: formData.partner2_name,
         wedding_date: weddingDateStart!.toISOString(),
-        wedding_date_end: isOneDayEvent ? null : (weddingDateEnd ? weddingDateEnd.toISOString() : null),
+        wedding_date_end: weddingDateEnd ? weddingDateEnd.toISOString() : null,
         wedding_date_display: formData.wedding_date_display,
         venue_name: formData.venue_name,
         venue_location: formData.venue_location,
@@ -633,7 +608,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 textTransform: 'uppercase'
               }}
             >
-              {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd)}
+              {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd)}
             </Typography>
 
             {/* Names */}
@@ -824,52 +799,98 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   Wedding Date *
                 </Typography>
 
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={isOneDayEvent}
-                      onChange={(e) => handleOneDayEventChange(e.target.checked)}
-                      sx={{
-                        color: '#DE3F5E',
-                        '&.Mui-checked': {
-                          color: '#DE3F5E',
-                        },
-                      }}
-                    />
-                  }
-                  label="Single day event (no end date)"
-                  sx={{ color: '#4a4a4a' }}
-                />
 
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="Wedding Start Date"
-                      type="date"
-                      fullWidth
-                      value={weddingDateStart ? format(weddingDateStart, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => handleDateStartChange(e.target.value)}
-                      required
-                      error={!!fieldErrors.wedding_date_start}
-                      InputLabelProps={{ shrink: true }}
-                      sx={textFieldSx}
-                    />
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <MobileDatePicker
+                        label="Wedding Start Date"
+                        value={weddingDateStart}
+                        onChange={(newValue) => handleDateStartChange(newValue as Date | null)}
+                        enableAccessibleFieldDOMStructure={false}
+                        slots={{
+                          textField: TextField,
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            required: true,
+                            error: !!fieldErrors.wedding_date_start,
+                            sx: textFieldSx,
+                          },
+                          actionBar: {
+                            actions: ['cancel', 'accept'],
+                            sx: {
+                              '& .MuiButton-root': {
+                                color: '#DE3F5E',
+                                fontWeight: 700,
+                              }
+                            }
+                          },
+                          day: {
+                            sx: {
+                              '&.Mui-selected': {
+                                backgroundColor: '#DE3F5E !important',
+                              },
+                              '&.Mui-selected:hover': {
+                                backgroundColor: '#DE3F5E !important',
+                                opacity: 0.9,
+                              },
+                              '&.MuiPickersDay-today': {
+                                borderColor: '#DE3F5E !important',
+                                color: '#DE3F5E',
+                              }
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <MobileDatePicker
+                        label="Wedding End Date"
+                        value={weddingDateEnd}
+                        onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
+                        enableAccessibleFieldDOMStructure={false}
+                        slots={{
+                          textField: TextField,
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            // required: true, // Removed as end date is optional
+                            error: !!fieldErrors.wedding_date_end,
+                            placeholder: "e.g., 2026-01-06",
+                            sx: textFieldSx,
+                          },
+                          actionBar: {
+                            actions: ['cancel', 'accept'],
+                            sx: {
+                              '& .MuiButton-root': {
+                                color: '#DE3F5E',
+                                fontWeight: 700,
+                              }
+                            }
+                          },
+                          day: {
+                            sx: {
+                              '&.Mui-selected': {
+                                backgroundColor: '#DE3F5E !important',
+                              },
+                              '&.Mui-selected:hover': {
+                                backgroundColor: '#DE3F5E !important',
+                                opacity: 0.9,
+                              },
+                              '&.MuiPickersDay-today': {
+                                borderColor: '#DE3F5E !important',
+                                color: '#DE3F5E',
+                              }
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="Wedding End Date"
-                      type="date"
-                      fullWidth
-                      value={weddingDateEnd ? format(weddingDateEnd, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => handleDateEndChange(e.target.value)}
-                      required={!isOneDayEvent}
-                      disabled={isOneDayEvent}
-                      error={!isOneDayEvent && !!fieldErrors.wedding_date_end}
-                      InputLabelProps={{ shrink: true }}
-                      sx={textFieldSx}
-                    />
-                  </Grid>
-                </Grid>
+                </LocalizationProvider>
 
                 {/* Date Display Preview and Edit */}
                 {weddingDateStart && (
@@ -883,7 +904,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                           size="small"
                           onClick={() => {
                             if (weddingDateStart) {
-                              setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd));
+                              setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd));
                               setEditingDateDisplay(true);
                             }
                           }}
@@ -943,7 +964,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       />
                     ) : (
                       <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-                        {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, isOneDayEvent ? null : weddingDateEnd)}
+                        {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd)}
                       </Typography>
                     )}
                   </Box>
@@ -961,7 +982,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       fullWidth
                       value={formData.venue_name}
                       onChange={(e) => handleChange('venue_name', e.target.value)}
-                      placeholder="e.g., The Palayana"
+                      placeholder="e.g., Sheraton"
                       required
                       error={fieldErrors.venue_name}
                       sx={textFieldSx}
@@ -969,12 +990,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
-                      label="Venue Location"
+                      label="City/Country"
                       fullWidth
                       value={formData.venue_location}
                       onChange={(e) => handleChange('venue_location', e.target.value)}
-                      placeholder="e.g., Hua Hin, Thailand 🇹🇭"
-                      helperText="Include country flag emoji in location if desired"
+                      placeholder="e.g., Bangkok, Thailand 🇹🇭"
                       required
                       sx={textFieldSx}
                     />
@@ -982,7 +1002,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       control={
                         <Checkbox
                           checked={formData.show_venue_location}
-                          onChange={(e) => handleChange('show_venue_location', e.target.checked ? 'true' : 'false')}
+                          onChange={(e) => handleChange('show_venue_location', e.target.checked)}
                           sx={{
                             color: '#DE3F5E',
                             '&.Mui-checked': {
@@ -1002,14 +1022,81 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   RSVP Information
                 </Typography>
 
-                <TextField
-                  label="RSVP Deadline"
-                  fullWidth
-                  value={formData.rsvp_deadline}
-                  onChange={(e) => handleChange('rsvp_deadline', e.target.value)}
-                  placeholder="e.g., August 16, 2025"
-                  sx={textFieldSx}
-                />
+                <Stack spacing={2}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD'}
+                        onChange={(e) => {
+                          if (!e.target.checked) {
+                            handleChange('rsvp_deadline', '');
+                          } else {
+                            // Default to 1 month before wedding if possible
+                            const deadline = weddingDateStart ? new Date(weddingDateStart) : new Date();
+                            if (weddingDateStart) deadline.setMonth(deadline.getMonth() - 1);
+                            handleChange('rsvp_deadline', deadline.toISOString());
+                          }
+                        }}
+                        sx={{
+                          color: '#DE3F5E',
+                          '&.Mui-checked': {
+                            color: '#DE3F5E',
+                          },
+                        }}
+                      />
+                    }
+                    label="Set RSVP Closing Date"
+                    sx={{ color: '#4a4a4a' }}
+                  />
+
+                  {!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' && (
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <MobileDatePicker
+                        label="RSVP Deadline"
+                        value={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
+                        onChange={(newValue) => {
+                          if (newValue) {
+                            handleChange('rsvp_deadline', (newValue as Date).toISOString());
+                          }
+                        }}
+                        enableAccessibleFieldDOMStructure={false}
+                        slots={{
+                          textField: TextField,
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            sx: textFieldSx,
+                          },
+                          actionBar: {
+                            actions: ['cancel', 'accept'],
+                            sx: {
+                              '& .MuiButton-root': {
+                                color: '#DE3F5E',
+                                fontWeight: 700,
+                              }
+                            }
+                          },
+                          day: {
+                            sx: {
+                              '&.Mui-selected': {
+                                backgroundColor: '#DE3F5E !important',
+                              },
+                              '&.Mui-selected:hover': {
+                                backgroundColor: '#DE3F5E !important',
+                                opacity: 0.9,
+                              },
+                              '&.MuiPickersDay-today': {
+                                borderColor: '#DE3F5E !important',
+                                color: '#DE3F5E',
+                              }
+                            }
+                          }
+                        }}
+                      />
+                    </LocalizationProvider>
+                  )}
+                </Stack>
 
                 {/* Images */}
                 <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
@@ -1023,7 +1110,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         Couple Photos (up to 6)
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                        Add multiple photos of the couple. Recommended size: 800x1000px each
+                        Add multiple photos of the couple. Recommended size: 800x800px each
                       </Typography>
 
                       {/* Add Photo Button */}
@@ -1103,7 +1190,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                                   position: 'relative',
                                   minWidth: 120,
                                   width: 120,
-                                  height: 150,
+                                  height: 120,
                                   flexShrink: 0,
                                   borderRadius: 2,
                                   overflow: 'hidden',
@@ -1167,31 +1254,62 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       )}
                     </Box>
 
-                    {/* Frame with Preview */}
+                    {/* Frame Selection */}
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                        Frame/Overlay Image (Optional)
+                        Frame Options
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                        Decorative frame or overlay (optional)
+                        Choose a decorative frame for your photos
                       </Typography>
 
                       <Grid container spacing={3} alignItems="center">
-                        <Grid size={{ xs: 12, md: formData.frame_image_url && coupleImages[0] ? 5 : 12 }}>
-                          <ImageUpload
-                            label="Frame/Overlay Image"
-                            value={formData.frame_image_url}
-                            onChange={(url) => handleChange('frame_image_url', url || '')}
-                            path={getWeddingImagePath(weddingId, 'couple')}
-                            helperText="Decorative frame or overlay"
-                            aspectRatio="1/1"
-                            maxWidth={400}
-                            borderRadius={0}
-                          />
+                        <Grid size={{ xs: 12, md: 5 }}>
+                          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                            {[
+                              { id: 'frame-27', url: '/images/frames/frame-27.png', name: 'Classic Rose' }
+                            ].map((frame) => (
+                              <Box
+                                key={frame.id}
+                                onClick={() => handleChange('frame_image_url', frame.url)}
+                                sx={{
+                                  width: 100,
+                                  height: 100,
+                                  borderRadius: '12px',
+                                  border: formData.frame_image_url === frame.url ? '3px solid #DE3F5E' : '1px solid #eee',
+                                  cursor: 'pointer',
+                                  overflow: 'hidden',
+                                  position: 'relative',
+                                  transition: 'all 0.2s',
+                                  '&:hover': {
+                                    transform: 'scale(1.05)',
+                                    borderColor: '#DE3F5E',
+                                  }
+                                }}
+                              >
+                                <Box
+                                  component="img"
+                                  src={frame.url}
+                                  alt={frame.name}
+                                  sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                    p: 1
+                                  }}
+                                />
+                                {formData.frame_image_url === frame.url && (
+                                  <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
+                                    <Check sx={{ color: 'white', fontSize: 14 }} />
+                                  </Box>
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
                         </Grid>
 
                         {/* Show preview if both frame and main photo exist */}
-                        {formData.frame_image_url && coupleImages[0] && (
+                        {formData.frame_image_url && (
                           <>
                             <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
                               <ArrowForward sx={{ color: '#DE3F5E', fontSize: 32 }} />
