@@ -118,9 +118,34 @@ export default function OnboardingSidebar({
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
   const router = useRouter();
   const pathname = usePathname();
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    website: true,
-    'guest-responses': true,
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    let foundActive = false;
+
+    // Initialize based on current path
+    groups.forEach(g => {
+      // Check if any item includes the current path
+      const isActive = g.items.some(item => pathname.includes(item.path));
+
+      if (isActive) {
+        foundActive = true;
+      }
+
+      if (!g.standalone) {
+        if (isActive) {
+          initialState[g.id] = true;
+        } else {
+          initialState[g.id] = false;
+        }
+      }
+    });
+
+    // Default to first group if nothing active found
+    if (!foundActive && groups.length > 0 && !groups[1]?.standalone) {
+      initialState[groups[1].id] = true; // Index 1 is 'website' in the groups array
+    }
+
+    return initialState;
   });
 
   const calculateProgress = (wedding?: Wedding): number => {
@@ -155,10 +180,12 @@ export default function OnboardingSidebar({
     });
   };
 
-  const handleItemClick = (item: SidebarItem, collapseAll = false) => {
+  const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     onNavigating?.(true);
     router.push(`/admin/${weddingSlug}${item.path}`);
+
     if (collapseAll) {
+      // Collapse all groups
       const newState: Record<string, boolean> = {};
       groups.forEach(g => {
         if (!g.standalone) {
@@ -166,7 +193,17 @@ export default function OnboardingSidebar({
         }
       });
       setExpandedGroups(newState);
+    } else if (groupId) {
+      // Expand only the clicked group
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = (g.id === groupId);
+        }
+      });
+      setExpandedGroups(newState);
     }
+
     if (isMobile) onClose();
   };
 
@@ -267,7 +304,7 @@ export default function OnboardingSidebar({
                         />
 
                         <ListItemButton
-                          onClick={() => handleItemClick(item)}
+                          onClick={() => handleItemClick(item, false, group.id)}
                           selected={isActive}
                           sx={{
                             ml: 1.5,
