@@ -120,9 +120,9 @@ export async function uploadImage(
     return { success: true, url: publicUrl };
   } catch (error) {
     console.error('Upload error:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Upload failed' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Upload failed'
     };
   }
 }
@@ -200,7 +200,7 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
 /**
  * Get wedding image path
  */
-export function getWeddingImagePath(weddingId: string, category: 'couple' | 'events' | 'carousel' | 'backgrounds'): string {
+export function getWeddingImagePath(weddingId: string, category: 'couple' | 'events' | 'carousel' | 'backgrounds' | 'outfits'): string {
   return `${weddingId}/${category}`;
 }
 

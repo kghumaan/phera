@@ -21,7 +21,7 @@ import { useState, useEffect, use } from 'react';
 import { Add, Edit, Delete, Save, LocationOnOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
+
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -93,12 +93,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
   const handleSaveDay = async () => {
     setError(null);
-    
+
     // Validation with field-level error tracking
     const newFieldErrors: Record<string, boolean> = {};
     if (!currentDay?.day_name) newFieldErrors.day_name = true;
     if (!currentDay?.date) newFieldErrors.date = true;
-    
+
     if (Object.keys(newFieldErrors).length > 0) {
       setDayFieldErrors(newFieldErrors);
       const errorMessage = 'Please fill in all fields';
@@ -106,7 +106,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       showToast(errorMessage, 'error');
       return;
     }
-    
+
     setDayFieldErrors({});
 
     try {
@@ -158,12 +158,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
   const handleSaveItem = async () => {
     setError(null);
-    
+
     // Validation with field-level error tracking
     const newFieldErrors: Record<string, boolean> = {};
     if (!currentItem?.time) newFieldErrors.time = true;
     if (!currentItem?.name) newFieldErrors.name = true;
-    
+
     if (Object.keys(newFieldErrors).length > 0) {
       setItemFieldErrors(newFieldErrors);
       const errorMessage = 'Please fill in required fields';
@@ -171,7 +171,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       showToast(errorMessage, 'error');
       return;
     }
-    
+
     setItemFieldErrors({});
 
     try {
@@ -208,321 +208,163 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  // Mobile Preview Component
-  const MobilePreview = () => (
-    <MobilePreviewFrame 
-      title="SCHEDULE" 
-      backgroundImage="/images/backgrounds/jade.png"
-    >
-      <Box sx={{ pt: 2 }}>
-        {scheduleData.length === 0 ? (
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            minHeight: 200,
-            bgcolor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            p: 3,
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-          }}>
-            <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontFamily: 'Outfit' }}>
-              Add a day to see preview
-            </Typography>
-          </Box>
-        ) : (
-          <Stack spacing={2}>
-            {scheduleData.map((day) => (
-              <Box
-                key={day.id}
-                sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: '16px',
-                  p: 3,
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                {/* Day Header */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Outfit',
-                      fontWeight: 600,
-                      color: '#141414',
-                      fontSize: '1.5rem',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {day.date}
-                  </Typography>
-                </Box>
 
-                {/* Events */}
-                <Stack spacing={3}>
-                  {day.events?.map((event: any, index: number) => (
-                    <Box
-                      key={event.id}
-                      sx={{
-                        pb: index < day.events.length - 1 ? 3 : 0,
-                        borderBottom: index < day.events.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          mb: 1,
-                          gap: 2,
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Outfit',
-                              fontWeight: 600,
-                              color: '#141414',
-                              fontSize: '1rem',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            {event.name}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          sx={{
-                            color: '#DE3F5E',
-                            fontWeight: 600,
-                            fontSize: '0.95rem',
-                            letterSpacing: '0.07em',
-                            textTransform: 'uppercase',
-                            textAlign: 'right',
-                            flexShrink: 0,
-                            fontFamily: 'Outfit',
-                          }}
-                        >
-                          {event.time}
-                        </Typography>
-                      </Box>
-                      {event.location && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnOutlined 
-                            sx={{ fontSize: 16, color: '#858585' }} 
-                          />
-                          <Typography
-                            sx={{
-                              color: '#858585',
-                              fontSize: '1rem',
-                              fontWeight: 400,
-                              fontFamily: 'Outfit',
-                            }}
-                          >
-                            {event.location}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  ))}
-                  {(!day.events || day.events.length === 0) && (
-                    <Typography sx={{ fontSize: 13, color: '#8d8d8d', fontStyle: 'italic', fontFamily: 'Outfit' }}>
-                      No events yet
-                    </Typography>
-                  )}
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
-        )}
-      </Box>
-    </MobilePreviewFrame>
-  );
 
   if (loading) {
     return (
-      <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+      <Box sx={{ maxWidth: 800 }}>
         <LoadingSpinner message="Loading schedule..." />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
-      <Grid container spacing={6}>
-        {/* Left Column - Schedule Form */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Wedding Schedule
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Build your day-by-day schedule
-              </Typography>
-            </Box>
+    <Box sx={{ maxWidth: 800 }}>
+      {/* Schedule Form */}
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Wedding Schedule
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            Build your day-by-day schedule
+          </Typography>
+        </Box>
 
-            <Button 
-              variant="contained" 
-              startIcon={<Add />} 
-              onClick={handleAddDay}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                alignSelf: 'flex-start',
-                '&:hover': {
-                  bgcolor: '#C8365A',
-                },
-              }}
-            >
-              Add Day
-            </Button>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={handleAddDay}
+          sx={{
+            bgcolor: '#DE3F5E',
+            color: 'white',
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            alignSelf: 'flex-start',
+            '&:hover': {
+              bgcolor: '#C8365A',
+            },
+          }}
+        >
+          Add Day
+        </Button>
 
-            <Stack spacing={3}>
-              {scheduleData.map((day) => (
-                <Paper key={day.id} sx={{ 
-                  p: 3,
-                  borderRadius: '16px',
-                  bgcolor: '#fafafa',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                  '&:hover': {
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  }
-                }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                    <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {day.date}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                        {day.day_name}
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={1}>
-                      <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
-                        setCurrentDay(day); 
-                        setDayFieldErrors({});
-                        setEditDialogOpen(true); 
-                      }}>
-                        <Edit />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleDeleteDay(day.id)} color="error">
-                        <Delete />
-                      </IconButton>
-                    </Stack>
-                  </Stack>
-
-                  <Stack spacing={2} mb={2}>
-                    {day.events?.map((item: any) => (
-                      <Box key={item.id} sx={{ 
-                        pl: 2, 
-                        py: 1.5,
-                        borderLeft: 3, 
-                        borderColor: '#DE3F5E',
-                        bgcolor: 'rgba(222, 63, 94, 0.02)',
-                        borderRadius: '0 8px 8px 0',
-                      }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              {item.time} - {item.name}
-                            </Typography>
-                            {item.description && (
-                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                                {item.description}
-                              </Typography>
-                            )}
-                            {item.location && (
-                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                                📍 {item.location}
-                              </Typography>
-                            )}
-                          </Box>
-                          <Stack direction="row" spacing={1}>
-                            <IconButton size="small" sx={editIconButtonSx} onClick={() => { 
-                              setCurrentItem(item); 
-                              setItemFieldErrors({});
-                              setItemDialogOpen(true); 
-                            }}>
-                              <Edit />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => handleDeleteItem(item.id)} color="error">
-                              <Delete />
-                            </IconButton>
-                          </Stack>
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<Add />}
-                    onClick={() => handleAddItem(day.id)}
-                    sx={{
-                      ...SECONDARY_BUTTON_SX,
-                      alignSelf: 'flex-start',
-                      px: 2.5,
-                      boxShadow: 'none',
-                    }}
-                  >
-                    Add Event
-                  </Button>
-                </Paper>
-              ))}
-
-              {scheduleData.length === 0 && (
-                <Paper sx={{ 
-                  p: 4, 
-                  textAlign: 'center',
-                  borderRadius: '16px',
-                  bgcolor: 'white',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                }}>
-                  <Typography sx={{ color: '#6a6a6a' }}>
-                    No schedule days yet. Add your first day to get started.
+        <Stack spacing={3}>
+          {scheduleData.map((day) => (
+            <Paper key={day.id} sx={{
+              p: 3,
+              borderRadius: '16px',
+              bgcolor: '#fafafa',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              }
+            }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                    {day.date}
                   </Typography>
-                </Paper>
-              )}
-            </Stack>
-          </Stack>
-        </Grid>
+                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                    {day.day_name}
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <IconButton size="small" sx={editIconButtonSx} onClick={() => {
+                    setCurrentDay(day);
+                    setDayFieldErrors({});
+                    setEditDialogOpen(true);
+                  }}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => handleDeleteDay(day.id)} color="error">
+                    <Delete />
+                  </IconButton>
+                </Stack>
+              </Stack>
 
-        {/* Right Column - Fixed Mobile Preview (always visible on large screens) */}
-        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
-          <Box
-            sx={{
-              position: 'fixed',
-              top: '50%',
-              left: '79.17%',
-              transform: 'translate(-50%, -50%)',
-              width: { lg: '520px' },
-              maxWidth: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MobilePreview />
-          </Box>
-        </Grid>
+              <Stack spacing={2} mb={2}>
+                {day.events?.map((item: any) => (
+                  <Box key={item.id} sx={{
+                    pl: 2,
+                    py: 1.5,
+                    borderLeft: 3,
+                    borderColor: '#DE3F5E',
+                    bgcolor: 'rgba(222, 63, 94, 0.02)',
+                    borderRadius: '0 8px 8px 0',
+                  }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {item.time} - {item.name}
+                        </Typography>
+                        {item.description && (
+                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                            {item.description}
+                          </Typography>
+                        )}
+                        {item.location && (
+                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                            📍 {item.location}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Stack direction="row" spacing={1}>
+                        <IconButton size="small" sx={editIconButtonSx} onClick={() => {
+                          setCurrentItem(item);
+                          setItemFieldErrors({});
+                          setItemDialogOpen(true);
+                        }}>
+                          <Edit />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleDeleteItem(item.id)} color="error">
+                          <Delete />
+                        </IconButton>
+                      </Stack>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
 
-        {/* Mobile Preview at Bottom (Mobile only) */}
-        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
-          <MobilePreview />
-        </Grid>
-      </Grid>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<Add />}
+                onClick={() => handleAddItem(day.id)}
+                sx={{
+                  ...SECONDARY_BUTTON_SX,
+                  alignSelf: 'flex-start',
+                  px: 2.5,
+                  boxShadow: 'none',
+                }}
+              >
+                Add Event
+              </Button>
+            </Paper>
+          ))}
+
+          {scheduleData.length === 0 && (
+            <Paper sx={{
+              p: 4,
+              textAlign: 'center',
+              borderRadius: '16px',
+              bgcolor: 'white',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            }}>
+              <Typography sx={{ color: '#6a6a6a' }}>
+                No schedule days yet. Add your first day to get started.
+              </Typography>
+            </Paper>
+          )}
+        </Stack>
+      </Stack>
 
       {/* Day Dialog */}
-      <Dialog 
-        open={editDialogOpen} 
-        onClose={() => setEditDialogOpen(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
@@ -575,9 +417,9 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         </DialogContent>
         <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
           <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            startIcon={<Save />} 
+          <Button
+            variant="contained"
+            startIcon={<Save />}
             onClick={handleSaveDay}
             sx={{
               bgcolor: '#DE3F5E',
@@ -596,10 +438,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       </Dialog>
 
       {/* Item Dialog */}
-      <Dialog 
-        open={itemDialogOpen} 
-        onClose={() => setItemDialogOpen(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={itemDialogOpen}
+        onClose={() => setItemDialogOpen(false)}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
@@ -666,9 +508,9 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         </DialogContent>
         <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
           <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            startIcon={<Save />} 
+          <Button
+            variant="contained"
+            startIcon={<Save />}
             onClick={handleSaveItem}
             sx={{
               bgcolor: '#DE3F5E',
@@ -693,14 +535,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
           severity={snackbarSeverity}
           sx={{ width: '100%' }}
         >
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }

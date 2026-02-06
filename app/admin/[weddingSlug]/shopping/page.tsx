@@ -22,7 +22,7 @@ import { Add, Edit, Delete, Save, OpenInNew } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SHOP_TEMPLATES, ShopTemplate } from '@/components/admin/ShopTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
+
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
@@ -142,100 +142,25 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
 
   if (loading) {
     return (
-      <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+      <Box sx={{ maxWidth: 800 }}>
         <LoadingSpinner message="Loading shopping guide..." />
-      </Container>
+      </Box>
     );
   }
 
-  // Mobile Preview Component
-  const MobilePreview = () => (
-    <MobilePreviewFrame title="Shopping Guide">
-      {shops.length === 0 ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <Box sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '12px',
-            p: 3,
-            boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
-          }}>
-            <Typography sx={{ color: '#6a6a6a', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
-              Add a shop to see preview
-            </Typography>
-          </Box>
-        </Box>
-      ) : (
-        <Stack spacing={2}>
-          {shops.map((shop) => (
-            <Box
-              key={shop.id}
-              component="a"
-              href={shop.url}
-              target="_blank"
-              sx={{
-                display: 'block',
-                textDecoration: 'none',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '12px',
-                p: 2,
-                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0px 6px 16px rgba(0, 0, 0, 0.15)',
-                },
-              }}
-            >
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Outfit',
-                      fontWeight: 600,
-                      fontSize: 15,
-                      color: '#141414',
-                      mb: 0.5,
-                    }}
-                  >
-                    {shop.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Outfit',
-                      fontWeight: 400,
-                      fontSize: 12,
-                      color: '#666',
-                      lineHeight: 1.4,
-                      whiteSpace: 'pre-line',
-                    }}
-                  >
-                    {shop.details}
-                  </Typography>
-                </Box>
-                <OpenInNew sx={{ fontSize: 18, color: '#DE3F5E', ml: 1 }} />
-              </Stack>
-            </Box>
-          ))}
-        </Stack>
-      )}
-    </MobilePreviewFrame>
-  );
+
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
-      <Grid container spacing={6}>
-        {/* Left Column - Form Controls */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Shopping Guide
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Recommend online stores for Indian outfits
-              </Typography>
-            </Box>
+    <Box sx={{ maxWidth: 800 }}>
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Shopping Guide
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            Recommend online stores for Indian outfits
+          </Typography>
+        </Box>
 
 
         {/* Action Buttons */}
@@ -279,7 +204,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
 
         <Stack spacing={2}>
           {shops.map((shop) => (
-            <Paper key={shop.id} sx={{ 
+            <Paper key={shop.id} sx={{
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
@@ -315,8 +240,8 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           ))}
 
           {shops.length === 0 && (
-            <Paper sx={{ 
-              p: 4, 
+            <Paper sx={{
+              p: 4,
               textAlign: 'center',
               borderRadius: '16px',
               bgcolor: 'white',
@@ -330,10 +255,10 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
         </Stack>
 
         {/* Template Selection Dialog */}
-        <Dialog 
-          open={templateDialogOpen} 
-          onClose={() => setTemplateDialogOpen(false)} 
-          maxWidth="md" 
+        <Dialog
+          open={templateDialogOpen}
+          onClose={() => setTemplateDialogOpen(false)}
+          maxWidth="md"
           fullWidth
           PaperProps={{
             sx: {
@@ -377,10 +302,10 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
         </Dialog>
 
         {/* Edit Shop Dialog */}
-        <Dialog 
-          open={editDialogOpen} 
-          onClose={() => setEditDialogOpen(false)} 
-          maxWidth="sm" 
+        <Dialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          maxWidth="sm"
           fullWidth
           PaperProps={{
             sx: {
@@ -423,9 +348,9 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
             <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              startIcon={<Save />} 
+            <Button
+              variant="contained"
+              startIcon={<Save />}
               onClick={handleSave}
               sx={{
                 bgcolor: '#DE3F5E',
@@ -443,48 +368,23 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           </DialogActions>
         </Dialog>
 
-            {/* Toast Notification */}
-            <Snackbar
-              open={snackbarOpen}
-              autoHideDuration={6000}
-              onClose={() => setSnackbarOpen(false)}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <Alert
-                onClose={() => setSnackbarOpen(false)}
-                severity={snackbarSeverity}
-                sx={{ width: '100%' }}
-              >
-                {snackbarMessage}
-              </Alert>
-            </Snackbar>
-          </Stack>
-        </Grid>
-
-        {/* Right Column - Fixed Mobile Preview (Desktop only) */}
-        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
-          <Box
-            sx={{
-              position: 'fixed',
-              top: '50%',
-              left: '79.17%',
-              transform: 'translate(-50%, -50%)',
-              width: { lg: '520px' },
-              maxWidth: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+        {/* Toast Notification */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity={snackbarSeverity}
+            sx={{ width: '100%' }}
           >
-            <MobilePreview />
-          </Box>
-        </Grid>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Stack>
 
-        {/* Mobile Preview at Bottom (Mobile only) */}
-        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
-          <MobilePreview />
-        </Grid>
-      </Grid>
-    </Container>
+    </Box>
   );
 }
