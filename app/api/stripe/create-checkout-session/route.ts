@@ -7,14 +7,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, role, plan, coupleName, partnerName, weddingDate, weddingEndDate, selectedFeatures } = await request.json();
+    const { userId, email, role, plan, coupleName, partnerName, weddingDate, weddingEndDate, venueName, selectedFeatures } = await request.json();
 
     if (plan !== 'pro') {
       return NextResponse.json({ error: 'Only Pro plan requires a checkout session' }, { status: 400 });
     }
 
-    // Create a checkout session
-    // Using ui_mode: 'embedded' as requested for "remain on our site" experience
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
       line_items: [
@@ -39,6 +37,7 @@ export async function POST(request: NextRequest) {
         partnerName: partnerName || '',
         weddingDate: weddingDate || '',
         weddingEndDate: weddingEndDate || '',
+        venueName: venueName || '',
         selectedFeatures: JSON.stringify(selectedFeatures || []),
       },
       customer_email: email,

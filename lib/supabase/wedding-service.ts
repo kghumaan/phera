@@ -61,8 +61,9 @@ export interface WeddingEvent {
   ritual_description: string | null;
   carousel_images: string[];
   carousel_slides: CarouselSlide[]; // New field for structured carousel content
+  outfit_example_url: string | null;
   gradient_background: string | null;
-  text_color: string; // New field for text color (#141414 or #FFFFFF)
+  text_color: string;
   order_index: number;
   is_template: boolean;
   created_at: string;
@@ -316,23 +317,45 @@ export class WeddingService {
   }
 
   async checkSlugAvailability(slug: string, excludeWeddingId?: string): Promise<boolean> {
-    let query = this.supabase
-      .from('weddings')
-      .select('id')
-      .eq('slug', slug);
-
-    if (excludeWeddingId) {
-      query = query.neq('id', excludeWeddingId);
-    }
-
-    const { data, error } = await query;
+    // We must use an RPC function to check availability because RLS prevents 
+    // users from seeing 'draft' weddings of other users, which would lead 
+    // to false positives in availability checks.
+    const { data, error } = await this.supabase
+      .rpc('check_slug_availability', { slug_to_check: slug });
 
     if (error) {
-      console.error('Error checking slug availability:', error);
-      return false;
+      console.error('Error checking slug availability via RPC:', error);
+
+      // Fallback to client-side check if RPC fails for some reason
+      let query = this.supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', slug);
+
+      if (excludeWeddingId) {
+        query = query.neq('id', excludeWeddingId);
+      }
+
+      const { data: fallbackData, error: fallbackError } = await query;
+      if (fallbackError) return false;
+      return !fallbackData || fallbackData.length === 0;
     }
 
-    return !data || data.length === 0;
+    // Since RPC checks the whole table, if we have an excludeWeddingId, 
+    // we need to make sure we aren't blocking ourselves.
+    // However, for onboarding, excludeWeddingId is usually not used.
+    if (excludeWeddingId && data === false) {
+      const { data: ownWedding } = await this.supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', slug)
+        .eq('id', excludeWeddingId)
+        .single();
+
+      if (ownWedding) return true;
+    }
+
+    return data === true;
   }
 
   // Events
@@ -787,7 +810,7 @@ export class WeddingService {
       .from('wedding_settings')
       .select('*')
       .eq('wedding_id', weddingId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching settings:', error);

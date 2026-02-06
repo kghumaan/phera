@@ -18,48 +18,110 @@ import {
   Edit,
   Groups,
   AirportShuttle,
+  Publish,
+  Language,
+  ExpandLess,
+  ExpandMore,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Wedding } from '@/lib/supabase/wedding-service';
+import { Collapse } from '@mui/material';
 
-interface SidebarSection {
+interface SidebarItem {
   id: string;
   label: string;
-  subtitle?: string;
-  icon: React.ReactNode;
   path: string;
+  icon?: React.ReactNode;
   required?: boolean;
 }
 
-const sections: SidebarSection[] = [
-  { id: 'overview', label: 'Overview', icon: <Home />, path: '/overview' },
-  { id: 'guests', label: 'Guest Responses', icon: <People />, path: '/guests' },
-  { id: 'details', label: 'Wedding Details', icon: <Edit />, path: '/details', required: true },
-  { id: 'design', label: 'Look & Feel', icon: <Palette />, path: '/design', required: true },
-  { id: 'events', label: 'Events', icon: <Event />, path: '/events', required: true },
-  { id: 'schedule', label: 'Schedule', icon: <Schedule />, path: '/schedule', required: true },
-  { id: 'travel', label: 'Travel & Stay', icon: <Flight />, path: '/travel' },
-  { id: 'faq', label: 'FAQ', icon: <HelpOutline />, path: '/faq' },
-  { id: 'registry', label: 'Registry', icon: <CardGiftcard />, path: '/registry' },
-  { id: 'shopping', label: 'Shopping Guide', icon: <ShoppingBag />, path: '/shopping' },
-  { id: 'pins', label: 'PIN Management', icon: <VpnKey />, path: '/pins', required: true },
-  { id: 'travel-coordination', label: 'Travel Coordination', icon: <AirportShuttle />, path: '/travel-coordination' },
-  { id: 'team', label: 'Team', icon: <Groups />, path: '/team' },
+interface SidebarGroup {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  items: SidebarItem[];
+  standalone?: boolean;
+}
+
+const groups: SidebarGroup[] = [
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: <Home />,
+    standalone: true,
+    items: [
+      { id: 'overview', label: 'Overview', path: '/overview' }
+    ]
+  },
+  {
+    id: 'website',
+    label: 'Wedding Website',
+    icon: <Language />,
+    items: [
+      { id: 'details', label: 'Wedding Details', path: '/details', required: true },
+      { id: 'design', label: 'Look & Feel', path: '/design', required: true },
+      { id: 'events', label: 'Events', path: '/events', required: true },
+      { id: 'schedule', label: 'Schedule', path: '/schedule', required: true },
+      { id: 'travel', label: 'Travel & Stay', path: '/travel' },
+      { id: 'faq', label: 'FAQ', path: '/faq' },
+      { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
+      { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
+    ]
+  },
+  {
+    id: 'guest-responses',
+    label: 'Guest Responses',
+    icon: <People />,
+    items: [
+      { id: 'guests', label: 'RSVPs', path: '/guests' },
+      { id: 'travel-coordination', label: 'Travel Coordination', path: '/travel-coordination' },
+    ]
+  },
+  {
+    id: 'team',
+    label: 'Team',
+    icon: <Groups />,
+    standalone: true,
+    items: [
+      { id: 'team', label: 'Team', path: '/team' }
+    ]
+  },
 ];
 
 interface OnboardingSidebarProps {
   weddingSlug: string;
   wedding?: Wedding;
   onNavigating?: (isNavigating: boolean) => void;
+  // Publish button props
+  weddingStatus?: 'draft' | 'live';
+  weddingId?: string;
+  onStatusChange?: (status: 'draft' | 'live') => void;
+  onSlugChange?: (newSlug: string) => void;
+  mobileOpen: boolean;
+  onClose: () => void;
 }
 
-export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }: OnboardingSidebarProps) {
+export default function OnboardingSidebar({
+  weddingSlug,
+  wedding,
+  onNavigating,
+  weddingStatus = 'draft',
+  weddingId,
+  onStatusChange,
+  onSlugChange,
+  mobileOpen,
+  onClose,
+}: OnboardingSidebarProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
   const router = useRouter();
   const pathname = usePathname();
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    website: true,
+    'guest-responses': true,
+  });
 
   const calculateProgress = (wedding?: Wedding): number => {
     if (!wedding) return 0;
@@ -79,152 +141,185 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
     return Math.round((completed / requiredFields.length) * 100);
   };
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+  const handleToggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const isCurrentlyExpanded = prev[groupId] ?? true;
+      // Collapse everything else, toggle the current one
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = g.id === groupId ? !isCurrentlyExpanded : false;
+        }
+      });
+      return newState;
+    });
   };
 
-  const handleSectionClick = (section: SidebarSection) => {
-    // Immediately show loading state
+  const handleItemClick = (item: SidebarItem, collapseAll = false) => {
     onNavigating?.(true);
-
-    router.push(`/admin/${weddingSlug}${section.path}`);
-    if (isMobile) {
-      setMobileOpen(false);
+    router.push(`/admin/${weddingSlug}${item.path}`);
+    if (collapseAll) {
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = false;
+        }
+      });
+      setExpandedGroups(newState);
     }
+    if (isMobile) onClose();
   };
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Logo Section */}
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: 1, borderColor: alpha('#000', 0.05), position: 'relative' }}>
-        {/* Phera Logo */}
-        <Box
-          onClick={() => {
-            if (window.confirm('Any unsaved changes may be lost. Are you sure you want to return to the home page?')) {
-              router.push('/');
-            }
-          }}
-          sx={{
-            position: 'relative',
-            width: '100%',
-            height: 120,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            filter: 'brightness(0)', // Converts to black
-            cursor: 'pointer',
-            transition: 'transform 0.2s',
-            '&:hover': {
-              transform: 'scale(1.02)',
-            },
-          }}
-        >
-          <Image
-            src="/logo.svg"
-            alt="Phera"
-            fill
-            priority
-            style={{
-              objectFit: 'contain',
-            }}
-          />
-        </Box>
-        {isMobile && (
-          <IconButton
-            onClick={handleDrawerToggle}
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-            }}
-          >
-            <Close />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* Navigation List */}
-      <List sx={{ flex: 1, py: 2 }}>
-        {sections
-          .filter((section) => {
-            // Only show Guest Responses if wedding status is 'live'
-            if (section.id === 'guests') {
-              return wedding?.status === 'live';
-            }
-            return true;
-          })
-          .map((section) => {
-            const isActive = pathname.endsWith(section.path) || pathname.endsWith(section.path + '/');
-
+      {/* Navigation Groups */}
+      <Box sx={{ flex: 1, py: 2, overflowY: 'auto' }}>
+        {groups.map((group) => {
+          // ... existing mapping logic ...
+          if (group.standalone) {
+            const item = group.items[0];
+            const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
             return (
               <ListItemButton
-                key={section.id}
-                onClick={() => handleSectionClick(section)}
+                key={group.id}
+                onClick={() => handleItemClick(item, true)}
                 selected={isActive}
                 sx={{
-                  mx: 1,
+                  px: 1.5, // Reduced from 2 to align text with parent items
+                  py: 1,
+                  mx: 0,
                   mb: 0.5,
                   borderRadius: '12px',
-                  color: '#4a4a4a',
-                  '&:hover': {
-                    bgcolor: alpha('#DE3F5E', 0.08),
-                  },
+                  color: isActive ? 'white' : '#4a4a4a',
+                  '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
                   '&.Mui-selected': {
                     bgcolor: '#DE3F5E',
                     color: 'white',
-                    '&:hover': {
-                      bgcolor: '#C8365A',
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: 'white',
-                    },
+                    '&:hover': { bgcolor: '#C8365A' },
+                    '& .MuiListItemIcon-root': { color: 'white' },
                   },
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 40,
-                    color: isActive ? 'inherit' : '#4a4a4a',
-                  }}
-                >
-                  {section.icon}
-                </ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
                 <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <span>{section.label}</span>
-                      {section.required && (
-                        <Box
-                          component="span"
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            bgcolor: isActive ? 'white' : '#DE3F5E',
-                            display: 'inline-block',
-                          }}
-                        />
-                      )}
-                    </Box>
-                  }
-                  secondary={section.subtitle}
-                  primaryTypographyProps={{
-                    sx: {
-                      fontWeight: isActive ? 600 : 500,
-                    }
-                  }}
-                  secondaryTypographyProps={{
-                    sx: {
-                      fontSize: '0.75rem',
-                      color: isActive ? 'rgba(255, 255, 255, 0.8)' : '#6a6a6a',
-                      mt: 0.25,
-                    }
-                  }}
+                  primary={group.label}
+                  primaryTypographyProps={{ sx: { fontWeight: isActive ? 600 : 600, fontSize: '0.9rem' } }}
                 />
               </ListItemButton>
             );
-          })}
-      </List>
+          }
+
+          const isExpanded = expandedGroups[group.id] ?? true;
+
+          return (
+            <Box key={group.id} sx={{ mb: 1 }}>
+              {/* Parent Item */}
+              <ListItemButton
+                onClick={() => handleToggleGroup(group.id)}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  color: '#1a1a1a',
+                  '&:hover': { bgcolor: alpha('#000', 0.02) },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: '#1a1a1a' }}>{group.icon}</ListItemIcon>
+                <ListItemText
+                  primary={group.label}
+                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
+                />
+                {isExpanded ? (
+                  <ExpandLess sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                ) : (
+                  <ExpandMore sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                )}
+              </ListItemButton>
+
+              {/* Subitems with Connecting Lines */}
+              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                <Box sx={{ position: 'relative', ml: 4.5 }}>
+                  {/* Vertical Line */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 20, // Stop before the last item's text
+                      width: '1px',
+                      bgcolor: alpha('#000', 0.08),
+                    }}
+                  />
+
+                  {group.items.map((item) => {
+                    const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
+                    return (
+                      <Box key={item.id} sx={{ position: 'relative' }}>
+                        {/* Horizontal Tick */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 18,
+                            width: 12,
+                            height: '1px',
+                            bgcolor: alpha('#000', 0.08),
+                          }}
+                        />
+
+                        <ListItemButton
+                          onClick={() => handleItemClick(item)}
+                          selected={isActive}
+                          sx={{
+                            ml: 1.5,
+                            mr: 2,
+                            mb: 0.5,
+                            py: 0.75,
+                            borderRadius: '8px',
+                            color: '#6a6a6a',
+                            minHeight: 36,
+                            '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+                            '&.Mui-selected': {
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              color: '#DE3F5E',
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.15) },
+                            },
+                          }}
+                        >
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <span>{item.label}</span>
+                                {item.required && !isActive && (
+                                  <Box
+                                    component="span"
+                                    sx={{
+                                      width: 4,
+                                      height: 4,
+                                      borderRadius: '50%',
+                                      bgcolor: '#DE3F5E',
+                                      display: 'inline-block',
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            }
+                            primaryTypographyProps={{
+                              sx: {
+                                fontSize: '0.875rem',
+                                fontWeight: isActive ? 600 : 400,
+                              }
+                            }}
+                          />
+                        </ListItemButton>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Collapse>
+            </Box>
+          );
+        })}
+      </Box>
 
       {/* Footer with Progress */}
       <Box sx={{ p: 2, borderTop: 1, borderColor: alpha('#000', 0.1) }}>
@@ -290,39 +385,62 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             All changes saved
           </Typography>
         </Box>
+
+        {/* Publish Button */}
+        <Box sx={{ mt: 2 }}>
+          <Box
+            component="button"
+            onClick={(e) => {
+              e.preventDefault();
+              console.log('Sidebar Publish button clicked. Current status:', weddingStatus);
+              if (weddingStatus === 'live') {
+                if (window.confirm('Are you sure you want to unpublish your wedding website?')) {
+                  onStatusChange?.('draft');
+                }
+              } else {
+                if (window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
+                  onStatusChange?.('live');
+                }
+              }
+            }}
+            sx={{
+              width: '100%',
+              py: 1.5,
+              px: 2,
+              border: 'none',
+              borderRadius: '12px',
+              bgcolor: weddingStatus === 'live' ? '#10B981' : '#DE3F5E',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: weddingStatus === 'live' ? '#059669' : '#C8365A',
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
+            <Publish sx={{ fontSize: 20 }} />
+            {weddingStatus === 'live' ? 'Published' : 'Publish'}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      {isMobile && (
-        <IconButton
-          onClick={handleDrawerToggle}
-          sx={{
-            position: 'fixed',
-            top: 16,
-            left: 16,
-            zIndex: 1200,
-            bgcolor: alpha('#fff', 0.95),
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            '&:hover': {
-              bgcolor: alpha('#fff', 0.98),
-            },
-          }}
-        >
-          <MenuIcon sx={{ color: '#1a1a1a' }} />
-        </IconButton>
-      )}
-
       {/* Mobile Drawer */}
       {isMobile ? (
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={handleDrawerToggle}
+          onClose={onClose}
           ModalProps={{
             keepMounted: true, // Better mobile performance
           }}
@@ -330,8 +448,7 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             '& .MuiDrawer-paper': {
               width: 280,
               boxSizing: 'border-box',
-              bgcolor: alpha('#fff', 0.98),
-              backdropFilter: 'blur(20px)',
+              bgcolor: 'white', // Solid white
             },
           }}
         >
@@ -347,9 +464,10 @@ export default function OnboardingSidebar({ weddingSlug, wedding, onNavigating }
             '& .MuiDrawer-paper': {
               width: 280,
               boxSizing: 'border-box',
-              bgcolor: alpha('#fff', 0.7),
-              backdropFilter: 'blur(20px)',
+              bgcolor: 'white', // Solid white
               borderRight: `1px solid ${alpha('#000', 0.1)}`,
+              top: { xs: 56, md: 64 }, // Offset by Top Nav height
+              height: { xs: 'calc(100% - 56px)', md: 'calc(100% - 64px)' },
             },
           }}
         >

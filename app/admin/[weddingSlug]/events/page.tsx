@@ -25,8 +25,14 @@ import {
   RadioGroup,
   FormControlLabel,
   FormLabel,
+  Checkbox,
 } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker';
 import { useState, useEffect, use } from 'react';
+import { parseISO, format } from 'date-fns';
 import {
   Add,
   Edit,
@@ -42,6 +48,8 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import MobilePreviewFrame from '@/components/admin/MobilePreviewFrame';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
+import ImageUpload from '@/components/admin/ImageUpload';
+import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -54,26 +62,18 @@ const GRADIENT_BACKGROUNDS = [
   { value: 'GradientReception.png', label: 'Reception' },
 ];
 
-// Available carousel images organized by event
-const CAROUSEL_IMAGES = {
-  haldi: [1, 2, 3, 4].map(n => `/images/carousel/haldi/${n}.png`),
-  jaggo: [1, 2, 3, 4, 5].map(n => `/images/carousel/jaggo/${n}.png`),
-  anand_karaj: [1, 2, 3].map(n => `/images/carousel/anand_karaj/${n}.png`),
-  pool_party: [1, 2, 3].map(n => `/images/carousel/pool_party/${n}.png`),
-  reception: [1, 2, 3].map(n => `/images/carousel/reception/${n}.png`),
-};
 
-// Get all available images as flat array
-const ALL_IMAGES = Object.values(CAROUSEL_IMAGES).flat();
 
 export default function EventsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const [loading, setLoading] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [weddingDates, setWeddingDates] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
   const [events, setEvents] = useState<WeddingEvent[]>([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
+  const [showDressCodeDetails, setShowDressCodeDetails] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Partial<WeddingEvent> | null>(null);
   const [currentSlide, setCurrentSlide] = useState<Partial<CarouselSlide> | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(-1);
@@ -94,6 +94,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
       if (wedding) {
         setWeddingId(wedding.id);
+        setWeddingDates({
+          start: wedding.wedding_date ? parseISO(wedding.wedding_date) : null,
+          end: wedding.wedding_date_end ? parseISO(wedding.wedding_date_end) : null,
+        });
         const eventsData = await weddingService.getWeddingEvents(wedding.id);
         setEvents(eventsData);
       }
@@ -116,10 +120,12 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       carousel_slides: [],
       text_color: '#141414',
       gradient_background: 'GradientYellow.png',
+      outfit_example_url: null,
     });
     setFieldErrors({});
+    setShowDressCodeDetails(false);
     setTemplateDialogOpen(false);
-    setEditDialogOpen(true);
+    setIsEditing(true);
   };
 
   const handleAddCustom = () => {
@@ -141,15 +147,18 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       text_color: '#141414',
       order_index: events.length,
       is_template: false,
+      outfit_example_url: null,
     });
     setFieldErrors({});
-    setEditDialogOpen(true);
+    setShowDressCodeDetails(false);
+    setIsEditing(true);
   };
 
   const handleEdit = (event: WeddingEvent) => {
     setCurrentEvent(event);
     setFieldErrors({});
-    setEditDialogOpen(true);
+    setShowDressCodeDetails(!!event.dress_code || !!event.dress_code_description || !!event.outfit_example_url);
+    setIsEditing(true);
   };
 
 
@@ -250,7 +259,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
 
       await loadData();
-      setEditDialogOpen(false);
+      setIsEditing(false);
       setCurrentEvent(null);
       toast.success('Event saved successfully!');
     } catch (err) {
@@ -298,7 +307,11 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
   // Mobile Preview Component - Always visible showing events list or carousel
   const MobilePreview = () => {
-    if (previewMode === 'list') {
+    // Determine what to show in preview
+    const activeEvent = isEditing && currentEvent ? currentEvent : events[previewEventIndex];
+    const isShowingActiveList = previewMode === 'list' && (!isEditing || !currentEvent);
+
+    if (isShowingActiveList) {
       return (
         <MobilePreviewFrame title="Events & Dress Code" onBackClick={undefined}>
           {events.length === 0 ? (
@@ -373,7 +386,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                             gap: 1,
                           }}
                         >
-                          {event.dress_code_emoji} {event.dress_code}
+                          {event.dress_code}
                         </Typography>
                         <Typography
                           sx={{
@@ -402,153 +415,340 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       );
     }
 
-    // Carousel preview mode
-    const event = events[previewEventIndex];
-    if (!event) return null;
-    const slides = (event.carousel_slides as CarouselSlide[]) || [];
+    // Carousel/Single Event preview mode
+    if (!activeEvent) return null;
+    const slides = (activeEvent.carousel_slides as CarouselSlide[]) || [];
+
+    // If editing, we might want to prioritize showing the main details first
+    const previewSlides: CarouselSlide[] = [];
+
+    // Add a virtual first slide for the current event details if we're editing
+    previewSlides.push({
+      type: 'ritual',
+      heading: activeEvent.ritual_name || 'Event Title',
+      description: activeEvent.ritual_description || 'Event description will appear here.',
+      subtitle: activeEvent.name || 'Event',
+    });
+
+    // Add outfit example slide if available
+    if (activeEvent.outfit_example_url) {
+      previewSlides.push({
+        type: 'image',
+        src: activeEvent.outfit_example_url,
+      });
+    }
+
+    // Append regular slides
+    previewSlides.push(...slides);
 
     return (
-      <MobilePreviewFrame title={event.name} onBackClick={handleBackToEventsList}>
-        {slides.length === 0 ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Typography sx={{ fontFamily: 'Outfit', fontSize: 14, color: '#6a6a6a', textAlign: 'center' }}>
-              No carousel slides for this event
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Carousel */}
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-              {slides.map((slide, index) => (
-                <Box
-                  key={index}
+      <MobilePreviewFrame title={activeEvent.name || 'Event Preview'} onBackClick={isEditing ? undefined : handleBackToEventsList}>
+        <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Carousel */}
+          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+            {previewSlides.map((slide, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: index === previewSlideIndex ? 'flex' : 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                <Card
                   sx={{
-                    display: index === previewSlideIndex ? 'flex' : 'none',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     width: '100%',
                     height: '100%',
+                    backgroundColor: slide.type === 'image' ? 'transparent' : '#FFFFFF',
+                    backgroundImage: slide.type !== 'image' ? `url(/images/backgrounds/${activeEvent.gradient_background || 'GradientYellow.png'})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    borderRadius: '12px',
+                    border: '1px solid #FFFFFF',
+                    overflow: 'hidden',
                   }}
                 >
-                  <Card
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: index % 2 === 0 ? 'transparent' : '#FFFFFF',
-                      backgroundImage: index % 2 === 0 ? `url(/images/backgrounds/${event.gradient_background})` : 'none',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      borderRadius: '12px',
-                      border: index % 2 === 0 || slide.type === 'image' ? '1px solid #FFFFFF' : 'none',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-                      {slide.type === 'image' ? (
-                        <Box
-                          component="img"
-                          src={slide.src}
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                          }}
-                        />
-                      ) : (
-                        <Stack spacing={1} alignItems="center" sx={{ textAlign: 'center' }}>
-                          {slide.subtitle && (
-                            <Typography sx={{ fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: event.text_color || '#141414', opacity: 0.7 }}>
-                              {slide.subtitle}
-                            </Typography>
-                          )}
-                          {slide.heading && (
-                            <Typography sx={{ fontFamily: 'Instrument Serif', fontSize: 20, fontWeight: 400, fontStyle: 'italic', color: event.text_color || '#141414' }}>
-                              {slide.heading}
-                            </Typography>
-                          )}
-                          {slide.description && (
-                            <Typography sx={{ fontFamily: 'Outfit', fontSize: 11, color: event.text_color || '#141414' }}>
-                              {slide.description}
-                            </Typography>
-                          )}
-                          {slide.women && slide.women.length > 0 && (
-                            <Box>
-                              <Typography sx={{ fontSize: 9, fontWeight: 600, color: event.text_color || '#141414' }}>Women</Typography>
-                              {slide.women.map((item, i) => (
-                                <Typography key={i} sx={{ fontSize: 10, color: event.text_color || '#141414' }}>{item}</Typography>
-                              ))}
-                            </Box>
-                          )}
-                          {slide.men && slide.men.length > 0 && (
-                            <Box>
-                              <Typography sx={{ fontSize: 9, fontWeight: 600, color: event.text_color || '#141414' }}>Men</Typography>
-                              {slide.men.map((item, i) => (
-                                <Typography key={i} sx={{ fontSize: 10, color: event.text_color || '#141414' }}>{item}</Typography>
-                              ))}
-                            </Box>
-                          )}
-                        </Stack>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Box>
-              ))}
-            </Box>
-
-            {/* Navigation */}
-            {slides.length > 1 && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, py: 1 }}>
-                <IconButton
-                  size="small"
-                  onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
-                  disabled={previewSlideIndex === 0}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
-                >
-                  <ChevronLeft sx={{ color: '#000' }} />
-                </IconButton>
-                <Typography sx={{ fontSize: 12, color: '#000' }}>
-                  {previewSlideIndex + 1} / {slides.length}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setPreviewSlideIndex(Math.min(slides.length - 1, previewSlideIndex + 1))}
-                  disabled={previewSlideIndex === slides.length - 1}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
-                >
-                  <ChevronRight sx={{ color: '#000' }} />
-                </IconButton>
+                  <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+                    {slide.type === 'image' ? (
+                      <Box
+                        component="img"
+                        src={slide.src}
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                        }}
+                      />
+                    ) : (
+                      <Stack spacing={1} alignItems="center" sx={{ textAlign: 'center' }}>
+                        {slide.subtitle && (
+                          <Typography sx={{ fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: activeEvent.text_color || '#141414', opacity: 0.7 }}>
+                            {slide.subtitle}
+                          </Typography>
+                        )}
+                        {slide.heading && (
+                          <Typography sx={{ fontFamily: 'Instrument Serif', fontSize: 20, fontWeight: 400, fontStyle: 'italic', color: activeEvent.text_color || '#141414' }}>
+                            {slide.heading}
+                          </Typography>
+                        )}
+                        {slide.description && (
+                          <Typography sx={{ fontFamily: 'Outfit', fontSize: 11, color: activeEvent.text_color || '#141414' }}>
+                            {slide.description}
+                          </Typography>
+                        )}
+                      </Stack>
+                    )}
+                  </CardContent>
+                </Card>
               </Box>
-            )}
+            ))}
           </Box>
-        )}
+
+          {/* Navigation */}
+          {previewSlides.length > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, py: 1 }}>
+              <IconButton
+                size="small"
+                onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
+                disabled={previewSlideIndex === 0}
+                sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
+              >
+                <ChevronLeft sx={{ color: '#000' }} />
+              </IconButton>
+              <Typography sx={{ fontSize: 12, color: '#000' }}>
+                {previewSlideIndex + 1} / {previewSlides.length}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setPreviewSlideIndex(Math.min(previewSlides.length - 1, previewSlideIndex + 1))}
+                disabled={previewSlideIndex === previewSlides.length - 1}
+                sx={{ bgcolor: 'rgba(255,255,255,0.8)', color: '#000' }}
+              >
+                <ChevronRight sx={{ color: '#000' }} />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
       </MobilePreviewFrame>
     );
   };
 
   if (loading && events.length === 0 && !weddingId) {
     return (
-      <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+      <Box sx={{ p: 4 }}>
         <LoadingSpinner message="Loading events..." />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
-      <Grid container spacing={6}>
-        {/* Left Column - Events List & Forms */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Events & Dress Code
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Manage your wedding events, dress codes, and carousel content
-              </Typography>
-            </Box>
+    <Box sx={{ maxWidth: 800 }}>
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Events & Dress Code
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            {isEditing ? 'Editing event details' : 'Manage your wedding events, dress codes, and carousel content'}
+          </Typography>
+        </Box>
 
+        {isEditing && currentEvent ? (
+          <Paper sx={{ p: { xs: 4, md: 6 }, borderRadius: '24px', bgcolor: 'white', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' }}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Stack spacing={4}>
+                <TextField
+                  label="Event Title *"
+                  fullWidth
+                  value={currentEvent.name || ''}
+                  onChange={(e) => updateCurrentEvent('name', e.target.value)}
+                  error={fieldErrors.name}
+                  sx={textFieldSx}
+                />
+
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <MobileDatePicker
+                      label="Event Date *"
+                      value={currentEvent.date ? parseISO(currentEvent.date) : null}
+                      onChange={(date) => updateCurrentEvent('date', date ? date.toISOString().split('T')[0] : '')}
+                      minDate={weddingDates.start || undefined}
+                      maxDate={weddingDates.end || undefined}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!fieldErrors.date,
+                          sx: textFieldSx
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <MobileTimePicker
+                      label="Event Time *"
+                      value={currentEvent.time ? parseISO(`2000-01-01T${currentEvent.time}`) : null}
+                      onChange={(time) => updateCurrentEvent('time', time ? format(time, 'HH:mm') : '')}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          sx: textFieldSx
+                        }
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                <TextField
+                  label="Event Vibe / Subtitle"
+                  fullWidth
+                  value={currentEvent.ritual_name || ''}
+                  onChange={(e) => updateCurrentEvent('ritual_name', e.target.value)}
+                  placeholder="e.g. Traditional & Spiritual"
+                  sx={textFieldSx}
+                />
+
+                <TextField
+                  label="Event Description"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={currentEvent.ritual_description || ''}
+                  onChange={(e) => updateCurrentEvent('ritual_description', e.target.value)}
+                  placeholder="Give your guests more details about what to expect!"
+                  sx={textFieldSx}
+                />
+
+                <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee' }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={showDressCodeDetails}
+                        onChange={(e) => setShowDressCodeDetails(e.target.checked)}
+                      />
+                    }
+                    label="Provide Dress Code Details?"
+                  />
+                </Box>
+
+                {showDressCodeDetails && (
+                  <Stack spacing={4} sx={{ pt: 2, borderTop: '1px solid #eee' }}>
+                    <TextField
+                      label="Dress Code Name"
+                      fullWidth
+                      value={currentEvent.dress_code || ''}
+                      onChange={(e) => updateCurrentEvent('dress_code', e.target.value)}
+                      placeholder="Shades of Yellow, Cocktail Glam, etc."
+                      sx={textFieldSx}
+                    />
+
+                    <TextField
+                      label="Dress Code Description"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={currentEvent.dress_code_description || ''}
+                      onChange={(e) => updateCurrentEvent('dress_code_description', e.target.value)}
+                      placeholder="Briefly describe the dress code expectations."
+                      sx={textFieldSx}
+                    />
+
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>Background</Typography>
+                      <Grid container spacing={1}>
+                        {GRADIENT_BACKGROUNDS.map((bg) => (
+                          <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={bg.value}>
+                            <Box
+                              onClick={() => updateCurrentEvent('gradient_background', bg.value)}
+                              sx={{
+                                cursor: 'pointer',
+                                borderRadius: '8px',
+                                border: currentEvent.gradient_background === bg.value ? '3px solid #DE3F5E' : '1px solid #eee',
+                                overflow: 'hidden',
+                                aspectRatio: '1',
+                                position: 'relative',
+                                transition: 'transform 0.2s',
+                                '&:hover': { transform: 'scale(1.05)' }
+                              }}
+                            >
+                              <Box
+                                component="img"
+                                src={`/images/backgrounds/${bg.value}`}
+                                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                              <Box sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                bgcolor: 'rgba(0,0,0,0.5)',
+                                color: 'white',
+                                fontSize: '10px',
+                                p: 0.5,
+                                textAlign: 'center'
+                              }}>
+                                {bg.label}
+                              </Box>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Want to display example outfits? Upload Here</Typography>
+                      <ImageUpload
+                        value={currentEvent.outfit_example_url || ''}
+                        onChange={(url) => updateCurrentEvent('outfit_example_url', url)}
+                        path={getWeddingImagePath(weddingId!, 'outfits')}
+                        label="Outfit Example"
+                        aspectRatio="3/4"
+                      />
+                    </Box>
+                  </Stack>
+                )}
+
+                <Stack direction="row" spacing={2} sx={{ pt: 4, borderTop: '1px solid #eee' }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleSaveEvent}
+                    sx={{
+                      flex: 1,
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      borderRadius: '12px',
+                      py: 1.5,
+                      fontSize: 16,
+                      fontWeight: 600,
+                      '&:hover': { bgcolor: '#C8365A' },
+                    }}
+                  >
+                    Save Event
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setCurrentEvent(null);
+                    }}
+                    sx={{
+                      flex: 1,
+                      borderRadius: '12px',
+                      borderColor: '#eee',
+                      color: '#6a6a6a',
+                      '&:hover': { borderColor: '#ddd', bgcolor: '#f9f9f9' },
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
+              </Stack>
+            </LocalizationProvider>
+          </Paper>
+        ) : (
+          <>
             <Stack direction="row" spacing={2}>
               <Button
                 variant="contained"
@@ -592,14 +792,11 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 13, textTransform: 'uppercase', color: '#474747', mb: 0.5 }}>
                           {event.name}
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 500, fontSize: 20, color: '#000', mb: 0.5 }}>
-                          {event.dress_code_emoji} {event.dress_code}
+                        <Typography variant="h6" sx={{ fontWeight: 500, fontSize: 18, color: '#000', mb: 0.5 }}>
+                          {event.dress_code_emoji} {event.dress_code || 'No Dress Code Set'}
                         </Typography>
                         <Typography variant="body2" sx={{ fontSize: 14, color: '#858585' }}>
                           {event.date} @ {event.time}
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontSize: 12, color: '#6a6a6a', mt: 1, display: 'block' }}>
-                          {(event.carousel_slides as CarouselSlide[] || []).length} carousel slides
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={1}>
@@ -623,33 +820,9 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                 </Paper>
               )}
             </Stack>
-          </Stack>
-        </Grid>
-
-        {/* Right Column - Fixed Mobile Preview (always visible) */}
-        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
-          <Box
-            sx={{
-              position: 'fixed',
-              top: '50%',
-              left: '79.17%',
-              transform: 'translate(-50%, -50%)',
-              width: { lg: '520px' },
-              maxWidth: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MobilePreview />
-          </Box>
-        </Grid>
-
-        {/* Mobile Preview at Bottom (Mobile only) */}
-        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
-          <MobilePreview />
-        </Grid>
-      </Grid>
+          </>
+        )}
+      </Stack>
 
       {/* Template Selection Dialog */}
       <Dialog
@@ -703,342 +876,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
         </DialogActions>
       </Dialog>
 
-      {/* Basic Event Edit Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            bgcolor: 'white',
-          }
-        }}
-      >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.75rem' } }}>
-          {currentEvent?.id ? 'Edit Event' : 'New Event'}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            <TextField
-              label="Event Name *"
-              fullWidth
-              value={currentEvent?.name || ''}
-              onChange={(e) => updateCurrentEvent('name', e.target.value)}
-              error={fieldErrors.name}
-              sx={textFieldSx}
-            />
 
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Date *"
-                  type="date"
-                  fullWidth
-                  value={currentEvent?.date || ''}
-                  onChange={(e) => updateCurrentEvent('date', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  error={fieldErrors.date}
-                  sx={textFieldSx}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Time *"
-                  fullWidth
-                  value={currentEvent?.time || ''}
-                  onChange={(e) => updateCurrentEvent('time', e.target.value)}
-                  sx={textFieldSx}
-                />
-              </Grid>
-            </Grid>
-
-            <TextField
-              label="Dress Code *"
-              fullWidth
-              value={currentEvent?.dress_code || ''}
-              onChange={(e) => updateCurrentEvent('dress_code', e.target.value)}
-              error={fieldErrors.dress_code}
-              sx={textFieldSx}
-            />
-
-            <TextField
-              label="Dress Code Emoji"
-              fullWidth
-              value={currentEvent?.dress_code_emoji || ''}
-              onChange={(e) => updateCurrentEvent('dress_code_emoji', e.target.value)}
-              placeholder="e.g., 🌻"
-              sx={textFieldSx}
-            />
-
-            <TextField
-              label="Dress Code Description"
-              fullWidth
-              multiline
-              rows={2}
-              value={currentEvent?.dress_code_description || ''}
-              onChange={(e) => updateCurrentEvent('dress_code_description', e.target.value)}
-              sx={textFieldSx}
-            />
-
-            <FormControl fullWidth sx={textFieldSx}>
-              <InputLabel sx={{ color: '#1a1a1a' }}>Gradient Background</InputLabel>
-              <Select
-                value={currentEvent?.gradient_background || 'GradientYellow.png'}
-                onChange={(e) => updateCurrentEvent('gradient_background', e.target.value)}
-                label="Gradient Background"
-                sx={{ color: '#1a1a1a' }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: 'white',
-                      '& .MuiMenuItem-root': {
-                        color: '#1a1a1a',
-                      },
-                    },
-                  },
-                }}
-              >
-                {GRADIENT_BACKGROUNDS.map((bg) => (
-                  <MenuItem key={bg.value} value={bg.value}>{bg.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl component="fieldset">
-              <FormLabel sx={{ color: '#1a1a1a', fontWeight: 600, mb: 1 }}>Text Color (for gradient slides)</FormLabel>
-              <RadioGroup
-                row
-                value={currentEvent?.text_color || '#141414'}
-                onChange={(e) => updateCurrentEvent('text_color', e.target.value)}
-              >
-                <FormControlLabel
-                  value="#141414"
-                  control={<Radio sx={{ color: '#1a1a1a', '&.Mui-checked': { color: '#DE3F5E' } }} />}
-                  label={<span style={{ color: '#1a1a1a' }}>Black</span>}
-                />
-                <FormControlLabel
-                  value="#FFFFFF"
-                  control={<Radio sx={{ color: '#1a1a1a', '&.Mui-checked': { color: '#DE3F5E' } }} />}
-                  label={<span style={{ color: '#1a1a1a' }}>White</span>}
-                />
-              </RadioGroup>
-            </FormControl>
-
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' } }}>Outfit Ideas - Women</Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-              {((currentEvent?.outfit_ideas_women as string[]) || []).map((idea, idx) => (
-                <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('women', idx)} sx={{ bgcolor: '#f5f5f5', color: '#1a1a1a' }} />
-              ))}
-              <TextField
-                size="small"
-                placeholder="Add idea (press Enter)"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    addOutfitIdea('women', (e.target as HTMLInputElement).value);
-                    (e.target as HTMLInputElement).value = '';
-                  }
-                }}
-                sx={{
-                  minWidth: '200px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#1a1a1a',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#1a1a1a',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#DE3F5E',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#4a4a4a',
-                    opacity: 1,
-                  },
-                }}
-              />
-            </Stack>
-
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' } }}>Outfit Ideas - Men</Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-              {((currentEvent?.outfit_ideas_men as string[]) || []).map((idea, idx) => (
-                <Chip key={idx} label={idea} onDelete={() => removeOutfitIdea('men', idx)} sx={{ bgcolor: '#f5f5f5', color: '#1a1a1a' }} />
-              ))}
-              <TextField
-                size="small"
-                placeholder="Add idea (press Enter)"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    addOutfitIdea('men', (e.target as HTMLInputElement).value);
-                    (e.target as HTMLInputElement).value = '';
-                  }
-                }}
-                sx={{
-                  minWidth: '200px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#1a1a1a',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#1a1a1a',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#DE3F5E',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#4a4a4a',
-                    opacity: 1,
-                  },
-                }}
-              />
-            </Stack>
-
-            <TextField
-              label="Ritual/Vibe Name"
-              fullWidth
-              value={currentEvent?.ritual_name || ''}
-              onChange={(e) => updateCurrentEvent('ritual_name', e.target.value)}
-              sx={textFieldSx}
-            />
-
-            <TextField
-              label="Ritual/Vibe Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={currentEvent?.ritual_description || ''}
-              onChange={(e) => updateCurrentEvent('ritual_description', e.target.value)}
-              sx={textFieldSx}
-            />
-
-            {/* Carousel Slides Section */}
-            <Box sx={{ mt: 4, pt: 3, borderTop: '2px solid #f0f0f0' }}>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a', fontSize: { xs: '1.25rem', md: '1.5rem', lg: '1.625rem' } }}>
-                Carousel Slides
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' } }}>
-                Add and manage slides that will appear when guests view this event
-              </Typography>
-
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={handleAddSlide}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  mb: 2,
-                  fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' },
-                  py: { xs: 1, md: 1.5, lg: 1.75 },
-                  px: { xs: 2, md: 3, lg: 3.5 },
-                  '&:hover': { bgcolor: '#C8365A' },
-                }}
-              >
-                Add Slide
-              </Button>
-
-              <Stack spacing={2}>
-                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
-                  <Paper key={index} sx={{ p: 2, borderRadius: '12px', bgcolor: '#fafafa' }}>
-                    <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                          Slide {index + 1}: {slide.type}
-                        </Typography>
-                        {slide.type === 'image' && slide.src && (
-                          <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 13 }}>
-                            Image: {slide.src}
-                          </Typography>
-                        )}
-                        {slide.type !== 'image' && (
-                          <Stack spacing={0.5} sx={{ mt: 1 }}>
-                            {slide.subtitle && (
-                              <Typography variant="body2" sx={{ color: '#1a1a1a', fontSize: 12 }}>
-                                <strong>Subtitle:</strong> {slide.subtitle}
-                              </Typography>
-                            )}
-                            {slide.heading && (
-                              <Typography variant="body2" sx={{ color: '#1a1a1a', fontSize: 12 }}>
-                                <strong>Heading:</strong> {slide.heading}
-                              </Typography>
-                            )}
-                            {slide.description && (
-                              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 12 }}>
-                                <strong>Description:</strong> {slide.description}
-                              </Typography>
-                            )}
-                            {slide.women && slide.women.length > 0 && (
-                              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 12 }}>
-                                <strong>Women:</strong> {slide.women.join(', ')}
-                              </Typography>
-                            )}
-                            {slide.men && slide.men.length > 0 && (
-                              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: 12 }}>
-                                <strong>Men:</strong> {slide.men.join(', ')}
-                              </Typography>
-                            )}
-                          </Stack>
-                        )}
-                      </Box>
-                      <Stack direction="row" spacing={0.5}>
-                        <IconButton size="small" onClick={() => handleMoveSlide(index, 'up')} disabled={index === 0}>
-                          <ArrowUpward fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleMoveSlide(index, 'down')}
-                          disabled={index === ((currentEvent?.carousel_slides as CarouselSlide[]) || []).length - 1}
-                        >
-                          <ArrowDownward fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleEditSlide(index)} sx={{ color: '#DE3F5E' }}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteSlide(index)} sx={{ color: '#DE3F5E' }}>
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                ))}
-
-                {((currentEvent?.carousel_slides as CarouselSlide[]) || []).length === 0 && (
-                  <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '12px', bgcolor: 'white' }}>
-                    <Typography sx={{ color: '#6a6a6a' }}>
-                      No carousel slides yet. Add your first slide to get started.
-                    </Typography>
-                  </Paper>
-                )}
-              </Stack>
-            </Box>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a', fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' } }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveEvent}
-            sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              fontSize: { xs: '0.875rem', md: '1rem', lg: '1.125rem' },
-              py: { xs: 1, md: 1.25, lg: 1.5 },
-              px: { xs: 2, md: 3, lg: 3.5 },
-              '&:hover': { bgcolor: '#C8365A' }
-            }}
-          >
-            Save Event
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Slide Edit Dialog */}
       <Dialog
@@ -1077,37 +915,9 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                 }}
               >
                 <MenuItem value="dress_code">Dress Code</MenuItem>
-                <MenuItem value="image">Image</MenuItem>
-                <MenuItem value="outfit_ideas">Outfit Ideas</MenuItem>
                 <MenuItem value="ritual">Ritual/Vibe</MenuItem>
               </Select>
             </FormControl>
-
-            {currentSlide?.type === 'image' && (
-              <FormControl fullWidth sx={textFieldSx}>
-                <InputLabel sx={{ color: '#1a1a1a' }}>Select Image</InputLabel>
-                <Select
-                  value={currentSlide?.src || ''}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, src: e.target.value })}
-                  label="Select Image"
-                  sx={{ color: '#1a1a1a' }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        bgcolor: 'white',
-                        '& .MuiMenuItem-root': {
-                          color: '#1a1a1a',
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {ALL_IMAGES.map((img) => (
-                    <MenuItem key={img} value={img}>{img}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
 
             {currentSlide?.type !== 'image' && (
               <>
@@ -1137,28 +947,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               </>
             )}
 
-            {currentSlide?.type === 'outfit_ideas' && (
-              <>
-                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>Women Ideas (comma separated)</Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  value={(currentSlide?.women || []).join(', ')}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, women: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                  sx={textFieldSx}
-                />
-                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>Men Ideas (comma separated)</Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  value={(currentSlide?.men || []).join(', ')}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, men: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                  sx={textFieldSx}
-                />
-              </>
-            )}
+
           </Stack>
         </DialogContent>
         <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
@@ -1181,6 +970,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 }

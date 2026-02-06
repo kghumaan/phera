@@ -71,8 +71,9 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
         10000 // 10 second timeout
       );
 
-      setEvents(eventsData);
+      setEvents(eventsData || []);
       setSettings(settingsData);
+      setIsLoading(false); // Ensure loading is set to false after parallel fetch
       setRetryCount(0); // Reset retry count on success
     } catch (err) {
       console.error('❌ Error fetching wedding data:', err);

@@ -51,7 +51,8 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 // --- Types ---
-type OnboardingStep = 1 | 2 | 3 | 4;
+type OnboardingStep = 1 | 2;
+
 type UserRole = 'couple' | 'planner';
 
 interface Feature {
@@ -144,6 +145,9 @@ export default function OnboardingPage() {
   const [partnerName, setPartnerName] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
   const [weddingEndDate, setWeddingEndDate] = useState('');
+  const [venueName, setVenueName] = useState('');
+  const [venueTbd, setVenueTbd] = useState(false);
+  const [dateTbd, setDateTbd] = useState(false);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
@@ -248,10 +252,10 @@ export default function OnboardingPage() {
         return;
       }
 
-      const { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, selectedFeatures } = session.metadata;
+      const { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, venueName, selectedFeatures } = session.metadata;
       const features = JSON.parse(selectedFeatures || '[]');
 
-      console.log('[Onboarding] Retrieved metadata from Stripe:', { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, features });
+      console.log('[Onboarding] Retrieved metadata from Stripe:', { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, venueName, features });
 
       setLoadingMessage(`Setting up ${coupleName}'s wedding workspace...`);
 
@@ -264,6 +268,7 @@ export default function OnboardingPage() {
         partnerName,
         weddingDate,
         weddingEndDate,
+        venueName,
         selectedFeatures: features
       });
 
@@ -284,9 +289,10 @@ export default function OnboardingPage() {
     role: UserRole,
     plan: 'free' | 'pro',
     coupleName: string,
-    partnerName?: string,
-    weddingDate?: string,
-    weddingEndDate?: string,
+    partnerName?: string | null,
+    weddingDate?: string | null,
+    weddingEndDate?: string | null,
+    venueName?: string | null,
     selectedFeatures: string[]
   }) => {
     console.log('[Onboarding DEBUG] Starting finalizeOnboarding with data:', data);
@@ -329,22 +335,47 @@ export default function OnboardingPage() {
         }
 
         console.log('[Onboarding DEBUG] Step 2a: Final slug decided:', slug);
-        const wedding = await weddingService.createWedding({
-          slug,
-          couple_name: data.coupleName,
-          partner1_name: data.coupleName,
-          partner2_name: data.partnerName || null,
-          wedding_date: data.weddingDate ? new Date(data.weddingDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
-          wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
-          venue_name: 'TBD',
-          venue_location: 'TBD',
-          rsvp_deadline: '',
-          status: 'draft',
-          created_by: data.userId,
-          background_image: '/images/backgrounds/blue-clouds.jpg',
-          primary_color: '#DE3F5E',
-        });
+
+        let wedding = null;
+        let creationAttempts = 0;
+        const maxAttempts = 3;
+
+        while (creationAttempts < maxAttempts) {
+          try {
+            wedding = await weddingService.createWedding({
+              slug,
+              couple_name: data.coupleName,
+              partner1_name: data.coupleName,
+              partner2_name: data.partnerName || null,
+              wedding_date: data.weddingDate ? new Date(data.weddingDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+              wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
+              wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
+              venue_name: data.venueName || 'TBD',
+              venue_location: data.venueName || 'TBD',
+              rsvp_deadline: '',
+              status: 'draft',
+              created_by: data.userId,
+              background_image: '/images/backgrounds/blue-clouds.jpg',
+              primary_color: '#DE3F5E',
+            });
+
+            if (wedding) break;
+
+            // If creation failed (returned null), it might be a race condition slug conflict
+            console.warn(`[Onboarding DEBUG] Wedding creation attempt ${creationAttempts + 1} failed. Retrying with new slug...`);
+            counter++;
+            slug = `${baseSlug}-${counter}`;
+            let isStillAvailable = await weddingService.checkSlugAvailability(slug);
+            while (!isStillAvailable) {
+              counter++;
+              slug = `${baseSlug}-${counter}`;
+              isStillAvailable = await weddingService.checkSlugAvailability(slug);
+            }
+          } catch (e) {
+            console.error(`[Onboarding DEBUG] Exception during wedding creation attempt ${creationAttempts + 1}:`, e);
+          }
+          creationAttempts++;
+        }
 
         if (wedding) {
           console.log('[Onboarding DEBUG] Step 2 SUCCESS, redirecting to wedding page...');
@@ -352,8 +383,8 @@ export default function OnboardingPage() {
           router.push(`/admin/${slug}/details`);
           return;
         } else {
-          console.error('[Onboarding DEBUG] Step 2 FAILED (wedding creation returned null)');
-          throw new Error('Failed to create wedding record');
+          console.error('[Onboarding DEBUG] Step 2 FAILED after all attempts');
+          throw new Error('Failed to create wedding record after multiple attempts');
         }
       }
 
@@ -384,9 +415,7 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     console.log('[Onboarding] handleNext clicked', { step });
-    if (step === 2) {
-      setStep(4);
-    } else if (step < 4) {
+    if (step < 2) {
       setStep((step + 1) as OnboardingStep);
     }
     else {
@@ -400,10 +429,6 @@ export default function OnboardingPage() {
       setCheckoutClientSecret(null);
       return;
     }
-    if (step === 4) {
-      setStep(2);
-      return;
-    }
     if (step > 1) setStep((step - 1) as OnboardingStep);
   };
 
@@ -414,59 +439,8 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (plan === 'pro' && !checkoutClientSecret) {
-      setSubmitting(true);
-      try {
-        // --- Pre-Payment Persistence ---
-        console.log('[Onboarding DEBUG] handleSubmit: Saving pre-payment settings for PRO upgrade');
-        const settingsToSave = {
-          user_id: user.id,
-          account_type: role,
-          enabled_features: selectedFeatures,
-          subscription_tier: 'pro',
-          onboarding_completed: false,
-        };
-
-        const { error: preSaveError } = await (supabase as any)
-          .from('user_settings')
-          .upsert([settingsToSave], { onConflict: 'user_id' });
-
-        if (preSaveError) {
-          console.error('[Onboarding DEBUG] handleSubmit: Pre-payment save error:', preSaveError);
-        } else {
-          console.log('[Onboarding DEBUG] handleSubmit: Pre-payment save SUCCESS');
-        }
-
-        console.log('[Onboarding DEBUG] handleSubmit: Creating Stripe Checkout session via API...');
-        const response = await fetch('/api/stripe/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            email: user.email,
-            role,
-            plan: 'pro',
-            coupleName,
-            partnerName,
-            weddingDate,
-            weddingEndDate,
-            selectedFeatures,
-          }),
-        });
-
-        const stripeRes = await response.json();
-        console.log('[Onboarding DEBUG] handleSubmit: Stripe API response:', stripeRes);
-
-        if (stripeRes.error) throw new Error(stripeRes.error);
-        setCheckoutClientSecret(stripeRes.clientSecret);
-      } catch (err) {
-        console.error('[Onboarding DEBUG] handleSubmit: Stripe session error:', err);
-        alert('Failed to start checkout. Please try again.');
-      } finally {
-        setSubmitting(false);
-      }
-      return;
-    }
+    // Plan is always free now as we've skipped feature selection and payment
+    console.log('[Onboarding DEBUG] handleSubmit: Finalizing onboarding...');
 
     console.log('[Onboarding DEBUG] handleSubmit: Finalizing FREE plan onboarding...');
     setLoading(true);
@@ -479,8 +453,9 @@ export default function OnboardingPage() {
         plan: 'free',
         coupleName,
         partnerName,
-        weddingDate,
-        weddingEndDate,
+        weddingDate: dateTbd ? null : weddingDate,
+        weddingEndDate: dateTbd ? null : weddingEndDate,
+        venueName: venueTbd ? 'TBD' : venueName,
         selectedFeatures
       });
     } catch (error) {
@@ -539,7 +514,7 @@ export default function OnboardingPage() {
           {/* Progress Indicator */}
           {!checkoutClientSecret && (
             <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 6 }}>
-              {[1, 2, 4].map(s => (
+              {[1, 2].map(s => (
                 <Box
                   key={s}
                   sx={{
@@ -780,204 +755,83 @@ export default function OnboardingPage() {
                       </Box>
                     )}
 
-                    {/* STEP 2: FEATURE SELECTION */}
+                    {/* STEP 2: NAMES, VENUE, DATE (Moved from step 4) */}
                     {step === 2 && (
                       <Box>
-                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 2, color: '#1a1a1a' }}>
-                          Personalize Your Experience
+                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontWeight: 700 }}>
+                          Let's get ready to get planning
                         </Typography>
                         <Typography variant="h6" sx={{ color: '#666', mb: 6, fontWeight: 400 }}>
-                          What tools do you need to make your wedding perfect?
+                          We'll need a few details first.
                         </Typography>
 
-                        <Grid container spacing={2}>
-                          {features.map(feature => (
-                            <Grid size={{ xs: 12, sm: 6 }} key={feature.id}>
-                              <Card
-                                elevation={0}
-                                sx={{
-                                  borderRadius: '20px',
-                                  border: '2px solid',
-                                  borderColor: selectedFeatures.includes(feature.id) ? '#DE3F5E' : 'transparent',
-                                  bgcolor: selectedFeatures.includes(feature.id) ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
-                                  transition: 'all 0.2s ease',
-                                }}
-                              >
-                                <CardActionArea sx={{ p: 3, textAlign: 'left' }} onClick={() => toggleFeature(feature.id)}>
-                                  <Stack direction="row" spacing={2} alignItems="center">
-                                    <Box sx={{ color: '#DE3F5E' }}>{feature.icon}</Box>
-                                    <Box sx={{ flexGrow: 1 }}>
-                                      <Stack direction="row" spacing={1} alignItems="center">
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{feature.name}</Typography>
-                                        {feature.isPro && <Chip label="PRO" size="small" sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 700, height: 20, fontSize: '0.65rem' }} />}
-                                      </Stack>
-                                      <Typography variant="caption" sx={{ color: '#444' }}>{feature.description}</Typography>
-                                    </Box>
-                                    {selectedFeatures.includes(feature.id) && <CheckCircle sx={{ color: '#DE3F5E' }} />}
-                                  </Stack>
-                                </CardActionArea>
-                              </Card>
-                            </Grid>
-                          ))}
-                        </Grid>
-
-                        {/* Payment Tier Display */}
-                        <Box sx={{ mt: 6, p: 4, borderRadius: '24px', bgcolor: alpha('#DE3F5E', 0.03), border: '1px solid', borderColor: alpha('#DE3F5E', 0.1) }}>
-                          <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} alignItems="center" justifyContent="space-between">
-                            <Box sx={{ textAlign: 'left' }}>
-                              <Typography variant="overline" sx={{ fontWeight: 800, color: '#DE3F5E', letterSpacing: '0.1em' }}>
-                                Selected Tier: {plan.toUpperCase()}
-                              </Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a1a1a', mt: 1 }}>
-                                {plan === 'pro' ? '$199' : '$0'}
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
-                                {plan === 'pro' ? 'Unlock all premium features and AI concierge' : 'Basic wedding website features'}
-                              </Typography>
+                        <Box sx={{ maxWidth: '400px', mx: 'auto', textAlign: 'left' }}>
+                          <Stack spacing={4}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Your First Name</Typography>
+                              <StyledTextField
+                                fullWidth
+                                label=""
+                                placeholder="Aarav"
+                                value={coupleName}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleName(e.target.value.replace(/\s/g, ''))}
+                                autoFocus
+                              />
                             </Box>
 
-                            <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
-                              <Button
-                                variant="text"
-                                color="primary"
-                                onClick={() => setShowAllFeatures(!showAllFeatures)}
-                                endIcon={<ArrowForward sx={{ transform: showAllFeatures ? 'rotate(90deg)' : 'none', transition: '0.2s' }} />}
-                                sx={{ color: '#DE3F5E', fontWeight: 700 }}
-                              >
-                                {showAllFeatures ? 'Hide Features' : 'See Features Included'}
-                              </Button>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Your Partner's First Name</Typography>
+                              <StyledTextField
+                                fullWidth
+                                label=""
+                                placeholder="Ananya"
+                                value={partnerName}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setPartnerName(e.target.value.replace(/\s/g, ''))}
+                              />
                             </Box>
-                          </Stack>
 
-                          <AnimatePresence>
-                            {showAllFeatures && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: alpha('#DE3F5E', 0.1) }}>
-                                  <Grid container spacing={3}>
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textAlign: 'left', color: '#1a1a1a' }}>Free Features</Typography>
-                                      <Stack spacing={1.5}>
-                                        {['Wedding Website', 'Custom Domain (phera.id/yours)', 'Basic Design Themes'].map((f, i) => (
-                                          <Stack key={i} direction="row" spacing={1} alignItems="center">
-                                            <CheckCircle sx={{ color: '#DE3F5E', fontSize: 18 }} />
-                                            <Typography variant="body2" sx={{ color: '#333' }}>{f}</Typography>
-                                          </Stack>
-                                        ))}
-                                      </Stack>
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textAlign: 'left', color: '#1a1a1a' }}>Pro Features</Typography>
-                                      <Stack spacing={1.5}>
-                                        {['RSVP Collection', '24/7 AI WhatsApp Agent', 'Travel Coordination', 'Real-time Analytics'].map((f, i) => (
-                                          <Stack key={i} direction="row" spacing={1} alignItems="center">
-                                            <CheckCircle sx={{ color: '#DE3F5E', fontSize: 18 }} />
-                                            <Typography variant="body2" sx={{ color: '#333' }}>{f}</Typography>
-                                          </Stack>
-                                        ))}
-                                      </Stack>
-                                    </Grid>
-                                  </Grid>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Event Venue</Typography>
+                              <StyledTextField
+                                fullWidth
+                                label=""
+                                placeholder="Sheraton Grand"
+                                value={venueName}
+                                disabled={venueTbd}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setVenueName(e.target.value)}
+                                sx={{ mb: 1 }}
+                              />
+                              <Stack direction="row" spacing={1} alignItems="center" onClick={() => setVenueTbd(!venueTbd)} sx={{ cursor: 'pointer' }}>
+                                <Box
+                                  sx={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: '4px',
+                                    border: '1px solid',
+                                    borderColor: venueTbd ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: venueTbd ? '#DE3F5E' : 'transparent',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  {venueTbd && <CheckCircle sx={{ fontSize: 16, color: 'white' }} />}
                                 </Box>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </Box>
-                      </Box>
-                    )}
+                                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                  We haven't picked a venue (yet)
+                                </Typography>
+                              </Stack>
+                            </Box>
 
-                    {/* STEP 3: PLAN SELECTION */}
-                    {step === 3 && (
-                      <Box>
-                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 2, color: '#1a1a1a' }}>
-                          Choose Your Plan
-                        </Typography>
-                        <Typography variant="h6" sx={{ color: '#666', mb: 6, fontWeight: 400 }}>
-                          {hasProFeatures
-                            ? "You've selected Pro features! Upgrade now for full access."
-                            : "Start for free or unlock the full potential with Pro."}
-                        </Typography>
-
-                        <Grid container spacing={4} justifyContent="center">
-                          <Grid size={{ xs: 12, md: 5 }}>
-                            <Paper sx={{
-                              p: 4,
-                              borderRadius: '24px',
-                              border: plan === 'free' ? '2px solid #DE3F5E' : '1px solid #eee',
-                              bgcolor: plan === 'free' ? alpha('#DE3F5E', 0.02) : '#fff',
-                              opacity: hasProFeatures ? 0.6 : 1,
-                              cursor: hasProFeatures ? 'not-allowed' : 'pointer',
-                              transition: 'all 0.3s'
-                            }} onClick={() => !hasProFeatures && setPlan('free')}>
-                              <Typography variant="overline" sx={{ fontWeight: 800, color: '#DE3F5E' }}>FREE</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, my: 1, color: '#1a1a1a' }}>$0</Typography>
-                              <Typography variant="body2" sx={{ color: '#444', mb: 3 }}>Perfect for simple RSVP tracking</Typography>
-                              {plan === 'free' && <Chip label="Selected" sx={{ bgcolor: '#DE3F5E', color: '#fff', fontWeight: 700 }} />}
-                            </Paper>
-                          </Grid>
-                          <Grid size={{ xs: 12, md: 5 }}>
-                            <Paper sx={{
-                              p: 4,
-                              borderRadius: '24px',
-                              border: plan === 'pro' ? '2px solid #DE3F5E' : '1px solid #eee',
-                              bgcolor: plan === 'pro' ? alpha('#DE3F5E', 0.02) : '#fff',
-                              boxShadow: plan === 'pro' ? '0 20px 40px rgba(222,63,94,0.1)' : 'none',
-                              position: 'relative',
-                              cursor: 'pointer',
-                              transition: 'all 0.3s'
-                            }} onClick={() => setPlan('pro')}>
-                              <Chip label="RECOMMENDED" size="small" sx={{ position: 'absolute', top: -12, right: 20, bgcolor: '#DE3F5E', color: 'white', fontWeight: 800 }} />
-                              <Typography variant="overline" sx={{ fontWeight: 800, color: '#DE3F5E' }}>PRO</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, my: 1, color: '#1a1a1a' }}>$199</Typography>
-                              <Typography variant="body2" sx={{ color: '#444', mb: 3 }}>Full coordination suite & AI agent</Typography>
-                              {plan === 'pro' && <Chip label="Selected" sx={{ bgcolor: '#DE3F5E', color: '#fff', fontWeight: 700 }} />}
-                            </Paper>
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    )}
-
-                    {/* STEP 4: INITIAL SETUP */}
-                    {step === 4 && (
-                      <Box>
-                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 2, color: '#1a1a1a' }}>
-                          {role === 'couple' ? "Tell Us About Your Celebration" : "Let's Get Started"}
-                        </Typography>
-                        <Typography variant="h6" sx={{ color: '#666', mb: 6, fontWeight: 400 }}>
-                          {role === 'couple'
-                            ? "This will be used to personalize your wedding website and concierge."
-                            : "We'll set up your first wedding project workspace."}
-                        </Typography>
-
-                        <Box sx={{ maxWidth: '400px', mx: 'auto' }}>
-                          <Stack spacing={3}>
-                            <StyledTextField
-                              fullWidth
-                              label={role === 'couple' ? "Your Name" : "First Wedding Name"}
-                              placeholder={role === 'couple' ? "e.g., Sarah" : "e.g., Sarah & John Wedding"}
-                              value={coupleName}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleName(e.target.value)}
-                              autoFocus
-                            />
-
-                            {role === 'couple' && (
-                              <>
-                                <StyledTextField
-                                  fullWidth
-                                  label="Partner's Name"
-                                  placeholder="e.g., John"
-                                  value={partnerName}
-                                  onChange={(e: ChangeEvent<HTMLInputElement>) => setPartnerName(e.target.value)}
-                                />
-
-                                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Wedding Dates</Typography>
+                              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <Stack direction="row" spacing={2}>
+                                  <Box sx={{ flex: 1 }}>
                                     <MobileDatePicker
-                                      label="Start Date"
+                                      label=""
+                                      disabled={dateTbd}
                                       value={weddingDate ? new Date(weddingDate) : null}
                                       onChange={(newValue) => setWeddingDate(newValue ? (newValue as Date).toISOString() : '')}
                                       enableAccessibleFieldDOMStructure={false}
@@ -987,6 +841,7 @@ export default function OnboardingPage() {
                                       slotProps={{
                                         textField: {
                                           fullWidth: true,
+                                          placeholder: "Start Date",
                                         },
                                         actionBar: {
                                           actions: ['cancel', 'accept'],
@@ -996,26 +851,14 @@ export default function OnboardingPage() {
                                               fontWeight: 700,
                                             }
                                           }
-                                        },
-                                        day: {
-                                          sx: {
-                                            '&.Mui-selected': {
-                                              backgroundColor: '#DE3F5E !important',
-                                            },
-                                            '&.Mui-selected:hover': {
-                                              backgroundColor: '#DE3F5E !important',
-                                              opacity: 0.9,
-                                            },
-                                            '&.MuiPickersDay-today': {
-                                              borderColor: '#DE3F5E !important',
-                                              color: '#DE3F5E',
-                                            }
-                                          }
                                         }
                                       }}
                                     />
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
                                     <MobileDatePicker
-                                      label="End Date"
+                                      label=""
+                                      disabled={dateTbd}
                                       value={weddingEndDate ? new Date(weddingEndDate) : null}
                                       onChange={(newValue) => setWeddingEndDate(newValue ? (newValue as Date).toISOString() : '')}
                                       enableAccessibleFieldDOMStructure={false}
@@ -1025,6 +868,7 @@ export default function OnboardingPage() {
                                       slotProps={{
                                         textField: {
                                           fullWidth: true,
+                                          placeholder: "End Date",
                                         },
                                         actionBar: {
                                           actions: ['cancel', 'accept'],
@@ -1034,35 +878,40 @@ export default function OnboardingPage() {
                                               fontWeight: 700,
                                             }
                                           }
-                                        },
-                                        day: {
-                                          sx: {
-                                            '&.Mui-selected': {
-                                              backgroundColor: '#DE3F5E !important',
-                                            },
-                                            '&.Mui-selected:hover': {
-                                              backgroundColor: '#DE3F5E !important',
-                                              opacity: 0.9,
-                                            },
-                                            '&.MuiPickersDay-today': {
-                                              borderColor: '#DE3F5E !important',
-                                              color: '#DE3F5E',
-                                            }
-                                          }
                                         }
                                       }}
                                     />
-                                  </Stack>
-                                </LocalizationProvider>
-                              </>
-                            )}
+                                  </Box>
+                                </Stack>
+                              </LocalizationProvider>
+                              <Stack direction="row" spacing={1} alignItems="center" onClick={() => setDateTbd(!dateTbd)} sx={{ cursor: 'pointer', mt: 1.5 }}>
+                                <Box
+                                  sx={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: '4px',
+                                    border: '1px solid',
+                                    borderColor: dateTbd ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: dateTbd ? '#DE3F5E' : 'transparent',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  {dateTbd && <CheckCircle sx={{ fontSize: 16, color: 'white' }} />}
+                                </Box>
+                                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                  We haven't picked our dates (yet)
+                                </Typography>
+                              </Stack>
+                            </Box>
                           </Stack>
-                          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#999' }}>
-                            You can change these details anytime in settings
-                          </Typography>
                         </Box>
                       </Box>
                     )}
+
+                    {/* STEP 3 & 4 (LEGACY) REMOVED */}
 
                     {/* Navigation Buttons */}
                     <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 8 }}>
@@ -1086,8 +935,7 @@ export default function OnboardingPage() {
                         }
                         onClick={() => {
                           if (step === 1 && !role) return;
-                          if (step === 2 && selectedFeatures.length === 0) return;
-                          if (step === 4 && (!coupleName || (role === 'couple' && (!partnerName || !weddingDate)))) return;
+                          if (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd))))) return;
                           handleNext();
                         }}
                         sx={{
@@ -1102,13 +950,12 @@ export default function OnboardingPage() {
                           boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
                           opacity: (
                             (step === 1 && !role) ||
-                            (step === 2 && selectedFeatures.length === 0) ||
-                            (step === 4 && (!coupleName || (role === 'couple' && (!partnerName || !weddingDate))))
+                            (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd)))))
                           ) ? 0.6 : 1, // Desaturate if "disabled"
                           '&:hover': { bgcolor: '#C8365A' },
                         }}
                       >
-                        {step === 4 ? (submitting ? 'Setting up...' : (plan === 'pro' ? 'Go to Payment' : 'Start Planning')) : 'Continue'}
+                        {step === 2 ? (submitting ? 'Setting up...' : 'Start Planning') : 'Continue'}
                       </Button>
                     </Stack>
                   </>

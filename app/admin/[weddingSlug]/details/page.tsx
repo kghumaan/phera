@@ -2,19 +2,17 @@
 
 import {
   Box,
-  Container,
   Typography,
   TextField,
   Stack,
-  Paper,
   Button,
-  Grid,
   alpha,
   IconButton,
   Chip,
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
@@ -281,7 +279,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   };
 
   const handleChange = (field: keyof DetailsFormData, value: any) => {
-    const updatedFormData = { ...formData, [field]: value };
+    let finalValue = value;
+
+    // Specifically handle partner names to ensure only first names (no spaces)
+    if (field === 'partner1_name' || field === 'partner2_name') {
+      finalValue = value.replace(/\s/g, '');
+    }
+
+    const updatedFormData = { ...formData, [field]: finalValue };
 
     // Auto-generate couple name when partner1 or partner2 name changes
     if (field === 'partner1_name' || field === 'partner2_name') {
@@ -341,6 +346,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       const newFieldErrors: Record<string, boolean> = {};
 
       if (!weddingDateStart) newFieldErrors.wedding_date_start = true;
+      if (!formData.partner1_name) newFieldErrors.partner1_name = true;
+      if (!formData.partner2_name) newFieldErrors.partner2_name = true;
       // weddingDateEnd is optional
       if (!formData.venue_name) newFieldErrors.venue_name = true;
 
@@ -442,9 +449,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ p: 4 }}>
         <LoadingSpinner message="Loading wedding details..." />
-      </Container>
+      </Box>
     );
   }
 
@@ -646,785 +653,753 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   };
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
-      <Grid container spacing={6}>
-        {/* Left Column - Form Controls */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Stack spacing={ENHANCED_SECTION_SPACING} sx={{ pt: { xs: 6, lg: 0 } }}>
-            {/* Header */}
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Wedding Details
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Basic information about your wedding - couple names, date, venue, and photos
-              </Typography>
-            </Box>
+    <Box sx={{ maxWidth: 800 }}>
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
+        {/* Header */}
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Wedding Details
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            Basic information about your wedding - couple names, date, venue, and photos
+          </Typography>
+        </Box>
 
-            {/* Form */}
-            <Paper sx={{ p: { xs: 4, md: 6 }, borderRadius: '24px', bgcolor: alpha('#fff', 0.95), backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' }}>
-              <Stack spacing={5}>
-                {/* Couple Names */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                  Couple Information *
+        {/* Form Content */}
+        <Stack spacing={5}>
+          {/* Couple Names */}
+          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            Couple Information *
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Your First Name"
+                fullWidth
+                value={formData.partner1_name}
+                onChange={(e) => handleChange('partner1_name', e.target.value)}
+                placeholder="e.g., Simran"
+                required
+                error={fieldErrors.partner1_name}
+                // helperText="No spaces allowed. This is used for your wedding title."
+                sx={textFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Your Partner's First Name"
+                fullWidth
+                value={formData.partner2_name}
+                onChange={(e) => handleChange('partner2_name', e.target.value)}
+                placeholder="e.g., Karanvir"
+                required
+                error={fieldErrors.partner2_name}
+                // helperText="No spaces allowed. This is used for your wedding title."
+                sx={textFieldSx}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Auto-generated couple name display */}
+          {formData.couple_name && (
+            <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  Combined Couple Name (Auto-generated):
                 </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="Partner 1's Name (Full Name)"
-                      fullWidth
-                      value={formData.partner1_name}
-                      onChange={(e) => handleChange('partner1_name', e.target.value)}
-                      placeholder="e.g., Simran Kaur"
-                      required
-                      error={fieldErrors.partner1_name}
-                      helperText="Auto-generates couple name from first names"
-                      sx={textFieldSx}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="Partner 2's Name (Full Name)"
-                      fullWidth
-                      value={formData.partner2_name}
-                      onChange={(e) => handleChange('partner2_name', e.target.value)}
-                      placeholder="e.g., Karanvir Singh"
-                      required
-                      error={fieldErrors.partner2_name}
-                      helperText="Auto-generates couple name from first names"
-                      sx={textFieldSx}
-                    />
-                  </Grid>
-                </Grid>
-
-                {/* Auto-generated couple name display */}
-                {formData.couple_name && (
-                  <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                        Combined Couple Name (Auto-generated):
-                      </Typography>
-                      {!editingCoupleName ? (
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setTempCoupleName(formData.couple_name);
-                            setEditingCoupleName(true);
-                          }}
-                          sx={{
-                            color: '#DE3F5E',
-                            '&:hover': {
-                              bgcolor: alpha('#DE3F5E', 0.1),
-                            },
-                          }}
-                        >
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      ) : (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, couple_name: tempCoupleName }));
-                              setEditingCoupleName(false);
-                            }}
-                            sx={{
-                              color: '#10B981',
-                              '&:hover': {
-                                bgcolor: alpha('#10B981', 0.1),
-                              },
-                            }}
-                          >
-                            <Check fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              setEditingCoupleName(false);
-                              setTempCoupleName('');
-                            }}
-                            sx={{
-                              color: '#EF4444',
-                              '&:hover': {
-                                bgcolor: alpha('#EF4444', 0.1),
-                              },
-                            }}
-                          >
-                            <Cancel fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      )}
-                    </Box>
-                    {editingCoupleName ? (
-                      <TextField
-                        value={tempCoupleName}
-                        onChange={(e) => setTempCoupleName(e.target.value)}
-                        fullWidth
-                        sx={textFieldSx}
-                        autoFocus
-                      />
-                    ) : (
-                      <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-                        {formData.couple_name}
-                      </Typography>
-                    )}
-                    <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 1, display: 'block' }}>
-                      This will be displayed on the main page
-                    </Typography>
-                  </Box>
-                )}
-
-                {/* Wedding Date */}
-                <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
-                  Wedding Date *
-                </Typography>
-
-
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <MobileDatePicker
-                        label="Wedding Start Date"
-                        value={weddingDateStart}
-                        onChange={(newValue) => handleDateStartChange(newValue as Date | null)}
-                        enableAccessibleFieldDOMStructure={false}
-                        slots={{
-                          textField: TextField,
-                        }}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            required: true,
-                            error: !!fieldErrors.wedding_date_start,
-                            sx: textFieldSx,
-                          },
-                          actionBar: {
-                            actions: ['cancel', 'accept'],
-                            sx: {
-                              '& .MuiButton-root': {
-                                color: '#DE3F5E',
-                                fontWeight: 700,
-                              }
-                            }
-                          },
-                          day: {
-                            sx: {
-                              '&.Mui-selected': {
-                                backgroundColor: '#DE3F5E !important',
-                              },
-                              '&.Mui-selected:hover': {
-                                backgroundColor: '#DE3F5E !important',
-                                opacity: 0.9,
-                              },
-                              '&.MuiPickersDay-today': {
-                                borderColor: '#DE3F5E !important',
-                                color: '#DE3F5E',
-                              }
-                            }
-                          }
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <MobileDatePicker
-                        label="Wedding End Date"
-                        value={weddingDateEnd}
-                        onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
-                        enableAccessibleFieldDOMStructure={false}
-                        slots={{
-                          textField: TextField,
-                        }}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            // required: true, // Removed as end date is optional
-                            error: !!fieldErrors.wedding_date_end,
-                            placeholder: "e.g., 2026-01-06",
-                            sx: textFieldSx,
-                          },
-                          actionBar: {
-                            actions: ['cancel', 'accept'],
-                            sx: {
-                              '& .MuiButton-root': {
-                                color: '#DE3F5E',
-                                fontWeight: 700,
-                              }
-                            }
-                          },
-                          day: {
-                            sx: {
-                              '&.Mui-selected': {
-                                backgroundColor: '#DE3F5E !important',
-                              },
-                              '&.Mui-selected:hover': {
-                                backgroundColor: '#DE3F5E !important',
-                                opacity: 0.9,
-                              },
-                              '&.MuiPickersDay-today': {
-                                borderColor: '#DE3F5E !important',
-                                color: '#DE3F5E',
-                              }
-                            }
-                          }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </LocalizationProvider>
-
-                {/* Date Display Preview and Edit */}
-                {weddingDateStart && (
-                  <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                        Date Display Preview (Auto-generated):
-                      </Typography>
-                      {!editingDateDisplay ? (
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            if (weddingDateStart) {
-                              setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd));
-                              setEditingDateDisplay(true);
-                            }
-                          }}
-                          sx={{
-                            color: '#DE3F5E',
-                            '&:hover': {
-                              bgcolor: alpha('#DE3F5E', 0.1),
-                            },
-                          }}
-                        >
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      ) : (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              handleDateDisplayChange(tempDateDisplay);
-                              setEditingDateDisplay(false);
-                            }}
-                            sx={{
-                              color: '#10B981',
-                              '&:hover': {
-                                bgcolor: alpha('#10B981', 0.1),
-                              },
-                            }}
-                          >
-                            <Check fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              setEditingDateDisplay(false);
-                              setTempDateDisplay('');
-                            }}
-                            sx={{
-                              color: '#EF4444',
-                              '&:hover': {
-                                bgcolor: alpha('#EF4444', 0.1),
-                              },
-                            }}
-                          >
-                            <Cancel fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      )}
-                    </Box>
-                    {editingDateDisplay ? (
-                      <TextField
-                        value={tempDateDisplay}
-                        onChange={(e) => setTempDateDisplay(e.target.value)}
-                        fullWidth
-                        placeholder="e.g., 4-6 JANUARY, 2026"
-                        helperText="How the date should appear to guests"
-                        sx={textFieldSx}
-                        autoFocus
-                      />
-                    ) : (
-                      <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-                        {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd)}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
-                {/* Venue */}
-                <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
-                  Venue Information *
-                </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="Venue Name"
-                      fullWidth
-                      value={formData.venue_name}
-                      onChange={(e) => handleChange('venue_name', e.target.value)}
-                      placeholder="e.g., Sheraton"
-                      required
-                      error={fieldErrors.venue_name}
-                      sx={textFieldSx}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      label="City/Country"
-                      fullWidth
-                      value={formData.venue_location}
-                      onChange={(e) => handleChange('venue_location', e.target.value)}
-                      placeholder="e.g., Bangkok, Thailand 🇹🇭"
-                      required
-                      sx={textFieldSx}
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.show_venue_location}
-                          onChange={(e) => handleChange('show_venue_location', e.target.checked)}
-                          sx={{
-                            color: '#DE3F5E',
-                            '&.Mui-checked': {
-                              color: '#DE3F5E',
-                            },
-                          }}
-                        />
-                      }
-                      label="Display on website"
-                      sx={{ color: '#4a4a4a', mt: 1 }}
-                    />
-                  </Grid>
-                </Grid>
-
-                {/* RSVP Deadline */}
-                <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
-                  RSVP Information
-                </Typography>
-
-                <Stack spacing={2}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD'}
-                        onChange={(e) => {
-                          if (!e.target.checked) {
-                            handleChange('rsvp_deadline', '');
-                          } else {
-                            // Default to 1 month before wedding if possible
-                            const deadline = weddingDateStart ? new Date(weddingDateStart) : new Date();
-                            if (weddingDateStart) deadline.setMonth(deadline.getMonth() - 1);
-                            handleChange('rsvp_deadline', deadline.toISOString());
-                          }
-                        }}
-                        sx={{
-                          color: '#DE3F5E',
-                          '&.Mui-checked': {
-                            color: '#DE3F5E',
-                          },
-                        }}
-                      />
-                    }
-                    label="Set RSVP Closing Date"
-                    sx={{ color: '#4a4a4a' }}
-                  />
-
-                  {!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' && (
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                      <MobileDatePicker
-                        label="RSVP Deadline"
-                        value={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
-                        onChange={(newValue) => {
-                          if (newValue) {
-                            handleChange('rsvp_deadline', (newValue as Date).toISOString());
-                          }
-                        }}
-                        enableAccessibleFieldDOMStructure={false}
-                        slots={{
-                          textField: TextField,
-                        }}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            sx: textFieldSx,
-                          },
-                          actionBar: {
-                            actions: ['cancel', 'accept'],
-                            sx: {
-                              '& .MuiButton-root': {
-                                color: '#DE3F5E',
-                                fontWeight: 700,
-                              }
-                            }
-                          },
-                          day: {
-                            sx: {
-                              '&.Mui-selected': {
-                                backgroundColor: '#DE3F5E !important',
-                              },
-                              '&.Mui-selected:hover': {
-                                backgroundColor: '#DE3F5E !important',
-                                opacity: 0.9,
-                              },
-                              '&.MuiPickersDay-today': {
-                                borderColor: '#DE3F5E !important',
-                                color: '#DE3F5E',
-                              }
-                            }
-                          }
-                        }}
-                      />
-                    </LocalizationProvider>
-                  )}
-                </Stack>
-
-                {/* Images */}
-                <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
-                  Images
-                </Typography>
-
-                {weddingId && (
-                  <>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                        Couple Photos (up to 6)
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                        Add multiple photos of the couple. Recommended size: 800x800px each
-                      </Typography>
-
-                      {/* Add Photo Button */}
-                      {coupleImages.filter(img => img).length < 6 && (
-                        <Box sx={{ mb: 2 }}>
-                          <Button
-                            variant="outlined"
-                            startIcon={<Add />}
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                              input.onchange = async (e) => {
-                                const file = (e.target as HTMLInputElement).files?.[0];
-                                if (file) {
-                                  // Upload the file using ImageUpload's upload logic
-                                  const { uploadImage } = await import('@/lib/utils/image-upload');
-                                  const result = await uploadImage(file, getWeddingImagePath(weddingId, 'couple'));
-                                  if (result.success && result.url) {
-                                    const newImages = [...coupleImages];
-                                    const nextEmptyIndex = newImages.findIndex(img => !img);
-                                    if (nextEmptyIndex !== -1) {
-                                      newImages[nextEmptyIndex] = result.url;
-                                    } else {
-                                      newImages.push(result.url);
-                                    }
-                                    setCoupleImages(newImages.slice(0, 6));
-                                  }
-                                }
-                              };
-                              input.click();
-                            }}
-                            sx={{
-                              borderColor: '#DE3F5E',
-                              color: '#DE3F5E',
-                              borderRadius: '12px',
-                              textTransform: 'none',
-                              fontWeight: 600,
-                              '&:hover': {
-                                borderColor: '#C8365A',
-                                bgcolor: 'rgba(222, 63, 94, 0.05)',
-                              },
-                            }}
-                          >
-                            Add Photo
-                          </Button>
-                        </Box>
-                      )}
-
-                      {/* Horizontal scrollable thumbnails */}
-                      {coupleImages.filter(img => img).length > 0 && (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            gap: 2,
-                            overflowX: 'auto',
-                            pb: 2,
-                            '&::-webkit-scrollbar': {
-                              height: 8,
-                            },
-                            '&::-webkit-scrollbar-track': {
-                              backgroundColor: '#f5f5f5',
-                              borderRadius: 4,
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                              backgroundColor: '#DE3F5E',
-                              borderRadius: 4,
-                            },
-                          }}
-                        >
-                          {coupleImages.filter((img): img is string => img !== null && img !== '').map((img, actualIndex) => {
-                            const originalIndex = coupleImages.indexOf(img);
-                            return (
-                              <Box
-                                key={originalIndex}
-                                sx={{
-                                  position: 'relative',
-                                  minWidth: 120,
-                                  width: 120,
-                                  height: 120,
-                                  flexShrink: 0,
-                                  borderRadius: 2,
-                                  overflow: 'hidden',
-                                  border: originalIndex === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                }}
-                              >
-                                <Box
-                                  component="img"
-                                  src={img}
-                                  alt={`Couple photo ${originalIndex + 1}`}
-                                  sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                  }}
-                                />
-                                {originalIndex === 0 && (
-                                  <Chip
-                                    label="Main"
-                                    size="small"
-                                    sx={{
-                                      position: 'absolute',
-                                      top: 4,
-                                      left: 4,
-                                      bgcolor: '#DE3F5E',
-                                      color: 'white',
-                                      fontWeight: 600,
-                                      fontSize: '0.7rem',
-                                    }}
-                                  />
-                                )}
-                                <IconButton
-                                  size="small"
-                                  onClick={async () => {
-                                    const { deleteImage } = await import('@/lib/utils/image-upload');
-                                    await deleteImage(img);
-                                    const newImages = [...coupleImages];
-                                    newImages[originalIndex] = null;
-                                    setCoupleImages(newImages);
-                                  }}
-                                  sx={{
-                                    position: 'absolute',
-                                    top: 4,
-                                    right: 4,
-                                    bgcolor: 'rgba(0, 0, 0, 0.6)',
-                                    color: 'white',
-                                    '&:hover': {
-                                      bgcolor: 'rgba(222, 63, 94, 0.9)',
-                                    },
-                                    width: 28,
-                                    height: 28,
-                                  }}
-                                >
-                                  <Delete sx={{ fontSize: 16 }} />
-                                </IconButton>
-                              </Box>
-                            );
-                          })}
-                        </Box>
-                      )}
-                    </Box>
-
-                    {/* Frame Selection */}
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                        Frame Options
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                        Choose a decorative frame for your photos
-                      </Typography>
-
-                      <Grid container spacing={3} alignItems="center">
-                        <Grid size={{ xs: 12, md: 5 }}>
-                          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                            {[
-                              { id: 'frame-27', url: '/images/frames/frame-27.png', name: 'Classic Rose' }
-                            ].map((frame) => (
-                              <Box
-                                key={frame.id}
-                                onClick={() => handleChange('frame_image_url', frame.url)}
-                                sx={{
-                                  width: 100,
-                                  height: 100,
-                                  borderRadius: '12px',
-                                  border: formData.frame_image_url === frame.url ? '3px solid #DE3F5E' : '1px solid #eee',
-                                  cursor: 'pointer',
-                                  overflow: 'hidden',
-                                  position: 'relative',
-                                  transition: 'all 0.2s',
-                                  '&:hover': {
-                                    transform: 'scale(1.05)',
-                                    borderColor: '#DE3F5E',
-                                  }
-                                }}
-                              >
-                                <Box
-                                  component="img"
-                                  src={frame.url}
-                                  alt={frame.name}
-                                  sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain',
-                                    p: 1
-                                  }}
-                                />
-                                {formData.frame_image_url === frame.url && (
-                                  <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
-                                    <Check sx={{ color: 'white', fontSize: 14 }} />
-                                  </Box>
-                                )}
-                              </Box>
-                            ))}
-                          </Box>
-                        </Grid>
-
-                        {/* Show preview if both frame and main photo exist */}
-                        {formData.frame_image_url && (
-                          <>
-                            <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
-                              <ArrowForward sx={{ color: '#DE3F5E', fontSize: 32 }} />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 5 }}>
-                              <Stack spacing={1}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                                  Preview with Frame
-                                </Typography>
-                                <Box
-                                  sx={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    maxWidth: 400,
-                                    aspectRatio: '1/1',
-                                    overflow: 'visible',
-                                  }}
-                                >
-                                  {/* Frame background - at zIndex 1 (behind) */}
-                                  <Box
-                                    component="img"
-                                    src={formData.frame_image_url || ''}
-                                    alt="Decorative frame"
-                                    sx={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      width: '100%',
-                                      height: '100%',
-                                      objectFit: 'contain',
-                                      zIndex: 1,
-                                      pointerEvents: 'none',
-                                    }}
-                                  />
-
-                                  {/* Couple Image on top - at zIndex 3 (in front) */}
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      top: '7%',
-                                      left: '7%',
-                                      width: '87%',
-                                      height: '87%',
-                                      overflow: 'hidden',
-                                      zIndex: 3,
-                                    }}
-                                  >
-                                    <Box
-                                      component="img"
-                                      src={coupleImages[0] || ''}
-                                      alt="Couple photo"
-                                      sx={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                      }}
-                                    />
-                                  </Box>
-                                </Box>
-                              </Stack>
-                            </Grid>
-                          </>
-                        )}
-                      </Grid>
-                    </Box>
-                  </>
-                )}
-
-                {/* Save Button */}
-                <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={showSaveSuccess ? <Check /> : <Save />}
-                    onClick={handleSave}
-                    disabled={saving || showSaveSuccess}
+                {!editingCoupleName ? (
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setTempCoupleName(formData.couple_name);
+                      setEditingCoupleName(true);
+                    }}
                     sx={{
-                      mt: 2,
-                      bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                      color: 'white',
-                      py: 1.5,
-                      px: 4,
-                      borderRadius: '32px',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      boxShadow: showSaveSuccess
-                        ? '0 4px 12px rgba(16, 185, 129, 0.4)'
-                        : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                      transition: 'all 0.3s ease',
+                      color: '#DE3F5E',
                       '&:hover': {
-                        bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                        boxShadow: showSaveSuccess
-                          ? '0 6px 16px rgba(16, 185, 129, 0.5)'
-                          : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                      },
-                      '&:disabled': {
-                        bgcolor: alpha('#DE3F5E', 0.5),
+                        bgcolor: alpha('#DE3F5E', 0.1),
                       },
                     }}
                   >
-                    {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Changes'}
-                  </Button>
-                </Box>
-              </Stack>
-            </Paper>
+                    <Edit fontSize="small" />
+                  </IconButton>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, couple_name: tempCoupleName }));
+                        setEditingCoupleName(false);
+                      }}
+                      sx={{
+                        color: '#10B981',
+                        '&:hover': {
+                          bgcolor: alpha('#10B981', 0.1),
+                        },
+                      }}
+                    >
+                      <Check fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setEditingCoupleName(false);
+                        setTempCoupleName('');
+                      }}
+                      sx={{
+                        color: '#EF4444',
+                        '&:hover': {
+                          bgcolor: alpha('#EF4444', 0.1),
+                        },
+                      }}
+                    >
+                      <Cancel fontSize="small" />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
+              {editingCoupleName ? (
+                <TextField
+                  value={tempCoupleName}
+                  onChange={(e) => setTempCoupleName(e.target.value)}
+                  fullWidth
+                  sx={textFieldSx}
+                  autoFocus
+                />
+              ) : (
+                <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+                  {formData.couple_name}
+                </Typography>
+              )}
+              <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 1, display: 'block' }}>
+                This will be displayed on the main page
+              </Typography>
+            </Box>
+          )}
+
+          {/* Wedding Date */}
+          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+            Wedding Date *
+          </Typography>
+
+
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <MobileDatePicker
+                  label="Wedding Start Date"
+                  value={weddingDateStart}
+                  onChange={(newValue) => handleDateStartChange(newValue as Date | null)}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{
+                    textField: TextField,
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      error: !!fieldErrors.wedding_date_start,
+                      sx: textFieldSx,
+                    },
+                    actionBar: {
+                      actions: ['cancel', 'accept'],
+                      sx: {
+                        '& .MuiButton-root': {
+                          color: '#DE3F5E',
+                          fontWeight: 700,
+                        }
+                      }
+                    },
+                    day: {
+                      sx: {
+                        '&.Mui-selected': {
+                          backgroundColor: '#DE3F5E !important',
+                        },
+                        '&.Mui-selected:hover': {
+                          backgroundColor: '#DE3F5E !important',
+                          opacity: 0.9,
+                        },
+                        '&.MuiPickersDay-today': {
+                          borderColor: '#DE3F5E !important',
+                          color: '#DE3F5E',
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <MobileDatePicker
+                  label="Wedding End Date"
+                  value={weddingDateEnd}
+                  onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{
+                    textField: TextField,
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      // required: true, // Removed as end date is optional
+                      error: !!fieldErrors.wedding_date_end,
+                      placeholder: "e.g., 2026-01-06",
+                      sx: textFieldSx,
+                    },
+                    actionBar: {
+                      actions: ['cancel', 'accept'],
+                      sx: {
+                        '& .MuiButton-root': {
+                          color: '#DE3F5E',
+                          fontWeight: 700,
+                        }
+                      }
+                    },
+                    day: {
+                      sx: {
+                        '&.Mui-selected': {
+                          backgroundColor: '#DE3F5E !important',
+                        },
+                        '&.Mui-selected:hover': {
+                          backgroundColor: '#DE3F5E !important',
+                          opacity: 0.9,
+                        },
+                        '&.MuiPickersDay-today': {
+                          borderColor: '#DE3F5E !important',
+                          color: '#DE3F5E',
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </LocalizationProvider>
+
+          {/* Date Display Preview and Edit */}
+          {weddingDateStart && (
+            <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  Date Display Preview (Auto-generated):
+                </Typography>
+                {!editingDateDisplay ? (
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      if (weddingDateStart) {
+                        setTempDateDisplay(formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd));
+                        setEditingDateDisplay(true);
+                      }
+                    }}
+                    sx={{
+                      color: '#DE3F5E',
+                      '&:hover': {
+                        bgcolor: alpha('#DE3F5E', 0.1),
+                      },
+                    }}
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        handleDateDisplayChange(tempDateDisplay);
+                        setEditingDateDisplay(false);
+                      }}
+                      sx={{
+                        color: '#10B981',
+                        '&:hover': {
+                          bgcolor: alpha('#10B981', 0.1),
+                        },
+                      }}
+                    >
+                      <Check fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setEditingDateDisplay(false);
+                        setTempDateDisplay('');
+                      }}
+                      sx={{
+                        color: '#EF4444',
+                        '&:hover': {
+                          bgcolor: alpha('#EF4444', 0.1),
+                        },
+                      }}
+                    >
+                      <Cancel fontSize="small" />
+                    </IconButton>
+                  </Box>
+                )}
+              </Box>
+              {editingDateDisplay ? (
+                <TextField
+                  value={tempDateDisplay}
+                  onChange={(e) => setTempDateDisplay(e.target.value)}
+                  fullWidth
+                  placeholder="e.g., 4-6 JANUARY, 2026"
+                  helperText="How the date should appear to guests"
+                  sx={textFieldSx}
+                  autoFocus
+                />
+              ) : (
+                <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+                  {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd)}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* Venue */}
+          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+            Venue Information *
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Venue Name"
+                fullWidth
+                value={formData.venue_name}
+                onChange={(e) => handleChange('venue_name', e.target.value)}
+                placeholder="e.g., Sheraton"
+                required
+                error={fieldErrors.venue_name}
+                sx={textFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="City/Country"
+                fullWidth
+                value={formData.venue_location}
+                onChange={(e) => handleChange('venue_location', e.target.value)}
+                placeholder="e.g., Bangkok, Thailand 🇹🇭"
+                required
+                sx={textFieldSx}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.show_venue_location}
+                    onChange={(e) => handleChange('show_venue_location', e.target.checked)}
+                    sx={{
+                      color: '#DE3F5E',
+                      '&.Mui-checked': {
+                        color: '#DE3F5E',
+                      },
+                    }}
+                  />
+                }
+                label="Display on website"
+                sx={{ color: '#4a4a4a', mt: 1 }}
+              />
+            </Grid>
+          </Grid>
+
+          {/* RSVP Deadline */}
+          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+            RSVP Information
+          </Typography>
+
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD'}
+                  onChange={(e) => {
+                    if (!e.target.checked) {
+                      handleChange('rsvp_deadline', '');
+                    } else {
+                      // Default to 1 month before wedding if possible
+                      const deadline = weddingDateStart ? new Date(weddingDateStart) : new Date();
+                      if (weddingDateStart) deadline.setMonth(deadline.getMonth() - 1);
+                      handleChange('rsvp_deadline', deadline.toISOString());
+                    }
+                  }}
+                  sx={{
+                    color: '#DE3F5E',
+                    '&.Mui-checked': {
+                      color: '#DE3F5E',
+                    },
+                  }}
+                />
+              }
+              label="Set RSVP Closing Date"
+              sx={{ color: '#4a4a4a' }}
+            />
+
+            {!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' && (
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <MobileDatePicker
+                  label="RSVP Deadline"
+                  value={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      handleChange('rsvp_deadline', (newValue as Date).toISOString());
+                    }
+                  }}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{
+                    textField: TextField,
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      sx: textFieldSx,
+                    },
+                    actionBar: {
+                      actions: ['cancel', 'accept'],
+                      sx: {
+                        '& .MuiButton-root': {
+                          color: '#DE3F5E',
+                          fontWeight: 700,
+                        }
+                      }
+                    },
+                    day: {
+                      sx: {
+                        '&.Mui-selected': {
+                          backgroundColor: '#DE3F5E !important',
+                        },
+                        '&.Mui-selected:hover': {
+                          backgroundColor: '#DE3F5E !important',
+                          opacity: 0.9,
+                        },
+                        '&.MuiPickersDay-today': {
+                          borderColor: '#DE3F5E !important',
+                          color: '#DE3F5E',
+                        }
+                      }
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            )}
           </Stack>
-        </Grid>
 
-        {/* Right Column - Fixed Mobile Preview (Desktop only) */}
-        <Grid size={{ xs: 12, lg: 5 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative' }}>
-          <Box
-            sx={{
-              position: 'fixed',
-              top: '50%',
-              left: '79.17%',
-              transform: 'translate(-50%, -50%)',
-              width: { lg: '520px' },
-              height: '100vh',
-              maxWidth: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MobilePreview />
+          {/* Images */}
+          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+            Images
+          </Typography>
+
+          {weddingId && (
+            <>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Couple Photos (up to 6)
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                  Add multiple photos of the couple. Recommended size: 800x800px each
+                </Typography>
+
+                {/* Add Photo Button */}
+                {coupleImages.filter(img => img).length < 6 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Add />}
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            // Upload the file using ImageUpload's upload logic
+                            const { uploadImage } = await import('@/lib/utils/image-upload');
+                            const result = await uploadImage(file, getWeddingImagePath(weddingId, 'couple'));
+                            if (result.success && result.url) {
+                              const newImages = [...coupleImages];
+                              const nextEmptyIndex = newImages.findIndex(img => !img);
+                              if (nextEmptyIndex !== -1) {
+                                newImages[nextEmptyIndex] = result.url;
+                              } else {
+                                newImages.push(result.url);
+                              }
+                              setCoupleImages(newImages.slice(0, 6));
+                            }
+                          }
+                        };
+                        input.click();
+                      }}
+                      sx={{
+                        borderColor: '#DE3F5E',
+                        color: '#DE3F5E',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          borderColor: '#C8365A',
+                          bgcolor: 'rgba(222, 63, 94, 0.05)',
+                        },
+                      }}
+                    >
+                      Add Photo
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Horizontal scrollable thumbnails */}
+                {coupleImages.filter(img => img).length > 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      overflowX: 'auto',
+                      pb: 2,
+                      '&::-webkit-scrollbar': {
+                        height: 8,
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: 4,
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#DE3F5E',
+                        borderRadius: 4,
+                      },
+                    }}
+                  >
+                    {coupleImages.filter((img): img is string => img !== null && img !== '').map((img, actualIndex) => {
+                      const originalIndex = coupleImages.indexOf(img);
+                      return (
+                        <Box
+                          key={originalIndex}
+                          sx={{
+                            position: 'relative',
+                            minWidth: 120,
+                            width: 120,
+                            height: 120,
+                            flexShrink: 0,
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                            border: originalIndex === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={img}
+                            alt={`Couple photo ${originalIndex + 1}`}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                          {originalIndex === 0 && (
+                            <Chip
+                              label="Main"
+                              size="small"
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                left: 4,
+                                bgcolor: '#DE3F5E',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                              }}
+                            />
+                          )}
+                          <IconButton
+                            size="small"
+                            onClick={async () => {
+                              const { deleteImage } = await import('@/lib/utils/image-upload');
+                              await deleteImage(img);
+                              const newImages = [...coupleImages];
+                              newImages[originalIndex] = null;
+                              setCoupleImages(newImages);
+                            }}
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              bgcolor: 'rgba(0, 0, 0, 0.6)',
+                              color: 'white',
+                              '&:hover': {
+                                bgcolor: 'rgba(222, 63, 94, 0.9)',
+                              },
+                              width: 28,
+                              height: 28,
+                            }}
+                          >
+                            <Delete sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Frame Selection */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Frame Options
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                  Choose a decorative frame for your photos
+                </Typography>
+
+                <Grid container spacing={3} alignItems="center">
+                  <Grid size={{ xs: 12, md: 5 }}>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {[
+                        { id: 'frame-27', url: '/images/frames/frame-27.png', name: 'Classic Rose' }
+                      ].map((frame) => (
+                        <Box
+                          key={frame.id}
+                          onClick={() => handleChange('frame_image_url', frame.url)}
+                          sx={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: '12px',
+                            border: formData.frame_image_url === frame.url ? '3px solid #DE3F5E' : '1px solid #eee',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            position: 'relative',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                              borderColor: '#DE3F5E',
+                            }
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={frame.url}
+                            alt={frame.name}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              p: 1
+                            }}
+                          />
+                          {formData.frame_image_url === frame.url && (
+                            <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
+                              <Check sx={{ color: 'white', fontSize: 14 }} />
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Grid>
+
+                  {/* Show preview if both frame and main photo exist */}
+                  {formData.frame_image_url && (
+                    <>
+                      <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <ArrowForward sx={{ color: '#DE3F5E', fontSize: 32 }} />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                            Preview with Frame
+                          </Typography>
+                          <Box
+                            sx={{
+                              position: 'relative',
+                              width: '100%',
+                              maxWidth: 400,
+                              aspectRatio: '1/1',
+                              overflow: 'visible',
+                            }}
+                          >
+                            {/* Frame background - at zIndex 1 (behind) */}
+                            <Box
+                              component="img"
+                              src={formData.frame_image_url || ''}
+                              alt="Decorative frame"
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                zIndex: 1,
+                                pointerEvents: 'none',
+                              }}
+                            />
+
+                            {/* Couple Image on top - at zIndex 3 (in front) */}
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: '7%',
+                                left: '7%',
+                                width: '87%',
+                                height: '87%',
+                                overflow: 'hidden',
+                                zIndex: 3,
+                              }}
+                            >
+                              <Box
+                                component="img"
+                                src={coupleImages[0] || ''}
+                                alt="Couple photo"
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </Stack>
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              </Box>
+            </>
+          )}
+
+          {/* Save Button */}
+          <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={showSaveSuccess ? <Check /> : <Save />}
+              onClick={handleSave}
+              disabled={saving || showSaveSuccess}
+              sx={{
+                mt: 2,
+                bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
+                color: 'white',
+                py: 1.5,
+                px: 4,
+                borderRadius: '32px',
+                fontSize: '1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                boxShadow: showSaveSuccess
+                  ? '0 4px 12px rgba(16, 185, 129, 0.4)'
+                  : '0 4px 12px rgba(222, 63, 94, 0.3)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
+                  boxShadow: showSaveSuccess
+                    ? '0 6px 16px rgba(16, 185, 129, 0.5)'
+                    : '0 6px 16px rgba(222, 63, 94, 0.4)',
+                },
+                '&:disabled': {
+                  bgcolor: alpha('#DE3F5E', 0.5),
+                },
+              }}
+            >
+              {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Changes'}
+            </Button>
           </Box>
-        </Grid>
-
-        {/* Mobile Preview at Bottom (Mobile only) */}
-        <Grid size={{ xs: 12 }} sx={{ display: { xs: 'block', lg: 'none' }, mt: 4 }}>
-          <MobilePreview />
-        </Grid>
-      </Grid>
-    </Container>
+        </Stack>
+      </Stack>
+    </Box>
   );
 }

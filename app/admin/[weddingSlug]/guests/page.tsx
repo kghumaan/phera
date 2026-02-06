@@ -84,6 +84,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
 
+  const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
+
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
@@ -94,6 +96,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
       if (wedding) {
         setWeddingId(wedding.id);
+        setWeddingStatus(wedding.status as 'draft' | 'live');
         // Use weddingSlug instead of wedding.id since RSVPs are stored with slug as wedding_id
         const rsvpData = await getAllRSVPs(weddingSlug);
         setRsvps(rsvpData || []);
@@ -912,14 +915,21 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               </Table>
             </TableContainer>
           ) : (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <People sx={{ fontSize: 64, color: alpha('#DE3F5E', 0.3), mb: 2 }} />
-              <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 1 }}>
-                No Responses Yet
+            <Box sx={{ textAlign: 'center', py: 10, px: 3 }}>
+              <People sx={{ fontSize: 80, color: alpha('#DE3F5E', 0.1), mb: 3 }} />
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1.5 }}>
+                {weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                {activeTab > 3 ? 'No entries found for this category' : 'Guest responses will appear here once they start RSVPing'}
+              <Typography variant="body1" sx={{ color: '#6a6a6a', maxWidth: 500, mx: 'auto', mb: 4 }}>
+                {weddingStatus === 'live'
+                  ? 'Your guests haven\'t started RSVPing yet. Once they do, their responses will appear here automatically.'
+                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'}
               </Typography>
+              {weddingStatus === 'draft' && (
+                <Typography variant="body2" sx={{ color: '#DE3F5E', fontWeight: 600 }}>
+                  Tip: You can publish your website using the button in the bottom left sidebar.
+                </Typography>
+              )}
             </Box>
           )}
         </Paper>
