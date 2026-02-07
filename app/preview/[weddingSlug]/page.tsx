@@ -190,10 +190,8 @@ const CoupleImageDisplay = ({
       sx={{
         position: 'relative',
         width: '100%',
-        maxWidth: { xs: 320, lg: 340, xl: 360 },
+        maxWidth: { xs: 320, lg: '100%', xl: '100%' },
         aspectRatio: '1',
-        mx: 'auto',
-        mb: 2,
         cursor: coupleImages.length > 1 ? 'pointer' : 'default',
         transition: 'transform 0.2s ease-in-out',
         '&:hover': {
@@ -283,40 +281,123 @@ function PreviewContent() {
           position: 'relative',
         }}
       >
-        {/* Left Side: Sticky Image */}
+        {/* Full-width Header */}
         <Box
           sx={{
-            flex: '0 0 50%',
-            height: '100vh',
-            position: 'sticky',
+            position: 'fixed',
             top: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 4,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'transparent',
           }}
         >
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            style={{ width: '100%', maxWidth: '500px' }}
-          >
-            <CoupleImageDisplay
-              coupleImageUrl={wedding.couple_image_url}
-              frameImageUrl={wedding.frame_image_url}
-            />
-          </motion.div>
+          {/* Mock Header for Preview - Simplified version of AppHeader */}
+          <Box sx={{
+            height: { xs: 64, md: 120 },
+            display: 'flex',
+            alignItems: 'center',
+            px: { xs: 2, md: 4 },
+            width: '100%',
+            justifyContent: 'space-between'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  width: { xs: 80, sm: 100, md: 120 },
+                  height: { xs: 32, sm: 40, md: 48 },
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Image
+                  src="/logo.svg"
+                  alt="Phera Logo"
+                  fill
+                  priority
+                  style={{
+                    objectFit: 'contain',
+                    filter: 'brightness(0)',
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {/* WhatsApp Icon */}
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: '#000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Box
+                  component="svg"
+                  sx={{ width: 18, height: 18 }}
+                  viewBox="0 0 24 24"
+                  fill="white"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516" />
+                </Box>
+              </Box>
+              <Button variant="contained" sx={{
+                bgcolor: '#000', color: '#fff',
+                borderRadius: '20px', px: 2,
+                fontSize: '0.8rem', fontWeight: 500,
+                textTransform: 'none',
+                height: 36,
+                minHeight: 36,
+                '&:hover': { bgcolor: '#333' }
+              }}>
+                Going
+              </Button>
+              {/* User Avatar Mock */}
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: '#8B5CF6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                }}
+              >
+                KG
+              </Box>
+            </Box>
+          </Box>
         </Box>
 
-        {/* Right Side: Scrollable Details */}
+
+        {/* Left Side: Scrollable Details */}
         <Box
           sx={{
-            flex: '0 0 50%',
-            p: 6,
+            flex: '1 1 50%',
+            maxWidth: '50%',
+            minHeight: '100vh',
             display: 'flex',
+            justifyContent: 'flex-start',
+            pl: { md: 6, lg: 2, xl: 10 },
+            pr: { md: 2, lg: 8, xl: 10 },
+            pt: {
+              md: 'calc(50vh - 190px)',
+              lg: 'calc(50vh - 220px)',
+              xl: 'calc(50vh - 240px)'
+            },
+            pb: { md: 15, lg: 15, xl: 15 },
+            alignItems: 'flex-end', // Align content to the right (towards center)
             flexDirection: 'column',
-            gap: 4,
             zIndex: 2,
           }}
         >
@@ -324,34 +405,77 @@ function PreviewContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
           >
-            <Stack spacing={4} alignItems="center" textAlign="center">
+            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 350, lg: 400, xl: 480 } }}>
               <Stack spacing={1}>
-                {/* Date */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: '#000',
-                    fontSize: '1.25rem',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {wedding.wedding_date_display}
-                </Typography>
-
                 {/* Names */}
                 <Typography
                   variant="h2"
                   sx={{
-                    fontSize: '4rem',
+                    fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
                     color: '#000',
-                    lineHeight: 1.1,
+                    lineHeight: 1.2,
                     fontFamily: 'var(--font-instrument-serif)',
                     fontStyle: 'italic',
                   }}
                 >
                   {wedding.couple_name}
                 </Typography>
+
+                {/* Date */}
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ width: '100%' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#000',
+                      fontSize: { md: '1rem', lg: '1.25rem' },
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {wedding.wedding_date_display}
+                  </Typography>
+
+                  {/* Action Buttons */}
+                  <Stack direction="row" spacing={1.5}>
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.15)' }
+                      }}
+                    >
+                      <Box component="svg" sx={{ width: 18, height: 18, color: '#000' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                      </Box>
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.15)' }
+                      }}
+                    >
+                      <Box component="svg" sx={{ width: 18, height: 18, color: '#000' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Stack>
               </Stack>
 
               {/* Venue */}
@@ -370,49 +494,117 @@ function PreviewContent() {
                   },
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1} justifyContent="center">
+                <Stack direction="row" alignItems="center" spacing={1} justifyContent="flex-start">
+                  <Box component="svg" sx={{ width: 16, height: 16, color: '#666' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                  </Box>
                   <Typography
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: '1.4rem',
+                      fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                       textDecoration: 'underline',
                     }}
                   >
                     {wedding.venue_location}
                   </Typography>
                   {wedding.venue_flag && (
-                    <Typography sx={{ fontSize: '1.5rem' }}>
+                    <Typography sx={{ fontSize: { md: '1.25rem', lg: '1.375rem', xl: '1.5rem' } }}>
                       {wedding.venue_flag}
                     </Typography>
                   )}
                 </Stack>
               </Box>
 
+              {/* Description */}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#333',
+                  fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
+                  lineHeight: 1.6,
+                  maxWidth: { md: 550, lg: 650, xl: 750 },
+                }}
+              >
+                Come celebrate with us under the stars. A little romance, a lot of partying. You won&apos;t want to miss it.
+              </Typography>
+
               {/* Countdown Timer */}
-              <CountdownTimer targetDate={wedding.wedding_date} />
+              <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                <CountdownTimer targetDate={wedding.wedding_date} />
+              </Box>
 
               {/* Comments Section */}
               <Box sx={{ width: '100%', mt: 4 }}>
                 <ReadOnlyComments />
               </Box>
 
-              {/* View Details Button */}
+            </Stack>
+          </motion.div>
+        </Box>
+
+        {/* Right Side: Sticky Image */}
+        <Box
+          sx={{
+            flex: '0 0 50%',
+            width: '50%',
+            height: '100vh',
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            pl: { md: 2, lg: 3, xl: 4 },
+            pr: { md: 6, lg: 8, xl: 10 },
+            gap: 3,
+            alignItems: 'flex-start',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: { md: 320, lg: 380, xl: 420 },
+                aspectRatio: '1',
+              }}
+            >
+              <CoupleImageDisplay
+                coupleImageUrl={wedding.couple_image_url}
+                frameImageUrl={wedding.frame_image_url}
+              />
+            </Box>
+          </motion.div>
+
+          {/* View Details Button */}
+          <Box sx={{ width: '100%', maxWidth: { md: 320, lg: 380, xl: 420 } }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              style={{ width: '100%' }}
+            >
               <Button
                 component={Link}
                 href={`/preview/${wedding.slug}/details`}
                 variant="contained"
                 size="large"
+                fullWidth
                 sx={{
                   backgroundColor: wedding.primary_color || '#DE3F5E',
                   color: 'white',
-                  px: 8,
-                  py: 2,
-                  fontSize: '1.125rem',
+                  py: { md: 2, lg: 2.25, xl: 2.5 },
+                  fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
                   fontWeight: 700,
                   borderRadius: '16px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
+                  letterSpacing: '6.25%',
                   fontFamily: 'Outfit',
                   '&:hover': {
                     backgroundColor: wedding.primary_color || '#C8365A',
@@ -422,10 +614,12 @@ function PreviewContent() {
               >
                 View Details
               </Button>
-            </Stack>
-          </motion.div>
+            </motion.div>
+          </Box>
         </Box>
       </Box>
+
+
 
       {/* Mobile/Tablet Layout (xs to md) */}
       <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
@@ -575,6 +769,7 @@ function PreviewContent() {
         </Box>
         <Box sx={{ height: 100 }} />
       </Box>
+
     </OptimizedBackground>
   );
 }

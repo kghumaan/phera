@@ -272,37 +272,59 @@ export default function OnboardingSidebar({
                 )}
               </ListItemButton>
 
-              {/* Subitems with Connecting Lines */}
+              {/* Subitems with Curved Connector */}
               <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                 <Box sx={{ position: 'relative', ml: 4.5 }}>
-                  {/* Vertical Line */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      bottom: 20, // Stop before the last item's text
-                      width: '1px',
-                      bgcolor: alpha('#000', 0.08),
-                    }}
-                  />
+                  {/* SVG Curved Connector */}
+                  {(() => {
+                    const activeIndex = group.items.findIndex(
+                      item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/')
+                    );
+                    const itemHeight = 52; // Actual rendered height: minHeight(36) + py(12) + mb(4) = 52px
+                    const totalHeight = group.items.length * itemHeight;
+                    // Center the arrow on the active item: (index * height) + (height / 2)
+                    const curveEndY = activeIndex >= 0 ? (activeIndex * itemHeight) + (itemHeight / 2) : -1;
+
+                    return (
+                      <Box
+                        component="svg"
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          width: 20,
+                          height: totalHeight,
+                          overflow: 'visible',
+                        }}
+                      >
+                        {activeIndex >= 0 && (
+                          <path
+                            d={`M 0 0 L 0 ${curveEndY - 8} Q 0 ${curveEndY} 8 ${curveEndY} L 14 ${curveEndY}`}
+                            fill="none"
+                            stroke={alpha('#000', 0.15)}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        )}
+                        {/* Arrow head */}
+                        {activeIndex >= 0 && (
+                          <path
+                            d={`M 10 ${curveEndY - 3} L 14 ${curveEndY} L 10 ${curveEndY + 3}`}
+                            fill="none"
+                            stroke={alpha('#000', 0.15)}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
+                      </Box>
+                    );
+                  })()}
 
                   {group.items.map((item) => {
                     const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
                     return (
                       <Box key={item.id} sx={{ position: 'relative' }}>
-                        {/* Horizontal Tick */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            left: 0,
-                            top: 18,
-                            width: 12,
-                            height: '1px',
-                            bgcolor: alpha('#000', 0.08),
-                          }}
-                        />
-
                         <ListItemButton
                           onClick={() => handleItemClick(item, false, group.id)}
                           selected={isActive}
@@ -406,7 +428,7 @@ export default function OnboardingSidebar({
           </Box>
         </Box>
 
-        <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#6a6a6a', textAlign: 'center' }}>
+        {/* <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#6a6a6a', textAlign: 'center' }}>
           Progress auto-saves
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -421,7 +443,7 @@ export default function OnboardingSidebar({
           <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
             All changes saved
           </Typography>
-        </Box>
+        </Box> */}
 
         {/* Publish Button */}
         <Box sx={{ mt: 2 }}>

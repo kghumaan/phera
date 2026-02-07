@@ -68,7 +68,7 @@ export default function AdminTopNav({ weddingSlug, onMenuToggle }: AdminTopNavPr
                             '&:hover': { opacity: 0.8 },
                         }}
                     >
-                        <Box sx={{ position: 'relative', width: { xs: 70, md: 90 }, height: 28 }}>
+                        <Box sx={{ position: 'relative', width: { xs: 80, md: 110 }, height: 34 }}>
                             <Image
                                 src="/logo.svg"
                                 alt="Phera"

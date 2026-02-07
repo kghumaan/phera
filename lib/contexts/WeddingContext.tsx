@@ -101,6 +101,25 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
     if (weddingSlug) {
       fetchWeddingData();
     }
+
+    // Real-time Design Sync Listener
+    const channel = new BroadcastChannel('phera-design-sync');
+    channel.onmessage = (event) => {
+      if (event.data?.type === 'DESIGN_UPDATE' && event.data?.updates) {
+        console.log('📥 Received design update:', event.data.updates);
+        setWedding(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ...event.data.updates
+          };
+        });
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
   }, [weddingSlug]);
 
   const refetchWedding = async () => {
