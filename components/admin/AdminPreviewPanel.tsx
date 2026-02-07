@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Box, IconButton, alpha, Typography } from '@mui/material';
-import { DesktopWindows, PhoneAndroid } from '@mui/icons-material';
+import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Divider, Switch, TextField, InputAdornment, CircularProgress } from '@mui/material';
+import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 
 interface AdminPreviewPanelProps {
     weddingSlug: string;
@@ -20,6 +21,62 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
+
+    // Share Modal State
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [wedding, setWedding] = useState<Wedding | null>(null);
+    const [settings, setSettings] = useState<WeddingSettings | null>(null);
+    const [isPublished, setIsPublished] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingModal, setIsLoadingModal] = useState(false);
+    const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+
+    const handleShareClick = async () => {
+        setIsShareModalOpen(true);
+        setIsLoadingModal(true);
+        try {
+            const w = await weddingService.getWeddingBySlug(weddingSlug);
+            setWedding(w);
+            if (w) {
+                setIsPublished(w.status === 'live');
+                const s = await weddingService.getSettings(w.id);
+                setSettings(s);
+            }
+        } catch (error) {
+            console.error('Error loading share data:', error);
+        } finally {
+            setIsLoadingModal(false);
+        }
+    };
+
+    const handleSavePublish = async () => {
+        if (!wedding) return;
+        setIsSaving(true);
+        try {
+            const updated = await weddingService.updateWedding(wedding.id, {
+                status: isPublished ? 'live' : 'draft'
+            });
+            if (updated) {
+                setWedding(updated);
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const copyToClipboard = (text: string, id: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedStates(prev => ({ ...prev, [id]: true }));
+        setTimeout(() => {
+            setCopiedStates(prev => ({ ...prev, [id]: false }));
+        }, 2000);
+    };
+
+    const publicUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/${weddingSlug}`
+        : `https://phera.app/${weddingSlug}`;
 
     // Refresh iframe when refreshKey changes
     useEffect(() => {
@@ -87,52 +144,53 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    py: 2,
+                    py: 1.5, // Reduced from 3.5
                     px: 2,
-                    borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
                 }}
             >
                 <Box
                     sx={{
                         display: 'flex',
-                        gap: 0.5,
+                        gap: 1.5, // Increased gap
                         bgcolor: 'white',
-                        borderRadius: '12px',
-                        p: 0.5,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        borderRadius: '20px', // More rounded
+                        p: 0.75, // Reduced from 1
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                     }}
                 >
                     <IconButton
                         onClick={() => setViewMode('desktop')}
-                        size="small"
+                        size="large" // Bigger button
                         sx={{
                             bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
                             color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
-                            borderRadius: '8px',
-                            px: 2,
+                            borderRadius: '14px',
+                            px: 4, // Wider
+                            py: 1.5,
                             '&:hover': {
                                 bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
                             },
                         }}
                         title="Desktop View"
                     >
-                        <DesktopWindows sx={{ fontSize: 20 }} />
+                        <DesktopWindows sx={{ fontSize: 28 }} /> {/* Bigger icon */}
                     </IconButton>
                     <IconButton
                         onClick={() => setViewMode('mobile')}
-                        size="small"
+                        size="large" // Bigger button
                         sx={{
                             bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
                             color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
-                            borderRadius: '8px',
-                            px: 2,
+                            borderRadius: '14px',
+                            px: 4, // Wider
+                            py: 1.5,
                             '&:hover': {
                                 bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
                             },
                         }}
                         title="Mobile View"
                     >
-                        <PhoneAndroid sx={{ fontSize: 20 }} />
+                        <PhoneAndroid sx={{ fontSize: 28 }} /> {/* Bigger icon */}
                     </IconButton>
                 </Box>
             </Box>
@@ -146,11 +204,12 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     justifyContent: 'center',
                     overflow: 'hidden',
                     p: 0,
+                    position: 'relative',
                 }}
             >
                 <motion.div
                     animate={{
-                        width: viewMode === 'desktop' ? '94%' : 375,
+                        width: viewMode === 'desktop' ? '94%' : 400, // Increased mobile width
                         height: viewMode === 'desktop' ? desktopHeight : mobileHeight,
                         borderRadius: viewMode === 'desktop' ? '12px' : '40px',
                     }}
@@ -158,8 +217,8 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb', // Match bezel color for mobile
-                        overflow: 'hidden',
+                        marginTop: '-100px', // Shifted even higher
+                        backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
                             : '0 10px 40px rgba(0, 0, 0, 0.25)',
@@ -265,21 +324,269 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                         </>
                     )}
                 </motion.div>
+
+                {/* View Site and Share Buttons - Positioned relative to the container, moving with the frame */}
+                <motion.div
+                    animate={{
+                        width: viewMode === 'desktop' ? '92%' : 340, // Narrowed slightly more for mobile
+                    }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    style={{
+                        position: 'absolute',
+                        bottom: viewMode === 'mobile' ? '60px' : '70px', // Raised buttons further to follow the frame
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        pointerEvents: 'none',
+                        zIndex: 5,
+                    }}
+                >
+                    <Button
+                        variant="text"
+                        onClick={() => window.open(publicUrl, '_blank')}
+                        startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
+                        sx={{
+                            color: '#1a1a1a',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            pointerEvents: 'auto',
+                            bgcolor: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(8px)',
+                            px: 2,
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' }
+                        }}
+                    >
+                        View Site
+                    </Button>
+                    <Button
+                        variant="text"
+                        onClick={handleShareClick}
+                        startIcon={<IosShare sx={{ fontSize: 20 }} />}
+                        sx={{
+                            color: '#1a1a1a',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            pointerEvents: 'auto',
+                            bgcolor: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(8px)',
+                            px: 2,
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' }
+                        }}
+                    >
+                        Share
+                    </Button>
+                </motion.div>
             </Box>
 
             {/* Preview Note */}
-            <Box sx={{ py: 1.5, textAlign: 'center' }}>
+            <Box sx={{ py: 1.5, px: 2, textAlign: 'center' }}>
                 <Typography
                     variant="caption"
                     sx={{
-                        color: '#8a8a8a',
-                        fontSize: '0.7rem',
-                        fontStyle: 'italic',
+                        color: '#9a9a9a',
+                        fontSize: '0.75rem',
+                        whiteSpace: 'nowrap', // Force one line
                     }}
                 >
-                    Live preview of your wedding website
+                    Layout and spacing may vary slightly by device to ensure a perfect guest experience.
                 </Typography>
             </Box>
+            {/* Share Modal */}
+            <Dialog
+                open={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        p: 1,
+                        bgcolor: 'white',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <IconButton
+                        onClick={() => setIsShareModalOpen(false)}
+                        sx={{ position: 'absolute', right: 16, top: 16, color: '#666' }}
+                    >
+                        <Close />
+                    </IconButton>
+
+                    {isLoadingModal ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                            <CircularProgress sx={{ color: '#DE3F5E' }} />
+                        </Box>
+                    ) : (
+                        <Stack spacing={4} sx={{ mt: 2, pb: 2 }}>
+                            <Typography variant="h4" sx={{
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                color: '#1a1a1a',
+                                mb: 1,
+                                fontSize: { xs: '1.75rem', md: '2.5rem' }
+                            }}>
+                                Share with your guests.
+                            </Typography>
+
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#1a1a1a' }}>
+                                    Phera URL
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    value={publicUrl}
+                                    InputProps={{
+                                        readOnly: true,
+                                        sx: {
+                                            borderRadius: '12px',
+                                            bgcolor: '#f8f9fa',
+                                            '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
+                                            color: '#666'
+                                        }
+                                    }}
+                                />
+                                <Stack direction="row" spacing={3} mt={1.5}>
+                                    <Button
+                                        startIcon={copiedStates['url'] ? <Check sx={{ fontSize: 18 }} /> : <ContentCopy sx={{ fontSize: 18 }} />}
+                                        onClick={() => copyToClipboard(publicUrl, 'url')}
+                                        sx={{
+                                            textTransform: 'none',
+                                            color: '#DE3F5E', // Primary pink
+                                            fontWeight: 600,
+                                            p: 0,
+                                            minWidth: 0,
+                                            '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                        }}
+                                    >
+                                        {copiedStates['url'] ? 'Copied' : 'Copy Event URL'}
+                                    </Button>
+                                    <Button
+                                        startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
+                                        href={publicUrl}
+                                        target="_blank"
+                                        sx={{
+                                            textTransform: 'none',
+                                            color: '#DE3F5E', // Primary pink
+                                            fontWeight: 600,
+                                            p: 0,
+                                            minWidth: 0,
+                                            '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                        }}
+                                    >
+                                        Open in a New Tab
+                                    </Button>
+                                </Stack>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#1a1a1a' }}>
+                                    Guest PINs
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                                    {settings?.pin_codes?.map((pin, index) => (
+                                        <Box
+                                            key={index}
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1,
+                                                bgcolor: '#f8f9fa',
+                                                border: '1px solid rgba(0,0,0,0.08)',
+                                                borderRadius: '100px',
+                                                pl: 2,
+                                                pr: 1,
+                                                py: 0.75,
+                                            }}
+                                        >
+                                            <Stack spacing={0}>
+                                                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>
+                                                    {pin.pin}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ color: '#666', fontSize: '10px' }}>
+                                                    {pin.type}
+                                                </Typography>
+                                            </Stack>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => copyToClipboard(pin.pin, `pin-${index}`)}
+                                                sx={{ color: copiedStates[`pin-${index}`] ? '#28c840' : '#DE3F5E' }}
+                                            >
+                                                {copiedStates[`pin-${index}`] ? <Check sx={{ fontSize: 16 }} /> : <ContentCopy sx={{ fontSize: 16 }} />}
+                                            </IconButton>
+                                        </Box>
+                                    ))}
+                                    {(!settings?.pin_codes || settings.pin_codes.length === 0) && (
+                                        <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
+                                            No PIN codes configured yet.
+                                        </Typography>
+                                    )}
+                                </Box>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 3 }}>
+                                    Publish your site before sharing.
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                    <Box>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                            Publish your website
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: '#666', mt: 0.5, mr: 4 }}>
+                                            Keep your site unpublished while you're building it. Publish it when you're ready for guests to visit.
+                                        </Typography>
+                                    </Box>
+                                    <Switch
+                                        checked={isPublished}
+                                        onChange={(e) => setIsPublished(e.target.checked)}
+                                        sx={{
+                                            '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
+                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
+                                        }}
+                                    />
+                                </Box>
+
+                                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        disabled={isSaving || (wedding?.status === 'live' && isPublished) || (wedding?.status === 'draft' && !isPublished)}
+                                        onClick={handleSavePublish}
+                                        sx={{
+                                            bgcolor: '#DE3F5E',
+                                            color: 'white',
+                                            borderRadius: '100px',
+                                            py: 2,
+                                            fontWeight: 700,
+                                            fontSize: '1.1rem',
+                                            textTransform: 'none',
+                                            '&:hover': { bgcolor: '#c23450' },
+                                            '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' }
+                                        }}
+                                    >
+                                        {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save'}
+                                    </Button>
+                                </Box>
+
+                                {wedding && (
+                                    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#666' }}>
+                                        Current Status: <strong>{wedding.status === 'live' ? 'Published' : 'Draft'}</strong>
+                                    </Typography>
+                                )}
+                            </Box>
+                        </Stack>
+                    )}
+                </DialogContent>
+            </Dialog>
         </Box>
     );
 }
