@@ -29,6 +29,8 @@ export interface Wedding {
   pin_entry_font_color?: string | null;
   pin_entry_button_font_color?: string | null;
   pin_entry_subtitle_text?: string | null;
+  website_layout?: 'nested' | 'infinite_scroll';
+  welcome_text?: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;

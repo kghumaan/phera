@@ -526,7 +526,7 @@ function PreviewContent() {
                   maxWidth: { md: 550, lg: 650, xl: 750 },
                 }}
               >
-                Come celebrate with us under the stars. A little romance, a lot of partying. You won&apos;t want to miss it.
+                {wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."}
               </Typography>
 
               {/* Countdown Timer */}

@@ -13,6 +13,9 @@ import {
   Snackbar,
   Alert,
   Divider,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Save, Check } from '@mui/icons-material';
@@ -86,6 +89,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [mainBackground, setMainBackground] = useState('/images/backgrounds/pearl.png');
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
+  const [websiteLayout, setWebsiteLayout] = useState<'nested' | 'infinite_scroll'>('nested');
+  const [welcomeText, setWelcomeText] = useState("Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
 
   // Real-time Preview Sync Effect
   useEffect(() => {
@@ -160,6 +165,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         // Load main site customizations
         setMainBackground(wedding.background_image || '/images/backgrounds/pearl.png');
         setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
+        setWebsiteLayout(wedding.website_layout || 'nested');
+        setWelcomeText(wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
       }
     } catch (err) {
       console.error('Error loading pin entry settings:', err);
@@ -189,6 +196,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         // Save main site customizations
         background_image: mainBackgroundToUse,
         primary_color: mainPrimaryColor,
+        website_layout: websiteLayout,
+        welcome_text: welcomeText,
       });
 
       setSuccess(true);
@@ -238,6 +247,111 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             Main Wedding Website
           </Typography>
           <Stack spacing={3}>
+            {/* Website Layout Selection */}
+            <Paper sx={sectionPaperSx}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                Website Layout
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+                Choose how your wedding details are displayed to guests
+              </Typography>
+
+              <RadioGroup
+                value={websiteLayout}
+                onChange={(e) => setWebsiteLayout(e.target.value as 'nested' | 'infinite_scroll')}
+                sx={{ flexDirection: 'row', gap: 2 }}
+              >
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        borderRadius: '12px',
+                        bgcolor: '#ffffff',
+                        border: websiteLayout === 'nested' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        height: '100%',
+                        '&:hover': { borderColor: '#DE3F5E' },
+                      }}
+                      onClick={() => setWebsiteLayout('nested')}
+                    >
+                      <FormControlLabel
+                        value="nested"
+                        control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                        label={
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                              Nested
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                              Guests tap 'View Details' to see event info, schedule, and more in an overlay
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ alignItems: 'flex-start', m: 0 }}
+                      />
+                    </Paper>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        borderRadius: '12px',
+                        bgcolor: '#ffffff',
+                        border: websiteLayout === 'infinite_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        height: '100%',
+                        '&:hover': { borderColor: '#DE3F5E' },
+                      }}
+                      onClick={() => setWebsiteLayout('infinite_scroll')}
+                    >
+                      <FormControlLabel
+                        value="infinite_scroll"
+                        control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                        label={
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                              Infinite Scroll
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                              All wedding details are displayed as you scroll down the page
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ alignItems: 'flex-start', m: 0 }}
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </RadioGroup>
+            </Paper>
+
+            {/* Welcome Text */}
+            <Paper sx={sectionPaperSx}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                Welcome Message
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                This message appears below your names on the main wedding website
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                value={welcomeText}
+                onChange={(e) => setWelcomeText(e.target.value)}
+                placeholder="Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#fff',
+                  }
+                }}
+              />
+            </Paper>
+
             {/* Main Background Selection */}
             <Paper sx={sectionPaperSx}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
@@ -817,7 +931,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             {snackbarMessage}
           </Alert>
         </Snackbar>
-      </Stack>
-    </Container>
+      </Stack >
+    </Container >
   );
 }

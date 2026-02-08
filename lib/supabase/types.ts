@@ -220,6 +220,8 @@ export interface Database {
           wedding_date_end: string | null
           show_venue_location: boolean
           couple_images: string[] | null
+          website_layout: 'nested' | 'infinite_scroll'
+          welcome_text: string | null
           created_by: string
           created_at: string
           updated_at: string
@@ -252,6 +254,8 @@ export interface Database {
           wedding_date_end?: string | null
           show_venue_location?: boolean
           couple_images?: string[] | null
+          website_layout?: 'nested' | 'infinite_scroll'
+          welcome_text?: string | null
           created_by: string
           created_at?: string
           updated_at?: string
@@ -284,6 +288,8 @@ export interface Database {
           wedding_date_end?: string | null
           show_venue_location?: boolean
           couple_images?: string[] | null
+          website_layout?: 'nested' | 'infinite_scroll'
+          welcome_text?: string | null
           created_by?: string
           created_at?: string
           updated_at?: string

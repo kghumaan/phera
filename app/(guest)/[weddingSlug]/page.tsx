@@ -871,7 +871,7 @@ export default function HomePage() {
                   maxWidth: { md: 550, lg: 650, xl: 750 },
                 }}
               >
-                Come celebrate with us under the stars. A little romance, a lot of partying. You won&apos;t want to miss it.
+                {wedding?.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."}
               </Typography>
 
               {/* Countdown Timer */}
@@ -894,7 +894,7 @@ export default function HomePage() {
                       size="large"
                       fullWidth
                       sx={{
-                        backgroundColor: '#DE3F5E',
+                        backgroundColor: wedding?.primary_color || '#DE3F5E',
                         color: 'white',
                         py: 2,
                         fontSize: { md: '1.25rem', lg: '1.5rem' },
@@ -1039,7 +1039,7 @@ export default function HomePage() {
                   fullWidth
                   disabled={isNavigating}
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: wedding?.primary_color || '#DE3F5E',
                     color: 'white',
                     py: { md: 2, lg: 2.25, xl: 2.5 },
                     fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
@@ -1248,7 +1248,8 @@ export default function HomePage() {
 
   return (
     <OptimizedBackground
-      useAppDefault={true}
+      src={wedding?.background_image}
+      useAppDefault={!wedding?.background_image}
       className="min-h-screen flex flex-col"
     >
       {/* Render desktop or mobile layout based on breakpoint */}
@@ -1316,7 +1317,7 @@ export default function HomePage() {
                   size="large"
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: wedding?.primary_color || '#DE3F5E',
                     color: 'white',
                     py: 2,
                     fontSize: '1.1rem',
@@ -1387,7 +1388,7 @@ export default function HomePage() {
                   fullWidth
                   disabled={isNavigating}
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: wedding?.primary_color || '#DE3F5E',
                     color: 'white',
                     py: 1.5,
                     fontSize: '1rem',
