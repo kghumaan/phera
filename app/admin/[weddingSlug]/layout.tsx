@@ -75,7 +75,11 @@ export default function OnboardingLayout({
 
   return (
     <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
-      <AdminTopNav weddingSlug={weddingSlug} onMenuToggle={() => setMobileOpen(!mobileOpen)} />
+      <AdminTopNav
+        weddingSlug={weddingSlug}
+        wedding={wedding}
+        onMenuToggle={() => setMobileOpen(!mobileOpen)}
+      />
 
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
         {/* Left Sidebar Navigation */}

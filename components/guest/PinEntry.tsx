@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
   TextField,
   Stack,
   InputAdornment,
@@ -40,7 +40,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
-  
+
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState<string | null>(null);
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
@@ -71,7 +71,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         }
         setPin(newPin);
         setError(false);
-        
+
         // Focus the next empty field or the last field
         const nextIndex = Math.min(digits.length, 3);
         inputRefs[nextIndex].current?.focus();
@@ -104,7 +104,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     const digits = pastedText.replace(/[^0-9]/g, '').slice(0, 4);
-    
+
     if (digits.length > 0) {
       const newPin = ['', '', '', ''];
       for (let i = 0; i < digits.length && i < 4; i++) {
@@ -112,7 +112,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
       }
       setPin(newPin);
       setError(false);
-      
+
       // Focus the next empty field or the last field
       const nextIndex = Math.min(digits.length, 3);
       inputRefs[nextIndex].current?.focus();
@@ -143,7 +143,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         // Set pin entry customizations with defaults
         const defaultText = `Please join ${wedding.couple_name} on their special night`;
         const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
-        
+
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
         setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
@@ -182,7 +182,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
 
   const handleContinue = async () => {
     const enteredPin = pin.join('');
-    
+
     if (!weddingSettings || !weddingSettings.pin_codes) {
       setError(true);
       return;
@@ -200,14 +200,14 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, Date.now().toString());
         localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, matchedPin.allows_plus_one ? 'true' : 'false');
         localStorage.setItem(`phera_pin_type_${weddingSlug}`, matchedPin.type);
-        
+
         // Store skip_rsvp flag if present
         if (matchedPin.skip_rsvp) {
           localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
         } else {
           localStorage.removeItem(`phera_skip_rsvp_${weddingSlug}`);
         }
-        
+
         // Call the callback to notify parent component
         onPinVerified();
       }
@@ -235,14 +235,14 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   useEffect(() => {
     // Disable scrolling when component mounts
     document.body.style.overflow = 'hidden';
-    
+
     // Re-enable scrolling when component unmounts
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
 
-    // Simplified PIN verification and bypass logic
+  // Simplified PIN verification and bypass logic
   useEffect(() => {
     let mounted = true;
     let bypassTriggered = false;
@@ -258,17 +258,13 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
 
     const checkInitialState = () => {
       if (typeof window !== 'undefined') {
-        // Check if user became authenticated
-        if (!isLoading && user) {
-          console.log('User authenticated, bypassing PIN entry...');
-          triggerBypass();
-          return;
-        }
+        // Note: Authenticated users now need to verify PIN for each wedding
+        // We don't auto-bypass based on login status anymore
 
         // Check for stored PIN verification (wedding-specific)
         const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
         const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
-        
+
         if (pinVerified === 'true' && pinTimestamp) {
           try {
             const timestamp = parseInt(pinTimestamp);
@@ -295,7 +291,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         const restorePin = urlParams.get('restore_pin');
         const magicLink = urlParams.get('magic_link');
         const bypassPin = urlParams.get('bypass_pin');
-        
+
         if (authSuccess === 'true' || restorePin === 'true' || magicLink === 'true' || bypassPin === 'true') {
           console.log('Auth URL parameter detected, bypassing PIN entry...');
           triggerBypass();
@@ -307,11 +303,21 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && mounted) {
-        console.log('Auth state changed to SIGNED_IN, bypassing PIN...');
-        triggerBypass();
+        // Check if PIN is already verified for this wedding
+        const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+        const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
+        if (pinVerified === 'true' && pinTimestamp) {
+          const timestamp = parseInt(pinTimestamp);
+          const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+          if (isRecent) {
+            console.log('Auth state changed and PIN already verified for this wedding, bypassing...');
+            triggerBypass();
+          }
+        }
+        // If PIN not verified for this wedding, don't bypass - let them enter PIN
       }
     });
-    
+
     authSubscription = subscription;
 
     // Run initial check
@@ -324,21 +330,21 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         authSubscription.unsubscribe();
       }
     };
-  }, [user, isLoading, onPinVerified]);
+  }, [user, isLoading, onPinVerified, weddingSlug]);
 
   // Generate display text with couple name replacement
-  const displayText = pinEntryText 
+  const displayText = pinEntryText
     ? pinEntryText.replace(/\{couple_name\}/g, coupleName)
-    : coupleName 
+    : coupleName
       ? `Please join ${coupleName} on their special night`
       : "You're Invited!";
-  const displaySubtitle = pinEntrySubtitleText 
+  const displaySubtitle = pinEntrySubtitleText
     ? pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName)
     : 'Enter your invitation code to see all the details and RSVP for our celebration';
 
   // Background setup similar to home page
   return (
-    <OptimizedBackground 
+    <OptimizedBackground
       src={pinEntryBackground}
       className="min-h-screen flex flex-col"
     >
@@ -375,10 +381,10 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
       />
 
       {/* Main Content */}
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
-          position: 'relative', 
+      <Container
+        maxWidth="sm"
+        sx={{
+          position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -396,8 +402,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
@@ -457,8 +463,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
@@ -467,8 +473,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           }}
         >
           {/* Pin Input Section */}
-          <Stack 
-            direction="row" 
+          <Stack
+            direction="row"
             spacing={{ xs: 1.5, sm: 1.5, md: 1.5, lg: 1.75, xl: 2 }}
             justifyContent="center"
           >
@@ -514,7 +520,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
                 inputProps={{
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
-                  style: { 
+                  style: {
                     textAlign: 'center',
                     fontSize: 'inherit',
                     fontWeight: 'inherit',
@@ -603,8 +609,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
           </Button>
 
           {/* Or Divider */}
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
@@ -629,7 +635,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
                   backgroundColor: 'rgba(0, 0, 0, 0.2)',
                 }}
               />
-              
+
               {/* Or text */}
               <Typography
                 variant="body2"
@@ -645,7 +651,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
               >
                 or
               </Typography>
-              
+
               {/* Right line */}
               <Box
                 sx={{

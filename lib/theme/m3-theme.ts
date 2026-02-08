@@ -6,7 +6,7 @@ const culturalColors = {
   gold: '#D4AF37',
   maroon: '#800020',
   saffron: '#FF9933',
-  
+
   // Modern accent
   coral: '#FF6B6B',
   teal: '#20C997',
@@ -180,7 +180,7 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.33,
-      
+
       '@media (min-width:600px)': {
         fontSize: '0.8rem',
       },
@@ -242,7 +242,7 @@ const baseTheme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             '&.Mui-focused fieldset': {
-              borderColor: culturalColors.maroon,
+              borderColor: '#141414',
               borderWidth: '2px',
             },
             '& input::placeholder': {
@@ -283,7 +283,7 @@ const baseTheme = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: culturalColors.maroon,
+            borderColor: '#141414',
             borderWidth: '2px',
           },
           '& .MuiInputBase-input': {
@@ -301,7 +301,7 @@ const baseTheme = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-focused': {
-            color: culturalColors.maroon,
+            color: '#141414',
           },
         },
       },

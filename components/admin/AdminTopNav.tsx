@@ -11,22 +11,54 @@ import {
     alpha,
     useTheme,
     useMediaQuery,
+    Menu,
+    MenuItem,
+    Divider,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
 } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import {
+    Menu as MenuIcon,
+    SettingsOutlined,
+    ChatBubbleOutline,
+    HelpOutline,
+    Logout,
+    KeyboardArrowDown,
+} from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+import { Wedding } from '@/lib/supabase/wedding-service';
+
 interface AdminTopNavProps {
     weddingSlug: string;
+    wedding?: Wedding;
     onMenuToggle?: () => void;
 }
 
-export default function AdminTopNav({ weddingSlug, onMenuToggle }: AdminTopNavProps) {
+export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: AdminTopNavProps) {
     const theme = useTheme();
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleSignOut = async () => {
+        handleMenuClose();
+        await signOut();
+        router.push('/login');
+    };
 
     return (
         <AppBar
@@ -79,30 +111,144 @@ export default function AdminTopNav({ weddingSlug, onMenuToggle }: AdminTopNavPr
                     </Box>
                 </Box>
 
-                {/* Right: User Avatar */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#1a1a1a' }}>
-                            {user?.email?.split('@')[0] || 'User'}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#6a6a6a', display: 'block', mt: -0.5, lineHeight: 1 }}>
-                            Administrator
-                        </Typography>
-                    </Box>
-                    <Avatar
+                {/* Right: User Avatar & Settings */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                        onClick={handleMenuClick}
                         sx={{
-                            width: 34,
-                            height: 34,
-                            bgcolor: '#DE3F5E',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.5,
+                            bgcolor: '#f5f5f5',
+                            pl: 2,
+                            pr: 1,
+                            py: 0.75,
+                            borderRadius: '100px',
                             cursor: 'pointer',
-                            border: '2px solid white',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                bgcolor: '#ececec',
+                            },
                         }}
                     >
-                        {user?.email?.[0].toUpperCase() || 'U'}
-                    </Avatar>
+                        <SettingsOutlined sx={{ fontSize: 22, color: '#1a1a1a' }} />
+                        <Avatar
+                            sx={{
+                                width: 32,
+                                height: 32,
+                                bgcolor: '#DE3F5E',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                border: '2px solid white',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            }}
+                        >
+                            {user?.email?.[0].toUpperCase() || 'U'}
+                        </Avatar>
+                    </Box>
+
+                    {/* User Menu */}
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleMenuClose}
+                        onClick={handleMenuClose}
+                        PaperProps={{
+                            elevation: 0,
+                            sx: {
+                                overflow: 'visible',
+                                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
+                                mt: 1.5,
+                                borderRadius: '24px',
+                                minWidth: 280,
+                                p: 1,
+                                bgcolor: 'white',
+                                '& .MuiAvatar-root': {
+                                    width: 64,
+                                    height: 64,
+                                    mb: 2,
+                                },
+                            },
+                        }}
+                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                        {/* Menu Header */}
+                        <Box sx={{ p: 2.5, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <Avatar
+                                sx={{
+                                    bgcolor: '#DE3F5E',
+                                    fontSize: '1.5rem',
+                                    fontWeight: 700,
+                                    mb: 1,
+                                }}
+                            >
+                                {user?.email?.[0].toUpperCase() || 'U'}
+                            </Avatar>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
+                                {wedding?.couple_name || 'Your Wedding'}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
+                                {user?.email}
+                            </Typography>
+                        </Box>
+
+                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+
+                        {/* Menu Items */}
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                                <SettingsOutlined sx={{ color: '#111111', fontSize: 22 }} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Settings"
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                            />
+                        </ListItemButton>
+
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                                <ChatBubbleOutline sx={{ color: '#111111', fontSize: 22 }} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Contact Us"
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                            />
+                        </ListItemButton>
+
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                                <HelpOutline sx={{ color: '#111111', fontSize: 22 }} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Help"
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                            />
+                        </ListItemButton>
+
+                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+
+                        <ListItemButton
+                            onClick={handleSignOut}
+                            sx={{
+                                borderRadius: '12px',
+                                py: 1.2,
+                                mx: 0.5,
+                                color: '#DE3F5E',
+                                '&:hover': {
+                                    bgcolor: alpha('#DE3F5E', 0.05),
+                                }
+                            }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                                <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Sign Out"
+                                primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
+                            />
+                        </ListItemButton>
+                    </Menu>
                 </Box>
             </Toolbar>
         </AppBar>

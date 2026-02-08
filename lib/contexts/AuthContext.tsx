@@ -35,7 +35,9 @@ interface AuthContextType {
   isCheckingRSVP: boolean;
   isAdmin: boolean;
   adminWeddingSlug: string | null;
-  checkRSVPStatus: () => Promise<void>;
+  currentWeddingSlug: string | null;
+  setCurrentWeddingSlug: (slug: string) => void;
+  checkRSVPStatus: (force?: boolean) => Promise<void>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   handlePlusOneAuth: (email: string) => Promise<boolean>;
@@ -52,8 +54,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminWeddingSlug, setAdminWeddingSlug] = useState<string | null>(null);
+  const [currentWeddingSlug, setCurrentWeddingSlugState] = useState<string | null>(null);
   const isCheckingAuthRef = useRef(false);
   const hasCheckedAdminRef = useRef(false);
+  const lastCheckedWeddingSlug = useRef<string | null>(null);
+
+  // Set the current wedding slug and trigger RSVP recheck if changed
+  const setCurrentWeddingSlug = (slug: string) => {
+    if (slug !== currentWeddingSlug) {
+      console.log('🔄 [AuthContext] Wedding slug changed:', currentWeddingSlug, '->', slug);
+      setCurrentWeddingSlugState(slug);
+      // Reset RSVP state when wedding changes
+      setHasRSVPed(false);
+      setRsvpResponse(null);
+    }
+  };
 
   const generateInitials = (name: string) => {
     return name
@@ -70,12 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       '#03A9F4', '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
       '#CDDC39', '#FFC107', '#FF9800', '#FF5722', '#795548'
     ];
-    
+
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     return colors[Math.abs(hash) % colors.length];
   };
 
@@ -130,8 +145,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const checkRSVPStatus = async () => {
+  const checkRSVPStatus = async (force: boolean = false) => {
     if (!user || isCheckingRSVP || !user.email) {
+      return;
+    }
+
+    // Skip RSVP checks if no wedding slug is set
+    if (!currentWeddingSlug) {
+      console.log('Skipping RSVP check - no wedding slug set');
+      setIsCheckingRSVP(false);
+      return;
+    }
+
+    // Skip if we already checked this wedding, unless forcing a refresh
+    if (!force && lastCheckedWeddingSlug.current === currentWeddingSlug && (hasRSVPed || rsvpResponse !== null)) {
+      console.log('Skipping RSVP check - already checked for this wedding');
       return;
     }
 
@@ -159,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsCheckingRSVP(true);
     setHasRSVPed(false); // Reset state first
     setRsvpResponse(null); // Reset RSVP response
-    
+
     try {
       // Check for bypass RSVP flag first - if set, skip all database checks
       if (typeof window !== 'undefined') {
@@ -174,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       // Check if this is a plus one authentication (ID starts with "plus-one-")
       const isPlusOne = user.id?.startsWith('plus-one-');
-      
+
       if (isPlusOne) {
         // For plus ones, check the RSVP by plus_one_email
         const { data: rsvpData, error: rsvpError } = await supabase
@@ -192,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             )
           `)
           .eq('plus_one_email', user.email.toLowerCase())
-          .eq('wedding_id', 'sim-kv')
+          .eq('wedding_id', currentWeddingSlug)
           .single();
 
         console.log('Plus one RSVP query result:', { rsvpData, rsvpError, userEmail: user.email });
@@ -230,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name
             )
           `)
-          .eq('wedding_id', 'sim-kv');
+          .eq('wedding_id', currentWeddingSlug);
 
         console.log('All RSVPs in database:', rsvpData);
 
@@ -247,31 +275,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             )
           `)
           .eq('email', user.email.toLowerCase())
-          .eq('wedding_id', 'sim-kv')
+          .eq('wedding_id', currentWeddingSlug)
           .single();
 
         console.log('Guest query result:', { data, error, userEmail: user.email });
 
         if (error) {
           console.error('Error in guest query:', error);
-          
+
           // If guest not found, maybe check by guest ID directly
           if (user.id && user.id !== 'temp-guest') {
             const { data: directRSVPData, error: directError } = await supabase
               .from('rsvps')
               .select('*')
               .eq('guest_id', user.id)
-              .eq('wedding_id', 'sim-kv');
-            
+              .eq('wedding_id', currentWeddingSlug);
+
             console.log('Direct RSVP query by guest_id:', { directRSVPData, directError });
-            
+
             if (directRSVPData && directRSVPData.length > 0) {
               setHasRSVPed(true);
               setRsvpResponse(directRSVPData[0].attending);
               return;
             }
           }
-          
+
           setHasRSVPed(false);
           setRsvpResponse(null);
           return;
@@ -286,14 +314,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check if user has any RSVP records (including both attending and not attending)
         const hasAnyRSVP = data.rsvps && data.rsvps.length > 0;
         setHasRSVPed(hasAnyRSVP);
-        
+
         // Set RSVP response if available
         if (hasAnyRSVP && data.rsvps[0]) {
           setRsvpResponse(data.rsvps[0].attending);
         } else {
           setRsvpResponse(null);
         }
-        
+
         // Log for debugging
         console.log('RSVP Status Check:', {
           user: user.email,
@@ -309,6 +337,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRsvpResponse(null);
     } finally {
       setIsCheckingRSVP(false);
+      lastCheckedWeddingSlug.current = currentWeddingSlug;
     }
   };
 
@@ -333,7 +362,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .eq('plus_one_email', email.toLowerCase())
-        .eq('wedding_id', 'sim-kv')
+        .eq('wedding_id', currentWeddingSlug || 'sim-kv')
         .single();
 
       if (rsvpData && rsvpData.plus_one_email) {
@@ -343,7 +372,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: rsvpData.plus_one_email,
           name: rsvpData.plus_one_name || 'Plus One',
           phone: undefined,
-          weddingId: 'sim-kv',
+          weddingId: currentWeddingSlug || 'sim-kv',
           avatar_style: undefined,
           avatar_seed: undefined,
           avatar_svg: undefined,
@@ -386,7 +415,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Get the Supabase user once
       const { data: { user: sbUser }, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError) {
         if (userError.name === 'AbortError') {
           console.log('checkAuthStatus: Auth check aborted');
@@ -406,7 +435,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .from('guests')
               .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
               .eq('email', sbUser.email.toLowerCase())
-              .eq('wedding_id', 'sim-kv')
+              .eq('wedding_id', currentWeddingSlug || 'sim-kv')
               .single();
             guestData = guest;
           } catch (err) {
@@ -426,7 +455,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatar_seed: guestData?.avatar_seed,
           avatar_svg: guestData?.avatar_svg,
         };
-        
+
         setUser(userData);
         checkAdminStatus(sbUser.id);
       } else {
@@ -437,11 +466,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const guestInfo = JSON.parse(guestAuthData);
               const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
-              
+
               if (isRecent && guestInfo.email && (guestInfo.id !== 'temp-guest' || guestInfo.id === 'temp-bypass-guest')) {
                 const isPlusOne = guestInfo.id?.startsWith('plus-one-');
                 const isBypassGuest = guestInfo.id === 'temp-bypass-guest';
-                
+
                 if (isPlusOne || isBypassGuest) {
                   const userData: User = {
                     id: guestInfo.id,
@@ -463,9 +492,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         .from('guests')
                         .select('avatar_style, avatar_seed, avatar_svg')
                         .eq('email', guestInfo.email.toLowerCase())
-                        .eq('wedding_id', 'sim-kv')
+                        .eq('wedding_id', currentWeddingSlug || guestInfo.weddingId || 'sim-kv')
                         .single();
-                      
+
                       if (guestData) {
                         guestInfo.avatar_style = (guestData as any).avatar_style;
                         guestInfo.avatar_seed = (guestData as any).avatar_seed;
@@ -479,7 +508,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                       console.error('checkAuthStatus: Guest data fetch failed:', err);
                     }
                   }
-                  
+
                   setUser({
                     id: guestInfo.id,
                     email: guestInfo.email,
@@ -519,13 +548,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      // Also clear guest authentication and pin verification
+      // Also clear guest authentication and pin verification for current wedding
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phera_guest_auth');
-        localStorage.removeItem('phera_pin_verified');
-        localStorage.removeItem('phera_pin_timestamp');
-        localStorage.removeItem('phera_allows_plus_one');
-        localStorage.removeItem('phera_bypass_rsvp');
+        // Clear per-wedding PIN verification if we know the current wedding
+        if (currentWeddingSlug) {
+          localStorage.removeItem(`phera_pin_verified_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_pin_timestamp_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_allows_plus_one_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_bypass_rsvp_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_skip_rsvp_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_pin_type_${currentWeddingSlug}`);
+        }
       }
       setUser(null);
       setHasRSVPed(false);
@@ -548,7 +582,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('Refreshing auth status');
     setIsRefreshing(true);
     setIsLoading(true);
-    
+
     // Add timeout protection for refresh
     const timeoutPromise = new Promise<void>((resolve) => {
       setTimeout(() => {
@@ -558,21 +592,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resolve();
       }, 8000); // 8 second timeout for refresh
     });
-    
+
     // Add retry logic for auth check after magic link
     const authCheckWithRetry = async (retries = 3) => {
       for (let i = 0; i < retries; i++) {
         console.log(`Auth check attempt ${i + 1} of ${retries}`);
-        
+
         try {
           // First, refresh the session to ensure it's valid
           console.log('Refreshing Supabase session...');
           const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
           console.log('Session refresh result:', { sessionData: sessionData?.session?.user?.email, sessionError });
-          
+
           // Check if we have a Supabase session directly
           const { data: { user: sessionUser }, error } = await supabase.auth.getUser();
-          
+
           if (sessionUser) {
             console.log('Found valid session for:', sessionUser.email);
             await checkAuthStatus();
@@ -582,30 +616,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
           } else {
             console.log('All auth check attempts failed');
-            
+
             // FALLBACK: Check for magic link parameters without session
             // This handles cases like local testing or session expiry
             const urlParams = new URLSearchParams(window.location.search);
             const authSuccess = urlParams.get('auth_success');
             const userEmail = urlParams.get('user_email');
-            
+
             if (authSuccess === 'true' && userEmail) {
               console.log('Magic link detected without session, attempting guest auth fallback for:', decodeURIComponent(userEmail));
-              
+
               // Try guest authentication with the email from URL params
               const guestEmail = decodeURIComponent(userEmail);
-              
+
               // Check for existing guest data directly
               const { data: guestData } = await supabase
                 .from('guests')
                 .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
                 .eq('email', guestEmail.toLowerCase())
-                .eq('wedding_id', 'sim-kv')
+                .eq('wedding_id', currentWeddingSlug || 'sim-kv')
                 .single();
-              
+
               if (guestData) {
                 console.log('Found guest data for fallback auth:', guestData.name);
-                
+
                 const fallbackUser: User = {
                   id: guestData.id,
                   email: guestData.email,
@@ -617,7 +651,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   avatar_seed: guestData.avatar_seed,
                   avatar_svg: guestData.avatar_svg,
                 };
-                
+
                 setUser(fallbackUser);
                 console.log('Fallback authentication successful');
                 return;
@@ -634,7 +668,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     };
-    
+
     // Race between auth check with retry and timeout
     try {
       await Promise.race([authCheckWithRetry(), timeoutPromise]);
@@ -646,7 +680,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const initAuth = async () => {
       // Skip auth check on public routes to prevent AbortError
       if (isPublicRoute()) {
@@ -654,21 +688,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
         return;
       }
-      
+
       if (mounted) {
         await checkAuthStatus();
       }
     };
-    
+
     initAuth().catch(console.error);
 
     // Listen for auth changes - SIMPLIFIED to avoid lock conflicts
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        
+
         console.log('Auth state changed:', event);
-        
+
         if (event === 'SIGNED_IN' && session?.user) {
           // Set user directly from session to avoid calling getUser() again
           // This prevents the AbortError lock conflict
@@ -733,12 +767,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       }
-      
+
       // Add a small delay to ensure database is consistent
       const timer = setTimeout(() => {
         checkRSVPStatus();
       }, 500);
-      
+
       return () => clearTimeout(timer);
     } else {
       setHasRSVPed(false);
@@ -749,16 +783,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        isLoading, 
-        hasRSVPed, 
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        hasRSVPed,
         rsvpResponse,
         isCheckingRSVP,
         isAdmin,
         adminWeddingSlug,
-        checkRSVPStatus, 
+        currentWeddingSlug,
+        setCurrentWeddingSlug,
+        checkRSVPStatus,
         signOut,
         refreshAuth,
         handlePlusOneAuth

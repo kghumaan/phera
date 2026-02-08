@@ -42,6 +42,7 @@ import {
   Remove as RemoveIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
+import { FaWhatsapp } from 'react-icons/fa';
 import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
 import { upsertGuestFlight, getGuestFlight } from '@/lib/supabase/travel-service';
@@ -62,7 +63,7 @@ interface RSVPFormData {
   password: string;
   countryCode: string;
   phone: string;
-  
+
   // Attendance
   attending: 'yes' | 'no' | 'maybe' | '';
   plusOne: 'yes' | 'no' | '';
@@ -71,14 +72,14 @@ interface RSVPFormData {
   plusOneCountryCode: string; // <-- Added
   plusOnePhone: string; // <-- Added
   guestCount: number;
-  
+
   // Event-specific (ceremonies removed)
   foodPreference: string[];
   dietaryRestrictions: string;
-  
+
   // Cultural & Personal (modified)
   weddingSide: 'bride' | 'groom' | 'both' | '' | undefined;
-  
+
   // Fun & Engagement (participation removed)
   songRequest: string;
   specialMessage: string;
@@ -86,7 +87,7 @@ interface RSVPFormData {
   selectedGif?: GifData;
   arrivalOption: 'known' | 'not_sure' | '';
   arrivalDate: string;
-  
+
   // Flight Details (optional)
   flightAirline: string;
   flightNumber: string;
@@ -98,9 +99,8 @@ interface RSVPFormData {
   flightArrivalTime: string;
   shuttlePreferenceTime: string;
   shuttlePreferenceNote: string;
-  
-  // WhatsApp opt-in
-  whatsappOptIn: boolean;
+
+  // WhatsApp opt-in removed
 }
 
 const initialFormData: RSVPFormData = {
@@ -137,7 +137,6 @@ const initialFormData: RSVPFormData = {
   flightArrivalTime: '',
   shuttlePreferenceTime: '',
   shuttlePreferenceNote: '',
-  whatsappOptIn: false,
 };
 
 const foodPreferences = [
@@ -228,14 +227,14 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
-  
+
   // Authentication states for Account Creation step
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if plus-ones are allowed based on PIN
-  const allowsPlusOne = typeof window !== 'undefined' ? 
+  const allowsPlusOne = typeof window !== 'undefined' ?
     localStorage.getItem('phera_allows_plus_one') === 'true' : true;
 
   // Set default values for non-plus-one guests
@@ -254,6 +253,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   // Determine if we should show the flight details step
   const showFlightStep = formData.arrivalOption === 'known' && formData.attending === 'yes';
 
+  // Steps definition - includes Phera Concierge as final step for attending guests
   const steps = allowsPlusOne ? [
     'Basic Information',
     'Account Creation',
@@ -264,6 +264,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     'Arrival Plans',
     ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
+    'Phera Concierge',
   ] : [
     'Basic Information',
     'Account Creation',
@@ -273,6 +274,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     'Arrival Plans',
     ...(showFlightStep ? ['Flight Details'] : []),
     'Fun & Messages',
+    'Phera Concierge',
   ];
 
   // Fetch existing RSVP data when component mounts and user is authenticated
@@ -280,29 +282,29 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
     const fetchExistingRSVP = async () => {
       console.log('CustomRSVPForm: Starting fetchExistingRSVP, user:', user?.email);
       setIsLoadingExisting(true);
-      
+
       try {
         if (user && user.email) {
           console.log('CustomRSVPForm: Fetching existing RSVP for:', user.email);
-          
+
           // Add timeout to prevent hanging
-          const timeoutPromise = new Promise<never>((_, reject) => 
+          const timeoutPromise = new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('RSVP fetch timeout')), 10000)
           );
-          
+
           const result = await Promise.race([
             getExistingRSVP(user.email, weddingId),
             timeoutPromise
           ]);
           console.log('CustomRSVPForm: getExistingRSVP result:', result);
-          
+
           if (result.success && result.data) {
             console.log('CustomRSVPForm: Found existing RSVP data:', result.data);
             setFormData(prev => ({
               ...prev,
               ...result.data
             }));
-            
+
             // Fetch flight details if guestId is available
             if (result.guestId) {
               try {
@@ -314,7 +316,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   let departureTime = '';
                   let arrivalDate = '';
                   let arrivalTime = '';
-                  
+
                   if (flightData.departure_datetime) {
                     const depDateTime = new Date(flightData.departure_datetime);
                     departureDate = depDateTime.toISOString().split('T')[0];
@@ -325,7 +327,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     arrivalDate = arrDateTime.toISOString().split('T')[0];
                     arrivalTime = arrDateTime.toTimeString().slice(0, 5);
                   }
-                  
+
                   setFormData(prev => ({
                     ...prev,
                     flightAirline: flightData.airline || '',
@@ -382,11 +384,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         ...prev,
         email: user.email,
       }));
-      
+
       // Find the Account Creation step index and Attendance Details index
       const accountStepIndex = steps.indexOf('Account Creation');
       const attendanceStepIndex = steps.indexOf('Attendance Details');
-      
+
       // Restore form state from localStorage if returning from OAuth
       if (typeof window !== 'undefined') {
         const savedFormProgress = localStorage.getItem('phera_rsvp_form_progress');
@@ -407,7 +409,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             localStorage.removeItem('phera_rsvp_form_progress');
           }
         }
-        
+
         // If user is authenticated and on Basic Info or Account Creation step, 
         // move them to Attendance Details
         if (currentStep <= accountStepIndex) {
@@ -423,7 +425,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       ...prev,
       [field]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -434,8 +436,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   };
 
   const handleGuestCountChange = (increment: boolean) => {
-    const newCount = increment 
-      ? Math.min(formData.guestCount + 1, 10) 
+    const newCount = increment
+      ? Math.min(formData.guestCount + 1, 10)
       : Math.max(formData.guestCount - 1, 1);
     handleInputChange('guestCount', newCount);
   };
@@ -471,7 +473,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   // Handle email/password authentication
   const handleEmailPasswordAuth = async () => {
     setAuthError(null);
-    
+
     // Validate email and password
     if (!formData.email.trim()) {
       setAuthError('Please enter your email');
@@ -503,7 +505,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         // If invalid credentials, try to sign up
         if (signInError.message.includes('Invalid login credentials')) {
           console.log('User not found, attempting signup...');
-          
+
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
@@ -586,10 +588,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     // Get the step name to determine validation
     const stepName = steps[step];
-    
+
     switch (stepName) {
       case 'Basic Information':
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
@@ -601,11 +603,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
         }
         break;
-      
+
       case 'Account Creation':
         // If already authenticated, no validation needed
         if (isAuthenticated) break;
-        
+
         if (!formData.email.trim()) newErrors.email = 'Email is required';
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = 'Please enter a valid email';
@@ -615,11 +617,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           newErrors.password = 'Password must be at least 6 characters';
         }
         break;
-      
+
       case 'Attendance Details':
         if (!formData.attending) newErrors.attending = 'Please select attendance';
         break;
-      
+
       case 'Plus One Details':
         if (formData.attending === 'yes' && !formData.plusOne) {
           newErrors.plusOne = 'Please select plus one option';
@@ -639,7 +641,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           }
         }
         break;
-      
+
       case 'Event Preferences':
         if (formData.attending === 'yes' && formData.foodPreference.length === 0) {
           newErrors.foodPreference = 'Please select at least one food preference';
@@ -669,14 +671,14 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         // No required fields in this step - both song request and special message are optional
         break;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
     const currentStepName = steps[currentStep];
-    
+
     // Special handling for Account Creation step
     if (currentStepName === 'Account Creation') {
       // If already authenticated, skip validation and proceed
@@ -689,7 +691,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       setErrors({ auth: 'Please sign in or sign up to continue' });
       return;
     }
-    
+
     if (validateStep(currentStep)) {
       // Reset zoom and scroll position
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -700,7 +702,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
         }
       }, 100);
-      
+
       // If plus-ones are allowed and user is not attending yes, skip the plus-one section
       if (currentStepName === 'Attendance Details' && allowsPlusOne && formData.attending !== 'yes') {
         // Find the index of Event Preferences and go there
@@ -718,22 +720,22 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
 
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Directly pass form data - the service handles all normalization
       console.log('Submitting form data:', formData);
-      
+
       const result = await submitRSVP(formData, weddingId);
-      
+
       if (result.success) {
         console.log('RSVP submitted successfully, result:', result);
-        
+
         // If there's any flight data, save it
-        const hasFlightData = formData.flightAirline || formData.flightNumber || 
+        const hasFlightData = formData.flightAirline || formData.flightNumber ||
           formData.flightArrivalDate || formData.shuttlePreferenceTime;
-        
+
         if (hasFlightData && result.guestId) {
           try {
             await upsertGuestFlight(result.guestId, weddingId, {
@@ -754,17 +756,21 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             // Don't fail the whole submission if flight data fails
           }
         }
-        
-        // Refresh authentication to pick up the new guest auth
-        await refreshAuth();
-        
-        // Wait a bit for database to be consistent, then check RSVP status
+
+        // Wait a bit for database to be consistent, then check RSVP status (force refresh)
         setTimeout(async () => {
-          console.log('Checking RSVP status after delay...');
-          await checkRSVPStatus();
+          console.log('Checking RSVP status after delay (forced)...');
+          await checkRSVPStatus(true);
         }, 1000);
-        
-        setIsSubmitted(true);
+
+        // For 'yes' guests, the Concierge step is now part of the form steps
+        // For 'no' and 'maybe' guests, we go directly to the success screen
+        if (formData.attending === 'yes') {
+          // Move to next step (Phera Concierge) rather than showing separate screen
+          setCurrentStep(currentStep + 1);
+        } else {
+          setIsSubmitted(true);
+        }
       } else {
         throw new Error('Failed to submit RSVP');
       }
@@ -798,6 +804,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       transition: { duration: 0.3 }
     }
   };
+
+
 
   if (isSubmitted) {
     const getOverlayImage = () => {
@@ -838,9 +846,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             zIndex: isMobile ? 1400 : 1,
           }}
         >
-          <Container 
+          <Container
             maxWidth={isMobile ? 'sm' : false}
-            sx={{ 
+            sx={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -886,10 +894,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       left: 0,
                       right: 0,
                       width: '100%',
-                      height: { 
-                        xs: formData.attending === 'no' ? 300 : 200, 
-                        sm: formData.attending === 'no' ? 300 : 200, 
-                        md: 300 
+                      height: {
+                        xs: formData.attending === 'no' ? 300 : 200,
+                        sm: formData.attending === 'no' ? 300 : 200,
+                        md: 300
                       },
                       backgroundImage: `url(${getOverlayImage()})`,
                       backgroundSize: 'cover',
@@ -940,9 +948,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 )}
 
                 {/* Scrollable Content Area - Full width for confirmation */}
-                <Box sx={{ 
-                  flex: 1, 
-                  overflowY: 'auto', 
+                <Box sx={{
+                  flex: 1,
+                  overflowY: 'auto',
                   minHeight: 0,
                   display: 'flex',
                   flexDirection: 'column',
@@ -964,18 +972,18 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 }}>
                   {/* Spacer for overlay height */}
                   {getOverlayImage() && (
-                    <Box sx={{ 
-                      height: { 
-                        xs: formData.attending === 'no' ? 300 : 200, 
-                        sm: formData.attending === 'no' ? 300 : 200, 
-                        md: 300 
-                      }, 
-                      flexShrink: 0 
+                    <Box sx={{
+                      height: {
+                        xs: formData.attending === 'no' ? 300 : 200,
+                        sm: formData.attending === 'no' ? 300 : 200,
+                        md: 300
+                      },
+                      flexShrink: 0
                     }} />
                   )}
 
                   {/* Content - Absolutely centered in remaining space */}
-                  <Box sx={{ 
+                  <Box sx={{
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
@@ -987,15 +995,15 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     position: 'relative',
                     ...(getOverlayImage() && {
                       // When there's an overlay, center in the available space below it
-                      marginTop: { 
-                        xs: formData.attending === 'no' ? '-200px' : '-150px', 
-                        sm: formData.attending === 'no' ? '-200px' : '-150px', 
-                        md: '-200px' 
+                      marginTop: {
+                        xs: formData.attending === 'no' ? '-200px' : '-150px',
+                        sm: formData.attending === 'no' ? '-200px' : '-150px',
+                        md: '-200px'
                       },
                     }),
                   }}>
                     {/* Content Column with tight spacing */}
-                    <Box sx={{ 
+                    <Box sx={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -1012,9 +1020,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                           filter: 'brightness(0)', // Makes the logo black
                         }}
                       />
-                  
+
                       {/* Text Content */}
-                      <Box sx={{ 
+                      <Box sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -1048,7 +1056,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                                 <Typography sx={headingStyle}>
                                   Yay! You're part of our celebration and we can't wait to have you there
                                 </Typography>
-                                
+
                                 <Typography sx={bodyStyle}>
                                   Your room is booked and fully paid for! Check out the rest of the website for travel trips, event details, dress codes, etc. We may require more information from you closer to the wedding so keep an eye out for emails!
                                 </Typography>
@@ -1062,7 +1070,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                                 <Typography sx={headingStyle}>
                                   Thanks for letting us know!
                                 </Typography>
-                                
+
                                 <Typography sx={bodyStyle}>
                                   We understand you need to figure some things out. Just remember: We need your final answer by <strong>September 30, 2025</strong>. We'll check in with you before then!
                                   {'\n\n'}
@@ -1078,7 +1086,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                                 <Typography sx={headingStyle}>
                                   We'll miss you! :(
                                 </Typography>
-                                
+
                                 <Typography sx={bodyStyle}>
                                   We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>.
                                 </Typography>
@@ -1089,7 +1097,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                           return null;
                         })()}
                       </Box>
-                      
+
                       {/* Bottom Logo - Upside Down */}
                       <Box
                         component="img"
@@ -1106,13 +1114,16 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   </Box>
 
                   {/* Done Button - Fixed at bottom */}
-                  <Box sx={{ 
-                    p: { xs: 2, sm: 3 }, 
+                  <Box sx={{
+                    p: { xs: 2, sm: 3 },
                     pt: { xs: 1, sm: 1.5 },
                     flexShrink: 0,
                   }}>
                     <Button
-                      onClick={() => router.push(`/${weddingId}`)}
+                      onClick={async () => {
+                        await checkRSVPStatus(true);
+                        router.push(`/${weddingId}`);
+                      }}
                       variant="contained"
                       size="large"
                       fullWidth
@@ -1147,15 +1158,15 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
   const renderStep = () => {
     // Get step name to determine which content to render
     const stepName = steps[currentStep];
-    
+
     switch (stepName) {
       case 'Basic Information':
         return (
           <Stack spacing={2}>
-            <Typography 
-              variant="h4" 
-              sx={{ 
-                color: '#000', 
+            <Typography
+              variant="h4"
+              sx={{
+                color: '#000',
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
@@ -1165,11 +1176,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             >
               Let's make this celebration official! ✨
             </Typography>
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: '#808080 !important', 
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#808080 !important',
                 mb: 3,
                 fontFamily: 'Outfit',
                 lineHeight: 1.5,
@@ -1177,7 +1188,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             >
               First, tell us a bit about yourself:
             </Typography>
-            
+
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row' }}>
               <Box sx={{ flex: 1 }}>
                 <Box
@@ -1223,7 +1234,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   </Typography>
                 )}
               </Box>
-              
+
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
@@ -1269,7 +1280,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 )}
               </Box>
             </Box>
-            
+
             <Box>
               <Box
                 sx={{
@@ -1361,9 +1372,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     border: 'none',
                     outline: 'none',
                     flex: 1,
-                      fontFamily: 'Outfit',
-                      fontSize: 'inherit',
-                      color: formData.phone ? '#000' : '#888888',
+                    fontFamily: 'Outfit',
+                    fontSize: 'inherit',
+                    color: formData.phone ? '#000' : '#888888',
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
                   }}
@@ -1375,12 +1386,12 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 </Typography>
               )}
             </Box>
-            
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: '#666', 
-                mt: 2, 
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#666',
+                mt: 2,
                 mb: 2,
                 fontFamily: 'Outfit',
                 lineHeight: 1.4,
@@ -1394,10 +1405,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       case 'Account Creation':
         return (
           <Stack spacing={2}>
-            <Typography 
-              variant="h4" 
-              sx={{ 
-                color: '#000', 
+            <Typography
+              variant="h4"
+              sx={{
+                color: '#000',
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
@@ -1407,11 +1418,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             >
               Create Your Login 🔐
             </Typography>
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: '#808080 !important', 
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#808080 !important',
                 mb: 3,
                 fontFamily: 'Outfit',
                 lineHeight: 1.5,
@@ -1421,8 +1432,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             </Typography>
 
             {authError && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity="error"
                 onClose={() => setAuthError(null)}
                 sx={{ borderRadius: '12px', mb: 2 }}
               >
@@ -1473,9 +1484,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                      fontFamily: 'Outfit',
-                      fontSize: 'inherit',
-                      color: formData.email ? '#000' : '#888888',
+                        fontFamily: 'Outfit',
+                        fontSize: 'inherit',
+                        color: formData.email ? '#000' : '#888888',
                         backgroundColor: 'transparent',
                       }}
                     />
@@ -1518,9 +1529,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                      fontFamily: 'Outfit',
-                      fontSize: 'inherit',
-                      color: formData.password ? '#000' : '#888888',
+                        fontFamily: 'Outfit',
+                        fontSize: 'inherit',
+                        color: formData.password ? '#000' : '#888888',
                         backgroundColor: 'transparent',
                       }}
                     />
@@ -1578,10 +1589,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                        <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-                        <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                        <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4" />
+                        <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853" />
+                        <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05" />
+                        <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335" />
                       </svg>
                     )
                   }
@@ -1619,10 +1630,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#141414', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#141414',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -1631,11 +1642,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 Will you be celebrating with us in Thailand? 🏖️
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   fontFamily: 'Outfit',
                   lineHeight: 1.5,
@@ -1644,7 +1655,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 Ready to make some memories?
               </Typography>
             </Box>
-            
+
             <FormControl error={!!errors.attending}>
               <Box>
                 {[
@@ -1667,8 +1678,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       }}
                       onClick={() => handleInputChange('attending', option.value)}
                     >
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: formData.attending === option.value ? '#DE3F5E' : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
                           fontFamily: 'Outfit',
@@ -1678,7 +1689,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       >
                         {option.label}
                       </Typography>
-                      
+
                       <Box
                         sx={{
                           width: 24,
@@ -1703,7 +1714,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         )}
                       </Box>
                     </Box>
-                    
+
                     {/* Maybe text field - show when maybe is selected */}
                     {option.value === 'maybe' && formData.attending === 'maybe' && (
                       <Box sx={{ mt: 2, mb: 2 }}>
@@ -1742,21 +1753,21 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                             }}
                           />
                         </Box>
-                        
+
                         {/* Final answer reminder */}
-                        <Box 
-                          sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: 1,
-                            p: 2, 
-                            backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+                            p: 2,
+                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
                             borderRadius: { xs: '8px', md: '10px' },
                             color: 'rgba(0, 0, 0, 0.72)',
                             mt: 2
                           }}
                         >
-                          <Typography sx={{ 
+                          <Typography sx={{
                             fontWeight: 400,
                             lineHeight: 1.5,
                             fontFamily: 'Outfit'
@@ -1775,10 +1786,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 </Typography>
               )}
             </FormControl>
-            
-            <Typography 
-              variant="body2" 
-              sx={{ 
+
+            <Typography
+              variant="body2"
+              sx={{
                 color: 'rgba(0, 0, 0, 0.48)',
                 lineHeight: 1.5,
                 fontFamily: 'Outfit',
@@ -1787,9 +1798,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             >
               <strong>Note:</strong> Your accommodation will be covered by us! We need to book the right number of rooms, so please let us know for sure by {WEDDING_CONFIG.rsvpDeadline}!
             </Typography>
-            
 
-            
+
+
             {/* <Collapse in={formData.attending === 'no'}>
               <Box 
                 sx={{ 
@@ -1819,10 +1830,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#000', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#000',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -1831,11 +1842,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 Bringing your special someone? 💕
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
@@ -1845,7 +1856,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 Couples share one invitation - add your partner here! They will be able to sign in to the website with their email address as well.
               </Typography>
             </Box>
-            
+
             <Box>
               <FormControl error={!!errors.plusOne} sx={{ width: '100%' }}>
                 <Box>
@@ -1878,8 +1889,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         handleInputChange('guestCount', 2);
                       }}
                     >
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
                           fontFamily: 'Outfit',
@@ -1889,7 +1900,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       >
                         Yes! Here are their details
                       </Typography>
-                      
+
                       <Box
                         sx={{
                           width: 24,
@@ -1915,247 +1926,243 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       </Box>
                     </Box>
                     <Collapse in={formData.plusOne === 'yes'}>
-              <Box>
-                {/* First Name and Last Name Row */}
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Box
-                      sx={{
-                        border: '1px solid rgba(0, 0, 0, 0.4)',
-                        borderRadius: { xs: '8px', md: '10px' },
-                        padding: { xs: '12px 12px', md: '14px 16px' },
-                        backgroundColor: 'white',
-                        cursor: 'text',
-                        height: { xs: '40px', md: '52px' },
-                        display: 'flex',
-                        alignItems: 'center',
-                        '&:hover': {
-                          borderColor: 'rgba(0, 0, 0, 0.4)',
-                        },
-                        '&:focus-within': {
-                          borderColor: '#DAA520',
-                          borderWidth: '2px',
-                          padding: { xs: '11px 11px', md: '13px 15px' },
-                        },
-                      }}
-                    >
-                      <input
-                        type="text"
-                        placeholder="First name"
-                        value={formData.plusOneName.split(' ')[0] || ''}
-                        onChange={(e) => {
-                          const lastName = formData.plusOneName.split(' ').slice(1).join(' ');
-                          handleInputChange('plusOneName', e.target.value + (lastName ? ' ' + lastName : ''));
-                        }}
-                        style={{
-                          border: 'none',
-                          outline: 'none',
-                          width: '100%',
-                          fontFamily: 'Outfit',
-                          fontSize: 'inherit',
-                          color: formData.plusOneName.split(' ')[0] ? '#000' : '#888888',
-                          backgroundColor: 'transparent',
-                        }}
-                      />
-                    </Box>
-                    {errors.plusOneName && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                        {errors.plusOneName}
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  <Box sx={{ flex: 1 }}>
-                    <Box
-                      sx={{
-                        border: '1px solid rgba(0, 0, 0, 0.4)',
-                        borderRadius: { xs: '8px', md: '10px' },
-                        padding: { xs: '12px 12px', md: '14px 16px' },
-                        backgroundColor: 'white',
-                        cursor: 'text',
-                        height: { xs: '40px', md: '52px' },
-                        display: 'flex',
-                        alignItems: 'center',
-                        '&:hover': {
-                          borderColor: 'rgba(0, 0, 0, 0.4)',
-                        },
-                        '&:focus-within': {
-                          borderColor: '#DAA520',
-                          borderWidth: '2px',
-                          padding: { xs: '11px 11px', md: '13px 15px' },
-                        },
-                      }}
-                    >
-                      <input
-                        type="text"
-                        placeholder="Last name"
-                        value={formData.plusOneName.split(' ').slice(1).join(' ') || ''}
-                        onChange={(e) => {
-                          const firstName = formData.plusOneName.split(' ')[0] || '';
-                          handleInputChange('plusOneName', firstName + (e.target.value ? ' ' + e.target.value : ''));
-                        }}
-                        style={{
-                          border: 'none',
-                          outline: 'none',
-                          width: '100%',
-                          fontFamily: 'Outfit',
-                          fontSize: 'inherit',
-                          color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#888888',
-                          backgroundColor: 'transparent',
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                </Box>
+                      <Box>
+                        {/* First Name and Last Name Row */}
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Box
+                              sx={{
+                                border: '1px solid rgba(0, 0, 0, 0.4)',
+                                borderRadius: { xs: '8px', md: '10px' },
+                                padding: { xs: '12px 12px', md: '14px 16px' },
+                                backgroundColor: 'white',
+                                cursor: 'text',
+                                height: { xs: '40px', md: '52px' },
+                                display: 'flex',
+                                alignItems: 'center',
+                                '&:hover': {
+                                  borderColor: 'rgba(0, 0, 0, 0.4)',
+                                },
+                                '&:focus-within': {
+                                  borderColor: '#DAA520',
+                                  borderWidth: '2px',
+                                  padding: { xs: '11px 11px', md: '13px 15px' },
+                                },
+                              }}
+                            >
+                              <input
+                                type="text"
+                                placeholder="First name"
+                                value={formData.plusOneName.split(' ')[0] || ''}
+                                onChange={(e) => {
+                                  const lastName = formData.plusOneName.split(' ').slice(1).join(' ');
+                                  handleInputChange('plusOneName', e.target.value + (lastName ? ' ' + lastName : ''));
+                                }}
+                                style={{
+                                  border: 'none',
+                                  outline: 'none',
+                                  width: '100%',
+                                  fontFamily: 'Outfit',
+                                  fontSize: 'inherit',
+                                  color: formData.plusOneName.split(' ')[0] ? '#000' : '#888888',
+                                  backgroundColor: 'transparent',
+                                }}
+                              />
+                            </Box>
+                            {errors.plusOneName && (
+                              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                                {errors.plusOneName}
+                              </Typography>
+                            )}
+                          </Box>
 
-                {/* Email Field */}
-                <Box sx={{ mb: 2 }}>
-                  <Box
-                    sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.4)',
-                      borderRadius: { xs: '8px', md: '10px' },
-                      padding: { xs: '12px 12px', md: '14px 16px' },
-                      backgroundColor: 'white',
-                      cursor: 'text',
-                      height: { xs: '40px', md: '52px' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        borderColor: 'rgba(0, 0, 0, 0.4)',
-                      },
-                      '&:focus-within': {
-                        borderColor: '#DAA520',
-                        borderWidth: '2px',
-                        padding: { xs: '11px 11px', md: '13px 15px' },
-                      },
-                    }}
-                  >
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={formData.plusOneEmail}
-                      onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        width: '100%',
-                        fontFamily: 'Outfit',
-                        fontSize: 'inherit',
-                        color: formData.plusOneEmail ? '#000' : '#888888',
-                        backgroundColor: 'transparent',
-                      }}
-                    />
-                  </Box>
-                  {errors.plusOneEmail && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                      {errors.plusOneEmail}
-                    </Typography>
-                  )}
-                </Box>
+                          <Box sx={{ flex: 1 }}>
+                            <Box
+                              sx={{
+                                border: '1px solid rgba(0, 0, 0, 0.4)',
+                                borderRadius: { xs: '8px', md: '10px' },
+                                padding: { xs: '12px 12px', md: '14px 16px' },
+                                backgroundColor: 'white',
+                                cursor: 'text',
+                                height: { xs: '40px', md: '52px' },
+                                display: 'flex',
+                                alignItems: 'center',
+                                '&:hover': {
+                                  borderColor: 'rgba(0, 0, 0, 0.4)',
+                                },
+                                '&:focus-within': {
+                                  borderColor: '#DAA520',
+                                  borderWidth: '2px',
+                                  padding: { xs: '11px 11px', md: '13px 15px' },
+                                },
+                              }}
+                            >
+                              <input
+                                type="text"
+                                placeholder="Last name"
+                                value={formData.plusOneName.split(' ').slice(1).join(' ') || ''}
+                                onChange={(e) => {
+                                  const firstName = formData.plusOneName.split(' ')[0] || '';
+                                  handleInputChange('plusOneName', firstName + (e.target.value ? ' ' + e.target.value : ''));
+                                }}
+                                style={{
+                                  border: 'none',
+                                  outline: 'none',
+                                  width: '100%',
+                                  fontFamily: 'Outfit',
+                                  fontSize: 'inherit',
+                                  color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#888888',
+                                  backgroundColor: 'transparent',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </Box>
 
-                {/* Phone Field (with country code select) */}
-                <Box sx={{ mb: 2 }}>
-                  <Box
-                    sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.4)',
-                      borderRadius: { xs: '8px', md: '10px' },
-                      padding: '6px 8px', // smaller padding
-                      backgroundColor: 'white',
-                      cursor: 'text',
-                      height: '36px', // smaller height
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      '&:hover': {
-                        borderColor: 'rgba(0, 0, 0, 0.4)',
-                      },
-                      '&:focus-within': {
-                        borderColor: '#DAA520',
-                        borderWidth: '2px',
-                        padding: '5px 7px',
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                      <FormControl sx={{ minWidth: 70 }}>
-                        <Select
-                          value={formData.plusOneCountryCode}
-                          onChange={(e) => handleInputChange('plusOneCountryCode', e.target.value)}
-                          variant="standard"
-                          disableUnderline
-                          sx={{
-                            height: '24px',
-                            color: '#000', // always black
-                            fontSize: '1rem',
-                            '& .MuiSelect-select': {
-                              padding: '0px 8px 0px 0px',
+                        {/* Email Field */}
+                        <Box sx={{ mb: 2 }}>
+                          <Box
+                            sx={{
+                              border: '1px solid rgba(0, 0, 0, 0.4)',
+                              borderRadius: { xs: '8px', md: '10px' },
+                              padding: { xs: '12px 12px', md: '14px 16px' },
+                              backgroundColor: 'white',
+                              cursor: 'text',
+                              height: { xs: '40px', md: '52px' },
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 0.5,
-                              fontSize: '1rem',
-                              border: 'none',
-                              color: '#000', // always black
-                              '&:focus': {
+                              '&:hover': {
+                                borderColor: 'rgba(0, 0, 0, 0.4)',
+                              },
+                              '&:focus-within': {
+                                borderColor: '#DAA520',
+                                borderWidth: '2px',
+                                padding: { xs: '11px 11px', md: '13px 15px' },
+                              },
+                            }}
+                          >
+                            <input
+                              type="email"
+                              placeholder="Email"
+                              value={formData.plusOneEmail}
+                              onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
+                              style={{
+                                border: 'none',
+                                outline: 'none',
+                                width: '100%',
+                                fontFamily: 'Outfit',
+                                fontSize: 'inherit',
+                                color: formData.plusOneEmail ? '#000' : '#888888',
                                 backgroundColor: 'transparent',
+                              }}
+                            />
+                          </Box>
+                          {errors.plusOneEmail && (
+                            <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                              {errors.plusOneEmail}
+                            </Typography>
+                          )}
+                        </Box>
+
+                        {/* Phone Field (with country code select) */}
+                        <Box sx={{ mb: 2 }}>
+                          <Box
+                            sx={{
+                              border: '1px solid rgba(0, 0, 0, 0.4)',
+                              borderRadius: { xs: '8px', md: '10px' },
+                              padding: '6px 8px', // smaller padding
+                              backgroundColor: 'white',
+                              cursor: 'text',
+                              height: '36px', // smaller height
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              '&:hover': {
+                                borderColor: 'rgba(0, 0, 0, 0.4)',
                               },
-                            },
-                            '& .MuiSelect-icon': {
-                              color: '#666',
-                              fontSize: '1.2rem',
-                            },
-                          }}
-                          MenuProps={{
-                            PaperProps: {
-                              sx: {
-                                backgroundColor: '#fff',
-                                boxShadow: 3,
-                                height: '300px',
-                                // borderRadius: 2,
+                              '&:focus-within': {
+                                borderColor: '#DAA520',
+                                borderWidth: '2px',
+                                padding: '5px 7px',
                               },
-                            },
-                            MenuListProps: {
-                              sx: {
-                                py: 0.5,
-                              },
-                            },
-                          }}
-                        >
-                          {countryCodes.map((country) => (
-                            <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <span style={{ fontSize: '1rem' }}>{country.flag}</span>
-                                <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
-                              </Box>
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      placeholder="000 000 0000 (optional)"
-                      value={formData.plusOnePhone}
-                      onChange={(e) => {
-                        const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
-                        handleInputChange('plusOnePhone', cleanValue);
-                      }}
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        flex: 1,
-                        fontFamily: 'Outfit',
-                        fontSize: 'inherit',
-                        color: formData.plusOnePhone ? '#000' : '#888888',
-                        backgroundColor: 'transparent',
-                        marginLeft: '8px',
-                        fontSize: '1rem',
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Box>  
-            </Collapse>
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                              <FormControl sx={{ minWidth: 70 }}>
+                                <Select
+                                  value={formData.plusOneCountryCode}
+                                  onChange={(e) => handleInputChange('plusOneCountryCode', e.target.value)}
+                                  variant="standard"
+                                  disableUnderline
+                                  sx={{
+                                    height: '24px',
+                                    color: '#000', // always black
+                                    fontSize: '1rem',
+                                    '& .MuiSelect-select': {
+                                      padding: '0px 8px 0px 0px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5,
+                                      fontSize: '1rem',
+                                      border: 'none',
+                                      color: '#000', // always black
+                                      '&:focus': {
+                                        backgroundColor: 'transparent',
+                                      },
+                                    },
+                                    '& .MuiSelect-icon': {
+                                      color: '#666',
+                                      fontSize: '1.2rem',
+                                    },
+                                  }}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      sx: {
+                                        backgroundColor: '#fff',
+                                        boxShadow: 3,
+                                        height: '300px',
+                                        // borderRadius: 2,
+                                      },
+                                    },
+                                    MenuListProps: {
+                                      sx: {
+                                        py: 0.5,
+                                      },
+                                    },
+                                  }}
+                                >
+                                  {countryCodes.map((country) => (
+                                    <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span style={{ fontSize: '1rem' }}>{country.flag}</span>
+                                        <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
+                                      </Box>
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Box>
+                            <input
+                              type="tel"
+                              inputMode="tel"
+                              placeholder="000 000 0000 (optional)"
+                              value={formData.plusOnePhone}
+                              onChange={(e) => {
+                                const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
+                                handleInputChange('plusOnePhone', cleanValue);
+                              }}
+                              style={{
+                                border: 'none',
+                                outline: 'none',
+                                flex: 1,
+                                fontFamily: 'Outfit',
+                                fontSize: '1rem',
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Collapse>
                     <Box
                       sx={{
                         display: 'flex',
@@ -2172,8 +2179,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         handleInputChange('guestCount', 1);
                       }}
                     >
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
                           fontFamily: 'Outfit',
@@ -2208,7 +2215,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       </Box>
                     </Box>
                   </RadioGroup>
-                  
+
                   {errors.plusOne && (
                     <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
                       {errors.plusOne}
@@ -2218,13 +2225,13 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               </FormControl>
             </Box>
 
-            
-            
+
+
             <Box>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mb: 2,
                   fontFamily: 'Outfit'
@@ -2232,10 +2239,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 Total number in your party (including kids)?
               </Typography>
-              
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: 0,
                 border: '1px solid rgba(0, 0, 0, 0.12)',
                 borderRadius: { xs: '8px', md: '10px' },
@@ -2246,7 +2253,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 <IconButton
                   onClick={() => handleGuestCountChange(false)}
                   disabled={formData.guestCount <= 1}
-                  sx={{ 
+                  sx={{
                     color: '#666',
                     borderRadius: '8px 0 0 8px',
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -2261,11 +2268,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 >
                   <RemoveIcon />
                 </IconButton>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    minWidth: 60, 
-                    textAlign: 'center', 
+                <Typography
+                  variant="h6"
+                  sx={{
+                    minWidth: 60,
+                    textAlign: 'center',
                     color: '#000',
                     fontWeight: 500,
                     py: 1,
@@ -2277,7 +2284,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 <IconButton
                   onClick={() => handleGuestCountChange(true)}
                   disabled={formData.guestCount >= 10}
-                  sx={{ 
+                  sx={{
                     color: '#666',
                     borderRadius: '0 8px 8px 0',
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -2301,10 +2308,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#000', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#000',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2313,11 +2320,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 What's your dining preference? 🍛
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
@@ -2327,7 +2334,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 {allowsPlusOne ? 'Select all that apply for you (and your plus one)!' : 'Select all that apply for you!'}
               </Typography>
             </Box>
-            
+
             <Box>
               <FormControl error={!!errors.foodPreference} sx={{ width: '100%' }}>
                 <Box>
@@ -2352,55 +2359,55 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                           backgroundColor: 'rgba(0, 0, 0, 0.02)',
                         },
                       }}
-                                             onClick={() => {
-                         const currentPreferences = [...formData.foodPreference];
-                         const index = currentPreferences.indexOf(option.value);
-                         if (index > -1) {
-                           currentPreferences.splice(index, 1);
-                         } else {
-                           currentPreferences.push(option.value);
-                         }
-                         handleInputChange('foodPreference', currentPreferences);
-                       }}
-                     >
-                       <Typography 
-                         sx={{ 
-                           color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
-                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
-                           fontFamily: 'Outfit',
-                           lineHeight: 1.3,
-                           flex: 1
-                         }}
-                       >
-                         {option.label}
-                       </Typography>
-                       
-                       <Box
-                         sx={{
-                           width: 24,
-                           height: 24,
-                           borderRadius: '50%',
-                           border: `2px solid ${formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
-                           display: 'flex',
-                           alignItems: 'center',
-                           justifyContent: 'center',
-                           backgroundColor: formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'transparent',
-                         }}
-                       >
-                         {formData.foodPreference.includes(option.value) && (
-                           <Box
-                             sx={{
-                               width: 8,
-                               height: 8,
-                               borderRadius: '50%',
-                               backgroundColor: 'white',
-                             }}
-                           />
-                         )}
+                      onClick={() => {
+                        const currentPreferences = [...formData.foodPreference];
+                        const index = currentPreferences.indexOf(option.value);
+                        if (index > -1) {
+                          currentPreferences.splice(index, 1);
+                        } else {
+                          currentPreferences.push(option.value);
+                        }
+                        handleInputChange('foodPreference', currentPreferences);
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
+                          fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
+                          fontFamily: 'Outfit',
+                          lineHeight: 1.3,
+                          flex: 1
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: `2px solid ${formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'transparent',
+                        }}
+                      >
+                        {formData.foodPreference.includes(option.value) && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              backgroundColor: 'white',
+                            }}
+                          />
+                        )}
                       </Box>
                     </Box>
                   ))}
-                  
+
                   {errors.foodPreference && (
                     <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
                       {errors.foodPreference}
@@ -2410,46 +2417,46 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               </FormControl>
             </Box>
 
-                         {/* Dietary Restrictions Text Field - Only show when "Allergies" is selected */}
-             {formData.foodPreference.includes('Allergies') && (
-               <Box sx={{ mt: 3 }}>
-                 <Box
-                   sx={{
-                     border: '1px solid rgba(0, 0, 0, 0.4)',
-                     borderRadius: { xs: '8px', md: '10px' },
-                     padding: '16px 12px',
-                     backgroundColor: 'white',
-                     cursor: 'text',
-                     minHeight: '100px',
-                     '&:hover': {
-                       borderColor: 'rgba(0, 0, 0, 0.4)',
-                     },
-                     '&:focus-within': {
-                       borderColor: '#DAA520',
-                       borderWidth: '2px',
-                       padding: '15px 11px',
-                     },
-                   }}
-                 >
-                   <textarea
-                     placeholder="Please specify your allergies or dietary restrictions."
-                     value={formData.dietaryRestrictions}
-                     onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
-                     style={{
-                       border: 'none',
-                       outline: 'none',
-                       width: '100%',
-                       height: '20px',
-                       resize: 'none',
-                       fontFamily: 'Outfit',
-                       fontSize: 'inherit',
-                       color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
-                       backgroundColor: 'transparent',
-                     }}
-                   />
-                 </Box>
-               </Box>
-             )}
+            {/* Dietary Restrictions Text Field - Only show when "Allergies" is selected */}
+            {formData.foodPreference.includes('Allergies') && (
+              <Box sx={{ mt: 3 }}>
+                <Box
+                  sx={{
+                    border: '1px solid rgba(0, 0, 0, 0.4)',
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: '16px 12px',
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                    minHeight: '100px',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.4)',
+                    },
+                    '&:focus-within': {
+                      borderColor: '#DAA520',
+                      borderWidth: '2px',
+                      padding: '15px 11px',
+                    },
+                  }}
+                >
+                  <textarea
+                    placeholder="Please specify your allergies or dietary restrictions."
+                    value={formData.dietaryRestrictions}
+                    onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      height: '20px',
+                      resize: 'none',
+                      fontFamily: 'Outfit',
+                      fontSize: 'inherit',
+                      color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
           </Stack>
         );
 
@@ -2457,10 +2464,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#000', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#000',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2469,11 +2476,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 Which side of the celebration? 👰🏻‍♀️🤵🏻‍♂️
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
@@ -2483,7 +2490,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 This helps us with logistics and organization!
               </Typography>
             </Box>
-            
+
             <Box>
               <FormControl error={!!errors.weddingSide} sx={{ width: '100%' }}>
                 <Box>
@@ -2507,8 +2514,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       }}
                       onClick={() => handleInputChange('weddingSide', option.value)}
                     >
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
                           fontFamily: 'Outfit',
@@ -2518,7 +2525,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       >
                         {option.label}
                       </Typography>
-                      
+
                       <Box
                         sx={{
                           width: 24,
@@ -2544,7 +2551,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       </Box>
                     </Box>
                   ))}
-                  
+
                   {errors.weddingSide && (
                     <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
                       {errors.weddingSide}
@@ -2554,76 +2561,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               </FormControl>
             </Box>
 
-            {/* WhatsApp Opt-in */}
-            <Box 
-              sx={{ 
-                mt: 4,
-                p: 3,
-                backgroundColor: 'rgba(37, 211, 102, 0.06)',
-                borderRadius: '12px',
-                border: '1px solid rgba(37, 211, 102, 0.2)',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 2,
-                  cursor: 'pointer',
-                }}
-                onClick={() => handleInputChange('whatsappOptIn', !formData.whatsappOptIn)}
-              >
-                <Box
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '6px',
-                    border: `2px solid ${formData.whatsappOptIn ? '#25D366' : 'rgba(0, 0, 0, 0.3)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: formData.whatsappOptIn ? '#25D366' : 'transparent',
-                    flexShrink: 0,
-                    mt: 0.5,
-                  }}
-                >
-                  {formData.whatsappOptIn && (
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '2px',
-                        backgroundColor: 'white',
-                      }}
-                    />
-                  )}
-                </Box>
-                <Box>
-                  <Typography 
-                    sx={{ 
-                      color: '#000',
-                      fontWeight: 500,
-                      fontFamily: 'Outfit',
-                      lineHeight: 1.4,
-                      mb: 0.5,
-                    }}
-                  >
-                    📱 Get wedding updates via WhatsApp
-                  </Typography>
-                  <Typography 
-                    variant="caption"
-                    sx={{ 
-                      color: 'rgba(0, 0, 0, 0.6)',
-                      fontFamily: 'Outfit',
-                      lineHeight: 1.4,
-                      display: 'block',
-                    }}
-                  >
-                    Receive event reminders, shuttle updates, and venue changes directly to your phone. Reply STOP anytime to unsubscribe.
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
+            {/* WhatsApp Opt-in Removed */}
           </Stack>
         );
 
@@ -2631,10 +2569,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#000', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#000',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2643,11 +2581,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 When do you plan to arrive in Thailand? 🛬
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   fontFamily: 'Outfit',
@@ -2657,7 +2595,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 We'll share travel tips and help coordinate arrivals!
               </Typography>
             </Box>
-            
+
             <Box>
               {[
                 { value: 'known', label: 'I know my arrival date' },
@@ -2678,8 +2616,8 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     }}
                     onClick={() => handleInputChange('arrivalOption', option.value)}
                   >
-                    <Typography 
-                      sx={{ 
+                    <Typography
+                      sx={{
                         color: formData.arrivalOption === option.value ? '#DE3F5E' : '#000',
                         fontWeight: formData.arrivalOption === option.value ? 600 : 400,
                         fontFamily: 'Outfit',
@@ -2689,13 +2627,13 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     >
                       {option.label}
                     </Typography>
-                    
+
                     <Box
                       sx={{
                         width: 24,
                         height: 24,
                         borderRadius: '50%',
-                        border: `2px solid ${formData.arrivalOption === option.value ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}` ,
+                        border: `2px solid ${formData.arrivalOption === option.value ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -2714,7 +2652,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       )}
                     </Box>
                   </Box>
-                  
+
                   {option.value === 'known' && (
                     <Collapse in={formData.arrivalOption === 'known'}>
                       <TextField
@@ -2732,7 +2670,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                             fontFamily: 'Outfit',
                             border: '1px solid #ccc',
                             color: '#000',
-                            borderRadius: { xs: '8px', md: '10px' },
+                            borderRadius: '10px',
                           },
                         }}
                         sx={{
@@ -2744,20 +2682,20 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   )}
                 </Box>
               ))}
-              
+
               {errors.arrivalOption && (
                 <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
                   {errors.arrivalOption}
                 </Typography>
               )}
             </Box>
-            
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'rgba(0, 0, 0, 0.72)', 
-                p: 2, 
-                backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'rgba(0, 0, 0, 0.72)',
+                p: 2,
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
                 borderRadius: { xs: '8px', md: '10px' },
                 lineHeight: 1.5,
                 fontFamily: 'Outfit'
@@ -2772,10 +2710,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 2 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: '#000', 
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#000',
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2784,11 +2722,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               >
                 Share your flight details ✈️
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   fontFamily: 'Outfit',
@@ -2798,7 +2736,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 This helps us coordinate airport pickups and shuttles. All fields are optional - you can add this later!
               </Typography>
             </Box>
-            
+
             {/* Airline and Flight Number */}
             <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
               <Box sx={{ flex: 1 }}>
@@ -2837,7 +2775,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   />
                 </Box>
               </Box>
-              
+
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
                   Flight Number
@@ -2914,7 +2852,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   />
                 </Box>
               </Box>
-              
+
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)', mb: 0.5, display: 'block', fontFamily: 'Outfit' }}>
                   Arriving At
@@ -3006,10 +2944,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 }}
                 sx={{ fontFamily: 'Outfit', mb: 1 }}
               />
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: 'rgba(0, 0, 0, 0.48)', 
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(0, 0, 0, 0.48)',
                   display: 'block',
                   fontFamily: 'Outfit',
                   fontStyle: 'italic'
@@ -3055,12 +2993,12 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               </Box>
             </Box>
 
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'rgba(0, 0, 0, 0.72)', 
-                p: 2, 
-                backgroundColor: 'rgba(0, 0, 0, 0.08)', 
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'rgba(0, 0, 0, 0.72)',
+                p: 2,
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
                 borderRadius: { xs: '8px', md: '10px' },
                 lineHeight: 1.5,
                 fontFamily: 'Outfit'
@@ -3078,10 +3016,10 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               {/* Music Request Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Typography 
-                    variant="h4" 
-                    sx={{ 
-                      color: '#000', 
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: '#000',
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
@@ -3090,11 +3028,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   >
                     Music requests 🎵
                   </Typography>
-                  
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: 'rgba(0, 0, 0, 0.48)', 
+
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,
                       fontFamily: 'Outfit',
                       lineHeight: 1.5,
@@ -3103,7 +3041,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     What song will make this celebration perfect? (optional)
                   </Typography>
                 </Box>
-                
+
                 <Box
                   sx={{
                     border: '1px solid rgba(0, 0, 0, 0.4)',
@@ -3142,14 +3080,14 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   />
                 </Box>
               </Box>
-              
+
               {/* Special Message Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Typography 
-                    variant="h4" 
-                    sx={{ 
-                      color: '#000', 
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: '#000',
                       fontWeight: 400,
                       lineHeight: 1.3,
                       mb: 1,
@@ -3158,11 +3096,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   >
                     Share your excitement 💬
                   </Typography>
-                  
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: 'rgba(0, 0, 0, 0.48)', 
+
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,
                       fontFamily: 'Outfit',
                       lineHeight: 1.5,
@@ -3171,7 +3109,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                     Leave a message for everyone to see! (optional)
                   </Typography>
                 </Box>
-                
+
                 <Box
                   sx={{
                     border: '1px solid rgba(0, 0, 0, 0.4)',
@@ -3209,7 +3147,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                       backgroundColor: 'transparent',
                     }}
                   />
-                  
+
                   {/* GIF Button - only show when no GIF is selected */}
                   {!formData.selectedGif && (
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
@@ -3229,7 +3167,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         }}
                       >
                         <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M8.61429 8V0H10.1571V8H8.61429ZM0 8V0H6.17143V1.6H1.54286V6.4H4.62857V4H6.17143V8H0ZM12.4714 8V0H18V1.6H14.0143V3.6H16.6179V5.2H14.0143V8H12.4714Z" fill="#141414"/>
+                          <path d="M8.61429 8V0H10.1571V8H8.61429ZM0 8V0H6.17143V1.6H1.54286V6.4H4.62857V4H6.17143V8H0ZM12.4714 8V0H18V1.6H14.0143V3.6H16.6179V5.2H14.0143V8H12.4714Z" fill="#141414" />
                         </svg>
                       </IconButton>
                     </Box>
@@ -3267,7 +3205,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                           }}
                           unoptimized // For external GIF URLs
                         />
-                        
+
                         {/* Delete button */}
                         <IconButton
                           onClick={(e) => {
@@ -3297,6 +3235,94 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               </Box>
             </Box>
           </Stack>
+        );
+
+      case 'Phera Concierge':
+        return (
+          <Stack spacing={3}>
+            {/* Header */}
+            <Box sx={{ textAlign: 'left' }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontFamily: 'Outfit',
+                  fontSize: { xs: '1.75rem', md: '2.25rem' },
+                  fontWeight: 400,
+                  lineHeight: 1.3,
+                  color: '#000',
+                  mb: 2,
+                }}
+              >
+                One Last Step! 🎉
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontFamily: 'Outfit',
+                  color: '#808080 !important',
+                  lineHeight: 1.6,
+                  mb: 3,
+                }}
+              >
+                The couple has set up a 24/7 Concierge service via WhatsApp — ask any questions, get live updates, plus more!
+              </Typography>
+            </Box>
+
+            {/* How to register */}
+            <Box sx={{
+              backgroundColor: 'rgba(37, 211, 102, 0.08)',
+              border: '1px solid rgba(37, 211, 102, 0.2)',
+              p: 2.5,
+              borderRadius: '16px',
+              mb: 1,
+            }}>
+              <Typography variant="body1" sx={{ fontFamily: 'Outfit', color: '#474747', lineHeight: 1.6 }}>
+                <strong>📱 How to register:</strong> Send us a message on WhatsApp to opt in and start using Phera Concierge.
+              </Typography>
+            </Box>
+
+            {/* Action buttons */}
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                fullWidth
+                href="https://wa.me/15558397813?text=Sign%20me%20up%20for%20Phera%20Concierge%20service!"
+                target="_blank"
+                startIcon={<FaWhatsapp size={28} />}
+                sx={{
+                  bgcolor: '#25D366',
+                  color: 'white',
+                  py: 1.8,
+                  borderRadius: '16px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  fontFamily: 'Outfit',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    bgcolor: '#20bd5a',
+                    boxShadow: 'none',
+                  },
+                }}
+              >
+                Open WhatsApp
+              </Button>
+
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: 'left',
+                  color: '#808080',
+                  fontFamily: 'Outfit',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.5,
+                  mt: 0.5,
+                }}
+              >
+                After sending the message, tap "Done" at the bottom to complete your RSVP.
+              </Typography>
+            </Stack>
+          </Stack >
         );
 
       default:
@@ -3346,9 +3372,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         </Box>
 
         {/* Scrollable Content Area */}
-        <Box sx={{ 
-          flex: 1, 
-          overflowY: 'auto', 
+        <Box sx={{
+          flex: 1,
+          overflowY: 'auto',
           minHeight: 0,
           pr: { xs: 0.5, sm: 1, md: 2 },
           px: { xs: 1, sm: 0, md: 2 },
@@ -3381,7 +3407,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         </Box>
 
         {/* Navigation Buttons */}
-        <Box sx={{ 
+        <Box sx={{
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(4px)',
           pt: { xs: 2, sm: 2.5 },
@@ -3406,16 +3432,20 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6"/>
+                <path d="m15 18-6-6 6-6" />
               </svg>
             </IconButton>
           )}
-          
-          {currentStep < steps.length - 1 ? (
+
+          {steps[currentStep] === 'Phera Concierge' ? (
+            // On Concierge step - show "Done" button that completes the flow
             <Button
-              onClick={steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? handleSubmit : handleNext}
+              onClick={async () => {
+                await checkRSVPStatus(true);
+                setIsSubmitted(true);
+              }}
               variant="contained"
-              sx={{ 
+              sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: '#DE3F5E',
@@ -3425,29 +3455,25 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
-                fontFamily: 'Outfit', 
+                fontFamily: 'Outfit',
                 '&:hover': {
                   backgroundColor: '#C8365A',
                 },
-                '&:disabled': {
-                  backgroundColor: '#ccc',
-                  color: '#999',
-                },
               }}
-              disabled={false}
             >
-              {steps[currentStep] === 'Attendance Details' && formData.attending === 'no' ? 'Submit' : 'Next'}
+              Done
             </Button>
-          ) : (
+          ) : (steps[currentStep] === 'Fun & Messages' || (steps[currentStep] === 'Attendance Details' && formData.attending === 'no')) ? (
             <Button
               onClick={handleSubmit}
               variant="contained"
               sx={{
                 flex: 1,
-                height: { xs: 44, sm: 48 },
+                height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: '#DE3F5E',
                 color: 'white',
                 fontWeight: 700,
+                fontSize: { xs: '0.9rem', md: '1.1rem' },
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
@@ -3463,6 +3489,33 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              variant="contained"
+              sx={{
+                flex: 1,
+                height: { xs: 44, sm: 48, md: 56 },
+                backgroundColor: '#DE3F5E',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: { xs: '0.9rem', md: '1.1rem' },
+                borderRadius: '16px',
+                textTransform: 'uppercase',
+                letterSpacing: '6.25%',
+                fontFamily: 'Outfit',
+                '&:hover': {
+                  backgroundColor: '#C8365A',
+                },
+                '&:disabled': {
+                  backgroundColor: '#ccc',
+                  color: '#999',
+                },
+              }}
+              disabled={false}
+            >
+              Next
             </Button>
           )}
         </Box>

@@ -47,14 +47,14 @@ const useCountdown = (targetDate: string) => {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const difference = new Date(targetDate).getTime() - new Date().getTime();
-      
+
       if (difference > 0) {
         const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44)); // Average days per month
         const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        
+
         setTimeLeft({
           months,
           days,
@@ -167,7 +167,7 @@ const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, image
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
-  
+
   const carouselImages = images.length > 0 ? images : [
     '/images/couple/couple-1.jpg',
     '/images/couple/couple-2.jpg',
@@ -182,7 +182,7 @@ const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, image
   const advanceToNextImage = (numImages: number) => {
     if (numImages <= 1) return;
     setIsTransitioning(true);
-    
+
     setTimeout(() => {
       setCurrentImageIndex((prev) => (prev + 1) % numImages);
       setIsTransitioning(false);
@@ -191,23 +191,23 @@ const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, image
 
   const handleImageClick = () => {
     if (carouselImages.length <= 1) return;
-    
+
     if (intervalId) {
       clearInterval(intervalId);
     }
-    
+
     advanceToNextImage(carouselImages.length);
-    
+
     const newInterval = setInterval(() => {
       advanceToNextImage(carouselImages.length);
     }, 4000);
-    
+
     setIntervalId(newInterval);
   };
 
   useEffect(() => {
     if (carouselImages.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       advanceToNextImage(carouselImages.length);
     }, 4000);
@@ -258,11 +258,18 @@ export default function HomePage() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   // Authentication state from context
-  const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
-  
+  const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth, setCurrentWeddingSlug, checkRSVPStatus } = useAuth();
+
   // Wedding data from context
   const { wedding, isLoading: weddingLoading } = useWedding();
-  
+
+  // Set the current wedding slug in AuthContext on mount/change
+  useEffect(() => {
+    if (weddingSlug) {
+      setCurrentWeddingSlug(weddingSlug);
+    }
+  }, [weddingSlug, setCurrentWeddingSlug]);
+
   // Use data from context if available, otherwise fallback to config
   const coupleData = {
     names: wedding?.couple_name || WEDDING_CONFIG.coupleNames,
@@ -282,16 +289,16 @@ export default function HomePage() {
   const [isBypassPin, setIsBypassPin] = useState(false);
 
   // Consolidated loading state - wait for ALL checks to complete
-  // IMPORTANT: Also consider loading if user exists but RSVP hasn't been checked yet
-  // This prevents a flash where auth completes but RSVP check hasn't started
+  // IMPORTANT: Also consider loading if user exists but RSVP check is actively running
+  // This prevents a flash where auth completes but RSVP check hasn't finished
   // Exception: bypass PIN users don't need RSVP check
-  const needsRSVPCheck = user && !isBypassPin && !hasRSVPed && rsvpResponse === null && !isCheckingRSVP;
-  const isPageLoading = isLoading || isCheckingPin || isCheckingRSVP || needsRSVPCheck || weddingLoading;
-  
+  // Note: We only wait for isCheckingRSVP, NOT for "needs RSVP check" - once check finishes (even with no results), we show the page
+  const isPageLoading = isLoading || isCheckingPin || isCheckingRSVP || weddingLoading;
+
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  
+
   // Background configuration - now handled by OptimizedBackground component  
   const handleBackgroundChange = (backgroundPath: string) => {
     setCustomBackground(backgroundPath);
@@ -306,14 +313,14 @@ export default function HomePage() {
 
   const handlePinVerified = () => {
     setIsPinVerified(true);
-    
+
     // Check if this is a bypass PIN immediately
     if (typeof window !== 'undefined') {
-      const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+      const bypassFlag = localStorage.getItem(`phera_bypass_rsvp_${weddingSlug}`);
       if (bypassFlag === 'true') {
         setIsBypassPin(true);
         console.log('Bypass PIN detected in handlePinVerified - showing guest content immediately');
-        
+
         // Create temporary guest auth if not exists
         const existingGuestAuth = localStorage.getItem('phera_guest_auth');
         if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
@@ -328,7 +335,7 @@ export default function HomePage() {
             avatar_svg: undefined,
             timestamp: Date.now()
           };
-          
+
           localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
           console.log('Created temporary guest auth in handlePinVerified');
 
@@ -339,7 +346,7 @@ export default function HomePage() {
         }
       }
     }
-    
+
     // Scroll to top after small delay to ensure content has rendered
     setTimeout(() => {
       if (typeof window !== 'undefined') {
@@ -363,14 +370,14 @@ export default function HomePage() {
         setIsCheckingPin(false);
         // If we have PIN verification but no user, that's OK for guest access
         if (typeof window !== 'undefined') {
-          const pinVerified = localStorage.getItem('phera_pin_verified');
-          const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
+          const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+          const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
           if (pinVerified === 'true' && pinTimestamp) {
             const timestamp = parseInt(pinTimestamp);
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000;
             if (isRecent) {
               setIsPinVerified(true);
-              const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+              const bypassFlag = localStorage.getItem(`phera_bypass_rsvp_${weddingSlug}`);
               if (bypassFlag === 'true') {
                 setIsBypassPin(true);
               }
@@ -387,19 +394,38 @@ export default function HomePage() {
   useEffect(() => {
     const checkPinVerification = () => {
       if (typeof window !== 'undefined') {
-        // FIRST: If user is authenticated, consider PIN verified (auth bypass)
-        // Note: We can check this even while isLoading, since we have the user object
-        if (user) {
-          setIsPinVerified(true);
-          setIsCheckingPin(false); // Important: Stop checking PIN when user is authenticated
-          return;
+        // For authenticated users, check if they have verified PIN for THIS wedding
+        // We no longer auto-bypass PIN for all authenticated users
+        const pinKeyForWedding = `phera_pin_verified_${weddingSlug}`;
+        const timestampKeyForWedding = `phera_pin_timestamp_${weddingSlug}`;
+
+        // Check if user has verified PIN for this specific wedding
+        const pinVerifiedForWedding = localStorage.getItem(pinKeyForWedding);
+        const pinTimestampForWedding = localStorage.getItem(timestampKeyForWedding);
+
+        if (pinVerifiedForWedding === 'true' && pinTimestampForWedding) {
+          const timestamp = parseInt(pinTimestampForWedding);
+          const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
+          if (isRecent) {
+            console.log(`PIN already verified for wedding: ${weddingSlug}`);
+            setIsPinVerified(true);
+
+            // Check for bypass flag for this wedding
+            const bypassFlag = localStorage.getItem(`phera_bypass_rsvp_${weddingSlug}`);
+            if (bypassFlag === 'true') {
+              setIsBypassPin(true);
+            }
+
+            setIsCheckingPin(false);
+            return;
+          }
         }
-        
+
         // CHECK: Handle bypass PIN case - create temporary guest auth
-        const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
-        const bypassPinVerified = localStorage.getItem('phera_pin_verified');
-        const bypassPinTimestamp = localStorage.getItem('phera_pin_timestamp');
-        
+        const bypassFlag = localStorage.getItem(`phera_bypass_rsvp_${weddingSlug}`);
+        const bypassPinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+        const bypassPinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
+
         if (bypassFlag === 'true' && bypassPinVerified === 'true' && bypassPinTimestamp) {
           try {
             const timestamp = parseInt(bypassPinTimestamp);
@@ -408,7 +434,7 @@ export default function HomePage() {
               // Set local bypass PIN state immediately
               setIsBypassPin(true);
               console.log('Setting bypass PIN state to true');
-              
+
               // Create temporary guest auth for bypass PIN users - but make it more robust
               const existingGuestAuth = localStorage.getItem('phera_guest_auth');
               if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
@@ -423,7 +449,7 @@ export default function HomePage() {
                   avatar_svg: undefined,
                   timestamp: Date.now()
                 };
-                
+
                 localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
                 console.log('Created temporary guest auth for bypass PIN user');
 
@@ -432,7 +458,7 @@ export default function HomePage() {
                   setTimeout(() => refreshAuth(), 100);
                 }
               }
-              
+
               setIsPinVerified(true);
               setIsCheckingPin(false);
               return;
@@ -447,7 +473,7 @@ export default function HomePage() {
         const urlParams = new URLSearchParams(window.location.search);
         const authError = urlParams.get('auth_error');
         const authSuccess = urlParams.get('auth_success');
-        
+
         if (authError) {
           console.error('Authentication error:', authError);
           // You could show a toast notification here
@@ -456,7 +482,7 @@ export default function HomePage() {
           newUrl.searchParams.delete('auth_error');
           window.history.replaceState({}, '', newUrl.toString());
         }
-        
+
         // Force auth refresh if coming from magic link callback
         if (authSuccess === 'true') {
           console.log('Magic link authentication detected, refreshing auth...');
@@ -466,43 +492,43 @@ export default function HomePage() {
               refreshAuth(); // Force refresh auth status
             }, 100);
           }
-          
+
           // Clean up URL params
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('auth_success');
           window.history.replaceState({}, '', newUrl.toString());
         }
-        
+
         // Check for PIN restoration from auth callback
         const restorePin = urlParams.get('restore_pin');
         const restoredTimestamp = urlParams.get('pin_timestamp');
         const restoredAllowsPlusOne = urlParams.get('allows_plus_one');
-        
+
         if (restorePin === 'true' && restoredTimestamp) {
           try {
             const timestamp = parseInt(restoredTimestamp);
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
             if (isRecent) {
-              // Restore PIN verification state
-              localStorage.setItem('phera_pin_verified', 'true');
-              localStorage.setItem('phera_pin_timestamp', restoredTimestamp);
-              localStorage.setItem('phera_allows_plus_one', restoredAllowsPlusOne || 'false');
+              // Restore PIN verification state for THIS wedding
+              localStorage.setItem(`phera_pin_verified_${weddingSlug}`, 'true');
+              localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, restoredTimestamp);
+              localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, restoredAllowsPlusOne || 'false');
               setIsPinVerified(true);
-              
+
               // Clean up URL params
               const newUrl = new URL(window.location.href);
               newUrl.searchParams.delete('restore_pin');
               newUrl.searchParams.delete('pin_timestamp');
               newUrl.searchParams.delete('allows_plus_one');
               window.history.replaceState({}, '', newUrl.toString());
-              
+
               // Force refresh auth status after callback (only if not already loading)
               if (!isLoading) {
                 setTimeout(() => {
                   refreshAuth();
                 }, 500);
               }
-              
+
               setIsCheckingPin(false);
               return;
             }
@@ -510,29 +536,29 @@ export default function HomePage() {
             console.error('Error restoring PIN verification:', error);
           }
         }
-        
-        // Check existing PIN verification
-        const pinVerified = localStorage.getItem('phera_pin_verified');
-        const pinTimestamp = localStorage.getItem('phera_pin_timestamp');
-        
+
+        // Check existing PIN verification for THIS wedding
+        const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
+        const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
+
         if (pinVerified === 'true' && pinTimestamp) {
           try {
             const timestamp = parseInt(pinTimestamp);
             const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
             if (isRecent) {
               setIsPinVerified(true);
-              
+
               // Also check if this is a bypass PIN
-              const existingBypassFlag = localStorage.getItem('phera_bypass_rsvp');
+              const existingBypassFlag = localStorage.getItem(`phera_bypass_rsvp_${weddingSlug}`);
               if (existingBypassFlag === 'true') {
                 setIsBypassPin(true);
               }
             } else {
-              // Remove expired pin verification
-              localStorage.removeItem('phera_pin_verified');
-              localStorage.removeItem('phera_pin_timestamp');
-              localStorage.removeItem('phera_allows_plus_one');
-              localStorage.removeItem('phera_bypass_rsvp');
+              // Remove expired pin verification for this wedding
+              localStorage.removeItem(`phera_pin_verified_${weddingSlug}`);
+              localStorage.removeItem(`phera_pin_timestamp_${weddingSlug}`);
+              localStorage.removeItem(`phera_allows_plus_one_${weddingSlug}`);
+              localStorage.removeItem(`phera_bypass_rsvp_${weddingSlug}`);
               setIsPinVerified(false);
               setIsBypassPin(false);
             }
@@ -542,6 +568,7 @@ export default function HomePage() {
             setIsBypassPin(false);
           }
         } else {
+          // No PIN verified for this wedding - need to show PIN entry
           setIsPinVerified(false);
           setIsBypassPin(false);
         }
@@ -549,16 +576,8 @@ export default function HomePage() {
       setIsCheckingPin(false);
     };
 
-    // Early return if user is authenticated - no need to check PIN
-    // We check user without waiting for isLoading since user object is available immediately
-    if (user) {
-      setIsPinVerified(true);
-      setIsCheckingPin(false);
-      return;
-    }
-
     checkPinVerification();
-  }, [user]); // Only depend on user, not isLoading
+  }, [user, weddingSlug]); // Depend on weddingSlug to recheck when wedding changes
 
   // Scroll to top when main content becomes visible after all checks complete
   useEffect(() => {
@@ -581,16 +600,16 @@ export default function HomePage() {
       isLoading,
       isCheckingPin,
       isCheckingRSVP,
-      needsRSVPCheck,
+      weddingLoading,
       hasRSVPed,
       rsvpResponse,
       user: !!user,
       isPinVerified,
       reason: isLoading ? 'auth loading'
-            : isCheckingPin ? 'checking PIN'
-            : isCheckingRSVP ? 'checking RSVP'
-            : needsRSVPCheck ? 'waiting for RSVP check to start'
-            : 'unknown',
+        : isCheckingPin ? 'checking PIN'
+          : isCheckingRSVP ? 'checking RSVP'
+            : weddingLoading ? 'loading wedding'
+              : 'unknown',
       timestamp: new Date().toISOString()
     });
 
@@ -738,7 +757,7 @@ export default function HomePage() {
                       width: { md: 48, lg: 56, xl: 64 },
                       height: { md: 48, lg: 56, xl: 64 },
                       color: '#000',
-                      '&:hover': { 
+                      '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
                       },
@@ -763,7 +782,7 @@ export default function HomePage() {
                       width: { md: 48, lg: 56, xl: 64 },
                       height: { md: 48, lg: 56, xl: 64 },
                       color: '#000',
-                      '&:hover': { 
+                      '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
                       },
@@ -789,8 +808,8 @@ export default function HomePage() {
                         color: '#000',
                       }}
                     >
-                      <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M20 14V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M20 14V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </Box>
                   </IconButton>
                 </Stack>
@@ -863,7 +882,7 @@ export default function HomePage() {
               {/* RSVP Button - Desktop (Same width as CountdownTimer) */}
               {!isPageLoading && isPinVerified && !isBypassPin && (!user || !hasRSVPed) && (
                 <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
-                   <motion.div
+                  <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{ width: '100%' }}
@@ -893,7 +912,7 @@ export default function HomePage() {
                       RSVP
                     </Button>
                   </motion.div>
-                   {/* RSVP Deadline */}
+                  {/* RSVP Deadline */}
                   <Typography
                     variant="body2"
                     sx={{
@@ -983,7 +1002,7 @@ export default function HomePage() {
                   zIndex: 1,
                 }}
               />
-              
+
               {/* Couple Image */}
               <Box
                 sx={{
@@ -1111,7 +1130,7 @@ export default function HomePage() {
                   zIndex: 1,
                 }}
               />
-              
+
               {/* Couple Image */}
               <Box
                 sx={{
@@ -1315,7 +1334,7 @@ export default function HomePage() {
                   RSVP
                 </Button>
               </motion.div>
-              
+
               {/* RSVP Deadline */}
               <Typography
                 variant="body2"

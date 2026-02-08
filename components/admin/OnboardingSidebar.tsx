@@ -22,6 +22,7 @@ import {
   Language,
   ExpandLess,
   ExpandMore,
+  WhatsApp,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -68,6 +69,7 @@ const groups: SidebarGroup[] = [
       { id: 'registry', label: 'Registry', path: '/registry' },
       { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
+      { id: 'publish', label: 'Publish Website', path: '/publish' },
     ]
   },
   {
@@ -77,6 +79,15 @@ const groups: SidebarGroup[] = [
     items: [
       { id: 'guests', label: 'RSVPs', path: '/guests' },
       { id: 'travel-coordination', label: 'Travel Coordination', path: '/travel-coordination' },
+    ]
+  },
+  {
+    id: 'concierge',
+    label: 'Phera Concierge',
+    icon: <WhatsApp />,
+    standalone: true,
+    items: [
+      { id: 'concierge', label: 'Phera Concierge', path: '/concierge' }
     ]
   },
   {
@@ -378,116 +389,6 @@ export default function OnboardingSidebar({
             </Box>
           );
         })}
-      </Box>
-
-      {/* Footer with Progress */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: alpha('#000', 0.1) }}>
-        {/* Progress Circle */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-            {/* Background circle (track) */}
-            <CircularProgress
-              variant="determinate"
-              value={100}
-              size={80}
-              thickness={5}
-              sx={{
-                color: 'rgba(222, 63, 94, 0.15)',
-                position: 'absolute',
-              }}
-            />
-            {/* Progress circle */}
-            <CircularProgress
-              variant="determinate"
-              value={calculateProgress(wedding)}
-              size={80}
-              thickness={5}
-              sx={{
-                color: '#DE3F5E',
-                '& .MuiCircularProgress-circle': {
-                  strokeLinecap: 'round',
-                },
-              }}
-            />
-            <Box
-              sx={{
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                position: 'absolute',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
-                {calculateProgress(wedding)}%
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#6a6a6a', textAlign: 'center' }}>
-          Progress auto-saves
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: '#4CAF50',
-            }}
-          />
-          <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-            All changes saved
-          </Typography>
-        </Box> */}
-
-        {/* Publish Button */}
-        <Box sx={{ mt: 2 }}>
-          <Box
-            component="button"
-            onClick={(e) => {
-              e.preventDefault();
-              console.log('Sidebar Publish button clicked. Current status:', weddingStatus);
-              if (weddingStatus === 'live') {
-                if (window.confirm('Are you sure you want to unpublish your wedding website?')) {
-                  onStatusChange?.('draft');
-                }
-              } else {
-                if (window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
-                  onStatusChange?.('live');
-                }
-              }
-            }}
-            sx={{
-              width: '100%',
-              py: 1.5,
-              px: 2,
-              border: 'none',
-              borderRadius: '12px',
-              bgcolor: weddingStatus === 'live' ? '#10B981' : '#DE3F5E',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1,
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                bgcolor: weddingStatus === 'live' ? '#059669' : '#C8365A',
-                transform: 'scale(1.02)',
-              },
-            }}
-          >
-            <Publish sx={{ fontSize: 20 }} />
-            {weddingStatus === 'live' ? 'Published' : 'Publish'}
-          </Box>
-        </Box>
       </Box>
     </Box>
   );

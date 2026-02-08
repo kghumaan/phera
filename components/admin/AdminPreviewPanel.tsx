@@ -247,22 +247,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#febc2e' }} />
                                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
                                 </Box>
-                                <Box
-                                    sx={{
-                                        flex: 1,
-                                        height: 20,
-                                        bgcolor: 'white',
-                                        borderRadius: '4px',
-                                        mx: 2,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        px: 1,
-                                    }}
-                                >
-                                    <Typography sx={{ fontSize: '0.6rem', color: '#999', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                        phera.app/preview/{weddingSlug}
-                                    </Typography>
-                                </Box>
                             </Box>
 
                             {/* Iframe Content with Scaling */}

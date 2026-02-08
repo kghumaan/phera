@@ -50,16 +50,17 @@ export default function FullScreenFormContainer({
         right: isMobile ? 0 : 'auto',
         height: isMobile ? viewportHeight : 'auto',
         width: isMobile ? 'auto' : '100%',
-        maxWidth: isMobile ? 'none' : { md: 700, lg: 800, xl: 900 },
+        maxWidth: isMobile ? 'none' : { md: 550, lg: 600, xl: 650 },
+        mx: isMobile ? 0 : 'auto',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         zIndex: isMobile ? 1400 : 1,
       }}
     >
-      <Container 
+      <Container
         maxWidth={isMobile ? maxWidth : false}
-        sx={{ 
+        sx={{
           display: 'flex',
           flexDirection: 'column',
           justifyContent: isMobile ? 'flex-start' : 'center',
@@ -75,23 +76,23 @@ export default function FullScreenFormContainer({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             height: isMobile ? '100%' : 'auto',
-            display: 'flex', 
+            display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
           {/* Header - Only show on mobile */}
           {isMobile && (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
               width: '100%',
               height: 56,
-              mb: { xs: 0.5, sm: 1 }, 
+              mb: { xs: 0.5, sm: 1 },
               flexShrink: 0,
             }}>
               <IconButton
@@ -107,12 +108,12 @@ export default function FullScreenFormContainer({
               >
                 <CloseIcon />
               </IconButton>
-              
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontFamily: 'Outfit', 
-                  color: '#141414', 
+
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'Outfit',
+                  color: '#141414',
                   fontWeight: 400,
                   lineHeight: '1.26em',
                   letterSpacing: '0.06em',
@@ -122,7 +123,7 @@ export default function FullScreenFormContainer({
               >
                 {title}
               </Typography>
-              
+
               {/* Spacer to center the title */}
               <Box sx={{ width: { xs: 40, sm: 48 } }} />
             </Box>
