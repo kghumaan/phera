@@ -347,6 +347,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#fff',
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#1a1a1a',
                   }
                 }}
               />
