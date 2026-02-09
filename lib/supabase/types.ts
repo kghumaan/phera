@@ -1,933 +1,1394 @@
-export interface Guest {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  initials: string
-  avatar_color: string
-  avatar_style?: string
-  avatar_seed?: string
-  avatar_svg?: string
-  wedding_id: string
-  auth_method?: string
-  wedding_side?: string
-  created_at: string
-}
-
-export interface RSVP {
-  id: string
-  guest_id: string
-  wedding_id: string
-  event_id: string
-  attending: 'yes' | 'no' | 'maybe'
-  guest_count: number
-  dietary_restrictions?: string
-  plus_one_name?: string
-  plus_one_email?: string
-  plus_one_country_code?: string
-  plus_one_phone?: string
-  country_code?: string
-  plus_one: boolean
-  food_preference?: string[]
-  song_request?: string
-  special_message?: string
-  maybe_comment?: string
-  arrival_option?: string
-  arrival_date?: string
-  created_at: string
-  guest?: Guest
-}
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export interface GifData {
-  id: string
-  url: string
-  title: string
-  preview_url: string
+  id: string;
+  url: string;
+  title: string;
+  preview_url: string;
 }
 
 export interface RSVPFormData {
-  // Basic Information
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  countryCode?: string
-
-  // Attendance
-  attending: 'yes' | 'no' | 'maybe' | '' | boolean // Support both new and old format
-  plusOne: 'yes' | 'no' | '' | boolean // Support both string and boolean format
-  plusOneName?: string
-  plusOneEmail?: string
-  plusOneCountryCode?: string
-  plusOnePhone?: string
-  guestCount: number
-  maybeComment?: string
-
-  // Event-specific
-  foodPreference: string[] // Array of food preferences
-  dietaryRestrictions?: string
-
-  // Cultural & Personal
-  weddingSide?: 'bride' | 'groom' | 'both' | ''
-
-  // Fun & Engagement
-  songRequest?: string
-  specialMessage?: string
-  selectedGif?: GifData
-  arrivalOption: 'known' | 'not_sure' | ''
-  arrivalDate: string
-
-  // Flight Details (optional)
-  flightAirline?: string
-  flightNumber?: string
-  flightDepartureAirport?: string
-  flightArrivalAirport?: string
-  flightDepartureDate?: string
-  flightDepartureTime?: string
-  flightArrivalDate?: string
-  flightArrivalTime?: string
-  shuttlePreferenceTime?: string
-  shuttlePreferenceNote?: string
-
-  // WhatsApp opt-in
-  whatsappOptIn?: boolean
-
-  // Backward compatibility (optional fields)
-  ceremonyAttending?: string[]
-  relationshipToBride?: string
-  relationshipToGroom?: string
-  traditionalWear?: boolean
-  needsAccommodation?: boolean
-  accommodationNights?: number
-  transportationNeeded?: boolean
-  participation?: string[]
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  countryCode: string;
+  phone: string;
+  attending: 'yes' | 'no' | 'maybe' | '';
+  plusOne: 'yes' | 'no' | '';
+  plusOneName: string;
+  plusOneEmail: string;
+  plusOneCountryCode: string;
+  plusOnePhone: string;
+  guestCount: number;
+  foodPreference: string[];
+  dietaryRestrictions: string;
+  weddingSide: 'bride' | 'groom' | 'both' | '' | undefined;
+  songRequest: string;
+  specialMessage: string;
+  maybeComment: string;
+  selectedGif?: GifData;
+  arrivalOption: 'known' | 'not_sure' | '';
+  arrivalDate: string;
+  flightAirline: string;
+  flightNumber: string;
+  flightDepartureAirport: string;
+  flightArrivalAirport: string;
+  flightDepartureDate: string;
+  flightDepartureTime: string;
+  flightArrivalDate: string;
+  flightArrivalTime: string;
+  shuttlePreferenceTime: string;
+  shuttlePreferenceNote: string;
+  whatsappOptIn?: boolean;
 }
 
-export interface Comment {
-  id: string
-  guest_id: string
-  wedding_id: string
-  message: string
-  created_at: string
-  guest?: Guest
-  gif_id?: string
-  gif_url?: string
-  gif_title?: string
-  gif_preview_url?: string
-}
-
-export interface GuestFlight {
-  id: string
-  guest_id: string
-  wedding_id: string
-  airline?: string
-  flight_number?: string
-  departure_airport?: string
-  arrival_airport?: string
-  departure_datetime?: string
-  arrival_datetime?: string
-  shuttle_preference_time?: string
-  shuttle_preference_note?: string
-  created_at: string
-  updated_at: string
-  guest?: Guest
-}
-
-export interface GuestChecklistItem {
-  id: string
-  guest_id: string
-  wedding_id: string
-  item_key: string
-  completed: boolean
-  completed_at?: string
-  created_at: string
-}
-
-export interface FlightFormData {
-  airline: string
-  flightNumber: string
-  departureAirport: string
-  arrivalAirport: string
-  departureDate: string
-  departureTime: string
-  arrivalDate: string
-  arrivalTime: string
-  shuttlePreferenceTime: string
-  shuttlePreferenceNote: string
-}
-
-export interface Database {
+export type PheraDatabase = {
   public: {
     Tables: {
-      user_settings: {
+      comments: {
         Row: {
+          created_at: string | null
+          gif_id: string | null
+          gif_preview_url: string | null
+          gif_title: string | null
+          gif_url: string | null
+          guest_id: string | null
           id: string
-          user_id: string
-          account_type: 'couple' | 'planner' | null
-          onboarding_completed: boolean
-          enabled_features: string[]
-          subscription_tier: 'free' | 'pro'
-          created_at: string
-          updated_at: string
+          message: string | null
+          wedding_id: string
         }
         Insert: {
+          created_at?: string | null
+          gif_id?: string | null
+          gif_preview_url?: string | null
+          gif_title?: string | null
+          gif_url?: string | null
+          guest_id?: string | null
           id?: string
-          user_id: string
-          account_type?: 'couple' | 'planner' | null
-          onboarding_completed?: boolean
-          enabled_features?: string[]
-          subscription_tier?: 'free' | 'pro'
-          created_at?: string
-          updated_at?: string
+          message?: string | null
+          wedding_id: string
         }
         Update: {
+          created_at?: string | null
+          gif_id?: string | null
+          gif_preview_url?: string | null
+          gif_title?: string | null
+          gif_url?: string | null
+          guest_id?: string | null
+          id?: string
+          message?: string | null
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feature_requests: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+          wedding_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+          wedding_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
           id?: string
           user_id?: string
-          account_type?: 'couple' | 'planner' | null
-          onboarding_completed?: boolean
-          enabled_features?: string[]
-          subscription_tier?: 'free' | 'pro'
-          created_at?: string
-          updated_at?: string
+          wedding_id?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "feature_requests_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      weddings: {
+      guest_checklist_items: {
         Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          guest_id: string | null
           id: string
-          slug: string
-          couple_name: string
-          partner1_name: string | null
-          partner2_name: string | null
-          wedding_date: string
-          wedding_date_display: string
-          venue_name: string
-          venue_location: string
-          venue_flag: string | null
-          rsvp_deadline: string
-          status: 'draft' | 'preview' | 'live'
-          couple_image_url: string | null
-          frame_image_url: string | null
-          background_image: string
-          primary_color: string
-          font_color: string | null
-          button_font_color: string | null
-          pin_entry_text: string | null
-          pin_entry_background: string | null
-          pin_entry_primary_color: string | null
-          pin_entry_font_color: string | null
-          pin_entry_button_font_color: string | null
-          pin_entry_subtitle_text: string | null
-          wedding_date_end: string | null
-          show_venue_location: boolean
-          couple_images: string[] | null
-          website_layout: 'nested' | 'infinite_scroll'
-          welcome_text: string | null
-          created_by: string
-          created_at: string
-          updated_at: string
+          item_key: string
+          wedding_id: string
         }
         Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          guest_id?: string | null
           id?: string
-          slug: string
-          couple_name: string
-          partner1_name?: string | null
-          partner2_name?: string | null
-          wedding_date: string
-          wedding_date_display: string
-          venue_name: string
-          venue_location: string
-          venue_flag?: string | null
-          rsvp_deadline: string
-          status?: 'draft' | 'preview' | 'live'
-          couple_image_url?: string | null
-          frame_image_url?: string | null
-          background_image?: string
-          primary_color?: string
-          font_color?: string | null
-          button_font_color?: string | null
-          pin_entry_text?: string | null
-          pin_entry_background?: string | null
-          pin_entry_primary_color?: string | null
-          pin_entry_font_color?: string | null
-          pin_entry_button_font_color?: string | null
-          pin_entry_subtitle_text?: string | null
-          wedding_date_end?: string | null
-          show_venue_location?: boolean
-          couple_images?: string[] | null
-          website_layout?: 'nested' | 'infinite_scroll'
-          welcome_text?: string | null
-          created_by: string
-          created_at?: string
-          updated_at?: string
+          item_key: string
+          wedding_id: string
         }
         Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          guest_id?: string | null
           id?: string
-          slug?: string
-          couple_name?: string
-          partner1_name?: string | null
-          partner2_name?: string | null
-          wedding_date?: string
-          wedding_date_display?: string
-          venue_name?: string
-          venue_location?: string
-          venue_flag?: string | null
-          rsvp_deadline?: string
-          status?: 'draft' | 'preview' | 'live'
-          couple_image_url?: string | null
-          frame_image_url?: string | null
-          background_image?: string
-          primary_color?: string
-          font_color?: string | null
-          button_font_color?: string | null
-          pin_entry_text?: string | null
-          pin_entry_background?: string | null
-          pin_entry_primary_color?: string | null
-          pin_entry_font_color?: string | null
-          pin_entry_button_font_color?: string | null
-          pin_entry_subtitle_text?: string | null
-          wedding_date_end?: string | null
-          show_venue_location?: boolean
-          couple_images?: string[] | null
-          website_layout?: 'nested' | 'infinite_scroll'
-          welcome_text?: string | null
-          created_by?: string
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      wedding_admins: {
-        Row: {
-          id: string
-          wedding_id: string
-          user_id: string
-          role: 'owner' | 'admin' | 'viewer'
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          user_id: string
-          role?: 'owner' | 'admin' | 'viewer'
-          created_at?: string
-        }
-        Update: {
-          id?: string
+          item_key?: string
           wedding_id?: string
-          user_id?: string
-          role?: 'owner' | 'admin' | 'viewer'
-          created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "guest_checklist_items_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      wedding_invites: {
+      guest_flights: {
         Row: {
+          airline: string | null
+          arrival_airport: string | null
+          arrival_datetime: string | null
+          created_at: string | null
+          departure_airport: string | null
+          departure_datetime: string | null
+          flight_number: string | null
+          guest_id: string | null
           id: string
+          shuttle_preference_note: string | null
+          shuttle_preference_time: string | null
+          updated_at: string | null
           wedding_id: string
-          email: string
-          role: 'admin' | 'viewer'
-          invited_by: string
-          created_at: string
         }
         Insert: {
+          airline?: string | null
+          arrival_airport?: string | null
+          arrival_datetime?: string | null
+          created_at?: string | null
+          departure_airport?: string | null
+          departure_datetime?: string | null
+          flight_number?: string | null
+          guest_id?: string | null
           id?: string
+          shuttle_preference_note?: string | null
+          shuttle_preference_time?: string | null
+          updated_at?: string | null
           wedding_id: string
-          email: string
-          role: 'admin' | 'viewer'
-          invited_by: string
-          created_at?: string
         }
         Update: {
+          airline?: string | null
+          arrival_airport?: string | null
+          arrival_datetime?: string | null
+          created_at?: string | null
+          departure_airport?: string | null
+          departure_datetime?: string | null
+          flight_number?: string | null
+          guest_id?: string | null
           id?: string
+          shuttle_preference_note?: string | null
+          shuttle_preference_time?: string | null
+          updated_at?: string | null
           wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_flights_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guests: {
+        Row: {
+          auth_method: string | null
+          avatar_color: string
+          avatar_seed: string | null
+          avatar_style: string | null
+          avatar_svg: string | null
+          created_at: string | null
+          email: string
+          id: string
+          initials: string | null
+          name: string
+          phone: string | null
+          wedding_id: string
+          wedding_side: string | null
+        }
+        Insert: {
+          auth_method?: string | null
+          avatar_color: string
+          avatar_seed?: string | null
+          avatar_style?: string | null
+          avatar_svg?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          initials?: string | null
+          name: string
+          phone?: string | null
+          wedding_id: string
+          wedding_side?: string | null
+        }
+        Update: {
+          auth_method?: string | null
+          avatar_color?: string
+          avatar_seed?: string | null
+          avatar_style?: string | null
+          avatar_svg?: string | null
+          created_at?: string | null
           email?: string
-          role?: 'admin' | 'viewer'
-          invited_by?: string
-          created_at?: string
-        }
-      }
-      wedding_events: {
-        Row: {
-          id: string
-          wedding_id: string
-          name: string
-          slug: string
-          date: string
-          time: string
-          dress_code: string
-          dress_code_emoji: string | null
-          dress_code_description: string | null
-          outfit_ideas_women: string[]
-          outfit_ideas_men: string[]
-          ritual_name: string | null
-          ritual_description: string | null
-          carousel_images: string[]
-          carousel_slides: any[]
-          gradient_background: string | null
-          text_color: string
-          order_index: number
-          is_template: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
           id?: string
-          wedding_id: string
-          name: string
-          slug: string
-          date: string
-          time: string
-          dress_code: string
-          dress_code_emoji?: string | null
-          dress_code_description?: string | null
-          outfit_ideas_women?: string[]
-          outfit_ideas_men?: string[]
-          ritual_name?: string | null
-          ritual_description?: string | null
-          carousel_images?: string[]
-          carousel_slides?: any[]
-          gradient_background?: string | null
-          text_color?: string
-          order_index?: number
-          is_template?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
+          initials?: string | null
           name?: string
-          slug?: string
-          date?: string
-          time?: string
-          dress_code?: string
-          dress_code_emoji?: string | null
-          dress_code_description?: string | null
-          outfit_ideas_women?: string[]
-          outfit_ideas_men?: string[]
-          ritual_name?: string | null
-          ritual_description?: string | null
-          carousel_images?: string[]
-          carousel_slides?: any[]
-          gradient_background?: string | null
-          text_color?: string
-          order_index?: number
-          is_template?: boolean
-          created_at?: string
-          updated_at?: string
+          phone?: string | null
+          wedding_id?: string
+          wedding_side?: string | null
         }
+        Relationships: []
       }
-      wedding_schedule: {
+      rsvps: {
         Row: {
+          arrival_date: string | null
+          arrival_option: string | null
+          attending: string
+          country_code: string | null
+          created_at: string | null
+          dietary_restrictions: string | null
+          event_id: string
+          food_preference: string[] | null
+          guest_count: number | null
+          guest_id: string | null
           id: string
+          maybe_comment: string | null
+          plus_one: boolean | null
+          plus_one_country_code: string | null
+          plus_one_email: string | null
+          plus_one_name: string | null
+          plus_one_phone: string | null
+          song_request: string | null
+          special_message: string | null
           wedding_id: string
-          day_name: string
-          date: string
-          order_index: number
-          created_at: string
-          updated_at: string
         }
         Insert: {
+          arrival_date?: string | null
+          arrival_option?: string | null
+          attending: string
+          country_code?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          event_id: string
+          food_preference?: string[] | null
+          guest_count?: number | null
+          guest_id?: string | null
           id?: string
+          maybe_comment?: string | null
+          plus_one?: boolean | null
+          plus_one_country_code?: string | null
+          plus_one_email?: string | null
+          plus_one_name?: string | null
+          plus_one_phone?: string | null
+          song_request?: string | null
+          special_message?: string | null
           wedding_id: string
-          day_name: string
-          date: string
-          order_index?: number
-          created_at?: string
-          updated_at?: string
         }
         Update: {
+          arrival_date?: string | null
+          arrival_option?: string | null
+          attending?: string
+          country_code?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          event_id?: string
+          food_preference?: string[] | null
+          guest_count?: number | null
+          guest_id?: string | null
           id?: string
+          maybe_comment?: string | null
+          plus_one?: boolean | null
+          plus_one_country_code?: string | null
+          plus_one_email?: string | null
+          plus_one_name?: string | null
+          plus_one_phone?: string | null
+          song_request?: string | null
+          special_message?: string | null
           wedding_id?: string
-          day_name?: string
-          date?: string
-          order_index?: number
-          created_at?: string
-          updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "rsvps_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schedule_items: {
         Row: {
-          id: string
-          schedule_id: string
-          time: string
-          name: string
+          created_at: string | null
           description: string | null
+          gradient_background: string | null
+          id: string
+          icon: string | null
+          is_major_event: boolean | null
+          linked_event_id: string | null
           location: string | null
+          name: string
           order_index: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          schedule_id: string
+          schedule_id: string | null
           time: string
-          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
           description?: string | null
+          gradient_background?: string | null
+          id?: string
+          icon?: string | null
+          is_major_event?: boolean | null
+          linked_event_id?: string | null
           location?: string | null
+          name: string
           order_index?: number
-          created_at?: string
-          updated_at?: string
+          schedule_id?: string | null
+          time: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          description?: string | null
+          gradient_background?: string | null
           id?: string
-          schedule_id?: string
+          icon?: string | null
+          is_major_event?: boolean | null
+          linked_event_id?: string | null
+          location?: string | null
+          name?: string
+          order_index?: number
+          schedule_id?: string | null
           time?: string
-          name?: string
-          description?: string | null
-          location?: string | null
-          order_index?: number
-          created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
-      }
-      wedding_travel_cards: {
-        Row: {
-          id: string
-          wedding_id: string
-          title: string
-          content: string[]
-          image_url: string
-          button_text: string | null
-          button_action: string | null
-          is_whatsapp_button: boolean
-          is_disabled: boolean
-          order_index: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          title: string
-          content: string[]
-          image_url: string
-          button_text?: string | null
-          button_action?: string | null
-          is_whatsapp_button?: boolean
-          is_disabled?: boolean
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
-          title?: string
-          content?: string[]
-          image_url?: string
-          button_text?: string | null
-          button_action?: string | null
-          is_whatsapp_button?: boolean
-          is_disabled?: boolean
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      wedding_faqs: {
-        Row: {
-          id: string
-          wedding_id: string
-          question: string
-          answer: string
-          button_text: string | null
-          button_link: string | null
-          order_index: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          question: string
-          answer: string
-          button_text?: string | null
-          button_link?: string | null
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
-          question?: string
-          answer?: string
-          button_text?: string | null
-          button_link?: string | null
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      wedding_registry: {
-        Row: {
-          id: string
-          wedding_id: string
-          fund_name: string
-          emoji: string
-          description: string | null
-          external_url: string | null
-          stripe_product_id: string | null
-          order_index: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          fund_name: string
-          emoji: string
-          description?: string | null
-          external_url?: string | null
-          stripe_product_id?: string | null
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
-          fund_name?: string
-          emoji?: string
-          description?: string | null
-          external_url?: string | null
-          stripe_product_id?: string | null
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      wedding_shops: {
-        Row: {
-          id: string
-          wedding_id: string
-          name: string
-          details: string
-          url: string
-          order_index: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          name: string
-          details: string
-          url: string
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
-          name?: string
-          details?: string
-          url?: string
-          order_index?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      wedding_settings: {
-        Row: {
-          id: string
-          wedding_id: string
-          pin_codes: any[]
-          whatsapp_group_link: string | null
-          lapse_event_codes: Record<string, string>
-          google_sheets_id: string | null
-          custom_domain: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          pin_codes?: any[]
-          whatsapp_group_link?: string | null
-          lapse_event_codes?: Record<string, string>
-          google_sheets_id?: string | null
-          custom_domain?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          wedding_id?: string
-          pin_codes?: any[]
-          whatsapp_group_link?: string | null
-          lapse_event_codes?: Record<string, string>
-          google_sheets_id?: string | null
-          custom_domain?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      guests: {
-        Row: Guest
-        Insert: Omit<Guest, 'id' | 'created_at' | 'initials' | 'avatar_color'>
-        Update: Partial<Guest>
-      }
-      rsvps: {
-        Row: RSVP
-        Insert: Omit<RSVP, 'id' | 'created_at'>
-        Update: Partial<RSVP>
-      }
-      comments: {
-        Row: Comment
-        Insert: Omit<Comment, 'id' | 'created_at'>
-        Update: Partial<Comment>
-      }
-      guest_flights: {
-        Row: GuestFlight
-        Insert: Omit<GuestFlight, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<GuestFlight>
-      }
-      guest_checklist_items: {
-        Row: GuestChecklistItem
-        Insert: Omit<GuestChecklistItem, 'id' | 'created_at'>
-        Update: Partial<GuestChecklistItem>
+        Relationships: [
+          {
+            foreignKeyName: "schedule_items_linked_event_id_fkey"
+            columns: ["linked_event_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_items_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       travel_bus_signups: {
         Row: {
-          id: string
-          wedding_id: string
-          name: string
+          bangkok_to_huahin: boolean | null
+          created_at: string | null
           email: string
+          huahin_to_airport: boolean | null
+          huahin_to_sukhumvit: boolean | null
+          id: string
+          name: string
           party_size: number
-          bangkok_to_huahin: boolean
-          huahin_to_airport: boolean
-          huahin_to_sukhumvit: boolean
-          created_at: string
-          updated_at: string
+          passport_image_path: string | null
+          updated_at: string | null
+          wedding_id: string
         }
         Insert: {
-          id?: string
-          wedding_id: string
-          name: string
+          bangkok_to_huahin?: boolean | null
+          created_at?: string | null
           email: string
+          huahin_to_airport?: boolean | null
+          huahin_to_sukhumvit?: boolean | null
+          id?: string
+          name: string
           party_size?: number
-          bangkok_to_huahin?: boolean
-          huahin_to_airport?: boolean
-          huahin_to_sukhumvit?: boolean
-          created_at?: string
-          updated_at?: string
+          passport_image_path?: string | null
+          updated_at?: string | null
+          wedding_id: string
         }
         Update: {
-          id?: string
-          wedding_id?: string
-          name?: string
+          bangkok_to_huahin?: boolean | null
+          created_at?: string | null
           email?: string
-          party_size?: number
-          bangkok_to_huahin?: boolean
-          huahin_to_airport?: boolean
-          huahin_to_sukhumvit?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      whatsapp_opt_ins: {
-        Row: {
-          id: string
-          guest_id: string
-          wedding_id: string
-          phone_number: string
-          opted_in: boolean
-          opt_in_method: string | null
-          opted_in_at: string
-          opted_out_at: string | null
-        }
-        Insert: {
-          id?: string
-          guest_id: string
-          wedding_id: string
-          phone_number: string
-          opted_in?: boolean
-          opt_in_method?: string | null
-          opted_in_at?: string
-          opted_out_at?: string | null
-        }
-        Update: {
-          id?: string
-          guest_id?: string
-          wedding_id?: string
-          phone_number?: string
-          opted_in?: boolean
-          opt_in_method?: string | null
-          opted_in_at?: string
-          opted_out_at?: string | null
-        }
-      }
-      whatsapp_templates: {
-        Row: {
-          id: string
-          name: string
-          category: string
-          language: string
-          content: string
-          parameters: any
-          meta_template_id: string | null
-          status: string
-          created_at: string
-          approved_at: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          category: string
-          language?: string
-          content: string
-          parameters?: any
-          meta_template_id?: string | null
-          status?: string
-          created_at?: string
-          approved_at?: string | null
-        }
-        Update: {
+          huahin_to_airport?: boolean | null
+          huahin_to_sukhumvit?: boolean | null
           id?: string
           name?: string
-          category?: string
-          language?: string
-          content?: string
-          parameters?: any
-          meta_template_id?: string | null
+          party_size?: number
+          passport_image_path?: string | null
+          updated_at?: string | null
+          wedding_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          account_type: string | null
+          created_at: string | null
+          enabled_features: string[] | null
+          id: string
+          onboarding_completed: boolean | null
+          subscription_tier: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          created_at?: string | null
+          enabled_features?: string[] | null
+          id?: string
+          onboarding_completed?: boolean | null
+          subscription_tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          created_at?: string | null
+          enabled_features?: string[] | null
+          id?: string
+          onboarding_completed?: boolean | null
+          subscription_tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      wedding_admins: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_admins_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_events: {
+        Row: {
+          carousel_images: Json | null
+          carousel_slides: Json | null
+          created_at: string | null
+          date: string
+          dress_code: string
+          dress_code_description: string | null
+          dress_code_icon: string | null
+          gradient_background: string | null
+          id: string
+          is_template: boolean | null
+          name: string
+          order_index: number
+          outfit_example_url: string | null
+          outfit_ideas_men: Json | null
+          outfit_ideas_women: Json | null
+          ritual_description: string | null
+          ritual_name: string | null
+          slug: string
+          text_color: string | null
+          time: string
+          updated_at: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          carousel_images?: Json | null
+          carousel_slides?: Json | null
+          created_at?: string | null
+          date: string
+          dress_code: string
+          dress_code_description?: string | null
+          dress_code_icon?: string | null
+          gradient_background?: string | null
+          id?: string
+          is_template?: boolean | null
+          name: string
+          order_index?: number
+          outfit_example_url?: string | null
+          outfit_ideas_men?: Json | null
+          outfit_ideas_women?: Json | null
+          ritual_description?: string | null
+          ritual_name?: string | null
+          slug: string
+          text_color?: string | null
+          time: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          carousel_images?: Json | null
+          carousel_slides?: Json | null
+          created_at?: string | null
+          date?: string
+          dress_code?: string
+          dress_code_description?: string | null
+          dress_code_icon?: string | null
+          gradient_background?: string | null
+          id?: string
+          is_template?: boolean | null
+          name?: string
+          order_index?: number
+          outfit_example_url?: string | null
+          outfit_ideas_men?: Json | null
+          outfit_ideas_women?: Json | null
+          ritual_description?: string | null
+          ritual_name?: string | null
+          slug?: string
+          text_color?: string | null
+          time?: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_events_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_faqs: {
+        Row: {
+          answer: string
+          button_link: string | null
+          button_text: string | null
+          created_at: string | null
+          id: string
+          order_index: number
+          question: string
+          updated_at: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          answer: string
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string | null
+          id?: string
+          order_index?: number
+          question: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          answer?: string
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string | null
+          id?: string
+          order_index?: number
+          question?: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_faqs_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_invites: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          invited_by: string | null
+          role: string
+          wedding_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          wedding_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_invites_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_registry: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          emoji: string
+          external_url: string | null
+          fund_name: string
+          id: string
+          order_index: number
+          stripe_product_id: string | null
+          updated_at: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          emoji: string
+          external_url?: string | null
+          fund_name: string
+          id?: string
+          order_index?: number
+          stripe_product_id?: string | null
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          emoji?: string
+          external_url?: string | null
+          fund_name?: string
+          id?: string
+          order_index?: number
+          stripe_product_id?: string | null
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_registry_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_schedule: {
+        Row: {
+          created_at: string | null
+          date: string
+          day_name: string
+          id: string
+          order_index: number
+          updated_at: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          day_name: string
+          id?: string
+          order_index?: number
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          day_name?: string
+          id?: string
+          order_index?: number
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_schedule_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_settings: {
+        Row: {
+          created_at: string | null
+          custom_domain: string | null
+          google_sheets_id: string | null
+          id: string
+          lapse_event_codes: Json | null
+          pin_codes: Json | null
+          updated_at: string | null
+          wedding_id: string | null
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_domain?: string | null
+          google_sheets_id?: string | null
+          id?: string
+          lapse_event_codes?: Json | null
+          pin_codes?: Json | null
+          updated_at?: string | null
+          wedding_id?: string | null
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_domain?: string | null
+          google_sheets_id?: string | null
+          id?: string
+          lapse_event_codes?: Json | null
+          pin_codes?: Json | null
+          updated_at?: string | null
+          wedding_id?: string | null
+          whatsapp_group_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_settings_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_shops: {
+        Row: {
+          created_at: string | null
+          details: string
+          id: string
+          name: string
+          order_index: number
+          updated_at: string | null
+          url: string
+          wedding_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details: string
+          id?: string
+          name: string
+          order_index?: number
+          updated_at?: string | null
+          url: string
+          wedding_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: string
+          id?: string
+          name?: string
+          order_index?: number
+          updated_at?: string | null
+          url?: string
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_shops_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_travel_cards: {
+        Row: {
+          button_action: string | null
+          button_text: string | null
+          content: Json
+          created_at: string | null
+          id: string
+          image_url: string
+          is_disabled: boolean | null
+          is_whatsapp_button: boolean | null
+          order_index: number
+          title: string
+          updated_at: string | null
+          wedding_id: string | null
+        }
+        Insert: {
+          button_action?: string | null
+          button_text?: string | null
+          content?: Json
+          created_at?: string | null
+          id?: string
+          image_url: string
+          is_disabled?: boolean | null
+          is_whatsapp_button?: boolean | null
+          order_index?: number
+          title: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Update: {
+          button_action?: string | null
+          button_text?: string | null
+          content?: Json
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          is_disabled?: boolean | null
+          is_whatsapp_button?: boolean | null
+          order_index?: number
+          title?: string
+          updated_at?: string | null
+          wedding_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_travel_cards_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weddings: {
+        Row: {
+          background_image: string | null
+          button_font_color: string | null
+          couple_image_url: string | null
+          couple_images: Json | null
+          couple_name: string
+          created_at: string | null
+          created_by: string | null
+          font_color: string | null
+          frame_image_url: string | null
+          id: string
+          partner1_name: string | null
+          partner2_name: string | null
+          pin_entry_background: string | null
+          pin_entry_button_font_color: string | null
+          pin_entry_font_color: string | null
+          pin_entry_primary_color: string | null
+          pin_entry_subtitle_text: string | null
+          pin_entry_text: string | null
+          primary_color: string | null
+          rsvp_deadline: string
+          show_venue_location: boolean | null
+          slug: string
+          status: string
+          updated_at: string | null
+          venue_flag: string | null
+          venue_location: string
+          venue_name: string
+          website_layout: string | null
+          wedding_date: string
+          wedding_date_display: string
+          wedding_date_end: string | null
+          welcome_text: string | null
+        }
+        Insert: {
+          background_image?: string | null
+          button_font_color?: string | null
+          couple_image_url?: string | null
+          couple_images?: Json | null
+          couple_name: string
+          created_at?: string | null
+          created_by?: string | null
+          font_color?: string | null
+          frame_image_url?: string | null
+          id?: string
+          partner1_name?: string | null
+          partner2_name?: string | null
+          pin_entry_background?: string | null
+          pin_entry_button_font_color?: string | null
+          pin_entry_font_color?: string | null
+          pin_entry_primary_color?: string | null
+          pin_entry_subtitle_text?: string | null
+          pin_entry_text?: string | null
+          primary_color?: string | null
+          rsvp_deadline: string
+          show_venue_location?: boolean | null
+          slug: string
           status?: string
-          created_at?: string
-          approved_at?: string | null
-        }
-      }
-      whatsapp_chat_history: {
-        Row: {
-          id: string
-          wedding_id: string
-          guest_id: string
-          role: 'user' | 'assistant' | 'system'
-          content: string
-          wa_message_id: string | null
-          metadata: any
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          wedding_id: string
-          guest_id: string
-          role: 'user' | 'assistant' | 'system'
-          content: string
-          wa_message_id?: string | null
-          metadata?: any
-          created_at?: string
+          updated_at?: string | null
+          venue_flag?: string | null
+          venue_location: string
+          venue_name: string
+          website_layout?: string | null
+          wedding_date: string
+          wedding_date_display: string
+          wedding_date_end?: string | null
+          welcome_text?: string | null
         }
         Update: {
+          background_image?: string | null
+          button_font_color?: string | null
+          couple_image_url?: string | null
+          couple_images?: Json | null
+          couple_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          font_color?: string | null
+          frame_image_url?: string | null
           id?: string
-          wedding_id?: string
-          guest_id?: string
-          role?: 'user' | 'assistant' | 'system'
-          content?: string
-          wa_message_id?: string | null
-          metadata?: any
-          created_at?: string
+          partner1_name?: string | null
+          partner2_name?: string | null
+          pin_entry_background?: string | null
+          pin_entry_button_font_color?: string | null
+          pin_entry_font_color?: string | null
+          pin_entry_primary_color?: string | null
+          pin_entry_subtitle_text?: string | null
+          pin_entry_text?: string | null
+          primary_color?: string | null
+          rsvp_deadline?: string
+          show_venue_location?: boolean | null
+          slug?: string
+          status?: string
+          updated_at?: string | null
+          venue_flag?: string | null
+          venue_location?: string
+          venue_name?: string
+          website_layout?: string | null
+          wedding_date?: string
+          wedding_date_display?: string
+          wedding_date_end?: string | null
+          welcome_text?: string | null
         }
-      }
-      whatsapp_messages: {
-        Row: {
-          id: string
-          guest_id: string
-          wedding_id: string
-          phone_number: string
-          template_name: string | null
-          message_type: string | null
-          content: string | null
-          parameters: any
-          wa_message_id: string | null
-          status: string | null
-          sent_at: string | null
-          delivered_at: string | null
-          read_at: string | null
-          error_message: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          guest_id: string
-          wedding_id: string
-          phone_number: string
-          template_name?: string | null
-          message_type?: string | null
-          content?: string | null
-          parameters?: any
-          wa_message_id?: string | null
-          status?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-          read_at?: string | null
-          error_message?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          guest_id?: string
-          wedding_id?: string
-          phone_number?: string
-          template_name?: string | null
-          message_type?: string | null
-          content?: string | null
-          parameters?: any
-          wa_message_id?: string | null
-          status?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-          read_at?: string | null
-          error_message?: string | null
-          created_at?: string
-        }
+        Relationships: []
       }
       whatsapp_broadcasts: {
         Row: {
+          created_at: string | null
+          created_by: string | null
+          failed_sends: number | null
+          filters: Json | null
           id: string
-          wedding_id: string
           name: string
-          template_name: string
-          filters: any
           scheduled_at: string | null
           sent_at: string | null
+          status: string | null
+          successful_sends: number | null
+          template_name: string
           total_recipients: number | null
-          successful_sends: number
-          failed_sends: number
-          status: string
-          created_by: string | null
-          created_at: string
+          wedding_id: string
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          failed_sends?: number | null
+          filters?: Json | null
           id?: string
-          wedding_id: string
           name: string
-          template_name: string
-          filters?: any
           scheduled_at?: string | null
           sent_at?: string | null
+          status?: string | null
+          successful_sends?: number | null
+          template_name: string
           total_recipients?: number | null
-          successful_sends?: number
-          failed_sends?: number
-          status?: string
-          created_by?: string | null
-          created_at?: string
+          wedding_id: string
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
+          failed_sends?: number | null
+          filters?: Json | null
           id?: string
-          wedding_id?: string
           name?: string
-          template_name?: string
-          filters?: any
           scheduled_at?: string | null
           sent_at?: string | null
+          status?: string | null
+          successful_sends?: number | null
+          template_name?: string
           total_recipients?: number | null
-          successful_sends?: number
-          failed_sends?: number
-          status?: string
-          created_by?: string | null
-          created_at?: string
+          wedding_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_broadcasts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
+      whatsapp_channel_clicks: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          guest_id: string | null
+          id: string
+          source: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          guest_id?: string | null
+          id?: string
+          source?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          guest_id?: string | null
+          id?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_channel_clicks_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          guest_id: string | null
+          id: string
+          message_type: string | null
+          parameters: Json | null
+          phone_number: string
+          read_at: string | null
+          sent_at: string | null
+          status: string | null
+          template_name: string | null
+          wa_message_id: string | null
+          wedding_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          guest_id?: string | null
+          id?: string
+          message_type?: string | null
+          parameters?: Json | null
+          phone_number: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+          wa_message_id?: string | null
+          wedding_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          guest_id?: string | null
+          id?: string
+          message_type?: string | null
+          parameters?: Json | null
+          phone_number?: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+          wa_message_id?: string | null
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_opt_ins: {
+        Row: {
+          guest_id: string | null
+          id: string
+          opt_in_method: string | null
+          opted_in: boolean | null
+          opted_in_at: string | null
+          opted_out_at: string | null
+          phone_number: string
+          wedding_id: string
+        }
+        Insert: {
+          guest_id?: string | null
+          id?: string
+          opt_in_method?: string | null
+          opted_in?: boolean | null
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone_number: string
+          wedding_id: string
+        }
+        Update: {
+          guest_id?: string | null
+          id?: string
+          opt_in_method?: string | null
+          opted_in?: boolean | null
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone_number?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_opt_ins_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          approved_at: string | null
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          language: string | null
+          meta_template_id: string | null
+          name: string
+          parameters: Json | null
+          status: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          category: string
+          content: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          meta_template_id?: string | null
+          name: string
+          parameters?: Json | null
+          status?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          meta_template_id?: string | null
+          name?: string
+          parameters?: Json | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      rsvps_complete: {
+        Row: {
+          arrival_date: string | null
+          arrival_option: string | null
+          attending: string | null
+          created_at: string | null
+          email: string | null
+          food_preference: string[] | null
+          guest_count: number | null
+          guest_name: string | null
+          id: string | null
+          phone: string | null
+          plus_one_email: string | null
+          plus_one_name: string | null
+          song_request: string | null
+        }
+        Relationships: []
+      }
+      rsvps_with_names: {
+        Row: {
+          guest_id: string | null
+          guest_name: string | null
+          id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rsvps_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Functions: {
+      check_slug_availability: {
+        Args: { slug_to_check: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
+
+type DatabaseWithoutInternals = Omit<PheraDatabase, "__InternalSupabase">
+type PublicSchema = DatabaseWithoutInternals["public"]
+
+export type Tables<
+  PublicTableNameOrOptions extends
+  | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? keyof (DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Views"])
+  : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? (DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+    PublicSchema["Views"])
+  ? (PublicSchema["Tables"] &
+    PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? keyof DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? keyof DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
+
+export type Enums<
+  PublicEnumNameOrOptions extends
+  | keyof PublicSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? keyof DatabaseWithoutInternals[PublicEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+  ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+  : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+  | keyof PublicSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+  ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

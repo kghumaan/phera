@@ -4,7 +4,6 @@ import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typograp
 import Image from 'next/image';
 import {
   Home,
-  Event,
   Schedule,
   Flight,
   HelpOutline,
@@ -62,8 +61,7 @@ const groups: SidebarGroup[] = [
     items: [
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
-      { id: 'events', label: 'Events', path: '/events', required: true },
-      { id: 'schedule', label: 'Schedule', path: '/schedule', required: true },
+      { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
       { id: 'registry', label: 'Registry', path: '/registry' },

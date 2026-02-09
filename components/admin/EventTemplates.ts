@@ -2,7 +2,7 @@ export interface EventTemplate {
   name: string;
   slug: string;
   dress_code: string;
-  dress_code_emoji: string;
+  dress_code_icon: string;
   dress_code_description: string;
   outfit_ideas_women: string[];
   outfit_ideas_men: string[];
@@ -18,7 +18,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Welcome Lunch',
     slug: 'welcome-lunch',
     dress_code: 'Casual Elegant',
-    dress_code_emoji: '🌸',
+    dress_code_icon: 'flower',
     dress_code_description: 'Smart casual attire - comfortable yet stylish for a relaxed welcome gathering.',
     outfit_ideas_women: [
       'Casual Anarkali or light Salwar Kameez',
@@ -44,7 +44,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Haldi',
     slug: 'haldi',
     dress_code: 'Shades of Yellow',
-    dress_code_emoji: '🌻',
+    dress_code_icon: 'sunflower',
     dress_code_description: 'Bright, festive yellows! Think sunshine and turmeric.',
     outfit_ideas_women: [
       'Yellow Anarkali or Salwar Kameez',
@@ -70,7 +70,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Baraat',
     slug: 'baraat',
     dress_code: 'Festive & Bold',
-    dress_code_emoji: '🎺',
+    dress_code_icon: 'trumpet',
     dress_code_description: 'Vibrant colors and festive wear for the groom\'s procession! Think celebration mode.',
     outfit_ideas_women: [
       'Colorful Lehenga Choli',
@@ -96,7 +96,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Varmala',
     slug: 'varmala',
     dress_code: 'Traditional Elegance',
-    dress_code_emoji: '💐',
+    dress_code_icon: 'bouquet',
     dress_code_description: 'Elegant traditional wear for the sacred garland exchange ceremony.',
     outfit_ideas_women: [
       'Traditional Lehenga or Saree',
@@ -122,7 +122,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Jaggo',
     slug: 'jaggo',
     dress_code: 'Vibrant & Festive',
-    dress_code_emoji: '🎉',
+    dress_code_icon: 'party-popper',
     dress_code_description: 'Bold colors, sequins, and celebration mode! The night before the wedding calls for your most festive attire.',
     outfit_ideas_women: [
       'Colorful Lehenga Choli',
@@ -148,7 +148,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Anand Karaj',
     slug: 'anand-karaj',
     dress_code: 'Traditional Elegance',
-    dress_code_emoji: '💐',
+    dress_code_icon: 'lotus',
     dress_code_description: 'Elegant pastels and traditional wear for the sacred ceremony.',
     outfit_ideas_women: [
       'Pastel Lehenga or Saree',
@@ -174,7 +174,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Sangeet',
     slug: 'sangeet',
     dress_code: 'Glamorous & Festive',
-    dress_code_emoji: '🎤',
+    dress_code_icon: 'microphone',
     dress_code_description: 'Dress to impress! Glamorous, festive attire for an evening of music and dance performances.',
     outfit_ideas_women: [
       'Designer Lehenga or Saree',
@@ -200,7 +200,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Reception',
     slug: 'reception',
     dress_code: 'Cocktail Glam',
-    dress_code_emoji: '✨',
+    dress_code_icon: 'sparkles',
     dress_code_description: 'Dress to impress! Formal cocktail attire with glamorous touches.',
     outfit_ideas_women: [
       'Evening gown or cocktail dress',
@@ -226,7 +226,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     name: 'Pool Party',
     slug: 'pool-party',
     dress_code: 'Beach Chic',
-    dress_code_emoji: '🏖️',
+    dress_code_icon: 'beach',
     dress_code_description: 'Beachwear, swimsuits, and resort casual. Bring your summer vibes!',
     outfit_ideas_women: [
       'Swimsuit with cover-up',

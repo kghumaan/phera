@@ -51,6 +51,8 @@ import { toast } from 'sonner';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
+import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
+
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 // Available gradient backgrounds
@@ -62,7 +64,7 @@ const GRADIENT_BACKGROUNDS = [
   { value: 'GradientReception.png', label: 'Reception' },
 ];
 
-
+import { AVAILABLE_ICONS } from '@/lib/constants/icons';
 
 export default function EventsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -121,6 +123,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       text_color: '#141414',
       gradient_background: 'GradientYellow.png',
       outfit_example_url: null,
+      dress_code_icon: template.dress_code_icon,
     });
     setFieldErrors({});
     setShowDressCodeDetails(false);
@@ -136,7 +139,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       date: '',
       time: '',
       dress_code: '',
-      dress_code_emoji: '',
+      dress_code_icon: 'flower',
       dress_code_description: '',
       outfit_ideas_women: [],
       outfit_ideas_men: [],
@@ -255,7 +258,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       if (currentEvent.id) {
         await weddingService.updateEvent(currentEvent.id, currentEvent);
       } else {
-        await weddingService.createEvent(currentEvent);
+        await weddingService.createEvent(currentEvent as any); // Type assertion needed for optional fields
       }
 
       await loadData();
@@ -306,7 +309,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
 
-
   if (loading && events.length === 0 && !weddingId) {
     return (
       <Box sx={{ p: 4 }}>
@@ -331,14 +333,87 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           <Paper sx={{ p: { xs: 4, md: 6 }, borderRadius: '24px', bgcolor: 'white', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' }}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <Stack spacing={4}>
-                <TextField
-                  label="Event Title *"
-                  fullWidth
-                  value={currentEvent.name || ''}
-                  onChange={(e) => updateCurrentEvent('name', e.target.value)}
-                  error={fieldErrors.name}
-                  sx={textFieldSx}
-                />
+                <Stack direction="row" spacing={2} alignItems="stretch">
+                  <FormControl sx={{ minWidth: 80, '& .MuiInputBase-root': { height: '56px' } }}>
+                    <InputLabel id="event-icon-select-label">Icon</InputLabel>
+                    <Select
+                      labelId="event-icon-select-label"
+                      label="Icon"
+                      value={currentEvent.dress_code_icon || ''}
+                      onChange={(e) => updateCurrentEvent('dress_code_icon', e.target.value)}
+                      renderValue={(selected) => {
+                        return (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {selected && <StreamlineIcon name={selected as any} size={20} color="#1a1a1a" />}
+                          </Box>
+                        );
+                      }}
+                      sx={{
+                        borderRadius: '16px',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#DE3F5E',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#DE3F5E',
+                        },
+                        '& .MuiSelect-select': {
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            bgcolor: 'white',
+                            borderRadius: '16px',
+                            mt: 1,
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+                            maxHeight: 300,
+                            '& .MuiMenuItem-root': {
+                              p: 1.5,
+                              m: 0.5,
+                              borderRadius: '8px',
+                              color: '#1a1a1a',
+                              '&:hover': {
+                                bgcolor: 'rgba(222, 63, 94, 0.04)',
+                              },
+                              '&.Mui-selected': {
+                                bgcolor: 'rgba(222, 63, 94, 0.08) !important',
+                                color: '#DE3F5E',
+                                fontWeight: 600,
+                              },
+                            },
+                          }
+                        }
+                      }}
+                    >
+                      <MenuItem value="">
+                        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>None</Typography>
+                      </MenuItem>
+                      {AVAILABLE_ICONS.map((icon) => (
+                        <MenuItem key={icon.name} value={icon.name}>
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <StreamlineIcon name={icon.name} size={20} />
+                            <Typography variant="body2">{icon.label}</Typography>
+                          </Stack>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <TextField
+                    label="Event Title *"
+                    fullWidth
+                    value={currentEvent.name || ''}
+                    onChange={(e) => updateCurrentEvent('name', e.target.value)}
+                    error={fieldErrors.name}
+                    sx={textFieldSx}
+                  />
+                </Stack>
 
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -406,6 +481,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
                 {showDressCodeDetails && (
                   <Stack spacing={4} sx={{ pt: 2, borderTop: '1px solid #eee' }}>
+
                     <TextField
                       label="Dress Code Name"
                       fullWidth
@@ -563,18 +639,37 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 13, textTransform: 'uppercase', color: '#474747', mb: 0.5 }}>
                           {event.name}
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 500, fontSize: 18, color: '#000', mb: 0.5 }}>
-                          {event.dress_code_emoji} {event.dress_code || 'No Dress Code Set'}
-                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+                          {event.dress_code_icon && (
+                            <StreamlineIcon name={event.dress_code_icon as StreamlineIconName} size={24} color="#DE3F5E" />
+                          )}
+                          <Typography variant="h6" sx={{ fontWeight: 500, fontSize: 18, color: '#000' }}>
+                            {event.dress_code || 'No Dress Code Set'}
+                          </Typography>
+                        </Stack>
                         <Typography variant="body2" sx={{ fontSize: 14, color: '#858585' }}>
                           {event.date} @ {event.time}
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={1}>
-                        <IconButton onClick={() => handleEdit(event)} size="small" sx={{ color: '#DE3F5E' }}>
+                        <IconButton
+                          onClick={() => handleEdit(event)}
+                          size="small"
+                          sx={{
+                            color: '#000',
+                            '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+                          }}
+                        >
                           <Edit fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: '#DE3F5E' }}>
+                        <IconButton
+                          onClick={() => handleDeleteEvent(event.id)}
+                          size="small"
+                          sx={{
+                            color: '#000',
+                            '&:hover': { bgcolor: 'rgba(0,0,0,0.05)', color: '#d32f2f' }
+                          }}
+                        >
                           <Delete fontSize="small" />
                         </IconButton>
                       </Stack>
@@ -629,12 +724,19 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   }}
                   onClick={() => handleAddFromTemplate(template)}
                 >
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                    {template.dress_code_emoji} {template.name}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                    {template.dress_code}
-                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    {template.dress_code_icon && (
+                      <StreamlineIcon name={template.dress_code_icon as StreamlineIconName} size={28} color="#DE3F5E" />
+                    )}
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem' }}>
+                        {template.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                        {template.dress_code}
+                      </Typography>
+                    </Box>
+                  </Stack>
                 </Paper>
               </Grid>
             ))}
@@ -646,7 +748,6 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Button>
         </DialogActions>
       </Dialog>
-
 
 
       {/* Slide Edit Dialog */}

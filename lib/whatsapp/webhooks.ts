@@ -72,7 +72,7 @@ export function parseIncomingMessage(payload: any): IncomingMessage[] {
             } else if (message.type === 'interactive') {
               incoming.type = 'interactive';
               const interactive = message.interactive;
-              
+
               if (interactive.type === 'button_reply') {
                 incoming.interactive = {
                   type: 'button_reply',
@@ -220,8 +220,8 @@ export async function logChatMessage({
   metadata?: any;
 }): Promise<void> {
   try {
-    const { error } = await (supabase
-      .from('whatsapp_chat_history') as any)
+    const { error } = await (supabase as any)
+      .from('whatsapp_chat_history')
       .insert({
         wedding_id: weddingId,
         guest_id: guestId,

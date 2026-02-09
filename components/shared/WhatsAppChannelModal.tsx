@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
-import { FaWhatsapp } from 'react-icons/fa';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 
 interface WhatsAppChannelModalProps {
   open: boolean;
@@ -138,7 +138,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   mb: 1,
                 }}
               >
-                <FaWhatsapp size={32} color="white" />
+                <StreamlineIcon name="whatsapp" size={32} color="white" />
               </Box>
 
               {/* Title */}

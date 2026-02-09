@@ -39,38 +39,38 @@ const DiamondDecoration = () => (
   >
     <svg width="75" height="18" viewBox="0 0 65 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M15.6025 9.22518C16.4176 8.62308 16.4176 7.37669 15.6025 6.77459L9.35693 2.16121C8.84471 1.78285 8.15445 1.78285 7.64223 2.16121L1.39661 6.77459C0.581523 7.37669 0.581523 8.62308 1.39661 9.22518L7.64223 13.8386C8.15445 14.217 8.84471 14.217 9.35693 13.8386L15.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M15.6025 9.22518C16.4176 8.62308 16.4176 7.37669 15.6025 6.77459L9.35693 2.16121C8.84471 1.78285 8.15445 1.78285 7.64223 2.16121L1.39661 6.77459C0.581523 7.37669 0.581523 8.62308 1.39661 9.22518L7.64223 13.8386C8.15445 14.217 8.84471 14.217 9.35693 13.8386L15.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <g clipPath="url(#clip1_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M39.6025 9.22518C40.4176 8.62308 40.4176 7.37669 39.6025 6.77459L33.3569 2.16121C32.8447 1.78285 32.1545 1.78285 31.6422 2.16121L25.3966 6.77459C24.5815 7.37669 24.5815 8.62308 25.3966 9.22518L31.6422 13.8386C32.1545 14.217 32.8447 14.217 33.3569 13.8386L39.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M39.6025 9.22518C40.4176 8.62308 40.4176 7.37669 39.6025 6.77459L33.3569 2.16121C32.8447 1.78285 32.1545 1.78285 31.6422 2.16121L25.3966 6.77459C24.5815 7.37669 24.5815 8.62308 25.3966 9.22518L31.6422 13.8386C32.1545 14.217 32.8447 14.217 33.3569 13.8386L39.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <g clipPath="url(#clip2_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M63.6025 9.22518C64.4176 8.62308 64.4176 7.37669 63.6025 6.77459L57.3569 2.16121C56.8447 1.78285 56.1545 1.78285 55.6422 2.16121L49.3966 6.77459C48.5815 7.37669 48.5815 8.62308 49.3966 9.22518L55.6422 13.8386C56.1545 14.217 56.8447 14.217 57.3569 13.8386L63.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M63.6025 9.22518C64.4176 8.62308 64.4176 7.37669 63.6025 6.77459L57.3569 2.16121C56.8447 1.78285 56.1545 1.78285 55.6422 2.16121L49.3966 6.77459C48.5815 7.37669 48.5815 8.62308 49.3966 9.22518L55.6422 13.8386C56.1545 14.217 56.8447 14.217 57.3569 13.8386L63.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <defs>
         <clipPath id="clip0_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 16.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 16.5 0)" />
         </clipPath>
         <clipPath id="clip1_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 40.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 40.5 0)" />
         </clipPath>
         <clipPath id="clip2_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 64.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 64.5 0)" />
         </clipPath>
       </defs>
     </svg>
@@ -191,10 +191,10 @@ export default function DetailsPage() {
   const handleMenuItemClick = (item: string) => {
     // Navigate to specific sections with the weddingSlug parameter
     if (!weddingSlug) return;
-    
+
     // Show loading state
     setIsNavigating(true);
-    
+
     switch (item) {
       case 'Travel & Stay':
         router.push(`/${weddingSlug}/travel`);
@@ -205,7 +205,7 @@ export default function DetailsPage() {
       case 'Q & A':
         router.push(`/${weddingSlug}/faq`);
         break;
-      case 'Schedule':
+      case 'Schedule & Events':
         router.push(`/${weddingSlug}/schedule`);
         break;
       case 'Registry':
@@ -293,7 +293,7 @@ export default function DetailsPage() {
             pb: 2,
           }}
         >
-          <Container 
+          <Container
             maxWidth={false}
             sx={{
               maxWidth: { xs: 361, md: 600, lg: 650, xl: 700 },
@@ -319,7 +319,7 @@ export default function DetailsPage() {
               >
                 <ArrowBack />
               </IconButton>
-              
+
               {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
               {shouldShowWhatsApp && (
                 <IconButton
@@ -337,7 +337,7 @@ export default function DetailsPage() {
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516" />
                   </svg>
                 </IconButton>
               )}
@@ -380,11 +380,11 @@ export default function DetailsPage() {
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
               {isLoading ? (
-                <LoadingSpinner 
-                  message="" 
-                  size={40} 
-                  color="#000" 
-                  minHeight="100px" 
+                <LoadingSpinner
+                  message=""
+                  size={40}
+                  color="#000"
+                  minHeight="100px"
                 />
               ) : (
                 <Stack
@@ -397,45 +397,36 @@ export default function DetailsPage() {
                 >
                   {hasTravelData && (
                     <>
-                      <MenuItem 
-                        title="Travel & Stay" 
-                        onClick={() => handleMenuItemClick('Travel & Stay')} 
+                      <MenuItem
+                        title="Travel & Stay"
+                        onClick={() => handleMenuItemClick('Travel & Stay')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
-                  {hasEventsData && (
+                  {(hasEventsData || hasScheduleData) && (
                     <>
-                      <MenuItem 
-                        title="Events & Dress code" 
-                        onClick={() => handleMenuItemClick('Events & Dress code')} 
+                      <MenuItem
+                        title="Schedule & Events"
+                        onClick={() => handleMenuItemClick('Schedule & Events')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {hasFAQData && (
                     <>
-                      <MenuItem 
-                        title="Q & A" 
-                        onClick={() => handleMenuItemClick('Q & A')} 
-                      />
-                      <DiamondDecoration />
-                    </>
-                  )}
-                  {hasScheduleData && (
-                    <>
-                      <MenuItem 
-                        title="Schedule" 
-                        onClick={() => handleMenuItemClick('Schedule')} 
+                      <MenuItem
+                        title="Q & A"
+                        onClick={() => handleMenuItemClick('Q & A')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {hasRegistryData && (
                     <>
-                      <MenuItem 
-                        title="Registry" 
-                        onClick={() => handleMenuItemClick('Registry')} 
+                      <MenuItem
+                        title="Registry"
+                        onClick={() => handleMenuItemClick('Registry')}
                       />
                       <DiamondDecoration />
                     </>
@@ -443,17 +434,17 @@ export default function DetailsPage() {
                   {/* Travel Details - Only show for guests who RSVP'd yes */}
                   {rsvpResponse === 'yes' && (
                     <>
-                      <MenuItem 
-                        title="Travel Details" 
-                        onClick={() => handleMenuItemClick('Travel Details')} 
+                      <MenuItem
+                        title="Travel Details"
+                        onClick={() => handleMenuItemClick('Travel Details')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {/* Change RSVP is always shown */}
-                  <MenuItem 
-                    title="Change RSVP" 
-                    onClick={() => handleMenuItemClick('Change RSVP')} 
+                  <MenuItem
+                    title="Change RSVP"
+                    onClick={() => handleMenuItemClick('Change RSVP')}
                   />
                 </Stack>
               )}
@@ -463,7 +454,7 @@ export default function DetailsPage() {
       </Box>
 
       {/* WhatsApp Channel Modal */}
-      <WhatsAppChannelModal 
+      <WhatsAppChannelModal
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />

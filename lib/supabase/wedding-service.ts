@@ -1,42 +1,10 @@
 import { supabase } from './client';
+import { Tables, TablesInsert, TablesUpdate } from './types';
 
 // Types for wedding data
-export interface Wedding {
-  id: string;
-  slug: string;
-  couple_name: string;
-  partner1_name: string | null;
-  partner2_name: string | null;
-  wedding_date: string;
-  wedding_date_end: string | null;
-  wedding_date_display: string;
-  venue_name: string;
-  venue_location: string;
-  venue_flag: string | null;
-  show_venue_location?: boolean;
-  rsvp_deadline: string;
-  status: 'draft' | 'live';
-  couple_image_url: string | null;
-  couple_images: string[] | null;
-  frame_image_url: string | null;
-  background_image: string;
-  primary_color: string;
-  font_color?: string | null;
-  button_font_color?: string | null;
-  pin_entry_text?: string | null;
-  pin_entry_background?: string | null;
-  pin_entry_primary_color?: string | null;
-  pin_entry_font_color?: string | null;
-  pin_entry_button_font_color?: string | null;
-  pin_entry_subtitle_text?: string | null;
-  website_layout?: 'nested' | 'infinite_scroll';
-  welcome_text?: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}
+export type Wedding = Tables<'weddings'>;
 
-export interface CarouselSlide {
+export type CarouselSlide = {
   type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual';
   title?: string;
   subtitle?: string;
@@ -45,139 +13,29 @@ export interface CarouselSlide {
   src?: string; // For image slides
   women?: string[]; // For outfit_ideas slides
   men?: string[]; // For outfit_ideas slides
-}
+};
 
-export interface WeddingEvent {
-  id: string;
-  wedding_id: string;
-  name: string;
-  slug: string;
-  date: string;
-  time: string;
-  dress_code: string;
-  dress_code_emoji: string | null;
-  dress_code_description: string | null;
-  outfit_ideas_women: string[];
-  outfit_ideas_men: string[];
-  ritual_name: string | null;
-  ritual_description: string | null;
-  carousel_images: string[];
-  carousel_slides: CarouselSlide[]; // New field for structured carousel content
-  outfit_example_url: string | null;
-  gradient_background: string | null;
-  text_color: string;
-  order_index: number;
-  is_template: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingEvent = Omit<Tables<'wedding_events'>, 'carousel_slides'> & {
+  carousel_slides: CarouselSlide[];
+};
 
-export interface WeddingSchedule {
-  id: string;
-  wedding_id: string;
-  day_name: string;
-  date: string;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingSchedule = Tables<'wedding_schedule'>;
 
-export interface ScheduleItem {
-  id: string;
-  schedule_id: string;
-  time: string;
-  name: string;
-  description: string | null;
-  location: string | null;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type ScheduleItem = Tables<'schedule_items'>;
 
-export interface WeddingTravelCard {
-  id: string;
-  wedding_id: string;
-  title: string;
-  content: string[];
-  image_url: string;
-  button_text: string | null;
-  button_action: string | null;
-  is_whatsapp_button: boolean;
-  is_disabled: boolean;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingTravelCard = Tables<'wedding_travel_cards'>;
 
-export interface WeddingFAQ {
-  id: string;
-  wedding_id: string;
-  question: string;
-  answer: string;
-  button_text: string | null;
-  button_link: string | null;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingFAQ = Tables<'wedding_faqs'>;
 
-export interface WeddingRegistry {
-  id: string;
-  wedding_id: string;
-  fund_name: string;
-  emoji: string;
-  description: string | null;
-  external_url: string | null;
-  stripe_product_id: string | null;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingRegistry = Tables<'wedding_registry'>;
 
-export interface WeddingShop {
-  id: string;
-  wedding_id: string;
-  name: string;
-  details: string;
-  url: string;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingShop = Tables<'wedding_shops'>;
 
-export interface WeddingSettings {
-  id: string;
-  wedding_id: string;
-  pin_codes: Array<{
-    pin: string;
-    type: string;
-    allows_plus_one: boolean;
-    skip_rsvp?: boolean;
-  }>;
-  whatsapp_group_link: string | null;
-  lapse_event_codes: Record<string, string>;
-  google_sheets_id: string | null;
-  custom_domain: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type WeddingSettings = Tables<'wedding_settings'>;
 
-export interface WeddingAdmin {
-  id: string;
-  wedding_id: string;
-  user_id: string;
-  role: 'owner' | 'admin' | 'viewer';
-  created_at: string;
-}
+export type WeddingAdmin = Tables<'wedding_admins'>;
 
-export interface WeddingInvite {
-  id: string;
-  wedding_id: string;
-  email: string;
-  role: 'admin' | 'viewer';
-  invited_by: string;
-  created_at: string;
-}
+export type WeddingInvite = Tables<'wedding_invites'>;
 
 export interface TeamMember {
   id: string;
@@ -215,7 +73,7 @@ export class WeddingService {
       }
 
       console.log('✅ WeddingService: Wedding fetched successfully:', data);
-      return data;
+      return data as Wedding;
     } catch (err) {
       console.error('❌ WeddingService: Unexpected error:', err);
       return null;
@@ -234,7 +92,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as Wedding;
   }
 
   async getUserWeddings(userId: string): Promise<Wedding[]> {
@@ -249,10 +107,10 @@ export class WeddingService {
       return [];
     }
 
-    return data || [];
+    return (data || []) as Wedding[];
   }
 
-  async createWedding(wedding: Partial<Wedding>): Promise<Wedding | null> {
+  async createWedding(wedding: TablesInsert<'weddings'>): Promise<Wedding | null> {
     const { data, error } = await this.supabase
       .from('weddings')
       .insert([wedding])
@@ -266,10 +124,10 @@ export class WeddingService {
 
     // Automatically create wedding_admins entry for the creator
     if (data && wedding.created_by) {
-      const adminEntry = {
+      const adminEntry: TablesInsert<'wedding_admins'> = {
         wedding_id: data.id,
         user_id: wedding.created_by,
-        role: 'owner' as const,
+        role: 'owner',
       };
 
       const { error: adminError } = await this.supabase
@@ -288,7 +146,7 @@ export class WeddingService {
     return data;
   }
 
-  async updateWedding(id: string, updates: Partial<Wedding>): Promise<Wedding | null> {
+  async updateWedding(id: string, updates: TablesUpdate<'weddings'>): Promise<Wedding | null> {
     const { data, error } = await this.supabase
       .from('weddings')
       .update(updates)
@@ -373,7 +231,7 @@ export class WeddingService {
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as WeddingEvent[];
   }
 
   async getEventBySlug(weddingId: string, slug: string): Promise<WeddingEvent | null> {
@@ -389,10 +247,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as unknown as WeddingEvent;
   }
 
-  async createEvent(event: Partial<WeddingEvent>): Promise<WeddingEvent | null> {
+  async createEvent(event: TablesInsert<'wedding_events'>): Promise<WeddingEvent | null> {
     const { data, error } = await this.supabase
       .from('wedding_events')
       .insert([event])
@@ -404,10 +262,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as unknown as WeddingEvent;
   }
 
-  async updateEvent(id: string, updates: Partial<WeddingEvent>): Promise<WeddingEvent | null> {
+  async updateEvent(id: string, updates: TablesUpdate<'wedding_events'>): Promise<WeddingEvent | null> {
     const { data, error } = await this.supabase
       .from('wedding_events')
       .update(updates)
@@ -420,7 +278,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as unknown as WeddingEvent;
   }
 
   async deleteEvent(id: string): Promise<boolean> {
@@ -472,7 +330,7 @@ export class WeddingService {
     }));
   }
 
-  async createSchedule(schedule: Partial<WeddingSchedule>): Promise<WeddingSchedule | null> {
+  async createSchedule(schedule: TablesInsert<'wedding_schedule'>): Promise<WeddingSchedule | null> {
     const { data, error } = await this.supabase
       .from('wedding_schedule')
       .insert([schedule])
@@ -484,10 +342,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingSchedule;
   }
 
-  async updateSchedule(id: string, updates: Partial<WeddingSchedule>): Promise<WeddingSchedule | null> {
+  async updateSchedule(id: string, updates: TablesUpdate<'wedding_schedule'>): Promise<WeddingSchedule | null> {
     const { data, error } = await this.supabase
       .from('wedding_schedule')
       .update(updates)
@@ -500,7 +358,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingSchedule;
   }
 
   async deleteSchedule(id: string): Promise<boolean> {
@@ -517,7 +375,7 @@ export class WeddingService {
     return true;
   }
 
-  async createScheduleItem(item: Partial<ScheduleItem>): Promise<ScheduleItem | null> {
+  async createScheduleItem(item: TablesInsert<'schedule_items'>): Promise<ScheduleItem | null> {
     const { data, error } = await this.supabase
       .from('schedule_items')
       .insert([item])
@@ -529,10 +387,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as ScheduleItem;
   }
 
-  async updateScheduleItem(id: string, updates: Partial<ScheduleItem>): Promise<ScheduleItem | null> {
+  async updateScheduleItem(id: string, updates: TablesUpdate<'schedule_items'>): Promise<ScheduleItem | null> {
     const { data, error } = await this.supabase
       .from('schedule_items')
       .update(updates)
@@ -545,7 +403,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as ScheduleItem;
   }
 
   async deleteScheduleItem(id: string): Promise<boolean> {
@@ -578,7 +436,7 @@ export class WeddingService {
     return data || [];
   }
 
-  async createTravelCard(card: Partial<WeddingTravelCard>): Promise<WeddingTravelCard | null> {
+  async createTravelCard(card: TablesInsert<'wedding_travel_cards'>): Promise<WeddingTravelCard | null> {
     const { data, error } = await this.supabase
       .from('wedding_travel_cards')
       .insert([card])
@@ -590,10 +448,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingTravelCard;
   }
 
-  async updateTravelCard(id: string, updates: Partial<WeddingTravelCard>): Promise<WeddingTravelCard | null> {
+  async updateTravelCard(id: string, updates: TablesUpdate<'wedding_travel_cards'>): Promise<WeddingTravelCard | null> {
     const { data, error } = await this.supabase
       .from('wedding_travel_cards')
       .update(updates)
@@ -606,7 +464,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingTravelCard;
   }
 
   async deleteTravelCard(id: string): Promise<boolean> {
@@ -639,7 +497,7 @@ export class WeddingService {
     return data || [];
   }
 
-  async createFAQ(faq: Partial<WeddingFAQ>): Promise<WeddingFAQ | null> {
+  async createFAQ(faq: TablesInsert<'wedding_faqs'>): Promise<WeddingFAQ | null> {
     const { data, error } = await this.supabase
       .from('wedding_faqs')
       .insert([faq])
@@ -651,10 +509,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingFAQ;
   }
 
-  async updateFAQ(id: string, updates: Partial<WeddingFAQ>): Promise<WeddingFAQ | null> {
+  async updateFAQ(id: string, updates: TablesUpdate<'wedding_faqs'>): Promise<WeddingFAQ | null> {
     const { data, error } = await this.supabase
       .from('wedding_faqs')
       .update(updates)
@@ -667,7 +525,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingFAQ;
   }
 
   async deleteFAQ(id: string): Promise<boolean> {
@@ -700,7 +558,7 @@ export class WeddingService {
     return data || [];
   }
 
-  async createRegistryItem(item: Partial<WeddingRegistry>): Promise<WeddingRegistry | null> {
+  async createRegistryItem(item: TablesInsert<'wedding_registry'>): Promise<WeddingRegistry | null> {
     const { data, error } = await this.supabase
       .from('wedding_registry')
       .insert([item])
@@ -712,10 +570,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingRegistry;
   }
 
-  async updateRegistryItem(id: string, updates: Partial<WeddingRegistry>): Promise<WeddingRegistry | null> {
+  async updateRegistryItem(id: string, updates: TablesUpdate<'wedding_registry'>): Promise<WeddingRegistry | null> {
     const { data, error } = await this.supabase
       .from('wedding_registry')
       .update(updates)
@@ -728,7 +586,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingRegistry;
   }
 
   async deleteRegistryItem(id: string): Promise<boolean> {
@@ -761,7 +619,7 @@ export class WeddingService {
     return data || [];
   }
 
-  async createShop(shop: Partial<WeddingShop>): Promise<WeddingShop | null> {
+  async createShop(shop: TablesInsert<'wedding_shops'>): Promise<WeddingShop | null> {
     const { data, error } = await this.supabase
       .from('wedding_shops')
       .insert([shop])
@@ -773,10 +631,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingShop;
   }
 
-  async updateShop(id: string, updates: Partial<WeddingShop>): Promise<WeddingShop | null> {
+  async updateShop(id: string, updates: TablesUpdate<'wedding_shops'>): Promise<WeddingShop | null> {
     const { data, error } = await this.supabase
       .from('wedding_shops')
       .update(updates)
@@ -789,7 +647,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingShop;
   }
 
   async deleteShop(id: string): Promise<boolean> {
@@ -822,7 +680,7 @@ export class WeddingService {
     return data;
   }
 
-  async createSettings(settings: Partial<WeddingSettings>): Promise<WeddingSettings | null> {
+  async createSettings(settings: TablesInsert<'wedding_settings'>): Promise<WeddingSettings | null> {
     const { data, error } = await this.supabase
       .from('wedding_settings')
       .insert([settings])
@@ -834,10 +692,10 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingSettings;
   }
 
-  async updateSettings(weddingId: string, updates: Partial<WeddingSettings>): Promise<WeddingSettings | null> {
+  async updateSettings(weddingId: string, updates: TablesUpdate<'wedding_settings'>): Promise<WeddingSettings | null> {
     const { data, error } = await this.supabase
       .from('wedding_settings')
       .update(updates)
@@ -850,7 +708,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingSettings;
   }
 
   // Admins
@@ -865,10 +723,10 @@ export class WeddingService {
       return [];
     }
 
-    return data || [];
+    return (data || []) as WeddingAdmin[];
   }
 
-  async addWeddingAdmin(admin: Partial<WeddingAdmin>): Promise<WeddingAdmin | null> {
+  async addWeddingAdmin(admin: TablesInsert<'wedding_admins'>): Promise<WeddingAdmin | null> {
     const { data, error } = await this.supabase
       .from('wedding_admins')
       .insert([admin])
@@ -880,7 +738,7 @@ export class WeddingService {
       return null;
     }
 
-    return data;
+    return data as WeddingAdmin;
   }
 
   async removeWeddingAdmin(id: string): Promise<boolean> {
@@ -984,19 +842,19 @@ export class WeddingService {
         if (currentUser && admin.user_id === currentUser.id) {
           teamMembers.push({
             id: admin.id,
-            user_id: admin.user_id,
+            user_id: admin.user_id || '',
             email: currentUser.email || 'Unknown',
-            role: admin.role,
-            created_at: admin.created_at,
+            role: admin.role as 'owner' | 'admin' | 'viewer',
+            created_at: admin.created_at || '',
             is_owner: false,
           });
         } else {
           teamMembers.push({
             id: admin.id,
-            user_id: admin.user_id,
+            user_id: admin.user_id || '',
             email: 'Team Member',
-            role: admin.role,
-            created_at: admin.created_at,
+            role: admin.role as 'owner' | 'admin' | 'viewer',
+            created_at: admin.created_at || '',
             is_owner: false,
           });
         }
@@ -1022,7 +880,7 @@ export class WeddingService {
     return data || [];
   }
 
-  async createWeddingInvite(invite: Partial<WeddingInvite>): Promise<WeddingInvite | null> {
+  async createWeddingInvite(invite: TablesInsert<'wedding_invites'>): Promise<WeddingInvite | null> {
     try {
       const { data, error } = await this.supabase
         .from('wedding_invites')
@@ -1065,7 +923,7 @@ export class WeddingService {
         throw enhancedError;
       }
 
-      return data;
+      return data as WeddingInvite;
     } catch (err: any) {
       // If it's already our enhanced error, re-throw it
       if (err.message && err.message !== 'Unknown database error') {
@@ -1156,6 +1014,228 @@ export class WeddingService {
       .single();
 
     return !error && !!data;
+  }
+
+  // Update order of schedule items (for drag and drop reordering)
+  async updateScheduleItemsOrder(items: { id: string; order_index: number }[]): Promise<boolean> {
+    try {
+      for (const item of items) {
+        const { error } = await this.supabase
+          .from('schedule_items')
+          .update({ order_index: item.order_index })
+          .eq('id', item.id);
+
+        if (error) {
+          console.error('Error updating item order:', error);
+          return false;
+        }
+      }
+      return true;
+    } catch (err) {
+      console.error('Error in updateScheduleItemsOrder:', err);
+      return false;
+    }
+  }
+
+  // Prepopulate schedule from sim-kv wedding template
+  async prepopulateScheduleFromTemplate(weddingId: string, weddingDateStart: Date, weddingDateEnd: Date | null): Promise<boolean> {
+    try {
+      console.log('🎯 Prepopulating schedule from sim-kv template...');
+
+      // Get wedding info for sim-kv (our template wedding)
+      const { data: templateWedding, error: weddingError } = await this.supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', 'sim-kv')
+        .single();
+
+      if (weddingError || !templateWedding) {
+        console.error('Template wedding sim-kv not found');
+        return false;
+      }
+
+      // Get template events
+      const { data: templateEventsRaw, error: eventsError } = await this.supabase
+        .from('wedding_events')
+        .select('*')
+        .eq('wedding_id', templateWedding.id)
+        .order('order_index', { ascending: true });
+      const templateEvents = templateEventsRaw as WeddingEvent[] | null;
+
+      if (eventsError) {
+        console.error('Error fetching template events:', eventsError);
+        return false;
+      }
+
+      // Get template schedule
+      const { data: templateScheduleRaw, error: scheduleError } = await this.supabase
+        .from('wedding_schedule')
+        .select('*')
+        .eq('wedding_id', templateWedding.id)
+        .order('order_index', { ascending: true });
+      const templateSchedule = templateScheduleRaw as WeddingSchedule[] | null;
+
+      if (scheduleError) {
+        console.error('Error fetching template schedule:', scheduleError);
+        return false;
+      }
+
+      // Get template items for all schedule days
+      const scheduleIds = templateSchedule?.map(s => s.id) || [];
+      const { data: templateItemsRaw, error: itemsError } = await this.supabase
+        .from('schedule_items')
+        .select('*')
+        .in('schedule_id', scheduleIds)
+        .order('order_index', { ascending: true });
+      const templateItems = templateItemsRaw as ScheduleItem[] | null;
+
+      if (itemsError) {
+        console.error('Error fetching template items:', itemsError);
+        return false;
+      }
+
+      // Calculate date offset (template wedding was Jan 4-6, 2025)
+      const templateStartDate = new Date('2025-01-04');
+      const dayOffset = Math.floor((weddingDateStart.getTime() - templateStartDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Create events for the new wedding (cloning from template)
+      const eventIdMapping: Record<string, string> = {};
+
+      for (const event of (templateEvents || [])) {
+        const newEvent: TablesInsert<'wedding_events'> = {
+          wedding_id: weddingId,
+          name: event.name,
+          slug: event.slug,
+          date: event.date ?? '', // Ensure non-nullable string
+          time: event.time,
+          dress_code: event.dress_code ?? '', // Ensure non-nullable string
+          dress_code_icon: event.dress_code_icon,
+          dress_code_description: event.dress_code_description,
+          outfit_ideas_women: event.outfit_ideas_women,
+          outfit_ideas_men: event.outfit_ideas_men,
+          ritual_name: event.ritual_name,
+          ritual_description: event.ritual_description,
+          carousel_slides: event.carousel_slides as any,
+          gradient_background: event.gradient_background,
+          text_color: event.text_color,
+          order_index: event.order_index,
+          is_template: false,
+        };
+
+        const createdEvent = await this.createEvent(newEvent);
+        if (createdEvent) {
+          eventIdMapping[event.id] = createdEvent.id;
+        }
+      }
+
+      // Create schedule days for the new wedding
+      const scheduleIdMapping: Record<string, string> = {};
+
+      for (const day of (templateSchedule || [])) {
+        // Adjust date relative to new wedding date
+        const adjustedDate = new Date(weddingDateStart);
+        adjustedDate.setDate(adjustedDate.getDate() + day.order_index);
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[adjustedDate.getDay()];
+        const dateStr = adjustedDate.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        const newDay: TablesInsert<'wedding_schedule'> = {
+          wedding_id: weddingId,
+          day_name: dayName,
+          date: dateStr,
+          order_index: day.order_index,
+        };
+
+        const createdDay = await this.createSchedule(newDay);
+        if (createdDay) {
+          scheduleIdMapping[day.id] = createdDay.id;
+        }
+      }
+
+      // Create schedule items for the new wedding
+      for (const item of (templateItems || [])) {
+        const newScheduleId = scheduleIdMapping[item.schedule_id];
+        if (!newScheduleId) continue;
+
+        // Check if this item corresponds to a major event by matching names
+        let linkedEventId = null;
+        let isMajorEvent = false;
+        let gradientBackground = null;
+
+        // Match item to event by checking if item name contains event keywords
+        for (const event of (templateEvents || [])) {
+          if (item.name.toLowerCase().includes('haldi') && event.name.toLowerCase().includes('haldi')) {
+            linkedEventId = eventIdMapping[event.id];
+            isMajorEvent = true;
+            gradientBackground = event.gradient_background;
+            break;
+          }
+          if ((item.name.toLowerCase().includes('baraat') || item.name.toLowerCase().includes('jaggo') || item.name.toLowerCase().includes('varmala'))
+            && event.name.toLowerCase().includes('baraat')) {
+            linkedEventId = eventIdMapping[event.id];
+            isMajorEvent = true;
+            gradientBackground = event.gradient_background;
+            break;
+          }
+          if (item.name.toLowerCase().includes('anand karaj') && event.name.toLowerCase().includes('anand karaj')) {
+            linkedEventId = eventIdMapping[event.id];
+            isMajorEvent = true;
+            gradientBackground = event.gradient_background;
+            break;
+          }
+          if (item.name.toLowerCase().includes('pool party') && event.name.toLowerCase().includes('pool party')) {
+            linkedEventId = eventIdMapping[event.id];
+            isMajorEvent = true;
+            gradientBackground = event.gradient_background;
+            break;
+          }
+          if ((item.name.toLowerCase().includes('sangeet') || item.name.toLowerCase().includes('reception'))
+            && event.name.toLowerCase().includes('reception')) {
+            linkedEventId = eventIdMapping[event.id];
+            isMajorEvent = true;
+            gradientBackground = event.gradient_background;
+            break;
+          }
+        }
+
+        const newItem: TablesInsert<'schedule_items'> = {
+          schedule_id: newScheduleId,
+          time: item.time,
+          name: item.name,
+          description: item.description,
+          location: item.location,
+          order_index: item.order_index,
+          is_major_event: isMajorEvent,
+          gradient_background: gradientBackground,
+          linked_event_id: linkedEventId,
+        };
+
+        await this.createScheduleItem(newItem);
+      }
+
+      console.log('✅ Schedule prepopulated successfully');
+      return true;
+    } catch (err) {
+      console.error('Error prepopulating schedule:', err);
+      return false;
+    }
+  }
+
+  async submitFeatureRequest(userId: string, weddingId: string | undefined, content: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('feature_requests')
+      .insert([{ user_id: userId, wedding_id: weddingId || null, content }]);
+    if (error) {
+      console.error('Error submitting feature request:', error);
+      return false;
+    }
+    return true;
   }
 }
 

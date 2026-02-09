@@ -1,35 +1,23 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from './types'
+import { PheraDatabase } from './types'
+import { SupabaseClient } from '@supabase/supabase-js'
 
-// Create a singleton instance to avoid multiple client warnings
-let supabaseInstance: ReturnType<typeof createBrowserClient<Database>> | null = null
+export type TypedSupabaseClient = SupabaseClient<PheraDatabase, 'public'>
 
-function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        // Disable automatic session detection from URL
-        // The auth callback route handles code exchange server-side
-        detectSessionInUrl: false,
-        flowType: 'pkce',
-      }
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createBrowserClient<PheraDatabase, 'public'>(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      detectSessionInUrl: false,
+      flowType: 'pkce',
     }
-  )
-}
+  }
+) as unknown as TypedSupabaseClient
 
 export function getSupabaseClient() {
-  if (typeof window === 'undefined') {
-    // Return a dummy client for SSR - will be replaced on client side
-    return createClient()
-  }
-
-  if (!supabaseInstance) {
-    supabaseInstance = createClient()
-  }
-  return supabaseInstance
+  return supabase
 }
-
-// Export for backward compatibility
-export const supabase = getSupabaseClient()

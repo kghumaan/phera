@@ -34,6 +34,7 @@ import {
   CircularProgress,
   alpha,
 } from '@mui/material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FavoriteOutlined,
@@ -42,7 +43,6 @@ import {
   Remove as RemoveIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { FaWhatsapp } from 'react-icons/fa';
 import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
 import { upsertGuestFlight, getGuestFlight } from '@/lib/supabase/travel-service';
@@ -51,57 +51,10 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
-import { GifData } from '@/lib/supabase/types';
+import { GifData, RSVPFormData } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 
-interface RSVPFormData {
-  // Basic Information
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  countryCode: string;
-  phone: string;
-
-  // Attendance
-  attending: 'yes' | 'no' | 'maybe' | '';
-  plusOne: 'yes' | 'no' | '';
-  plusOneName: string;
-  plusOneEmail: string;
-  plusOneCountryCode: string; // <-- Added
-  plusOnePhone: string; // <-- Added
-  guestCount: number;
-
-  // Event-specific (ceremonies removed)
-  foodPreference: string[];
-  dietaryRestrictions: string;
-
-  // Cultural & Personal (modified)
-  weddingSide: 'bride' | 'groom' | 'both' | '' | undefined;
-
-  // Fun & Engagement (participation removed)
-  songRequest: string;
-  specialMessage: string;
-  maybeComment: string;
-  selectedGif?: GifData;
-  arrivalOption: 'known' | 'not_sure' | '';
-  arrivalDate: string;
-
-  // Flight Details (optional)
-  flightAirline: string;
-  flightNumber: string;
-  flightDepartureAirport: string;
-  flightArrivalAirport: string;
-  flightDepartureDate: string;
-  flightDepartureTime: string;
-  flightArrivalDate: string;
-  flightArrivalTime: string;
-  shuttlePreferenceTime: string;
-  shuttlePreferenceNote: string;
-
-  // WhatsApp opt-in removed
-}
 
 const initialFormData: RSVPFormData = {
   firstName: '',
@@ -483,11 +436,11 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       setAuthError('Please enter a valid email');
       return;
     }
-    if (!formData.password.trim()) {
+    if (!formData.password?.trim()) {
       setAuthError('Please enter a password');
       return;
     }
-    if (formData.password.length < 6) {
+    if (formData.password && formData.password.length < 6) {
       setAuthError('Password must be at least 6 characters');
       return;
     }
@@ -498,7 +451,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
       // First try to sign in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
-        password: formData.password,
+        password: formData.password!,
       });
 
       if (signInError) {
@@ -508,7 +461,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
 
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: formData.email,
-            password: formData.password,
+            password: formData.password!,
             options: {
               emailRedirectTo: `${window.location.origin}/auth/callback`,
             },
@@ -612,7 +565,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = 'Please enter a valid email';
         }
-        if (!formData.password.trim()) newErrors.password = 'Password is required';
+        if (!formData.password?.trim()) newErrors.password = 'Password is required';
         if (formData.password && formData.password.length < 6) {
           newErrors.password = 'Password must be at least 6 characters';
         }
@@ -1531,7 +1484,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                         width: '100%',
                         fontFamily: 'Outfit',
                         fontSize: 'inherit',
-                        color: formData.password ? '#000' : '#888888',
+                        color: (formData.password && formData.password.length > 0) ? '#000' : '#888888',
                         backgroundColor: 'transparent',
                       }}
                     />
@@ -3016,18 +2969,20 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               {/* Music Request Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: '#000',
-                      fontWeight: 400,
-                      lineHeight: 1.3,
-                      mb: 1,
-                      fontFamily: 'Outfit'
-                    }}
-                  >
-                    Music requests 🎵
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: '#000',
+                        fontWeight: 400,
+                        lineHeight: 1.3,
+                        fontFamily: 'Outfit'
+                      }}
+                    >
+                      Music requests
+                    </Typography>
+                    <StreamlineIcon name="music-note" size={24} />
+                  </Stack>
 
                   <Typography
                     variant="body1"
@@ -3084,18 +3039,20 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
               {/* Special Message Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: '#000',
-                      fontWeight: 400,
-                      lineHeight: 1.3,
-                      mb: 1,
-                      fontFamily: 'Outfit'
-                    }}
-                  >
-                    Share your excitement 💬
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: '#000',
+                        fontWeight: 400,
+                        lineHeight: 1.3,
+                        fontFamily: 'Outfit'
+                      }}
+                    >
+                      Share your excitement
+                    </Typography>
+                    <StreamlineIcon name="megaphone" size={24} />
+                  </Stack>
 
                   <Typography
                     variant="body1"
@@ -3242,19 +3199,20 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
           <Stack spacing={3}>
             {/* Header */}
             <Box sx={{ textAlign: 'left' }}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontFamily: 'Outfit',
-                  fontSize: { xs: '1.75rem', md: '2.25rem' },
-                  fontWeight: 400,
-                  lineHeight: 1.3,
-                  color: '#000',
-                  mb: 2,
-                }}
-              >
-                One Last Step! 🎉
-              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ justifyContent: 'center', mb: 1, width: '100%' }}>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontFamily: 'var(--font-instrument-serif)',
+                    fontStyle: 'italic',
+                    color: '#1a1a1a',
+                    fontWeight: 500,
+                  }}
+                >
+                  One Last Step!
+                </Typography>
+                <StreamlineIcon name="party-popper" size={32} />
+              </Stack>
               <Typography
                 variant="body1"
                 sx={{
@@ -3288,7 +3246,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 fullWidth
                 href="https://wa.me/15558397813?text=Sign%20me%20up%20for%20Phera%20Concierge%20service!"
                 target="_blank"
-                startIcon={<FaWhatsapp size={28} />}
+                startIcon={<StreamlineIcon name="whatsapp" size={28} />}
                 sx={{
                   bgcolor: '#25D366',
                   color: 'white',

@@ -1,5 +1,5 @@
 import { supabase } from './client'
-import type { RSVPFormData } from './types'
+import type { RSVPFormData, TablesInsert, TablesUpdate } from './types'
 import { generateGuestAvatar, generateFallbackColor } from '../utils/avatar-generator'
 
 // Generate a random color for avatar (fallback)
@@ -101,7 +101,7 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       songRequest: rsvp.song_request || '',
       specialMessage: rsvp.special_message || '',
       maybeComment: rsvp.maybe_comment || '',
-      arrivalOption: rsvp.arrival_option || '',
+      arrivalOption: (rsvp.arrival_option as 'known' | 'not_sure' | '') || '',
       arrivalDate: rsvp.arrival_date || '',
     }
 
@@ -116,10 +116,10 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
   try {
     const fullName = `${formData.firstName} ${formData.lastName}`;
     const avatarColor = generateAvatarColor(fullName);
-    
+
     // Generate unique avatar
     const avatarData = generateGuestAvatar(formData.email, fullName);
-    
+
     // Normalize attending value - handle both old boolean and new string format
     const normalizeAttending = (attending: any): 'yes' | 'no' | 'maybe' => {
       if (typeof attending === 'boolean') {
@@ -156,12 +156,12 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     const attendingStatus = normalizeAttending(formData.attending);
     const plusOneStatus = normalizePlusOne(formData.plusOne);
     const foodPreferences = normalizeFoodPreference(formData.foodPreference);
-    
+
     // Create full phone number with country code
-    const fullPhone = formData.phone ? 
-      `${formData.countryCode || '+1'}${formData.phone}` : 
+    const fullPhone = formData.phone ?
+      `${formData.countryCode || '+1'}${formData.phone}` :
       null;
-    
+
     console.log('Processing form data:', {
       attending: formData.attending,
       normalizedAttending: attendingStatus,
@@ -184,35 +184,38 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     if (existingGuest) {
       guestId = existingGuest.id
       // Update existing guest info (with new avatar data)
+      const guestUpdate: TablesUpdate<'guests'> = {
+        name: fullName,
+        phone: fullPhone,
+        wedding_id: weddingId,
+        avatar_color: avatarColor,
+        avatar_style: avatarData.style,
+        avatar_seed: avatarData.seed,
+        avatar_svg: avatarData.svg,
+        wedding_side: formData.weddingSide || null,
+      };
       await supabase
         .from('guests')
-        .update({
-          name: fullName,
-          phone: fullPhone,
-          wedding_id: weddingId,
-          avatar_color: avatarColor,
-          avatar_style: avatarData.style,
-          avatar_seed: avatarData.seed,
-          avatar_svg: avatarData.svg,
-          wedding_side: formData.weddingSide || null,
-        })
+        .update(guestUpdate)
         .eq('id', guestId)
     } else {
       // Insert new guest
+      const guestInsert: TablesInsert<'guests'> = {
+        name: fullName,
+        email: formData.email.toLowerCase(),
+        phone: fullPhone,
+        wedding_id: weddingId,
+        avatar_color: avatarColor,
+        avatar_style: avatarData.style,
+        avatar_seed: avatarData.seed,
+        avatar_svg: avatarData.svg,
+        auth_method: 'email',
+        wedding_side: formData.weddingSide || null,
+      };
+
       const { data: newGuest, error: guestError } = await supabase
         .from('guests')
-        .insert({
-          name: fullName,
-          email: formData.email.toLowerCase(),
-          phone: fullPhone,
-          wedding_id: weddingId,
-          avatar_color: avatarColor,
-          avatar_style: avatarData.style,
-          avatar_seed: avatarData.seed,
-          avatar_svg: avatarData.svg,
-          auth_method: 'email',
-          wedding_side: formData.weddingSide || null,
-        })
+        .insert(guestInsert)
         .select('id')
         .single()
 
@@ -221,7 +224,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     }
 
     // Prepare comprehensive RSVP record with all form data
-    const rsvpRecord = {
+    const rsvpRecord: TablesInsert<'rsvps'> = {
       guest_id: guestId,
       wedding_id: weddingId,
       event_id: 'general',
@@ -243,15 +246,15 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     };
 
     console.log('Inserting comprehensive RSVP record:', rsvpRecord);
-    
+
     const { data: rsvpData, error: rsvpError } = await supabase
       .from('rsvps')
       .upsert(rsvpRecord, {
         onConflict: 'guest_id,event_id,wedding_id'
       });
-    
+
     console.log('RSVP upsert result:', { rsvpData, rsvpError });
-    
+
     if (rsvpError) {
       console.error('Error inserting RSVP:', rsvpError);
       throw rsvpError;
@@ -280,7 +283,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
     if (formData.whatsappOptIn && fullPhone) {
       try {
         console.log('Processing WhatsApp opt-in for', formData.email);
-        
+
         // Create opt-in record
         const optInResponse = await fetch('/api/whatsapp/opt-in', {
           method: 'POST',
@@ -296,7 +299,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
 
         if (optInResponse.ok) {
           console.log('✅ WhatsApp opt-in successful');
-          
+
           // Send RSVP confirmation message (only if opted in)
           try {
             await fetch('/api/whatsapp/send-template', {
@@ -361,7 +364,7 @@ export async function getAttendees(weddingId: string) {
     .eq('attending', 'yes')
 
   if (error) throw error
-  return data
+  return data as any[]
 }
 
 export async function getAllRSVPs(weddingId: string) {
@@ -389,7 +392,7 @@ export async function getMaybeAttendees(weddingId: string) {
     .eq('attending', 'maybe')
 
   if (error) throw error
-  return data
+  return data as any[]
 }
 
 export async function getComments(weddingId: string) {
@@ -407,9 +410,9 @@ export async function getComments(weddingId: string) {
 }
 
 export async function addComment(
-  weddingId: string, 
-  guestId: string, 
-  message: string, 
+  weddingId: string,
+  guestId: string,
+  message: string,
   gifData?: {
     gif_id: string;
     gif_url: string;
@@ -417,7 +420,7 @@ export async function addComment(
     gif_preview_url: string;
   }
 ) {
-  const insertData: any = {
+  const insertData: TablesInsert<'comments'> = {
     guest_id: guestId,
     wedding_id: weddingId,
     message: message
@@ -425,10 +428,10 @@ export async function addComment(
 
   // Add GIF data if provided
   if (gifData) {
-    insertData.gif_id = gifData.gif_id;
-    insertData.gif_url = gifData.gif_url;
-    insertData.gif_title = gifData.gif_title;
-    insertData.gif_preview_url = gifData.gif_preview_url;
+    (insertData as any).gif_id = gifData.gif_id;
+    (insertData as any).gif_url = gifData.gif_url;
+    (insertData as any).gif_title = gifData.gif_title;
+    (insertData as any).gif_preview_url = gifData.gif_preview_url;
   }
 
   const { data, error } = await supabase
@@ -441,7 +444,7 @@ export async function addComment(
     .single()
 
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function deleteComment(commentId: string, guestId: string) {
@@ -466,20 +469,7 @@ export async function deleteRSVP(rsvpId: string) {
   return { success: true }
 }
 
-export async function updateRSVP(rsvpId: string, updates: Partial<{
-  attending: 'yes' | 'no' | 'maybe';
-  guest_count: number;
-  plus_one: boolean;
-  plus_one_name: string | null;
-  plus_one_email: string | null;
-  plus_one_country_code: string | null;
-  plus_one_phone: string | null;
-  food_preference: string[] | null;
-  dietary_restrictions: string | null;
-  song_request: string | null;
-  special_message: string | null;
-  maybe_comment: string | null;
-}>) {
+export async function updateRSVP(rsvpId: string, updates: TablesUpdate<'rsvps'>) {
   const { data, error } = await supabase
     .from('rsvps')
     .update(updates)

@@ -21,7 +21,7 @@ const baseTheme = createTheme({
     light: {
       palette: {
         primary: {
-          main: culturalColors.maroon,
+          main: '#DE3F5E',
         },
         secondary: {
           main: culturalColors.gold,
@@ -31,7 +31,7 @@ const baseTheme = createTheme({
     dark: {
       palette: {
         primary: {
-          main: culturalColors.gold,
+          main: '#DE3F5E',
         },
         secondary: {
           main: culturalColors.coral,
@@ -237,12 +237,28 @@ const baseTheme = createTheme({
         },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#ffffff',
+          color: '#1a1a1a',
+          borderRadius: 24,
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          color: '#1a1a1a',
+        },
+      },
+    },
     MuiTextField: {
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
             '&.Mui-focused fieldset': {
-              borderColor: '#141414',
+              borderColor: '#DE3F5E',
               borderWidth: '2px',
             },
             '& input::placeholder': {
@@ -250,6 +266,12 @@ const baseTheme = createTheme({
             },
             '& textarea::placeholder': {
               color: '#C2C2C2 !important',
+            },
+            '& input': {
+              color: '#1a1a1a',
+            },
+            '& textarea': {
+              color: '#1a1a1a',
             },
           },
           '& .MuiInputBase-input': {
@@ -283,10 +305,11 @@ const baseTheme = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#141414',
+            borderColor: '#DE3F5E',
             borderWidth: '2px',
           },
           '& .MuiInputBase-input': {
+            color: '#1a1a1a',
             '@media (min-width:600px)': {
               fontSize: '1rem',
             },
@@ -301,7 +324,7 @@ const baseTheme = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-focused': {
-            color: '#141414',
+            color: '#DE3F5E',
           },
         },
       },

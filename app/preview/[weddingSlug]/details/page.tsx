@@ -30,38 +30,38 @@ const DiamondDecoration = () => (
   >
     <svg width="75" height="18" viewBox="0 0 65 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M15.6025 9.22518C16.4176 8.62308 16.4176 7.37669 15.6025 6.77459L9.35693 2.16121C8.84471 1.78285 8.15445 1.78285 7.64223 2.16121L1.39661 6.77459C0.581523 7.37669 0.581523 8.62308 1.39661 9.22518L7.64223 13.8386C8.15445 14.217 8.84471 14.217 9.35693 13.8386L15.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M15.6025 9.22518C16.4176 8.62308 16.4176 7.37669 15.6025 6.77459L9.35693 2.16121C8.84471 1.78285 8.15445 1.78285 7.64223 2.16121L1.39661 6.77459C0.581523 7.37669 0.581523 8.62308 1.39661 9.22518L7.64223 13.8386C8.15445 14.217 8.84471 14.217 9.35693 13.8386L15.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <g clipPath="url(#clip1_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M39.6025 9.22518C40.4176 8.62308 40.4176 7.37669 39.6025 6.77459L33.3569 2.16121C32.8447 1.78285 32.1545 1.78285 31.6422 2.16121L25.3966 6.77459C24.5815 7.37669 24.5815 8.62308 25.3966 9.22518L31.6422 13.8386C32.1545 14.217 32.8447 14.217 33.3569 13.8386L39.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M39.6025 9.22518C40.4176 8.62308 40.4176 7.37669 39.6025 6.77459L33.3569 2.16121C32.8447 1.78285 32.1545 1.78285 31.6422 2.16121L25.3966 6.77459C24.5815 7.37669 24.5815 8.62308 25.3966 9.22518L31.6422 13.8386C32.1545 14.217 32.8447 14.217 33.3569 13.8386L39.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <g clipPath="url(#clip2_173_729)">
-        <path 
-          fillRule="evenodd" 
-          clipRule="evenodd" 
-          d="M63.6025 9.22518C64.4176 8.62308 64.4176 7.37669 63.6025 6.77459L57.3569 2.16121C56.8447 1.78285 56.1545 1.78285 55.6422 2.16121L49.3966 6.77459C48.5815 7.37669 48.5815 8.62308 49.3966 9.22518L55.6422 13.8386C56.1545 14.217 56.8447 14.217 57.3569 13.8386L63.6025 9.22518Z" 
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M63.6025 9.22518C64.4176 8.62308 64.4176 7.37669 63.6025 6.77459L57.3569 2.16121C56.8447 1.78285 56.1545 1.78285 55.6422 2.16121L49.3966 6.77459C48.5815 7.37669 48.5815 8.62308 49.3966 9.22518L55.6422 13.8386C56.1545 14.217 56.8447 14.217 57.3569 13.8386L63.6025 9.22518Z"
           fill="currentColor"
         />
       </g>
       <defs>
         <clipPath id="clip0_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 16.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 16.5 0)" />
         </clipPath>
         <clipPath id="clip1_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 40.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 40.5 0)" />
         </clipPath>
         <clipPath id="clip2_173_729">
-          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 64.5 0)"/>
+          <rect width="16" height="16" fill="white" transform="matrix(0 1 -1 0 64.5 0)" />
         </clipPath>
       </defs>
     </svg>
@@ -219,7 +219,7 @@ function PreviewDetailsContent() {
           pb: 2,
         }}
       >
-        <Container 
+        <Container
           maxWidth={false}
           sx={{
             maxWidth: { xs: 361, md: 600, lg: 650, xl: 700 },
@@ -295,53 +295,44 @@ function PreviewDetailsContent() {
                 >
                   {hasTravelData && (
                     <>
-                      <MenuItem 
-                        title="Travel & Stay" 
-                        onClick={() => handleMenuItemClick('Travel & Stay')} 
+                      <MenuItem
+                        title="Travel & Stay"
+                        onClick={() => handleMenuItemClick('Travel & Stay')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
-                  {hasEventsData && (
+                  {(hasEventsData || hasScheduleData) && (
                     <>
-                      <MenuItem 
-                        title="Events & Dress code" 
-                        onClick={() => handleMenuItemClick('Events & Dress code')} 
+                      <MenuItem
+                        title="Schedule & Events"
+                        onClick={() => handleMenuItemClick('Schedule & Events')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {hasFAQData && (
                     <>
-                      <MenuItem 
-                        title="Q & A" 
-                        onClick={() => handleMenuItemClick('Q & A')} 
-                      />
-                      <DiamondDecoration />
-                    </>
-                  )}
-                  {hasScheduleData && (
-                    <>
-                      <MenuItem 
-                        title="Schedule" 
-                        onClick={() => handleMenuItemClick('Schedule')} 
+                      <MenuItem
+                        title="Q & A"
+                        onClick={() => handleMenuItemClick('Q & A')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {hasRegistryData && (
                     <>
-                      <MenuItem 
-                        title="Registry" 
-                        onClick={() => handleMenuItemClick('Registry')} 
+                      <MenuItem
+                        title="Registry"
+                        onClick={() => handleMenuItemClick('Registry')}
                       />
                       <DiamondDecoration />
                     </>
                   )}
                   {/* Change RSVP is always shown */}
-                  <MenuItem 
-                    title="Change RSVP" 
-                    onClick={() => handleMenuItemClick('Change RSVP')} 
+                  <MenuItem
+                    title="Change RSVP"
+                    onClick={() => handleMenuItemClick('Change RSVP')}
                   />
                 </Stack>
               )}

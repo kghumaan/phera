@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import type { Database } from '@/lib/supabase/types';
+import type { PheraDatabase } from '@/lib/supabase/types';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient<Database>(
+  const supabase = createServerClient<PheraDatabase>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   // where placeholders must be at the end of the URL
   if (pathname.startsWith('/go/')) {
     const parts = pathname.split('/').filter(Boolean); // ['go', 'pageKey', 'weddingSlug']
-    
+
     if (parts.length >= 2) {
       const pageKey = parts[1];
       const weddingSlug = parts[2] || ''; // Slug might be optional or empty for some reasons
@@ -63,13 +63,13 @@ export async function middleware(request: NextRequest) {
       };
 
       const targetPath = pathMap[pageKey];
-      
+
       if (targetPath) {
         // Construct the final destination URL
-        const destination = weddingSlug 
+        const destination = weddingSlug
           ? `/${weddingSlug}/${targetPath}`
           : `/${targetPath}`; // Fallback if slug is missing (though usually required)
-          
+
         return NextResponse.redirect(new URL(destination, request.url));
       }
     }
@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
       const weddingSlugMatch = pathname.match(/\/admin\/([^\/]+)/);
       if (weddingSlugMatch) {
         const weddingSlug = weddingSlugMatch[1];
-        
+
         // Fetch wedding to check ownership
         const { data: weddingData } = await supabase
           .from('weddings')

@@ -7,6 +7,7 @@ import {
     Box,
     Typography,
     Avatar,
+    Button,
     IconButton,
     alpha,
     useTheme,
@@ -31,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
+import FeatureRequestModal from './FeatureRequestModal';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -44,6 +46,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const { user, signOut } = useAuth();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -111,8 +114,35 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </Box>
                 </Box>
 
-                {/* Right: User Avatar & Settings */}
+                {/* Right: Feature Request Button & User Avatar */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Feature Request Button */}
+                    {!isMobile && (
+                        <Button
+                            onClick={() => setFeatureModalOpen(true)}
+                            startIcon={<span>👋</span>}
+                            sx={{
+                                mr: 1,
+                                px: 2,
+                                py: 1,
+                                borderRadius: '100px',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                color: '#1a1a1a',
+                                bgcolor: alpha('#DE3F5E', 0.05),
+                                border: '1px solid',
+                                borderColor: alpha('#DE3F5E', 0.1),
+                                '&:hover': {
+                                    bgcolor: alpha('#DE3F5E', 0.1),
+                                    borderColor: alpha('#DE3F5E', 0.2),
+                                }
+                            }}
+                        >
+                            Want a feature you don't see?
+                        </Button>
+                    )}
+
                     <Box
                         onClick={handleMenuClick}
                         sx={{
@@ -251,6 +281,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </Menu>
                 </Box>
             </Toolbar>
+            <FeatureRequestModal
+                open={featureModalOpen}
+                onClose={() => setFeatureModalOpen(false)}
+                weddingId={wedding?.id}
+            />
         </AppBar>
     );
 }

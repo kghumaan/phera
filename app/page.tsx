@@ -28,13 +28,6 @@ import Image from 'next/image';
 import {
   SentimentDissatisfied,
   Warning,
-  Flight,
-  Chat,
-  EventAvailable,
-  WhatsApp,
-  CalendarMonth,
-  CheckCircle,
-  Storefront,
   ExpandMore,
   Instagram,
   Twitter,
@@ -43,9 +36,6 @@ import {
   DirectionsBus,
   Campaign,
   SupportAgent,
-  Groups,
-  EventBusy,
-  FlightTakeoff,
   ArrowBack,
   Verified,
   Domain,
@@ -54,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { useState, useRef, useEffect } from 'react';
 import LoginModal from '@/components/auth/LoginModal';
 
@@ -63,28 +54,28 @@ const painPoints = [
   {
     title: 'The Coordination Nightmare',
     description: 'Hundreds of guests, multiple events, different venues—absolute chaos.',
-    icon: <Groups sx={{ fontSize: '4rem', color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="users" sx={{ fontSize: '10rem', color: '#DE3F5E' }} />,
     rotation: -3,
     color: '#FFEAEE',
   },
   {
     title: 'RSVP Chaos',
     description: 'Texts, calls, spreadsheets. Who is actually coming? Nobody knows.',
-    icon: <EventBusy sx={{ fontSize: '4rem', color: '#FBC02D' }} />,
+    icon: <StreamlineIcon name="calendar-remove" sx={{ fontSize: '10rem', color: '#FBC02D' }} />,
     rotation: 2,
     color: '#FFF8E1',
   },
   {
     title: 'Travel Coordination',
     description: 'Tracking flights, hotels, and 50+ airport pickups manually.',
-    icon: <FlightTakeoff sx={{ fontSize: '4rem', color: '#1976D2' }} />,
+    icon: <StreamlineIcon name="plane-takeoff" sx={{ fontSize: '10rem', color: '#1976D2' }} />,
     rotation: -2,
     color: '#E3F2FD',
   },
   {
     title: 'The WhatsApp Spiral',
     description: 'Five groups, lost messages, info buried under endless spam.',
-    icon: <WhatsApp sx={{ fontSize: '4rem', color: '#25D366' }} />,
+    icon: <StreamlineIcon name="whatsapp" sx={{ fontSize: '10rem', color: '#25D366' }} />,
     rotation: 4,
     color: '#E8F5E9',
   },
@@ -94,37 +85,37 @@ const keyFeatures = [
   {
     title: 'Smart RSVP',
     description: 'Digital invites with plus-ones, dietary tracking, and real-time responses.',
-    icon: <EventAvailable fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="calendar-check" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'FREE',
   },
   {
     title: 'Multi-Event Support',
     description: 'Native support for Haldi, Mehendi, Sangeet, Baraat, and custom ceremonies.',
-    icon: <CalendarMonth fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="calendar" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'FREE',
   },
   {
     title: 'Travel Coordination',
     description: 'Collect flight details, organize airport pickups, and coordinate shuttles.',
-    icon: <Flight fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="map-route" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'PRO',
   },
   {
     title: 'PIN-Based Privacy',
     description: 'Family, individual, and VIP access codes. You control who sees what.',
-    icon: <CheckCircle fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="check-circle" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'FREE',
   },
   {
     title: 'WhatsApp Concierge',
     description: 'AI-powered assistant answers guest questions 24/7. Broadcast updates instantly.',
-    icon: <WhatsApp fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="whatsapp" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'PRO',
   },
   {
     title: 'Gift Registry',
     description: 'Honeymoon funds and cash gifts with secure Stripe payments.',
-    icon: <Storefront fontSize="large" sx={{ color: '#DE3F5E' }} />,
+    icon: <StreamlineIcon name="store" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
     badge: 'PRO',
   },
 ];
@@ -328,23 +319,23 @@ const FeatureCard = ({
         </Box>
 
         {large && (
-           <Box 
-            sx={{ 
-              position: 'absolute', 
-              bottom: 0, 
-              right: -30, 
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: -30,
               width: '400px',
               height: '150px',
-              opacity: 0.05, 
+              opacity: 0.05,
               display: { xs: 'none', md: 'block' },
               pointerEvents: 'none'
             }}
           >
-             <Image 
-              src="/logo-flower.svg" 
-              alt="" 
-              fill 
-              style={{ objectFit: 'contain', filter: 'brightness(0)' }} 
+            <Image
+              src="/logo-flower.svg"
+              alt=""
+              fill
+              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
             />
           </Box>
         )}
@@ -366,7 +357,7 @@ export default function LandingPage() {
   const roadmapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = (ref: React.RefObject<HTMLDivElement>, setIndex: (i: number) => void, itemCount: number) => {
+    const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
       if (!ref.current) return;
       const scrollLeft = ref.current.scrollLeft;
       const itemWidth = ref.current.scrollWidth / itemCount;
@@ -577,9 +568,9 @@ export default function LandingPage() {
                   key={idx}
                   variants={{
                     hidden: { opacity: 0, y: 20, rotate: point.rotation },
-                    visible: { 
-                      opacity: 1, 
-                      y: 0, 
+                    visible: {
+                      opacity: 1,
+                      y: 0,
                       rotate: point.rotation,
                       transition: { delay: idx * 0.1 }
                     }
@@ -667,13 +658,13 @@ export default function LandingPage() {
                       {point.description}
                     </Typography>
 
-                    <Box 
-                      sx={{ 
-                        position: 'absolute', 
-                        bottom: -15, 
-                        right: -15, 
-                        fontSize: { xs: '6rem', md: '10rem' }, 
-                        opacity: 0.02, 
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: -15,
+                        right: -15,
+                        fontSize: { xs: '6rem', md: '10rem' },
+                        opacity: 0.02,
                         fontWeight: 900,
                         userSelect: 'none',
                         fontFamily: 'inherit'
@@ -777,13 +768,13 @@ export default function LandingPage() {
                 }}
               >
                 {/* 1. Smart RSVP & Multi-Event (Large Feature) */}
-                <Box sx={{ 
-                  gridColumn: { md: '1 / span 2' }, 
+                <Box sx={{
+                  gridColumn: { md: '1 / span 2' },
                   gridRow: { md: '1 / span 2' },
                   flex: { xs: '0 0 85%', md: 'auto' },
                   scrollSnapAlign: 'center'
                 }}>
-                  <FeatureCard 
+                  <FeatureCard
                     title="Unified Guest Management"
                     description="From Smart RSVPs that track plus-ones and dietary needs to native support for Haldi, Mehendi, and Sangeet. Everything is synced instantly."
                     icon={keyFeatures[0].icon}
@@ -795,16 +786,16 @@ export default function LandingPage() {
                 </Box>
 
                 {/* 2. WhatsApp Concierge (Featured Pro) */}
-                <Box sx={{ 
-                  gridColumn: { md: '3 / span 1' }, 
+                <Box sx={{
+                  gridColumn: { md: '3 / span 1' },
                   gridRow: { md: '1 / span 2' },
                   flex: { xs: '0 0 85%', md: 'auto' },
                   scrollSnapAlign: 'center'
                 }}>
-                   <FeatureCard 
+                  <FeatureCard
                     title="WhatsApp Concierge"
                     description="Our AI agent answers guest questions 24/7. Broadcast updates instantly to everyone's phone."
-                    icon={<WhatsApp sx={{ fontSize: '3rem', color: '#25D366' }} />}
+                    icon={<StreamlineIcon name="whatsapp" sx={{ fontSize: '4rem', color: '#25D366' }} />}
                     badge="PRO"
                     accentColor="#075E54"
                     height="100%"
@@ -814,7 +805,7 @@ export default function LandingPage() {
 
                 {/* 3. Travel & Logistics */}
                 <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard 
+                  <FeatureCard
                     title="Travel Coordination"
                     description="Collect flight details and organize airport pickups seamlessly."
                     icon={keyFeatures[2].icon}
@@ -824,7 +815,7 @@ export default function LandingPage() {
 
                 {/* 4. PIN Privacy */}
                 <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard 
+                  <FeatureCard
                     title="VIP Privacy"
                     description="PIN-based access codes for family, individuals, and VIPs."
                     icon={keyFeatures[3].icon}
@@ -834,7 +825,7 @@ export default function LandingPage() {
 
                 {/* 5. Gift Registry */}
                 <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard 
+                  <FeatureCard
                     title="Modern Registry"
                     description="Secure cash gifts and honeymoon funds via Stripe."
                     icon={keyFeatures[5].icon}
@@ -894,7 +885,7 @@ export default function LandingPage() {
                   variants={fadeIn}
                 >
                   <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
-                    <WhatsApp sx={{ fontSize: { xs: '2rem', md: '5rem' }, color: '#25D366' }} />
+                    <StreamlineIcon name="whatsapp" sx={{ fontSize: { xs: '3rem', md: '7rem' }, color: '#25D366' }} />
                     <Typography
                       variant="h2"
                       sx={{
@@ -911,7 +902,7 @@ export default function LandingPage() {
                     Stop being your guests' personal assistant. Let our intelligent WhatsApp
                     Concierge handle the repetitive questions so you can focus on your celebration.
                   </Typography>
-                  
+
                   <List sx={{ mb: { xs: 1, md: 2 } }}>
                     {[
                       { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
@@ -985,150 +976,150 @@ export default function LandingPage() {
                       flexDirection: 'column'
                     }}
                   >
-                     {/* Dynamic Island / Notch */}
-                     <Box sx={{
-                       position: 'absolute',
-                       top: 0,
-                       left: '50%',
-                       transform: 'translateX(-50%)',
-                       width: { xs: '80px', md: '120px' },
-                       height: { xs: '20px', md: '28px' },
-                       bgcolor: '#1a1a1a',
-                       borderBottomLeftRadius: { xs: '12px', md: '14px' },
-                       borderBottomRightRadius: { xs: '12px', md: '14px' },
-                       zIndex: 20
-                     }} />
+                    {/* Dynamic Island / Notch */}
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: { xs: '80px', md: '120px' },
+                      height: { xs: '20px', md: '28px' },
+                      bgcolor: '#1a1a1a',
+                      borderBottomLeftRadius: { xs: '12px', md: '14px' },
+                      borderBottomRightRadius: { xs: '12px', md: '14px' },
+                      zIndex: 20
+                    }} />
 
-                     {/* Custom WhatsApp Header */}
-                     <Box sx={{
-                       bgcolor: '#202C33', // Dark header
-                       color: 'primary.contrastText',
-                       pt: { xs: 4, md: 6 }, // Space for notch/status bar
-                       pb: { xs: 1, md: 1.5 },
-                       px: 1,
-                       display: 'flex',
-                       alignItems: 'center',
-                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                       zIndex: 10
-                     }}>
-                        <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1, color: 'white' }}>
-                          <ArrowBack sx={{ fontSize: { xs: '1.25rem', md: '1.75rem' } }} />
-                        </Stack>
+                    {/* Custom WhatsApp Header */}
+                    <Box sx={{
+                      bgcolor: '#202C33', // Dark header
+                      color: 'primary.contrastText',
+                      pt: { xs: 4, md: 6 }, // Space for notch/status bar
+                      pb: { xs: 1, md: 1.5 },
+                      px: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      zIndex: 10
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1, color: 'white' }}>
+                        <ArrowBack sx={{ fontSize: { xs: '1.25rem', md: '1.75rem' } }} />
+                      </Stack>
 
-                        <Stack direction="row" alignItems="center" spacing={{ xs: 1, md: 1.5 }} sx={{ flexGrow: 1 }}>
-                          <Avatar
-                            src="/Phera Logomark.jpg"
-                            sx={{ width: { xs: 32, md: 42 }, height: { xs: 32, md: 42 } }}
-                          />
-                          <Box>
-                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                                Phera
-                              </Typography>
-                              <Verified sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' }, color: '#2979FF' }} />
-                            </Stack>
-                          </Box>
-                        </Stack>
-                     </Box>
+                      <Stack direction="row" alignItems="center" spacing={{ xs: 1, md: 1.5 }} sx={{ flexGrow: 1 }}>
+                        <Avatar
+                          src="/Phera Logomark.jpg"
+                          sx={{ width: { xs: 32, md: 42 }, height: { xs: 32, md: 42 } }}
+                        />
+                        <Box>
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
+                              Phera
+                            </Typography>
+                            <Verified sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' }, color: '#2979FF' }} />
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </Box>
 
-                     {/* Chat Area */}
-                     <Stack spacing={{ xs: 1.5, md: 2 }} sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1, overflowY: 'auto' }}>
-                       {/* Date Separator */}
-                       <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: { xs: 1, md: 1.5 }, py: 0.5, borderRadius: '8px', mb: { xs: 1, md: 2 } }}>
-                         <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: { xs: 0.75, md: 1 }, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)', fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
-                           Today
-                         </Typography>
-                       </Box>
+                    {/* Chat Area */}
+                    <Stack spacing={{ xs: 1.5, md: 2 }} sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1, overflowY: 'auto' }}>
+                      {/* Date Separator */}
+                      <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: { xs: 1, md: 1.5 }, py: 0.5, borderRadius: '8px', mb: { xs: 1, md: 2 } }}>
+                        <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: { xs: 0.75, md: 1 }, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)', fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
+                          Today
+                        </Typography>
+                      </Box>
 
-                       {/* Chat Bubble Guest */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
+                      {/* Chat Bubble Guest */}
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
 
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
-                           Hey! What time is the shuttle for the Sangeet leaving?
-                         </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                           10:42 AM
-                         </Typography>
-                       </Box>
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
+                          Hey! What time is the shuttle for the Sangeet leaving?
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
+                          10:42 AM
+                        </Typography>
+                      </Box>
 
-                       {/* Chat Bubble Bot */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+                      {/* Chat Bubble Bot */}
+                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
 
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
-                           Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>.
-                         </Typography>
-                         <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           Would you like to reserve a seat? 🚐
-                         </Typography>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                           10:42 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                         </Typography>
-                       </Box>
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
+                          Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>.
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                          Would you like to reserve a seat? 🚐
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                          10:42 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
+                        </Typography>
+                      </Box>
 
-                       {/* Chat Bubble Guest */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           Yes please, for 2 people.
-                         </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                           10:43 AM
-                         </Typography>
-                       </Box>
-
-                       {/* Chat Bubble Bot */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+                      {/* Chat Bubble Guest */}
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
 
                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.
-                         </Typography>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                           10:43 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                         </Typography>
-                       </Box>
+                          Yes please, for 2 people.
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
+                          10:43 AM
+                        </Typography>
+                      </Box>
 
-                       {/* Chat Bubble Guest (Kill Time) */}
-                       <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-
-                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           We have some free time before the reception. Any recommendations nearby?
-                         </Typography>
-                         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                           11:15 AM
-                         </Typography>
-                       </Box>
-
-                       {/* Chat Bubble Bot (Recommendation) */}
-                       <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                          {/* Triangle */}
-                          <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+                      {/* Chat Bubble Bot */}
+                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
 
                         <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.
-                         </Typography>
-                         <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                           Check out the full guide here:
-                         </Typography>
-                         {/* Link Preview Mockup */}
-                         <Box sx={{ mt: { xs: 0.75, md: 1 }, bgcolor: '#CFE9BA', p: { xs: 0.75, md: 1 }, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
-                           <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600, fontSize: { xs: '0.6rem', md: '0.75rem' } }}>maps.google.com</Typography>
-                           <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.85rem' }, color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
-                         </Box>
-                         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                           11:15 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                         </Typography>
-                       </Box>
-                     </Stack>
+                          Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                          10:43 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
+                        </Typography>
+                      </Box>
+
+                      {/* Chat Bubble Guest (Kill Time) */}
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
+
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                          We have some free time before the reception. Any recommendations nearby?
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
+                          11:15 AM
+                        </Typography>
+                      </Box>
+
+                      {/* Chat Bubble Bot (Recommendation) */}
+                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
+                        {/* Triangle */}
+                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
+
+                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                          Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                          Check out the full guide here:
+                        </Typography>
+                        {/* Link Preview Mockup */}
+                        <Box sx={{ mt: { xs: 0.75, md: 1 }, bgcolor: '#CFE9BA', p: { xs: 0.75, md: 1 }, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
+                          <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600, fontSize: { xs: '0.6rem', md: '0.75rem' } }}>maps.google.com</Typography>
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.85rem' }, color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
+                          11:15 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
+                        </Typography>
+                      </Box>
+                    </Stack>
                   </Paper>
                 </motion.div>
               </Grid>
@@ -1225,10 +1216,10 @@ export default function LandingPage() {
                   icon: <Dashboard fontSize="large" />
                 }
               ].map((item, idx) => (
-                <Box 
-                  key={idx} 
-                  sx={{ 
-                    position: 'relative', 
+                <Box
+                  key={idx}
+                  sx={{
+                    position: 'relative',
                     zIndex: 1,
                     flex: { xs: '0 0 75%', md: 'auto' },
                     minWidth: { xs: '220px', md: 'auto' },
@@ -1282,11 +1273,11 @@ export default function LandingPage() {
                         {item.step}
                       </Typography>
 
-                      <Box 
-                        sx={{ 
-                          width: { xs: 50, md: 80 }, 
-                          height: { xs: 50, md: 80 }, 
-                          borderRadius: '50%', 
+                      <Box
+                        sx={{
+                          width: { xs: 50, md: 80 },
+                          height: { xs: 50, md: 80 },
+                          borderRadius: '50%',
                           bgcolor: 'white',
                           border: '1px solid #eee',
                           display: 'flex',
@@ -1301,11 +1292,11 @@ export default function LandingPage() {
                       >
                         {item.icon}
                       </Box>
-                      
+
                       <Typography variant="h5" sx={{ fontWeight: 800, mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
                         {item.title}
                       </Typography>
-                      
+
                       <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
                         {item.desc}
                       </Typography>
@@ -1456,10 +1447,11 @@ export default function LandingPage() {
                       {tier.features.map((feature, fIdx) => (
                         <ListItem key={fIdx} disableGutters sx={{ py: { xs: 0.25, md: 0.5 } }}>
                           <ListItemIcon sx={{ minWidth: { xs: 24, md: 36 } }}>
-                            <CheckCircle
+                            <StreamlineIcon
+                              name="check-circle"
                               sx={{
                                 color: '#DE3F5E',
-                                fontSize: { xs: 16, md: 20 },
+                                fontSize: { xs: 20, md: 24 },
                               }}
                             />
                           </ListItemIcon>
@@ -1525,7 +1517,7 @@ export default function LandingPage() {
               Common Questions
             </Typography>
           </Stack>
-          
+
           <Container maxWidth="md">
             <Stack spacing={3}>
               {faqs.map((faq, idx) => (
@@ -1644,7 +1636,7 @@ export default function LandingPage() {
                 sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
               >
                 <Chip
-                  icon={<CheckCircle sx={{ color: '#DE3F5E !important' }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important' }} />}
                   label="No credit card required"
                   sx={{
                     bgcolor: 'transparent',
@@ -1654,7 +1646,7 @@ export default function LandingPage() {
                   }}
                 />
                 <Chip
-                  icon={<CheckCircle sx={{ color: '#DE3F5E !important' }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important' }} />}
                   label="Free forever plan"
                   sx={{
                     bgcolor: 'transparent',

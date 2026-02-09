@@ -86,7 +86,7 @@ const formatTimeAgo = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-  
+
   if (diffInHours < 1) return 'Just now';
   if (diffInHours < 24) return `${diffInHours}h`;
   const diffInDays = Math.floor(diffInHours / 24);
@@ -148,7 +148,7 @@ function ReadOnlyComments() {
               >
                 {tab}
               </Typography>
-              
+
               {/* Count chips */}
               {index === 1 && (
                 <Chip
@@ -193,7 +193,7 @@ function ReadOnlyComments() {
       <Box sx={{ px: 3, pb: 2.5, mt: 3 }}>
         <Stack spacing={3}>
           {/* Preview Notice */}
-          <Box
+          {/* <Box
             sx={{
               backgroundColor: 'rgba(222, 63, 94, 0.05)',
               border: '1px solid rgba(222, 63, 94, 0.2)',
@@ -212,7 +212,7 @@ function ReadOnlyComments() {
             >
               Preview: Showing sample {activeTab === 0 ? 'comments' : activeTab === 1 ? 'going guests' : 'maybe guests'}
             </Typography>
-          </Box>
+          </Box> */}
 
           {/* Activity Tab - Comments List */}
           {activeTab === 0 && (
