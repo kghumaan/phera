@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -32,6 +32,9 @@ import {
   EmojiEmotionsOutlined,
   DeleteOutlineOutlined,
   Gif as GifIcon,
+  KeyboardArrowDown,
+  Search,
+  Close,
 } from '@mui/icons-material';
 import { getAllRSVPs, getComments, addComment, deleteComment } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
@@ -102,27 +105,41 @@ interface ActivityItem {
 
 interface GuestListProps {
   weddingId: string;
+  weddingSlug?: string;
+  compact?: boolean;
+  initialMaxComments?: number;
+  initialTab?: number;
 }
 
 const emojis = ['❤️', '😍', '🎉', '👏', '😂', '🥰', '🔥', '💯'];
 
-export default function GuestList({ weddingId }: GuestListProps) {
+export default function GuestList({
+  weddingId,
+  weddingSlug,
+  compact = false,
+  initialMaxComments = 2,
+  initialTab = 0,
+}: GuestListProps) {
   const theme = useTheme();
   const { user } = useAuth();
   const [guests, setGuests] = useState<GuestItem[]>([]);
   const [filteredGuests, setFilteredGuests] = useState<GuestItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [visibleCommentsCount, setVisibleCommentsCount] = useState(initialMaxComments);
+  const [visibleRSVPCount, setVisibleRSVPCount] = useState(10);
   const [loading, setLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [newComment, setNewComment] = useState('');
   const [newActivityCount, setNewActivityCount] = useState(0);
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
+  const isFetchingRef = useRef(false);
+  const lastFetchTimeRef = useRef(0);
+  const isSubscribedRef = useRef(false);
 
   const tabs = ['Activity', 'Going', 'Maybe'];
 
@@ -146,192 +163,11 @@ export default function GuestList({ weddingId }: GuestListProps) {
     setFilteredGuests(filtered);
   }, [guests, searchQuery, activeTab]);
 
-  useEffect(() => {
-    // Always start with loading true
-    setLoading(true);
-    fetchData();
-    const cleanup = setupRealtimeListeners();
-    
-    // Return cleanup function for proper unmount
-    return cleanup;
-  }, [weddingId]);
-
-  useEffect(() => {
-    filterGuests();
-  }, [filterGuests]);
-
-  const setupRealtimeListeners = () => {
-    // Prevent duplicate subscriptions
-    if (isSubscribed) {
-      return () => {}; // Return empty cleanup function
-    }
-
-    // RSVP updates - use unique channel name to avoid conflicts
-    const rsvpChannel = supabase
-      .channel(`guest_list_rsvp_updates_${weddingId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'rsvps',
-          filter: `wedding_id=eq.${weddingId}`,
-        },
-        () => {
-          setNewActivityCount(prev => prev + 1);
-          setTimeout(() => setNewActivityCount(0), 3000);
-          fetchData();
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('GuestList: Successfully subscribed to RSVP updates');
-          setIsSubscribed(true);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('GuestList: Failed to subscribe to RSVP updates');
-          setIsSubscribed(false);
-        }
-      });
-
-    // Comments updates - real-time subscription
-    const commentsChannel = supabase
-      .channel(`guest_list_comments_${weddingId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comments',
-          filter: `wedding_id=eq.${weddingId}`,
-        },
-        (payload) => {
-          console.log('Comments change detected:', payload);
-          // Refresh comments on any change
-          fetchData();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      try {
-        setIsSubscribed(false);
-        supabase.removeChannel(rsvpChannel);
-        supabase.removeChannel(commentsChannel);
-      } catch (error) {
-        console.error('Error removing GuestList channels:', error);
-      }
-    };
-  };
-
-  const fetchData = async () => {
-    const now = Date.now();
-    
-    // Prevent multiple simultaneous fetches
-    if (isFetching) {
-      return; // Silently skip
-    }
-
-    // Throttle rapid successive calls (min 500ms between fetches)
-    if (now - lastFetchTime < 500) {
-      return; // Silently skip
-    }
-
-    console.log('GuestList: Fetching data...');
-    setIsFetching(true);
-    setLastFetchTime(now);
-    
-    try {
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Data fetch timeout')), 15000)
-      );
-      
-      const [attendees, commentsData] = await Promise.race([
-        Promise.all([
-          getAllRSVPs(weddingId),
-          getComments(weddingId)
-        ]),
-        timeoutPromise
-      ]);
-      
-      console.log('GuestList: Fetched data successfully', { 
-        attendeesCount: attendees.length, 
-        commentsCount: commentsData.length 
-      });
-      
-      // Convert RSVP data to guest format
-      const guestData = attendees.map((rsvp: any, index: number) => {
-        // Map RSVP attending status to display status
-        let status: 'going' | 'maybe' | 'not-going';
-        if (rsvp.attending === 'yes') {
-          status = 'going';
-        } else if (rsvp.attending === 'maybe') {
-          status = 'maybe';
-        } else {
-          status = 'not-going';
-        }
-
-        return {
-          id: rsvp.id || `${rsvp.guest_id}-${index}`,
-          name: rsvp.guest?.name || 'Unknown Guest',
-          initials: rsvp.guest?.initials || '??',
-          avatarColor: rsvp.guest?.avatar_color || '#666',
-          avatarStyle: rsvp.guest?.avatar_style,
-          avatarSeed: rsvp.guest?.avatar_seed,
-          avatarSvg: rsvp.guest?.avatar_svg,
-          status,
-          guestCount: rsvp.guest_count || 1,
-          timestamp: rsvp.created_at,
-        };
-      });
-
-      // Convert to activity format
-      const activityData = attendees.map((rsvp: any) => {
-        // Map attending status to activity action
-        let action: string;
-        if (rsvp.attending === 'yes') {
-          action = 'RSVP\'d Going';
-        } else if (rsvp.attending === 'maybe') {
-          action = 'RSVP\'d Maybe';
-        } else {
-          action = 'RSVP\'d Not Going';
-        }
-
-        return {
-          id: rsvp.id,
-          guestName: rsvp.guest?.name || 'Unknown Guest',
-          action,
-          timestamp: formatTimeAgo(rsvp.created_at),
-          rawTimestamp: rsvp.created_at,
-          initials: rsvp.guest?.initials || '??',
-          avatarColor: rsvp.guest?.avatar_color || '#666',
-        };
-      });
-
-      // Sort activities by most recent first
-      activityData.sort((a: any, b: any) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
-
-      setGuests(guestData);
-      setActivities(activityData.slice(0, 10));
-
-      // Load comments from database
-      setComments(commentsData);
-      
-      console.log('GuestList: State updated successfully');
-    } catch (error) {
-      console.error('GuestList: Error fetching data:', error);
-    } finally {
-      console.log('GuestList: Setting loading to false');
-      setLoading(false);
-      setIsFetching(false);
-    }
-  };
-
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -339,6 +175,219 @@ export default function GuestList({ weddingId }: GuestListProps) {
     const diffInWeeks = Math.floor(diffInDays / 7);
     return `${diffInWeeks}w`;
   };
+
+  // Single stable useEffect for data fetching + realtime - only depends on weddingId
+  useEffect(() => {
+    const doFetch = async () => {
+      // Prevent multiple simultaneous fetches using immediate ref lock
+      if (isFetchingRef.current) {
+        console.log('GuestList: Skipping fetch (already in progress)');
+        return;
+      }
+
+      console.log('GuestList: Fetching data...');
+      isFetchingRef.current = true;
+      lastFetchTimeRef.current = Date.now();
+      setIsFetching(true);
+
+      try {
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Data fetch timeout')), 15000)
+        );
+
+        // Try fetching with UUID first
+        let [attendees, commentsData] = await Promise.race([
+          Promise.all([
+            getAllRSVPs(weddingId),
+            getComments(weddingId)
+          ]),
+          timeoutPromise
+        ]);
+
+        console.log(`GuestList: Initial fetch with UUID (${weddingId})`, {
+          attendeesCount: attendees.length,
+          commentsCount: commentsData.length
+        });
+
+        // If we got nothing and we have a slug, try the slug
+        if (attendees.length === 0 && commentsData.length === 0 && weddingSlug) {
+          console.log(`GuestList: No data found with UUID, trying slug (${weddingSlug})...`);
+          const [slugAttendees, slugComments] = await Promise.race([
+            Promise.all([
+              getAllRSVPs(weddingSlug),
+              getComments(weddingSlug)
+            ]),
+            timeoutPromise
+          ]);
+
+          console.log('GuestList: Fetch with slug completed', {
+            attendeesCount: slugAttendees.length,
+            commentsCount: slugComments.length
+          });
+
+          if (slugAttendees.length > 0 || slugComments.length > 0) {
+            attendees = slugAttendees;
+            commentsData = slugComments;
+          }
+        }
+
+        console.log('GuestList: Final data set determined', {
+          attendeesCount: attendees.length,
+          commentsCount: commentsData.length
+        });
+
+        // Convert RSVP data to guest format
+        const guestData = attendees.map((rsvp: any, index: number) => {
+          let status: 'going' | 'maybe' | 'not-going';
+          if (rsvp.attending === 'yes') {
+            status = 'going';
+          } else if (rsvp.attending === 'maybe') {
+            status = 'maybe';
+          } else {
+            status = 'not-going';
+          }
+
+          return {
+            id: rsvp.id || `${rsvp.guest_id}-${index}`,
+            name: rsvp.guest?.name || 'Unknown Guest',
+            initials: rsvp.guest?.initials || '??',
+            avatarColor: rsvp.guest?.avatar_color || '#666',
+            avatarStyle: rsvp.guest?.avatar_style,
+            avatarSeed: rsvp.guest?.avatar_seed,
+            avatarSvg: rsvp.guest?.avatar_svg,
+            status,
+            guestCount: rsvp.guest_count || 1,
+            timestamp: rsvp.created_at,
+          };
+        });
+
+        // Convert to activity format
+        const activityData = attendees.map((rsvp: any) => {
+          let action: string;
+          if (rsvp.attending === 'yes') {
+            action = 'RSVP\'d Going';
+          } else if (rsvp.attending === 'maybe') {
+            action = 'RSVP\'d Maybe';
+          } else {
+            action = 'RSVP\'d Not Going';
+          }
+
+          return {
+            id: rsvp.id,
+            guestName: rsvp.guest?.name || 'Unknown Guest',
+            action,
+            timestamp: formatTimeAgo(rsvp.created_at),
+            rawTimestamp: rsvp.created_at,
+            initials: rsvp.guest?.initials || '??',
+            avatarColor: rsvp.guest?.avatar_color || '#666',
+          };
+        });
+
+        // Sort activities by most recent first
+        activityData.sort((a: any, b: any) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
+
+        setGuests(guestData);
+        setActivities(activityData.slice(0, 10));
+
+        setComments(commentsData.map(c => ({
+          ...c,
+          guest_id: c.guest_id || '',
+        })) as Comment[]);
+
+        console.log('GuestList: State updated successfully');
+      } catch (error) {
+        console.error('GuestList: Error fetching data:', error);
+      } finally {
+        console.log('GuestList: Setting loading to false');
+        setLoading(false);
+        setIsFetching(false);
+        isFetchingRef.current = false;
+      }
+    };
+
+    // Initial data fetch
+    setLoading(true);
+    doFetch();
+
+    // Setup realtime listeners
+    let rsvpChannel: any = null;
+    let commentsChannel: any = null;
+
+    if (!isSubscribedRef.current) {
+      // Realtime-triggered re-fetches use throttling
+      const realtimeFetch = () => {
+        const now = Date.now();
+        if (now - lastFetchTimeRef.current < 2000) {
+          console.log('GuestList: Throttling realtime re-fetch');
+          return;
+        }
+        doFetch();
+      };
+
+      rsvpChannel = supabase
+        .channel(`guest_list_rsvp_updates_${weddingId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'rsvps',
+            filter: `wedding_id=eq.${weddingId}`,
+          },
+          () => {
+            setNewActivityCount(prev => prev + 1);
+            setTimeout(() => setNewActivityCount(0), 3000);
+            realtimeFetch();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('GuestList: Successfully subscribed to RSVP updates');
+            isSubscribedRef.current = true;
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('GuestList: Failed to subscribe to RSVP updates');
+            isSubscribedRef.current = false;
+          }
+        });
+
+      commentsChannel = supabase
+        .channel(`guest_list_comments_${weddingId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'comments',
+            filter: `wedding_id=eq.${weddingId}`,
+          },
+          (payload) => {
+            console.log('Comments change detected:', payload);
+            realtimeFetch();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      // Reset refs so next mount can fetch and subscribe
+      isFetchingRef.current = false;
+      isSubscribedRef.current = false;
+      try {
+        if (rsvpChannel) supabase.removeChannel(rsvpChannel);
+        if (commentsChannel) supabase.removeChannel(commentsChannel);
+      } catch (error) {
+        console.error('Error removing GuestList channels:', error);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weddingId]);
+
+
+  useEffect(() => {
+    filterGuests();
+  }, [filterGuests]);
+
 
   // const handleBoop = (guestId: string) => {
   //   console.log(`Booped guest ${guestId}! 💕`);
@@ -350,9 +399,9 @@ export default function GuestList({ weddingId }: GuestListProps) {
     try {
       // Save to database - pass GIF data if selected
       const savedComment = await addComment(
-        weddingId, 
-        user.id, 
-        newComment, 
+        weddingId,
+        user.id,
+        newComment,
         selectedGif ? {
           gif_id: selectedGif.id,
           gif_url: selectedGif.url,
@@ -360,7 +409,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
           gif_preview_url: selectedGif.preview_url,
         } : undefined
       );
-      
+
       // Add to local state
       setComments(prev => [savedComment, ...prev]);
       setNewComment('');
@@ -392,7 +441,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
       // Delete from database
       const result = await deleteComment(commentId, user.id);
       console.log('Delete result:', result);
-      
+
       // Remove from local state
       setComments(prev => {
         const filtered = prev.filter(comment => comment.id !== commentId);
@@ -416,10 +465,10 @@ export default function GuestList({ weddingId }: GuestListProps) {
   };
 
   const getStatusCounts = () => {
-    const going = guests.reduce((sum, guest) => 
+    const going = guests.reduce((sum, guest) =>
       guest.status === 'going' ? sum + guest.guestCount : sum, 0
     );
-    const maybe = guests.reduce((sum, guest) => 
+    const maybe = guests.reduce((sum, guest) =>
       guest.status === 'maybe' ? sum + guest.guestCount : sum, 0
     );
     const totalAttending = going; // Same as going count since we're summing guest counts
@@ -439,7 +488,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
           boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <Typography sx={{ 
+        <Typography sx={{
           fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: '16px',
@@ -516,7 +565,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   variant="standard"
-                  sx={{pb: '4px'}}
+                  sx={{ pb: '4px' }}
                   InputProps={{
                     disableUnderline: true,
                     sx: {
@@ -537,7 +586,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                     }
                   }}
                 />
-                
+
                 {/* Buttons positioned at top right */}
                 <Box
                   sx={{
@@ -564,10 +613,10 @@ export default function GuestList({ weddingId }: GuestListProps) {
                       }}
                       size="small"
                     >
-                      <GifIcon fontSize="small"  sx={{width: '130%', height: '130%'}}/>
+                      <GifIcon fontSize="small" sx={{ width: '130%', height: '130%' }} />
                     </IconButton>
                   )}
-                  
+
                   {/* Send Button - only show when there's content */}
                   {(newComment.trim() || selectedGif) && (
                     <IconButton
@@ -588,7 +637,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                     </IconButton>
                   )}
                 </Box>
-                
+
                 {/* Selected GIF Display inside input */}
                 {selectedGif && (
                   <Box
@@ -649,7 +698,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                         size="small"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 6L6 18M6 6l12 12"/>
+                          <path d="M18 6L6 18M6 6l12 12" />
                         </svg>
                       </IconButton>
                     </Box>
@@ -665,17 +714,17 @@ export default function GuestList({ weddingId }: GuestListProps) {
       <Stack spacing={0}>
         {comments.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography sx={{ 
-              color: '#858585', 
+            <Typography sx={{
+              color: '#858585',
               fontFamily: 'Outfit',
               fontSize: '16px',
               lineHeight: '1.5em',
-              mb: 1 
+              mb: 1
             }}>
               No comments yet! 💬
             </Typography>
-            <Typography sx={{ 
-              color: '#BCBCBC', 
+            <Typography sx={{
+              color: '#BCBCBC',
               fontFamily: 'Outfit',
               fontSize: '14px',
               lineHeight: '1.5em'
@@ -684,153 +733,211 @@ export default function GuestList({ weddingId }: GuestListProps) {
             </Typography>
           </Box>
         ) : (
-          comments.map((comment, index) => {
-            // console.log('Rendering comment:', comment.id, 'by guest:', comment.guest_id, 'current user:', user?.id);
-            return (
-            <motion.div
-              key={comment.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Box>
-                <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
-                  <Avatar
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      backgroundColor: comment.guest?.avatar_color || '#C4C4C4',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {comment.guest?.avatar_svg ? (
-                      <Box
-                        dangerouslySetInnerHTML={{ __html: comment.guest.avatar_svg }}
+          <>
+            <Box sx={{
+              maxHeight: 'none',
+              overflow: 'hidden',
+              position: 'relative',
+              transition: 'all 0.3s ease-in-out'
+            }}>
+              {comments.slice(0, compact ? visibleCommentsCount : undefined).map((comment, index) => (
+                <motion.div
+                  key={comment.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Box>
+                    <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
+                      <Avatar
                         sx={{
-                          width: '100%',
-                          height: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          '& svg': {
-                            width: '100%',
-                            height: '100%',
-                          },
-                        }}
-                      />
-                    ) : (
-                      comment.guest?.initials || '??'
-                    )}
-                  </Avatar>
-
-                  <Box sx={{ flex: 1, ml: 1 }}>
-                    {/* Comment Header */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Outfit',
+                          width: 40,
+                          height: 40,
+                          backgroundColor: comment.guest?.avatar_color || '#C4C4C4',
+                          color: 'white',
                           fontWeight: 600,
-                          fontSize: '16px',
-                          lineHeight: '1.5em',
-                          color: '#141414',
+                          fontSize: '0.9rem',
                         }}
                       >
-                        {comment.guest?.name || 'Unknown Guest'}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Outfit',
-                          fontWeight: 400,
-                          fontSize: '14px',
-                          lineHeight: '1.5em',
-                          color: '#858585',
-                        }}
-                      >
-                        {formatTimeAgo(comment.created_at)}
-                      </Typography>
-                      
-                      {/* Delete button - only show for user's own comments */}
-                      {user && comment.guest_id === user.id && (
-                        <Box sx={{ ml: 'auto' }}>
-                          <IconButton
-                            onClick={() => {
-                              console.log('Delete button clicked for comment:', comment.id);
-                              console.log('User ID:', user.id);
-                              console.log('Comment guest_id:', comment.guest_id);
-                              handleDeleteComment(comment.id);
-                            }}
-                            size="small"
+                        {comment.guest?.avatar_svg ? (
+                          <Box
+                            dangerouslySetInnerHTML={{ __html: comment.guest.avatar_svg }}
                             sx={{
-                              color: '#858585',
-                              opacity: 0.7,
-                              '&:hover': {
-                                color: '#DE3F5E',
-                                opacity: 1,
-                                backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              '& svg': {
+                                width: '100%',
+                                height: '100%',
                               },
                             }}
+                          />
+                        ) : (
+                          comment.guest?.initials || '??'
+                        )}
+                      </Avatar>
+
+                      <Box sx={{ flex: 1, ml: 1 }}>
+                        {/* Comment Header */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 600,
+                              fontSize: '16px',
+                              lineHeight: '1.5em',
+                              color: '#141414',
+                            }}
                           >
-                            <DeleteOutlineOutlined fontSize="small" />
-                          </IconButton>
+                            {comment.guest?.name || 'Unknown Guest'}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 400,
+                              fontSize: '14px',
+                              lineHeight: '1.5em',
+                              color: '#858585',
+                            }}
+                          >
+                            {formatTimeAgo(comment.created_at)}
+                          </Typography>
+
+                          {/* Delete button - only show for user's own comments */}
+                          {user && comment.guest_id === user.id && (
+                            <Box sx={{ ml: 'auto' }}>
+                              <IconButton
+                                onClick={() => {
+                                  console.log('Delete button clicked for comment:', comment.id);
+                                  console.log('User ID:', user.id);
+                                  console.log('Comment guest_id:', comment.guest_id);
+                                  handleDeleteComment(comment.id);
+                                }}
+                                size="small"
+                                sx={{
+                                  color: '#858585',
+                                  opacity: 0.7,
+                                  '&:hover': {
+                                    color: '#DE3F5E',
+                                    opacity: 1,
+                                    backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                                  },
+                                }}
+                              >
+                                <DeleteOutlineOutlined fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          )}
                         </Box>
-                      )}
-                    </Box>
 
-                    {/* Comment Content */}
-                    {comment.message && (
-                      <Typography
-                        sx={{
-                          fontFamily: 'Outfit',
-                          fontWeight: 400,
-                          fontSize: '16px',
-                          lineHeight: '1.5em',
-                          color: '#141414',
-                          mb: comment.gif_url ? 1 : 1,
-                        }}
-                      >
-                        {comment.message}
-                      </Typography>
-                    )}
+                        {/* Comment Content */}
+                        {comment.message && (
+                          <Typography
+                            sx={{
+                              fontFamily: 'Outfit',
+                              fontWeight: 400,
+                              fontSize: '16px',
+                              lineHeight: '1.5em',
+                              color: '#141414',
+                              mb: comment.gif_url ? 1 : 1,
+                            }}
+                          >
+                            {comment.message}
+                          </Typography>
+                        )}
 
-                    {/* Comment GIF */}
-                    {comment.gif_url && (
-                      <Box
-                        sx={{
-                          mt: comment.message ? 1 : 0,
-                          borderRadius: '16px',
-                          overflow: 'hidden',
-                          maxWidth: '280px',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
-                          mb: 1,
-                        }}
-                      >
-                        <Image
-                          src={comment.gif_preview_url || comment.gif_url}
-                          alt={comment.gif_title || 'GIF'}
-                          width={160}
-                          height={120}
-                          style={{
-                            width: '100%',
-                            height: 'auto',
-                            display: 'block',
-                          }}
-                          unoptimized // For external GIF URLs
-                        />
+                        {/* Comment GIF */}
+                        {comment.gif_url && (
+                          <Box
+                            sx={{
+                              mt: comment.message ? 1 : 0,
+                              borderRadius: '16px',
+                              overflow: 'hidden',
+                              maxWidth: '280px',
+                              border: '1px solid rgba(0, 0, 0, 0.08)',
+                              mb: 1,
+                            }}
+                          >
+                            <Image
+                              src={comment.gif_preview_url || comment.gif_url}
+                              alt={comment.gif_title || 'GIF'}
+                              width={160}
+                              height={120}
+                              style={{
+                                width: '100%',
+                                height: 'auto',
+                                display: 'block',
+                              }}
+                              unoptimized // For external GIF URLs
+                            />
+                          </Box>
+                        )}
                       </Box>
-                    )}
+                    </Box>
                   </Box>
-                </Box>
+                </motion.div>
+              ))}
 
-                {/* Divider - show for all comments except the last one */}
-                {index < comments.length - 1 && (
-                  <Divider sx={{ borderColor: '#EBEBEB' }} />
+              {compact && visibleCommentsCount < comments.length && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 100,
+                    background: 'linear-gradient(to bottom, transparent, white)',
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
+              )}
+            </Box>
+
+            {compact && comments.length > initialMaxComments && (
+              <Box sx={{ mt: 1, borderTop: visibleCommentsCount > initialMaxComments ? '1px solid #ECECEC' : 'none', pt: visibleCommentsCount > initialMaxComments ? 2 : 0, width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {visibleCommentsCount < comments.length ? (
+                  <Button
+                    onClick={() => setVisibleCommentsCount(prev => Math.min(prev + 2, comments.length))}
+                    fullWidth
+                    sx={{
+                      color: '#666',
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      py: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.04)',
+                      },
+                    }}
+                  >
+                    View More Activity
+                    <KeyboardArrowDown sx={{ ml: 0.5 }} />
+                  </Button>
+                ) : null}
+
+                {visibleCommentsCount > initialMaxComments && (
+                  <Button
+                    onClick={() => setVisibleCommentsCount(initialMaxComments)}
+                    fullWidth
+                    sx={{
+                      color: '#666',
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      py: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.04)',
+                      },
+                    }}
+                  >
+                    Collapse
+                    <KeyboardArrowDown sx={{ ml: 0.5, transform: 'rotate(180deg)' }} />
+                  </Button>
                 )}
               </Box>
-            </motion.div>
-            );
-          })
+            )}
+          </>
         )}
       </Stack>
     </Stack>
@@ -839,7 +946,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
   const renderGuestTab = () => (
     <Stack spacing={0}>
       {filteredGuests.length === 0 ? (
-        <Typography sx={{ 
+        <Typography sx={{
           fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: '16px',
@@ -851,111 +958,110 @@ export default function GuestList({ weddingId }: GuestListProps) {
           {searchQuery ? 'No guests found matching your search.' : 'No guests in this category yet.'}
         </Typography>
       ) : (
-        filteredGuests.map((guest, index) => (
-          <motion.div
-            key={guest.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <Box
-              sx={{
+        <>
+          {filteredGuests.slice(0, visibleRSVPCount).map((guest, index) => (
+            <motion.div
+              key={guest.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
-                py: 2,
                 gap: 2,
-                borderBottom: index < filteredGuests.length - 1 ? '1px solid' : 'none',
-                borderColor: 'divider',
-              }}
-            >
-              <Avatar
-                sx={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: guest.avatarColor,
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                }}
-              >
-                {guest.avatarSvg ? (
-                  <Box
-                    dangerouslySetInnerHTML={{ __html: guest.avatarSvg }}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      '& svg': {
+                p: 2,
+                borderBottom: '1px solid #ECECEC',
+                '&:last-child': { borderBottom: 'none' }
+              }}>
+                <Avatar
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: guest.avatarColor || '#F0F0F0',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '16px',
+                  }}
+                >
+                  {guest.avatarSvg ? (
+                    <Box
+                      dangerouslySetInnerHTML={{ __html: guest.avatarSvg }}
+                      sx={{
                         width: '100%',
                         height: '100%',
-                      },
-                    }}
-                  />
-                ) : (
-                  guest.initials
-                )}
-              </Avatar>
+                        '& svg': { width: '100%', height: '100%' }
+                      }}
+                    />
+                  ) : (
+                    guest.initials
+                  )}
+                </Avatar>
 
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ 
-                  fontFamily: 'Outfit',
-                  fontWeight: 600,
-                  fontSize: '16px',
-                  lineHeight: '1.5em',
-                  color: '#141414'
-                }}>
-                  {guest.name}
-                </Typography>
-                {guest.guestCount > 1 && (
-                  <Typography sx={{ 
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{
                     fontFamily: 'Outfit',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '1.5em',
-                    color: '#858585'
-                  }}>
-                    +{guest.guestCount - 1} guest{guest.guestCount > 2 ? 's' : ''}
-                  </Typography>
-                )}
-              </Box>
-
-              {/* <Stack direction="row" spacing={1}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => handleBoop(guest.id)}
-                  sx={{
-                    borderRadius: 20,
-                    textTransform: 'none',
                     fontWeight: 600,
-                    minWidth: 70,
-                    borderColor: 'primary.main',
-                    color: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'primary.main',
-                      color: 'white',
-                    },
-                  }}
-                >
-                  Boop
-                </Button>
-                <IconButton
-                  size="small"
+                    fontSize: '16px',
+                    lineHeight: '1.5em',
+                    color: '#141414'
+                  }}>
+                    {guest.name}
+                  </Typography>
+                  {guest.guestCount > 1 && (
+                    <Typography sx={{
+                      fontFamily: 'Outfit',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      lineHeight: '1.5em',
+                      color: '#858585'
+                    }}>
+                      +{guest.guestCount - 1} guest{guest.guestCount > 2 ? 's' : ''}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </motion.div>
+          ))}
+
+          {filteredGuests.length > 10 && (
+            <Box sx={{ p: 1, borderTop: '1px solid #ECECEC', width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {visibleRSVPCount < filteredGuests.length ? (
+                <Button
+                  onClick={() => setVisibleRSVPCount(prev => Math.min(prev + 5, filteredGuests.length))}
+                  fullWidth
                   sx={{
-                    backgroundColor: 'rgba(0,0,0,0.05)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0,0,0,0.1)',
-                    },
+                    color: '#666',
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    py: 1,
+                    '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
                   }}
                 >
-                  <ChatBubbleOutlineRounded fontSize="small" />
-                </IconButton>
-              </Stack> */}
+                  View More Guests
+                  <KeyboardArrowDown sx={{ ml: 0.5 }} />
+                </Button>
+              ) : null}
+
+              {visibleRSVPCount > 10 && (
+                <Button
+                  onClick={() => setVisibleRSVPCount(10)}
+                  fullWidth
+                  sx={{
+                    color: '#666',
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    py: 1,
+                    '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+                  }}
+                >
+                  Collapse
+                  <KeyboardArrowDown sx={{ ml: 0.5, transform: 'rotate(180deg)' }} />
+                </Button>
+              )}
             </Box>
-          </motion.div>
-        ))
+          )}
+        </>
       )}
     </Stack>
   );
@@ -973,7 +1079,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
     >
 
       {/* Tabs */}
-      <Box>
+      <Box sx={{ borderBottom: '1px solid #EBEBEB' }}>
         <Box
           sx={{
             display: 'flex',
@@ -993,7 +1099,7 @@ export default function GuestList({ weddingId }: GuestListProps) {
                 py: 2,
                 px: 1,
                 cursor: 'pointer',
-                borderBottom: index === activeTab ? '2px solid #DE3F5E' : '2px solid #EBEBEB',
+                borderBottom: index === activeTab ? '2px solid #DE3F5E' : 'none',
                 transition: 'all 0.2s ease',
               }}
             >
@@ -1009,14 +1115,14 @@ export default function GuestList({ weddingId }: GuestListProps) {
               >
                 {tab}
               </Typography>
-              
+
               {/* Count chips */}
               {index === 0 && newActivityCount > 0 && (
                 <Chip
                   label={newActivityCount}
                   size="small"
                   sx={{
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: '#DE3F5E',
                     color: 'white',
                     height: 20,
                     minWidth: 20,
@@ -1073,6 +1179,55 @@ export default function GuestList({ weddingId }: GuestListProps) {
         </Box>
       </Box>
 
+      {/* Search Bar - Only show on going and maybe tabs */}
+      {(activeTab === 1 || activeTab === 2) && (
+        <Box sx={{ p: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #BCBCBC',
+              borderRadius: '8px',
+              px: 2,
+              py: '8px',
+              gap: 1.5,
+              minHeight: '50px',
+              '&:focus-within': {
+                borderColor: '#DE3F5E',
+                boxShadow: '0 0 0 2px rgba(222, 63, 94, 0.1)',
+              },
+            }}
+          >
+            <Search sx={{ color: '#BCBCBC', fontSize: '20px' }} />
+            <input
+              type="text"
+              placeholder="Search guests..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                border: 'none',
+                background: 'none',
+                outline: 'none',
+                width: '100%',
+                fontFamily: 'Outfit',
+                fontSize: '16px',
+                color: '#141414',
+              }}
+            />
+            {searchQuery && (
+              <IconButton
+                size="small"
+                onClick={() => setSearchQuery('')}
+                sx={{ color: '#858585', p: 0.5 }}
+              >
+                <Close sx={{ fontSize: '18px' }} />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+      )}
+
       {/* Tab Content */}
       <Box sx={{ px: 3, pb: 2.5, mt: 3 }}> {/* pb: 20px to match design */}
         <AnimatePresence mode="wait">
@@ -1090,8 +1245,8 @@ export default function GuestList({ weddingId }: GuestListProps) {
         </AnimatePresence>
       </Box>
 
-{/* Emoji menu temporarily removed */}
-      
+      {/* Emoji menu temporarily removed */}
+
       {/* GIF Picker Modal */}
       <GifPicker
         open={showGifPicker}

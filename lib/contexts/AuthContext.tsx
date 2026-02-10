@@ -60,15 +60,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const lastCheckedWeddingSlug = useRef<string | null>(null);
 
   // Set the current wedding slug and trigger RSVP recheck if changed
-  const setCurrentWeddingSlug = (slug: string) => {
-    if (slug !== currentWeddingSlug) {
+  const setCurrentWeddingSlug = React.useCallback((slug: string) => {
+    if (slug && slug !== currentWeddingSlug) {
       console.log('🔄 [AuthContext] Wedding slug changed:', currentWeddingSlug, '->', slug);
       setCurrentWeddingSlugState(slug);
       // Reset RSVP state when wedding changes
       setHasRSVPed(false);
       setRsvpResponse(null);
     }
-  };
+  }, [currentWeddingSlug]);
 
   const generateInitials = (name: string) => {
     return name
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const checkRSVPStatus = async (force: boolean = false) => {
+  const checkRSVPStatus = React.useCallback(async (force: boolean = false) => {
     if (!user || isCheckingRSVP || !user.email) {
       return;
     }
@@ -295,7 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (directRSVPData && directRSVPData.length > 0) {
               setHasRSVPed(true);
-              setRsvpResponse(directRSVPData[0].attending);
+              setRsvpResponse(directRSVPData[0].attending as 'yes' | 'no' | 'maybe');
               return;
             }
           }
@@ -317,7 +317,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Set RSVP response if available
         if (hasAnyRSVP && data.rsvps[0]) {
-          setRsvpResponse(data.rsvps[0].attending);
+          setRsvpResponse(data.rsvps[0].attending as 'yes' | 'no' | 'maybe');
         } else {
           setRsvpResponse(null);
         }
@@ -336,10 +336,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setHasRSVPed(false);
       setRsvpResponse(null);
     } finally {
-      setIsCheckingRSVP(false);
       lastCheckedWeddingSlug.current = currentWeddingSlug;
+      setIsCheckingRSVP(false);
     }
-  };
+  }, [user, isCheckingRSVP, currentWeddingSlug, hasRSVPed, rsvpResponse]);
 
   // Helper function to handle plus one authentication
   const handlePlusOneAuth = async (email: string) => {
@@ -403,7 +403,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = React.useCallback(async () => {
     // Prevent multiple simultaneous auth checks using ref
     if (isCheckingAuthRef.current) {
       console.log('checkAuthStatus: Skipping - already checking');
@@ -543,9 +543,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       isCheckingAuthRef.current = false;
     }
-  };
+  }, [currentWeddingSlug]);
 
-  const signOut = async () => {
+  const signOut = React.useCallback(async () => {
     try {
       await supabase.auth.signOut();
       // Also clear guest authentication and pin verification for current wedding
@@ -571,9 +571,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-  };
+  }, [currentWeddingSlug]);
 
-  const refreshAuth = async () => {
+  const refreshAuth = React.useCallback(async () => {
     // Prevent multiple simultaneous refresh calls
     if (isRefreshing) {
       return; // Silently skip without logging
@@ -644,12 +644,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   id: guestData.id,
                   email: guestData.email,
                   name: guestData.name,
-                  phone: guestData.phone,
+                  phone: guestData.phone || undefined,
                   initials: generateInitials(guestData.name),
                   avatar_color: generateAvatarColor(guestData.name),
-                  avatar_style: guestData.avatar_style,
-                  avatar_seed: guestData.avatar_seed,
-                  avatar_svg: guestData.avatar_svg,
+                  avatar_style: guestData.avatar_style || undefined,
+                  avatar_seed: guestData.avatar_seed || undefined,
+                  avatar_svg: guestData.avatar_svg || undefined,
                 };
 
                 setUser(fallbackUser);
@@ -676,7 +676,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(false);
       setIsLoading(false); // Ensure loading state is always cleared
     }
-  };
+  }, [isRefreshing, checkAuthStatus, currentWeddingSlug]);
 
   useEffect(() => {
     let mounted = true;

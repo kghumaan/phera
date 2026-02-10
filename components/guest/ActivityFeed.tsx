@@ -78,7 +78,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'rsvps', 
+          table: 'rsvps',
           filter: `wedding_id=eq.${weddingId}`,
         },
         (payload) => {
@@ -111,7 +111,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
   const fetchActivities = async () => {
     try {
       const attendees = await getAttendees(weddingId);
-      
+
       // Convert RSVP data to activity format
       const activityData = attendees.map((rsvp) => ({
         id: rsvp.id,
@@ -128,7 +128,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
 
       // Sort by most recent first
       activityData.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
-      
+
       setActivities(activityData.slice(0, 10)); // Show last 10 activities
     } catch (error) {
       console.error('Error fetching activities:', error);
@@ -141,7 +141,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -185,12 +185,12 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           alignItems: 'center',
         }}
       >
-        <Typography 
-          variant="h6" 
+        <Typography
+          variant="h6"
           fontWeight={600}
-          sx={{ 
-            fontFamily: 'var(--font-instrument-serif)', 
-            color: '#800020' 
+          sx={{
+            fontFamily: 'var(--font-instrument-serif)',
+            color: '#800020'
           }}
         >
           Activity
@@ -199,8 +199,8 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           label={newActivityCount > 0 ? `+${newActivityCount} new!` : `${activities.length} updates`}
           size="small"
           sx={{
-            backgroundColor: newActivityCount > 0 ? 'rgba(76, 175, 80, 0.2)' : 'rgba(128, 0, 32, 0.1)',
-            color: newActivityCount > 0 ? '#4CAF50' : '#800020',
+            backgroundColor: newActivityCount > 0 ? 'rgba(222, 63, 94, 0.2)' : 'rgba(128, 0, 32, 0.1)',
+            color: newActivityCount > 0 ? '#DE3F5E' : '#800020',
             fontWeight: 500,
             transition: 'all 0.3s ease',
           }}
@@ -210,9 +210,9 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
       {/* Activity List */}
       <Stack spacing={0} sx={{ px: 3, pb: 3 }}>
         {activities.length === 0 ? (
-          <Typography 
-            sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }} 
-            textAlign="center" 
+          <Typography
+            sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}
+            textAlign="center"
             py={4}
           >
             No activity yet. Be the first to RSVP! 🎉
@@ -282,10 +282,10 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
                   <IconButton
                     size="small"
                     sx={{
-                      backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                      color: 'success.main',
+                      backgroundColor: 'rgba(222, 63, 94, 0.1)',
+                      color: '#DE3F5E',
                       '&:hover': {
-                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        backgroundColor: 'rgba(222, 63, 94, 0.2)',
                       },
                     }}
                   >

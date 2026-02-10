@@ -1396,7 +1396,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
 
             {isAuthenticated ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <CheckCircleOutlined sx={{ fontSize: 64, color: '#4CAF50', mb: 2 }} />
+                <CheckCircleOutlined sx={{ fontSize: 64, color: '#DE3F5E', mb: 2 }} />
                 <Typography variant="h6" sx={{ color: '#000', fontFamily: 'Outfit', mb: 1 }}>
                   You're all set!
                 </Typography>
@@ -3248,7 +3248,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                 target="_blank"
                 startIcon={<StreamlineIcon name="whatsapp" size={28} />}
                 sx={{
-                  bgcolor: '#25D366',
+                  bgcolor: '#DE3F5E',
                   color: 'white',
                   py: 1.8,
                   borderRadius: '16px',
@@ -3258,7 +3258,7 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
                   fontFamily: 'Outfit',
                   boxShadow: 'none',
                   '&:hover': {
-                    bgcolor: '#20bd5a',
+                    bgcolor: '#C8365A',
                     boxShadow: 'none',
                   },
                 }}

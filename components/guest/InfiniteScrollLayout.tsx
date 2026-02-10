@@ -1,0 +1,1272 @@
+'use client';
+
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Paper,
+} from '@mui/material';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import {
+  LocationOnOutlined,
+  CalendarTodayOutlined,
+  AccessTime,
+  ExpandMore,
+  KeyboardArrowDown,
+} from '@mui/icons-material';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import GuestList from '@/components/guest/GuestList';
+import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
+
+// Types
+interface WeddingData {
+  id: string;
+  couple_name: string;
+  wedding_date: string;
+  wedding_date_display: string;
+  venue_name: string;
+  venue_flag: string;
+  rsvp_deadline: string;
+  welcome_text?: string;
+  primary_color?: string;
+  couple_images?: string[];
+}
+
+interface InfiniteScrollLayoutProps {
+  wedding: WeddingData;
+  weddingSlug: string;
+  isBypassPin: boolean;
+  hasRSVPed: boolean;
+  rsvpResponse?: string;
+  user: any;
+  CountdownTimer: React.ComponentType<{ targetDate: string }>;
+}
+
+interface ScheduleItem {
+  id: string;
+  name: string;
+  time?: string | null;
+  icon?: string | null;
+  description?: string | null;
+  location?: string | null;
+  gradient_background?: string | null;
+  is_major_event?: boolean | null;
+}
+
+interface ScheduleDay {
+  id: string;
+  date: string;
+  day_name: string;
+  events: ScheduleItem[];
+}
+
+interface TravelCard {
+  id: string;
+  title: string;
+  content: any;
+  image_url: string;
+  button_text?: string | null;
+  button_action?: string | null;
+}
+
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+interface RegistryItem {
+  id: string;
+  fund_name: string;
+  emoji: string;
+  external_url: string | null;
+}
+
+interface ShopItem {
+  id: string;
+  name: string;
+  details?: string | null;
+  url?: string | null;
+  image_url?: string | null;
+}
+
+// Scroll-based Couple Image Carousel - changes image based on current section
+const ScrollBasedCarousel = ({
+  images = [],
+  currentSectionIndex = 0,
+  size = 500,
+}: {
+  images?: string[];
+  currentSectionIndex: number;
+  size?: number;
+}) => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayIndex, setDisplayIndex] = useState(0);
+  const previousSection = useRef(0);
+
+  const carouselImages = images.length > 0 ? images : [
+    '/images/couple/couple-1.jpg',
+    '/images/couple/couple-2.jpg',
+    '/images/couple/couple-3.jpeg',
+    '/images/couple/couple-4.jpg',
+    '/images/couple/couple-5.jpg',
+    '/images/couple/couple-7.jpeg',
+    '/images/couple/couple-8.jpg',
+    '/images/couple/couple-9.jpeg'
+  ];
+
+  useEffect(() => {
+    if (currentSectionIndex !== previousSection.current) {
+      setIsTransitioning(true);
+
+      setTimeout(() => {
+        const imageIndex = currentSectionIndex % carouselImages.length;
+        setDisplayIndex(imageIndex);
+        setIsTransitioning(false);
+      }, 300);
+
+      previousSection.current = currentSectionIndex;
+    }
+  }, [currentSectionIndex, carouselImages.length]);
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Image
+        src={carouselImages[displayIndex]}
+        alt="Couple Photo"
+        fill
+        priority={displayIndex === 0}
+        sizes="(max-width: 768px) 320px, 400px"
+        style={{
+          objectFit: 'cover',
+          objectPosition: 'center',
+          transition: 'filter 0.6s ease-in-out',
+          filter: isTransitioning ? 'blur(5px)' : 'blur(0px)',
+        }}
+      />
+    </Box>
+  );
+};
+
+// Compact Guest List - shows limited height with expand option
+const CompactGuestList = ({ weddingId, weddingSlug }: { weddingId: string; weddingSlug?: string }) => {
+  return (
+    <Box sx={{ width: '100%' }}>
+      <GuestList weddingId={weddingId} weddingSlug={weddingSlug} compact initialTab={1} />
+    </Box>
+  );
+};
+
+export default function InfiniteScrollLayout({
+  wedding,
+  weddingSlug,
+  isBypassPin,
+  hasRSVPed,
+  rsvpResponse,
+  user,
+  CountdownTimer,
+}: InfiniteScrollLayoutProps) {
+  const [currentSection, setCurrentSection] = useState(0);
+  const [guestListExpanded, setGuestListExpanded] = useState(false);
+
+  // Section data states
+  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [travelCards, setTravelCards] = useState<TravelCard[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [registry, setRegistry] = useState<RegistryItem[]>([]);
+  const [shops, setShops] = useState<ShopItem[]>([]);
+
+  const [hasSchedule, setHasSchedule] = useState(false);
+  const [hasTravel, setHasTravel] = useState(false);
+  const [hasFAQs, setHasFAQs] = useState(false);
+  const [hasRegistry, setHasRegistry] = useState(false);
+  const [hasShops, setHasShops] = useState(false);
+
+  // Section refs for scroll tracking
+  const homeRef = useRef<HTMLDivElement>(null);
+  const scheduleRef = useRef<HTMLDivElement>(null);
+  const travelRef = useRef<HTMLDivElement>(null);
+  const faqRef = useRef<HTMLDivElement>(null);
+  const registryRef = useRef<HTMLDivElement>(null);
+  const shopRef = useRef<HTMLDivElement>(null);
+
+  const primaryColor = '#DE3F5E'; // Force primary pink as requested
+
+  // Fetch section data
+  useEffect(() => {
+    const fetchSectionData = async () => {
+      if (!wedding.id) return;
+
+      try {
+        const [scheduleData, travelData, faqData, registryData, shopData] = await Promise.all([
+          weddingService.getWeddingSchedule(wedding.id),
+          weddingService.getTravelCards(wedding.id),
+          weddingService.getFAQs(wedding.id),
+          weddingService.getRegistry(wedding.id),
+          weddingService.getShops(wedding.id),
+        ]);
+
+        if (scheduleData && scheduleData.length > 0) {
+          const mappedSchedule: ScheduleDay[] = scheduleData.map(day => ({
+            id: day.id,
+            date: day.date,
+            day_name: day.day_name,
+            events: day.events.map(event => ({
+              id: event.id,
+              name: event.name,
+              time: event.time,
+              icon: event.icon,
+              description: event.description,
+              location: event.location,
+              gradient_background: event.gradient_background,
+              is_major_event: event.is_major_event,
+            })),
+          }));
+          setSchedule(mappedSchedule);
+          setHasSchedule(true);
+        }
+
+        if (travelData && travelData.length > 0) {
+          setTravelCards(travelData as TravelCard[]);
+          setHasTravel(true);
+        }
+
+        if (faqData && faqData.length > 0) {
+          setFaqs(faqData as FAQ[]);
+          setHasFAQs(true);
+        }
+
+        if (registryData && registryData.length > 0) {
+          setRegistry(registryData as RegistryItem[]);
+          setHasRegistry(true);
+        }
+
+        if (shopData && shopData.length > 0) {
+          setShops(shopData as ShopItem[]);
+          setHasShops(true);
+        }
+      } catch (error) {
+        console.error('Error fetching section data:', error);
+      }
+    };
+
+    fetchSectionData();
+  }, [wedding.id]);
+
+  // Scroll tracking for image rotation
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+      const sections = [
+        { ref: homeRef, index: 0 },
+        { ref: scheduleRef, index: 1 },
+        { ref: travelRef, index: 2 },
+        { ref: faqRef, index: 3 },
+        { ref: registryRef, index: 4 },
+        { ref: shopRef, index: 5 },
+      ].filter(s => s.ref.current);
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section.ref.current) {
+          const rect = section.ref.current.getBoundingClientRect();
+          const sectionTop = rect.top + window.scrollY;
+
+          if (scrollPosition >= sectionTop) {
+            setCurrentSection(section.index);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasSchedule, hasTravel, hasFAQs, hasRegistry, hasShops]);
+
+  const coupleData = {
+    names: wedding.couple_name,
+    date: wedding.wedding_date_display,
+    weddingDate: wedding.wedding_date,
+    venue: wedding.venue_name,
+    flag: wedding.venue_flag,
+    rsvpDeadline: wedding.rsvp_deadline,
+    coupleImages: wedding.couple_images || [],
+  };
+
+  // Helper to render travel card content
+  const renderTravelContent = (content: any) => {
+    if (Array.isArray(content)) {
+      return content.map((item, idx) => (
+        <Typography
+          key={idx}
+          variant="body1"
+          sx={{
+            color: '#474747',
+            fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
+            lineHeight: 1.7,
+            mb: idx < content.length - 1 ? 2 : 0,
+          }}
+        >
+          {typeof item === 'string' ? item : JSON.stringify(item)}
+        </Typography>
+      ));
+    }
+    if (typeof content === 'string') {
+      return (
+        <Typography
+          variant="body1"
+          sx={{
+            color: '#474747',
+            fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
+            lineHeight: 1.7,
+          }}
+        >
+          {content}
+        </Typography>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative',
+      }}
+    >
+      {/* Main Content Area */}
+      <Box
+        sx={{
+          display: 'flex',
+          flex: 1,
+          width: '100%',
+          position: 'relative',
+          minHeight: '100vh',
+        }}
+      >
+        {/* Left Side - Fixed Couple Image (Flipped from Right) */}
+        <Box
+          sx={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '40%',
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            pl: { md: 4, lg: 6, xl: 8 },
+            pr: { md: 4, lg: 6, xl: 8 },
+            gap: 3,
+            alignItems: 'center',
+            pointerEvents: 'auto',
+            zIndex: 0,
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: { md: 500, lg: 600, xl: 900 },
+                aspectRatio: '1',
+              }}
+            >
+              <Image
+                src="/images/frames/frame-27.png"
+                alt="Decorative frame"
+                fill
+                priority
+                sizes="(max-width: 1200px) 500px, (max-width: 1600px) 600px, 700px"
+                style={{
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  zIndex: 1,
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '7%',
+                  left: '7%',
+                  width: '87%',
+                  height: '87%',
+                  overflow: 'hidden',
+                  zIndex: 2,
+                }}
+              >
+                <ScrollBasedCarousel
+                  images={coupleData.coupleImages}
+                  currentSectionIndex={currentSection}
+                  size={500}
+                />
+              </Box>
+            </Box>
+          </motion.div>
+        </Box>
+
+        {/* Right Side - Scrollable Content (Flipped from Left) */}
+        <Box
+          sx={{
+            flex: '0 0 60%',
+            ml: '40%', // Offset for fixed left side
+            maxWidth: '60%',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            position: 'relative',
+            zIndex: 1,
+            px: { md: 6, lg: 10, xl: 15 },
+            pt: {
+              md: 'calc(50vh - 250px)',
+              lg: 'calc(50vh - 300px)',
+              xl: 'calc(50vh - 350px)'
+            },
+            pb: { md: 15, lg: 15, xl: 15 },
+          }}
+        >
+          {/* Home Section */}
+          <motion.div
+            ref={homeRef}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            style={{ width: '100%' }}
+          >
+            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 900 } }}>
+              {/* Names */}
+              <Typography
+                variant="h2"
+                sx={{
+                  fontSize: { md: '3.5rem', lg: '4.5rem', xl: '5.5rem' },
+                  color: '#000',
+                  lineHeight: 1.2,
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {coupleData.names}
+              </Typography>
+
+              {/* Date and Action Icons */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: '#000',
+                    fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {coupleData.date}
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <IconButton
+                    sx={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                      border: '1px solid rgba(0, 0, 0, 0.25)',
+                      width: { md: 48, lg: 56, xl: 64 },
+                      height: { md: 48, lg: 56, xl: 64 },
+                      color: '#000',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        borderColor: 'rgba(0, 0, 0, 0.35)',
+                      },
+                    }}
+                    onClick={() => {
+                      const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(coupleData.names)}&location=${encodeURIComponent(coupleData.venue)}&dates=${coupleData.weddingDate.replace(/-/g, '')}/${coupleData.weddingDate.replace(/-/g, '')}`;
+                      window.open(googleCalUrl, '_blank');
+                    }}
+                  >
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' }, color: '#000' }} />
+                  </IconButton>
+                  <IconButton
+                    sx={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                      border: '1px solid rgba(0, 0, 0, 0.25)',
+                      width: { md: 48, lg: 56, xl: 64 },
+                      height: { md: 48, lg: 56, xl: 64 },
+                      color: '#000',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        borderColor: 'rgba(0, 0, 0, 0.35)',
+                      },
+                    }}
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: coupleData.names,
+                          text: `Join us for our wedding on ${coupleData.date}!`,
+                          url: window.location.href,
+                        });
+                      }
+                    }}
+                  >
+                    <Box
+                      component="svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      sx={{
+                        width: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                        height: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                        color: '#000',
+                      }}
+                    >
+                      <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M20 14V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </Box>
+                  </IconButton>
+                </Stack>
+              </Box>
+
+              {/* Location */}
+              <Box
+                onClick={() => {
+                  if ((user && hasRSVPed) || isBypassPin) {
+                    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coupleData.venue)}`;
+                    window.open(mapsUrl, '_blank');
+                  }
+                }}
+                sx={{
+                  cursor: ((user && hasRSVPed) || isBypassPin) ? 'pointer' : 'default',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
+                }}
+              >
+                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }} />
+                {((user && hasRSVPed) || isBypassPin) ? (
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#000',
+                        fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {coupleData.venue}
+                    </Typography>
+                    <Typography sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }}>
+                      {coupleData.flag}
+                    </Typography>
+                  </Stack>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#000',
+                      fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                    }}
+                  >
+                    <strong>RSVP</strong> to see location
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Welcome Text */}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#333',
+                  fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                  lineHeight: 1.6,
+                  maxWidth: { md: 550, lg: 650, xl: 750 },
+                }}
+              >
+                {wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."}
+              </Typography>
+
+              {/* Countdown Timer */}
+              <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                <CountdownTimer targetDate={coupleData.weddingDate} />
+              </Box>
+
+              {/* RSVP Button */}
+              {!isBypassPin && (!user || !hasRSVPed) && (
+                <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
+                    <Button
+                      component={Link}
+                      href={`/${weddingSlug}/rsvp`}
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      sx={{
+                        backgroundColor: primaryColor,
+                        color: 'white',
+                        py: 2,
+                        fontSize: { md: '1.25rem', lg: '1.5rem' },
+                        fontWeight: 600,
+                        borderRadius: '32px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
+                        '&:hover': {
+                          backgroundColor: '#C8365A',
+                          boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
+                        },
+                      }}
+                    >
+                      RSVP
+                    </Button>
+                  </motion.div>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#777',
+                      fontSize: '0.9rem',
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                      mt: 1.5,
+                    }}
+                  >
+                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Guest List - Compact version with expand */}
+              {((user && hasRSVPed) || isBypassPin) && (
+                <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true, margin: '-100px' }}
+                  >
+                    <CompactGuestList weddingId={wedding.id} weddingSlug={weddingSlug} />
+                  </motion.div>
+                </Box>
+              )}
+            </Stack>
+          </motion.div>
+
+          {/* Additional Sections - Only show if RSVP'd */}
+          {((user && hasRSVPed) || isBypassPin) && (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                mt: 8,
+                position: 'relative',
+              }}
+            >
+
+              <Stack
+                spacing={12}
+                sx={{
+                  width: '100%',
+                  maxWidth: { md: 550, lg: 650, xl: 800 },
+                  mx: 'auto',
+                  position: 'relative',
+                  zIndex: 1,
+                  pb: 15,
+                }}
+              >
+                {/* Schedule Section */}
+                {hasSchedule && (
+                  <Box ref={scheduleRef}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                          color: '#000',
+                          mb: 4,
+                        }}
+                      >
+                        Schedule
+                      </Typography>
+
+                      <Stack spacing={6}>
+                        {schedule.map((day) => (
+                          <Box key={day.id}>
+                            <Typography
+                              variant="h4"
+                              sx={{
+                                fontFamily: 'var(--font-instrument-serif)',
+                                fontStyle: 'italic',
+                                color: '#000',
+                                mb: 4,
+                                fontSize: { md: '1.75rem', lg: '2rem' },
+                                textAlign: 'center',
+                              }}
+                            >
+                              {day.day_name}, {day.date}
+                            </Typography>
+
+                            <Box sx={{ position: 'relative', pl: 7 }}>
+                              {/* Vertical Timeline Line */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  left: 7.5, // Center of the 15px icon/dot
+                                  top: 10,
+                                  bottom: 10,
+                                  width: '1px',
+                                  backgroundColor: '#E5E5E5',
+                                  zIndex: 0,
+                                }}
+                              />
+
+                              <Stack spacing={4}>
+                                {day.events.map((event) => {
+                                  const isMajor = event.is_major_event;
+                                  const bgUrl = event.gradient_background ? `/images/backgrounds/${event.gradient_background}` : null;
+
+                                  return (
+                                    <Box key={event.id} sx={{ position: 'relative' }}>
+                                      {/* Timeline Node */}
+                                      <Box
+                                        sx={{
+                                          position: 'absolute',
+                                          left: -53, // Adjust for 1px line + 8px dot
+                                          top: isMajor ? 54 : 6,
+                                          width: isMajor ? 12 : 8,
+                                          height: isMajor ? 12 : 8,
+                                          borderRadius: '50%',
+                                          backgroundColor: isMajor ? '#111' : '#D1D1D1',
+                                          zIndex: 2,
+                                        }}
+                                      />
+
+                                      <Paper
+                                        elevation={isMajor ? 4 : 0}
+                                        sx={{
+                                          flex: 1,
+                                          p: isMajor ? 5 : 0,
+                                          mb: isMajor ? 3 : 0,
+                                          backgroundColor: isMajor ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+                                          backgroundImage: bgUrl ? `linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)), url(${bgUrl})` : 'none',
+                                          backgroundSize: 'cover',
+                                          backgroundPosition: 'center',
+                                          borderRadius: isMajor ? '24px' : 0,
+                                          border: isMajor ? 'none' : 'none',
+                                          position: 'relative',
+                                          overflow: 'hidden',
+                                          boxShadow: isMajor ? '0 10px 40px rgba(0,0,0,0.08)' : 'none',
+                                          transition: 'transform 0.3s ease',
+                                          '&:hover': isMajor ? { transform: 'scale(1.01)' } : {},
+                                        }}
+                                      >
+                                        <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                          <Typography
+                                            variant={isMajor ? "h4" : "body1"}
+                                            sx={{
+                                              fontFamily: isMajor ? 'var(--font-instrument-serif)' : 'Outfit',
+                                              fontWeight: isMajor ? 600 : 500,
+                                              fontStyle: isMajor ? 'italic' : 'normal',
+                                              color: '#141414',
+                                              fontSize: isMajor ? { md: '2.25rem', lg: '2.5rem' } : '1.125rem',
+                                              mb: 1,
+                                              lineHeight: 1.1,
+                                            }}
+                                          >
+                                            {event.name}
+                                          </Typography>
+
+                                          {event.time && (
+                                            <Typography
+                                              variant="body2"
+                                              sx={{
+                                                color: isMajor ? '#000' : '#888',
+                                                fontFamily: 'Outfit',
+                                                fontSize: isMajor ? '1.25rem' : '0.95rem',
+                                                fontWeight: isMajor ? 600 : 400,
+                                                mb: 1,
+                                                letterSpacing: isMajor ? '0.5px' : 'normal',
+                                              }}
+                                            >
+                                              {event.time}
+                                            </Typography>
+                                          )}
+
+                                          {isMajor && event.description && (
+                                            <Typography
+                                              variant="body1"
+                                              sx={{
+                                                color: '#333',
+                                                lineHeight: 1.6,
+                                                mt: 3,
+                                                mb: 3,
+                                                fontFamily: 'Outfit',
+                                                maxWidth: '95%',
+                                                fontSize: '1.2rem',
+                                              }}
+                                            >
+                                              {event.description}
+                                            </Typography>
+                                          )}
+
+                                          {isMajor && event.location && (
+                                            <Stack direction="row" spacing={1} alignItems="center">
+                                              <LocationOnOutlined sx={{ fontSize: 24, color: '#111' }} />
+                                              <Typography
+                                                sx={{
+                                                  color: '#111',
+                                                  fontSize: '1.125rem',
+                                                  fontFamily: 'Outfit',
+                                                  fontWeight: 500,
+                                                }}
+                                              >
+                                                {event.location}
+                                              </Typography>
+                                            </Stack>
+                                          )}
+                                        </Box>
+                                      </Paper>
+                                    </Box>
+                                  );
+                                })}
+                              </Stack>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </motion.div>
+                  </Box>
+                )}
+
+                {/* Travel & Stay Section */}
+                {hasTravel && (
+                  <Box ref={travelRef}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                          color: '#000',
+                          mb: 4,
+                        }}
+                      >
+                        Travel & Stay
+                      </Typography>
+
+                      <Stack spacing={4}>
+                        {travelCards.map((card) => (
+                          <Paper
+                            key={card.id}
+                            elevation={0}
+                            sx={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              borderRadius: 2, // 16px
+                              overflow: 'hidden',
+                              border: '1px solid rgba(0,0,0,0.08)',
+                            }}
+                          >
+                            {card.image_url && (
+                              <Box sx={{ position: 'relative', width: '100%', height: 450 }}>
+                                <Image
+                                  src={card.image_url}
+                                  alt={card.title}
+                                  fill
+                                  priority
+                                  style={{ objectFit: 'cover' }}
+                                />
+                              </Box>
+                            )}
+                            <Box sx={{ p: 4 }}>
+                              <Typography
+                                variant="h5"
+                                sx={{
+                                  fontFamily: 'Outfit',
+                                  fontWeight: 600,
+                                  color: '#141414',
+                                  mb: 2,
+                                  fontSize: { md: '1.5rem', lg: '1.75rem' },
+                                }}
+                              >
+                                {card.title}
+                              </Typography>
+                              <Box sx={{ fontSize: '1.1rem', lineHeight: 1.6, color: '#333' }}>
+                                {renderTravelContent(card.content)}
+                              </Box>
+                              {card.button_text && card.button_action && (
+                                <Button
+                                  onClick={() => window.open(card.button_action!, '_blank')}
+                                  variant="contained"
+                                  sx={{
+                                    mt: 3,
+                                    bgcolor: primaryColor,
+                                    color: 'white',
+                                    textTransform: 'none',
+                                    borderRadius: '32px',
+                                    px: 4,
+                                    py: 1,
+                                    fontWeight: 600,
+                                    fontSize: '1rem',
+                                    '&:hover': {
+                                      bgcolor: primaryColor,
+                                      opacity: 0.9,
+                                    },
+                                  }}
+                                >
+                                  {card.button_text}
+                                </Button>
+                              )}
+                            </Box>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </motion.div>
+                  </Box>
+                )}
+
+                {/* Q&A Section */}
+                {hasFAQs && (
+                  <Box ref={faqRef}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                          color: '#000',
+                          mb: 4,
+                        }}
+                      >
+                        Q & A
+                      </Typography>
+
+                      <Stack spacing={2}>
+                        {faqs.map((faq) => (
+                          <Accordion
+                            key={faq.id}
+                            elevation={0}
+                            sx={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              borderRadius: '16px !important',
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              '&:before': { display: 'none' },
+                              '&.Mui-expanded': {
+                                margin: 0,
+                                borderColor: primaryColor,
+                              },
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                borderColor: primaryColor,
+                                backgroundColor: 'white',
+                              }
+                            }}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMore sx={{ color: primaryColor }} />}
+                              sx={{
+                                px: 3,
+                                py: 1,
+                                '& .MuiAccordionSummary-content': { my: 2 },
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Outfit',
+                                  fontWeight: 600,
+                                  color: '#141414',
+                                  fontSize: { md: '1.25rem', lg: '1.4rem' },
+                                }}
+                              >
+                                {faq.question}
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ px: 3, pt: 0, pb: 4 }}>
+                              <Typography
+                                sx={{
+                                  color: '#333',
+                                  fontSize: '1.15rem',
+                                  lineHeight: 1.7,
+                                  fontFamily: 'Outfit',
+                                }}
+                              >
+                                {faq.answer}
+                              </Typography>
+                            </AccordionDetails>
+                          </Accordion>
+                        ))}
+                      </Stack>
+                    </motion.div>
+                  </Box>
+                )}
+
+                {/* Registry Section */}
+                {hasRegistry && (
+                  <Box ref={registryRef}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                          color: '#000',
+                          mb: 2,
+                        }}
+                      >
+                        Registry
+                      </Typography>
+
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: '#666',
+                          fontSize: { md: '1rem', lg: '1.125rem' },
+                          lineHeight: 1.7,
+                          mb: 4,
+                        }}
+                      >
+                        Your presence is enough of a present to us! But for those of you who are stubborn, we&apos;ve put together a wish-list to help you out.
+                      </Typography>
+
+                      <Stack spacing={2}>
+                        {registry.map((item) => (
+                          <Button
+                            key={item.id}
+                            onClick={() => item.external_url && window.open(item.external_url, '_blank')}
+                            variant="contained"
+                            fullWidth
+                            sx={{
+                              bgcolor: primaryColor,
+                              color: 'white',
+                              py: 2,
+                              borderRadius: '32px',
+                              fontSize: { md: '1.1rem', lg: '1.25rem' },
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              px: 4,
+                              boxShadow: '0 4px 14px rgba(222, 63, 94, 0.25)',
+                              '&:hover': {
+                                bgcolor: primaryColor,
+                                opacity: 0.9,
+                                boxShadow: '0 6px 20px rgba(222, 63, 94, 0.35)',
+                              },
+                            }}
+                          >
+                            <span style={{ marginRight: 12, fontSize: '1.5rem' }}>{item.emoji}</span>
+                            {item.fund_name}
+                          </Button>
+                        ))}
+                      </Stack>
+                    </motion.div>
+                  </Box>
+                )}
+
+                {/* Where to Shop Section */}
+                {hasShops && (
+                  <Box ref={shopRef}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                          color: '#000',
+                          mb: 4,
+                        }}
+                      >
+                        Where to Shop
+                      </Typography>
+
+                      <Stack spacing={3}>
+                        {shops.map((shop) => (
+                          <Paper
+                            key={shop.id}
+                            elevation={0}
+                            sx={{
+                              p: 3,
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              borderRadius: 2,
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              cursor: shop.url ? 'pointer' : 'default',
+                              transition: 'all 0.3s ease',
+                              '&:hover': shop.url ? {
+                                backgroundColor: 'white',
+                                borderColor: primaryColor,
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                                transform: 'translateY(-2px)',
+                              } : {},
+                            }}
+                            onClick={() => shop.url && window.open(shop.url, '_blank')}
+                          >
+                            <Box sx={{
+                              display: 'flex',
+                              flexDirection: { xs: 'column', sm: 'row' },
+                              alignItems: { xs: 'flex-start', sm: 'center' },
+                              justifyContent: 'space-between',
+                              gap: 3
+                            }}>
+                              <Stack direction="row" spacing={3} alignItems="center" sx={{ flex: 1 }}>
+                                {shop.image_url && (
+                                  <Box
+                                    sx={{
+                                      width: 100,
+                                      height: 100,
+                                      borderRadius: 2,
+                                      overflow: 'hidden',
+                                      position: 'relative',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <Image
+                                      src={shop.image_url}
+                                      alt={shop.name}
+                                      fill
+                                      style={{ objectFit: 'cover' }}
+                                    />
+                                  </Box>
+                                )}
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography
+                                    variant="h6"
+                                    sx={{
+                                      fontFamily: 'Outfit',
+                                      fontWeight: 600,
+                                      color: '#141414',
+                                      fontSize: { md: '1.25rem', lg: '1.4rem' },
+                                      mb: 0.5,
+                                    }}
+                                  >
+                                    {shop.name}
+                                  </Typography>
+                                  {shop.details && (
+                                    <Typography
+                                      sx={{
+                                        color: '#444',
+                                        fontSize: '1.1rem',
+                                        lineHeight: 1.5,
+                                        fontFamily: 'Outfit',
+                                      }}
+                                    >
+                                      {shop.details}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </Stack>
+                              {shop.url && (
+                                <Button
+                                  variant="outlined"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(shop.url!, '_blank');
+                                  }}
+                                  sx={{
+                                    borderColor: primaryColor,
+                                    color: primaryColor,
+                                    borderRadius: '32px',
+                                    textTransform: 'none',
+                                    px: 4,
+                                    py: 1.2,
+                                    fontSize: '1rem',
+                                    fontWeight: 600,
+                                    flexShrink: 0,
+                                    alignSelf: { xs: 'stretch', sm: 'center' },
+                                    '&:hover': {
+                                      borderColor: primaryColor,
+                                      bgcolor: 'rgba(222, 63, 94, 0.05)',
+                                    }
+                                  }}
+                                >
+                                  Visit Store
+                                </Button>
+                              )}
+                            </Box>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </motion.div>
+                  </Box>
+                )}
+
+                {/* Change RSVP */}
+                <Box sx={{ pt: 4 }}>
+                  <Button
+                    component={Link}
+                    href={`/${weddingSlug}/rsvp`}
+                    variant="outlined"
+                    sx={{
+                      color: primaryColor,
+                      borderColor: primaryColor,
+                      fontSize: '1rem',
+                      textTransform: 'none',
+                      borderRadius: '32px',
+                      px: 4,
+                      fontWeight: 600,
+                      '&:hover': {
+                        borderColor: primaryColor,
+                        bgcolor: 'rgba(222, 63, 94, 0.05)',
+                      },
+                    }}
+                  >
+                    Change RSVP
+                  </Button>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+        </Box>
+
+
+      </Box>
+    </Box>
+  );
+}

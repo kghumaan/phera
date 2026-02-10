@@ -10,7 +10,8 @@ import {
   Stack,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -20,10 +21,11 @@ import {
   CalendarTodayOutlined,
   Logout as LogoutIcon
 } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
 import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
+import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
 import LoginModal from '@/components/auth/LoginModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -280,13 +282,40 @@ export default function HomePage() {
     rsvpDeadline: wedding?.rsvp_deadline || WEDDING_CONFIG.rsvpDeadline,
     coupleImage: wedding?.couple_image_url || WEDDING_CONFIG.coupleImage,
     frameImage: wedding?.frame_image_url || WEDDING_CONFIG.frameImage,
-    coupleImages: wedding?.couple_images || []
+    coupleImages: (Array.isArray(wedding?.couple_images) ? wedding.couple_images : []) as string[]
   };
 
   // Pin verification state
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isCheckingPin, setIsCheckingPin] = useState(true);
   const [isBypassPin, setIsBypassPin] = useState(false);
+
+  // Header visibility on scroll — use ref + DOM manipulation to avoid re-renders
+  const headerRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (headerRef.current) {
+        if (currentScrollY < 50) {
+          headerRef.current.style.transform = 'translateY(0)';
+        } else if (currentScrollY > lastScrollY.current) {
+          headerRef.current.style.transform = 'translateY(-120px)';
+        } else if (currentScrollY < lastScrollY.current) {
+          headerRef.current.style.transform = 'translateY(0)';
+        }
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Consolidated loading state - wait for ALL checks to complete
   // IMPORTANT: Also consider loading if user exists but RSVP check is actively running
@@ -635,7 +664,43 @@ export default function HomePage() {
   }
 
   // Desktop layout component
-  const DesktopLayout = () => (
+  // --- Layout Components ---
+
+  interface LayoutProps {
+    isNavigating: boolean;
+    coupleData: any;
+    isPageLoading: boolean;
+    user: any;
+    hasRSVPed: boolean;
+    isPinVerified: boolean;
+    isBypassPin: boolean;
+    weddingId: string;
+    weddingSlug: string;
+    wedding: any;
+    refreshAuth: () => void;
+    setIsPinVerified: (v: boolean) => void;
+    setIsNavigating: (v: boolean) => void;
+    router: any;
+    isMobile: boolean;
+  }
+
+  const DesktopLayout = ({
+    isNavigating,
+    coupleData,
+    isPageLoading,
+    user,
+    hasRSVPed,
+    isPinVerified,
+    isBypassPin,
+    weddingId,
+    weddingSlug,
+    wedding,
+    refreshAuth,
+    setIsPinVerified,
+    setIsNavigating,
+    router,
+    isMobile
+  }: LayoutProps) => (
     <Box
       sx={{
         display: 'flex',
@@ -1064,7 +1129,23 @@ export default function HomePage() {
   );
 
   // Mobile layout component (existing layout)
-  const MobileLayout = () => (
+  const MobileLayout = ({
+    isNavigating,
+    coupleData,
+    isPageLoading,
+    user,
+    hasRSVPed,
+    isPinVerified,
+    isBypassPin,
+    weddingId,
+    weddingSlug,
+    wedding,
+    refreshAuth,
+    setIsPinVerified,
+    setIsNavigating,
+    router,
+    isMobile
+  }: LayoutProps) => (
     <>
       {/* Loading Overlay */}
       {isNavigating && (
@@ -1246,28 +1327,93 @@ export default function HomePage() {
     </>
   );
 
+  // Check if infinite scroll layout should be used (desktop only)
+  const useInfiniteScroll = !isMobile && wedding?.website_layout === 'infinite_scroll';
+
+  // Render layout (Nested, Mobile, or Infinite Scroll)
+  const renderLayout = () => {
+    const commonProps: LayoutProps = {
+      isNavigating,
+      coupleData,
+      isPageLoading,
+      user,
+      hasRSVPed,
+      isPinVerified,
+      isBypassPin,
+      weddingId,
+      weddingSlug,
+      wedding,
+      refreshAuth,
+      setIsPinVerified,
+      setIsNavigating,
+      router,
+      isMobile
+    };
+
+    if (useInfiniteScroll && wedding) {
+      return (
+        <>
+          <div
+            ref={headerRef}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              transition: 'transform 0.3s ease-in-out',
+            }}
+          >
+            <AppHeader variant="transparent" />
+          </div>
+          <InfiniteScrollLayout
+            wedding={{
+              id: wedding.id,
+              couple_name: wedding.couple_name,
+              wedding_date: wedding.wedding_date,
+              wedding_date_display: wedding.wedding_date_display,
+              venue_name: wedding.venue_name,
+              venue_flag: wedding.venue_flag || '',
+              rsvp_deadline: wedding.rsvp_deadline,
+              welcome_text: wedding.welcome_text || undefined,
+              primary_color: wedding.primary_color || undefined,
+              couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
+            }}
+            weddingSlug={weddingSlug}
+            isBypassPin={isBypassPin}
+            hasRSVPed={hasRSVPed}
+            rsvpResponse={rsvpResponse || undefined}
+            user={user}
+            CountdownTimer={CountdownTimer}
+          />
+        </>
+      );
+    }
+
+    return isMobile ? <MobileLayout {...commonProps} /> : <DesktopLayout {...commonProps} />;
+  };
+
   return (
     <OptimizedBackground
-      src={wedding?.background_image}
+      src={wedding?.background_image || undefined}
       useAppDefault={!wedding?.background_image}
       className="min-h-screen flex flex-col"
     >
-      {/* Render desktop or mobile layout based on breakpoint */}
-      {isMobile ? <MobileLayout /> : <DesktopLayout />}
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <Box sx={{ position: 'fixed', inset: 0, bgcolor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <LoadingSpinner />
+        </Box>
+      )}
 
-      {/* User Menu */}
+      {renderLayout()}
+
+      {/* Shared Modals and Menus */}
       <Menu
         anchorEl={userMenuAnchor}
         open={Boolean(userMenuAnchor)}
         onClose={() => setUserMenuAnchor(null)}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            minWidth: 150,
-            borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          }
-        }}
+        PaperProps={{ sx: { mt: 1, minWidth: 150, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } }}
       >
         <MenuItem onClick={handleSignOut}>
           <LogoutIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
@@ -1275,143 +1421,49 @@ export default function HomePage() {
         </MenuItem>
       </Menu>
 
-      {/* Login Modal */}
-      <LoginModal
-        open={loginDialogOpen}
-        onClose={() => setLoginDialogOpen(false)}
-        onSuccess={() => {
-          // Optional: Show success message or refresh data
-          console.log('Login successful');
-        }}
-      />
+      <LoginModal open={loginDialogOpen} onClose={() => setLoginDialogOpen(false)} />
 
-      {/* Sticky RSVP Footer - Show when pin verified and either not authenticated or authenticated but not RSVP'd (but NOT for bypass PIN users) */}
-      {/* Only show on mobile, desktop has inline buttons */}
-      {isMobile && !isPageLoading && isPinVerified && !isBypassPin && (!user || !hasRSVPed) && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 4,
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-            px: 2,
-            py: 2,
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
-          }}
-        >
+      {/* Sticky Bottom Actions (Mobile only) */}
+      {isMobile && !isPageLoading && isPinVerified && !isBypassPin && (
+        <Box sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 4, bgcolor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', borderTop: '1px solid rgba(0, 0, 0, 0.1)', px: 2, py: 2 }}>
           <Container maxWidth="sm">
             <Stack spacing={1.5} alignItems="center">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{ width: '100%' }}
-              >
-                <Button
-                  component={Link}
-                  href={`/${weddingSlug}/rsvp`}
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  sx={{
-                    backgroundColor: wedding?.primary_color || '#DE3F5E',
-                    color: 'white',
-                    py: 2,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: '32px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
-                    '&:hover': {
-                      backgroundColor: '#C8365A',
-                      boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
-                    },
-                  }}
-                >
-                  RSVP
-                </Button>
-              </motion.div>
-
-              {/* RSVP Deadline */}
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#777',
-                  fontSize: '0.9rem',
-                  textAlign: 'center',
-                  lineHeight: 1.4,
-                }}
-              >
-                Let us know you&apos;re coming by {coupleData.rsvpDeadline}
-              </Typography>
+              {(!user || !hasRSVPed) ? (
+                <>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
+                    <Button
+                      component={Link}
+                      href={`/${weddingSlug}/rsvp`}
+                      variant="contained"
+                      fullWidth
+                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 2, borderRadius: '32px' }}
+                    >
+                      RSVP
+                    </Button>
+                  </motion.div>
+                  <Typography variant="body2" color="#777">
+                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
+                  </Typography>
+                </>
+              ) : (
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
+                  <Button
+                    onClick={() => { setIsNavigating(true); router.push(`/${weddingSlug}/details`); }}
+                    variant="contained"
+                    fullWidth
+                    disabled={isNavigating}
+                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '16px' }}
+                  >
+                    View Details
+                  </Button>
+                </motion.div>
+              )}
             </Stack>
           </Container>
         </Box>
       )}
 
-      {/* View Details Button - Show when user has RSVP'd OR using bypass PIN */}
-      {/* Only show on mobile, desktop has inline buttons */}
-      {isMobile && !isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 4,
-            backgroundColor: 'rgba(255, 255, 255, 0.4)',
-            backdropFilter: 'blur(4px)',
-            borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-            px: 2,
-            py: 2,
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <Container maxWidth="sm">
-            <Stack spacing={1} alignItems="center">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{ width: '100%' }}
-              >
-                <Button
-                  onClick={() => {
-                    setIsNavigating(true);
-                    router.push(`/${weddingSlug}/details`);
-                  }}
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  disabled={isNavigating}
-                  sx={{
-                    backgroundColor: wedding?.primary_color || '#DE3F5E',
-                    color: 'white',
-                    py: 1.5,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    borderRadius: '16px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
-                    '&:hover': {
-                      backgroundColor: '#C8365A',
-                    },
-                  }}
-                >
-                  View Details
-                </Button>
-              </motion.div>
-            </Stack>
-          </Container>
-        </Box>
-      )}
-
-      {/* Add bottom padding to prevent content from being hidden behind sticky footer - only on mobile */}
       {isMobile && <Box sx={{ height: 100 }} />}
     </OptimizedBackground>
   );
-} 
+}
