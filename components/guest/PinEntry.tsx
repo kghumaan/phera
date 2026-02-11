@@ -8,17 +8,21 @@ import {
   TextField,
   Stack,
   InputAdornment,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoginModal from '@/components/auth/LoginModal';
 
 interface PinEntryProps {
   onPinVerified: () => void;
   weddingSlug: string;
+  isPreview?: boolean;
 }
 
 interface PinCode {
@@ -34,12 +38,13 @@ interface WeddingSettings {
 
 
 
-const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
+const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [showPreviewToast, setShowPreviewToast] = useState(false);
 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState<string | null>(null);
@@ -50,7 +55,8 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
   const [coupleName, setCoupleName] = useState('');
 
-  const { refreshAuth, user, isLoading } = useAuth();
+  const { refreshAuth, user, isLoading: authLoading } = useAuth();
+  const { wedding: contextWedding, isLoading: weddingLoading } = useWedding();
   const inputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -59,36 +65,36 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   ];
 
   const handlePinChange = (index: number, value: string) => {
-    // Handle multiple digits (paste or fast typing)
-    if (value.length > 1) {
-      // Extract only digits and take up to 4
+    // Handle paste or multi-character input (typically only at index 0 or if first char is empty)
+    if (value.length > 1 && (index === 0 || pin[index] === '')) {
       const digits = value.replace(/[^0-9]/g, '').slice(0, 4);
       if (digits.length > 0) {
-        const newPin = ['', '', '', ''];
-        // Fill the pin array with the digits
-        for (let i = 0; i < digits.length && i < 4; i++) {
-          newPin[i] = digits[i];
+        const newPin = [...pin];
+        for (let i = 0; i < digits.length && (index + i) < 4; i++) {
+          newPin[index + i] = digits[i];
         }
         setPin(newPin);
         setError(false);
 
-        // Focus the next empty field or the last field
-        const nextIndex = Math.min(digits.length, 3);
+        const nextIndex = Math.min(index + digits.length, 3);
         inputRefs[nextIndex].current?.focus();
       }
       return;
     }
 
     // Handle single digit input
-    if (value && !/^[0-9]$/.test(value)) return;
+    const digit = value.replace(/[^0-9]/g, '').slice(-1); // Take only the last character typed
+
+    // If no digit found and value isn't empty (meaning they typed a non-digit)
+    if (!digit && value !== '') return;
 
     const newPin = [...pin];
-    newPin[index] = value;
+    newPin[index] = digit;
     setPin(newPin);
     setError(false);
 
-    // Auto-focus next input
-    if (value && index < 3) {
+    // Auto-focus next input if we just typed a digit
+    if (digit && index < 3) {
       inputRefs[index + 1].current?.focus();
     }
   };
@@ -122,6 +128,19 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   // Fetch wedding settings and customizations on mount
   useEffect(() => {
     const fetchWeddingSettings = async () => {
+      // If we have context wedding (preview mode), use it and skip fetch
+      if (contextWedding) {
+        setCoupleName(contextWedding.couple_name || '');
+        setPinEntryText(contextWedding.pin_entry_text || '');
+        setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text || '');
+        setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
+        setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
+        setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
+        setIsLoadingSettings(false);
+        return;
+      }
+
       setIsLoadingSettings(true);
       try {
         // Get the wedding data including pin entry customizations
@@ -141,7 +160,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         setCoupleName(wedding.couple_name || '');
 
         // Set pin entry customizations with defaults
-        const defaultText = `Please join ${wedding.couple_name} on their special night`;
+        const defaultText = "You're invited!";
         const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
 
         setPinEntryText(wedding.pin_entry_text || defaultText);
@@ -166,7 +185,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
 
         // If no settings exist yet, use empty pin_codes (admin hasn't configured PINs)
         if (settings && settings.pin_codes) {
-          setWeddingSettings({ pin_codes: settings.pin_codes as PinCode[] });
+          setWeddingSettings({ pin_codes: settings.pin_codes as unknown as PinCode[] });
         } else {
           setWeddingSettings({ pin_codes: [] });
         }
@@ -178,9 +197,27 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
     };
 
     fetchWeddingSettings();
-  }, [weddingSlug]);
+  }, [weddingSlug, contextWedding]);
+
+  // Real-time update effect specifically for preview
+  useEffect(() => {
+    if (contextWedding) {
+      setCoupleName(contextWedding.couple_name || '');
+      setPinEntryText(contextWedding.pin_entry_text);
+      setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text);
+      setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.png');
+      setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
+      setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
+      setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
+    }
+  }, [contextWedding]);
 
   const handleContinue = async () => {
+    if (isPreview) {
+      setShowPreviewToast(true);
+      return;
+    }
+
     const enteredPin = pin.join('');
 
     if (!weddingSettings || !weddingSettings.pin_codes) {
@@ -220,7 +257,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
   };
 
   const isPinComplete = pin.every(digit => digit !== '');
-  const isReady = !isLoadingSettings && weddingSettings !== null;
+  const isReady = isPreview || (!isLoadingSettings && weddingSettings !== null);
 
   const handleLogin = () => {
     setLoginDialogOpen(true);
@@ -330,7 +367,7 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         authSubscription.unsubscribe();
       }
     };
-  }, [user, isLoading, onPinVerified, weddingSlug]);
+  }, [user, authLoading, onPinVerified, weddingSlug]);
 
   // Generate display text with couple name replacement
   const displayText = pinEntryText
@@ -694,12 +731,20 @@ const PinEntry = ({ onPinVerified, weddingSlug }: PinEntryProps) => {
         </motion.div>
       </Container>
 
-      {/* Login Modal */}
-      <LoginModal
-        open={loginDialogOpen}
-        onClose={() => setLoginDialogOpen(false)}
-        onSuccess={handleLoginSuccess}
-      />
+      <Snackbar
+        open={showPreviewToast}
+        autoHideDuration={6000}
+        onClose={() => setShowPreviewToast(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setShowPreviewToast(false)}
+          severity="info"
+          sx={{ width: '100%', borderRadius: '12px', fontWeight: 500 }}
+        >
+          In the live site, this would redirect you to the wedding website if the invitation code matches.
+        </Alert>
+      </Snackbar>
     </OptimizedBackground>
   );
 };

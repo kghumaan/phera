@@ -2,7 +2,9 @@ import { supabase } from './client';
 import { Tables, TablesInsert, TablesUpdate } from './types';
 
 // Types for wedding data
-export type Wedding = Tables<'weddings'>;
+export type Wedding = Tables<'weddings'> & {
+  previewMode?: 'main' | 'lock_screen';
+};
 
 export type CarouselSlide = {
   type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual';

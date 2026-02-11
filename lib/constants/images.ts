@@ -8,69 +8,129 @@
 
 // Background Images - EXPANDED COLLECTION ✅
 export const BACKGROUNDS = {
-  // Legacy paths (DEPRECATED - use optimized versions)
-  BLUE_CLOUDS_LEGACY: '/design-reference/backgrounds/BlueClouds.png',
-  GREEN_LEGACY: '/design-reference/backgrounds/Green.png',
-  
-  // OPTIMIZED versions (USE THESE!) - 98% smaller!
-  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg', // Optimized watercolor blue sky - 133KB @ 1920x1080
-  GREEN: '/images/backgrounds/green.jpg', // 6.0MB → 199KB
-  ROSE: '/images/backgrounds/rose.jpg', // Rose background
-  
-  // Event-specific backgrounds
-  HALDI: '/images/backgrounds/haldi-optimized.jpg',
-  HALDI_2: '/images/backgrounds/haldi2-optimized.jpg',
-  MEHNDI: '/images/backgrounds/mehndi-optimized.jpg',
-  JAGGO: '/images/backgrounds/jaggo-optimized.jpg',
-  JAGGO_2: '/images/backgrounds/jaggo2-optimized.jpg',
-  POOL: '/images/backgrounds/pool-optimized.jpg',
-  POOL_2: '/images/backgrounds/pool2-optimized.jpg',
-  
-  // New AI-generated variations (to be added)
+  // OPTIMIZED versions (USE THESE!)
+  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg',
+
+
+  // Premium Collection
+  PEARL: '/images/backgrounds/pearl.png',
+  JADE: '/images/backgrounds/jade.png',
+  ROSE_QUARTZ: '/images/backgrounds/rose-quartz.png',
+  LAVENDER: '/images/backgrounds/lavender.png',
+  SUNSET: '/images/backgrounds/sunset.png',
+  TROPICAL_SAGE: '/images/backgrounds/tropical-sage.png',
+  MARBLE_GOLD: '/images/backgrounds/marble-gold.png',
+  PRESSED_FLOWERS_SUBTLE: '/images/backgrounds/pressed-flowers-subtle.png',
+  PRESSED_FLOWERS_FADED: '/images/backgrounds/pressed-flowers-faded.png',
+  HANDMADE_PAPER_FLORAL: '/images/backgrounds/handmade-paper-floral.png',
+  AQUAMARINE: '/images/backgrounds/aquamarine.png',
+  SANDSTONE_BEIGE: '/images/backgrounds/sandstone-beige.png',
+  CITRINE_QUARTZ: '/images/backgrounds/citrine-quartz.png',
+  AVENTURINE_GREEN: '/images/backgrounds/aventurine-green.png',
+  PRESSED_FLOWERS_TEXTURED: '/images/backgrounds/pressed-flowers-textured.png',
+  LOTUS_PETALS: '/images/backgrounds/lotus-petals.png',
+  OCEAN_WAVES: '/images/backgrounds/ocean-waves.png',
+  AMETHYST_LAVENDER: '/images/backgrounds/amethyst-lavender.png',
+  MOONSTONE_SHIMMER: '/images/backgrounds/moonstone-shimmer.png',
+  SAGE_WATERCOLOR: '/images/backgrounds/sage-watercolor.png',
+  BAMBOO_SAGE: '/images/backgrounds/bamboo-sage.png',
+  WATERCOLOR_BLUE_SKY: '/images/backgrounds/watercolor-blue-sky.png',
+  PERIWINKLE_PINK_SUNSET: '/images/backgrounds/periwinkle-pink-sunset.png',
+
+  // Collections
+  PREMIUM_COLLECTION: [
+    '/images/backgrounds/tropical-sage.png',
+    '/images/backgrounds/marble-gold.png',
+    '/images/backgrounds/pressed-flowers-subtle.png',
+    '/images/backgrounds/pressed-flowers-faded.png',
+    '/images/backgrounds/handmade-paper-floral.png',
+    '/images/backgrounds/aquamarine.png',
+    '/images/backgrounds/sandstone-beige.png',
+    '/images/backgrounds/citrine-quartz.png',
+    '/images/backgrounds/aventurine-green.png',
+    '/images/backgrounds/pressed-flowers-textured.png',
+    '/images/backgrounds/lotus-petals.png',
+    '/images/backgrounds/rose-quartz.png',
+    '/images/backgrounds/ocean-waves.png',
+    '/images/backgrounds/jade.png',
+    '/images/backgrounds/amethyst-lavender.png',
+    '/images/backgrounds/lavender.png',
+    '/images/backgrounds/moonstone-shimmer.png',
+    '/images/backgrounds/pearl.png',
+    '/images/backgrounds/sunset.png',
+    '/images/backgrounds/sage-watercolor.png',
+    '/images/backgrounds/bamboo-sage.png',
+    '/images/backgrounds/watercolor-blue-sky.png',
+    '/images/backgrounds/periwinkle-pink-sunset.png'
+  ],
+
   BLUE_VARIANTS: [
     '/images/backgrounds/blue-clouds-01.jpg',
     '/images/backgrounds/blue-clouds-02.jpg',
     '/images/backgrounds/blue-clouds-03.jpg',
     '/images/backgrounds/blue-clouds-04.jpg',
     '/images/backgrounds/blue-clouds-05.jpg',
-    // ... up to 20 variations
   ],
-  
+
   GREEN_VARIANTS: [
     '/images/backgrounds/green-01.jpg',
     '/images/backgrounds/green-02.jpg',
     '/images/backgrounds/green-03.jpg',
     '/images/backgrounds/green-04.jpg',
     '/images/backgrounds/green-05.jpg',
-    // ... up to 20 variations
   ],
-  
-  // Traditional Indian wedding colors
+
   MARIGOLD_COLLECTION: [
     '/images/backgrounds/marigold-01.jpg',
     '/images/backgrounds/marigold-02.jpg',
-    // ... variations
   ],
-  
+
   PURPLE_COLLECTION: [
     '/images/backgrounds/purple-01.jpg',
     '/images/backgrounds/purple-02.jpg',
-    // ... variations
   ],
-  
+
   ROSE_GOLD_COLLECTION: [
     '/images/backgrounds/rose-gold-01.jpg',
     '/images/backgrounds/rose-gold-02.jpg',
-    // ... variations
   ],
 } as const;
+
+// Background Options for UI
+export const BACKGROUND_UI_OPTIONS = [
+  { name: 'Pearl', url: BACKGROUNDS.PEARL },
+  { name: 'Jade', url: BACKGROUNDS.JADE },
+  { name: 'Rose Quartz', url: BACKGROUNDS.ROSE_QUARTZ },
+  { name: 'Lavender', url: BACKGROUNDS.LAVENDER },
+  { name: 'Sunset', url: BACKGROUNDS.SUNSET },
+  { name: 'Blue Clouds', url: BACKGROUNDS.BLUE_CLOUDS },
+
+  { name: 'Tropical Sage', url: BACKGROUNDS.TROPICAL_SAGE },
+  { name: 'Marble Gold', url: BACKGROUNDS.MARBLE_GOLD },
+  { name: 'Ocean Waves', url: BACKGROUNDS.OCEAN_WAVES },
+  { name: 'Boutique Floral', url: BACKGROUNDS.PRESSED_FLOWERS_SUBTLE },
+  { name: 'Faded Flowers', url: BACKGROUNDS.PRESSED_FLOWERS_FADED },
+  { name: 'Handmade Floral', url: BACKGROUNDS.HANDMADE_PAPER_FLORAL },
+  { name: 'Aquamarine', url: BACKGROUNDS.AQUAMARINE },
+  { name: 'Sandstone', url: BACKGROUNDS.SANDSTONE_BEIGE },
+  { name: 'Citrine', url: BACKGROUNDS.CITRINE_QUARTZ },
+  { name: 'Aventurine', url: BACKGROUNDS.AVENTURINE_GREEN },
+  { name: 'Textured Floral', url: BACKGROUNDS.PRESSED_FLOWERS_TEXTURED },
+  { name: 'Lotus Petals', url: BACKGROUNDS.LOTUS_PETALS },
+  { name: 'Amethyst', url: BACKGROUNDS.AMETHYST_LAVENDER },
+  { name: 'Moonstone', url: BACKGROUNDS.MOONSTONE_SHIMMER },
+  { name: 'Sage Watercolor', url: BACKGROUNDS.SAGE_WATERCOLOR },
+  { name: 'Bamboo', url: BACKGROUNDS.BAMBOO_SAGE },
+  { name: 'Sky Watercolor', url: BACKGROUNDS.WATERCOLOR_BLUE_SKY },
+  { name: 'Periwinkle Sunset', url: BACKGROUNDS.PERIWINKLE_PINK_SUNSET },
+] as const;
 
 // Frame Images - OPTIMIZED ✅
 export const FRAMES = {
   // Legacy paths (DEPRECATED)
   FRAME_27_LEGACY: '/design-reference/image-frames/Frame 27.png',
   FRAME_4_LEGACY: '/design-reference/image-frames/Frame 4.png',
-  
+
   // OPTIMIZED versions (USE THESE!)
   FRAME_27: '/images/frames/frame-27.png', // 756KB → 710KB
   FRAME_4: '/images/frames/frame-4.png', // 168KB → 121KB
@@ -98,7 +158,7 @@ export const DEFAULT_COMBINATIONS = {
   },
   GUEST_BACKGROUND: {
     // Alternative background for variety
-    background: BACKGROUNDS.GREEN,
+    background: BACKGROUNDS.JADE,
   },
 } as const;
 
@@ -143,14 +203,14 @@ export const APP_BACKGROUND_CONFIG = {
   default: {
     background: BACKGROUNDS.BLUE_CLOUDS,
   },
-  
+
   // Alternative configurations for different contexts
   variants: {
     elegant: {
-      background: BACKGROUNDS.ROSE,
+      background: BACKGROUNDS.PEARL,
     },
     natural: {
-      background: BACKGROUNDS.GREEN,
+      background: BACKGROUNDS.JADE,
     },
   }
 } as const;

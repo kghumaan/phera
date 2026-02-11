@@ -16,6 +16,8 @@ import {
   FormControlLabel,
   RadioGroup,
   Radio,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Save, Check } from '@mui/icons-material';
@@ -24,6 +26,7 @@ import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
+import { BACKGROUNDS, BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -36,24 +39,21 @@ const sectionPaperSx = {
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
 };
 
-const BACKGROUND_OPTIONS = [
-  { name: 'Pearl', url: '/images/backgrounds/pearl.png' },
-  { name: 'Jade', url: '/images/backgrounds/jade.png' },
-  { name: 'Rose Quartz', url: '/images/backgrounds/rose-quartz.png' },
-  { name: 'Lavender', url: '/images/backgrounds/lavendar.png' },
-  { name: 'Blue Clouds', url: '/images/backgrounds/blue-clouds.jpg' },
-  { name: 'Green', url: '/images/backgrounds/green.jpg' },
-  { name: 'Rose', url: '/images/backgrounds/rose.jpg' },
-];
+const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
 const COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
   { name: 'Rose', value: '#DE3F5E' },
-  { name: 'Purple', value: '#8B5CF6' },
-  { name: 'Blue', value: '#3B82F6' },
-  { name: 'Green', value: '#10B981' },
-  { name: 'Pink', value: '#EC4899' },
-  { name: 'Teal', value: '#14B8A6' },
+  { name: 'Plum', value: '#59114D' },
+  { name: 'Purple', value: '#AC3FBA' },
+  { name: 'Ocean', value: '#004550' },
+  { name: 'Sky', value: '#6290C8' },
+  { name: 'Teal', value: '#489991' },
+  { name: 'Maroon', value: '#941C28' },
+  { name: 'Green', value: '#76B041' },
+  { name: 'Forest', value: '#59814B' },
+  { name: 'Orange', value: '#DF6507' },
+  { name: 'Amber', value: '#FA9A00' },
 ];
 
 const FONT_COLOR_OPTIONS = [
@@ -62,6 +62,32 @@ const FONT_COLOR_OPTIONS = [
   { name: 'Medium Gray', value: '#6a6a6a' },
   { name: 'White', value: '#FFFFFF' },
 ];
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`design-tabpanel-${index}`}
+      aria-labelledby={`design-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ pt: 0, pb: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 export default function DesignCustomizationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -79,18 +105,24 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState('');
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
-  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.png');
+  const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.PEARL);
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
 
   // Main site customization state
-  const [mainBackground, setMainBackground] = useState('/images/backgrounds/pearl.png');
+  const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.PEARL);
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
   const [websiteLayout, setWebsiteLayout] = useState<'nested' | 'infinite_scroll'>('nested');
   const [welcomeText, setWelcomeText] = useState("Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Background pagination state
+  const [visibleMainBgs, setVisibleMainBgs] = useState(8);
+  const [visiblePinBgs, setVisiblePinBgs] = useState(8);
+
 
   // Real-time Preview Sync Effect
   useEffect(() => {
@@ -111,6 +143,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         pin_entry_primary_color: pinEntryPrimaryColor,
         pin_entry_font_color: pinEntryFontColor,
         pin_entry_button_font_color: pinEntryButtonFontColor,
+        previewMode: activeTab === 1 ? 'lock_screen' : 'main',
       }
     };
 
@@ -131,7 +164,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     customPinEntryBackground,
     pinEntryPrimaryColor,
     pinEntryFontColor,
-    pinEntryButtonFontColor
+    pinEntryButtonFontColor,
+    activeTab
   ]);
 
   useEffect(() => {
@@ -152,20 +186,20 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         setCoupleName(wedding.couple_name);
 
         // Load pin entry customizations or use defaults
-        const defaultText = `Please join ${wedding.couple_name} on their special night`;
+        const defaultText = "You're invited!";
         const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
 
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
-        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.PEARL);
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(wedding.pin_entry_font_color || '#000000');
         setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
 
         // Load main site customizations
-        setMainBackground(wedding.background_image || '/images/backgrounds/pearl.png');
+        setMainBackground(wedding.background_image || BACKGROUNDS.PEARL);
         setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
-        setWebsiteLayout(wedding.website_layout || 'nested');
+        setWebsiteLayout((wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested');
         setWelcomeText(wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
       }
     } catch (err) {
@@ -231,8 +265,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   return (
     <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        {/* Header */}
-        <Box>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Look & Feel
           </Typography>
@@ -241,628 +274,537 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           </Typography>
         </Box>
 
-        {/* SECTION: Main Wedding Website */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 1 }}>
-            Main Wedding Website
-          </Typography>
-          <Stack spacing={3}>
-            {/* Website Layout Selection */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                Website Layout
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
-                Choose how your wedding details are displayed to guests
-              </Typography>
-
-              <RadioGroup
-                value={websiteLayout}
-                onChange={(e) => setWebsiteLayout(e.target.value as 'nested' | 'infinite_scroll')}
-                sx={{ flexDirection: 'row', gap: 2 }}
-              >
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Paper
-                      sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        bgcolor: '#ffffff',
-                        border: websiteLayout === 'nested' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        height: '100%',
-                        '&:hover': { borderColor: '#DE3F5E' },
-                      }}
-                      onClick={() => setWebsiteLayout('nested')}
-                    >
-                      <FormControlLabel
-                        value="nested"
-                        control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
-                        label={
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              Nested
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                              Guests tap 'View Details' to see event info, schedule, and more in an overlay
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ alignItems: 'flex-start', m: 0 }}
-                      />
-                    </Paper>
-                  </Grid>
-
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Paper
-                      sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        bgcolor: '#ffffff',
-                        border: websiteLayout === 'infinite_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        height: '100%',
-                        '&:hover': { borderColor: '#DE3F5E' },
-                      }}
-                      onClick={() => setWebsiteLayout('infinite_scroll')}
-                    >
-                      <FormControlLabel
-                        value="infinite_scroll"
-                        control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
-                        label={
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              Infinite Scroll
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                              All wedding details are displayed as you scroll down the page
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ alignItems: 'flex-start', m: 0 }}
-                      />
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </RadioGroup>
-            </Paper>
-
-            {/* Welcome Text */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                Welcome Message
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                This message appears below your names on the main wedding website
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                value={welcomeText}
-                onChange={(e) => setWelcomeText(e.target.value)}
-                placeholder="Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#fff',
-                  },
-                  '& .MuiInputBase-input': {
-                    color: '#1a1a1a',
-                  }
-                }}
-              />
-            </Paper>
-
-            {/* Main Background Selection */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Main Background Image
-              </Typography>
-
-              <Grid container spacing={2} mb={3}>
-                {BACKGROUND_OPTIONS.map((bg) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`main-bg-${bg.url}`}>
-                    <Box
-                      onClick={() => {
-                        setMainBackground(bg.url);
-                        setCustomMainBackground(null);
-                      }}
-                      sx={{
-                        width: '100%',
-                        height: 100,
-                        backgroundImage: `url(${bg.url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#DE3F5E',
-                          transform: 'scale(1.05)',
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                      {bg.name}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-
-              {weddingId && (
-                <ImageUpload
-                  label="Upload Custom Main Background"
-                  value={customMainBackground}
-                  onChange={(url) => {
-                    setCustomMainBackground(url);
-                    if (url) setMainBackground('');
-                  }}
-                  path={getWeddingImagePath(weddingId, 'backgrounds')}
-                  helperText="Recommended: 1920x1080px (Main site background)"
-                  aspectRatio="16/9"
-                  maxWidth={600}
-                />
-              )}
-            </Paper>
-
-            {/* Main Primary Color Selection */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Primary Theme Color
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
-                Used for buttons, accents, and highlighting important elements
-              </Typography>
-
-              <Grid container spacing={2} mb={3}>
-                {COLOR_OPTIONS.map((color) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`main-color-${color.value}`}>
-                    <Box
-                      onClick={() => setMainPrimaryColor(color.value)}
-                      sx={{
-                        width: '100%',
-                        height: 60,
-                        backgroundColor: color.value,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#666',
-                          transform: 'scale(1.05)',
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                      {color.name}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <TextField
-                label="Custom Theme Color (Hex)"
-                value={mainPrimaryColor}
-                onChange={(e) => setMainPrimaryColor(e.target.value)}
-                placeholder="#DE3F5E"
-                sx={{ ...textFieldSx, maxWidth: 200 }}
-              />
-            </Paper>
-          </Stack>
-        </Box>
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* SECTION: Lock Screen (Pin Entry) */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
-            Lock Screen (PIN Entry)
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
-            Customize what guests see before entering your unique wedding content
-          </Typography>
-
-          {/* Preview Section - Moved to top for better visibility */}
-          <Paper sx={{ ...sectionPaperSx, mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-              Preview
-            </Typography>
-
-            <Box
+          <Box>
+            <Tabs
+              value={activeTab}
+              onChange={(e, v) => setActiveTab(v)}
               sx={{
-                width: '100%',
-                height: 400,
-                position: 'relative',
-                borderRadius: 2,
-                overflow: 'hidden',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                backgroundImage: `url(${customPinEntryBackground || pinEntryBackground})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
+                borderBottom: 1,
+                borderColor: '#e0e0e0',
+                minHeight: 'auto',
+                gap: 0.5,
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  minWidth: 160,
+                  color: '#6a6a6a',
+                  border: '1px solid #e0e0e0', // Visible border for all tabs
+                  borderBottom: 'none', // Remove bottom border to rely on the Tabs container border
+                  borderRadius: '12px 12px 0 0',
+                  transition: 'all 0.2s',
+                  minHeight: 48,
+                  bgcolor: '#f5f5f5', // Light gray for unselected tabs
+                  mr: 0.5,
+                  '&:hover': {
+                    bgcolor: '#eeeeee',
+                  },
+                },
+                '& .Mui-selected': {
+                  color: '#DE3F5E !important',
+                  borderColor: '#e0e0e0 !important',
+                  borderBottomColor: '#ffffff !important',
+                  backgroundColor: '#ffffff !important',
+                  mb: '-1px', // Pull down to overlap the bottom border
+                  zIndex: 1,
+                },
+                '& .MuiTabs-indicator': {
+                  display: 'none',
+                }
               }}
             >
-              {/* Top Left Decorative Image */}
-              <Box
-                component="img"
-                src="/images/overlays/entry-topleft.png"
-                alt="Decorative Top Left"
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1,
-                  width: '80px',
-                  height: 'auto',
-                  pointerEvents: 'none',
-                }}
-              />
+              <Tab label="Main Website" />
+              <Tab label="Lock Screen" />
+            </Tabs>
+          </Box>
 
-              {/* Top Right Decorative Image */}
-              <Box
-                component="img"
-                src="/images/overlays/entry-topright.png"
-                alt="Decorative Top Right"
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  zIndex: 1,
-                  width: '80px',
-                  height: 'auto',
-                  pointerEvents: 'none',
-                }}
-              />
+          <TabPanel value={activeTab} index={0}>
+            <Stack spacing={3}>
+              {/* Website Layout Selection */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                  Website Layout
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+                  Choose how your wedding details are displayed to guests
+                </Typography>
 
-              {/* Preview Content */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  zIndex: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  p: 3,
-                  gap: 2,
-                }}
-              >
-                {/* Logo */}
-                <Box
-                  component="img"
-                  src="/logo-stacked.svg"
-                  alt="Phera Logo"
+                <RadioGroup
+                  value={websiteLayout}
+                  onChange={(e) => setWebsiteLayout(e.target.value as 'nested' | 'infinite_scroll')}
+                  sx={{ flexDirection: 'row', gap: 2 }}
+                >
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Paper
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          bgcolor: '#ffffff',
+                          border: websiteLayout === 'nested' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          height: '100%',
+                          '&:hover': { borderColor: '#DE3F5E' },
+                        }}
+                        onClick={() => setWebsiteLayout('nested')}
+                      >
+                        <FormControlLabel
+                          value="nested"
+                          control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                          label={
+                            <Box>
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                Nested
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                                Guests tap 'View Details' to see event info, schedule, and more in an overlay
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: 'flex-start', m: 0 }}
+                        />
+                      </Paper>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Paper
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          bgcolor: '#ffffff',
+                          border: websiteLayout === 'infinite_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          height: '100%',
+                          '&:hover': { borderColor: '#DE3F5E' },
+                        }}
+                        onClick={() => setWebsiteLayout('infinite_scroll')}
+                      >
+                        <FormControlLabel
+                          value="infinite_scroll"
+                          control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                          label={
+                            <Box>
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                Infinite Scroll
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                                All wedding details are displayed as you scroll down the page
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: 'flex-start', m: 0 }}
+                        />
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </RadioGroup>
+              </Paper>
+
+              {/* Welcome Text */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                  Welcome Message
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                  This message appears below your names on the main wedding website
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={welcomeText}
+                  onChange={(e) => setWelcomeText(e.target.value)}
+                  placeholder="Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."
                   sx={{
-                    height: 50,
-                    width: 'auto',
-                    filter: 'brightness(0)',
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#fff',
+                    },
+                    '& .MuiInputBase-input': {
+                      color: '#1a1a1a',
+                    }
                   }}
                 />
+              </Paper>
 
-                {/* Heading */}
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontFamily: 'var(--font-instrument-serif), serif',
-                    fontWeight: 400,
-                    color: pinEntryFontColor,
-                    fontSize: '1.5rem',
-                    lineHeight: 1.3,
-                    textAlign: 'center',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {previewText || `Please join ${coupleName} on their special night`}
+              {/* Main Background Selection */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Main Background Image
                 </Typography>
 
-                {/* Subtitle */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontFamily: 'var(--font-outfit), sans-serif',
-                    color: pinEntryFontColor,
-                    fontSize: '0.875rem',
-                    lineHeight: 1.4,
-                    maxWidth: 300,
-                    mx: 'auto',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                  }}
-                >
-                  {previewSubtitle || 'Enter your invitation code to see all the details and RSVP for our celebration'}
-                </Typography>
-
-                {/* PIN Input Preview */}
-                <Stack direction="row" spacing={1} justifyContent="center">
-                  {[0, 1, 2, 3].map((index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '50%',
-                        backgroundColor: '#FFFFFF',
-                        border: '1px solid #D6D6D6',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem',
-                        fontFamily: 'var(--font-outfit), sans-serif',
-                        fontWeight: 700,
-                        color: 'rgba(0, 0, 0, 0.2)',
-                      }}
-                    >
-                      {index === 0 ? '0' : ''}
-                    </Box>
+                <Grid container spacing={2} mb={3}>
+                  {BACKGROUND_OPTIONS.slice(0, visibleMainBgs).map((bg) => (
+                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`main-bg-${bg.url}`}>
+                      <Box
+                        onClick={() => {
+                          setMainBackground(bg.url);
+                          setCustomMainBackground(null);
+                        }}
+                        sx={{
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          backgroundImage: `url(${bg.url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          border: 3,
+                          borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            borderColor: '#DE3F5E',
+                            transform: 'scale(1.05)',
+                          },
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                        {bg.name}
+                      </Typography>
+                    </Grid>
                   ))}
+                </Grid>
+
+                <Stack direction="row" spacing={2} mb={3} justifyContent="center">
+                  {visibleMainBgs < BACKGROUND_OPTIONS.length && (
+                    <Button
+                      onClick={() => setVisibleMainBgs(prev => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
+                      variant="outlined"
+                      sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
+                    >
+                      Show More
+                    </Button>
+                  )}
+                  {visibleMainBgs > 8 && (
+                    <Button
+                      onClick={() => setVisibleMainBgs(8)}
+                      variant="text"
+                      sx={{ color: '#666' }}
+                    >
+                      Show Less
+                    </Button>
+                  )}
                 </Stack>
 
-                {/* Button Preview */}
-                <Button
-                  variant="contained"
-                  size="small"
-                  sx={{
-                    backgroundColor: pinEntryPrimaryColor,
-                    color: pinEntryButtonFontColor,
-                    borderRadius: '12px',
-                    px: '16px',
-                    py: '8px',
-                    fontSize: '0.875rem',
-                    fontFamily: 'var(--font-outfit), sans-serif',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '6.25%',
-                    minWidth: 150,
-                    boxShadow: 'none',
-                    '&:hover': {
-                      backgroundColor: pinEntryPrimaryColor,
-                      opacity: 0.9,
-                      boxShadow: 'none',
-                    },
-                  }}
-                >
-                  Continue
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
+                {weddingId && (
+                  <ImageUpload
+                    label="Upload Custom Main Background"
+                    value={customMainBackground}
+                    onChange={(url) => {
+                      setCustomMainBackground(url);
+                      if (url) setMainBackground('');
+                    }}
+                    path={getWeddingImagePath(weddingId, 'backgrounds')}
+                    helperText="Recommended: 1920x1080px (Main site background)"
+                    aspectRatio="16/9"
+                    maxWidth={600}
+                  />
+                )}
+              </Paper>
 
-          <Stack spacing={3}>
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Welcome Text
-              </Typography>
+              {/* Main Primary Color Selection */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Primary Theme Color
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+                  Used for buttons, accents, and highlighting important elements
+                </Typography>
 
-              <Stack spacing={3}>
+                <Grid container spacing={2} mb={3}>
+                  {COLOR_OPTIONS.map((color) => (
+                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`main-color-${color.value}`}>
+                      <Box
+                        onClick={() => setMainPrimaryColor(color.value)}
+                        sx={{
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          backgroundColor: color.value,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          border: 3,
+                          borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            borderColor: '#666',
+                            transform: 'scale(1.05)',
+                          },
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                        {color.name}
+                      </Typography>
+                    </Grid>
+                  ))}
+                </Grid>
+
                 <TextField
-                  label="Main Heading"
-                  value={pinEntryText}
-                  onChange={(e) => setPinEntryText(e.target.value)}
-                  placeholder={`Please join ${coupleName} on their special night`}
-                  fullWidth
-                  multiline
-                  rows={2}
-                  helperText="Use {couple_name} as a placeholder for the couple's name"
-                  sx={textFieldSx}
+                  label="Custom Hex"
+                  value={mainPrimaryColor}
+                  onChange={(e) => setMainPrimaryColor(e.target.value)}
+                  placeholder="#DE3F5E"
+                  sx={{ ...textFieldSx, maxWidth: 200 }}
                 />
+              </Paper>
+            </Stack>
+          </TabPanel>
 
-                <TextField
-                  label="Subtitle Text"
-                  value={pinEntrySubtitleText}
-                  onChange={(e) => setPinEntrySubtitleText(e.target.value)}
-                  placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  helperText="This appears below the main heading"
-                  sx={textFieldSx}
-                />
-              </Stack>
-            </Paper>
+          <TabPanel value={activeTab} index={1}>
+            <Stack spacing={3}>
 
-            {/* Background Selection Section */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Background Image
-              </Typography>
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Welcome Text
+                </Typography>
 
-              <Grid container spacing={2} mb={3}>
-                {BACKGROUND_OPTIONS.map((bg) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 3 }} key={bg.url}>
-                    <Box
-                      onClick={() => {
-                        setPinEntryBackground(bg.url);
-                        setCustomPinEntryBackground(null);
-                      }}
-                      sx={{
-                        width: '100%',
-                        height: 120,
-                        backgroundImage: `url(${bg.url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#DE3F5E',
-                          transform: 'scale(1.05)',
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                      {bg.name}
+                <Stack spacing={3}>
+                  <TextField
+                    label="Main Heading"
+                    value={pinEntryText}
+                    onChange={(e) => setPinEntryText(e.target.value)}
+                    placeholder="You're invited!"
+                    fullWidth
+                    multiline
+                    rows={2}
+                    helperText="Use {couple_name} as a placeholder for the couple's name"
+                    sx={textFieldSx}
+                  />
+
+                  <TextField
+                    label="Subtitle Text"
+                    value={pinEntrySubtitleText}
+                    onChange={(e) => setPinEntrySubtitleText(e.target.value)}
+                    placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
+                    fullWidth
+                    multiline
+                    rows={2}
+                    helperText="This appears below the main heading"
+                    sx={textFieldSx}
+                  />
+                </Stack>
+              </Paper>
+
+              {/* Background Selection Section */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  Background Image
+                </Typography>
+
+                <Grid container spacing={2} mb={3}>
+                  {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg) => (
+                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
+                      <Box
+                        onClick={() => {
+                          setPinEntryBackground(bg.url);
+                          setCustomPinEntryBackground(null);
+                        }}
+                        sx={{
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          backgroundImage: `url(${bg.url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          border: 3,
+                          borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            borderColor: '#DE3F5E',
+                            transform: 'scale(1.05)',
+                          },
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                        {bg.name}
+                      </Typography>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                <Stack direction="row" spacing={2} mb={3} justifyContent="center">
+                  {visiblePinBgs < BACKGROUND_OPTIONS.length && (
+                    <Button
+                      onClick={() => setVisiblePinBgs(prev => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
+                      variant="outlined"
+                      sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
+                    >
+                      Show More
+                    </Button>
+                  )}
+                  {visiblePinBgs > 8 && (
+                    <Button
+                      onClick={() => setVisiblePinBgs(8)}
+                      variant="text"
+                      sx={{ color: '#666' }}
+                    >
+                      Show Less
+                    </Button>
+                  )}
+                </Stack>
+
+                {weddingId && (
+                  <ImageUpload
+                    label="Upload Custom Background"
+                    value={customPinEntryBackground}
+                    onChange={(url) => {
+                      setCustomPinEntryBackground(url);
+                      if (url) setPinEntryBackground('');
+                    }}
+                    path={getWeddingImagePath(weddingId, 'backgrounds')}
+                    helperText="Upload your own background image (recommended: 1920x1080px)"
+                    aspectRatio="16/9"
+                    maxWidth={600}
+                  />
+                )}
+              </Paper>
+
+              {/* Colors Section */}
+              <Paper sx={sectionPaperSx}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+                  Colors
+                </Typography>
+
+                <Stack spacing={4}>
+                  {/* Button Color */}
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Button Color
                     </Typography>
-                  </Grid>
-                ))}
-              </Grid>
 
-              {weddingId && (
-                <ImageUpload
-                  label="Upload Custom Background"
-                  value={customPinEntryBackground}
-                  onChange={(url) => {
-                    setCustomPinEntryBackground(url);
-                    if (url) setPinEntryBackground('');
-                  }}
-                  path={getWeddingImagePath(weddingId, 'backgrounds')}
-                  helperText="Upload your own background image (recommended: 1920x1080px)"
-                  aspectRatio="16/9"
-                  maxWidth={600}
-                />
-              )}
-            </Paper>
+                    <Grid container spacing={2} mb={2}>
+                      {COLOR_OPTIONS.map((color) => (
+                        <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
+                          <Box
+                            onClick={() => setPinEntryPrimaryColor(color.value)}
+                            sx={{
+                              width: '100%',
+                              aspectRatio: '1/1',
+                              backgroundColor: color.value,
+                              borderRadius: 1,
+                              cursor: 'pointer',
+                              border: 3,
+                              borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#666',
+                                transform: 'scale(1.05)',
+                              },
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                            {color.name}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
 
-            {/* Colors Section */}
-            <Paper sx={sectionPaperSx}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
-                Colors
-              </Typography>
+                    <TextField
+                      label="Custom Hex"
+                      value={pinEntryPrimaryColor}
+                      onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
+                      placeholder="#141414"
+                      sx={{ ...textFieldSx, maxWidth: 200 }}
+                    />
+                  </Box>
 
-              <Stack spacing={4}>
-                {/* Button Color */}
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                    Button Color
-                  </Typography>
+                  {/* Text Color */}
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Text Color
+                    </Typography>
 
-                  <Grid container spacing={2} mb={2}>
-                    {COLOR_OPTIONS.map((color) => (
-                      <Grid size={{ xs: 6, sm: 4, md: 2 }} key={color.value}>
-                        <Box
-                          onClick={() => setPinEntryPrimaryColor(color.value)}
-                          sx={{
-                            width: '100%',
-                            height: 80,
-                            backgroundColor: color.value,
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: 3,
-                            borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: '#666',
-                              transform: 'scale(1.05)',
-                            },
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                          {color.name}
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
+                    <Grid container spacing={2} mb={2}>
+                      {FONT_COLOR_OPTIONS.map((color) => (
+                        <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-txt-${color.value}`}>
+                          <Box
+                            onClick={() => setPinEntryFontColor(color.value)}
+                            sx={{
+                              width: '100%',
+                              aspectRatio: '1/1',
+                              backgroundColor: color.value,
+                              borderRadius: 1,
+                              cursor: 'pointer',
+                              border: 3,
+                              borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: pinEntryPrimaryColor,
+                                transform: 'scale(1.05)',
+                              },
+                              ...(color.value === '#FFFFFF' && {
+                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                              }),
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                            {color.name}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
 
-                  <TextField
-                    label="Custom Button Color (Hex)"
-                    value={pinEntryPrimaryColor}
-                    onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
-                    placeholder="#141414"
-                    sx={{ ...textFieldSx, maxWidth: 200 }}
-                  />
-                </Box>
+                    <TextField
+                      label="Custom Hex"
+                      value={pinEntryFontColor}
+                      onChange={(e) => setPinEntryFontColor(e.target.value)}
+                      placeholder="#000000"
+                      sx={{ ...textFieldSx, maxWidth: 200 }}
+                    />
+                  </Box>
 
-                {/* Text Color */}
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                    Text Color
-                  </Typography>
+                  {/* Button Text Color */}
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                      Button Text Color
+                    </Typography>
 
-                  <Grid container spacing={2} mb={2}>
-                    {FONT_COLOR_OPTIONS.map((color) => (
-                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={color.value}>
-                        <Box
-                          onClick={() => setPinEntryFontColor(color.value)}
-                          sx={{
-                            width: '100%',
-                            height: 80,
-                            backgroundColor: color.value,
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: 3,
-                            borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: pinEntryPrimaryColor,
-                              transform: 'scale(1.05)',
-                            },
-                            ...(color.value === '#FFFFFF' && {
-                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                            }),
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                          {color.name}
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
+                    <Grid container spacing={2} mb={2}>
+                      {FONT_COLOR_OPTIONS.map((color) => (
+                        <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-txt-${color.value}`}>
+                          <Box
+                            onClick={() => setPinEntryButtonFontColor(color.value)}
+                            sx={{
+                              width: '100%',
+                              aspectRatio: '1/1',
+                              backgroundColor: color.value,
+                              borderRadius: 1,
+                              cursor: 'pointer',
+                              border: 3,
+                              borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: pinEntryPrimaryColor,
+                                transform: 'scale(1.05)',
+                              },
+                              ...(color.value === '#FFFFFF' && {
+                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                              }),
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                            {color.name}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
 
-                  <TextField
-                    label="Custom Text Color (Hex)"
-                    value={pinEntryFontColor}
-                    onChange={(e) => setPinEntryFontColor(e.target.value)}
-                    placeholder="#000000"
-                    sx={{ ...textFieldSx, maxWidth: 200 }}
-                  />
-                </Box>
-
-                {/* Button Text Color */}
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                    Button Text Color
-                  </Typography>
-
-                  <Grid container spacing={2} mb={2}>
-                    {FONT_COLOR_OPTIONS.map((color) => (
-                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={color.value}>
-                        <Box
-                          onClick={() => setPinEntryButtonFontColor(color.value)}
-                          sx={{
-                            width: '100%',
-                            height: 80,
-                            backgroundColor: color.value,
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: 3,
-                            borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              borderColor: pinEntryPrimaryColor,
-                              transform: 'scale(1.05)',
-                            },
-                            ...(color.value === '#FFFFFF' && {
-                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                            }),
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                          {color.name}
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
-
-                  <TextField
-                    label="Custom Button Text Color (Hex)"
-                    value={pinEntryButtonFontColor}
-                    onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
-                    placeholder="#FFFFFF"
-                    sx={{ ...textFieldSx, maxWidth: 200 }}
-                  />
-                </Box>
-              </Stack>
-            </Paper>
-
-          </Stack>
+                    <TextField
+                      label="Custom Hex"
+                      value={pinEntryButtonFontColor}
+                      onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
+                      placeholder="#FFFFFF"
+                      sx={{ ...textFieldSx, maxWidth: 200 }}
+                    />
+                  </Box>
+                </Stack>
+              </Paper>
+            </Stack>
+          </TabPanel>
         </Box>
+
 
         {/* Save Button */}
         <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
