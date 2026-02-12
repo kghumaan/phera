@@ -2,6 +2,7 @@
 
 import {
   Box,
+  Button,
   Container,
   Typography,
   Stack,
@@ -22,23 +23,26 @@ import {
   Tab,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { 
-  FlightTakeoff, 
-  DirectionsBus, 
-  CheckCircle, 
+import {
+  FlightTakeoff,
+  DirectionsBus,
+  CheckCircle,
   People,
   AccessTime,
   Warning,
+  LockOutlined,
 } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
-import { 
-  getAllGuestFlights, 
-  getShuttlePreferencesSummary, 
+import {
+  getAllGuestFlights,
+  getShuttlePreferencesSummary,
   getAllGuestChecklists,
-  THAILAND_CHECKLIST 
+  THAILAND_CHECKLIST
 } from '@/lib/supabase/travel-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import type { GuestFlight } from '@/lib/supabase/types';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import UpgradeModal from '@/components/admin/UpgradeModal';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -57,6 +61,8 @@ function TabPanel(props: TabPanelProps) {
 
 export default function TravelCoordinationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isPro } = usePlan();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [flights, setFlights] = useState<GuestFlight[]>([]);
@@ -71,8 +77,12 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
-    loadData();
-  }, [weddingSlug]);
+    if (isPro) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [weddingSlug, isPro]);
 
   const loadData = async () => {
     try {
@@ -136,6 +146,82 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
     return (
       <Container maxWidth="xl">
         <LoadingSpinner message="Loading travel coordination data..." />
+      </Container>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <Container maxWidth="xl">
+        <Stack spacing={4}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Travel Coordination
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              Manage guest flights, shuttle preferences, and travel checklist progress
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              p: { xs: 4, md: 8 },
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              bgcolor: 'white',
+              gap: 3,
+            }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: '#DE3F5E15',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <LockOutlined sx={{ fontSize: 28, color: '#DE3F5E' }} />
+            </Box>
+
+            <Box sx={{ maxWidth: 480 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
+                Streamline guest travel logistics
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.7 }}>
+                With Travel Coordination, you can track guest flight details, organize shuttle pickup times, and monitor travel checklist completion — all in one place. Help your guests arrive stress-free and keep yourself in the loop.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.95rem',
+                '&:hover': { bgcolor: '#c73552' },
+              }}
+            >
+              Upgrade to Pro
+            </Button>
+          </Box>
+        </Stack>
+
+        <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
       </Container>
     );
   }

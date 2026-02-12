@@ -29,7 +29,6 @@ import { Wedding } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from './ProBadge';
-import UpgradeModal from './UpgradeModal';
 
 interface SidebarItem {
   id: string;
@@ -134,7 +133,6 @@ export default function OnboardingSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const { isPro } = usePlan();
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
     let foundActive = false;
@@ -233,16 +231,10 @@ export default function OnboardingSidebar({
           if (group.standalone) {
             const item = group.items[0];
             const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
-            const isLocked = group.isPro && !isPro;
-
             return (
               <ListItemButton
                 key={group.id}
                 onClick={() => {
-                  if (isLocked) {
-                    setUpgradeModalOpen(true);
-                    return;
-                  }
                   handleItemClick(item, true);
                 }}
                 selected={isActive}
@@ -253,7 +245,6 @@ export default function OnboardingSidebar({
                   mb: 0.5,
                   borderRadius: '12px',
                   color: isActive ? 'white' : '#4a4a4a',
-                  opacity: isLocked ? 0.7 : 1,
                   '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
                   '&.Mui-selected': {
                     bgcolor: '#DE3F5E',
@@ -354,16 +345,10 @@ export default function OnboardingSidebar({
 
                   {group.items.map((item) => {
                     const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
-                    const isLocked = item.isPro && !isPro;
-
                     return (
                       <Box key={item.id} sx={{ position: 'relative' }}>
                         <ListItemButton
                           onClick={() => {
-                            if (isLocked) {
-                              setUpgradeModalOpen(true);
-                              return;
-                            }
                             handleItemClick(item, false, group.id);
                           }}
                           selected={isActive}
@@ -375,7 +360,6 @@ export default function OnboardingSidebar({
                             borderRadius: '8px',
                             color: '#6a6a6a',
                             minHeight: 36,
-                            opacity: isLocked ? 0.7 : 1,
                             '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             '&.Mui-selected': {
                               bgcolor: alpha('#DE3F5E', 0.1),
@@ -425,12 +409,6 @@ export default function OnboardingSidebar({
 
   return (
     <>
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        open={upgradeModalOpen}
-        onClose={() => setUpgradeModalOpen(false)}
-      />
-
       {/* Mobile Drawer */}
       {isMobile ? (
         <Drawer

@@ -222,6 +222,25 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   };
 
   const handleSave = async () => {
+    // Check if any selected options require pro
+    if (!isPro) {
+      const mainBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === mainBackground);
+      const pinBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
+      const mainColorIndex = COLOR_OPTIONS.findIndex(c => c.value === mainPrimaryColor);
+      const pinColorIndex = COLOR_OPTIONS.findIndex(c => c.value === pinEntryPrimaryColor);
+
+      const hasProSelection =
+        (mainBgIndex >= FREE_BACKGROUND_COUNT && !customMainBackground) ||
+        (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) ||
+        mainColorIndex >= FREE_COLOR_COUNT ||
+        pinColorIndex >= FREE_COLOR_COUNT;
+
+      if (hasProSelection) {
+        setUpgradeModalOpen(true);
+        return;
+      }
+    }
+
     setSaving(true);
     setError(null);
 
@@ -447,16 +466,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Grid container spacing={2} mb={3}>
                   {BACKGROUND_OPTIONS.slice(0, visibleMainBgs).map((bg, index) => {
                     const isProOption = index >= FREE_BACKGROUND_COUNT;
-                    const isLocked = isProOption && !isPro;
 
                     return (
                       <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`main-bg-${bg.url}`}>
                         <Box
                           onClick={() => {
-                            if (isLocked) {
-                              setUpgradeModalOpen(true);
-                              return;
-                            }
                             setMainBackground(bg.url);
                             setCustomMainBackground(null);
                           }}
@@ -472,7 +486,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
                             transition: 'all 0.2s',
                             position: 'relative',
-                            opacity: isLocked ? 0.7 : 1,
                             '&:hover': {
                               borderColor: '#DE3F5E',
                               transform: 'scale(1.05)',
@@ -538,18 +551,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Grid container spacing={2} mb={3}>
                   {COLOR_OPTIONS.map((color, index) => {
                     const isProOption = index >= FREE_COLOR_COUNT;
-                    const isLocked = isProOption && !isPro;
 
                     return (
                       <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`main-color-${color.value}`}>
                         <Box
-                          onClick={() => {
-                            if (isLocked) {
-                              setUpgradeModalOpen(true);
-                              return;
-                            }
-                            setMainPrimaryColor(color.value);
-                          }}
+                          onClick={() => setMainPrimaryColor(color.value)}
                           sx={{
                             width: '100%',
                             aspectRatio: '1/1',
@@ -560,7 +566,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
                             transition: 'all 0.2s',
                             position: 'relative',
-                            opacity: isLocked ? 0.7 : 1,
                             '&:hover': {
                               borderColor: '#666',
                               transform: 'scale(1.05)',
@@ -632,16 +637,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Grid container spacing={2} mb={3}>
                   {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg, index) => {
                     const isProOption = index >= FREE_BACKGROUND_COUNT;
-                    const isLocked = isProOption && !isPro;
 
                     return (
                       <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
                         <Box
                           onClick={() => {
-                            if (isLocked) {
-                              setUpgradeModalOpen(true);
-                              return;
-                            }
                             setPinEntryBackground(bg.url);
                             setCustomPinEntryBackground(null);
                           }}
@@ -657,7 +657,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
                             transition: 'all 0.2s',
                             position: 'relative',
-                            opacity: isLocked ? 0.7 : 1,
                             '&:hover': {
                               borderColor: '#DE3F5E',
                               transform: 'scale(1.05)',
@@ -727,18 +726,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                     <Grid container spacing={2} mb={2}>
                       {COLOR_OPTIONS.map((color, index) => {
                         const isProOption = index >= FREE_COLOR_COUNT;
-                        const isLocked = isProOption && !isPro;
 
                         return (
                           <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
                             <Box
-                              onClick={() => {
-                                if (isLocked) {
-                                  setUpgradeModalOpen(true);
-                                  return;
-                                }
-                                setPinEntryPrimaryColor(color.value);
-                              }}
+                              onClick={() => setPinEntryPrimaryColor(color.value)}
                               sx={{
                                 width: '100%',
                                 aspectRatio: '1/1',
@@ -749,7 +741,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                                 borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
                                 transition: 'all 0.2s',
                                 position: 'relative',
-                                opacity: isLocked ? 0.7 : 1,
                                 '&:hover': {
                                   borderColor: '#666',
                                   transform: 'scale(1.05)',
