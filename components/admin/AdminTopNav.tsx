@@ -18,6 +18,8 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Switch,
+    Chip,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -26,13 +28,16 @@ import {
     HelpOutline,
     Logout,
     KeyboardArrowDown,
+    AutoAwesome,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { usePlan } from '@/lib/contexts/PlanContext';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
+import UpgradeModal from './UpgradeModal';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -44,9 +49,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const theme = useTheme();
     const router = useRouter();
     const { user, signOut } = useAuth();
+    const { plan, isPro, togglePlan } = usePlan();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
+    const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -151,7 +158,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             gap: 1.5,
                             bgcolor: '#f5f5f5',
                             pl: 2,
-                            pr: 1,
+                            pr: 2,
                             py: 0.75,
                             borderRadius: '100px',
                             cursor: 'pointer',
@@ -175,6 +182,26 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         >
                             {user?.email?.[0].toUpperCase() || 'U'}
                         </Avatar>
+                        <Typography
+                            onClick={(e) => {
+                                if (!isPro) {
+                                    e.stopPropagation();
+                                    setUpgradeModalOpen(true);
+                                }
+                            }}
+                            sx={{
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                color: isPro ? '#DE3F5E' : '#666',
+                                cursor: isPro ? 'default' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                            }}
+                        >
+                            {isPro && <AutoAwesome sx={{ fontSize: 16, color: '#DE3F5E' }} />}
+                            {isPro ? 'Pro' : 'Basic'}
+                        </Typography>
                     </Box>
 
                     {/* User Menu */}
@@ -221,6 +248,54 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
                                 {user?.email}
                             </Typography>
+
+                            {/* Plan Display */}
+                            <Chip
+                                icon={isPro ? <AutoAwesome sx={{ fontSize: 14, color: 'white !important' }} /> : undefined}
+                                label={isPro ? 'Pro Plan' : 'Basic Plan'}
+                                onClick={() => !isPro && setUpgradeModalOpen(true)}
+                                sx={{
+                                    mt: 1.5,
+                                    bgcolor: isPro ? '#DE3F5E' : '#f0f0f0',
+                                    color: isPro ? 'white' : '#666',
+                                    fontWeight: 600,
+                                    fontSize: '0.8rem',
+                                    cursor: isPro ? 'default' : 'pointer',
+                                    '&:hover': {
+                                        bgcolor: isPro ? '#DE3F5E' : '#e5e5e5',
+                                    },
+                                    '& .MuiChip-icon': {
+                                        color: 'white',
+                                    },
+                                }}
+                            />
+                        </Box>
+
+                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+
+                        {/* Test Mode Toggle - For Development */}
+                        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box>
+                                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                    Test Mode
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                    Toggle plan for testing
+                                </Typography>
+                            </Box>
+                            <Switch
+                                checked={isPro}
+                                onChange={togglePlan}
+                                size="small"
+                                sx={{
+                                    '& .MuiSwitch-switchBase.Mui-checked': {
+                                        color: '#DE3F5E',
+                                    },
+                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                        backgroundColor: '#DE3F5E',
+                                    },
+                                }}
+                            />
                         </Box>
 
                         <Divider sx={{ my: 1, opacity: 0.6 }} />
@@ -285,6 +360,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 open={featureModalOpen}
                 onClose={() => setFeatureModalOpen(false)}
                 weddingId={wedding?.id}
+            />
+            <UpgradeModal
+                open={upgradeModalOpen}
+                onClose={() => setUpgradeModalOpen(false)}
             />
         </AppBar>
     );

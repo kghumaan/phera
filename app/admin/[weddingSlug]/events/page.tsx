@@ -64,6 +64,13 @@ const GRADIENT_BACKGROUNDS = [
   { value: 'GradientReception.png', label: 'Reception' },
 ];
 
+// Slide type options
+const SLIDE_TYPES = [
+  { value: 'three_lines', label: 'Header + Title + Description' },
+  { value: 'two_sections', label: 'Two Sections (Women/Men style)' },
+  { value: 'image', label: 'Full Image' },
+];
+
 import { AVAILABLE_ICONS } from '@/lib/constants/icons';
 
 export default function EventsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -119,14 +126,14 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       order_index: events.length,
       outfit_ideas_women: template.outfit_ideas_women,
       outfit_ideas_men: template.outfit_ideas_men,
-      carousel_slides: [],
-      text_color: '#141414',
-      gradient_background: 'GradientYellow.png',
+      carousel_slides: template.carousel_slides || [],
+      text_color: '#FFFFFF',
+      gradient_background: template.gradient_background?.replace('/images/backgrounds/', '') || 'GradientYellow.png',
       outfit_example_url: null,
       dress_code_icon: template.dress_code_icon,
     });
     setFieldErrors({});
-    setShowDressCodeDetails(false);
+    setShowDressCodeDetails(true); // Show dress code details since templates have this info
     setTemplateDialogOpen(false);
     setIsEditing(true);
   };
@@ -557,6 +564,101 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   </Stack>
                 )}
 
+                {/* Event Detail Slides Section - Always visible */}
+                <Box sx={{ pt: 3, borderTop: '1px solid #eee' }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Event Detail Slides</Typography>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.85rem' }}>
+                        These slides appear when guests click &quot;Learn More&quot; on this event
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Add />}
+                      onClick={handleAddSlide}
+                      sx={{
+                        borderColor: '#DE3F5E',
+                        color: '#DE3F5E',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222, 63, 94, 0.04)' },
+                      }}
+                    >
+                      Add Slide
+                    </Button>
+                  </Stack>
+
+                  {/* Slides List */}
+                  {((currentEvent.carousel_slides as CarouselSlide[]) || []).length > 0 ? (
+                    <Stack spacing={1}>
+                      {((currentEvent.carousel_slides as CarouselSlide[]) || []).map((slide, index) => (
+                        <Paper
+                          key={index}
+                          sx={{
+                            p: 2,
+                            borderRadius: '12px',
+                            bgcolor: '#f9f9f9',
+                            border: '1px solid #eee',
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                Slide {index + 1}: {SLIDE_TYPES.find(t => t.value === slide.type)?.label || slide.type}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                                {slide.type === 'three_lines' && (slide.main_heading || slide.top_label || 'No content')}
+                                {slide.type === 'two_sections' && `${slide.section1_header || 'Section 1'} / ${slide.section2_header || 'Section 2'}`}
+                                {slide.type === 'image' && (slide.src ? 'Image uploaded' : 'No image')}
+                              </Typography>
+                            </Box>
+                            <Stack direction="row" spacing={0.5}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleMoveSlide(index, 'up')}
+                                disabled={index === 0}
+                                sx={{ color: '#666' }}
+                              >
+                                <ArrowUpward fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleMoveSlide(index, 'down')}
+                                disabled={index === ((currentEvent.carousel_slides as CarouselSlide[]) || []).length - 1}
+                                sx={{ color: '#666' }}
+                              >
+                                <ArrowDownward fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleEditSlide(index)}
+                                sx={{ color: '#DE3F5E' }}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeleteSlide(index)}
+                                sx={{ color: '#666', '&:hover': { color: '#d32f2f' } }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '12px', bgcolor: '#f9f9f9', border: '1px dashed #ddd' }}>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                        No slides yet. Add slides to show event details to guests.
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+
                 <Stack direction="row" spacing={2} sx={{ pt: 4, borderTop: '1px solid #eee' }}>
                   <Button
                     variant="contained"
@@ -771,7 +873,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             <FormControl fullWidth sx={textFieldSx}>
               <InputLabel sx={{ color: '#1a1a1a' }}>Slide Type</InputLabel>
               <Select
-                value={currentSlide?.type || 'dress_code'}
+                value={currentSlide?.type || 'three_lines'}
                 onChange={(e) => setCurrentSlide({ ...currentSlide, type: e.target.value as any })}
                 label="Slide Type"
                 sx={{ color: '#1a1a1a' }}
@@ -786,40 +888,107 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   },
                 }}
               >
-                <MenuItem value="dress_code">Dress Code</MenuItem>
-                <MenuItem value="ritual">Ritual/Vibe</MenuItem>
+                {SLIDE_TYPES.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+                ))}
               </Select>
             </FormControl>
 
-            {currentSlide?.type !== 'image' && (
+            {/* Three Lines Type: Top Label + Main Heading + Body Text */}
+            {currentSlide?.type === 'three_lines' && (
               <>
                 <TextField
-                  label="Subtitle"
+                  label="Top Label (small header)"
                   fullWidth
-                  value={currentSlide?.subtitle || ''}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, subtitle: e.target.value })}
+                  value={currentSlide?.top_label || ''}
+                  onChange={(e) => setCurrentSlide({ ...currentSlide, top_label: e.target.value })}
+                  placeholder="e.g., THE CELEBRATION"
                   sx={textFieldSx}
                 />
                 <TextField
-                  label="Heading"
+                  label="Main Heading (large italic)"
                   fullWidth
-                  value={currentSlide?.heading || ''}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, heading: e.target.value })}
+                  value={currentSlide?.main_heading || ''}
+                  onChange={(e) => setCurrentSlide({ ...currentSlide, main_heading: e.target.value })}
+                  placeholder="e.g., Sangeet & Reception"
                   sx={textFieldSx}
                 />
                 <TextField
-                  label="Description"
+                  label="Body Text"
                   fullWidth
                   multiline
-                  rows={3}
-                  value={currentSlide?.description || ''}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, description: e.target.value })}
+                  rows={4}
+                  value={currentSlide?.body_text || ''}
+                  onChange={(e) => setCurrentSlide({ ...currentSlide, body_text: e.target.value })}
+                  placeholder="Description text..."
                   sx={textFieldSx}
                 />
               </>
             )}
 
+            {/* Two Sections Type: Women/Men style lists */}
+            {currentSlide?.type === 'two_sections' && (
+              <>
+                <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: '12px' }}>
+                  <TextField
+                    label="Section 1 Header"
+                    fullWidth
+                    value={currentSlide?.section1_header || 'WOMEN'}
+                    onChange={(e) => setCurrentSlide({ ...currentSlide, section1_header: e.target.value })}
+                    sx={{ ...textFieldSx, mb: 2 }}
+                  />
+                  <TextField
+                    label="Section 1 Items (one per line)"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={(currentSlide?.section1_items || []).join('\n')}
+                    onChange={(e) => setCurrentSlide({
+                      ...currentSlide,
+                      section1_items: e.target.value.split('\n').filter(item => item.trim())
+                    })}
+                    placeholder="Evening Gowns&#10;Embellished Sarees&#10;Fusion Co-Ord Sets"
+                    sx={textFieldSx}
+                  />
+                </Box>
+                <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: '12px' }}>
+                  <TextField
+                    label="Section 2 Header"
+                    fullWidth
+                    value={currentSlide?.section2_header || 'MEN'}
+                    onChange={(e) => setCurrentSlide({ ...currentSlide, section2_header: e.target.value })}
+                    sx={{ ...textFieldSx, mb: 2 }}
+                  />
+                  <TextField
+                    label="Section 2 Items (one per line)"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={(currentSlide?.section2_items || []).join('\n')}
+                    onChange={(e) => setCurrentSlide({
+                      ...currentSlide,
+                      section2_items: e.target.value.split('\n').filter(item => item.trim())
+                    })}
+                    placeholder="Tuxedos & Dinner Suits&#10;Tailored Sherwanis&#10;Patterned Nehru Jackets"
+                    sx={textFieldSx}
+                  />
+                </Box>
+              </>
+            )}
 
+            {/* Image Type */}
+            {currentSlide?.type === 'image' && (
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Slide Image</Typography>
+                <ImageUpload
+                  value={currentSlide?.src || ''}
+                  onChange={(url) => setCurrentSlide({ ...currentSlide, src: url })}
+                  path={getWeddingImagePath(weddingId!, 'slides')}
+                  label="Slide Image"
+                  aspectRatio="3/4"
+                />
+              </Box>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>

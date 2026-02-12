@@ -22,9 +22,10 @@ import {
 } from '@mui/icons-material';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { weddingService } from '@/lib/supabase/wedding-service';
+import { weddingService, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
 import GuestList from '@/components/guest/GuestList';
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
+import EventDetailCarousel from './EventDetailCarousel';
 
 // Types
 interface WeddingData {
@@ -59,6 +60,7 @@ interface ScheduleItem {
   location?: string | null;
   gradient_background?: string | null;
   is_major_event?: boolean | null;
+  linked_event_id?: string | null;
 }
 
 interface ScheduleDay {
@@ -190,6 +192,11 @@ export default function InfiniteScrollLayout({
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [registry, setRegistry] = useState<RegistryItem[]>([]);
   const [shops, setShops] = useState<ShopItem[]>([]);
+  const [weddingEvents, setWeddingEvents] = useState<WeddingEvent[]>([]);
+
+  // Event detail carousel state
+  const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
+  const [showEventCarousel, setShowEventCarousel] = useState(false);
 
   const [hasSchedule, setHasSchedule] = useState(false);
   const [hasTravel, setHasTravel] = useState(false);
@@ -213,13 +220,18 @@ export default function InfiniteScrollLayout({
       if (!wedding.id) return;
 
       try {
-        const [scheduleData, travelData, faqData, registryData, shopData] = await Promise.all([
+        const [scheduleData, travelData, faqData, registryData, shopData, eventsData] = await Promise.all([
           weddingService.getWeddingSchedule(wedding.id),
           weddingService.getTravelCards(wedding.id),
           weddingService.getFAQs(wedding.id),
           weddingService.getRegistry(wedding.id),
           weddingService.getShops(wedding.id),
+          weddingService.getWeddingEvents(wedding.id),
         ]);
+
+        if (eventsData && eventsData.length > 0) {
+          setWeddingEvents(eventsData);
+        }
 
         if (scheduleData && scheduleData.length > 0) {
           const mappedSchedule: ScheduleDay[] = scheduleData.map(day => ({
@@ -235,6 +247,7 @@ export default function InfiniteScrollLayout({
               location: event.location,
               gradient_background: event.gradient_background,
               is_major_event: event.is_major_event,
+              linked_event_id: (event as any).linked_event_id,
             })),
           }));
           setSchedule(mappedSchedule);
@@ -268,20 +281,24 @@ export default function InfiniteScrollLayout({
     fetchSectionData();
   }, [wedding.id]);
 
-  // Scroll tracking for image rotation
+  // Scroll tracking for image rotation with debouncing
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
+    let pendingSection: number | null = null;
+
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 3;
 
       const sections = [
-        { ref: homeRef, index: 0 },
-        { ref: scheduleRef, index: 1 },
-        { ref: travelRef, index: 2 },
-        { ref: faqRef, index: 3 },
-        { ref: registryRef, index: 4 },
-        { ref: shopRef, index: 5 },
+        { ref: homeRef, index: 0, name: 'home' },
+        { ref: scheduleRef, index: 1, name: 'schedule' },
+        { ref: travelRef, index: 2, name: 'travel' },
+        { ref: faqRef, index: 3, name: 'faq' },
+        { ref: registryRef, index: 4, name: 'registry' },
+        { ref: shopRef, index: 5, name: 'shop' },
       ].filter(s => s.ref.current);
 
+      let newSectionIndex = 0;
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
         if (section.ref.current) {
@@ -289,16 +306,40 @@ export default function InfiniteScrollLayout({
           const sectionTop = rect.top + window.scrollY;
 
           if (scrollPosition >= sectionTop) {
-            setCurrentSection(section.index);
+            newSectionIndex = section.index;
             break;
           }
         }
       }
+
+      // Close carousel when scrolling away from schedule section
+      if (showEventCarousel && newSectionIndex !== 1) {
+        setShowEventCarousel(false);
+        setSelectedEvent(null);
+      }
+
+      // Debounce the image change - only update after user settles for 150ms
+      if (newSectionIndex !== pendingSection) {
+        pendingSection = newSectionIndex;
+
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+
+        debounceTimer = setTimeout(() => {
+          setCurrentSection(newSectionIndex);
+        }, 150);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasSchedule, hasTravel, hasFAQs, hasRegistry, hasShops]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [hasSchedule, hasTravel, hasFAQs, hasRegistry, hasShops, showEventCarousel]);
 
   const coupleData = {
     names: wedding.couple_name,
@@ -308,6 +349,57 @@ export default function InfiniteScrollLayout({
     flag: wedding.venue_flag,
     rsvpDeadline: wedding.rsvp_deadline,
     coupleImages: wedding.couple_images || [],
+  };
+
+  // Helper to find linked event for a schedule item
+  // First tries by ID, then falls back to fuzzy matching by name/slug
+  const findLinkedEvent = (linkedEventId: string | null | undefined, eventName?: string): WeddingEvent | null => {
+    // Try by ID first
+    if (linkedEventId) {
+      const byId = weddingEvents.find(e => e.id === linkedEventId);
+      if (byId) return byId;
+    }
+    // Fallback: try to match by name with fuzzy matching
+    if (eventName) {
+      const normalizedName = eventName.toLowerCase().trim();
+
+      // Exact match first
+      const exactMatch = weddingEvents.find(e =>
+        e.name.toLowerCase().trim() === normalizedName ||
+        e.slug?.toLowerCase() === normalizedName.replace(/\s+/g, '-')
+      );
+      if (exactMatch) return exactMatch;
+
+      // Partial/fuzzy match - check if schedule item name contains event name or vice versa
+      // e.g., "Haldi & Welcome Lunch" should match "Haldi"
+      const partialMatch = weddingEvents.find(e => {
+        const eventNameLower = e.name.toLowerCase().trim();
+        const eventSlug = e.slug?.toLowerCase() || '';
+
+        // Check if either name contains the other
+        return normalizedName.includes(eventNameLower) ||
+               eventNameLower.includes(normalizedName) ||
+               normalizedName.includes(eventSlug) ||
+               eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
+      });
+      if (partialMatch) return partialMatch;
+    }
+    return null;
+  };
+
+  // Handle Learn More click
+  const handleLearnMoreClick = (event: ScheduleItem) => {
+    const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
+    if (linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0) {
+      setSelectedEvent(linkedEvent);
+      setShowEventCarousel(true);
+    }
+  };
+
+  // Close event carousel
+  const handleCloseEventCarousel = () => {
+    setShowEventCarousel(false);
+    setSelectedEvent(null);
   };
 
   // Helper to render travel card content
@@ -365,77 +457,10 @@ export default function InfiniteScrollLayout({
           minHeight: '100vh',
         }}
       >
-        {/* Left Side - Fixed Couple Image (Flipped from Right) */}
-        <Box
-          sx={{
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            width: '40%',
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            pl: { md: 4, lg: 6, xl: 8 },
-            pr: { md: 4, lg: 6, xl: 8 },
-            gap: 3,
-            alignItems: 'center',
-            pointerEvents: 'auto',
-            zIndex: 0,
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Box
-              sx={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: { md: 500, lg: 600, xl: 900 },
-                aspectRatio: '1',
-              }}
-            >
-              <Image
-                src="/images/frames/frame-27.png"
-                alt="Decorative frame"
-                fill
-                priority
-                sizes="(max-width: 1200px) 500px, (max-width: 1600px) 600px, 700px"
-                style={{
-                  objectFit: 'contain',
-                  objectPosition: 'center',
-                  zIndex: 1,
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '7%',
-                  left: '7%',
-                  width: '87%',
-                  height: '87%',
-                  overflow: 'hidden',
-                  zIndex: 2,
-                }}
-              >
-                <ScrollBasedCarousel
-                  images={coupleData.coupleImages}
-                  currentSectionIndex={currentSection}
-                  size={500}
-                />
-              </Box>
-            </Box>
-          </motion.div>
-        </Box>
-
-        {/* Right Side - Scrollable Content (Flipped from Left) */}
+        {/* Left Side - Scrollable Content */}
         <Box
           sx={{
             flex: '0 0 60%',
-            ml: '40%', // Offset for fixed left side
             maxWidth: '60%',
             minHeight: '100vh',
             display: 'flex',
@@ -677,7 +702,7 @@ export default function InfiniteScrollLayout({
               sx={{
                 width: '100%',
                 display: 'flex',
-                justifyContent: 'flex-end',
+                justifyContent: 'flex-start',
                 mt: 8,
                 position: 'relative',
               }}
@@ -688,7 +713,6 @@ export default function InfiniteScrollLayout({
                 sx={{
                   width: '100%',
                   maxWidth: { md: 550, lg: 650, xl: 800 },
-                  mx: 'auto',
                   position: 'relative',
                   zIndex: 1,
                   pb: 15,
@@ -727,7 +751,7 @@ export default function InfiniteScrollLayout({
                                 color: '#000',
                                 mb: 4,
                                 fontSize: { md: '1.75rem', lg: '2rem' },
-                                textAlign: 'center',
+                                textAlign: 'left',
                               }}
                             >
                               {day.day_name}, {day.date}
@@ -851,6 +875,56 @@ export default function InfiniteScrollLayout({
                                               </Typography>
                                             </Stack>
                                           )}
+
+                                          {/* Learn More Link - only for major events with linked event that has slides */}
+                                          {isMajor && (() => {
+                                            const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
+                                            const hasSlides = linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0;
+                                            if (!hasSlides) return null;
+                                            return (
+                                              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+                                                <Box
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleLearnMoreClick(event);
+                                                  }}
+                                                  sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.5,
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                      '& .learn-more-text': {
+                                                        textDecoration: 'underline',
+                                                      },
+                                                    },
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    className="learn-more-text"
+                                                    sx={{
+                                                      color: primaryColor,
+                                                      fontSize: '1.125rem',
+                                                      fontFamily: 'Outfit',
+                                                      fontWeight: 500,
+                                                    }}
+                                                  >
+                                                    Learn More
+                                                  </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: primaryColor,
+                                                      fontSize: '1.125rem',
+                                                      fontFamily: 'Outfit',
+                                                      fontWeight: 500,
+                                                    }}
+                                                  >
+                                                    →
+                                                  </Typography>
+                                                </Box>
+                                              </Stack>
+                                            );
+                                          })()}
                                         </Box>
                                       </Paper>
                                     </Box>
@@ -1265,6 +1339,81 @@ export default function InfiniteScrollLayout({
           )}
         </Box>
 
+        {/* Right Side - Fixed Couple Image OR Event Detail Carousel */}
+        {showEventCarousel && selectedEvent ? (
+          <EventDetailCarousel
+            eventName={selectedEvent.name}
+            slides={selectedEvent.carousel_slides}
+            textColor={selectedEvent.text_color || '#FFFFFF'}
+            gradientBackground={selectedEvent.gradient_background || null}
+            onClose={handleCloseEventCarousel}
+          />
+        ) : (
+          <Box
+            sx={{
+              position: 'fixed',
+              right: 0,
+              top: 0,
+              width: '40%',
+              height: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              pl: { md: 4, lg: 6, xl: 8 },
+              pr: { md: 4, lg: 6, xl: 8 },
+              gap: 3,
+              alignItems: 'center',
+              pointerEvents: 'auto',
+              zIndex: 0,
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: '100%',
+                  maxWidth: { md: 500, lg: 600, xl: 900 },
+                  aspectRatio: '1',
+                }}
+              >
+                <Image
+                  src="/images/frames/frame-27.png"
+                  alt="Decorative frame"
+                  fill
+                  priority
+                  sizes="(max-width: 1200px) 500px, (max-width: 1600px) 600px, 700px"
+                  style={{
+                    objectFit: 'contain',
+                    objectPosition: 'center',
+                    zIndex: 1,
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '7%',
+                    left: '7%',
+                    width: '87%',
+                    height: '87%',
+                    overflow: 'hidden',
+                    zIndex: 2,
+                  }}
+                >
+                  <ScrollBasedCarousel
+                    images={coupleData.coupleImages}
+                    currentSectionIndex={currentSection}
+                    size={500}
+                  />
+                </Box>
+              </Box>
+            </motion.div>
+          </Box>
+        )}
 
       </Box>
     </Box>

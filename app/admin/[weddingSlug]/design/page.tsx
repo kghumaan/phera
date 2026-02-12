@@ -27,6 +27,9 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { BACKGROUNDS, BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import ProBadge from '@/components/admin/ProBadge';
+import UpgradeModal from '@/components/admin/UpgradeModal';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -40,6 +43,10 @@ const sectionPaperSx = {
 };
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
+
+// Number of free options for basic plan
+const FREE_BACKGROUND_COUNT = 3;
+const FREE_COLOR_COUNT = 3;
 
 const COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
@@ -91,6 +98,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function DesignCustomizationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isPro } = usePlan();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -101,6 +109,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState('');
@@ -436,35 +445,48 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Typography>
 
                 <Grid container spacing={2} mb={3}>
-                  {BACKGROUND_OPTIONS.slice(0, visibleMainBgs).map((bg) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`main-bg-${bg.url}`}>
-                      <Box
-                        onClick={() => {
-                          setMainBackground(bg.url);
-                          setCustomMainBackground(null);
-                        }}
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '1/1',
-                          backgroundImage: `url(${bg.url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          border: 3,
-                          borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: '#DE3F5E',
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                        {bg.name}
-                      </Typography>
-                    </Grid>
-                  ))}
+                  {BACKGROUND_OPTIONS.slice(0, visibleMainBgs).map((bg, index) => {
+                    const isProOption = index >= FREE_BACKGROUND_COUNT;
+                    const isLocked = isProOption && !isPro;
+
+                    return (
+                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`main-bg-${bg.url}`}>
+                        <Box
+                          onClick={() => {
+                            if (isLocked) {
+                              setUpgradeModalOpen(true);
+                              return;
+                            }
+                            setMainBackground(bg.url);
+                            setCustomMainBackground(null);
+                          }}
+                          sx={{
+                            width: '100%',
+                            aspectRatio: '1/1',
+                            backgroundImage: `url(${bg.url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: 3,
+                            borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            opacity: isLocked ? 0.7 : 1,
+                            '&:hover': {
+                              borderColor: '#DE3F5E',
+                              transform: 'scale(1.05)',
+                            },
+                          }}
+                        >
+                          {isProOption && !isPro && <ProBadge position="corner" />}
+                        </Box>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                          {bg.name}
+                        </Typography>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
 
                 <Stack direction="row" spacing={2} mb={3} justifyContent="center">
@@ -514,30 +536,45 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Typography>
 
                 <Grid container spacing={2} mb={3}>
-                  {COLOR_OPTIONS.map((color) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`main-color-${color.value}`}>
-                      <Box
-                        onClick={() => setMainPrimaryColor(color.value)}
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '1/1',
-                          backgroundColor: color.value,
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          border: 3,
-                          borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: '#666',
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                        {color.name}
-                      </Typography>
-                    </Grid>
-                  ))}
+                  {COLOR_OPTIONS.map((color, index) => {
+                    const isProOption = index >= FREE_COLOR_COUNT;
+                    const isLocked = isProOption && !isPro;
+
+                    return (
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`main-color-${color.value}`}>
+                        <Box
+                          onClick={() => {
+                            if (isLocked) {
+                              setUpgradeModalOpen(true);
+                              return;
+                            }
+                            setMainPrimaryColor(color.value);
+                          }}
+                          sx={{
+                            width: '100%',
+                            aspectRatio: '1/1',
+                            backgroundColor: color.value,
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: 3,
+                            borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            opacity: isLocked ? 0.7 : 1,
+                            '&:hover': {
+                              borderColor: '#666',
+                              transform: 'scale(1.05)',
+                            },
+                          }}
+                        >
+                          {isProOption && !isPro && <ProBadge position="corner" />}
+                        </Box>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                          {color.name}
+                        </Typography>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
 
                 <TextField
@@ -593,35 +630,48 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Typography>
 
                 <Grid container spacing={2} mb={3}>
-                  {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
-                      <Box
-                        onClick={() => {
-                          setPinEntryBackground(bg.url);
-                          setCustomPinEntryBackground(null);
-                        }}
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '1/1',
-                          backgroundImage: `url(${bg.url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          border: 3,
-                          borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: '#DE3F5E',
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                        {bg.name}
-                      </Typography>
-                    </Grid>
-                  ))}
+                  {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg, index) => {
+                    const isProOption = index >= FREE_BACKGROUND_COUNT;
+                    const isLocked = isProOption && !isPro;
+
+                    return (
+                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
+                        <Box
+                          onClick={() => {
+                            if (isLocked) {
+                              setUpgradeModalOpen(true);
+                              return;
+                            }
+                            setPinEntryBackground(bg.url);
+                            setCustomPinEntryBackground(null);
+                          }}
+                          sx={{
+                            width: '100%',
+                            aspectRatio: '1/1',
+                            backgroundImage: `url(${bg.url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: 3,
+                            borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            opacity: isLocked ? 0.7 : 1,
+                            '&:hover': {
+                              borderColor: '#DE3F5E',
+                              transform: 'scale(1.05)',
+                            },
+                          }}
+                        >
+                          {isProOption && !isPro && <ProBadge position="corner" />}
+                        </Box>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                          {bg.name}
+                        </Typography>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
 
                 <Stack direction="row" spacing={2} mb={3} justifyContent="center">
@@ -675,30 +725,45 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                     </Typography>
 
                     <Grid container spacing={2} mb={2}>
-                      {COLOR_OPTIONS.map((color) => (
-                        <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
-                          <Box
-                            onClick={() => setPinEntryPrimaryColor(color.value)}
-                            sx={{
-                              width: '100%',
-                              aspectRatio: '1/1',
-                              backgroundColor: color.value,
-                              borderRadius: 1,
-                              cursor: 'pointer',
-                              border: 3,
-                              borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
-                              transition: 'all 0.2s',
-                              '&:hover': {
-                                borderColor: '#666',
-                                transform: 'scale(1.05)',
-                              },
-                            }}
-                          />
-                          <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                            {color.name}
-                          </Typography>
-                        </Grid>
-                      ))}
+                      {COLOR_OPTIONS.map((color, index) => {
+                        const isProOption = index >= FREE_COLOR_COUNT;
+                        const isLocked = isProOption && !isPro;
+
+                        return (
+                          <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
+                            <Box
+                              onClick={() => {
+                                if (isLocked) {
+                                  setUpgradeModalOpen(true);
+                                  return;
+                                }
+                                setPinEntryPrimaryColor(color.value);
+                              }}
+                              sx={{
+                                width: '100%',
+                                aspectRatio: '1/1',
+                                backgroundColor: color.value,
+                                borderRadius: 1,
+                                cursor: 'pointer',
+                                border: 3,
+                                borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
+                                transition: 'all 0.2s',
+                                position: 'relative',
+                                opacity: isLocked ? 0.7 : 1,
+                                '&:hover': {
+                                  borderColor: '#666',
+                                  transform: 'scale(1.05)',
+                                },
+                              }}
+                            >
+                              {isProOption && !isPro && <ProBadge position="corner" />}
+                            </Box>
+                            <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                              {color.name}
+                            </Typography>
+                          </Grid>
+                        );
+                      })}
                     </Grid>
 
                     <TextField
@@ -876,6 +941,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             {snackbarMessage}
           </Alert>
         </Snackbar>
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          open={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+        />
       </Stack >
     </Container >
   );

@@ -1,3 +1,5 @@
+import { CarouselSlide } from '@/lib/supabase/wedding-service';
+
 export interface EventTemplate {
   name: string;
   slug: string;
@@ -11,6 +13,7 @@ export interface EventTemplate {
   gradient_background: string;
   date: string;
   time: string;
+  carousel_slides?: CarouselSlide[];
 }
 
 export const EVENT_TEMPLATES: EventTemplate[] = [
@@ -65,6 +68,21 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     gradient_background: '/images/backgrounds/GradientYellow.png',
     date: '',
     time: '2:00 PM',
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        top_label: 'THE CEREMONY',
+        main_heading: 'Haldi',
+        body_text: 'A turmeric paste is applied to the bride and groom for blessings and radiant skin. Prepare to get messy and have fun!',
+      },
+      {
+        type: 'two_sections',
+        section1_header: 'WOMEN',
+        section1_items: ['Yellow Anarkali', 'Lehenga in gold tones', 'Yellow Saree', 'Kurti with palazzo'],
+        section2_header: 'MEN',
+        section2_items: ['Yellow Kurta with white pajama', 'Yellow Nehru jacket', 'Casual yellow shirt'],
+      },
+    ],
   },
   {
     name: 'Baraat',
@@ -195,6 +213,21 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     gradient_background: '/images/backgrounds/GradientReception.png',
     date: '',
     time: '6:00 PM',
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        top_label: 'THE CELEBRATION',
+        main_heading: 'Sangeet Night',
+        body_text: 'An evening of music, dance performances by family and friends, and celebration! Be prepared to sing, dance, and enjoy the show.',
+      },
+      {
+        type: 'two_sections',
+        section1_header: 'WOMEN',
+        section1_items: ['Designer Lehenga or Saree', 'Embellished Anarkali', 'Sequined or velvet outfit', 'Indo-western fusion gown'],
+        section2_header: 'MEN',
+        section2_items: ['Formal Sherwani', 'Designer Kurta with jacket', 'Velvet or silk Bandhgala', 'Three-piece suit'],
+      },
+    ],
   },
   {
     name: 'Reception',
@@ -221,6 +254,21 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     gradient_background: '/images/backgrounds/GradientReception.png',
     date: '',
     time: '7:00 PM',
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        top_label: 'THE CELEBRATION',
+        main_heading: 'Sangeet & Reception',
+        body_text: 'Evening kicks off with a high-energy Sangeet of choreographed dances, then flows into a formal Reception of dinner, toasts, and first dances—a perfect blend of party and polish.',
+      },
+      {
+        type: 'two_sections',
+        section1_header: 'WOMEN',
+        section1_items: ['Evening Gowns', 'Embellished Sarees', 'Fusion Co-Ord Sets', 'Cocktail Lehengas'],
+        section2_header: 'MEN',
+        section2_items: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets'],
+      },
+    ],
   },
   {
     name: 'Pool Party',

@@ -7,7 +7,7 @@ export type Wedding = Tables<'weddings'> & {
 };
 
 export type CarouselSlide = {
-  type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual';
+  type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual' | 'two_sections' | 'three_lines';
   title?: string;
   subtitle?: string;
   heading?: string;
@@ -15,6 +15,15 @@ export type CarouselSlide = {
   src?: string; // For image slides
   women?: string[]; // For outfit_ideas slides
   men?: string[]; // For outfit_ideas slides
+  // For two_sections type (outfit ideas style with two gender sections)
+  section1_header?: string;
+  section1_items?: string[];
+  section2_header?: string;
+  section2_items?: string[];
+  // For three_lines type (celebration header style)
+  top_label?: string;  // Small header like "THE CELEBRATION"
+  main_heading?: string; // Large italic heading like "Sangeet & Reception"
+  body_text?: string; // Description text
 };
 
 export type WeddingEvent = Omit<Tables<'wedding_events'>, 'carousel_slides'> & {

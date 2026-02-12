@@ -16,14 +16,11 @@ import {
   Snackbar,
   Switch,
   FormControlLabel,
-  Grid,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
   ToggleButton,
   ToggleButtonGroup,
-  Divider
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import {
@@ -37,7 +34,6 @@ import {
   AccessTime,
   ExpandMore,
 } from '@mui/icons-material';
-import { AVAILABLE_ICONS } from '@/lib/constants/icons';
 import {
   DndContext,
   closestCenter,
@@ -172,12 +168,6 @@ function SortableItem({
           >
             <DragIndicator fontSize="small" />
           </IconButton>
-
-          {item.icon && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2, flexShrink: 0 }}>
-              <StreamlineIcon name={item.icon as any} size={32} color="#1a1a1a" />
-            </Box>
-          )}
 
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
@@ -505,7 +495,6 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       schedule_id: scheduleId,
       time: '', // Will be set on save
       name: '',
-      icon: null,
       description: '',
       location: '',
       order_index: scheduleData.find(d => d.id === scheduleId)?.events.length || 0,
@@ -938,97 +927,23 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               </Stack>
             </Box>
 
-            <Stack direction="row" spacing={2} alignItems="stretch">
-              <FormControl sx={{ minWidth: 80, '& .MuiInputBase-root': { height: '56px' } }}>
-                <InputLabel id="icon-select-label">Icon</InputLabel>
-                <Select
-                  labelId="icon-select-label"
-                  label="Icon"
-                  value={currentItem?.icon || ''}
-                  onChange={(e) => setCurrentItem({ ...currentItem, icon: e.target.value })}
-                  renderValue={(selected) => {
-                    const icon = AVAILABLE_ICONS.find(i => i.name === selected);
-                    return (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {selected && <StreamlineIcon name={selected as any} size={20} color="#1a1a1a" />}
-                      </Box>
-                    );
-                  }}
-                  sx={{
-                    borderRadius: '16px',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(0, 0, 0, 0.23)',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#DE3F5E',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#DE3F5E',
-                    },
-                    '& .MuiSelect-select': {
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        bgcolor: 'white',
-                        borderRadius: '16px',
-                        mt: 1,
-                        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-                        maxHeight: 300,
-                        '& .MuiMenuItem-root': {
-                          p: 1.5,
-                          m: 0.5,
-                          borderRadius: '8px',
-                          color: '#1a1a1a',
-                          '&:hover': {
-                            bgcolor: 'rgba(222, 63, 94, 0.04)',
-                          },
-                          '&.Mui-selected': {
-                            bgcolor: 'rgba(222, 63, 94, 0.08) !important',
-                            color: '#DE3F5E',
-                            fontWeight: 600,
-                          },
-                        },
-                      }
-                    }
-                  }}
-                >
-                  <MenuItem value="">
-                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>None</Typography>
-                  </MenuItem>
-                  {AVAILABLE_ICONS.map((icon) => (
-                    <MenuItem key={icon.name} value={icon.name}>
-                      <Stack direction="row" spacing={1.5} alignItems="center">
-                        <StreamlineIcon name={icon.name} size={20} />
-                        <Typography variant="body2">{icon.label}</Typography>
-                      </Stack>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <TextField
-                label="Event Name *"
-                fullWidth
-                value={currentItem?.name || ''}
-                onChange={(e) => {
-                  setCurrentItem({ ...currentItem, name: e.target.value });
-                  if (itemFieldErrors.name) {
-                    setItemFieldErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.name;
-                      return newErrors;
-                    });
-                  }
-                }}
-                error={itemFieldErrors.name}
-                sx={textFieldSx}
-              />
-            </Stack>
+            <TextField
+              label="Event Name *"
+              fullWidth
+              value={currentItem?.name || ''}
+              onChange={(e) => {
+                setCurrentItem({ ...currentItem, name: e.target.value });
+                if (itemFieldErrors.name) {
+                  setItemFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.name;
+                    return newErrors;
+                  });
+                }
+              }}
+              error={itemFieldErrors.name}
+              sx={textFieldSx}
+            />
             <TextField
               label="Description"
               fullWidth

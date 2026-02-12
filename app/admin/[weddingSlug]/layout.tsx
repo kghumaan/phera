@@ -5,6 +5,7 @@ import OnboardingSidebar from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { PlanProvider } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect } from 'react';
 import { usePathname, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
@@ -74,6 +75,7 @@ export default function OnboardingLayout({
   const TOP_NAV_HEIGHT = { xs: '56px', md: '64px' };
 
   return (
+    <PlanProvider>
     <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
       <AdminTopNav
         weddingSlug={weddingSlug}
@@ -150,5 +152,6 @@ export default function OnboardingLayout({
         </Box>
       </Box>
     </OptimizedBackground>
+    </PlanProvider>
   );
 }

@@ -27,6 +27,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Wedding } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import ProBadge from './ProBadge';
+import UpgradeModal from './UpgradeModal';
 
 interface SidebarItem {
   id: string;
@@ -34,6 +37,7 @@ interface SidebarItem {
   path: string;
   icon?: React.ReactNode;
   required?: boolean;
+  isPro?: boolean;
 }
 
 interface SidebarGroup {
@@ -42,6 +46,7 @@ interface SidebarGroup {
   icon: React.ReactNode;
   items: SidebarItem[];
   standalone?: boolean;
+  isPro?: boolean;
 }
 
 const groups: SidebarGroup[] = [
@@ -76,7 +81,7 @@ const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guests', label: 'RSVPs', path: '/guests' },
-      { id: 'travel-coordination', label: 'Travel Coordination', path: '/travel-coordination' },
+      { id: 'travel-coordination', label: 'Travel Coordination', path: '/travel-coordination', isPro: true },
     ]
   },
   {
@@ -84,8 +89,9 @@ const groups: SidebarGroup[] = [
     label: 'Phera Concierge',
     icon: <WhatsApp />,
     standalone: true,
+    isPro: true,
     items: [
-      { id: 'concierge', label: 'Phera Concierge', path: '/concierge' }
+      { id: 'concierge', label: 'Phera Concierge', path: '/concierge', isPro: true }
     ]
   },
   {
@@ -127,6 +133,8 @@ export default function OnboardingSidebar({
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
   const router = useRouter();
   const pathname = usePathname();
+  const { isPro } = usePlan();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
     let foundActive = false;
@@ -225,10 +233,18 @@ export default function OnboardingSidebar({
           if (group.standalone) {
             const item = group.items[0];
             const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
+            const isLocked = group.isPro && !isPro;
+
             return (
               <ListItemButton
                 key={group.id}
-                onClick={() => handleItemClick(item, true)}
+                onClick={() => {
+                  if (isLocked) {
+                    setUpgradeModalOpen(true);
+                    return;
+                  }
+                  handleItemClick(item, true);
+                }}
                 selected={isActive}
                 sx={{
                   px: 1.5, // Reduced from 2 to align text with parent items
@@ -237,6 +253,7 @@ export default function OnboardingSidebar({
                   mb: 0.5,
                   borderRadius: '12px',
                   color: isActive ? 'white' : '#4a4a4a',
+                  opacity: isLocked ? 0.7 : 1,
                   '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
                   '&.Mui-selected': {
                     bgcolor: '#DE3F5E',
@@ -248,7 +265,12 @@ export default function OnboardingSidebar({
               >
                 <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
                 <ListItemText
-                  primary={group.label}
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <span>{group.label}</span>
+                      {group.isPro && !isPro && <ProBadge size="small" />}
+                    </Box>
+                  }
                   primaryTypographyProps={{ sx: { fontWeight: isActive ? 600 : 600, fontSize: '0.9rem' } }}
                 />
               </ListItemButton>
@@ -332,10 +354,18 @@ export default function OnboardingSidebar({
 
                   {group.items.map((item) => {
                     const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
+                    const isLocked = item.isPro && !isPro;
+
                     return (
                       <Box key={item.id} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          onClick={() => handleItemClick(item, false, group.id)}
+                          onClick={() => {
+                            if (isLocked) {
+                              setUpgradeModalOpen(true);
+                              return;
+                            }
+                            handleItemClick(item, false, group.id);
+                          }}
                           selected={isActive}
                           sx={{
                             ml: 1.5,
@@ -345,6 +375,7 @@ export default function OnboardingSidebar({
                             borderRadius: '8px',
                             color: '#6a6a6a',
                             minHeight: 36,
+                            opacity: isLocked ? 0.7 : 1,
                             '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             '&.Mui-selected': {
                               bgcolor: alpha('#DE3F5E', 0.1),
@@ -357,7 +388,8 @@ export default function OnboardingSidebar({
                             primary={
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <span>{item.label}</span>
-                                {item.required && !isActive && (
+                                {item.isPro && !isPro && <ProBadge size="small" />}
+                                {item.required && !isActive && !item.isPro && (
                                   <Box
                                     component="span"
                                     sx={{
@@ -393,6 +425,12 @@ export default function OnboardingSidebar({
 
   return (
     <>
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+      />
+
       {/* Mobile Drawer */}
       {isMobile ? (
         <Drawer
