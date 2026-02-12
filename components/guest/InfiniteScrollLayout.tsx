@@ -860,71 +860,77 @@ export default function InfiniteScrollLayout({
                                             </Typography>
                                           )}
 
-                                          {isMajor && event.location && (
-                                            <Stack direction="row" spacing={1} alignItems="center">
-                                              <LocationOnOutlined sx={{ fontSize: 24, color: '#111' }} />
-                                              <Typography
-                                                sx={{
-                                                  color: '#111',
-                                                  fontSize: '1.125rem',
-                                                  fontFamily: 'Outfit',
-                                                  fontWeight: 500,
-                                                }}
-                                              >
-                                                {event.location}
-                                              </Typography>
+                                          {/* Location and Learn More row */}
+                                          {isMajor && (
+                                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
+                                              {/* Location */}
+                                              {event.location ? (
+                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                  <LocationOnOutlined sx={{ fontSize: 24, color: '#111' }} />
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#111',
+                                                      fontSize: '1.125rem',
+                                                      fontFamily: 'Outfit',
+                                                      fontWeight: 500,
+                                                    }}
+                                                  >
+                                                    {event.location}
+                                                  </Typography>
+                                                </Stack>
+                                              ) : (
+                                                <Box />
+                                              )}
+
+                                              {/* Learn More Link */}
+                                              {(() => {
+                                                const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
+                                                const hasSlides = linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0;
+                                                if (!hasSlides) return null;
+                                                return (
+                                                  <Box
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleLearnMoreClick(event);
+                                                    }}
+                                                    sx={{
+                                                      display: 'flex',
+                                                      alignItems: 'center',
+                                                      gap: 0.5,
+                                                      cursor: 'pointer',
+                                                      '&:hover': {
+                                                        '& .learn-more-text': {
+                                                          textDecoration: 'underline',
+                                                        },
+                                                      },
+                                                    }}
+                                                  >
+                                                    <Typography
+                                                      className="learn-more-text"
+                                                      sx={{
+                                                        color: primaryColor,
+                                                        fontSize: '1.125rem',
+                                                        fontFamily: 'Outfit',
+                                                        fontWeight: 500,
+                                                      }}
+                                                    >
+                                                      Learn More
+                                                    </Typography>
+                                                    <Typography
+                                                      sx={{
+                                                        color: primaryColor,
+                                                        fontSize: '1.125rem',
+                                                        fontFamily: 'Outfit',
+                                                        fontWeight: 500,
+                                                      }}
+                                                    >
+                                                      →
+                                                    </Typography>
+                                                  </Box>
+                                                );
+                                              })()}
                                             </Stack>
                                           )}
-
-                                          {/* Learn More Link - only for major events with linked event that has slides */}
-                                          {isMajor && (() => {
-                                            const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
-                                            const hasSlides = linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0;
-                                            if (!hasSlides) return null;
-                                            return (
-                                              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
-                                                <Box
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleLearnMoreClick(event);
-                                                  }}
-                                                  sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 0.5,
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                      '& .learn-more-text': {
-                                                        textDecoration: 'underline',
-                                                      },
-                                                    },
-                                                  }}
-                                                >
-                                                  <Typography
-                                                    className="learn-more-text"
-                                                    sx={{
-                                                      color: primaryColor,
-                                                      fontSize: '1.125rem',
-                                                      fontFamily: 'Outfit',
-                                                      fontWeight: 500,
-                                                    }}
-                                                  >
-                                                    Learn More
-                                                  </Typography>
-                                                  <Typography
-                                                    sx={{
-                                                      color: primaryColor,
-                                                      fontSize: '1.125rem',
-                                                      fontFamily: 'Outfit',
-                                                      fontWeight: 500,
-                                                    }}
-                                                  >
-                                                    →
-                                                  </Typography>
-                                                </Box>
-                                              </Stack>
-                                            );
-                                          })()}
                                         </Box>
                                       </Paper>
                                     </Box>

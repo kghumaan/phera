@@ -21,6 +21,12 @@ import {
   FormControl,
   ToggleButton,
   ToggleButtonGroup,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  InputLabel,
+  Grid,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import {
@@ -33,7 +39,13 @@ import {
   Check,
   AccessTime,
   ExpandMore,
+  ArrowUpward,
+  ArrowDownward,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
 } from '@mui/icons-material';
+import Image from 'next/image';
 import {
   DndContext,
   closestCenter,
@@ -51,7 +63,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { weddingService, ScheduleItem, WeddingEvent } from '@/lib/supabase/wedding-service';
+import { weddingService, ScheduleItem, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
+import ImageUpload from '@/components/admin/ImageUpload';
+import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
@@ -79,6 +93,13 @@ const BACKGROUND_OPTIONS = [
   { label: 'Crimson Red', value: 'GradientJaggo.png', color: '#C2185B' },
   { label: 'Royal Purple', value: 'GradientReception.png', color: '#7B1FA2' },
   { label: 'Pool Blue', value: 'GradientPoolParty.png', color: '#0288D1' },
+];
+
+// Slide type options
+const SLIDE_TYPES = [
+  { value: 'three_lines', label: 'Header + Title + Description' },
+  { value: 'two_sections', label: 'Two Sections (Women/Men style)' },
+  { value: 'image', label: 'Full Image' },
 ];
 
 // Sortable item component
@@ -364,6 +385,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const [endTime, setEndTime] = useState<{ hour: string; minute: string; period: 'AM' | 'PM' } | null>(null);
   const [hasEndTime, setHasEndTime] = useState(false);
 
+  // Tab state for edit dialog
+  const [editTab, setEditTab] = useState(0);
+
+  // Slide editing state
+  const [currentSlides, setCurrentSlides] = useState<CarouselSlide[]>([]);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(null);
+  const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
+
   const [dayFieldErrors, setDayFieldErrors] = useState<Record<string, boolean>>({});
   const [itemFieldErrors, setItemFieldErrors] = useState<Record<string, boolean>>({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -500,6 +529,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       order_index: scheduleData.find(d => d.id === scheduleId)?.events.length || 0,
       is_major_event: false,
       gradient_background: null,
+      carousel_slides: [],
     };
     setCurrentItem(newItem);
 
@@ -508,8 +538,61 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     setHasEndTime(false);
     setEndTime(null);
 
+    // Reset tab and slide state
+    setEditTab(0);
+    setCurrentSlides([]);
+    setSelectedSlideIndex(null);
+    setPreviewSlideIndex(0);
+
     setItemFieldErrors({});
     setItemDialogOpen(true);
+  };
+
+  // Slide management functions
+  const handleAddSlide = () => {
+    const newSlide: CarouselSlide = {
+      type: 'three_lines',
+      top_label: '',
+      main_heading: '',
+      body_text: '',
+    };
+    const updatedSlides = [...currentSlides, newSlide];
+    setCurrentSlides(updatedSlides);
+    setSelectedSlideIndex(updatedSlides.length - 1);
+  };
+
+  const handleUpdateSlide = (index: number, updates: Partial<CarouselSlide>) => {
+    const updatedSlides = [...currentSlides];
+    updatedSlides[index] = { ...updatedSlides[index], ...updates };
+    setCurrentSlides(updatedSlides);
+  };
+
+  const handleDeleteSlide = (index: number) => {
+    const updatedSlides = currentSlides.filter((_, i) => i !== index);
+    setCurrentSlides(updatedSlides);
+    if (selectedSlideIndex === index) {
+      setSelectedSlideIndex(updatedSlides.length > 0 ? Math.min(index, updatedSlides.length - 1) : null);
+    } else if (selectedSlideIndex !== null && selectedSlideIndex > index) {
+      setSelectedSlideIndex(selectedSlideIndex - 1);
+    }
+    if (previewSlideIndex >= updatedSlides.length) {
+      setPreviewSlideIndex(Math.max(0, updatedSlides.length - 1));
+    }
+  };
+
+  const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= currentSlides.length) return;
+
+    const updatedSlides = [...currentSlides];
+    [updatedSlides[index], updatedSlides[newIndex]] = [updatedSlides[newIndex], updatedSlides[index]];
+    setCurrentSlides(updatedSlides);
+
+    if (selectedSlideIndex === index) {
+      setSelectedSlideIndex(newIndex);
+    } else if (selectedSlideIndex === newIndex) {
+      setSelectedSlideIndex(index);
+    }
   };
 
   const handleSaveItem = async () => {
@@ -528,19 +611,65 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       timeStr += ` - ${endTime.hour}:${endTime.minute} ${endTime.period}`;
     }
 
+    // Don't include carousel_slides in schedule item - it goes to linked event
+    const { carousel_slides: _, ...itemData } = currentItem;
     const itemToSave = {
-      ...currentItem,
-      time: timeStr
+      ...itemData,
+      time: timeStr,
     };
 
     setItemFieldErrors({});
 
     try {
+      let savedItemId = itemToSave.id;
+
+      // Save the schedule item first
       if (itemToSave.id) {
         await weddingService.updateScheduleItem(itemToSave.id, itemToSave);
       } else {
-        await weddingService.createScheduleItem(itemToSave);
+        const result = await weddingService.createScheduleItem(itemToSave);
+        savedItemId = result?.id;
       }
+
+      // If there are slides and this is a major event, create/update linked wedding event
+      if (currentSlides.length > 0 && itemToSave.is_major_event && weddingId) {
+        // Check if there's already a linked event
+        let linkedEventId = itemToSave.linked_event_id;
+
+        if (linkedEventId) {
+          // Update existing linked event's slides
+          await weddingService.updateEvent(linkedEventId, {
+            carousel_slides: currentSlides as any,
+            gradient_background: itemToSave.gradient_background,
+          });
+        } else {
+          // Create a new wedding event for this schedule item
+          const newEvent = await weddingService.createEvent({
+            wedding_id: weddingId,
+            name: itemToSave.name,
+            slug: itemToSave.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+            date: '', // Can be filled later
+            time: itemToSave.time,
+            dress_code: '',
+            dress_code_description: '',
+            dress_code_icon: '',
+            ritual_name: '',
+            ritual_description: '',
+            gradient_background: itemToSave.gradient_background || 'pearl.png',
+            text_color: '#FFFFFF',
+            carousel_slides: currentSlides as any,
+            order_index: 0,
+          });
+
+          // Link the new event to the schedule item
+          if (newEvent && savedItemId) {
+            await weddingService.updateScheduleItem(savedItemId, {
+              linked_event_id: newEvent.id,
+            });
+          }
+        }
+      }
+
       await loadData();
       setItemDialogOpen(false);
       setCurrentItem(null);
@@ -758,6 +887,15 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                           setEndTime(end || { hour: '1', minute: '00', period: 'PM' });
                           setHasEndTime(!!end);
 
+                          // Reset tab and initialize slides
+                          setEditTab(0);
+                          // Try to get slides from linked event or item itself
+                          const linkedEvent = events.find(e => e.id === item.linked_event_id);
+                          const slides = (item as any).carousel_slides || linkedEvent?.carousel_slides || [];
+                          setCurrentSlides(slides);
+                          setSelectedSlideIndex(null);
+                          setPreviewSlideIndex(0);
+
                           setItemFieldErrors({});
                           setItemDialogOpen(true);
                         }}
@@ -859,201 +997,168 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         </DialogActions>
       </Dialog>
 
-      {/* Item Dialog */}
+      {/* Item Dialog - Wider with Tabs */}
       <Dialog
         open={itemDialogOpen}
         onClose={() => setItemDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="lg"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '24px', bgcolor: 'white' } }}
+        PaperProps={{ sx: { borderRadius: '24px', bgcolor: 'white', minHeight: '70vh' } }}
       >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-          {currentItem?.id ? 'Edit Event' : 'New Event'}
+        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, pb: 0 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {currentItem?.id ? 'Edit Event' : 'New Event'}
+            </Typography>
+            {/* Major Event Toggle at top */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={!!currentItem?.is_major_event}
+                  onChange={(e) => setCurrentItem({ ...currentItem, is_major_event: e.target.checked })}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#DE3F5E',
+                      '&:hover': { backgroundColor: 'rgba(222, 63, 94, 0.08)' },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#DE3F5E',
+                    },
+                  }}
+                />
+              }
+              label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Major Event</Typography>}
+              sx={{ mr: 0 }}
+            />
+          </Stack>
+          <Tabs
+            value={editTab}
+            onChange={(_, newValue) => setEditTab(newValue)}
+            sx={{
+              mt: 2,
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                color: '#666',
+                '&.Mui-selected': { color: '#DE3F5E' },
+              },
+              '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+            }}
+          >
+            <Tab label="Basic Details" />
+            <Tab label="More Details" />
+          </Tabs>
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: 'white' }}>
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            {/* Time Picker Section */}
-            <Box sx={{ bgcolor: '#fafafa', p: 2, borderRadius: '12px', border: '1px solid #eee' }}>
-              <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                <AccessTime sx={{ color: '#DE3F5E', fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  Date and Time
-                </Typography>
-              </Stack>
-
-              <Stack spacing={3}>
-                <DigitalTimePicker
-                  label="Start Time"
-                  value={startTime}
-                  onChange={setStartTime}
-                />
-
-                {hasEndTime ? (
-                  <Box>
-                    <DigitalTimePicker
-                      label="End Time"
-                      value={endTime || { hour: '1', minute: '00', period: 'PM' }}
-                      onChange={setEndTime}
-                    />
+        <DialogContent sx={{ bgcolor: 'white', pt: 3 }}>
+          {/* Tab 0: Basic Details */}
+          {editTab === 0 && (
+            <Stack spacing={3} sx={{ maxWidth: 600 }}>
+              {/* Time Picker Section */}
+              <Box sx={{ bgcolor: '#fafafa', p: 2, borderRadius: '12px', border: '1px solid #eee' }}>
+                <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+                  <AccessTime sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Time</Typography>
+                </Stack>
+                <Stack spacing={3}>
+                  <DigitalTimePicker label="Start Time" value={startTime} onChange={setStartTime} />
+                  {hasEndTime ? (
+                    <Box>
+                      <DigitalTimePicker
+                        label="End Time"
+                        value={endTime || { hour: '1', minute: '00', period: 'PM' }}
+                        onChange={setEndTime}
+                      />
+                      <Button
+                        size="small"
+                        onClick={() => setHasEndTime(false)}
+                        sx={{ mt: 1, color: '#666', textTransform: 'none', fontSize: '0.8rem' }}
+                      >
+                        Remove End Time
+                      </Button>
+                    </Box>
+                  ) : (
                     <Button
+                      variant="outlined"
                       size="small"
-                      onClick={() => setHasEndTime(false)}
-                      sx={{ mt: 1, color: '#666', textTransform: 'none', fontSize: '0.8rem' }}
-                    >
-                      Remove End Time
-                    </Button>
-                  </Box>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<Add />}
-                    onClick={() => {
-                      setEndTime({ hour: '1', minute: '00', period: 'PM' });
-                      setHasEndTime(true);
-                    }}
-                    sx={{
-                      alignSelf: 'flex-start',
-                      borderColor: '#eee',
-                      color: '#666',
-                      textTransform: 'none',
-                      borderRadius: '8px',
-                      width: 'fit-content'
-                    }}
-                  >
-                    Add End Time
-                  </Button>
-                )}
-              </Stack>
-            </Box>
-
-            <TextField
-              label="Event Name *"
-              fullWidth
-              value={currentItem?.name || ''}
-              onChange={(e) => {
-                setCurrentItem({ ...currentItem, name: e.target.value });
-                if (itemFieldErrors.name) {
-                  setItemFieldErrors(prev => {
-                    const newErrors = { ...prev };
-                    delete newErrors.name;
-                    return newErrors;
-                  });
-                }
-              }}
-              error={itemFieldErrors.name}
-              sx={textFieldSx}
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={2}
-              value={currentItem?.description || ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
-              sx={textFieldSx}
-            />
-            <TextField
-              label="Location"
-              fullWidth
-              value={currentItem?.location || ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, location: e.target.value })}
-              sx={textFieldSx}
-            />
-
-
-            {/* Major Event Toggle and Backgrounds */}
-            <Box>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-                <Typography variant="subtitle2" sx={{ color: '#666', fontWeight: 600 }}>
-                  Appearance & Style
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={!!currentItem?.is_major_event}
-                      onChange={(e) => setCurrentItem({ ...currentItem, is_major_event: e.target.checked })}
-                      sx={{
-                        '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#DE3F5E',
-                          '&:hover': {
-                            backgroundColor: 'rgba(222, 63, 94, 0.08)',
-                          },
-                        },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#DE3F5E',
-                        },
+                      startIcon={<Add />}
+                      onClick={() => {
+                        setEndTime({ hour: '1', minute: '00', period: 'PM' });
+                        setHasEndTime(true);
                       }}
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      Major Event
-                    </Typography>
-                  }
-                  sx={{ mr: 0 }}
-                />
-              </Stack>
+                      sx={{ alignSelf: 'flex-start', borderColor: '#eee', color: '#666', textTransform: 'none', borderRadius: '8px' }}
+                    >
+                      Add End Time
+                    </Button>
+                  )}
+                </Stack>
+              </Box>
 
-              {currentItem?.is_major_event && (
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#fafafa', borderRadius: '12px', border: '1px solid #eee' }}>
-                  <Typography variant="caption" sx={{ color: '#666', mb: 1.5, display: 'block' }}>
-                    Background Theme (Optional)
-                  </Typography>
-                  <Stack direction="row" spacing={1.5} sx={{ overflowX: 'auto', pb: 1 }}>
+              <TextField
+                label="Event Name *"
+                fullWidth
+                value={currentItem?.name || ''}
+                onChange={(e) => {
+                  setCurrentItem({ ...currentItem, name: e.target.value });
+                  if (itemFieldErrors.name) {
+                    setItemFieldErrors(prev => { const n = { ...prev }; delete n.name; return n; });
+                  }
+                }}
+                error={itemFieldErrors.name}
+                sx={textFieldSx}
+              />
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={3}
+                value={currentItem?.description || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
+                sx={textFieldSx}
+              />
+              <TextField
+                label="Location"
+                fullWidth
+                value={currentItem?.location || ''}
+                onChange={(e) => setCurrentItem({ ...currentItem, location: e.target.value })}
+                sx={textFieldSx}
+              />
+            </Stack>
+          )}
+
+          {/* Tab 1: More Details - Background & Slides */}
+          {editTab === 1 && (
+            <Box sx={{ display: 'flex', gap: 3, minHeight: 450 }}>
+              {/* Left side: Settings & Slide List */}
+              <Box sx={{ width: 350, flexShrink: 0 }}>
+                {/* Background Theme */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>Background Theme</Typography>
+                  <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     {BACKGROUND_OPTIONS.map((option) => {
                       const isSelected = currentItem?.gradient_background === option.value;
                       return (
                         <Box
                           key={option.label}
-                          onClick={() => {
-                            const newGradient = isSelected ? null : option.value;
-                            setCurrentItem({
-                              ...currentItem,
-                              gradient_background: newGradient
-                            });
-                          }}
+                          onClick={() => setCurrentItem({ ...currentItem, gradient_background: isSelected ? null : option.value })}
                           sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            border: '2px solid',
-                            borderColor: isSelected ? '#DE3F5E' : 'transparent',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            flexShrink: 0,
+                            width: 48, height: 48, borderRadius: '12px', cursor: 'pointer',
+                            border: '2px solid', borderColor: isSelected ? '#DE3F5E' : 'transparent',
+                            position: 'relative', overflow: 'hidden',
                             ...(option.value ? {
                               backgroundImage: `url(/images/backgrounds/${option.value})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
+                              backgroundSize: 'cover', backgroundPosition: 'center',
                             } : {
-                              bgcolor: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
+                              bgcolor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                               border: isSelected ? '2px solid #DE3F5E' : '1px solid #ddd'
                             }),
-                            '&:hover': {
-                              borderColor: isSelected ? '#DE3F5E' : '#999',
-                            }
+                            '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#999' }
                           }}
                         >
-                          {!option.value && (
-                            <Typography variant="caption" sx={{ color: '#666', fontSize: '0.7rem' }}>
-                              None
-                            </Typography>
-                          )}
+                          {!option.value && <Typography variant="caption" sx={{ color: '#666', fontSize: '0.65rem' }}>None</Typography>}
                           {isSelected && (
-                            <Box sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              bgcolor: 'rgba(255,255,255,0.3)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                              <Check sx={{ color: '#DE3F5E', fontSize: 20, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Check sx={{ color: '#DE3F5E', fontSize: 18 }} />
                             </Box>
                           )}
                         </Box>
@@ -1061,11 +1166,297 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                     })}
                   </Stack>
                 </Box>
-              )}
+
+                {/* Slides List */}
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Event Slides</Typography>
+                    <Button
+                      size="small"
+                      startIcon={<Add />}
+                      onClick={handleAddSlide}
+                      sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Add Slide
+                    </Button>
+                  </Stack>
+                  <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 2 }}>
+                    These slides appear when guests click &quot;Learn More&quot;
+                  </Typography>
+
+                  {currentSlides.length > 0 ? (
+                    <Stack spacing={1} sx={{ maxHeight: 280, overflowY: 'auto' }}>
+                      {currentSlides.map((slide, index) => (
+                        <Paper
+                          key={index}
+                          onClick={() => setSelectedSlideIndex(index)}
+                          sx={{
+                            p: 1.5, borderRadius: '10px', cursor: 'pointer',
+                            bgcolor: selectedSlideIndex === index ? 'rgba(222, 63, 94, 0.08)' : '#f9f9f9',
+                            border: selectedSlideIndex === index ? '2px solid #DE3F5E' : '1px solid #eee',
+                            '&:hover': { bgcolor: selectedSlideIndex === index ? 'rgba(222, 63, 94, 0.08)' : '#f5f5f5' },
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.85rem' }}>
+                                Slide {index + 1}: {SLIDE_TYPES.find(t => t.value === slide.type)?.label || slide.type}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#6a6a6a', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {slide.type === 'three_lines' && (slide.main_heading || slide.top_label || 'No content')}
+                                {slide.type === 'two_sections' && `${slide.section1_header || 'Section 1'} / ${slide.section2_header || 'Section 2'}`}
+                                {slide.type === 'image' && (slide.src ? 'Image uploaded' : 'No image')}
+                              </Typography>
+                            </Box>
+                            <Stack direction="row" spacing={0}>
+                              <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleMoveSlide(index, 'up'); }} disabled={index === 0} sx={{ p: 0.5 }}>
+                                <ArrowUpward sx={{ fontSize: 16 }} />
+                              </IconButton>
+                              <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleMoveSlide(index, 'down'); }} disabled={index === currentSlides.length - 1} sx={{ p: 0.5 }}>
+                                <ArrowDownward sx={{ fontSize: 16 }} />
+                              </IconButton>
+                              <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDeleteSlide(index); }} sx={{ p: 0.5, color: '#666', '&:hover': { color: '#d32f2f' } }}>
+                                <Delete sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Paper sx={{ p: 3, textAlign: 'center', borderRadius: '12px', bgcolor: '#f9f9f9', border: '1px dashed #ddd' }}>
+                      <ImageIcon sx={{ fontSize: 32, color: '#ccc', mb: 1 }} />
+                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>No slides yet</Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Right side: Slide Editor / Preview */}
+              <Box sx={{ flex: 1, bgcolor: '#f5f5f5', borderRadius: '16px', p: 3, display: 'flex', flexDirection: 'column' }}>
+                {selectedSlideIndex !== null && currentSlides[selectedSlideIndex] ? (
+                  <>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>Edit Slide {selectedSlideIndex + 1}</Typography>
+
+                    <Stack spacing={2} sx={{ flex: 1 }}>
+                      {/* Slide Type Selector */}
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Slide Type</InputLabel>
+                        <Select
+                          value={currentSlides[selectedSlideIndex].type || 'three_lines'}
+                          onChange={(e) => handleUpdateSlide(selectedSlideIndex, { type: e.target.value as any })}
+                          label="Slide Type"
+                          sx={{ bgcolor: 'white', borderRadius: '8px' }}
+                        >
+                          {SLIDE_TYPES.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      {/* Three Lines Type Fields */}
+                      {currentSlides[selectedSlideIndex].type === 'three_lines' && (
+                        <>
+                          <TextField
+                            label="Top Label (small header)"
+                            fullWidth
+                            size="small"
+                            value={currentSlides[selectedSlideIndex].top_label || ''}
+                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { top_label: e.target.value })}
+                            placeholder="e.g., THE CELEBRATION"
+                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          />
+                          <TextField
+                            label="Main Heading (large italic)"
+                            fullWidth
+                            size="small"
+                            value={currentSlides[selectedSlideIndex].main_heading || ''}
+                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { main_heading: e.target.value })}
+                            placeholder="e.g., Sangeet & Reception"
+                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          />
+                          <TextField
+                            label="Body Text"
+                            fullWidth
+                            size="small"
+                            multiline
+                            rows={3}
+                            value={currentSlides[selectedSlideIndex].body_text || ''}
+                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { body_text: e.target.value })}
+                            placeholder="Description text..."
+                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          />
+                        </>
+                      )}
+
+                      {/* Two Sections Type Fields */}
+                      {currentSlides[selectedSlideIndex].type === 'two_sections' && (
+                        <>
+                          <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                            <TextField
+                              label="Section 1 Header"
+                              fullWidth
+                              size="small"
+                              value={currentSlides[selectedSlideIndex].section1_header || 'WOMEN'}
+                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section1_header: e.target.value })}
+                              sx={{ mb: 1.5 }}
+                            />
+                            <TextField
+                              label="Section 1 Items (one per line)"
+                              fullWidth
+                              size="small"
+                              multiline
+                              rows={3}
+                              value={(currentSlides[selectedSlideIndex].section1_items || []).join('\n')}
+                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                section1_items: e.target.value.split('\n').filter(item => item.trim())
+                              })}
+                              placeholder="Evening Gowns&#10;Embellished Sarees"
+                            />
+                          </Box>
+                          <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                            <TextField
+                              label="Section 2 Header"
+                              fullWidth
+                              size="small"
+                              value={currentSlides[selectedSlideIndex].section2_header || 'MEN'}
+                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section2_header: e.target.value })}
+                              sx={{ mb: 1.5 }}
+                            />
+                            <TextField
+                              label="Section 2 Items (one per line)"
+                              fullWidth
+                              size="small"
+                              multiline
+                              rows={3}
+                              value={(currentSlides[selectedSlideIndex].section2_items || []).join('\n')}
+                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                section2_items: e.target.value.split('\n').filter(item => item.trim())
+                              })}
+                              placeholder="Tuxedos & Dinner Suits&#10;Tailored Sherwanis"
+                            />
+                          </Box>
+                        </>
+                      )}
+
+                      {/* Image Type Fields */}
+                      {currentSlides[selectedSlideIndex].type === 'image' && (
+                        <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                          <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block' }}>Slide Image</Typography>
+                          <ImageUpload
+                            value={currentSlides[selectedSlideIndex].src || ''}
+                            onChange={(url) => handleUpdateSlide(selectedSlideIndex, { src: url || undefined })}
+                            path={getWeddingImagePath(weddingId || '', 'events')}
+                            label="Slide Image"
+                            aspectRatio="3/4"
+                          />
+                        </Box>
+                      )}
+                    </Stack>
+                  </>
+                ) : (
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
+                    {currentSlides.length > 0 ? (
+                      <>
+                        {/* Carousel Preview */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#666' }}>Carousel Preview</Typography>
+                        <Card sx={{
+                          width: '100%', maxWidth: 280, height: 380,
+                          borderRadius: '16px', overflow: 'hidden', position: 'relative',
+                          backgroundImage: currentItem?.gradient_background ? `url(/images/backgrounds/${currentItem.gradient_background})` : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                          backgroundSize: 'cover', backgroundPosition: 'center',
+                        }}>
+                          <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', p: 3 }}>
+                            {currentSlides[previewSlideIndex]?.type === 'three_lines' && (
+                              <>
+                                {currentSlides[previewSlideIndex].top_label && (
+                                  <Typography sx={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 1 }}>
+                                    {currentSlides[previewSlideIndex].top_label}
+                                  </Typography>
+                                )}
+                                {currentSlides[previewSlideIndex].main_heading && (
+                                  <Typography sx={{ fontSize: '1.5rem', fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#333', mb: 1 }}>
+                                    {currentSlides[previewSlideIndex].main_heading}
+                                  </Typography>
+                                )}
+                                {currentSlides[previewSlideIndex].body_text && (
+                                  <Typography sx={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>
+                                    {currentSlides[previewSlideIndex].body_text}
+                                  </Typography>
+                                )}
+                              </>
+                            )}
+                            {currentSlides[previewSlideIndex]?.type === 'two_sections' && (
+                              <Stack spacing={2} sx={{ width: '100%' }}>
+                                <Box>
+                                  <Typography sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
+                                    {currentSlides[previewSlideIndex].section1_header || 'WOMEN'}
+                                  </Typography>
+                                  {(currentSlides[previewSlideIndex].section1_items || []).slice(0, 3).map((item, i) => (
+                                    <Typography key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
+                                  ))}
+                                </Box>
+                                <Box>
+                                  <Typography sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
+                                    {currentSlides[previewSlideIndex].section2_header || 'MEN'}
+                                  </Typography>
+                                  {(currentSlides[previewSlideIndex].section2_items || []).slice(0, 3).map((item, i) => (
+                                    <Typography key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
+                                  ))}
+                                </Box>
+                              </Stack>
+                            )}
+                            {currentSlides[previewSlideIndex]?.type === 'image' && currentSlides[previewSlideIndex].src && (
+                              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                                <Image
+                                  src={currentSlides[previewSlideIndex].src!}
+                                  alt="Slide"
+                                  fill
+                                  style={{ objectFit: 'cover', borderRadius: '8px' }}
+                                />
+                              </Box>
+                            )}
+                          </CardContent>
+                        </Card>
+                        {/* Navigation */}
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 2 }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
+                            disabled={previewSlideIndex === 0}
+                            sx={{ bgcolor: 'white' }}
+                          >
+                            <ChevronLeft />
+                          </IconButton>
+                          <Typography variant="caption" sx={{ color: '#666' }}>
+                            {previewSlideIndex + 1} / {currentSlides.length}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setPreviewSlideIndex(Math.min(currentSlides.length - 1, previewSlideIndex + 1))}
+                            disabled={previewSlideIndex === currentSlides.length - 1}
+                            sx={{ bgcolor: 'white' }}
+                          >
+                            <ChevronRight />
+                          </IconButton>
+                        </Stack>
+                        <Typography variant="caption" sx={{ color: '#999', mt: 1 }}>
+                          Click a slide on the left to edit
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon sx={{ fontSize: 48, mb: 2 }} />
+                        <Typography>Add slides to preview them here</Typography>
+                      </>
+                    )}
+                  </Box>
+                )}
+              </Box>
             </Box>
-          </Stack>
+          )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2, borderTop: '1px solid #eee' }}>
           <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
           <Button
             variant="contained"
@@ -1080,7 +1471,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            Save
+            Save Event
           </Button>
         </DialogActions>
       </Dialog>
