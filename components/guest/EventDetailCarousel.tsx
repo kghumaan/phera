@@ -352,7 +352,7 @@ export default function EventDetailCarousel({
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '24px',
+          padding: '16px',
           zIndex: 10,
         }}
       >
@@ -396,8 +396,8 @@ export default function EventDetailCarousel({
           sx={{
             width: '100%',
             maxWidth: 500,
-            height: '70vh',
-            maxHeight: 700,
+            height: '82vh',
+            maxHeight: 900,
             backgroundColor: 'transparent',
             borderRadius: '24px',
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
@@ -417,6 +417,7 @@ export default function EventDetailCarousel({
           <CardContent
             sx={{
               p: slides[currentSlide]?.type === 'image' ? 0 : { xs: 3, md: 4 },
+              '&:last-child': { pb: slides[currentSlide]?.type === 'image' ? 0 : undefined },
               flexGrow: 1,
               display: 'flex',
               flexDirection: 'column',

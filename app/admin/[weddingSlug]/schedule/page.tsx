@@ -185,8 +185,8 @@ function SortableItem({
             size="small"
             sx={{
               cursor: 'grab',
-              color: '#9a9a9a',
-              '&:hover': { color: '#6a6a6a' },
+              color: '#000',
+              '&:hover': { color: '#000' },
               p: 0.5,
             }}
           >
@@ -200,15 +200,15 @@ function SortableItem({
               </Typography>
               {item.location && (
                 <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
-                  <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
-                  <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                  <StreamlineIcon name="map-pin" size={14} color="#000" />
+                  <Typography variant="caption" sx={{ color: '#000' }}>
                     {item.location}
                   </Typography>
                 </Stack>
               )}
             </Stack>
             {item.description && (
-              <Typography variant="caption" sx={{ color: '#6a6a6a', display: 'block', fontSize: '0.75rem', mt: 0.5, lineHeight: 1.4 }}>
+              <Typography variant="caption" sx={{ color: '#000', display: 'block', fontSize: '0.75rem', mt: 0.5, lineHeight: 1.4 }}>
                 {item.description}
               </Typography>
             )}
