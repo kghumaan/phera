@@ -95,10 +95,13 @@ const BACKGROUND_OPTIONS = [
   { label: 'Pool Blue', value: 'GradientPoolParty.png', color: '#0288D1' },
 ];
 
-// Slide type options
+// Slide type options - includes legacy types for backwards compatibility
 const SLIDE_TYPES = [
   { value: 'three_lines', label: 'Header + Title + Description' },
-  { value: 'two_sections', label: 'Two Sections (Women/Men style)' },
+  { value: 'two_sections', label: 'Two Sections (Custom Headers)' },
+  { value: 'outfit_ideas', label: 'Outfit Ideas (Women/Men)' },
+  { value: 'dress_code', label: 'Dress Code Info' },
+  { value: 'ritual', label: 'Ritual/Ceremony Info' },
   { value: 'image', label: 'Full Image' },
 ];
 
@@ -889,10 +892,36 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
                           // Reset tab and initialize slides
                           setEditTab(0);
-                          // Try to get slides from linked event or item itself
-                          const linkedEvent = events.find(e => e.id === item.linked_event_id);
+                          // Try to get slides from linked event (by ID first, then fuzzy name match)
+                          let linkedEvent = events.find(e => e.id === item.linked_event_id);
+
+                          // If no linked event by ID, try fuzzy matching by name
+                          if (!linkedEvent && item.name) {
+                            const normalizedName = item.name.toLowerCase().trim();
+                            // Exact match first
+                            linkedEvent = events.find(e =>
+                              e.name.toLowerCase().trim() === normalizedName ||
+                              e.slug?.toLowerCase() === normalizedName.replace(/\s+/g, '-')
+                            );
+                            // Partial/fuzzy match
+                            if (!linkedEvent) {
+                              linkedEvent = events.find(e => {
+                                const eventNameLower = e.name.toLowerCase().trim();
+                                const eventSlug = e.slug?.toLowerCase() || '';
+                                return normalizedName.includes(eventNameLower) ||
+                                       eventNameLower.includes(normalizedName) ||
+                                       normalizedName.includes(eventSlug) ||
+                                       eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
+                              });
+                            }
+                          }
+
                           const slides = (item as any).carousel_slides || linkedEvent?.carousel_slides || [];
                           setCurrentSlides(slides);
+                          // Also store the linked event ID if we found one by name matching
+                          if (linkedEvent && !item.linked_event_id) {
+                            setCurrentItem({ ...item, linked_event_id: linkedEvent.id });
+                          }
                           setSelectedSlideIndex(null);
                           setPreviewSlideIndex(0);
 
@@ -1254,104 +1283,227 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                         </Select>
                       </FormControl>
 
-                      {/* Three Lines Type Fields */}
-                      {currentSlides[selectedSlideIndex].type === 'three_lines' && (
-                        <>
-                          <TextField
-                            label="Top Label (small header)"
-                            fullWidth
-                            size="small"
-                            value={currentSlides[selectedSlideIndex].top_label || ''}
-                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { top_label: e.target.value })}
-                            placeholder="e.g., THE CELEBRATION"
-                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-                          />
-                          <TextField
-                            label="Main Heading (large italic)"
-                            fullWidth
-                            size="small"
-                            value={currentSlides[selectedSlideIndex].main_heading || ''}
-                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { main_heading: e.target.value })}
-                            placeholder="e.g., Sangeet & Reception"
-                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-                          />
-                          <TextField
-                            label="Body Text"
-                            fullWidth
-                            size="small"
-                            multiline
-                            rows={3}
-                            value={currentSlides[selectedSlideIndex].body_text || ''}
-                            onChange={(e) => handleUpdateSlide(selectedSlideIndex, { body_text: e.target.value })}
-                            placeholder="Description text..."
-                            sx={{ bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-                          />
-                        </>
-                      )}
+                      {/* Common text field styling */}
+                      {(() => {
+                        const textFieldStyles = {
+                          bgcolor: 'white',
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                          '& .MuiInputBase-input': { color: '#1a1a1a' },
+                          '& .MuiInputBase-inputMultiline': { color: '#1a1a1a' },
+                        };
+                        const slide = currentSlides[selectedSlideIndex];
 
-                      {/* Two Sections Type Fields */}
-                      {currentSlides[selectedSlideIndex].type === 'two_sections' && (
-                        <>
-                          <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
-                            <TextField
-                              label="Section 1 Header"
-                              fullWidth
-                              size="small"
-                              value={currentSlides[selectedSlideIndex].section1_header || 'WOMEN'}
-                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section1_header: e.target.value })}
-                              sx={{ mb: 1.5 }}
-                            />
-                            <TextField
-                              label="Section 1 Items (one per line)"
-                              fullWidth
-                              size="small"
-                              multiline
-                              rows={3}
-                              value={(currentSlides[selectedSlideIndex].section1_items || []).join('\n')}
-                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                section1_items: e.target.value.split('\n').filter(item => item.trim())
-                              })}
-                              placeholder="Evening Gowns&#10;Embellished Sarees"
-                            />
-                          </Box>
-                          <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
-                            <TextField
-                              label="Section 2 Header"
-                              fullWidth
-                              size="small"
-                              value={currentSlides[selectedSlideIndex].section2_header || 'MEN'}
-                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section2_header: e.target.value })}
-                              sx={{ mb: 1.5 }}
-                            />
-                            <TextField
-                              label="Section 2 Items (one per line)"
-                              fullWidth
-                              size="small"
-                              multiline
-                              rows={3}
-                              value={(currentSlides[selectedSlideIndex].section2_items || []).join('\n')}
-                              onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                section2_items: e.target.value.split('\n').filter(item => item.trim())
-                              })}
-                              placeholder="Tuxedos & Dinner Suits&#10;Tailored Sherwanis"
-                            />
-                          </Box>
-                        </>
-                      )}
+                        return (
+                          <>
+                            {/* Three Lines Type Fields */}
+                            {slide.type === 'three_lines' && (
+                              <>
+                                <TextField
+                                  label="Top Label (small header)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.top_label || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { top_label: e.target.value })}
+                                  placeholder="e.g., THE CELEBRATION"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Main Heading (large italic)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.main_heading || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { main_heading: e.target.value })}
+                                  placeholder="e.g., Sangeet & Reception"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Body Text"
+                                  fullWidth
+                                  size="small"
+                                  multiline
+                                  rows={3}
+                                  value={slide.body_text || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { body_text: e.target.value })}
+                                  placeholder="Description text..."
+                                  sx={textFieldStyles}
+                                />
+                              </>
+                            )}
 
-                      {/* Image Type Fields */}
-                      {currentSlides[selectedSlideIndex].type === 'image' && (
-                        <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
-                          <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block' }}>Slide Image</Typography>
-                          <ImageUpload
-                            value={currentSlides[selectedSlideIndex].src || ''}
-                            onChange={(url) => handleUpdateSlide(selectedSlideIndex, { src: url || undefined })}
-                            path={getWeddingImagePath(weddingId || '', 'events')}
-                            label="Slide Image"
-                            aspectRatio="3/4"
-                          />
-                        </Box>
-                      )}
+                            {/* Dress Code Type Fields */}
+                            {slide.type === 'dress_code' && (
+                              <>
+                                <TextField
+                                  label="Subtitle (small header)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.subtitle || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
+                                  placeholder="e.g., DRESS CODE"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Heading (main title)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.heading || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
+                                  placeholder="e.g., Shades of Yellow"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Description"
+                                  fullWidth
+                                  size="small"
+                                  multiline
+                                  rows={3}
+                                  value={slide.description || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
+                                  placeholder="Dress code details..."
+                                  sx={textFieldStyles}
+                                />
+                              </>
+                            )}
+
+                            {/* Ritual Type Fields */}
+                            {slide.type === 'ritual' && (
+                              <>
+                                <TextField
+                                  label="Subtitle (small header)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.subtitle || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
+                                  placeholder="e.g., THE CEREMONY"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Heading (ritual name)"
+                                  fullWidth
+                                  size="small"
+                                  value={slide.heading || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
+                                  placeholder="e.g., The Anand Karaj"
+                                  sx={textFieldStyles}
+                                />
+                                <TextField
+                                  label="Description"
+                                  fullWidth
+                                  size="small"
+                                  multiline
+                                  rows={3}
+                                  value={slide.description || ''}
+                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
+                                  placeholder="Ritual description..."
+                                  sx={textFieldStyles}
+                                />
+                              </>
+                            )}
+
+                            {/* Outfit Ideas Type Fields (legacy - uses women/men arrays) */}
+                            {slide.type === 'outfit_ideas' && (
+                              <>
+                                <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Women&apos;s Outfit Ideas</Typography>
+                                  <TextField
+                                    fullWidth
+                                    size="small"
+                                    multiline
+                                    rows={4}
+                                    value={(slide.women || []).join('\n')}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                      women: e.target.value.split('\n').filter(item => item.trim())
+                                    })}
+                                    placeholder="Yellow Anarkali&#10;Lehenga in gold tones&#10;Yellow Saree"
+                                    sx={textFieldStyles}
+                                  />
+                                </Box>
+                                <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Men&apos;s Outfit Ideas</Typography>
+                                  <TextField
+                                    fullWidth
+                                    size="small"
+                                    multiline
+                                    rows={4}
+                                    value={(slide.men || []).join('\n')}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                      men: e.target.value.split('\n').filter(item => item.trim())
+                                    })}
+                                    placeholder="Yellow Kurta with white pajama&#10;Yellow Nehru jacket"
+                                    sx={textFieldStyles}
+                                  />
+                                </Box>
+                              </>
+                            )}
+
+                            {/* Two Sections Type Fields (custom headers) */}
+                            {slide.type === 'two_sections' && (
+                              <>
+                                <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                                  <TextField
+                                    label="Section 1 Header"
+                                    fullWidth
+                                    size="small"
+                                    value={slide.section1_header || ''}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section1_header: e.target.value })}
+                                    sx={{ ...textFieldStyles, mb: 1.5 }}
+                                  />
+                                  <TextField
+                                    label="Section 1 Items (one per line)"
+                                    fullWidth
+                                    size="small"
+                                    multiline
+                                    rows={3}
+                                    value={(slide.section1_items || []).join('\n')}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                      section1_items: e.target.value.split('\n').filter(item => item.trim())
+                                    })}
+                                    placeholder="Item 1&#10;Item 2"
+                                    sx={textFieldStyles}
+                                  />
+                                </Box>
+                                <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                                  <TextField
+                                    label="Section 2 Header"
+                                    fullWidth
+                                    size="small"
+                                    value={slide.section2_header || ''}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section2_header: e.target.value })}
+                                    sx={{ ...textFieldStyles, mb: 1.5 }}
+                                  />
+                                  <TextField
+                                    label="Section 2 Items (one per line)"
+                                    fullWidth
+                                    size="small"
+                                    multiline
+                                    rows={3}
+                                    value={(slide.section2_items || []).join('\n')}
+                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
+                                      section2_items: e.target.value.split('\n').filter(item => item.trim())
+                                    })}
+                                    placeholder="Item 1&#10;Item 2"
+                                    sx={textFieldStyles}
+                                  />
+                                </Box>
+                              </>
+                            )}
+
+                            {/* Image Type Fields */}
+                            {slide.type === 'image' && (
+                              <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
+                                <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block' }}>Slide Image</Typography>
+                                <ImageUpload
+                                  value={slide.src || ''}
+                                  onChange={(url) => handleUpdateSlide(selectedSlideIndex, { src: url || undefined })}
+                                  path={getWeddingImagePath(weddingId || '', 'events')}
+                                  label="Slide Image"
+                                  aspectRatio="3/4"
+                                />
+                              </Box>
+                            )}
+                          </>
+                        );
+                      })()}
                     </Stack>
                   </>
                 ) : (
