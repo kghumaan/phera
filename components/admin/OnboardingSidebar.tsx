@@ -259,7 +259,7 @@ export default function OnboardingSidebar({
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <span>{group.label}</span>
-                      {group.isPro && !isPro && <ProBadge size="small" />}
+                      {group.isPro && !isPro && <ProBadge size="tiny" />}
                     </Box>
                   }
                   primaryTypographyProps={{ sx: { fontWeight: isActive ? 600 : 600, fontSize: '0.9rem' } }}
@@ -354,17 +354,18 @@ export default function OnboardingSidebar({
                           selected={isActive}
                           sx={{
                             ml: 1.5,
-                            mr: 2,
+                            mr: 1,
                             mb: 0.5,
                             py: 0.75,
+                            pr: 1.5,
                             borderRadius: '8px',
                             color: '#6a6a6a',
                             minHeight: 36,
                             '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             '&.Mui-selected': {
-                              bgcolor: alpha('#DE3F5E', 0.1),
-                              color: '#DE3F5E',
-                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.15) },
+                              bgcolor: '#DE3F5E',
+                              color: 'white',
+                              '&:hover': { bgcolor: '#C8365A' },
                             },
                           }}
                         >
@@ -372,7 +373,7 @@ export default function OnboardingSidebar({
                             primary={
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <span>{item.label}</span>
-                                {item.isPro && !isPro && <ProBadge size="small" />}
+                                {item.isPro && !isPro && <ProBadge size="tiny" />}
                                 {item.required && !isActive && !item.isPro && (
                                   <Box
                                     component="span"
@@ -391,6 +392,7 @@ export default function OnboardingSidebar({
                               sx: {
                                 fontSize: '0.875rem',
                                 fontWeight: isActive ? 600 : 400,
+                                color: 'inherit',
                               }
                             }}
                           />

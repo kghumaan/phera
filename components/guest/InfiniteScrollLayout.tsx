@@ -11,7 +11,7 @@ import {
   AccordionDetails,
   Paper,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
   LocationOnOutlined,
@@ -19,6 +19,8 @@ import {
   AccessTime,
   ExpandMore,
   KeyboardArrowDown,
+  Menu as MenuIcon,
+  Close,
 } from '@mui/icons-material';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -185,6 +187,7 @@ export default function InfiniteScrollLayout({
 }: InfiniteScrollLayoutProps) {
   const [currentSection, setCurrentSection] = useState(0);
   const [guestListExpanded, setGuestListExpanded] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
 
   // Section data states
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
@@ -395,9 +398,9 @@ export default function InfiniteScrollLayout({
 
         // Check if either name contains the other
         return normalizedName.includes(eventNameLower) ||
-               eventNameLower.includes(normalizedName) ||
-               normalizedName.includes(eventSlug) ||
-               eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
+          eventNameLower.includes(normalizedName) ||
+          normalizedName.includes(eventSlug) ||
+          eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
       });
       if (partialMatch) return partialMatch;
     }
@@ -417,6 +420,14 @@ export default function InfiniteScrollLayout({
   const handleCloseEventCarousel = () => {
     setShowEventCarousel(false);
     setSelectedEvent(null);
+  };
+
+  // Scroll to a section ref and close nav
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    setNavOpen(false);
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
   };
 
   // Helper to render travel card content
@@ -1439,6 +1450,200 @@ export default function InfiniteScrollLayout({
         )}
 
       </Box>
+
+      {/* Floating Hamburger Button */}
+      <IconButton
+        onClick={() => setNavOpen(true)}
+        sx={{
+          position: 'fixed',
+          right: { md: 32 },
+          top: { md: 106 },
+          zIndex: 50,
+          width: 50,
+          height: 50,
+          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(8px)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          color: '#1a1a1a',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 1)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.16)',
+          },
+        }}
+      >
+        <MenuIcon sx={{ fontSize: 20 }} />
+      </IconButton>
+
+      {/* Sidebar Overlay + Drawer */}
+      <AnimatePresence>
+        {navOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setNavOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                zIndex: 60,
+              }}
+            />
+
+            {/* Sidebar Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 280,
+                zIndex: 70,
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#FAF6F1',
+                backgroundImage: 'url(/images/backgrounds/pearl.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
+              {/* Close Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start', p: 2 }}>
+                <IconButton
+                  onClick={() => setNavOpen(false)}
+                  sx={{
+                    color: '#1a1a1a',
+                    '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </Box>
+
+              {/* Nav Items */}
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0,
+                  pb: 4,
+                }}
+              >
+                {/* Home is always shown */}
+                <NavItem label="Home" onClick={() => scrollToSection(homeRef)} />
+
+                {hasSchedule && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Schedule" onClick={() => scrollToSection(scheduleRef)} />
+                  </>
+                )}
+
+                {hasTravel && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Travel & Stay" onClick={() => scrollToSection(travelRef)} />
+                  </>
+                )}
+
+                {hasFAQs && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Q & A" onClick={() => scrollToSection(faqRef)} />
+                  </>
+                )}
+
+                {hasRegistry && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Registry" onClick={() => scrollToSection(registryRef)} />
+                  </>
+                )}
+
+                {hasShops && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Where to Shop" onClick={() => scrollToSection(shopRef)} />
+                  </>
+                )}
+              </Box>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </Box>
   );
 }
+
+// Sidebar nav item
+const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => (
+  <motion.div
+    whileHover={{ scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    onClick={onClick}
+    style={{ cursor: 'pointer', width: '100%', textAlign: 'center' }}
+  >
+    <Box
+      sx={{
+        py: 1.5,
+        px: 3,
+        transition: 'background 0.2s',
+        '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+      }}
+    >
+      <Typography
+        sx={{
+          fontFamily: 'Outfit',
+          fontWeight: 400,
+          fontSize: '0.95rem',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: '#141414',
+          textAlign: 'center',
+        }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  </motion.div>
+);
+
+// Diamond separator for sidebar
+const DiamondSeparator = () => (
+  <Box
+    sx={{
+      color: '#D1B99F',
+      display: 'flex',
+      justifyContent: 'center',
+      my: 0.25,
+    }}
+  >
+    <svg width="40" height="12" viewBox="0 0 40 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.6025 7.22518C10.4176 6.62308 10.4176 5.37669 9.6025 4.77459L5.35693 1.66121C4.84471 1.28285 4.15445 1.28285 3.64223 1.66121L-0.60339 4.77459C-1.41848 5.37669 -1.41848 6.62308 -0.60339 7.22518L3.64223 10.3386C4.15445 10.717 4.84471 10.717 5.35693 10.3386L9.6025 7.22518Z"
+        fill="currentColor"
+        transform="translate(10, 0)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.6025 7.22518C10.4176 6.62308 10.4176 5.37669 9.6025 4.77459L5.35693 1.66121C4.84471 1.28285 4.15445 1.28285 3.64223 1.66121L-0.60339 4.77459C-1.41848 5.37669 -1.41848 6.62308 -0.60339 7.22518L3.64223 10.3386C4.15445 10.717 4.84471 10.717 5.35693 10.3386L9.6025 7.22518Z"
+        fill="currentColor"
+        transform="translate(25, 0)"
+      />
+    </svg>
+  </Box>
+);
