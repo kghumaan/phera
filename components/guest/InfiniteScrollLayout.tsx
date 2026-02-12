@@ -281,44 +281,61 @@ export default function InfiniteScrollLayout({
     fetchSectionData();
   }, [wedding.id]);
 
+  // Helper function to calculate current section based on scroll position
+  const calculateCurrentSection = () => {
+    const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+    const sections = [
+      { ref: homeRef, index: 0 },
+      { ref: scheduleRef, index: 1 },
+      { ref: travelRef, index: 2 },
+      { ref: faqRef, index: 3 },
+      { ref: registryRef, index: 4 },
+      { ref: shopRef, index: 5 },
+    ].filter(s => s.ref.current);
+
+    let sectionIndex = 0;
+    for (let i = sections.length - 1; i >= 0; i--) {
+      const section = sections[i];
+      if (section.ref.current) {
+        const rect = section.ref.current.getBoundingClientRect();
+        const sectionTop = rect.top + window.scrollY;
+
+        if (scrollPosition >= sectionTop) {
+          sectionIndex = section.index;
+          break;
+        }
+      }
+    }
+    return sectionIndex;
+  };
+
   // Scroll tracking for image rotation with debouncing
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
     let pendingSection: number | null = null;
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight / 3;
-
-      const sections = [
-        { ref: homeRef, index: 0, name: 'home' },
-        { ref: scheduleRef, index: 1, name: 'schedule' },
-        { ref: travelRef, index: 2, name: 'travel' },
-        { ref: faqRef, index: 3, name: 'faq' },
-        { ref: registryRef, index: 4, name: 'registry' },
-        { ref: shopRef, index: 5, name: 'shop' },
-      ].filter(s => s.ref.current);
-
-      let newSectionIndex = 0;
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        if (section.ref.current) {
-          const rect = section.ref.current.getBoundingClientRect();
-          const sectionTop = rect.top + window.scrollY;
-
-          if (scrollPosition >= sectionTop) {
-            newSectionIndex = section.index;
-            break;
-          }
-        }
-      }
+      const newSectionIndex = calculateCurrentSection();
 
       // Close carousel when scrolling away from schedule section
+      // AND immediately set the correct image (no debounce) so frame appears with right image
       if (showEventCarousel && newSectionIndex !== 1) {
+        // Set the correct section image FIRST, before hiding carousel
+        setCurrentSection(newSectionIndex);
+        // Then hide the carousel - frame will show with correct image already set
         setShowEventCarousel(false);
         setSelectedEvent(null);
+        // Clear any pending debounce since we just set the section
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        pendingSection = newSectionIndex;
+        return;
       }
 
       // Debounce the image change - only update after user settles for 150ms
+      // This only applies when carousel is NOT showing
       if (newSectionIndex !== pendingSection) {
         pendingSection = newSectionIndex;
 
