@@ -80,7 +80,7 @@ const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guests', label: 'RSVPs', path: '/guests' },
-      { id: 'travel-coordination', label: 'Travel Coordination', path: '/travel-coordination', isPro: true },
+      { id: 'travel-coordination', label: 'Transportation', path: '/travel-coordination', isPro: true },
     ]
   },
   {
@@ -269,28 +269,37 @@ export default function OnboardingSidebar({
           }
 
           const isExpanded = expandedGroups[group.id] ?? true;
+          const isGroupActive = group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'));
 
           return (
             <Box key={group.id} sx={{ mb: 1 }}>
               {/* Parent Item */}
               <ListItemButton
                 onClick={() => handleToggleGroup(group.id)}
+                selected={isGroupActive}
                 sx={{
                   px: 2,
                   py: 1,
-                  color: '#1a1a1a',
-                  '&:hover': { bgcolor: alpha('#000', 0.02) },
+                  borderRadius: '12px',
+                  color: isGroupActive ? 'white' : '#1a1a1a',
+                  '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha('#000', 0.02) },
+                  '&.Mui-selected': {
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    '&:hover': { bgcolor: '#C8365A' },
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                  },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: '#1a1a1a' }}>{group.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
                 <ListItemText
                   primary={group.label}
-                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
+                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: 'inherit' } }}
                 />
                 {isExpanded ? (
-                  <ExpandLess sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                  <ExpandLess sx={{ fontSize: 18, color: 'inherit' }} />
                 ) : (
-                  <ExpandMore sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                  <ExpandMore sx={{ fontSize: 18, color: 'inherit' }} />
                 )}
               </ListItemButton>
 

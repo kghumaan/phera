@@ -5,47 +5,34 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil' as any,
 });
 
+const PRO_PRICE_ID = 'price_1T03dzQ00cCUwDx3uZi5ISon';
+
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, role, plan, coupleName, partnerName, weddingDate, weddingEndDate, venueName, selectedFeatures } = await request.json();
+    const { userId, email, weddingSlug } = await request.json();
 
-    if (plan !== 'pro') {
-      return NextResponse.json({ error: 'Only Pro plan requires a checkout session' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Phera Pro Plan',
-              description: 'Full coordination suite & AI agent for your wedding',
-            },
-            unit_amount: 19900, // $199.00
-          },
+          price: PRO_PRICE_ID,
           quantity: 1,
         },
       ],
       mode: 'payment',
-      return_url: `${request.nextUrl.origin}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${request.nextUrl.origin}/admin/${weddingSlug}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         userId,
-        role,
-        coupleName: coupleName || '',
-        partnerName: partnerName || '',
-        weddingDate: weddingDate || '',
-        weddingEndDate: weddingEndDate || '',
-        venueName: venueName || '',
-        selectedFeatures: JSON.stringify(selectedFeatures || []),
+        weddingSlug: weddingSlug || '',
       },
-      customer_email: email,
+      customer_email: email || undefined,
     });
 
-    return NextResponse.json({
-      clientSecret: session.client_secret,
-    });
+    return NextResponse.json({ clientSecret: session.client_secret });
 
   } catch (error) {
     console.error('Error creating checkout session:', error);

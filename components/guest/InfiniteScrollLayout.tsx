@@ -19,7 +19,7 @@ import {
   AccessTime,
   ExpandMore,
   KeyboardArrowDown,
-  Menu as MenuIcon,
+  ViewSidebar,
   Close,
 } from '@mui/icons-material';
 import { useState, useEffect, useRef } from 'react';
@@ -1451,29 +1451,36 @@ export default function InfiniteScrollLayout({
 
       </Box>
 
-      {/* Floating Hamburger Button */}
-      <IconButton
+      {/* Floating Menu Button */}
+      <Box
         onClick={() => setNavOpen(true)}
         sx={{
           position: 'fixed',
-          right: { md: 32 },
-          top: { md: 106 },
+          left: 24,
+          bottom: 24,
           zIndex: 50,
-          width: 50,
-          height: 50,
-          backgroundColor: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(8px)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-          border: '1px solid rgba(0,0,0,0.08)',
-          color: '#1a1a1a',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 2.5,
+          py: 1.75,
+          borderRadius: '100px',
+          backgroundColor: '#1a1a1a',
+          color: 'white',
+          cursor: 'pointer',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          userSelect: 'none',
           '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 1)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.16)',
+            backgroundColor: '#000',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
           },
         }}
       >
-        <MenuIcon sx={{ fontSize: 20 }} />
-      </IconButton>
+        <ViewSidebar sx={{ fontSize: 24, color: 'white' }} />
+        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: 'white', letterSpacing: '0.03em' }}>
+          Menu
+        </Typography>
+      </Box>
 
       {/* Sidebar Overlay + Drawer */}
       <AnimatePresence>
@@ -1496,13 +1503,13 @@ export default function InfiniteScrollLayout({
 
             {/* Sidebar Panel */}
             <motion.div
-              initial={{ x: '100%' }}
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+              exit={{ x: '-100%' }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
               style={{
                 position: 'fixed',
-                right: 0,
+                left: 0,
                 top: 0,
                 bottom: 0,
                 width: 280,
@@ -1516,7 +1523,7 @@ export default function InfiniteScrollLayout({
               }}
             >
               {/* Close Button */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-start', p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
                 <IconButton
                   onClick={() => setNavOpen(false)}
                   sx={{

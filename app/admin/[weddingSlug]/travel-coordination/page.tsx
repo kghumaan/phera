@@ -145,79 +145,181 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
   if (loading) {
     return (
       <Container maxWidth="xl">
-        <LoadingSpinner message="Loading travel coordination data..." />
+        <LoadingSpinner message="Loading transportation data..." />
       </Container>
     );
   }
 
   if (!isPro) {
+    // Mock data for preview
+    const mockFlights = [
+      { id: '1', guest: { name: 'Priya Sharma', email: 'priya@example.com' }, airline: 'Air India', flight_number: 'AI 202', departure_airport: 'JFK', arrival_airport: 'BKK', arrival_datetime: '2026-01-03T14:30:00', shuttle_preference_time: '15:00:00', shuttle_preference_note: 'Travelling with 2 bags' },
+      { id: '2', guest: { name: 'Arjun Mehta', email: 'arjun@example.com' }, airline: 'Emirates', flight_number: 'EK 373', departure_airport: 'LHR', arrival_airport: 'BKK', arrival_datetime: '2026-01-03T18:45:00', shuttle_preference_time: '19:30:00', shuttle_preference_note: null },
+      { id: '3', guest: { name: 'Neha & Raj Patel', email: 'neha@example.com' }, airline: 'Thai Airways', flight_number: 'TG 917', departure_airport: 'SIN', arrival_airport: 'BKK', arrival_datetime: '2026-01-04T09:15:00', shuttle_preference_time: '10:00:00', shuttle_preference_note: 'Wheelchair assistance needed' },
+      { id: '4', guest: { name: 'Simran Kaur', email: 'simran@example.com' }, airline: 'Singapore Air', flight_number: 'SQ 971', departure_airport: 'SIN', arrival_airport: 'BKK', arrival_datetime: '2026-01-04T11:20:00', shuttle_preference_time: null, shuttle_preference_note: null },
+    ];
+    const mockShuttles = [
+      { time: '15:00:00', guests: [{ id: '1', name: 'Priya Sharma', note: '2 bags' }, { id: '5', name: 'Kabir & Anjali Nair', note: null }] },
+      { time: '19:30:00', guests: [{ id: '2', name: 'Arjun Mehta', note: null }, { id: '6', name: 'Dev Kapoor', note: 'Late check-in' }, { id: '7', name: 'Pooja Iyer', note: null }] },
+      { time: '10:00:00', guests: [{ id: '3', name: 'Neha & Raj Patel', note: 'Wheelchair' }] },
+    ];
+    const mockChecklist = [
+      { guestId: '1', guestName: 'Priya Sharma', guestEmail: 'priya@example.com', completedItems: ['passport', 'visa', 'travel_insurance', 'accommodation', 'currency'], totalItems: 7 },
+      { guestId: '2', guestName: 'Arjun Mehta', guestEmail: 'arjun@example.com', completedItems: ['passport', 'visa', 'accommodation'], totalItems: 7 },
+      { guestId: '3', guestName: 'Neha & Raj Patel', guestEmail: 'neha@example.com', completedItems: ['passport', 'visa', 'travel_insurance', 'accommodation', 'currency', 'airport_transfer', 'packing'], totalItems: 7 },
+    ];
+
     return (
       <Container maxWidth="xl">
-        <Stack spacing={4}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Travel Coordination
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Manage guest flights, shuttle preferences, and travel checklist progress
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              p: { xs: 4, md: 8 },
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              bgcolor: 'white',
-              gap: 3,
-            }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                bgcolor: '#DE3F5E15',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <LockOutlined sx={{ fontSize: 28, color: '#DE3F5E' }} />
-            </Box>
-
-            <Box sx={{ maxWidth: 480 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
-                Streamline guest travel logistics
+        <Stack spacing={3}>
+          {/* Header row with Upgrade button */}
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Transportation
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.7 }}>
-                With Travel Coordination, you can track guest flight details, organize shuttle pickup times, and monitor travel checklist completion — all in one place. Help your guests arrive stress-free and keep yourself in the loop.
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Manage guest flights, shuttle preferences, and travel checklist progress
               </Typography>
             </Box>
-
             <Button
               variant="contained"
               onClick={() => setUpgradeModalOpen(true)}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
-                px: 4,
-                py: 1.5,
+                px: 3,
+                py: 1,
                 borderRadius: 2,
                 fontWeight: 600,
                 textTransform: 'none',
-                fontSize: '0.95rem',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 '&:hover': { bgcolor: '#c73552' },
               }}
             >
               Upgrade to Pro
             </Button>
+          </Box>
+
+          {/* Description */}
+          <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.8, maxWidth: 680 }}>
+            With Transportation, you can track guest flight details, organize shuttle pickup times, and monitor travel checklist completion — all in one place. Help your guests arrive stress-free and keep yourself in the loop.
+          </Typography>
+
+          {/* Blurred mock view */}
+          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+            {/* Blur + lock overlay */}
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 2,
+                backdropFilter: 'blur(6px)',
+                bgcolor: 'rgba(255,255,255,0.45)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}
+            >
+              <LockOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+              <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+                Upgrade to unlock Transportation
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#c73552' },
+                }}
+              >
+                Upgrade to Pro
+              </Button>
+            </Box>
+
+            {/* Mock stats */}
+            <Box sx={{ pointerEvents: 'none', userSelect: 'none' }}>
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                {[
+                  { icon: <FlightTakeoff />, color: '#DE3F5E', value: 8, label: 'Flights Entered' },
+                  { icon: <DirectionsBus />, color: '#4CAF50', value: 12, label: 'Shuttle Requests' },
+                  { icon: <People />, color: '#2196F3', value: 6, label: 'Guests with Checklists' },
+                  { icon: <CheckCircle />, color: '#FF9800', value: '72%', label: 'Avg Checklist Done' },
+                ].map((stat, i) => (
+                  <Grid item xs={12} sm={6} md={3} key={i}>
+                    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar sx={{ bgcolor: `${stat.color}20`, color: stat.color, mr: 2 }}>{stat.icon}</Avatar>
+                          <Box>
+                            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{stat.value}</Typography>
+                            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{stat.label}</Typography>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Mock tabs + table */}
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
+                <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2, display: 'flex', gap: 3, py: 1.5 }}>
+                  {['Flight Overview', 'Shuttle Preferences', 'Checklist Progress'].map((t, i) => (
+                    <Typography key={i} sx={{ fontSize: '0.875rem', fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#DE3F5E' : '#4a4a4a', borderBottom: i === 0 ? '2px solid #DE3F5E' : 'none', pb: 0.5 }}>{t}</Typography>
+                  ))}
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          {['Guest', 'Flight', 'Route', 'Arrival', 'Shuttle Pref'].map(h => (
+                            <TableCell key={h} sx={{ fontWeight: 600, color: '#1a1a1a' }}>{h}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {mockFlights.map((f) => (
+                          <TableRow key={f.id}>
+                            <TableCell>
+                              <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>{f.guest.name}</Typography>
+                              <Typography variant="caption" sx={{ color: '#6a6a6a' }}>{f.guest.email}</Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip label={`${f.airline} ${f.flight_number}`} size="small" sx={{ bgcolor: '#DE3F5E10', color: '#DE3F5E' }} />
+                            </TableCell>
+                            <TableCell>
+                              <Typography sx={{ fontSize: '0.875rem', color: '#1a1a1a' }}>{f.departure_airport} → {f.arrival_airport}</Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography sx={{ fontSize: '0.875rem', color: '#1a1a1a' }}>{formatDateTime(f.arrival_datetime)}</Typography>
+                            </TableCell>
+                            <TableCell>
+                              {f.shuttle_preference_time ? (
+                                <Chip icon={<AccessTime sx={{ fontSize: 14 }} />} label={formatTime(f.shuttle_preference_time)} size="small" sx={{ bgcolor: '#4CAF5010', color: '#4CAF50' }} />
+                              ) : (
+                                <Typography variant="caption" sx={{ color: '#9a9a9a' }}>—</Typography>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </Paper>
+            </Box>
           </Box>
         </Stack>
 
@@ -232,7 +334,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
         {/* Header */}
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Travel Coordination
+            Transportation
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Manage guest flights, shuttle preferences, and travel checklist progress
