@@ -58,15 +58,7 @@ interface Task {
 
 // ─── Default tasks ────────────────────────────────────────────────────────────
 
-const defaultTasks: Task[] = [
-  { id: '1', title: 'Confirm final guest count with venue', column: 'todo' },
-  { id: '2', title: 'Send dress code reminder to all guests', description: 'Include advisory about outdoor terrain — heels on grass warning', column: 'todo' },
-  { id: '3', title: 'Book second photographer for pre-ceremony', column: 'todo' },
-  { id: '4', title: 'Finalise seating arrangement', description: 'Check dietary restrictions for tables 4 and 7', column: 'doing' },
-  { id: '5', title: 'Review and approve catering menu', column: 'doing' },
-  { id: '6', title: 'Send save-the-dates', column: 'done' },
-  { id: '7', title: 'Book honeymoon flights', column: 'done' },
-];
+const defaultTasks: Task[] = [];
 
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
   { id: 'todo',  label: 'To Do',  color: '#5C6BC0', bg: '#EEF0FC' },
@@ -201,7 +193,15 @@ function KanbanColumn({
   };
 
   return (
-    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+    <Box
+      sx={{
+        flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
+        bgcolor: '#F8F8F8',
+        border: '1px solid rgba(0,0,0,0.07)',
+        borderRadius: 3,
+        p: 2,
+      }}
+    >
       {/* Column header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
         <Box
@@ -228,10 +228,9 @@ function KanbanColumn({
         sx={{
           flex: 1,
           minHeight: 80,
-          bgcolor: isOver ? alpha(col.color, 0.04) : 'transparent',
+          bgcolor: isOver ? alpha(col.color, 0.06) : 'transparent',
           borderRadius: 2,
           transition: 'background 0.15s',
-          p: isOver ? 0.5 : 0,
         }}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
