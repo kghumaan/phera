@@ -12,7 +12,7 @@ import {
   Switch,
   Divider,
 } from '@mui/material';
-import { useState, use } from 'react';
+import React, { useState, use } from 'react';
 import { WhatsApp, LockOutlined } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -119,23 +119,24 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
           <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
             Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Phera Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
           </Typography>
-          <Stack component="ul" spacing={0.5} sx={{ pl: 2.5, m: 0 }}>
-            {[
-              { text: 'Pre-wedding shuttle & logistics reminders' },
-              { text: 'Automatic weather advisories if conditions change' },
-              { text: 'In-day alerts for change breaks between events' },
-              { text: '<b>Timely reminders before each event so guests are always where they need to be</b>', html: true },
-              { text: 'Post-wedding photo album link so every memory is captured together' },
-              { text: '<b>Broadcast instantly to your entire guest list</b> — urgent updates, exciting news, or last-minute changes', html: true },
-            ].map((point, i) => (
-              <Box key={i} component="li" sx={{ color: '#4a4a4a' }}>
-                {point.html ? (
-                  <Typography variant="body2" sx={{ lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: point.text }} />
-                ) : (
-                  <Typography variant="body2" sx={{ lineHeight: 1.65 }}>{point.text}</Typography>
-                )}
+          <Stack spacing={0.6} sx={{ pl: 0 }}>
+            {([
+              <><strong>Shuttle & logistics reminders</strong> before the wedding so no one misses a beat</>,
+              <><strong>Automatic weather advisories</strong> if conditions suddenly change</>,
+              <><strong>Change break alerts</strong> in-day when guests have time to freshen up</>,
+              <><strong>Timely reminders before each upcoming event</strong> so every guest is right where they need to be</>,
+              <><strong>Post-wedding photo album link</strong> so every memory gets gathered in one place</>,
+              <>Instantly <strong>broadcast a message to your entire guest list</strong> — urgent news, last-minute changes, or anything exciting</>,
+            ] as React.ReactNode[]).map((content, i) => (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
+                <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#DE3F5E', mt: '7px', flexShrink: 0 }} />
+                <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
               </Box>
             ))}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
+              <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#DE3F5E', mt: '7px', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ color: '#9a9a9a', lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
+            </Box>
           </Stack>
         </Box>
 
