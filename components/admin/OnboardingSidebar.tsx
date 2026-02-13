@@ -22,6 +22,7 @@ import {
   ExpandLess,
   ExpandMore,
   WhatsApp,
+  ViewKanban,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -87,10 +88,10 @@ const groups: SidebarGroup[] = [
     id: 'concierge',
     label: 'Phera Concierge',
     icon: <WhatsApp />,
-    standalone: true,
     isPro: true,
     items: [
-      { id: 'concierge', label: 'Phera Concierge', path: '/concierge', isPro: true }
+      { id: 'concierge', label: 'Concierge', path: '/concierge', isPro: true },
+      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
     ]
   },
   {

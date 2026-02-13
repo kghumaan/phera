@@ -1,0 +1,574 @@
+'use client';
+
+import React, { useState, use, useCallback } from 'react';
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  Stack,
+  Paper,
+  IconButton,
+  TextField,
+  Tooltip,
+  alpha,
+} from '@mui/material';
+import {
+  ViewKanban,
+  Mic,
+  LockOutlined,
+  Add,
+  Close,
+  DragIndicator,
+} from '@mui/icons-material';
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import UpgradeModal from '@/components/admin/UpgradeModal';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+type Column = 'todo' | 'doing' | 'done';
+
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  column: Column;
+}
+
+// ─── Default tasks ────────────────────────────────────────────────────────────
+
+const defaultTasks: Task[] = [
+  { id: '1', title: 'Confirm final guest count with venue', column: 'todo' },
+  { id: '2', title: 'Send dress code reminder to all guests', description: 'Include advisory about outdoor terrain — heels on grass warning', column: 'todo' },
+  { id: '3', title: 'Book second photographer for pre-ceremony', column: 'todo' },
+  { id: '4', title: 'Finalise seating arrangement', description: 'Check dietary restrictions for tables 4 and 7', column: 'doing' },
+  { id: '5', title: 'Review and approve catering menu', column: 'doing' },
+  { id: '6', title: 'Send save-the-dates', column: 'done' },
+  { id: '7', title: 'Book honeymoon flights', column: 'done' },
+];
+
+const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
+  { id: 'todo',  label: 'To Do',  color: '#5C6BC0', bg: '#EEF0FC' },
+  { id: 'doing', label: 'Doing',  color: '#E6890A', bg: '#FFF4E0' },
+  { id: 'done',  label: 'Done',   color: '#2E7D32', bg: '#E8F5E9' },
+];
+
+// ─── Task Card ────────────────────────────────────────────────────────────────
+
+function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  return (
+    <Paper
+      ref={setNodeRef}
+      elevation={0}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      sx={{
+        p: 1.5,
+        mb: 1,
+        borderRadius: 2,
+        border: '1px solid rgba(0,0,0,0.07)',
+        bgcolor: isDragging ? 'rgba(0,0,0,0.03)' : 'white',
+        opacity: isDragging ? 0.4 : 1,
+        display: 'flex',
+        gap: 1,
+        alignItems: 'flex-start',
+        cursor: 'grab',
+        '&:active': { cursor: 'grabbing' },
+        '&:hover .task-actions': { opacity: 1 },
+      }}
+    >
+      {/* Drag handle */}
+      <Box
+        {...attributes}
+        {...listeners}
+        sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, '&:hover': { color: '#999' } }}
+      >
+        <DragIndicator sx={{ fontSize: 16 }} />
+      </Box>
+
+      {/* Content */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
+          {task.title}
+        </Typography>
+        {task.description && (
+          <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+            {task.description}
+          </Typography>
+        )}
+      </Box>
+
+      {/* Delete */}
+      <IconButton
+        className="task-actions"
+        size="small"
+        onClick={() => onDelete(task.id)}
+        sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: '#bbb', '&:hover': { color: '#DE3F5E' } }}
+      >
+        <Close sx={{ fontSize: 14 }} />
+      </IconButton>
+    </Paper>
+  );
+}
+
+// Static (non-draggable) version for drag overlay
+function TaskCardStatic({ task }: { task: Task }) {
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 1.5,
+        borderRadius: 2,
+        border: '1px solid rgba(0,0,0,0.07)',
+        bgcolor: 'white',
+        display: 'flex',
+        gap: 1,
+        alignItems: 'flex-start',
+        cursor: 'grabbing',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+      }}
+    >
+      <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}>
+        <DragIndicator sx={{ fontSize: 16 }} />
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
+          {task.title}
+        </Typography>
+        {task.description && (
+          <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+            {task.description}
+          </Typography>
+        )}
+      </Box>
+    </Paper>
+  );
+}
+
+// ─── Kanban Column ────────────────────────────────────────────────────────────
+
+function KanbanColumn({
+  col,
+  tasks,
+  onDelete,
+  onAdd,
+}: {
+  col: typeof COLUMNS[number];
+  tasks: Task[];
+  onDelete: (id: string) => void;
+  onAdd: (column: Column, title: string, description?: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: col.id });
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+
+  const handleAdd = () => {
+    if (!newTitle.trim()) return;
+    onAdd(col.id, newTitle.trim(), newDesc.trim() || undefined);
+    setNewTitle('');
+    setNewDesc('');
+    setAdding(false);
+  };
+
+  return (
+    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Column header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Box
+          sx={{
+            width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0,
+          }}
+        />
+        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {col.label}
+        </Typography>
+        <Box
+          sx={{
+            ml: 0.5, px: 1, borderRadius: '20px', bgcolor: col.bg,
+            fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6,
+          }}
+        >
+          {tasks.length}
+        </Box>
+      </Box>
+
+      {/* Tasks drop zone */}
+      <Box
+        ref={setNodeRef}
+        sx={{
+          flex: 1,
+          minHeight: 80,
+          bgcolor: isOver ? alpha(col.color, 0.04) : 'transparent',
+          borderRadius: 2,
+          transition: 'background 0.15s',
+          p: isOver ? 0.5 : 0,
+        }}
+      >
+        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          {tasks.map(task => (
+            <TaskCard key={task.id} task={task} onDelete={onDelete} />
+          ))}
+        </SortableContext>
+
+        {/* Add task UI */}
+        {adding ? (
+          <Paper
+            elevation={0}
+            sx={{ p: 1.5, borderRadius: 2, border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}
+          >
+            <TextField
+              autoFocus
+              fullWidth
+              placeholder="Task title"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAdding(false); }}
+              variant="standard"
+              InputProps={{ disableUnderline: true }}
+              sx={{ mb: 1, '& input': { fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a' } }}
+            />
+            <TextField
+              fullWidth
+              placeholder="Description (optional)"
+              value={newDesc}
+              onChange={e => setNewDesc(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }}
+              variant="standard"
+              InputProps={{ disableUnderline: true }}
+              sx={{ mb: 1.5, '& input': { fontSize: '0.775rem', color: '#7a7a7a' } }}
+            />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={handleAdd}
+                disabled={!newTitle.trim()}
+                sx={{
+                  bgcolor: col.color, color: 'white', textTransform: 'none',
+                  fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: 1.5,
+                  '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' },
+                }}
+              >
+                Add
+              </Button>
+              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}>
+                <Close sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Box>
+          </Paper>
+        ) : (
+          <Box
+            onClick={() => setAdding(true)}
+            sx={{
+              display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75,
+              borderRadius: 1.5, cursor: 'pointer', color: '#9a9a9a',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' },
+            }}
+          >
+            <Add sx={{ fontSize: 16 }} />
+            <Typography sx={{ fontSize: '0.8rem' }}>Add a task</Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+// ─── Mock board (non-pro, static blurred) ─────────────────────────────────────
+
+const mockTasks: Task[] = [
+  { id: 'm1', title: 'Confirm venue final headcount', column: 'todo' },
+  { id: 'm2', title: 'Send shuttle timing to guests', description: 'Pickup from Taj at 5:30pm', column: 'todo' },
+  { id: 'm3', title: 'Book second shooter', column: 'todo' },
+  { id: 'm4', title: 'Finalise seating chart', column: 'doing' },
+  { id: 'm5', title: 'Review catering menu', column: 'doing' },
+  { id: 'm6', title: 'Send save-the-dates', column: 'done' },
+  { id: 'm7', title: 'Book honeymoon flights', column: 'done' },
+];
+
+function MockBoard() {
+  return (
+    <Box sx={{ display: 'flex', gap: 2.5 }}>
+      {COLUMNS.map(col => {
+        const tasks = mockTasks.filter(t => t.column === col.id);
+        return (
+          <Box key={col.id} sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color }} />
+              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {col.label}
+              </Typography>
+              <Box sx={{ px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>
+                {tasks.length}
+              </Box>
+            </Box>
+            {tasks.map(task => (
+              <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: 2, border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white' }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
+                {task.description && (
+                  <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>
+                )}
+              </Paper>
+            ))}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function TaskManagerPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+  const { weddingSlug } = use(params);
+  const { isPro } = usePlan();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>(defaultTasks);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const activeTask = tasks.find(t => t.id === activeId) ?? null;
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveId(active.id as string);
+  };
+
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    if (!over) return;
+    const activeTask = tasks.find(t => t.id === active.id);
+    if (!activeTask) return;
+
+    // Determine target column — over could be a column id or a task id
+    const overTask = tasks.find(t => t.id === over.id);
+    const targetColumn = overTask ? overTask.column : (over.id as Column);
+
+    if (activeTask.column !== targetColumn) {
+      setTasks(prev => prev.map(t => t.id === active.id ? { ...t, column: targetColumn } : t));
+    }
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+
+    const activeTask = tasks.find(t => t.id === active.id);
+    const overTask = tasks.find(t => t.id === over.id);
+
+    if (activeTask && overTask && activeTask.column === overTask.column) {
+      setTasks(prev => {
+        const col = activeTask.column;
+        const colTasks = prev.filter(t => t.column === col);
+        const rest = prev.filter(t => t.column !== col);
+        const oldIdx = colTasks.findIndex(t => t.id === active.id);
+        const newIdx = colTasks.findIndex(t => t.id === over.id);
+        return [...rest, ...arrayMove(colTasks, oldIdx, newIdx)];
+      });
+    }
+  };
+
+  const handleDelete = useCallback((id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const handleAdd = useCallback((column: Column, title: string, description?: string) => {
+    setTasks(prev => [...prev, {
+      id: `task-${Date.now()}`,
+      title,
+      description,
+      column,
+    }]);
+  }, []);
+
+  // ── Non-pro teaser ──────────────────────────────────────────────────────────
+
+  if (!isPro) {
+    return (
+      <Container maxWidth="xl">
+        <Stack spacing={3}>
+
+          {/* Header */}
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Task Manager
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Voice-to-tasks — speak your to-do list, we turn it into an organised board
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<Mic />}
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{
+                bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25,
+                borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' },
+              }}
+            >
+              Upgrade to Pro
+            </Button>
+          </Box>
+
+          {/* Description */}
+          <Box sx={{ maxWidth: 640 }}>
+            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+              Planning a wedding means a thousand things to track — and you shouldn't have to type them all out. <strong>Just speak.</strong> Ramble through everything that's on your mind, and Phera will transcribe it, extract every action item, and drop them into your board automatically. Your only job is to actually do the things.
+            </Typography>
+            <Stack spacing={0.6}>
+              {([
+                <><strong>Voice-to-tasks</strong> — speak naturally and we extract every action item</>,
+                <><strong>AI-organised board</strong> across To Do, Doing, and Done columns</>,
+                <><strong>Drag tasks</strong> across columns and reorder them as your priorities shift</>,
+                <><strong>Follow-up reminders</strong> so nothing slips through the cracks before the big day</>,
+              ] as React.ReactNode[]).map((content, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* Blurred mock board */}
+          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+            <Box sx={{ filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
+              <MockBoard />
+            </Box>
+
+            {/* Lock overlay */}
+            <Box
+              sx={{
+                position: 'absolute', inset: 0, display: 'flex',
+                flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56, height: 56, borderRadius: '50%', bgcolor: 'white',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<ViewKanban />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{
+                  bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5,
+                  borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                  fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
+                  '&:hover': { bgcolor: '#c73552' },
+                }}
+              >
+                Unlock Task Manager
+              </Button>
+            </Box>
+          </Box>
+
+        </Stack>
+        <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
+      </Container>
+    );
+  }
+
+  // ── Pro view — full kanban ──────────────────────────────────────────────────
+
+  return (
+    <Container maxWidth="xl">
+      <Stack spacing={3}>
+
+        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Task Manager
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              Voice-to-tasks — speak your to-do list, we handle the rest
+            </Typography>
+          </Box>
+          <Tooltip title="Voice input coming soon — you'll be able to speak your tasks and we'll add them automatically" placement="left">
+            <span>
+              <Button
+                variant="outlined"
+                startIcon={<Mic />}
+                disabled
+                sx={{
+                  borderColor: '#DE3F5E', color: '#DE3F5E', px: 2.5, py: 1,
+                  borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.9rem',
+                  '&.Mui-disabled': { borderColor: '#DE3F5E80', color: '#DE3F5E80' },
+                }}
+              >
+                Voice Input
+              </Button>
+            </span>
+          </Tooltip>
+        </Box>
+
+        {/* Kanban board */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
+            {COLUMNS.map(col => (
+              <KanbanColumn
+                key={col.id}
+                col={col}
+                tasks={tasks.filter(t => t.column === col.id)}
+                onDelete={handleDelete}
+                onAdd={handleAdd}
+              />
+            ))}
+          </Box>
+
+          <DragOverlay>
+            {activeTask ? <TaskCardStatic task={activeTask} /> : null}
+          </DragOverlay>
+        </DndContext>
+
+      </Stack>
+    </Container>
+  );
+}
