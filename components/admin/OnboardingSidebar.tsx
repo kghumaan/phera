@@ -64,6 +64,7 @@ const groups: SidebarGroup[] = [
     label: 'Wedding Website',
     icon: <Language />,
     items: [
+      { id: 'build-ai', label: 'Build w/ AI', path: '/build-ai', isPro: true },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
@@ -81,7 +82,7 @@ const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guests', label: 'RSVPs', path: '/guests' },
-      { id: 'travel-coordination', label: 'Transportation', path: '/travel-coordination', isPro: true },
+      { id: 'travel-coordination', label: 'Transport', path: '/travel-coordination', isPro: true },
     ]
   },
   {
