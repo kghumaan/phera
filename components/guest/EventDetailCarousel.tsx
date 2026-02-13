@@ -346,7 +346,7 @@ export default function EventDetailCarousel({
           position: 'fixed',
           right: 0,
           top: 0,
-          width: '40%',
+          width: '35%',
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
@@ -395,9 +395,9 @@ export default function EventDetailCarousel({
         <Card
           sx={{
             width: '100%',
-            maxWidth: 500,
-            height: '82vh',
-            maxHeight: 900,
+            maxWidth: 380,
+            height: '75vh',
+            maxHeight: 750,
             backgroundColor: 'transparent',
             borderRadius: '24px',
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',

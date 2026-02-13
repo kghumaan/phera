@@ -153,6 +153,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         pin_entry_font_color: pinEntryFontColor,
         pin_entry_button_font_color: pinEntryButtonFontColor,
         previewMode: activeTab === 1 ? 'lock_screen' : 'main',
+        website_layout: websiteLayout,
       }
     };
 
@@ -174,7 +175,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     pinEntryPrimaryColor,
     pinEntryFontColor,
     pinEntryButtonFontColor,
-    activeTab
+    activeTab,
+    websiteLayout
   ]);
 
   useEffect(() => {
