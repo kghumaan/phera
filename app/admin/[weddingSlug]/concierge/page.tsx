@@ -128,13 +128,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               <><strong>Post-wedding photo album link</strong> so every memory gets gathered in one place</>,
               <>Instantly <strong>broadcast a message to your entire guest list</strong> — urgent news, last-minute changes, or anything exciting</>,
             ] as React.ReactNode[]).map((content, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-                <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#DE3F5E', mt: '9px', flexShrink: 0 }} />
+              <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
                 <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
               </Box>
             ))}
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-              <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#DE3F5E', mt: '9px', flexShrink: 0 }} />
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
               <Typography variant="body2" sx={{ color: '#9a9a9a', lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
             </Box>
           </Stack>
