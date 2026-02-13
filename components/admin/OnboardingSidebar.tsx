@@ -86,12 +86,12 @@ const groups: SidebarGroup[] = [
   },
   {
     id: 'concierge',
-    label: 'Phera Concierge',
+    label: 'Concierge',
     icon: <WhatsApp />,
     standalone: true,
     isPro: true,
     items: [
-      { id: 'concierge', label: 'Phera Concierge', path: '/concierge', isPro: true }
+      { id: 'concierge', label: 'Concierge', path: '/concierge', isPro: true }
     ]
   },
   {
@@ -250,9 +250,9 @@ export default function OnboardingSidebar({
                 }}
                 selected={isActive}
                 sx={{
-                  px: 1.5, // Reduced from 2 to align text with parent items
+                  px: 1.5,
                   py: 1,
-                  mx: 0,
+                  mx: 1,
                   mb: 0.5,
                   borderRadius: '12px',
                   color: isActive ? 'white' : '#4a4a4a',
@@ -267,14 +267,10 @@ export default function OnboardingSidebar({
               >
                 <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
                 <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <span>{group.label}</span>
-                      {group.isPro && !isPro && <ProBadge size="tiny" />}
-                    </Box>
-                  }
+                  primary={group.label}
                   primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: 'inherit' } }}
                 />
+                {group.isPro && !isPro && <ProBadge size="tiny" />}
               </ListItemButton>
             );
           }
@@ -391,10 +387,9 @@ export default function OnboardingSidebar({
                         >
                           <ListItemText
                             primary={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <span>{item.label}</span>
-                                {item.isPro && !isPro && <ProBadge size="tiny" />}
-                                {item.required && !isActive && !item.isPro && (
+                              item.required && !isActive && !item.isPro ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <span>{item.label}</span>
                                   <Box
                                     component="span"
                                     sx={{
@@ -405,8 +400,8 @@ export default function OnboardingSidebar({
                                       display: 'inline-block',
                                     }}
                                   />
-                                )}
-                              </Box>
+                                </Box>
+                              ) : item.label
                             }
                             primaryTypographyProps={{
                               sx: {
@@ -416,6 +411,7 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
+                          {item.isPro && !isPro && <ProBadge size="tiny" />}
                         </ListItemButton>
                       </Box>
                     );
