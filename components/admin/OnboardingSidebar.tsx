@@ -262,7 +262,7 @@ export default function OnboardingSidebar({
                       {group.isPro && !isPro && <ProBadge size="tiny" />}
                     </Box>
                   }
-                  primaryTypographyProps={{ sx: { fontWeight: isActive ? 600 : 600, fontSize: '0.9rem' } }}
+                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: 'inherit' } }}
                 />
               </ListItemButton>
             );

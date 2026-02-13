@@ -115,31 +115,24 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         </Box>
 
         {/* Description */}
-        <Box sx={{ maxWidth: 680 }}>
-          <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.85, mb: 1.5 }}>
-            The weeks leading up to a wedding are a whirlwind — and your guests always seem to have
-            one more question. <strong>Phera Concierge is your 24/7 defense layer.</strong> It lives
-            right inside WhatsApp and answers your guests' questions automatically, using the details
-            you've already added to your wedding website. You stay focused on the things that actually
-            need you.
+        <Box sx={{ maxWidth: 640 }}>
+          <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Phera Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
           </Typography>
-          <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.85, mb: 1 }}>
-            From here you can also stay connected with your guests throughout the entire journey:
-          </Typography>
-          <Stack component="ul" spacing={0.75} sx={{ pl: 2.5, m: 0 }}>
+          <Stack component="ul" spacing={0.5} sx={{ pl: 2.5, m: 0 }}>
             {[
-              { text: 'Send gentle reminders before the wedding — like shuttle pickup times so no one\'s left behind' },
-              { text: 'Auto-alert guests if there\'s a sudden weather change so they\'re always prepared' },
-              { text: 'Let guests know when they have a moment to freshen up between events' },
-              { text: '<b>Send timely reminders for each upcoming event — so every guest shows up exactly when they should</b>', html: true },
-              { text: 'After the wedding, share a link for guests to upload all their favourite photos to a shared album, so the memories live on together' },
-              { text: '<b>Broadcast an instant message to your entire guest list</b> — for a sudden venue change, exciting news, or anything you need everyone to hear right away', html: true },
+              { text: 'Pre-wedding shuttle & logistics reminders' },
+              { text: 'Automatic weather advisories if conditions change' },
+              { text: 'In-day alerts for change breaks between events' },
+              { text: '<b>Timely reminders before each event so guests are always where they need to be</b>', html: true },
+              { text: 'Post-wedding photo album link so every memory is captured together' },
+              { text: '<b>Broadcast instantly to your entire guest list</b> — urgent updates, exciting news, or last-minute changes', html: true },
             ].map((point, i) => (
               <Box key={i} component="li" sx={{ color: '#4a4a4a' }}>
                 {point.html ? (
-                  <Typography variant="body2" sx={{ lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: point.text }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: point.text }} />
                 ) : (
-                  <Typography variant="body2" sx={{ lineHeight: 1.7 }}>{point.text}</Typography>
+                  <Typography variant="body2" sx={{ lineHeight: 1.65 }}>{point.text}</Typography>
                 )}
               </Box>
             ))}
