@@ -20,7 +20,7 @@ import {
   Tab,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Save, Check } from '@mui/icons-material';
+import { Save, Check, ViewAgenda, UnfoldMore } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
@@ -384,13 +384,16 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           value="nested"
                           control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
                           label={
-                            <Box>
-                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                                Nested
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                                Guests tap 'View Details' to see event info, schedule, and more in an overlay
-                              </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', pr: 1 }}>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                  Nested
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                                  Guests tap 'View Details' to see event info, schedule, and more in an overlay
+                                </Typography>
+                              </Box>
+                              <ViewAgenda sx={{ fontSize: 32, color: '#DE3F5E', flexShrink: 0, ml: 2 }} />
                             </Box>
                           }
                           sx={{ alignItems: 'flex-start', m: 0 }}
@@ -416,13 +419,16 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           value="infinite_scroll"
                           control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
                           label={
-                            <Box>
-                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                                Infinite Scroll
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                                All wedding details are displayed as you scroll down the page
-                              </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', pr: 1 }}>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                  Infinite Scroll
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                                  All wedding details are displayed as you scroll down the page
+                                </Typography>
+                              </Box>
+                              <UnfoldMore sx={{ fontSize: 32, color: '#DE3F5E', flexShrink: 0, ml: 2 }} />
                             </Box>
                           }
                           sx={{ alignItems: 'flex-start', m: 0 }}
