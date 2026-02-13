@@ -384,7 +384,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           value="nested"
                           control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
                           label={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', pr: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
                               <Box sx={{ flex: 1 }}>
                                 <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                   Nested
@@ -419,7 +419,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           value="infinite_scroll"
                           control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
                           label={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', pr: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
                               <Box sx={{ flex: 1 }}>
                                 <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                   Infinite Scroll
