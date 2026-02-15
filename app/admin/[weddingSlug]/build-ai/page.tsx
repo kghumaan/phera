@@ -32,15 +32,15 @@ interface Message {
 // ─── Mock chat for blurred preview ───────────────────────────────────────────
 
 const mockMessages: Message[] = [
-  { id: '1', role: 'ai',   text: "Welcome! 🎉 Let's build your wedding website together. What are the names of the happy couple?" },
+  { id: '1', role: 'ai', text: "Welcome! 🎉 Let's build your wedding website together. What are the names of the happy couple?" },
   { id: '2', role: 'user', text: 'Priya & Arjun!' },
-  { id: '3', role: 'ai',   text: 'So lovely! 💕 When is your big day?' },
+  { id: '3', role: 'ai', text: 'So lovely! 💕 When is your big day?' },
   { id: '4', role: 'user', text: 'December 14th, 2025' },
-  { id: '5', role: 'ai',   text: "Wonderful! Where will you be celebrating?" },
+  { id: '5', role: 'ai', text: "Wonderful! Where will you be celebrating?" },
   { id: '6', role: 'user', text: 'The Oberoi, Udaipur' },
-  { id: '7', role: 'ai',   text: "A stunning choice! 🏰 What theme are you going for — traditional, modern, or something in between?" },
+  { id: '7', role: 'ai', text: "A stunning choice! 🏰 What theme are you going for — traditional, modern, or something in between?" },
   { id: '8', role: 'user', text: 'Modern with a touch of classic Indian elegance' },
-  { id: '9', role: 'ai',   text: "Perfect. I've noted your colour palette preferences — shall we move on to your event schedule?" },
+  { id: '9', role: 'ai', text: "Perfect. I've noted your colour palette preferences — shall we move on to your event schedule?" },
 ];
 
 // ─── Initial AI greeting ──────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Build w/ AI
+                Build with AI
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 Answer a few questions and watch your wedding website come to life
@@ -288,7 +288,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
         {/* Header */}
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Build w/ AI
+            Build with AI
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Answer questions one by one and your wedding website builds itself

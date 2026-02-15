@@ -22,7 +22,8 @@ import {
   IconButton,
   Avatar,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -41,82 +42,72 @@ import {
   Domain,
   Send,
   Dashboard,
+  KeyboardArrowDown,
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
-import { useState, useRef, useEffect } from 'react';
 import LoginModal from '@/components/auth/LoginModal';
 
 // --- Data & Content ---
 
-const painPoints = [
+// Combined features with problem + solution
+const features = [
   {
-    title: 'The Coordination Nightmare',
-    description: 'Hundreds of guests, multiple events, different venues—absolute chaos.',
-    icon: <StreamlineIcon name="users" sx={{ fontSize: '10rem', color: '#DE3F5E' }} />,
-    rotation: -3,
-    color: '#FFEAEE',
+    id: 'website-creation',
+    title: 'Wedding Website',
+    problem: 'Building a wedding website takes hours of design work and coding knowledge.',
+    solution: 'Beautiful, mobile-friendly websites with AI-powered setup in under 60 seconds.',
+    imagePlaceholder: 'Demo: Beautiful wedding website preview on multiple devices',
   },
   {
-    title: 'RSVP Chaos',
-    description: 'Texts, calls, spreadsheets. Who is actually coming? Nobody knows.',
-    icon: <StreamlineIcon name="calendar-remove" sx={{ fontSize: '10rem', color: '#FBC02D' }} />,
-    rotation: 2,
-    color: '#FFF8E1',
+    id: 'rsvp-management',
+    title: 'RSVP Collection',
+    problem: 'Texts, calls, spreadsheets—tracking who\'s coming becomes a full-time job.',
+    solution: 'Digital RSVPs with dietary restrictions, plus-ones, and real-time tracking.',
+    imagePlaceholder: 'Demo: RSVP dashboard showing responses with dietary info',
   },
   {
-    title: 'Travel Coordination',
-    description: 'Tracking flights, hotels, and 50+ airport pickups manually.',
-    icon: <StreamlineIcon name="plane-takeoff" sx={{ fontSize: '10rem', color: '#1976D2' }} />,
-    rotation: -2,
-    color: '#E3F2FD',
-  },
-  {
-    title: 'The WhatsApp Spiral',
-    description: 'Five groups, lost messages, info buried under endless spam.',
-    icon: <StreamlineIcon name="whatsapp" sx={{ fontSize: '10rem', color: '#25D366' }} />,
-    rotation: 4,
-    color: '#E8F5E9',
-  },
-];
-
-const keyFeatures = [
-  {
-    title: 'Smart RSVP',
-    description: 'Digital invites with plus-ones, dietary tracking, and real-time responses.',
-    icon: <StreamlineIcon name="calendar-check" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'FREE',
-  },
-  {
+    id: 'multi-event',
     title: 'Multi-Event Support',
-    description: 'Native support for Haldi, Mehendi, Sangeet, Baraat, and custom ceremonies.',
-    icon: <StreamlineIcon name="calendar" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'FREE',
+    problem: 'Managing Haldi, Mehendi, Sangeet, and reception with different guest lists is chaos.',
+    solution: 'Native support for all your events with PIN-based access control per guest.',
+    imagePlaceholder: 'Demo: Event pages for Sangeet, Mehendi, and Reception',
   },
   {
+    id: 'travel-coordination',
     title: 'Travel Coordination',
-    description: 'Collect flight details, organize airport pickups, and coordinate shuttles.',
-    icon: <StreamlineIcon name="map-route" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'PRO',
+    problem: 'Collecting flight details and organizing 100+ airport pickups manually.',
+    solution: 'Guests submit flights, sign up for shuttles, and get pickup confirmations automatically.',
+    imagePlaceholder: 'Demo: Travel dashboard with flight arrivals and shuttle schedule',
   },
   {
-    title: 'PIN-Based Privacy',
-    description: 'Family, individual, and VIP access codes. You control who sees what.',
-    icon: <StreamlineIcon name="check-circle" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'FREE',
+    id: 'guest-communication',
+    title: 'Guest Communication',
+    problem: 'Five WhatsApp groups, buried messages, and the same questions asked 50 times.',
+    solution: '24/7 AI concierge answers guest questions instantly. Broadcast updates with one click.',
+    imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
   },
   {
-    title: 'WhatsApp Concierge',
-    description: 'AI-powered assistant answers guest questions 24/7. Broadcast updates instantly.',
-    icon: <StreamlineIcon name="whatsapp" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'PRO',
+    id: 'task-management',
+    title: 'Task Management',
+    problem: 'To-do lists scattered across apps, sticky notes, and your memory.',
+    solution: 'Just ramble into your phone—AI converts voice notes into organized tasks.',
+    imagePlaceholder: 'Demo: Voice recording being converted to organized task list',
   },
   {
+    id: 'gift-registry',
     title: 'Gift Registry',
-    description: 'Honeymoon funds and cash gifts with secure Stripe payments.',
-    icon: <StreamlineIcon name="store" sx={{ fontSize: { xs: '4rem', md: '6rem' }, color: '#DE3F5E', '& g, & path': { strokeWidth: 2 } }} />,
-    badge: 'PRO',
+    problem: 'Multiple registry platforms, managing cash funds, tracking contributions.',
+    solution: 'Cash funds and honeymoon contributions in one place with secure Stripe payments.',
+    imagePlaceholder: 'Demo: Gift registry page with contribution options',
+  },
+  {
+    id: 'local-guide',
+    title: 'Local Area Guide',
+    problem: 'Guests constantly asking for restaurant and activity recommendations.',
+    solution: 'Curated guide with restaurants, attractions, and things to do near your venue.',
+    imagePlaceholder: 'Demo: Interactive map with recommended spots near venue',
   },
 ];
 
@@ -133,7 +124,7 @@ const pricingTiers = [
       'PIN-based guest access',
       'Event schedule & details',
       'FAQ management',
-      'Real-time guest wall',
+      'Shopping & local area guide',
     ],
     buttonText: 'Start Free',
     highlight: false,
@@ -144,13 +135,13 @@ const pricingTiers = [
     description: 'Advanced features for destination weddings',
     features: [
       'Everything in Free, plus:',
+      'Build website with AI',
+      'Voice-to-task manager',
       'WhatsApp Concierge Agent',
-      'Shuttle transportation coordination',
-      'Advanced website styling',
+      'Travel & shuttle coordination',
       'Registry with Stripe payments',
       'Broadcast messages to guests',
       'Priority support',
-      'All future features included',
     ],
     buttonText: 'Upgrade to Pro',
     highlight: true,
@@ -194,153 +185,360 @@ const fadeIn = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
-};
 
-interface FeatureCardProps {
+// --- Features Scroll Section Component ---
+
+interface FeatureItem {
+  id: string;
   title: string;
-  description: string;
-  icon: React.ReactNode;
-  badge?: string;
-  height?: string | number;
-  gradient?: string;
-  accentColor?: string;
-  isDark?: boolean;
-  large?: boolean;
+  problem: string;
+  solution: string;
+  imagePlaceholder: string;
 }
 
-const FeatureCard = ({
-  title,
-  description,
-  icon,
-  badge,
-  height = '100%',
-  gradient,
-  accentColor,
-  isDark = false,
-  large = false
-}: FeatureCardProps) => {
+const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Use framer-motion for reliable scroll tracking
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Map the scroll progress (0-1) to the active index
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const newIndex = Math.min(
+      Math.floor(latest * items.length),
+      items.length - 1
+    );
+    if (newIndex !== activeIndex) {
+      setActiveIndex(newIndex);
+    }
+  });
+
+  // Calculate container height (60vh per item)
+  const containerHeight = items.length * 60;
+
   return (
-    <motion.div
-      variants={fadeIn}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      style={{ height: '100%' }}
-    >
-      <Paper
-        elevation={0}
+    <>
+      {/* Desktop Version */}
+      <Box
+        ref={containerRef}
         sx={{
-          p: large ? { xs: 2.5, md: 6 } : { xs: 2.5, md: 4 },
-          height: height,
-          borderRadius: '24px',
-          background: gradient || (isDark ? (accentColor || '#1a1a1a') : '#fff'),
-          color: isDark ? '#fff' : '#1a1a1a',
-          border: '1px solid',
-          borderColor: isDark ? 'transparent' : alpha('#000', 0.05),
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
+          display: { xs: 'none', md: 'block' },
           position: 'relative',
-          overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
-          }
+          height: `${containerHeight}vh`,
         }}
       >
-        <Box>
-          <Stack
-            direction="row"
-            sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 1.5, md: 3 } }}
-          >
-            <Box sx={{
-              p: { xs: 1, md: 1.5 },
-              borderRadius: '16px',
-              bgcolor: isDark ? alpha('#fff', 0.1) : alpha('#DE3F5E', 0.05),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              '& svg': { fontSize: { xs: '1.5rem', md: '2.5rem' } }
-            }}>
-              {icon}
-            </Box>
-            {badge && (
-              <Chip
-                label={badge}
-                size="small"
-                sx={{
-                  bgcolor: isDark
-                    ? alpha('#fff', 0.2)
-                    : (badge === 'PRO' ? '#FFEAEE' : '#F5F5F5'),
-                  color: isDark
-                    ? '#fff'
-                    : (badge === 'PRO' ? '#DE3F5E' : '#666'),
-                  fontWeight: 800,
-                  fontSize: { xs: '0.6rem', md: '0.7rem' },
-                  letterSpacing: '0.5px',
-                  border: badge === 'PRO' ? '1px solid rgba(222, 63, 94, 0.1)' : 'none',
-                  height: { xs: '18px', md: '24px' }
-                }}
-              />
-            )}
-          </Stack>
-
-          <Typography
-            variant="h5"
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10,
+          }}
+        >
+          {/* Max-width container for left/right padding */}
+          <Box
             sx={{
-              fontWeight: 800,
-              mb: { xs: 1, md: 2 },
+              width: '100%',
+              maxWidth: '1600px',
+              mx: 'auto',
+              px: { md: 6, lg: 10 },
+              display: 'flex',
+              gap: { md: 8, lg: 12 },
+              alignItems: 'center',
+            }}
+          >
+            {/* Left Side - Content */}
+            <Box sx={{ flex: 1 }}>
+              {/* Section Header - Big */}
+              <Typography
+                sx={{
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontStyle: 'italic',
+                  fontSize: { md: '3rem', lg: '4rem' },
+                  lineHeight: 1.1,
+                  color: '#1a1a1a',
+                  mb: 5,
+                }}
+              >
+                Everything you need,{' '}
+                <Box component="span" sx={{ color: '#DE3F5E' }}>
+                  simplified
+                </Box>
+              </Typography>
+
+              {/* Feature Items List */}
+              <Stack spacing={0}>
+                {items.map((item, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
+                    <Box
+                      key={item.id}
+                      sx={{
+                        py: isActive ? 3 : 1.5,
+                        borderBottom: idx < items.length - 1 ? '1px solid' : 'none',
+                        borderColor: alpha('#000', 0.06),
+                        transition: 'padding 0.3s ease',
+                        opacity: isActive ? 1 : 0.35,
+                      }}
+                    >
+                      {/* Title - Not bold, left aligned always */}
+                      <Typography
+                        sx={{
+                          color: '#1a1a1a',
+                          fontSize: isActive ? { md: '2rem', lg: '2.5rem' } : { md: '1.15rem', lg: '1.35rem' },
+                          transition: 'all 0.3s ease',
+                          fontWeight: 500,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+
+                      {/* Problem & Solution - Only show when active */}
+                      <motion.div
+                        initial={false}
+                        animate={{
+                          height: isActive ? 'auto' : 0,
+                          opacity: isActive ? 1 : 0,
+                        }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <Box sx={{ mt: 2 }}>
+                          <Typography
+                            sx={{
+                              color: '#888',
+                              fontSize: { md: '1.5rem', lg: '1.5rem' },
+                              lineHeight: 1.6,
+                              mb: 1.5,
+                            }}
+                          >
+                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                              The problem:
+                            </Box>{' '}
+                            {item.problem}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: '#555',
+                              fontSize: { md: '1.5rem', lg: '1.5rem' },
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                              Our solution:
+                            </Box>{' '}
+                            {item.solution}
+                          </Typography>
+                        </Box>
+                      </motion.div>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Box>
+
+            {/* Right Side - Image Placeholder */}
+            <Box
+              sx={{
+                flex: 1,
+                height: '550px',
+                position: 'relative',
+              }}
+            >
+              {items.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={false}
+                  animate={{
+                    opacity: idx === activeIndex ? 1 : 0,
+                    scale: idx === activeIndex ? 1 : 0.95,
+                    y: idx === activeIndex ? 0 : 20,
+                  }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    pointerEvents: idx === activeIndex ? 'auto' : 'none',
+                  }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '24px',
+                      bgcolor: alpha('#DE3F5E', 0.03),
+                      border: '1px solid',
+                      borderColor: alpha('#000', 0.06),
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 5,
+                    }}
+                  >
+                    {/* Placeholder for image */}
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: '380px',
+                        bgcolor: 'white',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 4,
+                        border: '2px dashed',
+                        borderColor: alpha('#DE3F5E', 0.2),
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: '#999',
+                          textAlign: 'center',
+                          px: 4,
+                          fontStyle: 'italic',
+                          fontSize: '1.1rem',
+                        }}
+                      >
+                        {item.imagePlaceholder}
+                      </Typography>
+                    </Box>
+
+                    {/* Item title under image */}
+                    <Typography
+                      sx={{
+                        fontFamily: 'var(--font-instrument-serif)',
+                        fontStyle: 'italic',
+                        fontWeight: 500,
+                        color: '#1a1a1a',
+                        fontSize: '1.75rem',
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                  </Paper>
+                </motion.div>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Mobile Stacked Version */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        {/* Mobile Header */}
+        <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
+          <Typography
+            sx={{
               fontFamily: 'var(--font-instrument-serif)',
               fontStyle: 'italic',
-              fontSize: large ? { xs: '1.2rem', md: '3rem' } : { xs: '1rem', md: '1.75rem' },
-              lineHeight: 1.1
+              fontSize: '2rem',
+              lineHeight: 1.15,
+              color: '#1a1a1a',
             }}
           >
-            {title}
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              color: isDark ? alpha('#fff', 0.8) : '#4a4a4a',
-              lineHeight: 1.6,
-              fontSize: large ? { xs: '0.8rem', md: '1.25rem' } : { xs: '0.75rem', md: '1.1rem' },
-              maxWidth: '95%'
-            }}
-          >
-            {description}
+            Everything you need,{' '}
+            <Box component="span" sx={{ color: '#DE3F5E' }}>
+              simplified
+            </Box>
           </Typography>
         </Box>
 
-        {large && (
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              right: -30,
-              width: '400px',
-              height: '150px',
-              opacity: 0.05,
-              display: { xs: 'none', md: 'block' },
-              pointerEvents: 'none'
-            }}
-          >
-            <Image
-              src="/logo-flower.svg"
-              alt=""
-              fill
-              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
-            />
-          </Box>
-        )}
-      </Paper>
-    </motion.div>
+        {/* Mobile Items */}
+        <Box sx={{ px: 3, pb: 6 }}>
+          <Stack spacing={4}>
+            {items.map((item) => (
+              <Box
+                key={item.id}
+                sx={{
+                  pb: 4,
+                  borderBottom: '1px solid',
+                  borderColor: alpha('#000', 0.08),
+                }}
+              >
+                {/* Image placeholder */}
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '180px',
+                    bgcolor: alpha('#DE3F5E', 0.03),
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 3,
+                    border: '2px dashed',
+                    borderColor: alpha('#DE3F5E', 0.2),
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: '#999',
+                      textAlign: 'center',
+                      px: 2,
+                      fontStyle: 'italic',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {item.imagePlaceholder}
+                  </Typography>
+                </Box>
+
+                <Typography
+                  sx={{
+                    color: '#1a1a1a',
+                    fontSize: '1.35rem',
+                    fontWeight: 400,
+                    lineHeight: 1.3,
+                    mb: 2,
+                  }}
+                >
+                  {item.title}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    color: '#888',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.6,
+                    mb: 1.5,
+                  }}
+                >
+                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                    The problem:
+                  </Box>{' '}
+                  {item.problem}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: '#555',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                    Our solution:
+                  </Box>{' '}
+                  {item.solution}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      </Box>
+    </>
   );
 };
 
@@ -348,12 +546,8 @@ export default function LandingPage() {
   const theme = useTheme();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
-  const [painPointsIndex, setPainPointsIndex] = useState(0);
-  const [solutionIndex, setSolutionIndex] = useState(0);
   const [roadmapIndex, setRoadmapIndex] = useState(0);
 
-  const painPointsRef = useRef<HTMLDivElement>(null);
-  const solutionRef = useRef<HTMLDivElement>(null);
   const roadmapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -365,21 +559,12 @@ export default function LandingPage() {
       setIndex(Math.min(index, itemCount - 1));
     };
 
-    const painPointsEl = painPointsRef.current;
-    const solutionEl = solutionRef.current;
     const roadmapEl = roadmapRef.current;
-
-    const painPointsHandler = () => handleScroll(painPointsRef, setPainPointsIndex, painPoints.length);
-    const solutionHandler = () => handleScroll(solutionRef, setSolutionIndex, 5); // 5 solution items
     const roadmapHandler = () => handleScroll(roadmapRef, setRoadmapIndex, 4); // 4 roadmap items
 
-    painPointsEl?.addEventListener('scroll', painPointsHandler);
-    solutionEl?.addEventListener('scroll', solutionHandler);
     roadmapEl?.addEventListener('scroll', roadmapHandler);
 
     return () => {
-      painPointsEl?.removeEventListener('scroll', painPointsHandler);
-      solutionEl?.removeEventListener('scroll', solutionHandler);
       roadmapEl?.removeEventListener('scroll', roadmapHandler);
     };
   }, []);
@@ -395,472 +580,141 @@ export default function LandingPage() {
 
       <Box component="main" sx={{ flexGrow: 1 }}>
         {/* --- HERO SECTION --- */}
-        <Container maxWidth="lg" sx={{ pt: { xs: 12, md: 24 }, pb: { xs: 4, md: 10 } }}>
-          <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-            <Stack spacing={4} sx={{ alignItems: 'center', textAlign: 'center' }}>
-              <Typography
-                variant="h1"
-                sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
-                  fontSize: { xs: '3.2rem', md: '4.5rem', lg: '6rem' },
-                  lineHeight: 1.1,
-                  color: '#1a1a1a',
-                  maxWidth: '1000px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Box>Destination Wedding,</Box>
-                <Box
-                  component="span"
-                  sx={{
-                    position: 'relative',
-                    display: 'inline-block',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      left: 0,
-                      top: '50%',
-                      width: '100%',
-                      height: '3px',
-                      bgcolor: '#DE3F5E',
-                      transform: 'scaleX(0)',
-                      transformOrigin: 'left',
-                      animation: 'strikethrough 0.8s ease-out 1s forwards',
-                    },
-                    '@keyframes strikethrough': {
-                      '0%': { transform: 'scaleX(0)' },
-                      '100%': { transform: 'scaleX(1)' },
-                    },
-                  }}
-                >
-                  Minus the Chaos
-                </Box>
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontSize: { xs: '1.35rem', md: '1.75rem' },
-                  fontWeight: 600,
-                  color: '#1a1a1a',
-                  maxWidth: '800px',
-                  lineHeight: 1.4,
-                }}
-              >
-                Wedding Planner in your Pocket
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontSize: { xs: '1rem', md: '1.25rem' },
-                  color: '#4a4a4a',
-                  maxWidth: '800px',
-                  lineHeight: 1.5,
-                  fontWeight: 400,
-                  px: { xs: 2, md: 0 }
-                }}
-              >
-                RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge
-                <br />
-                all on one platform.
-              </Typography>
-
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                sx={{ pt: 2 }}
-              >
-                <Button
-                  component={Link}
-                  href="/auth/signup"
-                  variant="contained"
-                  size="large"
-                  sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    px: { xs: 4, md: 6 },
-                    py: { xs: 1.2, md: 2 },
-                    borderRadius: '32px',
-                    fontSize: { xs: '1rem', md: '1.25rem' },
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    '&:hover': { bgcolor: '#C8365A' },
-                  }}
-                >
-                  Start Planning Free
-                </Button>
-                <Button
-                  component={Link}
-                  href="/sim-kv"
-                  variant="outlined"
-                  size="large"
-                  sx={{
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
-                    px: { xs: 4, md: 6 },
-                    py: { xs: 1.2, md: 2 },
-                    borderRadius: '32px',
-                    fontSize: { xs: '1rem', md: '1.25rem' },
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    '&:hover': {
-                      borderColor: '#C8365A',
-                      bgcolor: alpha('#DE3F5E', 0.05),
-                    },
-                  }}
-                >
-                  See How It Works
-                </Button>
-              </Stack>
-            </Stack>
-          </motion.div>
-        </Container>
-
-        {/* --- PROBLEM SECTION --- */}
-        <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-          >
-            <Typography
-              variant="h2"
-              align="center"
-              sx={{
-                fontFamily: 'var(--font-instrument-serif)',
-                fontStyle: 'italic',
-                mb: { xs: 4, md: 10 },
-                fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
-                color: '#1a1a1a',
-                maxWidth: '1000px',
-                mx: 'auto',
-                lineHeight: 1.1,
-                px: { xs: 2, md: 0 }
-              }}
-            >
-              Wedding Planning shouldn't feel like a <Box component="span" sx={{ color: '#DE3F5E' }}>Second Job</Box>
-            </Typography>
-
-            <Box
-              ref={painPointsRef}
-              sx={{
-                display: { xs: 'flex', sm: 'grid' },
-                overflowX: { xs: 'auto', md: 'visible' },
-                scrollSnapType: { xs: 'x mandatory', md: 'none' },
-                gap: { xs: 2, lg: 6 },
-                perspective: '1200px',
-                pb: { xs: 2, md: 0 },
-                px: { xs: 2, md: 0 },
-                '&::-webkit-scrollbar': { display: 'none' },
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-                gridTemplateColumns: { sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
-                maxWidth: { xs: '280px', md: '100%' },
-                mx: { xs: 'auto', md: 0 },
-              }}
-            >
-              {painPoints.map((point, idx) => (
-                <motion.div
-                  key={idx}
-                  variants={{
-                    hidden: { opacity: 0, y: 20, rotate: point.rotation },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      rotate: point.rotation,
-                      transition: { delay: idx * 0.1 }
-                    }
-                  }}
-                  whileHover={{
-                    rotate: 0,
-                    scale: 1.02,
-                    zIndex: 10,
-                    transition: { type: 'spring', stiffness: 200 }
-                  }}
-                  style={{
-                    scrollSnapAlign: 'center',
-                    flex: '0 0 auto',
-                    width: '100%'
-                  }}
-                >
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: { xs: 2.5, md: 6 },
-                      height: '100%',
-                      aspectRatio: { xs: '1/1', md: 'auto' },
-                      minHeight: { xs: 'auto', md: '350px' },
-                      bgcolor: point.color,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      gap: { xs: 1.25, md: 3 },
-                      position: 'relative',
-                      // Post-it Fold Effect: The polygon clips the top-right corner
-                      clipPath: 'polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%)',
-                      // Use filter: drop-shadow instead of boxShadow to follow the clipped shape
-                      filter: 'drop-shadow(8px 8px 0px rgba(0,0,0,0.02))',
-                      transition: 'filter 0.3s ease',
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        width: '30px',
-                        height: '30px',
-                        bgcolor: alpha('#000', 0.1),
-                        clipPath: 'polygon(0 0, 100% 100%, 0 100%)',
-                        zIndex: 2,
-                      }
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: { xs: 0.75, md: 2 } }}>
-                      {typeof point.icon === 'string' ? (
-                        <Typography sx={{ fontSize: { xs: '2.25rem', md: '4rem' } }}>
-                          {point.icon}
-                        </Typography>
-                      ) : (
-                        <Box sx={{ '& svg': { fontSize: { xs: '2.25rem', md: '4rem' } } }}>
-                          {point.icon}
-                        </Box>
-                      )}
-                    </Box>
-
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 800,
-                        color: '#1a1a1a',
-                        fontFamily: 'var(--font-instrument-serif)',
-                        fontStyle: 'italic',
-                        lineHeight: 1.1,
-                        fontSize: { xs: '1rem', md: '2rem' },
-                        textAlign: 'center'
-                      }}
-                    >
-                      {point.title}
-                    </Typography>
-
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: '#4a4a4a',
-                        lineHeight: 1.35,
-                        fontWeight: 450,
-                        fontSize: { xs: '0.85rem', md: '1.15rem' },
-                        textAlign: 'center'
-                      }}
-                    >
-                      {point.description}
-                    </Typography>
-
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: -15,
-                        right: -15,
-                        fontSize: { xs: '6rem', md: '10rem' },
-                        opacity: 0.02,
-                        fontWeight: 900,
-                        userSelect: 'none',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      {idx + 1}
-                    </Box>
-                  </Paper>
-                </motion.div>
-              ))}
-            </Box>
-
-            {/* Breadcrumbs for Pain Points (Mobile Only) */}
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                justifyContent: 'center',
-                mt: 2,
-                pb: 2
-              }}
-            >
-              {painPoints.map((_, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: painPointsIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
-                    transition: 'all 0.3s ease',
-                  }}
-                />
-              ))}
-            </Stack>
-          </motion.div>
-        </Container>
-
-        {/* --- SOLUTION & FEATURES (Bento Grid) --- */}
-        <Box sx={{ bgcolor: alpha('#DE3F5E', 0.03), py: { xs: 3, md: 14 } }}>
-          <Container maxWidth="xl">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-            >
-              <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 4, md: 10 }, alignItems: 'center' }}>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
+            <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+              <Stack spacing={4} sx={{ alignItems: 'center', textAlign: 'center' }}>
                 <Typography
-                  variant="overline"
-                  sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.65rem', md: '0.75rem' } }}
-                >
-                  THE SOLUTION
-                </Typography>
-                <Typography
-                  variant="h2"
+                  variant="h1"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
                     fontStyle: 'italic',
-                    fontSize: { xs: '2rem', md: '3.5rem', lg: '4.5rem' },
-                    color: '#1a1a1a',
+                    fontSize: { xs: '3.2rem', md: '4.5rem', lg: '6rem' },
                     lineHeight: 1.1,
+                    color: '#1a1a1a',
+                    maxWidth: '1000px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  Everything You Need, <br />
-                  <Box component="span" sx={{ color: '#DE3F5E' }}>All in One Place.</Box>
+                  <Box>Destination Wedding,</Box>
+                  <Box
+                    component="span"
+                    sx={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        width: '100%',
+                        height: '3px',
+                        bgcolor: '#DE3F5E',
+                        transform: 'scaleX(0)',
+                        transformOrigin: 'left',
+                        animation: 'strikethrough 0.8s ease-out 1s forwards',
+                      },
+                      '@keyframes strikethrough': {
+                        '0%': { transform: 'scaleX(0)' },
+                        '100%': { transform: 'scaleX(1)' },
+                      },
+                    }}
+                  >
+                    Minus the Chaos
+                  </Box>
+                </Typography>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontSize: { xs: '1.35rem', md: '1.75rem' },
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    maxWidth: '800px',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Wedding Planner in your Pocket
                 </Typography>
                 <Typography
                   variant="body1"
                   sx={{
-                    maxWidth: '900px',
+                    fontSize: { xs: '1rem', md: '1.25rem' },
                     color: '#4a4a4a',
-                    fontSize: { xs: '1rem', md: '1.35rem' },
-                    lineHeight: 1.6,
-                    mt: 3,
-                    opacity: 0.9,
+                    maxWidth: '800px',
+                    lineHeight: 1.5,
+                    fontWeight: 400,
                     px: { xs: 2, md: 0 }
                   }}
                 >
-                  Ditch the messy spreadsheets and fragmented group chats. Phera brings your
-                  entire wedding coordination into one powerful, integrated system.
+                  RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge
+                  <br />
+                  all on one platform.
                 </Typography>
-              </Stack>
 
-              <Box
-                ref={solutionRef}
-                sx={{
-                  display: { xs: 'flex', md: 'grid' },
-                  overflowX: { xs: 'auto', md: 'visible' },
-                  scrollSnapType: { xs: 'x mandatory', md: 'none' },
-                  gap: 3,
-                  pb: { xs: 2, md: 0 },
-                  px: { xs: 2, md: 0 },
-                  mx: { xs: -2, md: 0 },
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none',
-                  gridTemplateColumns: { md: 'repeat(3, 1fr)' },
-                  gridAutoRows: 'minmax(250px, auto)',
-                }}
-              >
-                {/* 1. Smart RSVP & Multi-Event (Large Feature) */}
-                <Box sx={{
-                  gridColumn: { md: '1 / span 2' },
-                  gridRow: { md: '1 / span 2' },
-                  flex: { xs: '0 0 85%', md: 'auto' },
-                  scrollSnapAlign: 'center'
-                }}>
-                  <FeatureCard
-                    title="Unified Guest Management"
-                    description="From Smart RSVPs that track plus-ones and dietary needs to native support for Haldi, Mehendi, and Sangeet. Everything is synced instantly."
-                    icon={keyFeatures[0].icon}
-                    badge="FREE"
-                    height="100%"
-                    gradient="linear-gradient(135deg, #fff 0%, #fff 100%)"
-                    large
-                  />
-                </Box>
-
-                {/* 2. WhatsApp Concierge (Featured Pro) */}
-                <Box sx={{
-                  gridColumn: { md: '3 / span 1' },
-                  gridRow: { md: '1 / span 2' },
-                  flex: { xs: '0 0 85%', md: 'auto' },
-                  scrollSnapAlign: 'center'
-                }}>
-                  <FeatureCard
-                    title="WhatsApp Concierge"
-                    description="Our AI agent answers guest questions 24/7. Broadcast updates instantly to everyone's phone."
-                    icon={<StreamlineIcon name="whatsapp" sx={{ fontSize: '4rem', color: '#25D366' }} />}
-                    badge="PRO"
-                    accentColor="#075E54"
-                    height="100%"
-                    isDark
-                  />
-                </Box>
-
-                {/* 3. Travel & Logistics */}
-                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard
-                    title="Travel Coordination"
-                    description="Collect flight details and organize airport pickups seamlessly."
-                    icon={keyFeatures[2].icon}
-                    badge="PRO"
-                  />
-                </Box>
-
-                {/* 4. PIN Privacy */}
-                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard
-                    title="VIP Privacy"
-                    description="PIN-based access codes for family, individuals, and VIPs."
-                    icon={keyFeatures[3].icon}
-                    badge="FREE"
-                  />
-                </Box>
-
-                {/* 5. Gift Registry */}
-                <Box sx={{ flex: { xs: '0 0 85%', md: 'auto' }, scrollSnapAlign: 'center' }}>
-                  <FeatureCard
-                    title="Modern Registry"
-                    description="Secure cash gifts and honeymoon funds via Stripe."
-                    icon={keyFeatures[5].icon}
-                    badge="PRO"
-                  />
-                </Box>
-              </Box>
-
-              {/* Breadcrumbs for Solution Items (Mobile Only) */}
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{
-                  display: { xs: 'flex', md: 'none' },
-                  justifyContent: 'center',
-                  mt: 2,
-                  pb: 2
-                }}
-              >
-                {[0, 1, 2, 3, 4].map((idx) => (
-                  <Box
-                    key={idx}
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ pt: 2 }}
+                >
+                  <Button
+                    component={Link}
+                    href="/auth/signup"
+                    variant="contained"
+                    size="large"
                     sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: solutionIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
-                      transition: 'all 0.3s ease',
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      px: { xs: 4, md: 6 },
+                      py: { xs: 1.2, md: 2 },
+                      borderRadius: '32px',
+                      fontSize: { xs: '1rem', md: '1.25rem' },
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      '&:hover': { bgcolor: '#C8365A' },
                     }}
-                  />
-                ))}
+                  >
+                    Start Planning Free
+                  </Button>
+                  <Button
+                    component={Link}
+                    href="/sim-kv"
+                    variant="outlined"
+                    size="large"
+                    sx={{
+                      borderColor: '#DE3F5E',
+                      color: '#DE3F5E',
+                      px: { xs: 4, md: 6 },
+                      py: { xs: 1.2, md: 2 },
+                      borderRadius: '32px',
+                      fontSize: { xs: '1rem', md: '1.25rem' },
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      '&:hover': {
+                        borderColor: '#C8365A',
+                        bgcolor: alpha('#DE3F5E', 0.05),
+                      },
+                    }}
+                  >
+                    See How It Works
+                  </Button>
+                </Stack>
               </Stack>
             </motion.div>
           </Container>
         </Box>
+
+        {/* --- FEATURES SECTION --- */}
+        <FeaturesSection items={features} />
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
         <Box sx={{ py: { xs: 4, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>

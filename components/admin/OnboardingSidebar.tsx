@@ -64,7 +64,7 @@ const groups: SidebarGroup[] = [
     label: 'Wedding Website',
     icon: <Language />,
     items: [
-      { id: 'build-ai', label: 'Build w/ AI', path: '/build-ai', isPro: true },
+      { id: 'build-ai', label: 'Build with AI', path: '/build-ai', isPro: true },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },

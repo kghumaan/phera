@@ -31,6 +31,9 @@ body {
   min-height: 100vh;
   min-height: 100svh;
   /* Small viewport height accounts for mobile browser chrome (address bar, nav buttons) */
+}
+
+html {
   overflow-x: hidden;
 }
 
@@ -45,8 +48,6 @@ body {
 /* Mobile-specific optimizations */
 @media (max-width: 768px) {
   body {
-    /* Prevent horizontal scrolling on mobile */
-    overflow-x: hidden;
     /* Ensure smooth scrolling */
     -webkit-overflow-scrolling: touch;
   }
