@@ -829,7 +829,7 @@ export class WeddingService {
     if (currentUser && currentUser.id === wedding.created_by) {
       teamMembers.push({
         id: 'owner',
-        user_id: wedding.created_by,
+        user_id: wedding.created_by || '',
         email: currentUser.email || 'Owner',
         role: 'owner',
         created_at: '',
@@ -839,7 +839,7 @@ export class WeddingService {
       // For non-owners viewing the team, show the owner without email
       teamMembers.push({
         id: 'owner',
-        user_id: wedding.created_by,
+        user_id: wedding.created_by || '',
         email: 'Wedding Owner',
         role: 'owner',
         created_at: '',
@@ -993,7 +993,7 @@ export class WeddingService {
       const { data: existingAdmin } = await this.supabase
         .from('wedding_admins')
         .select('id')
-        .eq('wedding_id', invite.wedding_id)
+        .eq('wedding_id', invite.wedding_id as string)
         .eq('user_id', userId)
         .single();
 
@@ -1002,7 +1002,7 @@ export class WeddingService {
         const { error: insertError } = await this.supabase
           .from('wedding_admins')
           .insert([{
-            wedding_id: invite.wedding_id,
+            wedding_id: invite.wedding_id as string,
             user_id: userId,
             role: invite.role,
           }]);
@@ -1178,13 +1178,13 @@ export class WeddingService {
 
         const createdDay = await this.createSchedule(newDay);
         if (createdDay) {
-          scheduleIdMapping[day.id] = createdDay.id;
+          scheduleIdMapping[day.id as string] = createdDay.id;
         }
       }
 
       // Create schedule items for the new wedding
       for (const item of (templateItems || [])) {
-        const newScheduleId = scheduleIdMapping[item.schedule_id];
+        const newScheduleId = scheduleIdMapping[item.schedule_id as string];
         if (!newScheduleId) continue;
 
         // Check if this item corresponds to a major event by matching names
@@ -1260,6 +1260,40 @@ export class WeddingService {
       return false;
     }
     return true;
+  }
+
+  // Clear all content for a wedding (for testing)
+  async clearWeddingContent(weddingId: string): Promise<boolean> {
+    try {
+      console.log('🗑️ WeddingService: Clearing content for wedding:', weddingId);
+
+      // Delete in correct order to respect dependencies if any
+      await this.supabase.from('wedding_faqs').delete().eq('wedding_id', weddingId);
+      await this.supabase.from('wedding_registry').delete().eq('wedding_id', weddingId);
+      await this.supabase.from('wedding_travel_cards').delete().eq('wedding_id', weddingId);
+      await this.supabase.from('wedding_events').delete().eq('wedding_id', weddingId);
+
+      // Schedule items usually cascade from schedule, but let's be safe
+      const { data: schedules } = await this.supabase.from('wedding_schedule').select('id').eq('wedding_id', weddingId);
+      if (schedules && schedules.length > 0) {
+        const scheduleIds = schedules.map(s => s.id);
+        await this.supabase.from('schedule_items').delete().in('schedule_id', scheduleIds);
+      }
+      await this.supabase.from('wedding_schedule').delete().eq('wedding_id', weddingId);
+
+      // Reset wedding-specific fields if needed (optional, user didn't ask for this specifically but it's good practice)
+      // await this.supabase.from('weddings').update({ 
+      //   welcome_text: null, 
+      //   primary_color: '#DE3F5E',
+      //   rsvp_deadline: null 
+      // }).eq('id', weddingId);
+
+      console.log('✅ WeddingService: Content cleared successfully');
+      return true;
+    } catch (err) {
+      console.error('❌ WeddingService: Error clearing content:', err);
+      return false;
+    }
   }
 }
 

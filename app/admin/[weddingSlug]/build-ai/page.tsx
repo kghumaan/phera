@@ -24,6 +24,8 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { toast } from 'sonner';
+import ChatEventForm from '@/components/admin/build-ai/ChatEventForm';
+import ChatDateForm from '@/components/admin/build-ai/ChatDateForm';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +33,7 @@ interface Message {
   id: string;
   role: 'ai' | 'user';
   text: string;
+  component?: React.ReactNode;
 }
 
 type QuestionId =
@@ -43,11 +46,8 @@ type QuestionId =
   | 'primary_color'
   | 'rsvp_deadline'
   | 'schedule_intro'
-  | 'day1_name'
   | 'day1_events'
-  | 'day2_name'
   | 'day2_events'
-  | 'day3_name'
   | 'day3_events'
   | 'faq_intro'
   | 'faq_item'
@@ -164,6 +164,16 @@ function getQuestionText(question: Question, data: Record<string, any>): string 
   return question.question;
 }
 
+function parseBoldText(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 // ─── Question Flow Definition ─────────────────────────────────────────────────
 
 const QUESTIONS: Record<QuestionId, Question> = {
@@ -193,16 +203,13 @@ const QUESTIONS: Record<QuestionId, Question> = {
   },
   wedding_date: {
     id: 'wedding_date',
-    question: "When is your wedding? You can say something like 'December 14, 2025' or '14/12/2025'.",
-    field: ['wedding_date', 'wedding_date_display'],
+    question: "When is the big day? 📅",
+    field: ['wedding_date'],
     parser: (input: string) => {
       const date = parseFlexibleDate(input);
-      return {
-        wedding_date: date ? date.toISOString() : null,
-        wedding_date_display: date ? formatDateDisplay(date) : input,
-      };
+      return { wedding_date: date ? date.toISOString() : null, wedding_date_display: input };
     },
-    nextQuestion: 'wedding_date_end',
+    nextQuestion: 'venue_name', // Skipping end_date for now in chat flow for simplicity
   },
   wedding_date_end: {
     id: 'wedding_date_end',
@@ -268,7 +275,7 @@ const QUESTIONS: Record<QuestionId, Question> = {
   },
   rsvp_deadline: {
     id: 'rsvp_deadline',
-    question: "Would you like to set an RSVP deadline? (e.g., 'November 1, 2025' or 'no')",
+    question: "Would you like to set an RSVP deadline? ⏰",
     field: ['rsvp_deadline'],
     parser: (input: string) => {
       const lower = input.toLowerCase().trim();
@@ -282,69 +289,35 @@ const QUESTIONS: Record<QuestionId, Question> = {
   // ── Schedule ──────────────────────────────────────────────────────────────
   schedule_intro: {
     id: 'schedule_intro',
-    question: "Now let's build your event schedule! How many days is your celebration? (e.g., '1', '2', '3')",
+    question: "Now let's build your event schedule! **How many days is your celebration?** (e.g., '1', '2', '3')",
     field: ['_schedule_days_count'],
     parser: (input: string) => {
       const num = parseInt(input.replace(/\D/g, ''), 10);
       return { _schedule_days_count: isNaN(num) || num < 1 ? 1 : Math.min(num, 3) };
     },
-    nextQuestion: 'day1_name',
-  },
-  day1_name: {
-    id: 'day1_name',
-    question: "What's the name of Day 1? (e.g., 'Mehendi Night', 'Sangeet', 'Wedding Day')",
-    field: ['_day1_name'],
-    parser: (input: string) => ({ _day1_name: input.trim() }),
     nextQuestion: 'day1_events',
   },
   day1_events: {
     id: 'day1_events',
-    question: (data) => `What events are on "${data._day1_name || 'Day 1'}"?\nFormat: time - event (e.g., '6pm - Mehendi Ceremony | 8pm - Dinner')\nSay 'skip' to add events later.`,
-    field: ['_day1_events'],
-    parser: (input: string) => {
-      const lower = input.toLowerCase().trim();
-      if (['skip', 'no', 'none', 'later'].includes(lower)) return { _day1_events: [] };
-      return { _day1_events: parseEvents(input) };
-    },
-    nextQuestion: 'day2_name',
-  },
-  day2_name: {
-    id: 'day2_name',
-    question: "What's the name of Day 2? (e.g., 'Sangeet Night', 'Wedding Ceremony')",
-    field: ['_day2_name'],
-    parser: (input: string) => ({ _day2_name: input.trim() }),
+    question: (data) => `Let's list the events for **Day 1**.`,
+    field: ['_day1_events'], // Placeholder, actual data saved via form
+    parser: (input: string) => ({}), // Input handled by form component
     nextQuestion: 'day2_events',
-    skipIf: (data) => (data._schedule_days_count || 1) < 2,
+    skipIf: (data) => (data._schedule_days_count || 1) < 1,
   },
   day2_events: {
     id: 'day2_events',
-    question: (data) => `What events are on "${data._day2_name || 'Day 2'}"?\nFormat: time - event (e.g., '7pm - Sangeet | 9pm - After-party')\nSay 'skip' to add later.`,
+    question: (data) => `Now for **Day 2**. Let's add events.`,
     field: ['_day2_events'],
-    parser: (input: string) => {
-      const lower = input.toLowerCase().trim();
-      if (['skip', 'no', 'none', 'later'].includes(lower)) return { _day2_events: [] };
-      return { _day2_events: parseEvents(input) };
-    },
-    nextQuestion: 'day3_name',
-    skipIf: (data) => (data._schedule_days_count || 1) < 2,
-  },
-  day3_name: {
-    id: 'day3_name',
-    question: "What's the name of Day 3?",
-    field: ['_day3_name'],
-    parser: (input: string) => ({ _day3_name: input.trim() }),
+    parser: (input: string) => ({}),
     nextQuestion: 'day3_events',
-    skipIf: (data) => (data._schedule_days_count || 1) < 3,
+    skipIf: (data) => (data._schedule_days_count || 1) < 2,
   },
   day3_events: {
     id: 'day3_events',
-    question: (data) => `What events are on "${data._day3_name || 'Day 3'}"?\nFormat: time - event. Say 'skip' to add later.`,
+    question: (data) => `And finally, **Day 3** events.`,
     field: ['_day3_events'],
-    parser: (input: string) => {
-      const lower = input.toLowerCase().trim();
-      if (['skip', 'no', 'none', 'later'].includes(lower)) return { _day3_events: [] };
-      return { _day3_events: parseEvents(input) };
-    },
+    parser: (input: string) => ({}),
     nextQuestion: 'faq_intro',
     skipIf: (data) => (data._schedule_days_count || 1) < 3,
   },
@@ -426,26 +399,11 @@ function generateAIResponse(question: Question, parsedData: Record<string, any>,
     rsvp_deadline: (data) => data.rsvp_deadline ? "RSVP deadline set! Guests will see this on their invitation. ⏰" : "No deadline — guests can RSVP anytime! 👍",
     schedule_intro: (data) => {
       const count = data._schedule_days_count || 1;
-      return `A ${count}-day celebration — let's plan each day! 📅`;
+      return `A **${count}-day celebration** — let's plan each day! 📅`;
     },
-    day1_name: (data) => `"${data._day1_name}" — love it! Now let's add the events.`,
-    day1_events: (data) => {
-      const count = (data._day1_events || []).length;
-      const dayName = collectedData._day1_name || 'Day 1';
-      return count > 0 ? `${count} event${count > 1 ? 's' : ''} added for ${dayName}! ✅` : "No problem — you can add events later in the Schedule section. 📅";
-    },
-    day2_name: (data) => `"${data._day2_name}" — got it!`,
-    day2_events: (data) => {
-      const count = (data._day2_events || []).length;
-      const dayName = collectedData._day2_name || 'Day 2';
-      return count > 0 ? `${count} event${count > 1 ? 's' : ''} added for ${dayName}! ✅` : "You can add events later in the Schedule section. 📅";
-    },
-    day3_name: (data) => `"${data._day3_name}" — got it!`,
-    day3_events: (data) => {
-      const count = (data._day3_events || []).length;
-      const dayName = collectedData._day3_name || 'Day 3';
-      return count > 0 ? `${count} event${count > 1 ? 's' : ''} added for ${dayName}! ✅` : "You can add events later in the Schedule section. 📅";
-    },
+    day1_events: () => "Use the form below to add events for **Day 1**.",
+    day2_events: () => "Use the form below to add events for **Day 2**.",
+    day3_events: () => "Use the form below to add events for **Day 3**.",
     faq_intro: (data) => data._add_faqs ? "Let's add those FAQs!" : "No problem — you can always add FAQs later.",
     faq_item: (data) => {
       const count = (data._faq_items || []).length;
@@ -498,8 +456,13 @@ function Bubble({ message }: { message: Message }) {
             color: '#1a1a1a',
             whiteSpace: 'pre-line',
           }}>
-            {message.text}
+            {parseBoldText(message.text)}
           </Typography>
+          {message.component && (
+            <Box sx={{ mt: 2, width: '100%' }}>
+              {message.component}
+            </Box>
+          )}
         </Box>
       </Box>
     );
@@ -514,7 +477,7 @@ function Bubble({ message }: { message: Message }) {
           px: 2.5,
           py: 1.5,
           borderRadius: '16px 16px 4px 16px',
-          bgcolor: '#f5f5f5', // Light grey for user bubble to differentiate
+          bgcolor: '#eeeeee', // Darker grey for user bubble
           color: '#1a1a1a',
           whiteSpace: 'pre-line',
         }}
@@ -643,8 +606,43 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
 
         const initialMessages: Message[] = [
           { id: 'init-1', role: 'ai', text: "Hey! 👋 I'm Phera, your AI wedding website builder." },
-          { id: 'init-2', role: 'ai', text: getQuestionText(QUESTIONS[startQuestion], existingData) },
         ];
+
+        const startMsg: Message = {
+          id: 'init-2',
+          role: 'ai',
+          text: getQuestionText(QUESTIONS[startQuestion], existingData)
+        };
+
+        // Inject Form if needed for initial question
+        if (['day1_events', 'day2_events', 'day3_events'].includes(startQuestion)) {
+          startMsg.component = (
+            <ChatEventForm
+              onSave={(eventData) => handleEventFormSave(eventData, startQuestion)}
+              onCancel={() => handleEventFormCancel(startQuestion)}
+            />
+          );
+        } else if (startQuestion === 'wedding_date') {
+          startMsg.component = (
+            <ChatDateForm
+              label="Wedding Date"
+              onSave={(date, formatted) => handleDateFormSave(date, formatted, 'wedding_date')}
+              initialDate={existingData.wedding_date ? new Date(existingData.wedding_date) : null}
+            />
+          );
+        } else if (startQuestion === 'rsvp_deadline') {
+          startMsg.component = (
+            <ChatDateForm
+              label="RSVP Deadline"
+              onSave={(date, formatted) => handleDateFormSave(date, formatted, 'rsvp_deadline')}
+              onSkip={() => handleDateFormSkip('rsvp_deadline')}
+              skipLabel="No Deadline"
+              minDate={new Date()}
+            />
+          );
+        }
+
+        initialMessages.push(startMsg);
         setMessages(initialMessages);
       } catch (err) {
         console.error('Error loading wedding:', err);
@@ -693,76 +691,95 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
       : new Date();
 
     try {
-      if (questionId === 'day1_name') {
-        const date = new Date(weddingStartDate);
-        const day = await weddingService.createSchedule({
-          wedding_id: weddingId,
-          day_name: parsedData._day1_name,
-          date: date.toISOString().split('T')[0],
-          order_index: 0,
-        });
-        if (day) setScheduleDayIds(prev => ({ ...prev, day1: day.id }));
-      }
-
-      else if (questionId === 'day1_events' && (parsedData._day1_events || []).length > 0) {
-        // scheduleDayIds is captured at call time; use ref pattern via callback
-        setScheduleDayIds(prev => {
-          const dayId = prev.day1;
-          if (dayId) {
-            (parsedData._day1_events as any[]).forEach((event: any, i: number) => {
-              weddingService.createScheduleItem({ schedule_id: dayId, name: event.name, time: event.time, is_major_event: false, order_index: i });
-            });
+      if (questionId === 'day1_events') {
+        // Ensure Day 1 exists
+        let dayId = scheduleDayIds.day1;
+        if (!dayId) {
+          const date = new Date(weddingStartDate);
+          const day = await weddingService.createSchedule({
+            wedding_id: weddingId,
+            day_name: 'Day 1',
+            date: date.toISOString().split('T')[0],
+            order_index: 0,
+          });
+          if (day) {
+            dayId = day.id;
+            setScheduleDayIds(prev => ({ ...prev, day1: day.id }));
           }
-          return prev;
-        });
+        }
+
+        if (dayId && parsedData) {
+          // parsedData is the event object directly from the form
+          await weddingService.createScheduleItem({
+            schedule_id: dayId,
+            name: parsedData.name,
+            time: parsedData.time,
+            description: parsedData.description,
+            location: parsedData.location,
+            is_major_event: parsedData.type === 'main',
+            order_index: Math.floor(Date.now() / 1000), // Fit in 32-bit integer
+          });
+        }
       }
 
-      else if (questionId === 'day2_name') {
-        const date = new Date(weddingStartDate);
-        date.setDate(date.getDate() + 1);
-        const day = await weddingService.createSchedule({
-          wedding_id: weddingId,
-          day_name: parsedData._day2_name,
-          date: date.toISOString().split('T')[0],
-          order_index: 1,
-        });
-        if (day) setScheduleDayIds(prev => ({ ...prev, day2: day.id }));
-      }
-
-      else if (questionId === 'day2_events' && (parsedData._day2_events || []).length > 0) {
-        setScheduleDayIds(prev => {
-          const dayId = prev.day2;
-          if (dayId) {
-            (parsedData._day2_events as any[]).forEach((event: any, i: number) => {
-              weddingService.createScheduleItem({ schedule_id: dayId, name: event.name, time: event.time, is_major_event: false, order_index: i });
-            });
+      else if (questionId === 'day2_events') {
+        let dayId = scheduleDayIds.day2;
+        if (!dayId) {
+          const date = new Date(weddingStartDate);
+          date.setDate(date.getDate() + 1);
+          const day = await weddingService.createSchedule({
+            wedding_id: weddingId,
+            day_name: 'Day 2',
+            date: date.toISOString().split('T')[0],
+            order_index: 1,
+          });
+          if (day) {
+            dayId = day.id;
+            setScheduleDayIds(prev => ({ ...prev, day2: day.id }));
           }
-          return prev;
-        });
+        }
+
+        if (dayId && parsedData) {
+          await weddingService.createScheduleItem({
+            schedule_id: dayId,
+            name: parsedData.name,
+            time: parsedData.time,
+            description: parsedData.description,
+            location: parsedData.location,
+            is_major_event: parsedData.type === 'main',
+            order_index: Math.floor(Date.now() / 1000),
+          });
+        }
       }
 
-      else if (questionId === 'day3_name') {
-        const date = new Date(weddingStartDate);
-        date.setDate(date.getDate() + 2);
-        const day = await weddingService.createSchedule({
-          wedding_id: weddingId,
-          day_name: parsedData._day3_name,
-          date: date.toISOString().split('T')[0],
-          order_index: 2,
-        });
-        if (day) setScheduleDayIds(prev => ({ ...prev, day3: day.id }));
-      }
-
-      else if (questionId === 'day3_events' && (parsedData._day3_events || []).length > 0) {
-        setScheduleDayIds(prev => {
-          const dayId = prev.day3;
-          if (dayId) {
-            (parsedData._day3_events as any[]).forEach((event: any, i: number) => {
-              weddingService.createScheduleItem({ schedule_id: dayId, name: event.name, time: event.time, is_major_event: false, order_index: i });
-            });
+      else if (questionId === 'day3_events') {
+        let dayId = scheduleDayIds.day3;
+        if (!dayId) {
+          const date = new Date(weddingStartDate);
+          date.setDate(date.getDate() + 2);
+          const day = await weddingService.createSchedule({
+            wedding_id: weddingId,
+            day_name: 'Day 3',
+            date: date.toISOString().split('T')[0],
+            order_index: 2,
+          });
+          if (day) {
+            dayId = day.id;
+            setScheduleDayIds(prev => ({ ...prev, day3: day.id }));
           }
-          return prev;
-        });
+        }
+
+        if (dayId && parsedData) {
+          await weddingService.createScheduleItem({
+            schedule_id: dayId,
+            name: parsedData.name,
+            time: parsedData.time,
+            description: parsedData.description,
+            location: parsedData.location,
+            is_major_event: parsedData.type === 'main',
+            order_index: Math.floor(Date.now() / 1000),
+          });
+        }
       }
 
       else if (questionId === 'faq_item' && (parsedData._faq_items || []).length > 0) {
@@ -804,15 +821,15 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     } catch (err) {
       console.error(`Error saving special data for ${questionId}:`, err);
     }
-  }, [weddingId]);
+  }, [weddingId, scheduleDayIds]);
 
-  const handleSend = useCallback(async () => {
-    const text = input.trim();
-    if (!text || currentQuestionId === 'complete') return;
+  const handleSend = useCallback(async (overrideText?: string) => {
+    const text = (overrideText || input).trim();
+    if (!text) return;
 
     const userMsg: Message = { id: `u-${Date.now()}`, role: 'user', text };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    if (!overrideText) setInput('');
     setIsTyping(true);
 
     const currentQuestion = QUESTIONS[currentQuestionId];
@@ -851,11 +868,135 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
       if (ackResponse) newMessages.push({ id: `ai-ack-${Date.now()}`, role: 'ai', text: ackResponse });
 
       if (nextQuestionId !== 'complete') {
-        newMessages.push({
+        const nextQ = QUESTIONS[nextQuestionId];
+        const nextMsg: Message = {
           id: `ai-q-${Date.now()}`,
           role: 'ai',
-          text: getQuestionText(QUESTIONS[nextQuestionId], newCollectedData),
-        });
+          text: getQuestionText(nextQ, newCollectedData),
+        };
+
+        // Inject Form if needed
+        // Inject Form if needed
+        if (['day1_events', 'day2_events', 'day3_events'].includes(nextQuestionId)) {
+          nextMsg.component = (
+            <ChatEventForm
+              onSave={(eventData) => handleEventFormSave(eventData, nextQuestionId)}
+              onCancel={() => handleEventFormCancel(nextQuestionId)}
+            />
+          );
+        } else if (nextQuestionId === 'wedding_date') {
+          nextMsg.component = (
+            <ChatDateForm
+              label="Wedding Date"
+              onSave={(date, formatted) => handleDateFormSave(date, formatted, 'wedding_date')}
+              initialDate={newCollectedData.wedding_date ? new Date(newCollectedData.wedding_date) : null}
+            />
+          );
+        } else if (nextQuestionId === 'rsvp_deadline') {
+          nextMsg.component = (
+            <ChatDateForm
+              label="RSVP Deadline"
+              onSave={(date, formatted) => handleDateFormSave(date, formatted, 'rsvp_deadline')}
+              onSkip={() => handleDateFormSkip('rsvp_deadline')}
+              skipLabel="No Deadline"
+              minDate={new Date()}
+            />
+          );
+        } else if (nextQuestionId === 'wedding_date_end') {
+          nextMsg.component = (
+            <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%', maxWidth: 480 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                sx={{
+                  borderRadius: '16px',
+                  borderColor: '#DE3F5E',
+                  color: '#DE3F5E',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  py: 1,
+                  px: 2,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                  border: '2px solid',
+                  '&:hover': { border: '2px solid', borderColor: '#c73552', bgcolor: 'rgba(222, 63, 94, 0.04)' }
+                }}
+                onClick={() => handleSend('Just 1 day')}
+              >
+                Just 1 day
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  borderRadius: '16px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  py: 1,
+                  px: 2,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                  '&:hover': { bgcolor: '#c73552' }
+                }}
+                onClick={() => handleSend('Multi-day')}
+              >
+                Multi-day
+              </Button>
+            </Box>
+          );
+        } else if (nextQuestionId === 'faq_intro' || nextQuestionId === 'registry_intro') {
+          nextMsg.component = (
+            <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%', maxWidth: 480 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                sx={{
+                  borderRadius: '16px',
+                  borderColor: '#DE3F5E',
+                  color: '#DE3F5E',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  py: 1,
+                  px: 2,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                  border: '2px solid',
+                  '&:hover': { border: '2px solid', borderColor: '#c73552', bgcolor: 'rgba(222, 63, 94, 0.04)' }
+                }}
+                onClick={() => handleSend('skip')}
+              >
+                Skip
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  borderRadius: '16px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  py: 1,
+                  px: 2,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                  '&:hover': { bgcolor: '#c73552' }
+                }}
+                onClick={() => handleSend('Yes')}
+              >
+                Yes
+              </Button>
+            </Box>
+          );
+        }
+
+        newMessages.push(nextMsg);
       } else {
         newMessages.push({ id: `ai-complete-${Date.now()}`, role: 'ai', text: QUESTIONS.complete.question as string });
       }
@@ -864,6 +1005,218 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
       setMessages(prev => [...prev, ...newMessages]);
     }, 800 + Math.random() * 400);
   }, [input, currentQuestionId, collectedData, saveToDatabase, saveSpecialData]);
+
+  // Form Handlers
+  const handleEventFormSave = async (eventData: any, qId: QuestionId) => {
+    // 1. Show user added event message
+    setMessages(prev => [...prev, {
+      id: `user-evt-${Date.now()}`,
+      role: 'user',
+      text: `Added **${eventData.name}** at ${eventData.time}`
+    }]);
+
+    // 2. Save data
+    await saveSpecialData(qId, eventData, collectedData);
+
+    // 3. Ask if done
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        id: `ai-evt-confirm-${Date.now()}`,
+        role: 'ai',
+        text: "Great! Added. Add another event for this day, or say **'done'** to move on.",
+        component: (
+          <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%', maxWidth: 480 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              fullWidth
+              sx={{
+                borderRadius: '16px',
+                borderColor: '#DE3F5E',
+                color: '#DE3F5E',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                py: 1,
+                px: 2,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                border: '2px solid',
+                '&:hover': {
+                  border: '2px solid',
+                  borderColor: '#c73552',
+                  bgcolor: 'rgba(222, 63, 94, 0.04)'
+                }
+              }}
+              onClick={() => {
+                // Re-show form
+                setMessages(curr => [...curr, {
+                  id: `ai-q-more-${Date.now()}`,
+                  role: 'ai',
+                  text: "Okay, add another one.",
+                  component: <ChatEventForm
+                    onSave={(data) => handleEventFormSave(data, qId)}
+                    onCancel={() => handleEventFormCancel(qId)}
+                  />
+                }]);
+              }}
+            >
+              Add Another
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              fullWidth
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '16px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                py: 1,
+                px: 2,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                '&:hover': { bgcolor: '#c73552' }
+              }}
+              onClick={() => handleEventFormCancel(qId)}
+            >
+              Done with this Day
+            </Button>
+          </Box>
+        )
+      }]);
+    }, 600);
+  };
+
+  const handleEventFormCancel = (currentQId: QuestionId) => {
+    // Move to next question
+    const currentQ = QUESTIONS[currentQId];
+    let nextQId: QuestionId = currentQ.nextQuestion as QuestionId; // Simple cast for now
+
+    // Check skip logic
+    let safetyCount = 0;
+    while (QUESTIONS[nextQId].skipIf?.(collectedData) && nextQId !== 'complete' && safetyCount < 10) {
+      const tempQuestion = QUESTIONS[nextQId];
+      nextQId = typeof tempQuestion.nextQuestion === 'function'
+        ? tempQuestion.nextQuestion({})
+        : tempQuestion.nextQuestion as QuestionId;
+      safetyCount++;
+    }
+
+    setCurrentQuestionId(nextQId);
+
+    setMessages(prev => [...prev, {
+      id: `user-done-${Date.now()}`,
+      role: 'user',
+      text: 'Done'
+    }]);
+
+    setTimeout(() => {
+      const nextQ = QUESTIONS[nextQId];
+      const nextMsg: Message = {
+        id: `ai-q-${Date.now()}`,
+        role: 'ai',
+        text: getQuestionText(nextQ, collectedData),
+      };
+      // Check if next is also a form (e.g. Day 2)
+      if (['day1_events', 'day2_events', 'day3_events'].includes(nextQId)) {
+        nextMsg.component = (
+          <ChatEventForm
+            onSave={(eventData) => handleEventFormSave(eventData, nextQId)}
+            onCancel={() => handleEventFormCancel(nextQId)}
+          />
+        );
+      }
+      setMessages(prev => [...prev, nextMsg]);
+    }, 600);
+  };
+
+  const handleDateFormSave = (date: Date | null, formatted: string, qId: QuestionId) => {
+    // 1. Show user message
+    setMessages(prev => [...prev, {
+      id: `user-date-${Date.now()}`,
+      role: 'user',
+      text: formatted
+    }]);
+
+    // 2. Update data
+    const update = qId === 'wedding_date'
+      ? { wedding_date: date?.toISOString(), wedding_date_display: formatted }
+      : { rsvp_deadline: formatted }; // formatted is YYYY-MM-DD, fine for string field
+
+    const newCollectedData = { ...collectedData, ...update };
+    setCollectedData(newCollectedData);
+
+    // Save to DB
+    saveToDatabase(update);
+
+    // 3. Move to next
+    setTimeout(() => {
+      const currentQ = QUESTIONS[qId];
+      // Type assertion safe here as these questions have string nextQuestion
+      const nextQId = currentQ.nextQuestion as QuestionId;
+      setCurrentQuestionId(nextQId);
+
+      const nextQ = QUESTIONS[nextQId];
+      const nextMsg: Message = {
+        id: `ai-q-${Date.now()}`,
+        role: 'ai',
+        text: getQuestionText(nextQ, newCollectedData),
+      };
+
+      // Check for forms in next question
+      if (['day1_events', 'day2_events', 'day3_events'].includes(nextQId)) {
+        nextMsg.component = (
+          <ChatEventForm
+            onSave={(eventData) => handleEventFormSave(eventData, nextQId)}
+            onCancel={() => handleEventFormCancel(nextQId)}
+          />
+        );
+      }
+
+      setMessages(prev => [...prev, nextMsg]);
+    }, 600);
+  };
+
+  const handleDateFormSkip = (qId: QuestionId) => {
+    setMessages(prev => [...prev, {
+      id: `user-skip-${Date.now()}`,
+      role: 'user',
+      text: "No deadline"
+    }]);
+
+    const update = { rsvp_deadline: '' };
+    const newCollectedData = { ...collectedData, ...update };
+    setCollectedData(newCollectedData);
+    saveToDatabase(update);
+
+    setTimeout(() => {
+      const currentQ = QUESTIONS[qId];
+      const nextQId = currentQ.nextQuestion as QuestionId;
+      setCurrentQuestionId(nextQId);
+
+      const nextQ = QUESTIONS[nextQId];
+      const nextMsg: Message = {
+        id: `ai-q-${Date.now()}`,
+        role: 'ai',
+        text: getQuestionText(nextQ, newCollectedData),
+      };
+
+      // Inject form if needed (unlikely for schedule_intro but good practice)
+      if (['day1_events', 'day2_events', 'day3_events'].includes(nextQId)) {
+        nextMsg.component = (
+          <ChatEventForm
+            onSave={(eventData) => handleEventFormSave(eventData, nextQId)}
+            onCancel={() => handleEventFormCancel(nextQId)}
+          />
+        );
+      }
+
+      setMessages(prev => [...prev, nextMsg]);
+    }, 600);
+  };
 
   // ── Non-pro teaser ──────────────────────────────────────────────────────────
 
@@ -884,7 +1237,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
               variant="contained"
               startIcon={<AutoAwesome />}
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}
+              sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}
             >
               Upgrade to Pro
             </Button>
@@ -916,7 +1269,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                   {mockMessages.map(m => <Bubble key={m.id} message={m} />)}
                 </Box>
                 <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', gap: 1 }}>
-                  <Box sx={{ flex: 1, bgcolor: '#F8F8F8', borderRadius: 2, px: 2, py: 1 }}>
+                  <Box sx={{ flex: 1, bgcolor: '#F8F8F8', borderRadius: '16px', px: 2, py: 1 }}>
                     <Typography sx={{ fontSize: '0.875rem', color: '#bbb' }}>Type your answer...</Typography>
                   </Box>
                   <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#DE3F5E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -934,7 +1287,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                 variant="contained"
                 startIcon={<AutoAwesome />}
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
+                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
               >
                 Unlock AI Builder
               </Button>
@@ -982,6 +1335,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
         </Box>
 
         {/* Input area */}
+        {/* Input area */}
         <Box
           sx={{
             px: 3, py: 2.5,
@@ -993,61 +1347,52 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
             bgcolor: 'white',
           }}
         >
-          {currentQuestionId === 'complete' ? (
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
-              <Check sx={{ color: '#10B981', fontSize: 24 }} />
-              <Typography sx={{ color: '#10B981', fontWeight: 600 }}>
-                Website setup complete! Explore the other sections to add more details.
-              </Typography>
-            </Box>
-          ) : (
-            <>
-              <TextField
-                fullWidth
-                multiline
-                maxRows={4}
-                placeholder="Type your answer..."
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    bgcolor: 'white',
-                    '& fieldset': { border: '2px solid', borderColor: alpha('#000', 0.15) },
-                    '&:hover fieldset': { borderColor: alpha('#000', 0.25) },
-                    '&.Mui-focused fieldset': { border: '2px solid #DE3F5E' },
-                  },
-                  '& .MuiOutlinedInput-input': { py: 1.5, px: 2 },
-                }}
-              />
-              <IconButton
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                sx={{
-                  width: 48, height: 48,
-                  bgcolor: input.trim() ? '#DE3F5E' : alpha('#000', 0.06),
-                  color: input.trim() ? 'white' : '#bbb',
-                  borderRadius: '12px',
-                  flexShrink: 0,
-                  transition: 'all 0.15s',
-                  border: '2px solid',
-                  borderColor: input.trim() ? '#DE3F5E' : alpha('#000', 0.15),
-                  '&:hover': { bgcolor: input.trim() ? '#c73552' : alpha('#000', 0.08) },
-                  '&.Mui-disabled': { bgcolor: alpha('#000', 0.04), color: '#ccc', borderColor: alpha('#000', 0.1) },
-                }}
-              >
-                <ArrowUpward sx={{ fontSize: 22 }} />
-              </IconButton>
-            </>
-          )}
+          <TextField
+            fullWidth
+            multiline
+            maxRows={4}
+            placeholder={['day1_events', 'day2_events', 'day3_events', 'wedding_date', 'rsvp_deadline'].includes(currentQuestionId) ? "Use the form above..." : "Type your answer..."}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            disabled={['day1_events', 'day2_events', 'day3_events', 'wedding_date', 'rsvp_deadline'].includes(currentQuestionId)}
+            variant="outlined"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                fontSize: '1rem',
+                bgcolor: 'white',
+                '& fieldset': { border: '2px solid', borderColor: alpha('#000', 0.15) },
+                '&:hover fieldset': { borderColor: alpha('#000', 0.25) },
+                '&.Mui-focused fieldset': { border: '2px solid #DE3F5E' },
+                '&.Mui-disabled': { bgcolor: alpha('#000', 0.02) },
+              },
+              '& .MuiOutlinedInput-input': { py: 1.5, px: 2 },
+            }}
+          />
+          <IconButton
+            onClick={() => handleSend()}
+            disabled={!input.trim() || isTyping || ['day1_events', 'day2_events', 'day3_events', 'wedding_date', 'rsvp_deadline'].includes(currentQuestionId)}
+            sx={{
+              width: 48, height: 48,
+              bgcolor: input.trim() ? '#DE3F5E' : alpha('#000', 0.06),
+              color: input.trim() ? 'white' : '#bbb',
+              borderRadius: '12px',
+              flexShrink: 0,
+              transition: 'all 0.15s',
+              border: '2px solid',
+              borderColor: input.trim() ? '#DE3F5E' : alpha('#000', 0.15),
+              '&:hover': { bgcolor: input.trim() ? '#c73552' : alpha('#000', 0.08) },
+              '&.Mui-disabled': { bgcolor: alpha('#000', 0.04), color: '#ccc', borderColor: alpha('#000', 0.1) },
+            }}
+          >
+            <ArrowUpward sx={{ fontSize: 22 }} />
+          </IconButton>
         </Box>
       </Box>
     </Box>

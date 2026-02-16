@@ -34,6 +34,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { usePlan } from '@/lib/contexts/PlanContext';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import { toast } from 'sonner';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
@@ -68,6 +70,21 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         handleMenuClose();
         await signOut();
         router.push('/');
+    };
+
+    const handleClearData = async () => {
+        if (!wedding?.id) return;
+        const confirmed = window.confirm('Are you sure you want to clear all events, schedule, FAQ and registry data for this wedding? This cannot be undone.');
+        if (!confirmed) return;
+
+        const success = await weddingService.clearWeddingContent(wedding.id);
+        if (success) {
+            toast.success('Test data cleared successfully');
+            // Hard refresh to clear state
+            window.location.reload();
+        } else {
+            toast.error('Failed to clear test data');
+        }
     };
 
     return (
@@ -274,28 +291,51 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         <Divider sx={{ my: 1, opacity: 0.6 }} />
 
                         {/* Test Mode Toggle - For Development */}
-                        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Box>
-                                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
-                                    Test Mode
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
-                                    Toggle plan for testing
-                                </Typography>
+                        <Box sx={{ px: 2, py: 1.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                <Box>
+                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                        Test Mode
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                        Toggle plan for testing
+                                    </Typography>
+                                </Box>
+                                <Switch
+                                    checked={isPro}
+                                    onChange={togglePlan}
+                                    size="small"
+                                    sx={{
+                                        '& .MuiSwitch-switchBase.Mui-checked': {
+                                            color: '#DE3F5E',
+                                        },
+                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                            backgroundColor: '#DE3F5E',
+                                        },
+                                    }}
+                                />
                             </Box>
-                            <Switch
-                                checked={isPro}
-                                onChange={togglePlan}
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                color="error"
                                 size="small"
+                                onClick={handleClearData}
                                 sx={{
-                                    '& .MuiSwitch-switchBase.Mui-checked': {
-                                        color: '#DE3F5E',
-                                    },
-                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                        backgroundColor: '#DE3F5E',
-                                    },
+                                    mt: 1,
+                                    borderRadius: '100px',
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '0.8rem',
+                                    borderWidth: '2px',
+                                    '&:hover': {
+                                        borderWidth: '2px',
+                                        bgcolor: alpha(theme.palette.error.main, 0.05)
+                                    }
                                 }}
-                            />
+                            >
+                                Clear Local Data
+                            </Button>
                         </Box>
 
                         <Divider sx={{ my: 1, opacity: 0.6 }} />
