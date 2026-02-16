@@ -133,9 +133,9 @@ export default function AdminPage() {
           router.replace(`/admin/${weddingData.slug}/overview`);
           return;
         } else {
-          // No wedding found - redirect to new wedding page
-          console.log('[Admin] No wedding found, redirecting to new wedding...');
-          router.replace('/admin/new/overview');
+          // No wedding found - redirect to onboarding to create one
+          console.log('[Admin] No wedding found, redirecting to onboarding...');
+          router.replace('/onboarding');
           return;
         }
       } catch (err) {

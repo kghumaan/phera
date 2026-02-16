@@ -70,4 +70,18 @@ CREATE INDEX idx_guests_auth_method ON guests(auth_method);
 CREATE INDEX idx_rsvps_wedding_id ON rsvps(wedding_id);
 CREATE INDEX idx_rsvps_guest_event ON rsvps(guest_id, event_id);
 CREATE INDEX idx_comments_wedding_id ON comments(wedding_id);
-CREATE INDEX idx_comments_created_at ON comments(created_at DESC); 
+CREATE INDEX idx_comments_created_at ON comments(created_at DESC);
+
+-- NOTE: The following table already exists in the Supabase database.
+-- This is here for documentation purposes only.
+-- User Settings table for onboarding and preferences
+-- CREATE TABLE user_settings (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+--   account_type TEXT DEFAULT 'couple', -- 'couple' or 'planner'
+--   enabled_features TEXT[] DEFAULT '{}', -- array of feature IDs
+--   subscription_tier TEXT DEFAULT 'basic' CHECK (subscription_tier IN ('basic', 'pro')),
+--   onboarding_completed BOOLEAN DEFAULT false,
+--   created_at TIMESTAMPTZ DEFAULT NOW(),
+--   updated_at TIMESTAMPTZ DEFAULT NOW()
+-- ); 

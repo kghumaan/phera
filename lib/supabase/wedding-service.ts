@@ -107,10 +107,23 @@ export class WeddingService {
   }
 
   async getUserWeddings(userId: string): Promise<Wedding[]> {
+    // First get wedding IDs from wedding_admins
+    const { data: adminEntries } = await this.supabase
+      .from('wedding_admins')
+      .select('wedding_id')
+      .eq('user_id', userId);
+
+    const adminWeddingIds = (adminEntries || []).map((e: any) => e.wedding_id);
+
+    // Fetch weddings created by user OR where they are an admin
     const { data, error } = await this.supabase
       .from('weddings')
       .select('*')
-      .or(`created_by.eq.${userId},id.in.(SELECT wedding_id FROM wedding_admins WHERE user_id = '${userId}')`)
+      .or(
+        adminWeddingIds.length > 0
+          ? `created_by.eq.${userId},id.in.(${adminWeddingIds.join(',')})`
+          : `created_by.eq.${userId}`
+      )
       .order('created_at', { ascending: false });
 
     if (error) {

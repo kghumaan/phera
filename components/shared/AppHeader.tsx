@@ -58,6 +58,7 @@ export default function AppHeader({
     try {
       await signOut();
       setUserMenuAnchor(null);
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {

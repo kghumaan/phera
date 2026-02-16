@@ -10,7 +10,7 @@
  * - See EMAIL_VALIDATION_FIX.md for detailed setup instructions
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -36,8 +36,30 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   const isAnyLoading = emailLoading || googleLoading;
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if user already has a wedding
+        const weddings = await weddingService.getUserWeddings(user.id);
+        if (weddings && weddings.length > 0) {
+          // User has a wedding, redirect to admin dashboard
+          router.push(`/admin/${weddings[0].slug}/overview`);
+        } else {
+          // User doesn't have a wedding, redirect to onboarding
+          router.push('/onboarding');
+        }
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +120,25 @@ export default function SignupPage() {
       setGoogleLoading(false);
     }
   };
+
+  // Show loading state while checking auth
+  if (checkingAuth) {
+    return (
+      <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 4,
+          }}
+        >
+          <CircularProgress sx={{ color: '#DE3F5E' }} />
+        </Box>
+      </OptimizedBackground>
+    );
+  }
 
   return (
     <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">

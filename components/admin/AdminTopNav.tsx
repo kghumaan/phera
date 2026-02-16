@@ -67,7 +67,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const handleSignOut = async () => {
         handleMenuClose();
         await signOut();
-        router.push('/login');
+        router.push('/');
     };
 
     return (

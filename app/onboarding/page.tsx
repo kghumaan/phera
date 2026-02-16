@@ -42,7 +42,6 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout
 } from '@stripe/react-stripe-js';
-import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -134,13 +133,13 @@ const inputStyles = {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const [authUser, setAuthUser] = useState<any>(null);
   const [step, setStep] = useState<OnboardingStep>(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [plan, setPlan] = useState<'free' | 'pro'>('free');
+  const [plan, setPlan] = useState<'basic' | 'pro'>('basic');
   const [coupleName, setCoupleName] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
@@ -166,28 +165,17 @@ export default function OnboardingPage() {
 
   // Restore settings or redirect if no user is found
   useEffect(() => {
-    let redirectTimer: NodeJS.Timeout;
-
-    if (!isAuthLoading && user) {
-      console.log('[Onboarding DEBUG] Auth state resolved: User logged in', { userId: user.id, email: user.email });
-      restoreSettings(user.id);
-    } else if (!isAuthLoading && !user) {
-      console.warn('[Onboarding DEBUG] Auth state resolved: No user found. Waiting for possible delayed session...');
-      redirectTimer = setTimeout(() => {
-        if (!user && !isAuthLoading) {
-          console.error('[Onboarding DEBUG] Still no user session after 2s delay. Redirecting to signup.');
-          router.push('/auth/signup');
-        } else if (user) {
-          console.log('[Onboarding DEBUG] User session appeared after delay. Proceeding with restoreSettings.', (user as any).id);
-          restoreSettings((user as any).id);
-        }
-      }, 2000);
-    }
-
-    return () => {
-      if (redirectTimer) clearTimeout(redirectTimer);
+    const checkSession = async () => {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser();
+      if (sessionUser) {
+        setAuthUser(sessionUser);
+        restoreSettings(sessionUser.id);
+      } else {
+        router.push('/auth/signup');
+      }
     };
-  }, [user, isAuthLoading, router]);
+    checkSession();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const restoreSettings = async (userId: string) => {
     try {
@@ -208,10 +196,23 @@ export default function OnboardingPage() {
 
       console.log('[Onboarding DEBUG] restoreSettings: Received data:', settings);
 
-      if (settings?.onboarding_completed && settings.subscription_tier === 'free') {
-        console.log('[Onboarding DEBUG] Onboarding already completed for FREE plan. Redirecting to admin.');
-        router.push('/admin');
-        return;
+      if (settings?.onboarding_completed && settings.subscription_tier === 'basic') {
+        // Verify user actually has a wedding before skipping onboarding
+        const { data: wedding } = await supabase
+          .from('weddings')
+          .select('slug')
+          .eq('created_by', userId)
+          .limit(1)
+          .single();
+
+        if (wedding?.slug) {
+          console.log('[Onboarding DEBUG] Onboarding completed and wedding exists. Redirecting to admin.');
+          router.push(`/admin/${wedding.slug}/overview`);
+          return;
+        }
+
+        // onboarding_completed = true but no wedding — data integrity gap, continue onboarding
+        console.log('[Onboarding DEBUG] onboarding_completed but no wedding found. Continuing onboarding to create wedding.');
       }
 
       if (settings) {
@@ -222,7 +223,7 @@ export default function OnboardingPage() {
         });
         if (settings.account_type) setRole(settings.account_type as UserRole);
         if (settings.enabled_features) setSelectedFeatures(settings.enabled_features);
-        if (settings.subscription_tier) setPlan(settings.subscription_tier as 'free' | 'pro');
+        if (settings.subscription_tier) setPlan(settings.subscription_tier as 'basic' | 'pro');
       } else {
         console.log('[Onboarding DEBUG] restoreSettings: No existing settings found, starting fresh.');
       }
@@ -287,7 +288,7 @@ export default function OnboardingPage() {
   const finalizeOnboarding = async (data: {
     userId: string,
     role: UserRole,
-    plan: 'free' | 'pro',
+    plan: 'basic' | 'pro',
     coupleName: string,
     partnerName?: string | null,
     weddingDate?: string | null,
@@ -410,7 +411,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (hasProFeatures) setPlan('pro');
-    else setPlan('free');
+    else setPlan('basic');
   }, [selectedFeatures, hasProFeatures]);
 
   const handleNext = () => {
@@ -433,8 +434,8 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = async () => {
-    console.log('[Onboarding DEBUG] handleSubmit invoked', { userId: user?.id, plan, role, coupleName, partnerName, weddingDate, selectedFeatures });
-    if (!user) {
+    console.log('[Onboarding DEBUG] handleSubmit invoked', { userId: authUser?.id, plan, role, coupleName, partnerName, weddingDate, selectedFeatures });
+    if (!authUser) {
       console.error('[Onboarding DEBUG] handleSubmit: No user session found');
       return;
     }
@@ -448,9 +449,9 @@ export default function OnboardingPage() {
     setSubmitting(true);
     try {
       await finalizeOnboarding({
-        userId: user.id,
+        userId: authUser.id,
         role: role as UserRole,
-        plan: 'free',
+        plan: 'basic',
         coupleName,
         partnerName,
         weddingDate: dateTbd ? null : weddingDate,
@@ -468,7 +469,7 @@ export default function OnboardingPage() {
     }
   };
 
-  if (loading || isAuthLoading) {
+  if (loading) {
     return (
       <Box sx={{
         display: 'flex',
@@ -804,19 +805,30 @@ export default function OnboardingPage() {
                               <Stack direction="row" spacing={1} alignItems="center" onClick={() => setVenueTbd(!venueTbd)} sx={{ cursor: 'pointer' }}>
                                 <Box
                                   sx={{
-                                    width: 20,
-                                    height: 20,
+                                    width: 18,
+                                    height: 18,
                                     borderRadius: '4px',
-                                    border: '1px solid',
-                                    borderColor: venueTbd ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
+                                    border: '2px solid',
+                                    borderColor: venueTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    bgcolor: venueTbd ? '#DE3F5E' : 'transparent',
+                                    bgcolor: 'transparent',
                                     transition: 'all 0.2s'
                                   }}
                                 >
-                                  {venueTbd && <CheckCircle sx={{ fontSize: 16, color: 'white' }} />}
+                                  {venueTbd && (
+                                    <Box
+                                      component="svg"
+                                      viewBox="0 0 24 24"
+                                      sx={{ width: 14, height: 14 }}
+                                    >
+                                      <path
+                                        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                                        fill="#1a1a1a"
+                                      />
+                                    </Box>
+                                  )}
                                 </Box>
                                 <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
                                   We haven't picked a venue (yet)
@@ -887,19 +899,30 @@ export default function OnboardingPage() {
                               <Stack direction="row" spacing={1} alignItems="center" onClick={() => setDateTbd(!dateTbd)} sx={{ cursor: 'pointer', mt: 1.5 }}>
                                 <Box
                                   sx={{
-                                    width: 20,
-                                    height: 20,
+                                    width: 18,
+                                    height: 18,
                                     borderRadius: '4px',
-                                    border: '1px solid',
-                                    borderColor: dateTbd ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
+                                    border: '2px solid',
+                                    borderColor: dateTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    bgcolor: dateTbd ? '#DE3F5E' : 'transparent',
+                                    bgcolor: 'transparent',
                                     transition: 'all 0.2s'
                                   }}
                                 >
-                                  {dateTbd && <CheckCircle sx={{ fontSize: 16, color: 'white' }} />}
+                                  {dateTbd && (
+                                    <Box
+                                      component="svg"
+                                      viewBox="0 0 24 24"
+                                      sx={{ width: 14, height: 14 }}
+                                    >
+                                      <path
+                                        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                                        fill="#1a1a1a"
+                                      />
+                                    </Box>
+                                  )}
                                 </Box>
                                 <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
                                   We haven't picked our dates (yet)

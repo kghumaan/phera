@@ -40,7 +40,7 @@ interface SidebarItem {
   isPro?: boolean;
 }
 
-interface SidebarGroup {
+export interface SidebarGroup {
   id: string;
   label: string;
   icon: React.ReactNode;
@@ -49,7 +49,7 @@ interface SidebarGroup {
   isPro?: boolean;
 }
 
-const groups: SidebarGroup[] = [
+export const groups: SidebarGroup[] = [
   {
     id: 'overview',
     label: 'Overview',

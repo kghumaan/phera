@@ -24,9 +24,12 @@ function LoginContent() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const isAnyLoading = emailLoading || googleLoading;
 
   useEffect(() => {
     // Check if user is already logged in
@@ -44,7 +47,7 @@ function LoginContent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setEmailLoading(true);
     setError(null);
     setMessage(null);
 
@@ -96,12 +99,12 @@ function LoginContent() {
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setGoogleLoading(true);
     setError(null);
 
     try {
@@ -118,11 +121,11 @@ function LoginContent() {
 
       if (error) {
         setError(error.message);
-        setLoading(false);
+        setGoogleLoading(false);
       }
     } catch (err) {
       setError('Failed to sign in with Google');
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -194,7 +197,7 @@ function LoginContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
@@ -247,7 +250,7 @@ function LoginContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
@@ -311,7 +314,7 @@ function LoginContent() {
                     variant="contained"
                     size="large"
                     fullWidth
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     sx={{
                       bgcolor: '#DE3F5E',
                       color: 'white',
@@ -326,11 +329,13 @@ function LoginContent() {
                         boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                       },
                       '&:disabled': {
-                        bgcolor: alpha('#DE3F5E', 0.5),
+                        bgcolor: emailLoading ? '#DE3F5E' : alpha('#DE3F5E', 0.4),
+                        color: 'white',
+                        opacity: emailLoading ? 0.8 : 0.6,
                       },
                     }}
                   >
-                    {loading ? 'Signing in...' : 'Sign In / Sign Up'}
+                    {emailLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Sign In / Sign Up'}
                   </Button>
                 </Stack>
               </form>
@@ -346,9 +351,9 @@ function LoginContent() {
                 size="large"
                 fullWidth
                 onClick={handleGoogleLogin}
-                disabled={loading}
+                disabled={isAnyLoading}
                 startIcon={
-                  loading ? (
+                  googleLoading ? (
                     <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -374,15 +379,15 @@ function LoginContent() {
                     borderWidth: '1.5px',
                   },
                   '&:disabled': {
-                    borderColor: '#1a1a1a',
-                    color: '#1a1a1a',
+                    borderColor: googleLoading ? '#1a1a1a' : alpha('#1a1a1a', 0.3),
+                    color: googleLoading ? '#1a1a1a' : alpha('#1a1a1a', 0.3),
                     bgcolor: 'white',
-                    opacity: 1,
+                    opacity: googleLoading ? 0.8 : 0.6,
                     borderWidth: '1.5px',
                   },
                 }}
               >
-                {loading ? 'Connecting to Google...' : 'Continue with Google'}
+                {googleLoading ? 'Connecting...' : 'Continue with Google'}
               </Button>
             </Stack>
           </Paper>
