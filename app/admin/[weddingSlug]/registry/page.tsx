@@ -17,10 +17,12 @@ import {
   Snackbar,
   Grid,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save, ChevronRight } from '@mui/icons-material';
+import React, { useState, useEffect, use } from 'react';
+import { Add, Edit, Delete, Save, ChevronRight, CardGiftcard, LockOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import UpgradeModal from '@/components/admin/UpgradeModal';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 
@@ -28,6 +30,8 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function RegistryPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isPro } = usePlan();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [registry, setRegistry] = useState<any[]>([]);
@@ -143,7 +147,145 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     );
   }
 
+  // Pro gate - show upgrade UI for non-Pro users
+  if (!isPro) {
+    return (
+      <Box sx={{ maxWidth: 800 }}>
+        <Stack spacing={3}>
+          {/* Header row */}
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Registry Integration
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Accept contributions seamlessly with integrated payment links
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<CardGiftcard />}
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                px: 3,
+                py: 1.25,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.9rem',
+                flexShrink: 0,
+                '&:hover': { bgcolor: '#c73552' },
+              }}
+            >
+              Upgrade to Pro
+            </Button>
+          </Box>
 
+          {/* Description */}
+          <Box sx={{ maxWidth: 640 }}>
+            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+              Stop juggling multiple registry platforms. <strong>Registry Integration</strong> lets you add payment links from Stripe, Zola, Amazon, or any other registry — all displayed beautifully on your wedding website.
+            </Typography>
+            <Stack spacing={0.6} sx={{ pl: 0 }}>
+              {([
+                <><strong>Link to any registry</strong> — Stripe payment links, Zola, Amazon, Honeyfund, and more</>,
+                <><strong>Cash fund support</strong> for honeymoon contributions or home down payments</>,
+                <><strong>Beautiful display</strong> with custom emojis and names for each registry</>,
+                <><strong>Secure payments</strong> handled entirely by your chosen platform</>,
+              ] as React.ReactNode[]).map((content, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* Blurred mock view */}
+          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+            {/* Mock UI */}
+            <Box sx={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
+              <Stack spacing={2}>
+                {[
+                  { emoji: '💝', name: 'Honeymoon Fund', url: 'https://stripe.com/pay/honeymoon-fund' },
+                  { emoji: '🏠', name: 'New Home Contribution', url: 'https://zola.com/registry/couple-name' },
+                  { emoji: '✈️', name: 'Adventure Fund', url: 'https://honeyfund.com/couple' },
+                ].map((item, idx) => (
+                  <Paper key={idx} sx={{
+                    p: 3,
+                    borderRadius: '16px',
+                    bgcolor: '#fafafa',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Typography variant="h4">{item.emoji}</Typography>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{item.name}</Typography>
+                        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{item.url}</Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Stack>
+            </Box>
+
+            {/* Lock overlay */}
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                bgcolor: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(2px)',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  bgcolor: 'white',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<CardGiftcard />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  px: 3.5,
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
+                  '&:hover': { bgcolor: '#c73552' },
+                }}
+              >
+                Unlock Registry Integration
+              </Button>
+            </Box>
+          </Box>
+        </Stack>
+
+        <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 800 }}>

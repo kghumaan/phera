@@ -70,7 +70,7 @@ export const groups: SidebarGroup[] = [
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'registry', label: 'Registry Integration', path: '/registry', isPro: true },
       { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
       { id: 'publish', label: 'Publish Website', path: '/publish' },

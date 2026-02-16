@@ -43,11 +43,16 @@ import {
   Send,
   Dashboard,
   KeyboardArrowDown,
+  AutoAwesome,
+  WhatsApp,
+  Email,
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import LoginModal from '@/components/auth/LoginModal';
+import UpgradeModal from '@/components/admin/UpgradeModal';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 // --- Data & Content ---
 
@@ -56,58 +61,54 @@ const features = [
   {
     id: 'website-creation',
     title: 'Wedding Website',
-    problem: 'Building a wedding website takes hours of design work and coding knowledge.',
-    solution: 'Beautiful, mobile-friendly websites with AI-powered setup in under 60 seconds.',
+    problem: 'Every wedding website template out there looks the same... and none of them get Indian weddings!',
+    solution: 'Beautiful custom website built to feel like an Indian wedding.',
     imagePlaceholder: 'Demo: Beautiful wedding website preview on multiple devices',
   },
   {
     id: 'rsvp-management',
     title: 'RSVP Collection',
-    problem: 'Texts, calls, spreadsheets—tracking who\'s coming becomes a full-time job.',
-    solution: 'Digital RSVPs with dietary restrictions, plus-ones, and real-time tracking.',
+    problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Did anyone actually reply to that WhatsApp message??',
+    solution: 'Simplified RSVP process to collect all the details, viewable in one dashboard.',
     imagePlaceholder: 'Demo: RSVP dashboard showing responses with dietary info',
   },
   {
     id: 'multi-event',
     title: 'Multi-Event Support',
-    problem: 'Managing Haldi, Mehendi, Sangeet, and reception with different guest lists is chaos.',
-    solution: 'Native support for all your events with PIN-based access control per guest.',
+    problem: 'Haldi on Thursday, Ceremony on Friday, Sangeet on Saturday... and my international guests are clueless...',
+    solution: 'Display multi-day events with explanations for rituals, traditions, and dress codes—especially for international guests.',
     imagePlaceholder: 'Demo: Event pages for Sangeet, Mehendi, and Reception',
+  },
+  {
+    id: 'guest-access',
+    title: 'Guest Access Control',
+    problem: 'This auntie isn\'t invited to my cocktail party…',
+    solution: 'Create different PINs so guests only see the events they\'re invited to. Even control who gets a plus one!',
+    imagePlaceholder: 'Demo: PIN-based access control for different guest groups',
   },
   {
     id: 'travel-coordination',
     title: 'Travel Coordination',
-    problem: 'Collecting flight details and organizing 100+ airport pickups manually.',
-    solution: 'Guests submit flights, sign up for shuttles, and get pickup confirmations automatically.',
+    problem: 'When\'s this friend arriving? When\'s the vendor landing? How many shuttles do I book??',
+    solution: 'View everyone\'s arrival times and let guests sign up for shuttles—all in one place.',
     imagePlaceholder: 'Demo: Travel dashboard with flight arrivals and shuttle schedule',
+    isPro: true,
   },
   {
     id: 'guest-communication',
     title: 'Guest Communication',
-    problem: 'Five WhatsApp groups, buried messages, and the same questions asked 50 times.',
-    solution: '24/7 AI concierge answers guest questions instantly. Broadcast updates with one click.',
+    problem: 'I have 30 unread messages from guests about this or that… I don\'t have time for this!',
+    solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
     imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
+    isPro: true,
   },
   {
     id: 'task-management',
     title: 'Task Management',
-    problem: 'To-do lists scattered across apps, sticky notes, and your memory.',
-    solution: 'Just ramble into your phone—AI converts voice notes into organized tasks.',
+    problem: 'I need to talk to the decorator, send the DJ my song list, buy welcome gifts… I can\'t keep track!',
+    solution: 'Ramble to our voice agent anytime and we\'ll organize your to-do items so you don\'t forget anything.',
     imagePlaceholder: 'Demo: Voice recording being converted to organized task list',
-  },
-  {
-    id: 'gift-registry',
-    title: 'Gift Registry',
-    problem: 'Multiple registry platforms, managing cash funds, tracking contributions.',
-    solution: 'Cash funds and honeymoon contributions in one place with secure Stripe payments.',
-    imagePlaceholder: 'Demo: Gift registry page with contribution options',
-  },
-  {
-    id: 'local-guide',
-    title: 'Local Area Guide',
-    problem: 'Guests constantly asking for restaurant and activity recommendations.',
-    solution: 'Curated guide with restaurants, attractions, and things to do near your venue.',
-    imagePlaceholder: 'Demo: Interactive map with recommended spots near venue',
+    isPro: true,
   },
 ];
 
@@ -120,11 +121,11 @@ const pricingTiers = [
       'Custom wedding website',
       'Unlimited RSVP collection',
       'Guest list management',
-      'Multi-event pages (Haldi, Mehendi, etc.)',
+      'Multi-event pages',
       'PIN-based guest access',
       'Event schedule & details',
       'FAQ management',
-      'Shopping & local area guide',
+      'Shopping guide',
     ],
     buttonText: 'Start Free',
     highlight: false,
@@ -134,12 +135,13 @@ const pricingTiers = [
     price: '$199',
     description: 'Advanced features for destination weddings',
     features: [
-      'Everything in Free, plus:',
+      'Everything in Basic, plus:',
       'Build website with AI',
       'Voice-to-task manager',
       'WhatsApp Concierge Agent',
       'Travel & shuttle coordination',
-      'Registry with Stripe payments',
+      'Registry integration',
+      'Premium themes & backgrounds',
       'Broadcast messages to guests',
       'Priority support',
     ],
@@ -194,6 +196,7 @@ interface FeatureItem {
   problem: string;
   solution: string;
   imagePlaceholder: string;
+  isPro?: boolean;
 }
 
 const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
@@ -289,17 +292,46 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       }}
                     >
                       {/* Title - Not bold, left aligned always */}
-                      <Typography
-                        sx={{
-                          color: '#1a1a1a',
-                          fontSize: isActive ? { md: '2rem', lg: '2.5rem' } : { md: '1.15rem', lg: '1.35rem' },
-                          transition: 'all 0.3s ease',
-                          fontWeight: 500,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {item.title}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Typography
+                          sx={{
+                            color: '#1a1a1a',
+                            fontSize: isActive ? { md: '2rem', lg: '2.5rem' } : { md: '1.15rem', lg: '1.35rem' },
+                            transition: 'all 0.3s ease',
+                            fontWeight: 500,
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {item.title}
+                        </Typography>
+                        {item.isPro && (
+                          <Box
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.4,
+                              bgcolor: alpha('#DE3F5E', 0.08),
+                              color: '#DE3F5E',
+                              px: isActive ? 1.2 : 0.8,
+                              py: isActive ? 0.4 : 0.2,
+                              borderRadius: '20px',
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            <AutoAwesome sx={{ fontSize: isActive ? '0.9rem' : '0.7rem', transition: 'all 0.3s ease' }} />
+                            <Typography
+                              sx={{
+                                fontSize: isActive ? '0.75rem' : '0.6rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.5px',
+                                transition: 'all 0.3s ease',
+                              }}
+                            >
+                              PRO
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
 
                       {/* Problem & Solution - Only show when active */}
                       <motion.div
@@ -496,17 +528,43 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   </Typography>
                 </Box>
 
-                <Typography
-                  sx={{
-                    color: '#1a1a1a',
-                    fontSize: '1.35rem',
-                    fontWeight: 400,
-                    lineHeight: 1.3,
-                    mb: 2,
-                  }}
-                >
-                  {item.title}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <Typography
+                    sx={{
+                      color: '#1a1a1a',
+                      fontSize: '1.35rem',
+                      fontWeight: 400,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  {item.isPro && (
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.3,
+                        bgcolor: alpha('#DE3F5E', 0.08),
+                        color: '#DE3F5E',
+                        px: 0.8,
+                        py: 0.25,
+                        borderRadius: '12px',
+                      }}
+                    >
+                      <AutoAwesome sx={{ fontSize: '0.65rem' }} />
+                      <Typography
+                        sx={{
+                          fontSize: '0.6rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        PRO
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
 
                 <Typography
                   sx={{
@@ -543,12 +601,27 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function LandingPage() {
-  const theme = useTheme();
+  const { user } = useAuth();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [pendingProAction, setPendingProAction] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [roadmapIndex, setRoadmapIndex] = useState(0);
 
   const roadmapRef = useRef<HTMLDivElement>(null);
+
+  const handleProAction = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (user) {
+      setUpgradeModalOpen(true);
+    } else {
+      setPendingProAction(true);
+      setLoginDialogOpen(true);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
@@ -656,9 +729,9 @@ export default function LandingPage() {
                     px: { xs: 2, md: 0 }
                   }}
                 >
-                  RSVP tracking, WhatsApp broadcasting, travel logistics, guest concierge
+                  Custom Indian wedding websites, smart RSVPs, 24/7 WhatsApp concierge
                   <br />
-                  all on one platform.
+                  —all in one place.
                 </Typography>
 
                 <Stack
@@ -685,7 +758,7 @@ export default function LandingPage() {
                   >
                     Start Planning Free
                   </Button>
-                  <Button
+                  {/* <Button
                     component={Link}
                     href="/sim-kv"
                     variant="outlined"
@@ -706,7 +779,7 @@ export default function LandingPage() {
                     }}
                   >
                     See How It Works
-                  </Button>
+                  </Button> */}
                 </Stack>
               </Stack>
             </motion.div>
@@ -739,25 +812,27 @@ export default function LandingPage() {
                   variants={fadeIn}
                 >
                   <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
-                    <StreamlineIcon name="whatsapp" sx={{ fontSize: { xs: '3rem', md: '7rem' }, color: '#25D366' }} />
                     <Typography
                       variant="h2"
                       sx={{
                         fontFamily: 'var(--font-instrument-serif)',
                         fontStyle: 'italic',
-                        fontSize: { xs: '2rem', md: '4rem', lg: '5rem' },
+                        // fontSize: { xs: '2rem', md: '3rem', lg: '4rem' },
                         lineHeight: 1.1,
+                        color: 'white'
                       }}
                     >
                       Your 24/7 Wedding Concierge
                     </Typography>
+                    <StreamlineIcon name="whatsapp" sx={{ width: { xs: 40, md: 50 }, height: { xs: 40, md: 50 }, color: 'white' }} />
+
                   </Stack>
-                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4 }}>
+                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4, color: 'white' }}>
                     Stop being your guests' personal assistant. Let our intelligent WhatsApp
                     Concierge handle the repetitive questions so you can focus on your celebration.
                   </Typography>
 
-                  <List sx={{ mb: { xs: 1, md: 2 } }}>
+                  <List sx={{ mb: { xs: 1, md: 2 }, color: 'white' }}>
                     {[
                       { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
                       { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
@@ -765,22 +840,21 @@ export default function LandingPage() {
                       { icon: <Check />, text: "All data comes directly from your wedding website" }
                     ].map((item, idx) => (
                       <ListItem key={idx} sx={{ px: 0, py: { xs: 0.25, md: 0.5 } }}>
-                        <ListItemIcon sx={{ color: '#25D366', minWidth: { xs: 28, md: 40 } }}>
+                        <ListItemIcon sx={{ color: 'white', minWidth: { xs: 28, md: 40 } }}>
                           <Box sx={{ '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } } }}>
                             {item.icon}
                           </Box>
                         </ListItemIcon>
                         <ListItemText
                           primary={item.text}
-                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' } }}
+                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' }, color: 'white' }}
                         />
                       </ListItem>
                     ))}
                   </List>
 
                   <Button
-                    component={Link}
-                    href="/admin"
+                    onClick={handleProAction}
                     variant="contained"
                     size="large"
                     sx={{
@@ -796,7 +870,7 @@ export default function LandingPage() {
                       '&:hover': { bgcolor: '#128C7E' },
                     }}
                   >
-                    Get the WhatsApp Concierge
+                    Get Phera Concierge
                   </Button>
                 </motion.div>
               </Grid>
@@ -983,7 +1057,7 @@ export default function LandingPage() {
 
 
         {/* --- WEDDING ROADMAP SECTION --- */}
-        <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
+        {/* <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -1032,160 +1106,161 @@ export default function LandingPage() {
                 scrollbarWidth: 'none',
               }}
             >
-              {/* Connector Line (Desktop Only) */}
-              <Box sx={{
-                position: 'absolute',
-                top: '40px',
-                left: '12%',
-                right: '12%',
-                height: '2px',
-                borderTop: '2px dashed #e0e0e0',
-                display: { xs: 'none', md: 'block' },
-                zIndex: 0
-              }} />
+        <Box sx={{
+          position: 'absolute',
+          top: '40px',
+          left: '12%',
+          right: '12%',
+          height: '2px',
+          borderTop: '2px dashed #e0e0e0',
+          display: { xs: 'none', md: 'block' },
+          zIndex: 0
+        }} />
 
-              {[
-                {
-                  step: '01',
-                  title: 'Spin Up Your Site',
-                  desc: 'Customize your design, add events, and setup details in 10 minutes.',
-                  icon: <Domain fontSize="large" />
-                },
-                {
-                  step: '02',
-                  title: 'Activate Concierge',
-                  desc: 'Enable advanced features like WhatsApp Concierge and Travel Coordination.',
-                  icon: <SupportAgent fontSize="large" />
-                },
-                {
-                  step: '03',
-                  title: 'Send & Sync',
-                  desc: 'Share your beautiful website. Guests RSVP and get details instantly.',
-                  icon: <Send fontSize="large" />
-                },
-                {
-                  step: '04',
-                  title: 'Cruise Control',
-                  desc: 'Track RSVPs, coordinate logistics, and broadcast updates to everyone.',
-                  icon: <Dashboard fontSize="large" />
-                }
-              ].map((item, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    position: 'relative',
-                    zIndex: 1,
-                    flex: { xs: '0 0 75%', md: 'auto' },
-                    minWidth: { xs: '220px', md: 'auto' },
-                    scrollSnapAlign: 'center'
-                  }}
-                >
-                  <motion.div
-                    whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                    style={{ height: '100%' }}
-                  >
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: { xs: 2.5, md: 4 },
-                        height: '100%',
-                        borderRadius: { xs: '16px', md: '24px' },
-                        border: '1px solid',
-                        borderColor: alpha('#000', 0.05),
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        bgcolor: 'white',
-                        '&:hover': {
-                          borderColor: alpha('#DE3F5E', 0.2),
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
-                          '& .step-number': {
-                            color: alpha('#DE3F5E', 0.3),
-                          }
-                        }
-                      }}
-                    >
-                      {/* Step Number in Corner */}
-                      <Typography
-                        className="step-number"
-                        sx={{
-                          position: 'absolute',
-                          top: { xs: 8, md: 12 },
-                          right: { xs: 12, md: 16 },
-                          fontSize: { xs: '1.5rem', md: '2rem' },
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          color: alpha('#DE3F5E', 0.2),
-                          fontWeight: 700,
-                          transition: 'all 0.3s ease',
-                          zIndex: 1
-                        }}
-                      >
-                        {item.step}
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          width: { xs: 50, md: 80 },
-                          height: { xs: 50, md: 80 },
-                          borderRadius: '50%',
-                          bgcolor: 'white',
-                          border: '1px solid #eee',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          mb: { xs: 1.5, md: 3 },
-                          color: '#DE3F5E',
-                          boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
-                          zIndex: 1,
-                          '& svg': { fontSize: { xs: '1.5rem', md: '2rem' } }
-                        }}
-                      >
-                        {item.icon}
-                      </Box>
-
-                      <Typography variant="h5" sx={{ fontWeight: 800, mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
-                        {item.title}
-                      </Typography>
-
-                      <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
-                        {item.desc}
-                      </Typography>
-                    </Paper>
-                  </motion.div>
-                </Box>
-              ))}
-            </Box>
-
-            {/* Breadcrumbs for Roadmap (Mobile Only) */}
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                justifyContent: 'center',
-                mt: 2,
-                pb: 2
-              }}
+        {[
+          {
+            step: '01',
+            title: 'Spin Up Your Site',
+            desc: 'Customize your design, add events, and setup details in 10 minutes.',
+            icon: <Domain fontSize="large" />
+          },
+          {
+            step: '02',
+            title: 'Activate Concierge',
+            desc: 'Enable advanced features like WhatsApp Concierge and Travel Coordination.',
+            icon: <SupportAgent fontSize="large" />
+          },
+          {
+            step: '03',
+            title: 'Send & Sync',
+            desc: 'Share your beautiful website. Guests RSVP and get details instantly.',
+            icon: <Send fontSize="large" />
+          },
+          {
+            step: '04',
+            title: 'Cruise Control',
+            desc: 'Track RSVPs, coordinate logistics, and broadcast updates to everyone.',
+            icon: <Dashboard fontSize="large" />
+          }
+        ].map((item, idx) => (
+          <Box
+            key={idx}
+            sx={{
+              position: 'relative',
+              zIndex: 1,
+              flex: { xs: '0 0 75%', md: 'auto' },
+              minWidth: { xs: '220px', md: 'auto' },
+              scrollSnapAlign: 'center'
+            }}
+          >
+            <motion.div
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
+              style={{ height: '100%' }}
             >
-              {[0, 1, 2, 3].map((idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: roadmapIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
-                    transition: 'all 0.3s ease',
-                  }}
-                />
-              ))}
-            </Stack>
-          </motion.div>
-        </Container>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 2.5, md: 4 },
+                  height: '100%',
+                  borderRadius: { xs: '16px', md: '24px' },
+                  border: '1px solid',
+                  borderColor: alpha('#000', 0.05),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  bgcolor: 'white',
+                  '&:hover': {
+                    borderColor: alpha('#DE3F5E', 0.2),
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
+                    '& .step-number': {
+                      color: alpha('#DE3F5E', 0.3),
+                    }
+                  }
+                }}
+              >
+        <Typography
+          className="step-number"
+          sx={{
+            position: 'absolute',
+            top: { xs: 8, md: 12 },
+            right: { xs: 12, md: 16 },
+            fontSize: { xs: '1.5rem', md: '2rem' },
+            fontFamily: 'var(--font-instrument-serif)',
+            fontStyle: 'italic',
+            color: alpha('#DE3F5E', 0.2),
+            fontWeight: 700,
+            transition: 'all 0.3s ease',
+            zIndex: 1
+          }}
+        >
+          {item.step}
+        </Typography>
+
+        <Box
+          sx={{
+            width: { xs: 50, md: 80 },
+            height: { xs: 50, md: 80 },
+            borderRadius: '50%',
+            bgcolor: 'white',
+            border: '1px solid #eee',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: { xs: 1.5, md: 3 },
+            color: '#DE3F5E',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
+            zIndex: 1,
+            '& svg': { fontSize: { xs: '1.5rem', md: '2rem' } }
+          }}
+        >
+          {item.icon}
+        </Box>
+
+        <Typography variant="h5" sx={{ fontWeight: 800, mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
+          {item.title}
+        </Typography>
+
+        <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+          {item.desc}
+        </Typography>
+      </Paper>
+    </motion.div>
+          </Box >
+        ))
+}
+      </Box >
+
+        < Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            justifyContent: 'center',
+            mt: 2,
+            pb: 2
+          }}
+        >
+          {
+            [0, 1, 2, 3].map((idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: roadmapIndex === idx ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            ))
+          }
+        </Stack >
+      </motion.div >
+    </Container > */
+        }
 
         {/* --- PRICING --- */}
         <Box sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 14 } }}>
@@ -1299,13 +1374,14 @@ export default function LandingPage() {
 
                     <List dense sx={{ mb: { xs: 1, md: 4 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (
-                        <ListItem key={fIdx} disableGutters sx={{ py: { xs: 0.25, md: 0.5 } }}>
-                          <ListItemIcon sx={{ minWidth: { xs: 24, md: 36 } }}>
+                        <ListItem key={fIdx} disableGutters sx={{ py: { xs: 0.5, md: 0.75 } }}>
+                          <ListItemIcon sx={{ minWidth: { xs: 32, md: 44 } }}>
                             <StreamlineIcon
                               name="check-circle"
                               sx={{
                                 color: '#DE3F5E',
-                                fontSize: { xs: 20, md: 24 },
+                                width: { xs: 22, md: 28 },
+                                height: { xs: 22, md: 28 },
                               }}
                             />
                           </ListItemIcon>
@@ -1315,7 +1391,7 @@ export default function LandingPage() {
                               sx: {
                                 color: '#1a1a1a',
                                 fontWeight: feature.includes('WhatsApp') ? 600 : 400,
-                                fontSize: { xs: '0.8rem', md: '0.875rem' },
+                                fontSize: { xs: '0.9rem', md: '1.05rem' },
                                 lineHeight: 1.4
                               }
                             }}
@@ -1326,8 +1402,13 @@ export default function LandingPage() {
 
                     <Button
                       fullWidth
-                      component={Link}
-                      href="/admin"
+                      onClick={(e: React.MouseEvent) => {
+                        if (tier.name === 'PRO') {
+                          handleProAction(e);
+                        }
+                      }}
+                      component={tier.name === 'PRO' ? 'button' : Link}
+                      href={tier.name === 'PRO' ? undefined : "/auth/signup"}
                       variant={tier.highlight ? 'contained' : 'outlined'}
                       size="small"
                       sx={{
@@ -1466,7 +1547,7 @@ export default function LandingPage() {
               >
                 <Button
                   component={Link}
-                  href="/admin"
+                  href="/auth/signup"
                   variant="contained"
                   size="large"
                   sx={{
@@ -1477,10 +1558,11 @@ export default function LandingPage() {
                     borderRadius: '32px',
                     fontSize: { xs: '0.85rem', md: '1.1rem' },
                     fontWeight: 'bold',
+                    textTransform: 'none',
                     '&:hover': { bgcolor: '#C8365A' },
                   }}
                 >
-                  Create Your Wedding Free
+                  Get Started for Free
                 </Button>
                 {/* Demo button can be linked to Calendly or kept as is for now with clear label */}
               </Stack>
@@ -1490,7 +1572,7 @@ export default function LandingPage() {
                 sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
               >
                 <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important' }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 20, height: 20 }} />}
                   label="No credit card required"
                   sx={{
                     bgcolor: 'transparent',
@@ -1500,7 +1582,7 @@ export default function LandingPage() {
                   }}
                 />
                 <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important' }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 20, height: 20 }} />}
                   label="Free forever plan"
                   sx={{
                     bgcolor: 'transparent',
@@ -1589,14 +1671,30 @@ export default function LandingPage() {
                   Connect
                 </Typography>
                 <Stack direction="row" spacing={2}>
-                  <IconButton sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1) }}>
+                  <IconButton
+                    component="a"
+                    href="https://instagram.com/withphera"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                  >
                     <Instagram />
                   </IconButton>
-                  <IconButton sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1) }}>
-                    <Twitter />
+                  <IconButton
+                    component="a"
+                    href="mailto:kv@phera.io"
+                    sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                  >
+                    <Email />
                   </IconButton>
-                  <IconButton sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1) }}>
-                    <LinkedIn />
+                  <IconButton
+                    component="a"
+                    href="https://wa.me/15558397813"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                  >
+                    <WhatsApp />
                   </IconButton>
                 </Stack>
               </Grid>
@@ -1618,15 +1716,27 @@ export default function LandingPage() {
             </Box>
           </Container>
         </Box>
-      </Box>
+      </Box >
 
       <LoginModal
         open={loginDialogOpen}
-        onClose={() => setLoginDialogOpen(false)}
+        onClose={() => {
+          setLoginDialogOpen(false);
+          setPendingProAction(false);
+        }}
         onSuccess={() => {
           console.log('Login successful');
+          if (pendingProAction) {
+            setUpgradeModalOpen(true);
+            setPendingProAction(false);
+          }
         }}
       />
-    </OptimizedBackground>
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+      />
+    </OptimizedBackground >
   );
 }
