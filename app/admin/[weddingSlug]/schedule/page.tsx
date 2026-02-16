@@ -253,7 +253,7 @@ function DigitalTimePicker({
   onChange: (newValue: { hour: string; minute: string; period: 'AM' | 'PM' }) => void;
 }) {
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-  const minutes = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+  const minutes = ['00', '15', '30', '45'];
 
   const handleChange = (field: keyof typeof value, newVal: string) => {
     onChange({ ...value, [field]: newVal });
@@ -909,9 +909,9 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                 const eventNameLower = e.name.toLowerCase().trim();
                                 const eventSlug = e.slug?.toLowerCase() || '';
                                 return normalizedName.includes(eventNameLower) ||
-                                       eventNameLower.includes(normalizedName) ||
-                                       normalizedName.includes(eventSlug) ||
-                                       eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
+                                  eventNameLower.includes(normalizedName) ||
+                                  normalizedName.includes(eventSlug) ||
+                                  eventSlug.includes(normalizedName.replace(/\s+/g, '-'));
                               });
                             }
                           }
