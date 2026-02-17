@@ -499,10 +499,10 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
         }}
       >
         <CheckCircle sx={{ fontSize: 64, color: '#4CAF50', mb: 2 }} />
-        <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 1 }}>
+        <Typography variant="h4" sx={{ color: '#1a1a1a', mb: 1 }}>
           You're all set!
         </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 480, mx: 'auto' }}>
+        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 580, mx: 'auto' }}>
           Your guests can now reserve transportation from your wedding website. You can view and manage their reservations from the dashboard.
         </Typography>
         <Button

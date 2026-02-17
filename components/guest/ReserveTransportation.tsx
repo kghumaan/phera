@@ -301,7 +301,7 @@ export default function ReserveTransportation({
           <CheckCircleOutline sx={{ fontSize: 80, color: primaryColor, mb: 2 }} />
         </motion.div>
         <Typography
-          variant="h4"
+          variant="h3"
           sx={{
             fontFamily: 'var(--font-instrument-serif)',
             fontStyle: 'italic',
@@ -315,7 +315,7 @@ export default function ReserveTransportation({
           variant="body1"
           sx={{
             color: '#666',
-            maxWidth: 400,
+            maxWidth: 500,
             mb: 3,
             lineHeight: 1.7,
           }}
@@ -334,7 +334,7 @@ export default function ReserveTransportation({
             '& .MuiAlert-icon': { color: primaryColor },
           }}
         >
-          This reservation is not final until confirmed by the planner. Please stay tuned for a confirmation alert.
+          This reservation is not final until confirmed by the hosts. Please stay tuned for a confirmation alert.
         </Alert>
         {onClose && (
           <Button
@@ -416,7 +416,7 @@ export default function ReserveTransportation({
       {/* Header */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Typography
-          variant="h4"
+          variant="h3"
           sx={{
             fontFamily: 'var(--font-instrument-serif)',
             fontStyle: 'italic',
@@ -456,7 +456,7 @@ export default function ReserveTransportation({
             elevation={0}
             sx={{
               p: 3,
-              borderRadius: 2,
+              borderRadius: 1,
               border: '1px solid',
               borderColor: 'rgba(0,0,0,0.1)',
               bgcolor: 'white',
@@ -674,7 +674,7 @@ function PrescheduledSection({
                 sx={{
                   mb: 1.5,
                   p: 2,
-                  borderRadius: 2,
+                  borderRadius: 1,
                   border: '1px solid',
                   borderColor: selection === vehicle.id
                     ? primaryColor
@@ -752,7 +752,7 @@ function PrescheduledSection({
           })}
         </RadioGroup>
       </FormControl>
-
+      {/* 
       <TextField
         label="Notes (optional)"
         placeholder="Any special requirements or notes..."
@@ -768,7 +768,7 @@ function PrescheduledSection({
             fontWeight: 500,
           },
           '& .MuiOutlinedInput-root': {
-            borderRadius: 2,
+            borderRadius: 1,
             '& fieldset': {
               borderColor: '#797979',
             },
@@ -789,7 +789,7 @@ function PrescheduledSection({
             },
           },
         }}
-      />
+      /> */}
     </Stack>
   );
 }
@@ -958,7 +958,7 @@ function FlexibleSection({
         </Box>
       )}
 
-      <TextField
+      {/* <TextField
         label="Notes (optional)"
         placeholder="Any special requirements or notes..."
         multiline
@@ -993,7 +993,7 @@ function FlexibleSection({
             },
           },
         }}
-      />
+      /> */}
     </Stack>
   );
 }

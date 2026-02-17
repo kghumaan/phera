@@ -223,7 +223,7 @@ export default function DetailsPage() {
       case 'Change RSVP':
         router.push(`/${weddingSlug}/rsvp`);
         break;
-      case 'Transportation':
+      case 'Reserve Transportation':
         router.push(`/${weddingSlug}/transportation`);
         break;
       default:
@@ -454,8 +454,8 @@ export default function DetailsPage() {
                   {hasTransportationData && (
                     <>
                       <MenuItem
-                        title="Transportation"
-                        onClick={() => handleMenuItemClick('Transportation')}
+                        title="Reserve Transportation"
+                        onClick={() => handleMenuItemClick('Reserve Transportation')}
                       />
                       <DiamondDecoration />
                     </>

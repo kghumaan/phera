@@ -126,7 +126,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
   const [websiteLayout, setWebsiteLayout] = useState<'nested' | 'infinite_scroll'>('nested');
-  const [welcomeText, setWelcomeText] = useState("Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
   const [activeTab, setActiveTab] = useState(0);
 
   const [initialDesignData, setInitialDesignData] = useState<any>(null);
@@ -145,7 +144,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         background_image: mainBackground,
         primary_color: mainPrimaryColor,
         website_layout: websiteLayout,
-        welcome_text: welcomeText,
       };
       setIsDirty(JSON.stringify(currentData) !== JSON.stringify(initialDesignData));
     }
@@ -158,8 +156,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     pinEntryButtonFontColor,
     mainBackground,
     mainPrimaryColor,
-    websiteLayout,
-    welcomeText,
     initialDesignData
   ]);
 
@@ -247,7 +243,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         setMainBackground(wedding.background_image || BACKGROUNDS.PEARL);
         setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
         setWebsiteLayout((wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested');
-        setWelcomeText(wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
       }
     } catch (err) {
       console.error('Error loading pin entry settings:', err);
@@ -297,7 +292,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         background_image: mainBackgroundToUse,
         primary_color: mainPrimaryColor,
         website_layout: websiteLayout,
-        welcome_text: welcomeText,
       });
 
       setInitialDesignData({
@@ -310,7 +304,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         background_image: mainBackgroundToUse,
         primary_color: mainPrimaryColor,
         website_layout: websiteLayout,
-        welcome_text: welcomeText,
       });
 
       setSuccess(true);
@@ -522,31 +515,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </RadioGroup>
               </Paper>
 
-              {/* Welcome Text */}
-              <Paper sx={sectionPaperSx}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                  Welcome Message
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                  This message appears below your names on the main wedding website
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  value={welcomeText}
-                  onChange={(e) => setWelcomeText(e.target.value)}
-                  placeholder="Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#fff',
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#1a1a1a',
-                    }
-                  }}
-                />
-              </Paper>
 
               {/* Main Background Selection */}
               <Paper sx={sectionPaperSx}>

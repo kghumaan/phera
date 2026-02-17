@@ -252,7 +252,7 @@ export default function TransportationDashboard({
       </Box>
 
       {/* Stats */}
-      <Box sx={{ display: 'flex', gap: 2 }}>
+      {/* <Box sx={{ display: 'flex', gap: 2 }}>
         <Paper
           elevation={0}
           sx={{
@@ -331,7 +331,7 @@ export default function TransportationDashboard({
             </Typography>
           </Box>
         </Paper>
-      </Box>
+      </Box> */}
 
       {/* Tabs */}
       <Paper
@@ -350,7 +350,7 @@ export default function TransportationDashboard({
           sx={{
             borderBottom: '1px solid',
             borderColor: 'divider',
-            px: 2,
+            // px: 2,
             '& .MuiTab-root': {
               textTransform: 'none',
               fontWeight: 500,
@@ -378,7 +378,7 @@ export default function TransportationDashboard({
           />
         </Tabs>
 
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ py: 3 }}>
           {vehicles.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <DirectionsBus sx={{ fontSize: 48, color: '#ddd', mb: 2 }} />
@@ -409,6 +409,7 @@ export default function TransportationDashboard({
                     vehicle={null}
                     reservations={getUnassignedReservations()}
                     formatDateTime={formatDateTime}
+                    mode={mode}
                   />
                 )}
 
@@ -419,6 +420,7 @@ export default function TransportationDashboard({
                     vehicle={vehicle}
                     reservations={getReservationsForVehicle(vehicle.id)}
                     formatDateTime={formatDateTime}
+                    mode={mode}
                   />
                 ))}
               </Box>
@@ -465,10 +467,12 @@ function VehicleColumn({
   vehicle,
   reservations,
   formatDateTime,
+  mode,
 }: {
   vehicle: VehicleWithCapacity | null;
   reservations: TransportationReservation[];
   formatDateTime: (datetime: string) => string;
+  mode: TransportationMode;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: vehicle?.id || 'unassigned',
@@ -484,16 +488,31 @@ function VehicleColumn({
       sx={{
         p: 2,
         border: '2px solid',
-        borderColor: isOver ? '#DE3F5E' : '#DE3F5E',
+        // borderColor: isOver ? '#e8e8e8ff' : '#DE3F5E',
+        borderColor: '#e8e8e8ff',
         borderRadius: 1,
         bgcolor: isOver ? alpha('#DE3F5E', 0.02) : vehicle ? 'white' : alpha('#DE3F5E', 0.04),
         transition: 'all 0.2s',
         minHeight: 200,
-        minWidth: 500,
+        minWidth: 400,
       }}
     >
       {/* Vehicle Header */}
       <Box sx={{ mb: 2 }}>
+        <LinearProgress
+          variant="determinate"
+          value={capacityPercent}
+          sx={{
+            mb: 2,
+            height: 6,
+            borderRadius: 3,
+            bgcolor: alpha('#DE3F5E', 0.1),
+            '& .MuiLinearProgress-bar': {
+              bgcolor: '#DE3F5E',
+              borderRadius: 3,
+            },
+          }}
+        />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <DirectionsBus sx={{ color: '#DE3F5E' }} />
           <Typography sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
@@ -529,20 +548,7 @@ function VehicleColumn({
                 </Typography>
               </Box>
             )}
-            <LinearProgress
-              variant="determinate"
-              value={capacityPercent}
-              sx={{
-                mt: 1,
-                height: 6,
-                borderRadius: 3,
-                bgcolor: alpha('#DE3F5E', 0.1),
-                '& .MuiLinearProgress-bar': {
-                  bgcolor: '#DE3F5E',
-                  borderRadius: 3,
-                },
-              }}
-            />
+
           </>
         )}
       </Box>
@@ -558,7 +564,9 @@ function VehicleColumn({
               variant="body2"
               sx={{ color: '#9a9a9a', textAlign: 'center', py: 2 }}
             >
-              {vehicle ? 'Drag guests here' : 'No unassigned guests'}
+              {vehicle
+                ? mode === 'flexible' ? 'Drag guests here' : 'No reservations yet'
+                : 'No unassigned guests'}
             </Typography>
           ) : (
             reservations.map((reservation) => (
@@ -612,33 +620,32 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
       sx={{
         p: 1.5,
         border: '1px solid',
-        borderColor: 'divider',
         borderRadius: 1,
-        bgcolor: 'white',
+        bgcolor: '#f0f0f0ff',
         cursor: 'grab',
         '&:hover': {
-          borderColor: '#DE3F5E',
-          // bgcolor: alpha('#DE3F5E', 0.01),
+          border: '1px solid #6a6a6aff',
         },
       }}
       {...attributes}
       {...listeners}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <DragIndicator sx={{ color: '#ccc', fontSize: 18 }} />
+        <DragIndicator sx={{ color: '#000', fontSize: 18 }} />
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
               {reservation.guest?.name || 'Guest'}
             </Typography>
             <Chip
-              icon={<People sx={{ fontSize: 14 }} />}
+              icon={<People sx={{ fontSize: 18 }} />}
               label={reservation.party_size || 1}
               size="small"
               sx={{
                 height: 24,
                 '& .MuiChip-label': { px: 0.5, fontSize: '0.8rem' },
-                bgcolor: alpha('#DE3F5E', 0.1),
+                '& .MuiChip-icon': { color: '#1a1a1a', mr: .5 },
+                // bgcolor: alpha('#DE3F5E', 0.1),
                 color: '#1a1a1a',
               }}
             />
@@ -750,13 +757,14 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
           </Box>
         </Box>
         <Chip
-          icon={<People sx={{ fontSize: 14 }} />}
+          icon={<People sx={{ fontSize: 18 }} />}
           label={reservation.party_size || 1}
           size="small"
           sx={{
             height: 24,
             bgcolor: alpha('#DE3F5E', 0.1),
             color: '#1a1a1a',
+            '& .MuiChip-icon': { color: '#1a1a1a' },
           }}
         />
       </Box>

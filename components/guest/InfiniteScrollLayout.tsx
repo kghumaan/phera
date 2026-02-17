@@ -683,7 +683,7 @@ export default function InfiniteScrollLayout({
                   maxWidth: { md: 480, lg: 540, xl: 650 },
                 }}
               >
-                {wedding.welcome_text || "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it."}
+                {wedding.welcome_text}
               </Typography>
 
               {/* Countdown Timer */}

@@ -241,7 +241,7 @@ const QUESTIONS: Record<QuestionId, Question> = {
     parser: (input: string) => {
       const lower = input.toLowerCase().trim();
       if (lower === 'skip' || lower === 'default') {
-        return { welcome_text: "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it." };
+        return { welcome_text: "" };
       }
       return { welcome_text: input.trim() };
     },

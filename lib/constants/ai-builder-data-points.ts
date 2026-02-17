@@ -312,7 +312,7 @@ export const AI_QUESTION_FLOW: AIQuestion[] = [
     field: 'mainDesign.welcome_text',
     type: 'multiline',
     required: false,
-    placeholder: "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.",
+    placeholder: "e.g. Can't wait to celebrate with you all! ❤️",
   },
   {
     id: 'primary_color',
@@ -394,7 +394,7 @@ export const AI_QUESTION_FLOW: AIQuestion[] = [
 export const DEFAULT_WEDDING_DATA: Partial<CompleteWeddingData> = {
   mainDesign: {
     website_layout: 'nested',
-    welcome_text: "Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.",
+    welcome_text: "",
     background_image: '/images/backgrounds/pearl.png',
     primary_color: '#DE3F5E',
   },

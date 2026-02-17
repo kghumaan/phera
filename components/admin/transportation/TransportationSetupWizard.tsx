@@ -307,7 +307,7 @@ export default function TransportationSetupWizard({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-              <Chip
+              {/* <Chip
                 icon={directionIcon}
                 label={directionLabel}
                 sx={{
@@ -315,7 +315,7 @@ export default function TransportationSetupWizard({
                   color: isArrival ? '#4CAF50' : '#2196F3',
                   fontWeight: 600,
                 }}
-              />
+              /> */}
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
               {isArrival ? 'Arrival Transportation' : 'Departure Transportation'}
@@ -374,6 +374,7 @@ export default function TransportationSetupWizard({
             sx={{
               color: '#6a6a6a',
               textTransform: 'none',
+              borderRadius: 1,
               '&:hover': { bgcolor: alpha('#000', 0.05) },
             }}
           >
@@ -390,6 +391,7 @@ export default function TransportationSetupWizard({
               px: 3,
               textTransform: 'none',
               fontWeight: 600,
+              borderRadius: 1,
               '&:hover': { bgcolor: '#c73552' },
               '&.Mui-disabled': {
                 bgcolor: alpha('#DE3F5E', 0.3),
@@ -485,7 +487,7 @@ function PrescheduledSetup({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 1,
-                bgcolor: alpha('#000', 0.01),
+                bgcolor: alpha('#000', 0.03),
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -515,7 +517,7 @@ function PrescheduledSetup({
                     <TextField
                       value={vehicle.vehicle_name}
                       onChange={(e) => onVehicleChange(index, 'vehicle_name', e.target.value)}
-                      placeholder="e.g., Shuttle A, Bus 1"
+                      placeholder="e.g., Family Bus, Party Shuttle"
                       size="small"
                       fullWidth
                       sx={{

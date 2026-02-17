@@ -20,6 +20,7 @@ import { useState, useEffect, use } from 'react';
 import { Save, Check, Add, ArrowForward, Delete, Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { TablesUpdate } from '@/lib/supabase/types';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { useRouter } from 'next/navigation';
@@ -49,6 +50,7 @@ interface DetailsFormData {
   button_font_color?: string;
   show_venue_location: boolean;
   is_one_day?: boolean;
+  welcome_text?: string;
 }
 
 // Helper function to generate couple name from first names
@@ -126,6 +128,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     couple_image_url: null,
     frame_image_url: null,
     show_venue_location: true,
+    welcome_text: '',
   });
   const [initialFormData, setInitialFormData] = useState<DetailsFormData | null>(null);
   const [isDirty, setIsDirty] = useState(false);
@@ -256,6 +259,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           font_color: wedding.font_color || '#1a1a1a',
           button_font_color: wedding.button_font_color || '#FFFFFF',
           is_one_day: wedding.wedding_date === wedding.wedding_date_end || !wedding.wedding_date_end,
+          welcome_text: wedding.welcome_text || '',
         };
 
         setFormData(currentData);
@@ -423,22 +427,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       // Filter out null values from couple images
       const validCoupleImages = coupleImages.filter((img): img is string => img !== null && img !== '');
 
-      const updateData: Partial<{
-        couple_name: string;
-        partner1_name: string;
-        partner2_name: string;
-        wedding_date: string;
-        wedding_date_end: string | null;
-        wedding_date_display: string;
-        venue_name: string;
-        venue_location: string;
-        rsvp_deadline: string;
-        couple_image_url: string | null;
-        couple_images: string[] | null;
-        frame_image_url: string | null;
-        show_venue_location: boolean;
-        slug: string;
-      }> = {
+      const updateData: TablesUpdate<'weddings'> = {
         couple_name: formData.couple_name,
         partner1_name: formData.partner1_name,
         partner2_name: formData.partner2_name,
@@ -454,14 +443,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         couple_image_url: validCoupleImages[0] || formData.couple_image_url,
         frame_image_url: formData.frame_image_url,
         show_venue_location: formData.show_venue_location,
+        welcome_text: formData.welcome_text || '',
       };
 
       if (weddingId) {
-        // Prepare the data for Supabase (clean up is_one_day before saving if your schema doesn't have it)
-        // or just rely on the fact that we're setting wedding_date_end = wedding_date
-        const { is_one_day, ...finalUpdateData } = updateData as any;
-
-        await weddingService.updateWedding(weddingId, finalUpdateData);
+        await weddingService.updateWedding(weddingId, updateData);
 
         // If slug changed, redirect to new URL
         if (finalSlug !== weddingSlug) {
@@ -472,7 +458,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           return;
         }
       } else {
-        const newWedding = await weddingService.createWedding(updateData);
+        const newWedding = await weddingService.createWedding(updateData as any);
         if (newWedding) {
           setWeddingId(newWedding.id);
         }
@@ -480,7 +466,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
       toast.success('Changes saved successfully!');
       setShowSaveSuccess(true);
-      setInitialFormData(updateData as DetailsFormData);
+      setInitialFormData(formData);
       setIsDirty(false);
       setTimeout(() => setShowSaveSuccess(false), 2000);
 
@@ -732,7 +718,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </LocalizationProvider>
 
           {/* Date Display Preview and Edit */}
-          {weddingDateStart && (
+          {/* {weddingDateStart && (
             <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -807,7 +793,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 </Typography>
               )}
             </Box>
-          )}
+          )} */}
 
           {/* Venue */}
           <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
@@ -855,6 +841,25 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               />
             </Grid>
           </Grid>
+
+          {/* Welcome Message Section */}
+          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+            Welcome Message
+          </Typography>
+          <Box>
+            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+              A short note for your guests that appears on your home page.
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              value={formData.welcome_text}
+              onChange={(e) => handleChange('welcome_text', e.target.value)}
+              placeholder="e.g. Can't wait to celebrate with you all! ❤️"
+              sx={textFieldSx}
+            />
+          </Box>
 
           {/* RSVP Deadline */}
           <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
