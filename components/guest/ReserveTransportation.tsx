@@ -230,10 +230,10 @@ export default function ReserveTransportation({
             party_size: partySize,
             notes: departureNotes || undefined,
           });
-        } else if (settings.mode === 'flexible' && departureLocationId && departureTime) {
+        } else if (settings.mode === 'flexible' && departureTime) {
           await createReservation(weddingId, guestId, {
             direction: 'departure',
-            pickup_location_id: departureLocationId,
+            ...(departureLocationId ? { pickup_location_id: departureLocationId } : {}),
             preferred_datetime: departureTime,
             party_size: partySize,
             notes: departureNotes || undefined,

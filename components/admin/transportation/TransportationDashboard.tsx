@@ -241,6 +241,7 @@ export default function TransportationDashboard({
                 bgcolor: '#DE3F5E',
                 textTransform: 'none',
                 fontWeight: 600,
+                borderRadius: 1,
                 '&:hover': { bgcolor: '#c73552' },
               }}
             >
@@ -266,7 +267,7 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#FF9800', 0.1), color: '#FF9800' }}>
+          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
             <AccessTime />
           </Avatar>
           <Box>
@@ -292,7 +293,7 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }}>
+          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
             <CheckCircle />
           </Avatar>
           <Box>
@@ -318,7 +319,7 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#2196F3', 0.1), color: '#2196F3' }}>
+          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
             <DirectionsBus />
           </Avatar>
           <Box>
@@ -398,7 +399,7 @@ export default function TransportationDashboard({
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
                   gap: 3,
                 }}
               >
@@ -483,17 +484,18 @@ function VehicleColumn({
       sx={{
         p: 2,
         border: '2px solid',
-        borderColor: isOver ? '#DE3F5E' : 'divider',
-        borderRadius: 2,
-        bgcolor: isOver ? alpha('#DE3F5E', 0.02) : vehicle ? 'white' : alpha('#FF9800', 0.02),
+        borderColor: isOver ? '#DE3F5E' : '#DE3F5E',
+        borderRadius: 1,
+        bgcolor: isOver ? alpha('#DE3F5E', 0.02) : vehicle ? 'white' : alpha('#DE3F5E', 0.04),
         transition: 'all 0.2s',
         minHeight: 200,
+        minWidth: 500,
       }}
     >
       {/* Vehicle Header */}
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <DirectionsBus sx={{ color: vehicle ? '#DE3F5E' : '#FF9800' }} />
+          <DirectionsBus sx={{ color: '#DE3F5E' }} />
           <Typography sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
             {vehicle ? vehicle.vehicle_name || 'Vehicle' : 'Unassigned'}
           </Typography>
@@ -502,9 +504,10 @@ function VehicleColumn({
               label={`${vehicle.booked}/${vehicle.capacity}`}
               size="small"
               sx={{
-                bgcolor: vehicle.available === 0 ? alpha('#F44336', 0.1) : alpha('#4CAF50', 0.1),
-                color: vehicle.available === 0 ? '#F44336' : '#4CAF50',
+                bgcolor: alpha('#DE3F5E', 0.1),
+                color: '#1a1a1a',
                 fontWeight: 600,
+                fontSize: '0.8rem',
               }}
             />
           )}
@@ -533,9 +536,9 @@ function VehicleColumn({
                 mt: 1,
                 height: 6,
                 borderRadius: 3,
-                bgcolor: alpha('#000', 0.05),
+                bgcolor: alpha('#DE3F5E', 0.1),
                 '& .MuiLinearProgress-bar': {
-                  bgcolor: vehicle.available === 0 ? '#F44336' : '#4CAF50',
+                  bgcolor: '#DE3F5E',
                   borderRadius: 3,
                 },
               }}
@@ -568,6 +571,22 @@ function VehicleColumn({
   );
 }
 
+// Format datetime helper for reservation cards
+function formatReservationDateTime(datetime: string) {
+  try {
+    const d = new Date(datetime);
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return '-';
+  }
+}
+
 // Draggable Reservation Card
 function ReservationCard({ reservation }: { reservation: TransportationReservation }) {
   const {
@@ -594,12 +613,12 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
         p: 1.5,
         border: '1px solid',
         borderColor: 'divider',
-        borderRadius: 1.5,
+        borderRadius: 1,
         bgcolor: 'white',
         cursor: 'grab',
         '&:hover': {
           borderColor: '#DE3F5E',
-          bgcolor: alpha('#DE3F5E', 0.02),
+          // bgcolor: alpha('#DE3F5E', 0.01),
         },
       }}
       {...attributes}
@@ -613,36 +632,65 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
               {reservation.guest?.name || 'Guest'}
             </Typography>
             <Chip
-              icon={<People sx={{ fontSize: 12 }} />}
+              icon={<People sx={{ fontSize: 14 }} />}
               label={reservation.party_size || 1}
               size="small"
               sx={{
-                height: 20,
-                '& .MuiChip-label': { px: 0.5, fontSize: '0.7rem' },
-                bgcolor: alpha('#2196F3', 0.1),
-                color: '#2196F3',
+                height: 24,
+                '& .MuiChip-label': { px: 0.5, fontSize: '0.8rem' },
+                bgcolor: alpha('#DE3F5E', 0.1),
+                color: '#1a1a1a',
               }}
             />
           </Box>
           {reservation.guest?.email && (
-            <Typography variant="caption" sx={{ color: '#9a9a9a' }}>
+            <Typography variant="caption" sx={{ color: '#9a9a9a', display: 'block' }}>
               {reservation.guest.email}
             </Typography>
           )}
+          {/* Guest preferences: pickup location & preferred time */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
+            {reservation.pickup_location && (
+              <Chip
+                icon={<LocationOn sx={{ fontSize: 14 }} />}
+                label={reservation.pickup_location.name}
+                size="small"
+                sx={{
+                  height: 26,
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-icon': { ml: 0.5 },
+                  bgcolor: alpha('#DE3F5E', 0.08),
+                  color: '#1a1a1a',
+                }}
+              />
+            )}
+            {reservation.preferred_datetime && (
+              <Chip
+                icon={<AccessTime sx={{ fontSize: 14 }} />}
+                label={formatReservationDateTime(reservation.preferred_datetime)}
+                size="small"
+                sx={{
+                  height: 26,
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-icon': { ml: 0.5 },
+                  bgcolor: alpha('#DE3F5E', 0.08),
+                  color: '#1a1a1a',
+                }}
+              />
+            )}
+          </Box>
         </Box>
-        <Chip
+        {/* <Chip
           label={reservation.status}
           size="small"
           sx={{
-            height: 20,
-            '& .MuiChip-label': { px: 1, fontSize: '0.7rem' },
-            bgcolor:
-              reservation.status === 'confirmed'
-                ? alpha('#4CAF50', 0.1)
-                : alpha('#FF9800', 0.1),
-            color: reservation.status === 'confirmed' ? '#4CAF50' : '#FF9800',
+            height: 24,
+            '& .MuiChip-label': { px: 1, fontSize: '0.8rem' },
+            bgcolor: alpha('#DE3F5E', 0.1),
+            color: '#1a1a1a',
+            fontWeight: 500,
           }}
-        />
+        /> */}
       </Box>
     </Paper>
   );
@@ -657,10 +705,10 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
         p: 1.5,
         border: '2px solid',
         borderColor: '#DE3F5E',
-        borderRadius: 1.5,
+        borderRadius: 1,
         bgcolor: 'white',
         cursor: 'grabbing',
-        width: 280,
+        width: 380,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -669,15 +717,46 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
           <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
             {reservation.guest?.name || 'Guest'}
           </Typography>
+          {/* Guest preferences */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 0.5 }}>
+            {reservation.pickup_location && (
+              <Chip
+                icon={<LocationOn sx={{ fontSize: 14 }} />}
+                label={reservation.pickup_location.name}
+                size="small"
+                sx={{
+                  height: 26,
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-icon': { ml: 0.5 },
+                  bgcolor: alpha('#DE3F5E', 0.08),
+                  color: '#1a1a1a',
+                }}
+              />
+            )}
+            {reservation.preferred_datetime && (
+              <Chip
+                icon={<AccessTime sx={{ fontSize: 14 }} />}
+                label={formatReservationDateTime(reservation.preferred_datetime)}
+                size="small"
+                sx={{
+                  height: 26,
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-icon': { ml: 0.5 },
+                  bgcolor: alpha('#DE3F5E', 0.08),
+                  color: '#1a1a1a',
+                }}
+              />
+            )}
+          </Box>
         </Box>
         <Chip
-          icon={<People sx={{ fontSize: 12 }} />}
+          icon={<People sx={{ fontSize: 14 }} />}
           label={reservation.party_size || 1}
           size="small"
           sx={{
-            height: 20,
-            bgcolor: alpha('#2196F3', 0.1),
-            color: '#2196F3',
+            height: 24,
+            bgcolor: alpha('#DE3F5E', 0.1),
+            color: '#1a1a1a',
           }}
         />
       </Box>

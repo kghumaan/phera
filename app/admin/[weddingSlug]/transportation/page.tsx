@@ -399,14 +399,14 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
       <Paper
         elevation={0}
         sx={{
-          p: 4,
+          pt: 4,
           border: '1px solid',
           borderColor: 'divider',
           borderRadius: 3,
           bgcolor: 'white',
         }}
       >
-        <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 3, textAlign: 'center' }}>
+        <Typography variant="h5" sx={{ color: '#1a1a1a', mb: 3, textAlign: 'left', fontWeight: 400 }}>
           Do you already have shuttles or buses booked?
         </Typography>
 

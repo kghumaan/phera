@@ -970,7 +970,7 @@ export default function HomePage() {
                         py: 2,
                         fontSize: { md: '1.25rem', lg: '1.5rem' },
                         fontWeight: 600,
-                        borderRadius: '32px', // Matches mobile button style
+                        borderRadius: 1, // Matches mobile button style
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
                         boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',

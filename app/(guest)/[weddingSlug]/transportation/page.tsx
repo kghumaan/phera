@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import { supabase } from '@/lib/supabase/client';
 import AppHeader from '@/components/shared/AppHeader';
 import ReserveTransportation from '@/components/guest/ReserveTransportation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -31,9 +32,30 @@ export default function TransportationPage() {
   const { wedding, isLoading: weddingLoading } = useWedding();
 
   const [isNavigating, setIsNavigating] = useState(false);
+  const [guestId, setGuestId] = useState<string | null>(null);
 
   const isLoading = authLoading || weddingLoading;
   const primaryColor = wedding?.primary_color || '#DE3F5E';
+
+  // Look up the guest record ID by email + wedding slug
+  // The guests table stores wedding_id as the slug (text), not UUID
+  useEffect(() => {
+    const lookupGuest = async () => {
+      if (!user?.email || !weddingSlug) return;
+      const { data, error } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('email', user.email)
+        .eq('wedding_id', weddingSlug)
+        .single();
+      if (data && !error) {
+        setGuestId(data.id);
+      } else {
+        console.error('Could not find guest record:', error);
+      }
+    };
+    lookupGuest();
+  }, [user?.email, weddingSlug]);
 
   const handleBack = () => {
     setIsNavigating(true);
@@ -212,10 +234,10 @@ export default function TransportationPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {wedding && user && (
+            {wedding && guestId && (
               <ReserveTransportation
                 weddingId={wedding.id}
-                guestId={user.id}
+                guestId={guestId}
                 onClose={handleClose}
               />
             )}
