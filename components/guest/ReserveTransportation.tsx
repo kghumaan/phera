@@ -705,9 +705,9 @@ function PrescheduledSection({
                   }
                   label={
                     <Box sx={{ ml: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                          {vehicle.vehicle_name || 'Shuttle'}
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+                          {formatDateTime(vehicle.departure_datetime)}
                         </Typography>
                         <Chip
                           label={spotsText}
@@ -723,28 +723,20 @@ function PrescheduledSection({
                           }}
                         />
                       </Stack>
-                      <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <AccessTime sx={{ fontSize: 16, color: '#1a1a1a' }} />
-                          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                            {formatDateTime(vehicle.departure_datetime)}
+                      {vehicle.pickup_location && (
+                        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                          <LocationOn sx={{ fontSize: 16, color: '#6a6a6a' }} />
+                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                            {vehicle.pickup_location}
                           </Typography>
                         </Stack>
-                        {vehicle.pickup_location && (
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <LocationOn sx={{ fontSize: 16, color: '#1a1a1a' }} />
-                            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                              {vehicle.pickup_location}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Stack>
+                      )}
                     </Box>
                   }
                   sx={{
                     m: 0,
                     width: '100%',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                   }}
                 />
               </Paper>

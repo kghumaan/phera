@@ -380,9 +380,9 @@ export default function OnboardingSidebar({
                             minHeight: 36,
                             '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             '&.Mui-selected': {
-                              bgcolor: '#DE3F5E',
-                              color: 'white',
-                              '&:hover': { bgcolor: '#C8365A' },
+                              bgcolor: 'transparent',
+                              color: '#DE3F5E',
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             },
                           }}
                         >

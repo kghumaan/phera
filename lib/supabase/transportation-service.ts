@@ -512,6 +512,40 @@ export async function createReservation(
   return data;
 }
 
+export async function createManualReservation(
+  weddingId: string,
+  reservation: {
+    direction: TransportationDirection;
+    vehicle_id?: string;
+    pickup_location_id?: string;
+    preferred_datetime?: string;
+    party_size: number;
+    guest_name: string;
+  }
+): Promise<TransportationReservation | null> {
+  const { data, error } = await supabase
+    .from('transportation_reservations')
+    .insert({
+      wedding_id: weddingId,
+      guest_id: null,
+      direction: reservation.direction,
+      vehicle_id: reservation.vehicle_id || null,
+      pickup_location_id: reservation.pickup_location_id || null,
+      preferred_datetime: reservation.preferred_datetime || null,
+      party_size: reservation.party_size,
+      notes: reservation.guest_name, // Store name in notes for manual entries
+      status: 'confirmed', // Manual entries are pre-confirmed
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating manual reservation:', error);
+    return null;
+  }
+  return data;
+}
+
 export async function updateReservation(
   reservationId: string,
   updates: Partial<Omit<TransportationReservation, 'id' | 'wedding_id' | 'guest_id' | 'created_at'>>

@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from '@mui/material';
 import {
   DirectionsBus,
@@ -31,6 +32,7 @@ import {
   Send,
   AccessTime,
   LocationOn,
+  Add,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -61,6 +63,7 @@ import {
   getAllVehiclesWithCapacity,
   moveReservationToVehicle,
   confirmReservations,
+  createManualReservation,
 } from '@/lib/supabase/transportation-service';
 
 interface TransportationDashboardProps {
@@ -98,8 +101,8 @@ export default function TransportationDashboard({
     loadData();
   }, [weddingId, activeTab]);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [vehiclesData, reservationsData] = await Promise.all([
         getAllVehiclesWithCapacity(weddingId, activeTab),
@@ -110,7 +113,7 @@ export default function TransportationDashboard({
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -379,59 +382,116 @@ export default function TransportationDashboard({
         </Tabs>
 
         <Box sx={{ py: 3 }}>
-          {vehicles.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 6 }}>
-              <DirectionsBus sx={{ fontSize: 48, color: '#ddd', mb: 2 }} />
-              <Typography variant="h6" sx={{ color: '#6a6a6a' }}>
-                No vehicles set up for {activeTab}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
-                Edit your setup to add vehicles
-              </Typography>
-            </Box>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 3,
+                overflowX: 'auto',
+                pb: 2,
+                px: 0.5,
+                // minHeight: 'calc(100vh - 350px)',
+                '&::-webkit-scrollbar': {
+                  height: 8,
+                },
+                '&::-webkit-scrollbar-track': {
+                  bgcolor: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  bgcolor: 'rgba(0,0,0,0.1)',
+                  borderRadius: 4,
+                  '&:hover': {
+                    bgcolor: 'rgba(0,0,0,0.2)',
+                  },
+                },
+              }}
             >
-              <Box
+              {/* Unassigned reservations */}
+              {(getUnassignedReservations().length > 0 || vehicles.length === 0) && (
+                <VehicleColumn
+                  weddingId={weddingId}
+                  vehicle={null}
+                  reservations={getUnassignedReservations()}
+                  formatDateTime={formatDateTime}
+                  mode={mode}
+                  onRefresh={loadData}
+                />
+              )}
+
+              {/* Vehicle columns */}
+              {vehicles.map((vehicle) => (
+                <VehicleColumn
+                  key={vehicle.id}
+                  weddingId={weddingId}
+                  vehicle={vehicle}
+                  reservations={getReservationsForVehicle(vehicle.id)}
+                  formatDateTime={formatDateTime}
+                  mode={mode}
+                  onRefresh={loadData}
+                />
+              ))}
+
+              {/* Add column */}
+              <Paper
+                elevation={0}
+                onClick={onEditSetup}
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-                  gap: 3,
+                  p: 4,
+                  border: '2px dashed',
+                  borderColor: '#e8e8e8ff',
+                  borderRadius: 1,
+                  bgcolor: 'transparent',
+                  width: 400,
+                  flexShrink: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  gap: 2,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: '#DE3F5E',
+                    bgcolor: alpha('#DE3F5E', 0.02),
+                    '& .add-icon-bg': { bgcolor: alpha('#DE3F5E', 0.2) }
+                  },
                 }}
               >
-                {/* Unassigned reservations */}
-                {getUnassignedReservations().length > 0 && (
-                  <VehicleColumn
-                    vehicle={null}
-                    reservations={getUnassignedReservations()}
-                    formatDateTime={formatDateTime}
-                    mode={mode}
-                  />
-                )}
+                <Box
+                  className="add-icon-bg"
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    bgcolor: alpha('#DE3F5E', 0.1),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <Settings sx={{ color: '#DE3F5E', fontSize: 28 }} />
+                </Box>
+                <Typography sx={{ fontWeight: 600, color: '#1a1a1a', textAlign: 'center' }}>
+                  Add transportation option?
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', textAlign: 'center', maxWidth: 250 }}>
+                  Click to add more vehicles, edit capacities, or manage locations.
+                </Typography>
+              </Paper>
+            </Box>
 
-                {/* Vehicle columns */}
-                {vehicles.map((vehicle) => (
-                  <VehicleColumn
-                    key={vehicle.id}
-                    vehicle={vehicle}
-                    reservations={getReservationsForVehicle(vehicle.id)}
-                    formatDateTime={formatDateTime}
-                    mode={mode}
-                  />
-                ))}
-              </Box>
-
-              <DragOverlay>
-                {activeReservation && (
-                  <ReservationCardStatic reservation={activeReservation} />
-                )}
-              </DragOverlay>
-            </DndContext>
-          )}
+            <DragOverlay>
+              {activeReservation && (
+                <ReservationCardStatic reservation={activeReservation} />
+              )}
+            </DragOverlay>
+          </DndContext>
         </Box>
       </Paper>
 
@@ -445,14 +505,14 @@ export default function TransportationDashboard({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ color: '#6a6a6a' }}>
+          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ color: '#6a6a6a', borderRadius: 1 }}>
             Cancel
           </Button>
           <Button
             variant="contained"
             onClick={handleFinalizeBookings}
             disabled={confirming}
-            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#c73552' } }}
+            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#c73552' }, borderRadius: 1 }}
           >
             {confirming ? 'Confirming...' : 'Confirm & Notify'}
           </Button>
@@ -464,19 +524,49 @@ export default function TransportationDashboard({
 
 // Vehicle Column Component
 function VehicleColumn({
+  weddingId,
   vehicle,
   reservations,
   formatDateTime,
   mode,
+  onRefresh,
 }: {
+  weddingId: string;
   vehicle: VehicleWithCapacity | null;
   reservations: TransportationReservation[];
   formatDateTime: (datetime: string) => string;
   mode: TransportationMode;
+  onRefresh: (silent?: boolean) => void;
 }) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [manualName, setManualName] = useState('');
+  const [manualPartySize, setManualPartySize] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { setNodeRef, isOver } = useDroppable({
     id: vehicle?.id || 'unassigned',
   });
+
+  const handleAddManual = async () => {
+    if (!manualName.trim() || !vehicle) return;
+    setIsSubmitting(true);
+    try {
+      await createManualReservation(weddingId, {
+        direction: vehicle.direction,
+        vehicle_id: vehicle.id,
+        party_size: manualPartySize,
+        guest_name: manualName.trim(),
+      });
+      setIsAdding(false);
+      setManualName('');
+      setManualPartySize(1);
+      onRefresh(true);
+    } catch (error) {
+      console.error('Failed to add manual reservation:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const totalPartySize = reservations.reduce((sum, r) => sum + (r.party_size || 1), 0);
   const capacityPercent = vehicle ? (vehicle.booked / vehicle.capacity) * 100 : 0;
@@ -494,7 +584,8 @@ function VehicleColumn({
         bgcolor: isOver ? alpha('#DE3F5E', 0.02) : vehicle ? 'white' : alpha('#DE3F5E', 0.04),
         transition: 'all 0.2s',
         minHeight: 200,
-        minWidth: 400,
+        width: 400,
+        flexShrink: 0,
       }}
     >
       {/* Vehicle Header */}
@@ -558,7 +649,7 @@ function VehicleColumn({
         items={reservations.map((r) => r.id)}
         strategy={verticalListSortingStrategy}
       >
-        <Stack spacing={1}>
+        <Stack spacing={1.5}>
           {reservations.length === 0 ? (
             <Typography
               variant="body2"
@@ -572,6 +663,102 @@ function VehicleColumn({
             reservations.map((reservation) => (
               <ReservationCard key={reservation.id} reservation={reservation} />
             ))
+          )}
+
+          {/* Add Manual Guest Inline Form */}
+          {vehicle && (
+            <Box sx={{ mt: 1 }}>
+              {isAdding ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    border: '1px solid #DE3F5E',
+                    borderRadius: 1,
+                    bgcolor: 'white',
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    placeholder="Guest Name"
+                    size="small"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    autoFocus
+                    sx={{
+                      mb: 1,
+                      '& .MuiInputBase-root': { fontSize: '0.875rem' },
+                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1a1a1a' },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000' },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' }
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TextField
+                      type="number"
+                      size="small"
+                      label="Count"
+                      value={manualPartySize}
+                      onChange={(e) => setManualPartySize(Math.max(1, parseInt(e.target.value) || 1))}
+                      sx={{
+                        width: 80,
+                        '& .MuiInputBase-root': { fontSize: '0.875rem' },
+                        '& .MuiInputLabel-root': { color: '#000' },
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#DE3F5E' },
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1a1a1a' },
+                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000' },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' }
+                      }}
+                    />
+                    <Box sx={{ flex: 1 }} />
+                    <Button
+                      size="small"
+                      onClick={() => setIsAdding(false)}
+                      sx={{ color: '#6a6a6a', fontSize: '0.75rem' }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={handleAddManual}
+                      disabled={isSubmitting || !manualName.trim()}
+                      sx={{
+                        bgcolor: '#DE3F5E',
+                        fontSize: '0.75rem',
+                        '&:hover': { bgcolor: '#c73552' },
+                        borderRadius: 1,
+                        minWidth: 50,
+                        height: 32
+                      }}
+                    >
+                      {isSubmitting ? <CircularProgress size={16} sx={{ color: 'white' }} /> : 'Add'}
+                    </Button>
+                  </Box>
+                </Paper>
+              ) : (
+                <Button
+                  fullWidth
+                  startIcon={<Add />}
+                  onClick={() => setIsAdding(true)}
+                  sx={{
+                    py: 1,
+                    border: '1px dashed #e8e8e8',
+                    borderRadius: 1,
+                    color: '#6a6a6a',
+                    fontSize: '0.8rem',
+                    textTransform: 'none',
+                    '&:hover': {
+                      border: '1px dashed #DE3F5E',
+                      color: '#DE3F5E',
+                      bgcolor: alpha('#DE3F5E', 0.02),
+                    },
+                  }}
+                >
+                  Add Guest Manually
+                </Button>
+              )}
+            </Box>
           )}
         </Stack>
       </SortableContext>
@@ -635,7 +822,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
-              {reservation.guest?.name || 'Guest'}
+              {reservation.guest?.name || reservation.notes || 'Guest'}
             </Typography>
             <Chip
               icon={<People sx={{ fontSize: 18 }} />}
