@@ -48,6 +48,7 @@ interface DetailsFormData {
   font_color?: string;
   button_font_color?: string;
   show_venue_location: boolean;
+  is_one_day?: boolean;
 }
 
 // Helper function to generate couple name from first names
@@ -126,6 +127,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     frame_image_url: null,
     show_venue_location: true,
   });
+  const [initialFormData, setInitialFormData] = useState<DetailsFormData | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+
 
   // Countdown timer logic for preview
   const calculateTimeLeft = (targetDate: Date | null) => {
@@ -235,7 +239,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           wedding.partner2_name || ''
         ) || wedding.couple_name || '';
 
-        setFormData({
+        const currentData: DetailsFormData = {
           couple_name: autoCoupleName,
           partner1_name: wedding.partner1_name || '',
           partner2_name: wedding.partner2_name || '',
@@ -251,7 +255,13 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           primary_color: wedding.primary_color || '#DE3F5E',
           font_color: wedding.font_color || '#1a1a1a',
           button_font_color: wedding.button_font_color || '#FFFFFF',
-        });
+          is_one_day: wedding.wedding_date === wedding.wedding_date_end || !wedding.wedding_date_end,
+        };
+
+        setFormData(currentData);
+        setInitialFormData(currentData);
+        setIsDirty(false);
+
 
         // Load couple images (support both old single image and new array)
         if (wedding.couple_images && Array.isArray(wedding.couple_images)) {
@@ -295,7 +305,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
 
     setFormData(updatedFormData);
+
+    // Check if dirty
+    if (initialFormData) {
+      setIsDirty(JSON.stringify(updatedFormData) !== JSON.stringify(initialFormData));
+    }
+
     // Clear field error when user starts typing
+
     if (fieldErrors[field]) {
       setFieldErrors(prev => {
         const newErrors = { ...prev };
@@ -308,9 +325,27 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   // Handle date changes and auto-update display (string value from input)
   const handleDateStartChange = (date: Date | null) => {
     setWeddingDateStart(date);
+
+    // If it's a one-day event, also update the end date
+    if (formData.is_one_day) {
+      setWeddingDateEnd(date);
+    }
+
     if (!dateDisplayManuallyEdited) {
-      const display = formatWeddingDateDisplay(date, weddingDateEnd);
-      setFormData(prev => ({ ...prev, wedding_date_display: display }));
+      const display = formatWeddingDateDisplay(date, formData.is_one_day ? date : weddingDateEnd);
+      setFormData(prev => {
+        const next = { ...prev, wedding_date_display: display };
+        if (initialFormData) setIsDirty(JSON.stringify(next) !== JSON.stringify(initialFormData));
+        return next;
+      });
+    }
+    // Also clear error
+    if (fieldErrors.wedding_date_start) {
+      setFieldErrors(prev => {
+        const next = { ...prev };
+        delete next.wedding_date_start;
+        return next;
+      });
     }
   };
 
@@ -318,9 +353,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     setWeddingDateEnd(date);
     if (!dateDisplayManuallyEdited) {
       const display = formatWeddingDateDisplay(weddingDateStart, date);
-      setFormData(prev => ({ ...prev, wedding_date_display: display }));
+      setFormData(prev => {
+        const next = { ...prev, wedding_date_display: display };
+        if (initialFormData) setIsDirty(JSON.stringify(next) !== JSON.stringify(initialFormData));
+        return next;
+      });
     }
   };
+
 
   // handleOneDayEventChange removed as we are no longer using it
 
@@ -417,7 +457,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       };
 
       if (weddingId) {
-        await weddingService.updateWedding(weddingId, updateData);
+        // Prepare the data for Supabase (clean up is_one_day before saving if your schema doesn't have it)
+        // or just rely on the fact that we're setting wedding_date_end = wedding_date
+        const { is_one_day, ...finalUpdateData } = updateData as any;
+
+        await weddingService.updateWedding(weddingId, finalUpdateData);
 
         // If slug changed, redirect to new URL
         if (finalSlug !== weddingSlug) {
@@ -436,7 +480,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
       toast.success('Changes saved successfully!');
       setShowSaveSuccess(true);
+      setInitialFormData(updateData as DetailsFormData);
+      setIsDirty(false);
       setTimeout(() => setShowSaveSuccess(false), 2000);
+
     } catch (err) {
       console.error('Error saving wedding:', err);
       const errorMessage = 'Failed to save changes';
@@ -458,17 +505,48 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
   return (
-    <Box sx={{ maxWidth: 800 }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Wedding Details
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Basic information about your wedding - couple names, date, venue, and photos
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Wedding Details
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              Basic information about your wedding - couple names, date, venue, and photos
+            </Typography>
+          </Box>
+          {isDirty && (
+            <Button
+              variant="contained"
+              startIcon={showSaveSuccess ? <Check /> : <Save />}
+              onClick={handleSave}
+              disabled={saving || showSaveSuccess}
+              sx={{
+                bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                px: 3,
+                py: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+
+                boxShadow: showSaveSuccess
+                  ? '0 4px 12px rgba(16, 185, 129, 0.4)'
+                  : '0 4px 12px rgba(222, 63, 94, 0.3)',
+                '&:hover': {
+                  bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
+                  boxShadow: showSaveSuccess
+                    ? '0 6px 16px rgba(16, 185, 129, 0.5)'
+                    : '0 6px 16px rgba(222, 63, 94, 0.4)',
+                },
+              }}
+            >
+              {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Details'}
+            </Button>
+          )}
         </Box>
+
 
         {/* Form Content */}
         <Stack spacing={5}>
@@ -506,82 +584,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             </Grid>
           </Grid>
 
-          {/* Auto-generated couple name display */}
-          {formData.couple_name && (
-            <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                  Combined Couple Name (Auto-generated):
-                </Typography>
-                {!editingCoupleName ? (
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setTempCoupleName(formData.couple_name);
-                      setEditingCoupleName(true);
-                    }}
-                    sx={{
-                      color: '#DE3F5E',
-                      '&:hover': {
-                        bgcolor: alpha('#DE3F5E', 0.1),
-                      },
-                    }}
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                ) : (
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, couple_name: tempCoupleName }));
-                        setEditingCoupleName(false);
-                      }}
-                      sx={{
-                        color: '#10B981',
-                        '&:hover': {
-                          bgcolor: alpha('#10B981', 0.1),
-                        },
-                      }}
-                    >
-                      <Check fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setEditingCoupleName(false);
-                        setTempCoupleName('');
-                      }}
-                      sx={{
-                        color: '#EF4444',
-                        '&:hover': {
-                          bgcolor: alpha('#EF4444', 0.1),
-                        },
-                      }}
-                    >
-                      <Cancel fontSize="small" />
-                    </IconButton>
-                  </Box>
-                )}
-              </Box>
-              {editingCoupleName ? (
-                <TextField
-                  value={tempCoupleName}
-                  onChange={(e) => setTempCoupleName(e.target.value)}
-                  fullWidth
-                  sx={textFieldSx}
-                  autoFocus
-                />
-              ) : (
-                <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-                  {formData.couple_name}
-                </Typography>
-              )}
-              <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 1, display: 'block' }}>
-                This will be displayed on the main page
-              </Typography>
-            </Box>
-          )}
 
           {/* Wedding Date */}
           <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
@@ -591,6 +593,34 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.is_one_day}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
+                        if (isChecked) {
+                          setWeddingDateEnd(weddingDateStart);
+                          if (!dateDisplayManuallyEdited) {
+                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
+                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
+                          }
+                        }
+                      }}
+                      sx={{
+                        color: '#DE3F5E',
+                        '&.Mui-checked': {
+                          color: '#DE3F5E',
+                        },
+                      }}
+                    />
+                  }
+                  label="This is a one day wedding"
+                  sx={{ color: '#4a4a4a', mb: 2 }}
+                />
+              </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <MobileDatePicker
                   label="Wedding Start Date"
@@ -616,10 +646,19 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         }
                       }
                     },
+                    calendarHeader: {
+                      sx: {
+                        '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                        '& .MuiSvgIcon-root': { color: '#000000' }
+                      }
+                    },
                     day: {
                       sx: {
+                        color: '#000000 !important',
+                        fontWeight: 500,
                         '&.Mui-selected': {
                           backgroundColor: '#DE3F5E !important',
+                          color: '#ffffff !important',
                         },
                         '&.Mui-selected:hover': {
                           backgroundColor: '#DE3F5E !important',
@@ -634,50 +673,61 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   }}
                 />
               </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <MobileDatePicker
-                  label="Wedding End Date"
-                  value={weddingDateEnd}
-                  onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{
-                    textField: TextField,
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      // required: true, // Removed as end date is optional
-                      error: !!fieldErrors.wedding_date_end,
-                      placeholder: "e.g., 2026-01-06",
-                      sx: textFieldSx,
-                    },
-                    actionBar: {
-                      actions: ['cancel', 'accept'],
-                      sx: {
-                        '& .MuiButton-root': {
-                          color: '#DE3F5E',
-                          fontWeight: 700,
+              {!formData.is_one_day && (
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <MobileDatePicker
+                    label="Wedding End Date"
+                    value={weddingDateEnd}
+                    onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
+                    enableAccessibleFieldDOMStructure={false}
+                    slots={{
+                      textField: TextField,
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        // required: true, // Removed as end date is optional
+                        error: !!fieldErrors.wedding_date_end,
+                        placeholder: "e.g., 2026-01-06",
+                        sx: textFieldSx,
+                      },
+                      actionBar: {
+                        actions: ['cancel', 'accept'],
+                        sx: {
+                          '& .MuiButton-root': {
+                            color: '#DE3F5E',
+                            fontWeight: 700,
+                          }
+                        }
+                      },
+                      calendarHeader: {
+                        sx: {
+                          '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                          '& .MuiSvgIcon-root': { color: '#000000' }
+                        }
+                      },
+                      day: {
+                        sx: {
+                          color: '#000000 !important',
+                          fontWeight: 500,
+                          '&.Mui-selected': {
+                            backgroundColor: '#DE3F5E !important',
+                            color: '#ffffff !important',
+                          },
+                          '&.Mui-selected:hover': {
+                            backgroundColor: '#DE3F5E !important',
+                            opacity: 0.9,
+                          },
+                          '&.MuiPickersDay-today': {
+                            borderColor: '#DE3F5E !important',
+                            color: '#DE3F5E',
+                          }
                         }
                       }
-                    },
-                    day: {
-                      sx: {
-                        '&.Mui-selected': {
-                          backgroundColor: '#DE3F5E !important',
-                        },
-                        '&.Mui-selected:hover': {
-                          backgroundColor: '#DE3F5E !important',
-                          opacity: 0.9,
-                        },
-                        '&.MuiPickersDay-today': {
-                          borderColor: '#DE3F5E !important',
-                          color: '#DE3F5E',
-                        }
-                      }
-                    }
-                  }}
-                />
-              </Grid>
+                    }}
+                  />
+                </Grid>
+              )}
             </Grid>
           </LocalizationProvider>
 
@@ -834,7 +884,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   }}
                 />
               }
-              label="Set RSVP Closing Date"
+              label="Set RSVP Deadline"
               sx={{ color: '#4a4a4a' }}
             />
 
@@ -866,10 +916,19 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         }
                       }
                     },
+                    calendarHeader: {
+                      sx: {
+                        '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                        '& .MuiSvgIcon-root': { color: '#000000' }
+                      }
+                    },
                     day: {
                       sx: {
+                        color: '#000000 !important',
+                        fontWeight: 500,
                         '&.Mui-selected': {
                           backgroundColor: '#DE3F5E !important',
+                          color: '#ffffff !important',
                         },
                         '&.Mui-selected:hover': {
                           backgroundColor: '#DE3F5E !important',
@@ -1167,44 +1226,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             </>
           )}
 
-          {/* Save Button */}
-          <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={showSaveSuccess ? <Check /> : <Save />}
-              onClick={handleSave}
-              disabled={saving || showSaveSuccess}
-              sx={{
-                mt: 2,
-                bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                color: 'white',
-                py: 1.5,
-                px: 4,
-                borderRadius: '32px',
-                fontSize: '1rem',
-                fontWeight: 600,
-                textTransform: 'none',
-                boxShadow: showSaveSuccess
-                  ? '0 4px 12px rgba(16, 185, 129, 0.4)'
-                  : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                  boxShadow: showSaveSuccess
-                    ? '0 6px 16px rgba(16, 185, 129, 0.5)'
-                    : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                },
-                '&:disabled': {
-                  bgcolor: alpha('#DE3F5E', 0.5),
-                },
-              }}
-            >
-              {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Changes'}
-            </Button>
-          </Box>
         </Stack>
       </Stack>
     </Box>
+
   );
 }

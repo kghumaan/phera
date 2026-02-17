@@ -27,6 +27,7 @@ import {
   CardContent,
   InputLabel,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import {
@@ -35,16 +36,16 @@ import {
   Delete,
   Save,
   DragIndicator,
-  AutoAwesome,
-  Check,
-  AccessTime,
-  ExpandMore,
   ArrowUpward,
   ArrowDownward,
   ChevronLeft,
   ChevronRight,
+  AutoAwesome,
+  Check,
+  AccessTime,
   Image as ImageIcon,
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   DndContext,
@@ -98,24 +99,19 @@ const BACKGROUND_OPTIONS = [
 // Slide type options - includes legacy types for backwards compatibility
 const SLIDE_TYPES = [
   { value: 'three_lines', label: 'Header + Title + Description' },
-  { value: 'two_sections', label: 'Two Sections (Custom Headers)' },
-  { value: 'outfit_ideas', label: 'Outfit Ideas (Women/Men)' },
-  { value: 'dress_code', label: 'Dress Code Info' },
-  { value: 'ritual', label: 'Ritual/Ceremony Info' },
-  { value: 'image', label: 'Full Image' },
+  { value: 'ritual', label: 'Ritual/Ceremony' },
+  { value: 'dress_code', label: 'Dress Code' },
+  { value: 'outfit_ideas', label: 'Outfit Ideas' },
+  { value: 'two_sections', label: 'Two Sections (e.g. Women/Men)' },
+  { value: 'image', label: 'Single Image' },
 ];
 
-// Sortable item component
-function SortableItem({
-  item,
-  onEdit,
-  onDelete,
-  events,
-}: {
+// Sortable Item Component
+function SortableItem({ item, events, onEdit, onDelete }: {
   item: ScheduleItemWithEvent;
+  events: WeddingEvent[];
   onEdit: () => void;
   onDelete: () => void;
-  events: WeddingEvent[];
 }) {
   const {
     attributes,
@@ -127,76 +123,41 @@ function SortableItem({
   } = useSortable({ id: item.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 0,
   };
-
-  // Check if this item has a linked event
-  const linkedEvent = events.find(e => e.id === item.linked_event_id);
-  const isMajorEvent = item.is_major_event || !!linkedEvent;
-  const gradientBg = item.gradient_background || linkedEvent?.gradient_background;
 
   return (
     <Box
       ref={setNodeRef}
       style={style}
       sx={{
-        pl: 2,
-        py: 1.5,
-        borderLeft: 3,
-        borderColor: isMajorEvent && gradientBg
-          ? (BACKGROUND_OPTIONS.find(opt => opt.value === gradientBg)?.color || '#DE3F5E')
-          : '#DE3F5E',
-        bgcolor: isMajorEvent
-          ? 'transparent'
-          : 'rgba(222, 63, 94, 0.02)',
-        borderRadius: isMajorEvent ? '0 12px 12px 0' : '0 8px 8px 0',
-        position: 'relative',
-        overflow: 'hidden',
-        ...(isMajorEvent && gradientBg && {
-          backgroundImage: `url(/images/backgrounds/${gradientBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }),
+        bgcolor: 'white',
+        borderRadius: '12px',
+        p: 2,
+        border: '1px solid #eee',
+        boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : 'none',
+        '&:hover': { borderColor: '#ddd' }
       }}
     >
-      {/* Overlay for gradient background items */}
-      {isMajorEvent && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            bgcolor: 'rgba(255, 255, 255, 0.5)',
-            borderRadius: '12px',
-          }}
-        />
-      )}
+      <Stack direction="row" alignItems="center" spacing={2}>
+        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#999', display: 'flex' }}>
+          <DragIndicator />
+        </Box>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ position: 'relative', zIndex: 1, gap: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
-          {/* Drag handle */}
-          <IconButton
-            {...attributes}
-            {...listeners}
-            size="small"
-            sx={{
-              cursor: 'grab',
-              color: '#000',
-              '&:hover': { color: '#000' },
-              p: 0.5,
-            }}
-          >
-            <DragIndicator fontSize="small" />
-          </IconButton>
+        <Stack spacing={0.5} sx={{ minWidth: 80 }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.05em' }}>
+            {item.time}
+          </Typography>
+        </Stack>
 
-          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                {item.time} - {item.name}
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.name}
               </Typography>
               {item.location && (
                 <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
@@ -371,6 +332,7 @@ const parseTime = (timeStr: string) => {
 
 export default function SchedulePage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [prepopulating, setPrepopulating] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -399,6 +361,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const [dayFieldErrors, setDayFieldErrors] = useState<Record<string, boolean>>({});
   const [itemFieldErrors, setItemFieldErrors] = useState<Record<string, boolean>>({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [showPrepopulateSuccess, setShowPrepopulateSuccess] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
 
@@ -458,7 +421,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       );
 
       if (success) {
-        showToast('Schedule prepopulated successfully!', 'success');
+        setShowPrepopulateSuccess(true);
         await loadData();
       } else {
         showToast('Failed to prepopulate schedule', 'error');
@@ -498,60 +461,132 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     try {
       if (currentDay.id) {
         await weddingService.updateSchedule(currentDay.id, currentDay);
+        showToast('Day updated successfully!', 'success');
       } else {
         await weddingService.createSchedule(currentDay);
+        showToast('Day added successfully!', 'success');
       }
-      await loadData();
       setEditDialogOpen(false);
-      setCurrentDay(null);
-      showToast('Changes saved!', 'success');
+      await loadData();
     } catch (err) {
       console.error('Error saving day:', err);
       showToast('Failed to save day', 'error');
     }
   };
 
-  const handleDeleteDay = async (dayId: string) => {
-    if (!confirm('Delete this day and all its events?')) return;
+  const handleDeleteDay = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this day and all its events?')) return;
     try {
-      await weddingService.deleteSchedule(dayId);
+      await weddingService.deleteSchedule(id);
+      showToast('Day deleted successfully!', 'success');
       await loadData();
-      showToast('Day deleted successfully', 'success');
     } catch (err) {
+      console.error('Error deleting day:', err);
       showToast('Failed to delete day', 'error');
     }
   };
 
-  const handleAddItem = (scheduleId: string) => {
-    const newItem = {
-      schedule_id: scheduleId,
-      time: '', // Will be set on save
+  const handleAddItem = (dayId: string) => {
+    setCurrentItem({
+      schedule_id: dayId,
+      wedding_id: weddingId,
       name: '',
+      time: '11:00 AM',
       description: '',
       location: '',
-      order_index: scheduleData.find(d => d.id === scheduleId)?.events.length || 0,
-      is_major_event: false,
-      gradient_background: null,
-      carousel_slides: [],
-    };
-    setCurrentItem(newItem);
-
-    // Reset time state
+      order_index: 0,
+    });
     setStartTime({ hour: '11', minute: '00', period: 'AM' });
-    setHasEndTime(false);
     setEndTime(null);
-
-    // Reset tab and slide state
-    setEditTab(0);
+    setHasEndTime(false);
     setCurrentSlides([]);
     setSelectedSlideIndex(null);
     setPreviewSlideIndex(0);
-
+    setEditTab(0);
     setItemFieldErrors({});
     setItemDialogOpen(true);
   };
 
-  // Slide management functions
+  const handleSaveItem = async () => {
+    if (!currentItem) return;
+
+    if (!currentItem.name) {
+      setItemFieldErrors({ name: true });
+      showToast('Event name is required', 'error');
+      return;
+    }
+
+    const formatTimePart = (t: typeof startTime) => `${t.hour}:${t.minute} ${t.period}`;
+    const timeDisplay = hasEndTime && endTime
+      ? `${formatTimePart(startTime)} - ${formatTimePart(endTime)}`
+      : formatTimePart(startTime);
+
+    const itemToSave = {
+      ...currentItem,
+      time: timeDisplay,
+      carousel_slides: currentSlides,
+    };
+
+    try {
+      if (currentItem.id) {
+        await weddingService.updateScheduleItem(currentItem.id, itemToSave);
+        showToast('Event updated successfully!', 'success');
+      } else {
+        // Find max order_index for this day
+        const day = scheduleData.find(d => d.id === currentItem.schedule_id);
+        const orderIndex = day ? day.events.length : 0;
+        await weddingService.createScheduleItem({ ...itemToSave, order_index: orderIndex });
+        showToast('Event added successfully!', 'success');
+      }
+      setItemDialogOpen(false);
+      await loadData();
+    } catch (err) {
+      console.error('Error saving event:', err);
+      showToast('Failed to save event', 'error');
+    }
+  };
+
+  const handleDeleteItem = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await weddingService.deleteScheduleItem(id);
+      showToast('Event deleted successfully!', 'success');
+      await loadData();
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      showToast('Failed to delete event', 'error');
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const day = scheduleData.find(d => d.id === dayId);
+    if (!day) return;
+
+    const oldIndex = day.events.findIndex(item => item.id === active.id);
+    const newIndex = day.events.findIndex(item => item.id === over.id);
+
+    const newEvents = arrayMove(day.events, oldIndex, newIndex);
+
+    // Update state immediately for UI
+    setScheduleData(prev => prev.map(d =>
+      d.id === dayId ? { ...d, events: newEvents } : d
+    ));
+
+    // Persist to Supabase
+    try {
+      await weddingService.reorderScheduleItems(
+        newEvents.map((item, index) => ({ id: item.id, order_index: index }))
+      );
+    } catch (err) {
+      console.error('Error reordering items:', err);
+      showToast('Failed to save new order', 'error');
+      await loadData();
+    }
+  };
+
   const handleAddSlide = () => {
     const newSlide: CarouselSlide = {
       type: 'three_lines',
@@ -559,192 +594,48 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       main_heading: '',
       body_text: '',
     };
-    const updatedSlides = [...currentSlides, newSlide];
-    setCurrentSlides(updatedSlides);
-    setSelectedSlideIndex(updatedSlides.length - 1);
+    setCurrentSlides([...currentSlides, newSlide]);
+    setSelectedSlideIndex(currentSlides.length);
   };
 
   const handleUpdateSlide = (index: number, updates: Partial<CarouselSlide>) => {
-    const updatedSlides = [...currentSlides];
-    updatedSlides[index] = { ...updatedSlides[index], ...updates };
-    setCurrentSlides(updatedSlides);
+    const newSlides = [...currentSlides];
+    newSlides[index] = { ...newSlides[index], ...updates };
+    setCurrentSlides(newSlides);
   };
 
   const handleDeleteSlide = (index: number) => {
-    const updatedSlides = currentSlides.filter((_, i) => i !== index);
-    setCurrentSlides(updatedSlides);
-    if (selectedSlideIndex === index) {
-      setSelectedSlideIndex(updatedSlides.length > 0 ? Math.min(index, updatedSlides.length - 1) : null);
-    } else if (selectedSlideIndex !== null && selectedSlideIndex > index) {
-      setSelectedSlideIndex(selectedSlideIndex - 1);
-    }
-    if (previewSlideIndex >= updatedSlides.length) {
-      setPreviewSlideIndex(Math.max(0, updatedSlides.length - 1));
-    }
+    const newSlides = currentSlides.filter((_, i) => i !== index);
+    setCurrentSlides(newSlides);
+    if (selectedSlideIndex === index) setSelectedSlideIndex(null);
+    else if (selectedSlideIndex !== null && selectedSlideIndex > index) setSelectedSlideIndex(selectedSlideIndex - 1);
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= currentSlides.length) return;
 
-    const updatedSlides = [...currentSlides];
-    [updatedSlides[index], updatedSlides[newIndex]] = [updatedSlides[newIndex], updatedSlides[index]];
-    setCurrentSlides(updatedSlides);
-
-    if (selectedSlideIndex === index) {
-      setSelectedSlideIndex(newIndex);
-    } else if (selectedSlideIndex === newIndex) {
-      setSelectedSlideIndex(index);
-    }
+    const newSlides = [...currentSlides];
+    const [moved] = newSlides.splice(index, 1);
+    newSlides.splice(newIndex, 0, moved);
+    setCurrentSlides(newSlides);
+    if (selectedSlideIndex === index) setSelectedSlideIndex(newIndex);
   };
 
-  const handleSaveItem = async () => {
-    const newFieldErrors: Record<string, boolean> = {};
-    if (!currentItem?.name) newFieldErrors.name = true;
-
-    if (Object.keys(newFieldErrors).length > 0) {
-      setItemFieldErrors(newFieldErrors);
-      showToast('Please fill in required fields', 'error');
-      return;
-    }
-
-    // Construct time string
-    let timeStr = `${startTime.hour}:${startTime.minute} ${startTime.period}`;
-    if (hasEndTime && endTime) {
-      timeStr += ` - ${endTime.hour}:${endTime.minute} ${endTime.period}`;
-    }
-
-    // Don't include carousel_slides in schedule item - it goes to linked event
-    const { carousel_slides: _, ...itemData } = currentItem;
-    const itemToSave = {
-      ...itemData,
-      time: timeStr,
-    };
-
-    setItemFieldErrors({});
-
-    try {
-      let savedItemId = itemToSave.id;
-
-      // Save the schedule item first
-      if (itemToSave.id) {
-        await weddingService.updateScheduleItem(itemToSave.id, itemToSave);
-      } else {
-        const result = await weddingService.createScheduleItem(itemToSave);
-        savedItemId = result?.id;
-      }
-
-      // If there are slides and this is a major event, create/update linked wedding event
-      if (currentSlides.length > 0 && itemToSave.is_major_event && weddingId) {
-        // Check if there's already a linked event
-        let linkedEventId = itemToSave.linked_event_id;
-
-        if (linkedEventId) {
-          // Update existing linked event's slides
-          await weddingService.updateEvent(linkedEventId, {
-            carousel_slides: currentSlides as any,
-            gradient_background: itemToSave.gradient_background,
-          });
-        } else {
-          // Create a new wedding event for this schedule item
-          const newEvent = await weddingService.createEvent({
-            wedding_id: weddingId,
-            name: itemToSave.name,
-            slug: itemToSave.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-            date: '', // Can be filled later
-            time: itemToSave.time,
-            dress_code: '',
-            dress_code_description: '',
-            dress_code_icon: '',
-            ritual_name: '',
-            ritual_description: '',
-            gradient_background: itemToSave.gradient_background || 'pearl.png',
-            text_color: '#FFFFFF',
-            carousel_slides: currentSlides as any,
-            order_index: 0,
-          });
-
-          // Link the new event to the schedule item
-          if (newEvent && savedItemId) {
-            await weddingService.updateScheduleItem(savedItemId, {
-              linked_event_id: newEvent.id,
-            });
-          }
-        }
-      }
-
-      await loadData();
-      setItemDialogOpen(false);
-      setCurrentItem(null);
-      showToast('Changes saved!', 'success');
-    } catch (err) {
-      console.error('Error saving item:', err);
-      showToast('Failed to save item', 'error');
-    }
-  };
-
-  const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Delete this event?')) return;
-    try {
-      await weddingService.deleteScheduleItem(itemId);
-      await loadData();
-      showToast('Event deleted successfully', 'success');
-    } catch (err) {
-      showToast('Failed to delete item', 'error');
-    }
-  };
-
-  const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const day = scheduleData.find(d => d.id === dayId);
-      if (!day) return;
-
-      const oldIndex = day.events.findIndex(item => item.id === active.id);
-      const newIndex = day.events.findIndex(item => item.id === over.id);
-
-      const newItems = arrayMove(day.events, oldIndex, newIndex);
-
-      // Update local state immediately for optimistic UI
-      setScheduleData(prev => prev.map(d =>
-        d.id === dayId ? { ...d, events: newItems } : d
-      ));
-
-      // Persist to database
-      const updates = newItems.map((item, index) => ({
-        id: item.id,
-        order_index: index,
-      }));
-
-      const success = await weddingService.updateScheduleItemsOrder(updates);
-      if (!success) {
-        showToast('Failed to save order', 'error');
-        await loadData(); // Reload to revert
-      }
-    }
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ maxWidth: 800 }}>
-        <LoadingSpinner message="Loading schedule..." />
-      </Box>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   const isEmpty = scheduleData.length === 0;
 
   return (
-    <Box sx={{ maxWidth: 800 }}>
-      <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2}>
+    <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Stack spacing={4}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Schedule & Events
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a1a1a', mb: 1 }}>
+              Wedding Schedule
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Build your day-by-day schedule with events highlighted
+            <Typography variant="body1" sx={{ color: '#6a6a6a' }}>
+              Plan the timeline for your celebration
             </Typography>
           </Box>
           {!isEmpty && (
@@ -770,55 +661,138 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
         {/* Empty state with prepopulate option */}
         {isEmpty && (
-          <Paper sx={{
-            p: 4,
-            textAlign: 'center',
-            borderRadius: '16px',
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-          }}>
-            <AutoAwesome sx={{ fontSize: 48, color: '#DE3F5E', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-              Get Started with a Template
-            </Typography>
-            <Typography sx={{ color: '#6a6a6a', mb: 3 }}>
-              We&apos;ll create a sample schedule based on a 3-day Indian wedding,
-              adjusted to your wedding dates. You can customize everything afterwards.
-            </Typography>
-            <Stack direction="row" spacing={2} justifyContent="center">
-              <Button
-                variant="contained"
-                startIcon={prepopulating ? null : <AutoAwesome />}
-                onClick={handlePrepopulate}
-                disabled={prepopulating || !weddingDate}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  '&:hover': { bgcolor: '#C8365A' },
-                }}
-              >
-                {prepopulating ? 'Creating...' : 'Use Template'}
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Add />}
-                onClick={handleAddDay}
-                sx={SECONDARY_BUTTON_SX}
-              >
-                Start from Scratch
-              </Button>
+          <Box sx={{ bgcolor: 'rgba(222, 63, 94, 0.04)', borderRadius: '16px', p: 6, border: '1px dashed #DE3F5E', textAlign: 'center' }}>
+            <Stack spacing={3} alignItems="center">
+              <Box sx={{
+                width: 64,
+                height: 64,
+                bgcolor: 'rgba(222, 63, 94, 0.1)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <AutoAwesome sx={{ color: '#DE3F5E', fontSize: 32 }} />
+              </Box>
+
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+                  Design Your Wedding Schedule
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#666', maxWidth: 500, mx: 'auto' }}>
+                  {!weddingDate
+                    ? "We don't know your wedding dates yet! Please set them in the Wedding Details section so we can organize your schedule."
+                    : "Your wedding dates are set! Use our template to get started with common wedding events, adjusted to your dates."
+                  }
+                </Typography>
+              </Box>
+
+              {!weddingDate ? (
+                <Button
+                  variant="contained"
+                  onClick={() => router.push(`/admin/${weddingSlug}/details`)}
+                  sx={{
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 12px rgba(222, 63, 94, 0.2)',
+                    '&:hover': { bgcolor: '#C8365A' },
+                  }}
+                >
+                  Add Wedding Dates
+                </Button>
+              ) : (
+                <Stack direction="row" spacing={2} justifyContent="center">
+                  <Button
+                    variant="contained"
+                    startIcon={prepopulating ? <CircularProgress size={20} color="inherit" /> : <AutoAwesome />}
+                    onClick={handlePrepopulate}
+                    disabled={prepopulating}
+                    sx={{
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      px: 4,
+                      py: 1.5,
+                      '&:hover': { bgcolor: '#C8365A' },
+                    }}
+                  >
+                    {prepopulating ? 'Prepopulating...' : 'Use Template'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={handleAddDay}
+                    sx={{
+                      ...SECONDARY_BUTTON_SX,
+                      px: 4,
+                      py: 1.5,
+                    }}
+                  >
+                    Start from Scratch
+                  </Button>
+                </Stack>
+              )}
             </Stack>
-            {!weddingDate && (
-              <Typography variant="caption" sx={{ color: '#DE3F5E', display: 'block', mt: 2 }}>
-                Set your wedding date in Wedding Details first to use the template
-              </Typography>
-            )}
-          </Paper>
+          </Box>
         )}
+
+        {/* Prepopulation Success Dialog */}
+        <Dialog
+          open={showPrepopulateSuccess}
+          onClose={() => setShowPrepopulateSuccess(false)}
+          PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+        >
+          <DialogTitle sx={{ textAlign: 'center', pt: 3 }}>
+            <Box sx={{
+              width: 56,
+              height: 56,
+              bgcolor: 'rgba(16, 185, 129, 0.1)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2
+            }}>
+              <Check sx={{ color: '#10B981', fontSize: 32 }} />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+              Schedule Ready!
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ color: '#666', textAlign: 'center', mb: 2 }}>
+              Your wedding schedule has been prepopulated from our template.
+              This is just a starting point — feel free to edit times, locations, and details to make it your own!
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+            <Button
+              onClick={() => setShowPrepopulateSuccess(false)}
+              variant="contained"
+              sx={{
+                bgcolor: '#1a1a1a',
+                color: 'white',
+                px: 4,
+                py: 1.2,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { bgcolor: '#333' }
+              }}
+            >
+              Got it, thanks!
+            </Button>
+          </DialogActions>
+        </Dialog>
 
 
 
@@ -1044,7 +1018,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               control={
                 <Switch
                   checked={!!currentItem?.is_major_event}
-                  onChange={(e) => setCurrentItem({ ...currentItem, is_major_event: e.target.checked })}
+                  onChange={(e: any) => setCurrentItem({ ...currentItem, is_major_event: e.target.checked })}
                   sx={{
                     '& .MuiSwitch-switchBase.Mui-checked': {
                       color: '#DE3F5E',
@@ -1168,7 +1142,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                       const isSelected = currentItem?.gradient_background === option.value;
                       return (
                         <Box
-                          key={option.label}
+                          key={option.label || 'none'}
                           onClick={() => setCurrentItem({ ...currentItem, gradient_background: isSelected ? null : option.value })}
                           sx={{
                             width: 48, height: 48, borderRadius: '12px', cursor: 'pointer',
@@ -1273,7 +1247,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                         <InputLabel>Slide Type</InputLabel>
                         <Select
                           value={currentSlides[selectedSlideIndex].type || 'three_lines'}
-                          onChange={(e) => handleUpdateSlide(selectedSlideIndex, { type: e.target.value as any })}
+                          onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { type: e.target.value as any })}
                           label="Slide Type"
                           sx={{ bgcolor: 'white', borderRadius: '8px' }}
                         >
@@ -1303,7 +1277,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.top_label || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { top_label: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { top_label: e.target.value })}
                                   placeholder="e.g., THE CELEBRATION"
                                   sx={textFieldStyles}
                                 />
@@ -1312,7 +1286,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.main_heading || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { main_heading: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { main_heading: e.target.value })}
                                   placeholder="e.g., Sangeet & Reception"
                                   sx={textFieldStyles}
                                 />
@@ -1323,7 +1297,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   multiline
                                   rows={3}
                                   value={slide.body_text || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { body_text: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { body_text: e.target.value })}
                                   placeholder="Description text..."
                                   sx={textFieldStyles}
                                 />
@@ -1338,7 +1312,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.subtitle || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
                                   placeholder="e.g., DRESS CODE"
                                   sx={textFieldStyles}
                                 />
@@ -1347,7 +1321,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.heading || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
                                   placeholder="e.g., Shades of Yellow"
                                   sx={textFieldStyles}
                                 />
@@ -1358,7 +1332,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   multiline
                                   rows={3}
                                   value={slide.description || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
                                   placeholder="Dress code details..."
                                   sx={textFieldStyles}
                                 />
@@ -1373,7 +1347,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.subtitle || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { subtitle: e.target.value })}
                                   placeholder="e.g., THE CEREMONY"
                                   sx={textFieldStyles}
                                 />
@@ -1382,7 +1356,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   fullWidth
                                   size="small"
                                   value={slide.heading || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { heading: e.target.value })}
                                   placeholder="e.g., The Anand Karaj"
                                   sx={textFieldStyles}
                                 />
@@ -1393,7 +1367,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   multiline
                                   rows={3}
                                   value={slide.description || ''}
-                                  onChange={(e) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
+                                  onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { description: e.target.value })}
                                   placeholder="Ritual description..."
                                   sx={textFieldStyles}
                                 />
@@ -1411,8 +1385,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     multiline
                                     rows={4}
                                     value={(slide.women || []).join('\n')}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                      women: e.target.value.split('\n').filter(item => item.trim())
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, {
+                                      women: e.target.value.split('\n').filter((item: any) => item.trim())
                                     })}
                                     placeholder="Yellow Anarkali&#10;Lehenga in gold tones&#10;Yellow Saree"
                                     sx={textFieldStyles}
@@ -1426,8 +1400,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     multiline
                                     rows={4}
                                     value={(slide.men || []).join('\n')}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                      men: e.target.value.split('\n').filter(item => item.trim())
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, {
+                                      men: e.target.value.split('\n').filter((item: any) => item.trim())
                                     })}
                                     placeholder="Yellow Kurta with white pajama&#10;Yellow Nehru jacket"
                                     sx={textFieldStyles}
@@ -1445,7 +1419,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     fullWidth
                                     size="small"
                                     value={slide.section1_header || ''}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section1_header: e.target.value })}
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { section1_header: e.target.value })}
                                     sx={{ ...textFieldStyles, mb: 1.5 }}
                                   />
                                   <TextField
@@ -1455,8 +1429,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     multiline
                                     rows={3}
                                     value={(slide.section1_items || []).join('\n')}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                      section1_items: e.target.value.split('\n').filter(item => item.trim())
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, {
+                                      section1_items: e.target.value.split('\n').filter((item: any) => item.trim())
                                     })}
                                     placeholder="Item 1&#10;Item 2"
                                     sx={textFieldStyles}
@@ -1468,7 +1442,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     fullWidth
                                     size="small"
                                     value={slide.section2_header || ''}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, { section2_header: e.target.value })}
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, { section2_header: e.target.value })}
                                     sx={{ ...textFieldStyles, mb: 1.5 }}
                                   />
                                   <TextField
@@ -1478,8 +1452,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                     multiline
                                     rows={3}
                                     value={(slide.section2_items || []).join('\n')}
-                                    onChange={(e) => handleUpdateSlide(selectedSlideIndex, {
-                                      section2_items: e.target.value.split('\n').filter(item => item.trim())
+                                    onChange={(e: any) => handleUpdateSlide(selectedSlideIndex, {
+                                      section2_items: e.target.value.split('\n').filter((item: any) => item.trim())
                                     })}
                                     placeholder="Item 1&#10;Item 2"
                                     sx={textFieldStyles}
@@ -1598,8 +1572,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                       </>
                     ) : (
                       <>
-                        <ImageIcon sx={{ fontSize: 48, mb: 2 }} />
-                        <Typography>Add slides to preview them here</Typography>
+                        <ImageIcon sx={{ fontSize: 48, mb: 1.5, opacity: 0.2 }} />
+                        <Typography variant="body2">Add slides to your event to provide more details</Typography>
                       </>
                     )}
                   </Box>
@@ -1608,7 +1582,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2, borderTop: '1px solid #eee' }}>
+        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 3 }}>
           <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
           <Button
             variant="contained"
@@ -1620,6 +1594,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 600,
+              px: 4,
               '&:hover': { bgcolor: '#C8365A' },
             }}
           >
@@ -1628,21 +1603,22 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         </DialogActions>
       </Dialog>
 
-      {/* Toast Notification */}
+      {/* Persistence Notifications */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={6000}
+        autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
           severity={snackbarSeverity}
-          sx={{ width: '100%' }}
+          variant="filled"
+          sx={{ borderRadius: '12px', fontWeight: 600 }}
         >
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Box >
+    </Box>
   );
 }

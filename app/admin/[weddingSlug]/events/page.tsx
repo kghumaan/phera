@@ -435,6 +435,39 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                           fullWidth: true,
                           error: !!fieldErrors.date,
                           sx: textFieldSx
+                        },
+                        actionBar: {
+                          actions: ['cancel', 'accept'],
+                          sx: {
+                            '& .MuiButton-root': {
+                              color: '#DE3F5E',
+                              fontWeight: 700,
+                            }
+                          }
+                        },
+                        calendarHeader: {
+                          sx: {
+                            '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                            '& .MuiSvgIcon-root': { color: '#000000' }
+                          }
+                        },
+                        day: {
+                          sx: {
+                            color: '#000000 !important',
+                            fontWeight: 500,
+                            '&.Mui-selected': {
+                              backgroundColor: '#DE3F5E !important',
+                              color: '#ffffff !important',
+                            },
+                            '&.Mui-selected:hover': {
+                              backgroundColor: '#DE3F5E !important',
+                              opacity: 0.9,
+                            },
+                            '&.MuiPickersDay-today': {
+                              borderColor: '#DE3F5E !important',
+                              color: '#DE3F5E',
+                            }
+                          }
                         }
                       }}
                     />
@@ -448,7 +481,16 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                         textField: {
                           fullWidth: true,
                           sx: textFieldSx
-                        }
+                        },
+                        actionBar: {
+                          actions: ['cancel', 'accept'],
+                          sx: {
+                            '& .MuiButton-root': {
+                              color: '#DE3F5E',
+                              fontWeight: 700,
+                            }
+                          }
+                        },
                       }}
                     />
                   </Grid>

@@ -142,7 +142,6 @@ const pricingTiers = [
       'Travel & shuttle coordination',
       'Registry integration',
       'Premium themes & backgrounds',
-      'Broadcast messages to guests',
       'Priority support',
     ],
     buttonText: 'Upgrade to Pro',
@@ -760,7 +759,8 @@ export default function LandingPage() {
                   </Button>
                   {/* <Button
                     component={Link}
-                    href="/sim-kv"
+                    href="/simran-karanvir"
+
                     variant="outlined"
                     size="large"
                     sx={{
@@ -787,7 +787,9 @@ export default function LandingPage() {
         </Box>
 
         {/* --- FEATURES SECTION --- */}
-        <FeaturesSection items={features} />
+        <Box id="features">
+          <FeaturesSection items={features} />
+        </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
         <Box sx={{ py: { xs: 4, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
@@ -1263,7 +1265,7 @@ export default function LandingPage() {
         }
 
         {/* --- PRICING --- */}
-        <Box sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 14 } }}>
+        <Box id="pricing" sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 14 } }}>
           <Container maxWidth="lg">
             <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 8 } }}>
               <Typography
@@ -1390,7 +1392,7 @@ export default function LandingPage() {
                             primaryTypographyProps={{
                               sx: {
                                 color: '#1a1a1a',
-                                fontWeight: feature.includes('WhatsApp') ? 600 : 400,
+                                fontWeight: 400,
                                 fontSize: { xs: '0.9rem', md: '1.05rem' },
                                 lineHeight: 1.4
                               }
@@ -1572,23 +1574,25 @@ export default function LandingPage() {
                 sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
               >
                 <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 20, height: 20 }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
                   label="No credit card required"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#4a4a4a',
                     border: 'none',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    fontSize: '1.1rem',
                   }}
                 />
                 <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 20, height: 20 }} />}
+                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
                   label="Free forever plan"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#4a4a4a',
                     border: 'none',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    fontSize: '1.1rem',
                   }}
                 />
               </Stack>
@@ -1631,14 +1635,11 @@ export default function LandingPage() {
                   Platform
                 </Typography>
                 <Stack spacing={1}>
-                  <Link href="/features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="#features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Features
                   </Link>
-                  <Link href="/pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                  <Link href="#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Pricing
-                  </Link>
-                  <Link href="/sim-kv" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
-                    Demo
                   </Link>
                 </Stack>
               </Grid>

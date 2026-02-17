@@ -167,7 +167,8 @@ interface CustomRSVPFormProps {
   weddingId?: string;
 }
 
-export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormProps) {
+export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: CustomRSVPFormProps) {
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -255,8 +256,9 @@ export default function CustomRSVPForm({ weddingId = 'sim-kv' }: CustomRSVPFormP
             console.log('CustomRSVPForm: Found existing RSVP data:', result.data);
             setFormData(prev => ({
               ...prev,
-              ...result.data
+              ...(result.data as any)
             }));
+
 
             // Fetch flight details if guestId is available
             if (result.guestId) {

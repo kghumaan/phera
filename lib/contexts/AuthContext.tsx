@@ -362,7 +362,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .eq('plus_one_email', email.toLowerCase())
-        .eq('wedding_id', currentWeddingSlug || 'sim-kv')
+        .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
+        )
         .single();
 
       if (rsvpData && rsvpData.plus_one_email) {
@@ -372,7 +373,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: rsvpData.plus_one_email,
           name: rsvpData.plus_one_name || 'Plus One',
           phone: undefined,
-          weddingId: currentWeddingSlug || 'sim-kv',
+          weddingId: currentWeddingSlug || 'simran-karanvir'
+          ,
           avatar_style: undefined,
           avatar_seed: undefined,
           avatar_svg: undefined,
@@ -435,7 +437,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .from('guests')
               .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
               .eq('email', sbUser.email.toLowerCase())
-              .eq('wedding_id', currentWeddingSlug || 'sim-kv')
+              .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
+              )
               .single();
             guestData = guest;
           } catch (err) {
@@ -492,7 +495,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         .from('guests')
                         .select('avatar_style, avatar_seed, avatar_svg')
                         .eq('email', guestInfo.email.toLowerCase())
-                        .eq('wedding_id', currentWeddingSlug || guestInfo.weddingId || 'sim-kv')
+                        .eq('wedding_id', currentWeddingSlug || guestInfo.weddingId || 'simran-karanvir'
+                        )
                         .single();
 
                       if (guestData) {
@@ -634,7 +638,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .from('guests')
                 .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
                 .eq('email', guestEmail.toLowerCase())
-                .eq('wedding_id', currentWeddingSlug || 'sim-kv')
+                .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
+                )
                 .single();
 
               if (guestData) {

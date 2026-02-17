@@ -147,6 +147,7 @@ export default function OnboardingPage() {
   const [venueName, setVenueName] = useState('');
   const [venueTbd, setVenueTbd] = useState(false);
   const [dateTbd, setDateTbd] = useState(false);
+  const [isOneDay, setIsOneDay] = useState(false);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
@@ -348,15 +349,15 @@ export default function OnboardingPage() {
               couple_name: data.coupleName,
               partner1_name: data.coupleName,
               partner2_name: data.partnerName || null,
-              wedding_date: data.weddingDate ? new Date(data.weddingDate).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+              wedding_date: (data.weddingDate ? new Date(data.weddingDate).toISOString() : null) as any,
               wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
               wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
-              venue_name: data.venueName || 'TBD',
-              venue_location: data.venueName || 'TBD',
+              venue_name: (data.venueName === 'TBD' || !data.venueName) ? 'Venue Name' : data.venueName,
+              venue_location: (data.venueName === 'TBD' || !data.venueName) ? 'City, Country' : data.venueName,
               rsvp_deadline: '',
               status: 'draft',
               created_by: data.userId,
-              background_image: '/images/backgrounds/blue-clouds.jpg',
+              background_image: '/images/backgrounds/rose-quartz.png',
               primary_color: '#DE3F5E',
             });
 
@@ -853,7 +854,7 @@ export default function OnboardingPage() {
                                       slotProps={{
                                         textField: {
                                           fullWidth: true,
-                                          placeholder: "Start Date",
+                                          placeholder: "Date",
                                         },
                                         actionBar: {
                                           actions: ['cancel', 'accept'],
@@ -863,70 +864,155 @@ export default function OnboardingPage() {
                                               fontWeight: 700,
                                             }
                                           }
-                                        }
-                                      }}
-                                    />
-                                  </Box>
-                                  <Box sx={{ flex: 1 }}>
-                                    <MobileDatePicker
-                                      label=""
-                                      disabled={dateTbd}
-                                      value={weddingEndDate ? new Date(weddingEndDate) : null}
-                                      onChange={(newValue) => setWeddingEndDate(newValue ? (newValue as Date).toISOString() : '')}
-                                      enableAccessibleFieldDOMStructure={false}
-                                      slots={{
-                                        textField: StyledTextField,
-                                      }}
-                                      slotProps={{
-                                        textField: {
-                                          fullWidth: true,
-                                          placeholder: "End Date",
                                         },
-                                        actionBar: {
-                                          actions: ['cancel', 'accept'],
+                                        calendarHeader: {
                                           sx: {
-                                            '& .MuiButton-root': {
+                                            '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                                            '& .MuiSvgIcon-root': { color: '#000000' }
+                                          }
+                                        },
+                                        day: {
+                                          sx: {
+                                            color: '#000000 !important',
+                                            fontWeight: 500,
+                                            '&.Mui-selected': {
+                                              backgroundColor: '#DE3F5E !important',
+                                              color: '#ffffff !important',
+                                            },
+                                            '&.Mui-selected:hover': {
+                                              backgroundColor: '#DE3F5E !important',
+                                              opacity: 0.9,
+                                            },
+                                            '&.MuiPickersDay-today': {
+                                              borderColor: '#DE3F5E !important',
                                               color: '#DE3F5E',
-                                              fontWeight: 700,
                                             }
                                           }
                                         }
                                       }}
                                     />
                                   </Box>
-                                </Stack>
-                              </LocalizationProvider>
-                              <Stack direction="row" spacing={1} alignItems="center" onClick={() => setDateTbd(!dateTbd)} sx={{ cursor: 'pointer', mt: 1.5 }}>
-                                <Box
-                                  sx={{
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: '4px',
-                                    border: '2px solid',
-                                    borderColor: dateTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: 'transparent',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  {dateTbd && (
-                                    <Box
-                                      component="svg"
-                                      viewBox="0 0 24 24"
-                                      sx={{ width: 14, height: 14 }}
-                                    >
-                                      <path
-                                        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                        fill="#1a1a1a"
+                                  {!isOneDay && (
+                                    <Box sx={{ flex: 1 }}>
+                                      <MobileDatePicker
+                                        label=""
+                                        disabled={dateTbd}
+                                        value={weddingEndDate ? new Date(weddingEndDate) : null}
+                                        onChange={(newValue) => setWeddingEndDate(newValue ? (newValue as Date).toISOString() : '')}
+                                        enableAccessibleFieldDOMStructure={false}
+                                        slots={{
+                                          textField: StyledTextField,
+                                        }}
+                                        slotProps={{
+                                          textField: {
+                                            fullWidth: true,
+                                            placeholder: "End Date",
+                                          },
+                                          actionBar: {
+                                            actions: ['cancel', 'accept'],
+                                            sx: {
+                                              '& .MuiButton-root': {
+                                                color: '#DE3F5E',
+                                                fontWeight: 700,
+                                              }
+                                            }
+                                          },
+                                          calendarHeader: {
+                                            sx: {
+                                              '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
+                                              '& .MuiSvgIcon-root': { color: '#000000' }
+                                            }
+                                          },
+                                          day: {
+                                            sx: {
+                                              color: '#000000 !important',
+                                              fontWeight: 500,
+                                              '&.Mui-selected': {
+                                                backgroundColor: '#DE3F5E !important',
+                                                color: '#ffffff !important',
+                                              },
+                                              '&.Mui-selected:hover': {
+                                                backgroundColor: '#DE3F5E !important',
+                                                opacity: 0.9,
+                                              },
+                                              '&.MuiPickersDay-today': {
+                                                borderColor: '#DE3F5E !important',
+                                                color: '#DE3F5E',
+                                              }
+                                            }
+                                          }
+                                        }}
                                       />
                                     </Box>
                                   )}
-                                </Box>
-                                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
-                                  We haven't picked our dates (yet)
-                                </Typography>
+                                </Stack>
+                              </LocalizationProvider>
+                              <Stack direction="row" spacing={3} sx={{ mt: 1.5 }}>
+                                <Stack direction="row" spacing={1} alignItems="center" onClick={() => setIsOneDay(!isOneDay)} sx={{ cursor: 'pointer' }}>
+                                  <Box
+                                    sx={{
+                                      width: 18,
+                                      height: 18,
+                                      borderRadius: '4px',
+                                      border: '2px solid',
+                                      borderColor: isOneDay ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      bgcolor: 'transparent',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    {isOneDay && (
+                                      <Box
+                                        component="svg"
+                                        viewBox="0 0 24 24"
+                                        sx={{ width: 14, height: 14 }}
+                                      >
+                                        <path
+                                          d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                                          fill="#1a1a1a"
+                                        />
+                                      </Box>
+                                    )}
+                                  </Box>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                    One day wedding
+                                  </Typography>
+                                </Stack>
+
+                                <Stack direction="row" spacing={1} alignItems="center" onClick={() => setDateTbd(!dateTbd)} sx={{ cursor: 'pointer' }}>
+                                  <Box
+                                    sx={{
+                                      width: 18,
+                                      height: 18,
+                                      borderRadius: '4px',
+                                      border: '2px solid',
+                                      borderColor: dateTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      bgcolor: 'transparent',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    {dateTbd && (
+                                      <Box
+                                        component="svg"
+                                        viewBox="0 0 24 24"
+                                        sx={{ width: 14, height: 14 }}
+                                      >
+                                        <path
+                                          d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                                          fill="#1a1a1a"
+                                        />
+                                      </Box>
+                                    )}
+                                  </Box>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                    Dates TBD
+                                  </Typography>
+                                </Stack>
                               </Stack>
                             </Box>
                           </Stack>
@@ -952,9 +1038,8 @@ export default function OnboardingPage() {
                         endIcon={submitting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <ArrowForward />}
                         title={
                           (step === 1 && !role) ? "Please select your role" :
-                            (step === 2 && selectedFeatures.length === 0) ? "Please select at least one feature" :
-                              (step === 4 && (!coupleName || (role === 'couple' && (!partnerName || !weddingDate)))) ? "Please fill in all celebration details" :
-                                ""
+                            (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd))))) ? "Please fill in all celebration details" :
+                              ""
                         }
                         onClick={() => {
                           if (step === 1 && !role) return;

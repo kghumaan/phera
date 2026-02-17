@@ -35,6 +35,7 @@ body {
 
 html {
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 /* Ensure backgrounds cover the full viewport on all devices */

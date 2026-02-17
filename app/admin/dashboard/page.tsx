@@ -144,12 +144,12 @@ export default function AdminDashboard() {
         <motion.div variants={itemVariants}>
           <Box sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <DashboardIcon 
-                sx={{ 
-                  fontSize: 40, 
-                  color: 'primary.main', 
-                  mr: 2 
-                }} 
+              <DashboardIcon
+                sx={{
+                  fontSize: 40,
+                  color: 'primary.main',
+                  mr: 2
+                }}
               />
               <Typography
                 variant="h3"
@@ -164,18 +164,18 @@ export default function AdminDashboard() {
                 Wedding Dashboard
               </Typography>
             </Box>
-            
+
             <Typography variant="h6" color="text.secondary">
               Welcome back! Here's what's happening with your wedding planning.
             </Typography>
-            
+
             {/* Countdown */}
             <Box sx={{ mt: 2 }}>
               <Chip
                 label={`${dashboardData.daysUntilWedding} days until your special day! 💍`}
                 color="primary"
                 variant="filled"
-                sx={{ 
+                sx={{
                   fontSize: '1rem',
                   py: 2,
                   px: 1,
@@ -190,7 +190,8 @@ export default function AdminDashboard() {
         <motion.div variants={itemVariants}>
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {quickStats.map((stat, index) => (
-              <Grid item xs={12} sm={6} md={3} key={stat.title}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.title}>
+
                 <Card
                   elevation={0}
                   sx={{
@@ -240,7 +241,8 @@ export default function AdminDashboard() {
         {/* Progress Section */}
         <motion.div variants={itemVariants}>
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
+
               <Card
                 elevation={0}
                 sx={{
@@ -276,8 +278,9 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </Grid>
-            
-            <Grid item xs={12} md={6}>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
               <Card
                 elevation={0}
                 sx={{
@@ -328,14 +331,16 @@ export default function AdminDashboard() {
               Send Broadcast
             </Button>
           </Box>
-          <WhatsAppAnalytics weddingId="sim-kv" />
+          <WhatsAppAnalytics weddingId="simran-karanvir"
+          />
         </motion.div>
 
         {/* Broadcast Dialog */}
         <BroadcastForm
           open={broadcastDialogOpen}
           onClose={() => setBroadcastDialogOpen(false)}
-          weddingId="sim-kv"
+          weddingId="simran-karanvir"
+
         />
 
         {/* Quick Actions */}
@@ -345,7 +350,8 @@ export default function AdminDashboard() {
           </Typography>
           <Grid container spacing={3}>
             {quickActions.map((action, index) => (
-              <Grid item xs={12} sm={6} md={3} key={action.title}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={action.title}>
+
                 <Card
                   component={Link}
                   href={action.href}

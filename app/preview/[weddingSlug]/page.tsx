@@ -399,7 +399,7 @@ function PreviewContent() {
           hasRSVPed={true} // Preview shows all content
           user={{ id: 'preview-user' }} // Mock user for preview
           CountdownTimer={CountdownTimer}
-          headerRef={headerRef}
+          headerRef={headerRef as React.RefObject<HTMLDivElement>}
         />
       </OptimizedBackground>
     );
@@ -407,7 +407,7 @@ function PreviewContent() {
 
   return (
     <OptimizedBackground
-      src={wedding.background_image}
+      src={wedding.background_image || undefined}
       useAppDefault={!wedding.background_image}
       className="min-h-screen flex flex-col"
     >
@@ -649,7 +649,7 @@ function PreviewContent() {
                           textDecoration: 'underline',
                         }}
                       >
-                        {wedding.venue_location}
+                        {wedding.venue_name}{wedding.venue_location ? `, ${wedding.venue_location}` : ''}
                       </Typography>
                       {wedding.venue_flag && (
                         <Typography sx={{ fontSize: { md: '1.25rem', lg: '1.375rem', xl: '1.5rem' } }}>

@@ -444,6 +444,31 @@ export class WeddingService {
     return true;
   }
 
+  async reorderScheduleItems(items: { id: string; order_index: number }[]): Promise<boolean> {
+    try {
+      // Use individual updates to reorder items
+      const updates = items.map(item =>
+        this.supabase
+          .from('schedule_items')
+          .update({ order_index: item.order_index })
+          .eq('id', item.id)
+      );
+
+      const results = await Promise.all(updates);
+      const hasError = results.some(r => r.error);
+
+      if (hasError) {
+        console.error('Error reordering schedule items');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error in reorderScheduleItems:', err);
+      return false;
+    }
+  }
+
   // Travel Cards
   async getTravelCards(weddingId: string): Promise<WeddingTravelCard[]> {
     const { data, error } = await this.supabase
@@ -1061,20 +1086,25 @@ export class WeddingService {
     }
   }
 
-  // Prepopulate schedule from sim-kv wedding template
+  // Prepopulate schedule from simran-karanvir wedding template
+
   async prepopulateScheduleFromTemplate(weddingId: string, weddingDateStart: Date, weddingDateEnd: Date | null): Promise<boolean> {
     try {
-      console.log('🎯 Prepopulating schedule from sim-kv template...');
+      console.log('🎯 Prepopulating schedule from simran-karanvir template...');
 
-      // Get wedding info for sim-kv (our template wedding)
+
+      // Get wedding info for simran-karanvir (our template wedding)
+
       const { data: templateWedding, error: weddingError } = await this.supabase
         .from('weddings')
         .select('id')
-        .eq('slug', 'sim-kv')
+        .eq('slug', 'simran-karanvir')
         .single();
 
+
       if (weddingError || !templateWedding) {
-        console.error('Template wedding sim-kv not found');
+        console.error('Template wedding simran-karanvir not found');
+
         return false;
       }
 
@@ -1118,21 +1148,37 @@ export class WeddingService {
         return false;
       }
 
-      // Calculate date offset (template wedding was Jan 4-6, 2025)
-      const templateStartDate = new Date('2025-01-04');
-      const dayOffset = Math.floor((weddingDateStart.getTime() - templateStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      // Calculate actual duration in days
+      const durationInDays = weddingDateEnd
+        ? Math.max(1, Math.ceil((weddingDateEnd.getTime() - weddingDateStart.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+        : 1;
+
+      console.log(`📊 Wedding duration: ${durationInDays} days`);
 
       // Create events for the new wedding (cloning from template)
       const eventIdMapping: Record<string, string> = {};
 
       for (const event of (templateEvents || [])) {
+        // If 1-day wedding, only include the most critical events (Anand Karaj/Wedding, Reception)
+        if (durationInDays === 1) {
+          const lowerName = event.name.toLowerCase();
+          if (!lowerName.includes('wedding') && !lowerName.includes('anand karaj') && !lowerName.includes('reception')) {
+            continue;
+          }
+        }
+
+        // If 2-day wedding, maybe skip the earliest pre-wedding day (Day 1 of 3)
+        // For simplicity and since we don't know exactly which events are on which days in the template,
+        // we'll filter schedule days first and then only link events that have matching items.
+        // But we'll clone all events for now to ensure they are available to be linked.
+
         const newEvent: TablesInsert<'wedding_events'> = {
           wedding_id: weddingId,
           name: event.name,
           slug: event.slug,
-          date: event.date ?? '', // Ensure non-nullable string
+          date: event.date ?? '',
           time: event.time,
-          dress_code: event.dress_code ?? '', // Ensure non-nullable string
+          dress_code: event.dress_code ?? '',
           dress_code_icon: event.dress_code_icon,
           dress_code_description: event.dress_code_description,
           outfit_ideas_women: event.outfit_ideas_women,
@@ -1155,7 +1201,10 @@ export class WeddingService {
       // Create schedule days for the new wedding
       const scheduleIdMapping: Record<string, string> = {};
 
-      for (const day of (templateSchedule || [])) {
+      // Filter template schedule based on user's duration
+      const filteredTemplateSchedule = (templateSchedule || []).slice(0, durationInDays);
+
+      for (const day of filteredTemplateSchedule) {
         // Adjust date relative to new wedding date
         const adjustedDate = new Date(weddingDateStart);
         adjustedDate.setDate(adjustedDate.getDate() + day.order_index);

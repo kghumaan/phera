@@ -121,12 +121,48 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
 
   // Main site customization state
-  const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.PEARL);
+  const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.ROSE_QUARTZ);
+
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
   const [websiteLayout, setWebsiteLayout] = useState<'nested' | 'infinite_scroll'>('nested');
   const [welcomeText, setWelcomeText] = useState("Come celebrate with us under the stars. A little romance, a lot of partying. You won't want to miss it.");
   const [activeTab, setActiveTab] = useState(0);
+
+  const [initialDesignData, setInitialDesignData] = useState<any>(null);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Track dirty state
+  useEffect(() => {
+    if (initialDesignData) {
+      const currentData = {
+        pin_entry_text: pinEntryText,
+        pin_entry_subtitle_text: pinEntrySubtitleText,
+        pin_entry_background: pinEntryBackground,
+        pin_entry_primary_color: pinEntryPrimaryColor,
+        pin_entry_font_color: pinEntryFontColor,
+        pin_entry_button_font_color: pinEntryButtonFontColor,
+        background_image: mainBackground,
+        primary_color: mainPrimaryColor,
+        website_layout: websiteLayout,
+        welcome_text: welcomeText,
+      };
+      setIsDirty(JSON.stringify(currentData) !== JSON.stringify(initialDesignData));
+    }
+  }, [
+    pinEntryText,
+    pinEntrySubtitleText,
+    pinEntryBackground,
+    pinEntryPrimaryColor,
+    pinEntryFontColor,
+    pinEntryButtonFontColor,
+    mainBackground,
+    mainPrimaryColor,
+    websiteLayout,
+    welcomeText,
+    initialDesignData
+  ]);
+
 
   // Background pagination state
   const [visibleMainBgs, setVisibleMainBgs] = useState(8);
@@ -264,12 +300,27 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         welcome_text: welcomeText,
       });
 
+      setInitialDesignData({
+        pin_entry_text: pinEntryText,
+        pin_entry_subtitle_text: pinEntrySubtitleText,
+        pin_entry_background: pinBackgroundToUse,
+        pin_entry_primary_color: pinEntryPrimaryColor,
+        pin_entry_font_color: pinEntryFontColor,
+        pin_entry_button_font_color: pinEntryButtonFontColor,
+        background_image: mainBackgroundToUse,
+        primary_color: mainPrimaryColor,
+        website_layout: websiteLayout,
+        welcome_text: welcomeText,
+      });
+
       setSuccess(true);
       setShowSaveSuccess(true);
+      setIsDirty(false);
       setTimeout(() => {
         setSuccess(false);
         setShowSaveSuccess(false);
       }, 2500);
+
     } catch (err) {
       console.error('Error saving pin entry settings:', err);
       const errorMessage = 'Failed to save pin entry settings';
@@ -295,14 +346,46 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   return (
     <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Look & Feel
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
-            Customize the colors, backgrounds, and overall design of your wedding website
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Look & Feel
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+              Customize the colors, backgrounds, and overall design of your wedding website
+            </Typography>
+          </Box>
+          {isDirty && (
+            <Button
+              variant="contained"
+              startIcon={showSaveSuccess ? <Check /> : <Save />}
+              onClick={handleSave}
+              disabled={saving || showSaveSuccess}
+              sx={{
+                bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                px: 3,
+                py: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+
+                boxShadow: showSaveSuccess
+                  ? '0 4px 12px rgba(16, 185, 129, 0.4)'
+                  : '0 4px 12px rgba(222, 63, 94, 0.3)',
+                '&:hover': {
+                  bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
+                  boxShadow: showSaveSuccess
+                    ? '0 6px 16px rgba(16, 185, 129, 0.5)'
+                    : '0 6px 16px rgba(222, 63, 94, 0.4)',
+                },
+              }}
+            >
+              {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Look & Feel'}
+            </Button>
+          )}
         </Box>
+
 
         <Box>
           <Box>
@@ -870,60 +953,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         </Box>
 
 
-        {/* Save Button */}
-        <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={showSaveSuccess ? <Check /> : <Save />}
-            onClick={handleSave}
-            disabled={saving}
-            sx={{
-              bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-              color: 'white',
-              py: 1.5,
-              px: 4,
-              borderRadius: '12px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'none',
-              boxShadow: showSaveSuccess
-                ? '0 4px 12px rgba(16, 185, 129, 0.4)'
-                : '0 4px 12px rgba(222, 63, 94, 0.3)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                boxShadow: showSaveSuccess
-                  ? '0 6px 16px rgba(16, 185, 129, 0.5)'
-                  : '0 6px 16px rgba(222, 63, 94, 0.4)',
-              },
-              '&:disabled': {
-                bgcolor: 'rgba(222, 63, 94, 0.5)',
-              },
-            }}
-          >
-            {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Settings'}
-          </Button>
 
-          {/* Success message below button */}
-          <Fade in={showSaveSuccess}>
-            <Typography
-              variant="caption"
-              sx={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                mt: 1,
-                color: '#10B981',
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Settings saved successfully!
-            </Typography>
-          </Fade>
-        </Box>
 
         {/* Toast Notification */}
         <Snackbar

@@ -1532,11 +1532,41 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
   // ── Pro view — chat interface ───────────────────────────────────────────────
 
   return (
-    <Box sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
+    <Container maxWidth="xl" sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', pb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, pt: 1 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Build with AI
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            Answer a few questions and watch your wedding website come to life
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Check />}
+          disabled
+          sx={{
+            bgcolor: '#10B981 !important',
+            color: 'white !important',
+            borderRadius: '12px',
+            px: 3,
+            py: 1.5,
+
+            textTransform: 'none',
+            fontWeight: 600,
+            opacity: '0.9 !important',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+          }}
+        >
+          All Changes Saved
+        </Button>
+      </Box>
+
       <Box
         sx={{
           flex: 1,
-          borderRadius: '8px',
+          borderRadius: '16px',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -1546,6 +1576,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
           borderColor: alpha('#000', 0.12),
         }}
       >
+
         {/* Messages */}
         <Box sx={{ flex: 1, overflowY: 'auto', px: 4, py: 4, display: 'flex', flexDirection: 'column' }}>
           {messages.map(m => <Bubble key={m.id} message={m} />)}
@@ -1614,6 +1645,9 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
           </IconButton>
         </Box>
       </Box>
-    </Box>
+    </Container>
   );
 }
+
+
+

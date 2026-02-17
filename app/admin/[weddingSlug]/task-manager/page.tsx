@@ -20,7 +20,9 @@ import {
   Add,
   Close,
   DragIndicator,
+  LocalOfferOutlined,
 } from '@mui/icons-material';
+import { Chip } from '@mui/material';
 import {
   DndContext,
   DragOverlay,
@@ -54,6 +56,7 @@ interface Task {
   title: string;
   description?: string;
   column: Column;
+  tags?: string[];
 }
 
 // ─── Default tasks ────────────────────────────────────────────────────────────
@@ -61,9 +64,9 @@ interface Task {
 const defaultTasks: Task[] = [];
 
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
-  { id: 'todo',  label: 'To Do',  color: '#5C6BC0', bg: '#EEF0FC' },
-  { id: 'doing', label: 'Doing',  color: '#E6890A', bg: '#FFF4E0' },
-  { id: 'done',  label: 'Done',   color: '#2E7D32', bg: '#E8F5E9' },
+  { id: 'todo', label: 'To Do', color: '#5C6BC0', bg: '#EEF0FC' },
+  { id: 'doing', label: 'Doing', color: '#E6890A', bg: '#FFF4E0' },
+  { id: 'done', label: 'Done', color: '#2E7D32', bg: '#E8F5E9' },
 ];
 
 // ─── Task Card ────────────────────────────────────────────────────────────────
@@ -86,48 +89,72 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
       sx={{
         p: 1.5,
         mb: 1,
-        borderRadius: 2,
+        borderRadius: '8px',
         border: '1px solid rgba(0,0,0,0.07)',
         bgcolor: isDragging ? 'rgba(0,0,0,0.03)' : 'white',
         opacity: isDragging ? 0.4 : 1,
         display: 'flex',
-        gap: 1,
-        alignItems: 'flex-start',
+        flexDirection: 'column',
+        gap: 0.5,
         cursor: 'grab',
         '&:active': { cursor: 'grabbing' },
         '&:hover .task-actions': { opacity: 1 },
       }}
     >
-      {/* Drag handle */}
-      <Box
-        {...attributes}
-        {...listeners}
-        sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, '&:hover': { color: '#999' } }}
-      >
-        <DragIndicator sx={{ fontSize: 16 }} />
-      </Box>
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
+        {/* Drag handle */}
+        <Box
+          {...attributes}
+          {...listeners}
+          sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, '&:hover': { color: '#999' } }}
+        >
+          <DragIndicator sx={{ fontSize: 16 }} />
+        </Box>
 
-      {/* Content */}
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
-          {task.title}
-        </Typography>
-        {task.description && (
-          <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
-            {task.description}
+        {/* Content */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
+            {task.title}
           </Typography>
-        )}
+          {task.description && (
+            <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+              {task.description}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Delete */}
+        <IconButton
+          className="task-actions"
+          size="small"
+          onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+          sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: '#bbb', '&:hover': { color: '#DE3F5E' } }}
+        >
+          <Close sx={{ fontSize: 14 }} />
+        </IconButton>
       </Box>
 
-      {/* Delete */}
-      <IconButton
-        className="task-actions"
-        size="small"
-        onClick={() => onDelete(task.id)}
-        sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: '#bbb', '&:hover': { color: '#DE3F5E' } }}
-      >
-        <Close sx={{ fontSize: 14 }} />
-      </IconButton>
+      {/* Tags */}
+      {task.tags && task.tags.length > 0 && (
+        <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
+          {task.tags.map((tag) => (
+            <Chip
+              key={tag}
+              label={tag}
+              size="small"
+              sx={{
+                height: 18,
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                bgcolor: alpha('#DE3F5E', 0.08),
+                color: '#DE3F5E',
+                border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
+                '& .MuiChip-label': { px: 0.8 }
+              }}
+            />
+          ))}
+        </Stack>
+      )}
     </Paper>
   );
 }
@@ -139,29 +166,51 @@ function TaskCardStatic({ task }: { task: Task }) {
       elevation={3}
       sx={{
         p: 1.5,
-        borderRadius: 2,
+        borderRadius: '8px',
         border: '1px solid rgba(0,0,0,0.07)',
         bgcolor: 'white',
         display: 'flex',
-        gap: 1,
-        alignItems: 'flex-start',
+        flexDirection: 'column',
+        gap: 0.5,
         cursor: 'grabbing',
         boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
       }}
     >
-      <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}>
-        <DragIndicator sx={{ fontSize: 16 }} />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
-          {task.title}
-        </Typography>
-        {task.description && (
-          <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
-            {task.description}
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
+        <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}>
+          <DragIndicator sx={{ fontSize: 16 }} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
+            {task.title}
           </Typography>
-        )}
+          {task.description && (
+            <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+              {task.description}
+            </Typography>
+          )}
+        </Box>
       </Box>
+      {task.tags && task.tags.length > 0 && (
+        <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
+          {task.tags.map((tag) => (
+            <Chip
+              key={tag}
+              label={tag}
+              size="small"
+              sx={{
+                height: 18,
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                bgcolor: alpha('#DE3F5E', 0.08),
+                color: '#DE3F5E',
+                border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
+                '& .MuiChip-label': { px: 0.8 }
+              }}
+            />
+          ))}
+        </Stack>
+      )}
     </Paper>
   );
 }
@@ -173,22 +222,26 @@ function KanbanColumn({
   tasks,
   onDelete,
   onAdd,
+  availableTags,
 }: {
   col: typeof COLUMNS[number];
   tasks: Task[];
   onDelete: (id: string) => void;
-  onAdd: (column: Column, title: string, description?: string) => void;
+  onAdd: (column: Column, title: string, description?: string, tags?: string[]) => void;
+  availableTags: string[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.id });
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
-    onAdd(col.id, newTitle.trim(), newDesc.trim() || undefined);
+    onAdd(col.id, newTitle.trim(), newDesc.trim() || undefined, selectedTags.length > 0 ? selectedTags : undefined);
     setNewTitle('');
     setNewDesc('');
+    setSelectedTags([]);
     setAdding(false);
   };
 
@@ -198,7 +251,7 @@ function KanbanColumn({
         flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
         bgcolor: '#F8F8F8',
         border: '1px solid rgba(0,0,0,0.07)',
-        borderRadius: 3,
+        borderRadius: '12px',
         p: 2,
       }}
     >
@@ -243,7 +296,7 @@ function KanbanColumn({
         {adding ? (
           <Paper
             elevation={0}
-            sx={{ p: 1.5, borderRadius: 2, border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}
+            sx={{ p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}
           >
             <TextField
               autoFocus
@@ -266,6 +319,36 @@ function KanbanColumn({
               InputProps={{ disableUnderline: true }}
               sx={{ mb: 1.5, '& input': { fontSize: '0.775rem', color: '#7a7a7a' } }}
             />
+
+            {/* Tag Selection */}
+            <Box sx={{ mb: 2 }}>
+              <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <LocalOfferOutlined sx={{ fontSize: 10 }} /> Tags
+              </Typography>
+              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ gap: 0.5 }}>
+                {availableTags.map(tag => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      size="small"
+                      onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                      sx={{
+                        height: 22,
+                        fontSize: '0.7rem',
+                        cursor: 'pointer',
+                        bgcolor: isSelected ? alpha('#DE3F5E', 0.1) : 'rgba(0,0,0,0.03)',
+                        color: isSelected ? '#DE3F5E' : '#666',
+                        border: `1px solid ${isSelected ? alpha('#DE3F5E', 0.2) : 'transparent'}`,
+                        '&:hover': { bgcolor: isSelected ? alpha('#DE3F5E', 0.15) : 'rgba(0,0,0,0.06)' },
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            </Box>
+
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 size="small"
@@ -274,7 +357,7 @@ function KanbanColumn({
                 disabled={!newTitle.trim()}
                 sx={{
                   bgcolor: col.color, color: 'white', textTransform: 'none',
-                  fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: 1.5,
+                  fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px',
                   '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' },
                 }}
               >
@@ -290,7 +373,7 @@ function KanbanColumn({
             onClick={() => setAdding(true)}
             sx={{
               display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75,
-              borderRadius: 1.5, cursor: 'pointer', color: '#9a9a9a',
+              borderRadius: '8px', cursor: 'pointer', color: '#9a9a9a',
               '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' },
             }}
           >
@@ -332,7 +415,7 @@ function MockBoard() {
               </Box>
             </Box>
             {tasks.map(task => (
-              <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: 2, border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white' }}>
+              <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white' }}>
                 <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
                 {task.description && (
                   <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>
@@ -348,12 +431,32 @@ function MockBoard() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+import { useEffect } from 'react';
+import { weddingService } from '@/lib/supabase/wedding-service';
+
 export default function TaskManagerPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(defaultTasks);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>(['Vendors', 'Guests', 'RSVPs']);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+        if (wedding) {
+          const events = await weddingService.getWeddingEvents(wedding.id);
+          const eventNames = events.map(e => e.name);
+          setAvailableTags(prev => Array.from(new Set([...prev, ...eventNames])));
+        }
+      } catch (err) {
+        console.error('Error fetching events for tags:', err);
+      }
+    };
+    fetchEvents();
+  }, [weddingSlug]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -403,12 +506,13 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     setTasks(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const handleAdd = useCallback((column: Column, title: string, description?: string) => {
+  const handleAdd = useCallback((column: Column, title: string, description?: string, tags?: string[]) => {
     setTasks(prev => [...prev, {
       id: `task-${Date.now()}`,
       title,
       description,
       column,
+      tags,
     }]);
   }, []);
 
@@ -435,7 +539,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               onClick={() => setUpgradeModalOpen(true)}
               sx={{
                 bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25,
-                borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                borderRadius: '12px', fontWeight: 600, textTransform: 'none',
                 fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' },
               }}
             >
@@ -464,7 +568,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
           </Box>
 
           {/* Blurred mock board */}
-          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', borderRadius: '12px', overflow: 'hidden' }}>
             <Box sx={{ filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
               <MockBoard />
             </Box>
@@ -492,7 +596,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
                 onClick={() => setUpgradeModalOpen(true)}
                 sx={{
                   bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5,
-                  borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                  borderRadius: '12px', fontWeight: 600, textTransform: 'none',
                   fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
                   '&:hover': { bgcolor: '#c73552' },
                 }}
@@ -532,7 +636,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
                 disabled
                 sx={{
                   borderColor: '#DE3F5E', color: '#DE3F5E', px: 2.5, py: 1,
-                  borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.9rem',
+                  borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem',
                   '&.Mui-disabled': { borderColor: '#DE3F5E80', color: '#DE3F5E80' },
                 }}
               >
@@ -558,6 +662,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
                 tasks={tasks.filter(t => t.column === col.id)}
                 onDelete={handleDelete}
                 onAdd={handleAdd}
+                availableTags={availableTags}
               />
             ))}
           </Box>

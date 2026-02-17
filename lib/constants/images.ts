@@ -153,8 +153,8 @@ export const BRAND_ASSETS = {
 // Default combinations for common use cases
 export const DEFAULT_COMBINATIONS = {
   MAIN_BACKGROUND: {
-    // Using blue-clouds background as the main default
-    background: BACKGROUNDS.BLUE_CLOUDS,
+    // Using Rose Quartz background as the main default
+    background: BACKGROUNDS.ROSE_QUARTZ,
   },
   GUEST_BACKGROUND: {
     // Alternative background for variety
@@ -201,8 +201,9 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
 export const APP_BACKGROUND_CONFIG = {
   // Current default - can be changed here to affect entire app
   default: {
-    background: BACKGROUNDS.BLUE_CLOUDS,
+    background: BACKGROUNDS.WATERCOLOR_BLUE_SKY,
   },
+
 
   // Alternative configurations for different contexts
   variants: {

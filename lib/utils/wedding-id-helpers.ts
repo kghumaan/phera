@@ -17,9 +17,10 @@ export function getCurrentWeddingId(): string {
       }
     }
   }
-  // Default to sim-kv if no wedding ID is found in path
-  return 'sim-kv';
+  // Default to simran-karanvir if no wedding ID is found in path
+  return 'simran-karanvir';
 }
+
 
 // Check if we're on the landing page
 export function isOnLandingPage(): boolean {
@@ -37,7 +38,7 @@ export function isOnWeddingRoute(): boolean {
   if (isOnLandingPage()) {
     return false;
   }
-  
+
   if (typeof window !== 'undefined') {
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     // If we have a path segment that's not a common route, we're likely on a wedding route
@@ -57,5 +58,5 @@ export function isOnWeddingRoute(): boolean {
 
 // Get the fallback wedding ID (for backward compatibility)
 export function getFallbackWeddingId(): string {
-  return 'sim-kv';
+  return 'simran-karanvir';
 }

@@ -56,9 +56,9 @@ export async function signInWithPhone(phone: string): Promise<AuthResult> {
     return { success: true }
   } catch (error) {
     console.error('Phone sign in error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to send verification code' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send verification code'
     }
   }
 }
@@ -88,9 +88,9 @@ export async function verifyOTP(phone: string, token: string): Promise<AuthResul
     }
   } catch (error) {
     console.error('OTP verification error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to verify code' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to verify code'
     }
   }
 }
@@ -99,9 +99,9 @@ export async function verifyOTP(phone: string, token: string): Promise<AuthResul
 export async function getCurrentUser(): Promise<AuthResult> {
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
-    
+
     console.log('getCurrentUser: Checking session...', { user: user?.email, error });
-    
+
     if (!user) {
       console.log('getCurrentUser: No user session found');
       return { success: false, error: 'No user session found' }
@@ -117,9 +117,10 @@ export async function getCurrentUser(): Promise<AuthResult> {
         .from('guests')
         .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
         .eq('email', user.email.toLowerCase())
-        .eq('wedding_id', 'sim-kv')
+        .eq('wedding_id', 'simran-karanvir'
+        )
         .single();
-      
+
       console.log('getCurrentUser: Guest lookup result:', { guest, guestError });
       guestData = guest;
     }
@@ -145,7 +146,8 @@ export async function getCurrentUser(): Promise<AuthResult> {
           )
         `)
         .eq('plus_one_email', user.email.toLowerCase())
-        .eq('wedding_id', 'sim-kv')
+        .eq('wedding_id', 'simran-karanvir'
+        )
         .single();
 
       console.log('getCurrentUser: Plus-one lookup result:', { rsvpData, rsvpError });
@@ -183,9 +185,9 @@ export async function getCurrentUser(): Promise<AuthResult> {
     return result;
   } catch (error) {
     console.error('getCurrentUser: Error occurred:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to get user session' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get user session'
     }
   }
 }
@@ -193,7 +195,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
 // Sign out
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
-} 
+}
 
 // Validate if email exists in guests table or as plus one before sending magic link
 export async function validateEmailExists(email: string): Promise<{ exists: boolean; guest?: any; isPlusOne?: boolean; mainGuest?: any }> {
@@ -203,7 +205,8 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
       .from('guests')
       .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
       .eq('email', email.trim().toLowerCase())
-      .eq('wedding_id', 'sim-kv')
+      .eq('wedding_id', 'simran-karanvir'
+      )
       .single();
 
     if (guest) {
@@ -233,7 +236,8 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
         )
       `)
       .eq('plus_one_email', email.trim().toLowerCase())
-      .eq('wedding_id', 'sim-kv')
+      .eq('wedding_id', 'simran-karanvir'
+      )
       .single();
 
     if (rsvpData && rsvpData.plus_one_email) {
@@ -303,9 +307,9 @@ export async function sendEmailOTP(email: string): Promise<AuthResult> {
     return { success: true };
   } catch (error) {
     console.error('Send email OTP error:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to send email OTP' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send email OTP'
     };
   }
 }
@@ -321,9 +325,9 @@ export async function verifyEmailOTP(email: string, token: string): Promise<Auth
 
     if (error) {
       console.error('Email OTP verification error:', error);
-      return { 
-        success: false, 
-        error: error.message === 'Invalid OTP' ? 'Invalid or expired code. Please try again.' : error.message 
+      return {
+        success: false,
+        error: error.message === 'Invalid OTP' ? 'Invalid or expired code. Please try again.' : error.message
       };
     }
 
@@ -334,15 +338,15 @@ export async function verifyEmailOTP(email: string, token: string): Promise<Auth
       };
     }
 
-    return { 
+    return {
       success: true
       // Note: user will be handled by the auth context after verification
     };
   } catch (error) {
     console.error('Verify email OTP error:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to verify code' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to verify code'
     };
   }
 }
