@@ -212,7 +212,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     'Event Preferences',
     'Personal Details',
     'Fun & Messages',
-    'Phera Concierge',
   ] : [
     'Basic Information',
     'Account Creation',
@@ -220,7 +219,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     'Event Preferences',
     'Personal Details',
     'Fun & Messages',
-    'Phera Concierge',
   ];
 
   // Fetch existing RSVP data when component mounts and user is authenticated
@@ -253,12 +251,21 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
           } else {
             console.log('CustomRSVPForm: No existing RSVP found, starting fresh');
             // Pre-fill user info if available
-            if (user.name) {
+            // Only use user.name as a name if it doesn't look like an email address
+            const nameIsEmail = user.name && user.name.includes('@');
+            if (user.name && !nameIsEmail) {
               const nameParts = user.name.split(' ');
               setFormData(prev => ({
                 ...prev,
                 firstName: nameParts[0] || '',
                 lastName: nameParts.slice(1).join(' ') || '',
+                email: user.email,
+                phone: user.phone || '',
+              }));
+            } else {
+              // Only pre-fill email and phone, leave name fields empty
+              setFormData(prev => ({
+                ...prev,
                 email: user.email,
                 phone: user.phone || '',
               }));
@@ -314,10 +321,12 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
           }
         }
 
-        // If user is authenticated and on Basic Info or Account Creation step, 
-        // move them to Attendance Details
-        if (currentStep <= accountStepIndex) {
-          console.log('User authenticated, advancing to Attendance Details step');
+        // Only auto-advance if returning from OAuth redirect (saved form progress existed)
+        // Otherwise, always start at step 0 so users fill in Basic Info first
+        const hadSavedProgress = localStorage.getItem('phera_rsvp_oauth_returned');
+        if (hadSavedProgress && currentStep <= accountStepIndex) {
+          console.log('User returning from OAuth, advancing to Attendance Details step');
+          localStorage.removeItem('phera_rsvp_oauth_returned');
           setCurrentStep(attendanceStepIndex);
         }
       }
@@ -465,6 +474,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
         step: currentStep, // Save current step (Account Creation)
       };
       localStorage.setItem('phera_rsvp_form_progress', JSON.stringify(formProgress));
+      localStorage.setItem('phera_rsvp_oauth_returned', 'true');
 
       // Build callback URL that returns to RSVP page
       const callbackUrl = new URL('/auth/callback', window.location.origin);
@@ -584,6 +594,15 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     }
 
     if (validateStep(currentStep)) {
+      // If the user just completed Basic Info and is already authenticated,
+      // skip the Account Creation step entirely
+      if (currentStepName === 'Basic Information' && isAuthenticated) {
+        const attendanceStepIndex = steps.indexOf('Attendance Details');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setCurrentStep(attendanceStepIndex);
+        return;
+      }
+
       // Reset zoom and scroll position
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => {
@@ -629,14 +648,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
           await checkRSVPStatus(true);
         }, 1000);
 
-        // For 'yes' guests, the Concierge step is now part of the form steps
-        // For 'no' and 'maybe' guests, we go directly to the success screen
-        if (formData.attending === 'yes') {
-          // Move to next step (Phera Concierge) rather than showing separate screen
-          setCurrentStep(currentStep + 1);
-        } else {
-          setIsSubmitted(true);
-        }
+        setIsSubmitted(true);
       } else {
         throw new Error('Failed to submit RSVP');
       }
@@ -1072,7 +1084,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DAA520',
+                      borderColor: '#DE3F5E',
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -1117,7 +1129,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DAA520',
+                      borderColor: '#DE3F5E',
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -1163,7 +1175,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     borderColor: 'rgba(0, 0, 0, 0.4)',
                   },
                   '&:focus-within': {
-                    borderColor: '#DAA520',
+                    borderColor: '#DE3F5E',
                     borderWidth: '2px',
                     padding: { xs: '11px 11px', md: '13px 15px' },
                   },
@@ -1334,7 +1346,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         borderColor: 'rgba(0, 0, 0, 0.4)',
                       },
                       '&:focus-within': {
-                        borderColor: '#DAA520',
+                        borderColor: '#DE3F5E',
                         borderWidth: '2px',
                         padding: { xs: '11px 11px', md: '13px 15px' },
                       },
@@ -1379,7 +1391,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         borderColor: 'rgba(0, 0, 0, 0.4)',
                       },
                       '&:focus-within': {
-                        borderColor: '#DAA520',
+                        borderColor: '#DE3F5E',
                         borderWidth: '2px',
                         padding: { xs: '11px 11px', md: '13px 15px' },
                       },
@@ -1596,7 +1608,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                               borderColor: 'rgba(0, 0, 0, 0.4)',
                             },
                             '&:focus-within': {
-                              borderColor: '#DAA520',
+                              borderColor: '#DE3F5E',
                               borderWidth: '2px',
                               padding: '7px 11px',
                             },
@@ -1810,7 +1822,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   borderColor: 'rgba(0, 0, 0, 0.4)',
                                 },
                                 '&:focus-within': {
-                                  borderColor: '#DAA520',
+                                  borderColor: '#DE3F5E',
                                   borderWidth: '2px',
                                   padding: { xs: '11px 11px', md: '13px 15px' },
                                 },
@@ -1857,7 +1869,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   borderColor: 'rgba(0, 0, 0, 0.4)',
                                 },
                                 '&:focus-within': {
-                                  borderColor: '#DAA520',
+                                  borderColor: '#DE3F5E',
                                   borderWidth: '2px',
                                   padding: { xs: '11px 11px', md: '13px 15px' },
                                 },
@@ -1901,7 +1913,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 borderColor: 'rgba(0, 0, 0, 0.4)',
                               },
                               '&:focus-within': {
-                                borderColor: '#DAA520',
+                                borderColor: '#DE3F5E',
                                 borderWidth: '2px',
                                 padding: { xs: '11px 11px', md: '13px 15px' },
                               },
@@ -1947,7 +1959,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 borderColor: 'rgba(0, 0, 0, 0.4)',
                               },
                               '&:focus-within': {
-                                borderColor: '#DAA520',
+                                borderColor: '#DE3F5E',
                                 borderWidth: '2px',
                                 padding: '5px 7px',
                               },
@@ -2298,7 +2310,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DAA520',
+                      borderColor: '#DE3F5E',
                       borderWidth: '2px',
                       padding: '15px 11px',
                     },
@@ -2481,7 +2493,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DAA520',
+                      borderColor: '#DE3F5E',
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -2551,7 +2563,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DAA520',
+                      borderColor: '#DE3F5E',
                       borderWidth: '2px',
                       padding: '7px 11px',
                     },
@@ -2661,95 +2673,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               </Box>
             </Box>
           </Stack>
-        );
-
-      case 'Phera Concierge':
-        return (
-          <Stack spacing={3}>
-            {/* Header */}
-            <Box sx={{ textAlign: 'left' }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ justifyContent: 'center', mb: 1, width: '100%' }}>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontStyle: 'italic',
-                    color: '#1a1a1a',
-                    fontWeight: 500,
-                  }}
-                >
-                  One Last Step!
-                </Typography>
-                <StreamlineIcon name="party-popper" size={32} />
-              </Stack>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontFamily: 'Outfit',
-                  color: '#808080 !important',
-                  lineHeight: 1.6,
-                  mb: 3,
-                }}
-              >
-                The couple has set up a 24/7 Concierge service via WhatsApp — ask any questions, get live updates, plus more!
-              </Typography>
-            </Box>
-
-            {/* How to register */}
-            <Box sx={{
-              backgroundColor: 'rgba(37, 211, 102, 0.08)',
-              border: '1px solid rgba(37, 211, 102, 0.2)',
-              p: 2.5,
-              borderRadius: '16px',
-              mb: 1,
-            }}>
-              <Typography variant="body1" sx={{ fontFamily: 'Outfit', color: '#474747', lineHeight: 1.6 }}>
-                <strong>📱 How to register:</strong> Send us a message on WhatsApp to opt in and start using Phera Concierge.
-              </Typography>
-            </Box>
-
-            {/* Action buttons */}
-            <Stack spacing={2}>
-              <Button
-                variant="contained"
-                fullWidth
-                href="https://wa.me/15558397813?text=Sign%20me%20up%20for%20Phera%20Concierge%20service!"
-                target="_blank"
-                startIcon={<StreamlineIcon name="whatsapp" size={28} />}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  py: 1.8,
-                  borderRadius: '16px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  fontFamily: 'Outfit',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    bgcolor: '#C8365A',
-                    boxShadow: 'none',
-                  },
-                }}
-              >
-                Open WhatsApp
-              </Button>
-
-              <Typography
-                variant="body2"
-                sx={{
-                  textAlign: 'left',
-                  color: '#808080',
-                  fontFamily: 'Outfit',
-                  fontSize: '0.9rem',
-                  lineHeight: 1.5,
-                  mt: 0.5,
-                }}
-              >
-                After sending the message, tap "Done" at the bottom to complete your RSVP.
-              </Typography>
-            </Stack>
-          </Stack >
         );
 
       default:
@@ -2864,33 +2787,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </IconButton>
           )}
 
-          {steps[currentStep] === 'Phera Concierge' ? (
-            // On Concierge step - show "Done" button that completes the flow
-            <Button
-              onClick={async () => {
-                await checkRSVPStatus(true);
-                setIsSubmitted(true);
-              }}
-              variant="contained"
-              sx={{
-                flex: 1,
-                height: { xs: 44, sm: 48, md: 56 },
-                backgroundColor: '#DE3F5E',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: { xs: '0.9rem', md: '1.1rem' },
-                borderRadius: '16px',
-                textTransform: 'uppercase',
-                letterSpacing: '6.25%',
-                fontFamily: 'Outfit',
-                '&:hover': {
-                  backgroundColor: '#C8365A',
-                },
-              }}
-            >
-              Done
-            </Button>
-          ) : (steps[currentStep] === 'Fun & Messages' || (steps[currentStep] === 'Attendance Details' && formData.attending === 'no')) ? (
+          {(steps[currentStep] === 'Fun & Messages' || (steps[currentStep] === 'Attendance Details' && formData.attending === 'no')) ? (
             <Button
               onClick={handleSubmit}
               variant="contained"

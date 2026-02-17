@@ -320,7 +320,7 @@ export default function ReserveTransportation({
             lineHeight: 1.7,
           }}
         >
-          Your transportation request has been submitted. The couple will review all reservations and confirm your spot soon.
+          Your transportation request has been submitted.
         </Typography>
         <Alert
           severity="info"
@@ -328,12 +328,13 @@ export default function ReserveTransportation({
           sx={{
             maxWidth: 400,
             borderRadius: 2,
+            color: '#1a1a1a',
             bgcolor: alpha(primaryColor, 0.05),
             border: `1px solid ${alpha(primaryColor, 0.2)}`,
             '& .MuiAlert-icon': { color: primaryColor },
           }}
         >
-          This reservation is not final until confirmed by the couple.
+          This reservation is not final until confirmed by the planner. Please stay tuned for a confirmation alert.
         </Alert>
         {onClose && (
           <Button
@@ -342,7 +343,9 @@ export default function ReserveTransportation({
             sx={{
               mt: 4,
               bgcolor: primaryColor,
-              borderRadius: '32px',
+              width: '100%',
+              maxWidth: 400,
+              borderRadius: 1,
               px: 4,
               py: 1.5,
               textTransform: 'none',
@@ -453,7 +456,7 @@ export default function ReserveTransportation({
             elevation={0}
             sx={{
               p: 3,
-              borderRadius: 3,
+              borderRadius: 2,
               border: '1px solid',
               borderColor: 'rgba(0,0,0,0.1)',
               bgcolor: 'white',
@@ -508,7 +511,7 @@ export default function ReserveTransportation({
             elevation={0}
             sx={{
               p: 3,
-              borderRadius: 3,
+              borderRadius: 1,
               border: '1px solid',
               borderColor: 'rgba(0,0,0,0.1)',
               bgcolor: 'white',
@@ -568,7 +571,7 @@ export default function ReserveTransportation({
             bgcolor: primaryColor,
             color: 'white',
             py: 1.75,
-            borderRadius: '32px',
+            borderRadius: 1,
             textTransform: 'none',
             fontWeight: 600,
             fontSize: '1rem',
@@ -594,6 +597,7 @@ export default function ReserveTransportation({
             variant="text"
             onClick={onClose}
             sx={{
+              borderRadius: 1,
               color: '#666',
               textTransform: 'none',
             }}
@@ -861,13 +865,14 @@ function FlexibleSection({
                   sx={{
                     mb: 1,
                     p: 2,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     border: '1px solid',
                     borderColor: locationId === location.id
                       ? primaryColor
                       : 'rgba(0,0,0,0.12)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
+                    bgcolor: '#fff',
                     '&:hover': {
                       borderColor: primaryColor,
                       bgcolor: alpha(primaryColor, 0.02),
@@ -929,7 +934,8 @@ function FlexibleSection({
                       onClick={() => onTimeChange(slotStr)}
                       sx={{
                         px: 1,
-                        height: 36,
+                        height: 46,
+                        fontSize: '18px',
                         borderRadius: '18px',
                         border: '1px solid',
                         borderColor: isSelected ? primaryColor : 'rgba(0,0,0,0.15)',
@@ -966,7 +972,7 @@ function FlexibleSection({
             fontWeight: 500,
           },
           '& .MuiOutlinedInput-root': {
-            borderRadius: 2,
+            borderRadius: 1,
             '& fieldset': {
               borderColor: '#797979',
             },

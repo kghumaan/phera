@@ -290,6 +290,7 @@ export default function HomePage() {
   const [isCheckingPin, setIsCheckingPin] = useState(true);
   const [isBypassPin, setIsBypassPin] = useState(false);
 
+
   // Header visibility on scroll — use ref + DOM manipulation to avoid re-renders
   const headerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
@@ -597,8 +598,13 @@ export default function HomePage() {
             setIsBypassPin(false);
           }
         } else {
-          // No PIN verified for this wedding - need to show PIN entry
-          setIsPinVerified(false);
+          // No PIN verified for this wedding
+          // If user is authenticated, they don't need a PIN — treat as verified
+          if (user) {
+            setIsPinVerified(true);
+          } else {
+            setIsPinVerified(false);
+          }
           setIsBypassPin(false);
         }
       }

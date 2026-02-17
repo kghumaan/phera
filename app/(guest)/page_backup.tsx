@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
   Paper,
   useTheme,
   useMediaQuery,
@@ -18,9 +18,9 @@ import {
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  FavoriteOutlined, 
-  LocationOnOutlined, 
+import {
+  FavoriteOutlined,
+  LocationOnOutlined,
   CalendarTodayOutlined,
   Logout as LogoutIcon,
   CheckCircle as CheckCircleIcon
@@ -48,14 +48,14 @@ const useCountdown = (targetDate: string) => {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const difference = new Date(targetDate).getTime() - new Date().getTime();
-      
+
       if (difference > 0) {
         const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44)); // Average days per month
         const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        
+
         setTimeLeft({
           months,
           days,
@@ -102,18 +102,18 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
         maxWidth: { xs: 400, lg: 420, xl: 440 },
       }}
     >
-      <Stack 
-        direction="row" 
+      <Stack
+        direction="row"
         spacing={{ xs: 3, lg: 3.5, xl: 4 }}
-        justifyContent="center" 
+        justifyContent="center"
         alignItems="center"
       >
         {timeUnits.map((unit, index) => (
-          <Stack 
-            key={unit.label} 
-            alignItems="center" 
+          <Stack
+            key={unit.label}
+            alignItems="center"
             spacing={0}
-            sx={{ 
+            sx={{
               minWidth: { xs: 35, sm: 40, lg: 45, xl: 50 }, // Fixed width for each column
             }}
           >
@@ -167,7 +167,7 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
-  
+
   const coupleImages = [
     '/images/couple/couple-1.jpg',
     '/images/couple/couple-2.jpg',
@@ -181,7 +181,7 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
 
   const advanceToNextImage = () => {
     setIsTransitioning(true);
-    
+
     setTimeout(() => {
       setCurrentImageIndex((prev) => (prev + 1) % coupleImages.length);
       setIsTransitioning(false);
@@ -193,15 +193,15 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
     if (intervalId) {
       clearInterval(intervalId);
     }
-    
+
     // Advance to next image
     advanceToNextImage();
-    
+
     // Restart auto-cycle timer
     const newInterval = setInterval(() => {
       advanceToNextImage();
     }, 4000);
-    
+
     setIntervalId(newInterval);
   };
 
@@ -241,7 +241,7 @@ const CoupleImageCarousel = ({ size = 300 }: { size?: number }) => {
         placeholder="blur"
         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
       />
-      
+
       {/* Preload next image */}
       <link
         rel="preload"
@@ -257,20 +257,20 @@ export default function HomePage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [currentBackground, setCurrentBackground] = useState(0);
   const [customBackground, setCustomBackground] = useState<string>('');
-  
+
   // Authentication state from context
   const { user, isLoading, hasRSVPed, rsvpResponse, isCheckingRSVP, signOut, refreshAuth } = useAuth();
-  
+
   // Pin verification state - DISABLED
   // PIN entry is completely bypassed - users go directly to the wedding website
   const [isPinVerified, setIsPinVerified] = useState(true);
   const [isCheckingPin, setIsCheckingPin] = useState(false);
   const [isBypassPin, setIsBypassPin] = useState(true); // Always set to true to bypass RSVP requirement
-  
+
   // Login dialog state
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  
+
   // Background configuration - now handled by OptimizedBackground component  
   const handleBackgroundChange = (backgroundPath: string) => {
     setCustomBackground(backgroundPath);
@@ -285,14 +285,14 @@ export default function HomePage() {
 
   const handlePinVerified = () => {
     setIsPinVerified(true);
-    
+
     // Check if this is a bypass PIN immediately
     if (typeof window !== 'undefined') {
       const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
       if (bypassFlag === 'true') {
         setIsBypassPin(true);
         console.log('Bypass PIN detected in handlePinVerified - showing guest content immediately');
-        
+
         // Create temporary guest auth if not exists
         const existingGuestAuth = localStorage.getItem('phera_guest_auth');
         if (!existingGuestAuth || !existingGuestAuth.includes('temp-bypass-guest')) {
@@ -307,16 +307,16 @@ export default function HomePage() {
             avatar_svg: undefined,
             timestamp: Date.now()
           };
-          
+
           localStorage.setItem('phera_guest_auth', JSON.stringify(tempGuestInfo));
           console.log('Created temporary guest auth in handlePinVerified');
-          
+
           // Try to refresh auth once - prevent multiple calls
           setTimeout(() => refreshAuth(), 100);
         }
       }
     }
-    
+
     // Scroll to top after small delay to ensure content has rendered
     setTimeout(() => {
       if (typeof window !== 'undefined') {
@@ -383,7 +383,7 @@ export default function HomePage() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }, 300);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isPinVerified, isLoading, isCheckingPin]);
@@ -402,7 +402,7 @@ export default function HomePage() {
       reason: isLoading ? 'auth loading' : isCheckingPin ? 'checking PIN' : 'unknown',
       timestamp: new Date().toISOString()
     });
-    
+
     return (
       <Box
         sx={{
@@ -470,7 +470,7 @@ export default function HomePage() {
                   zIndex: 1,
                 }}
               />
-              
+
               {/* Couple Image */}
               <Box
                 sx={{
@@ -680,7 +680,7 @@ export default function HomePage() {
                   RSVP
                 </Button>
               </motion.div>
-              
+
               {/* RSVP Deadline */}
               <Typography
                 variant="body2"
@@ -757,7 +757,7 @@ export default function HomePage() {
                   View Details
                 </Button>
               </motion.div>
-              
+
               {/* RSVP Deadline - removed for RSVP'd users */}
             </Stack>
           </Container>

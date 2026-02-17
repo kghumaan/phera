@@ -256,7 +256,7 @@ export default function OnboardingSidebar({
                   mx: 1,
                   mb: 0.5,
                   borderRadius: '12px',
-                  color: isActive ? 'white' : '#4a4a4a',
+                  color: isActive ? 'white' : '#1a1a1a',
                   '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
                   '&.Mui-selected': {
                     bgcolor: '#DE3F5E',

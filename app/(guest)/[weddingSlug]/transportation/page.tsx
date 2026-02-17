@@ -202,7 +202,7 @@ export default function TransportationPage() {
           maxWidth="sm"
           sx={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: 4,
+            borderRadius: 2,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
             overflow: 'hidden',
           }}
