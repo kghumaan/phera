@@ -34,19 +34,115 @@ export interface RSVPFormData {
   specialMessage: string;
   maybeComment: string;
   selectedGif?: GifData;
-  arrivalOption: 'known' | 'not_sure' | '';
-  arrivalDate: string;
-  flightAirline: string;
-  flightNumber: string;
-  flightDepartureAirport: string;
-  flightArrivalAirport: string;
-  flightDepartureDate: string;
-  flightDepartureTime: string;
-  flightArrivalDate: string;
-  flightArrivalTime: string;
-  shuttlePreferenceTime: string;
-  shuttlePreferenceNote: string;
   whatsappOptIn?: boolean;
+}
+
+// Transportation Types
+export type TransportationMode = 'prescheduled' | 'flexible';
+export type TransportationDirection = 'arrival' | 'departure';
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
+
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface TransportationSettings {
+  id: string;
+  wedding_id: string | null;
+  setup_complete: boolean | null;
+  mode: TransportationMode | null;
+  arrival_configured: boolean | null;
+  departure_configured: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface TransportationVehicle {
+  id: string;
+  wedding_id: string | null;
+  direction: TransportationDirection;
+  vehicle_name: string | null;
+  capacity: number;
+  departure_datetime: string;
+  pickup_location: string | null;
+  pickup_location_coordinates: Coordinates | null;
+  dropoff_location: string | null;
+  dropoff_location_coordinates: Coordinates | null;
+  order_index: number | null;
+  is_full: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface TransportationPickupLocation {
+  id: string;
+  wedding_id: string | null;
+  direction: TransportationDirection;
+  name: string;
+  address: string | null;
+  coordinates: Coordinates | null;
+  order_index: number | null;
+  created_at: string | null;
+}
+
+export interface TransportationTimeRange {
+  id: string;
+  wedding_id: string | null;
+  direction: TransportationDirection;
+  start_datetime: string;
+  end_datetime: string;
+  interval_minutes: number | null;
+  created_at: string | null;
+}
+
+export interface TransportationVehicleType {
+  id: string;
+  wedding_id: string | null;
+  name: string;
+  capacity: number;
+  quantity: number | null;
+  created_at: string | null;
+}
+
+export interface TransportationReservation {
+  id: string;
+  wedding_id: string | null;
+  guest_id: string | null;
+  direction: TransportationDirection;
+  vehicle_id: string | null;
+  pickup_location_id: string | null;
+  preferred_datetime: string | null;
+  party_size: number | null;
+  status: ReservationStatus | null;
+  assigned_group_id: string | null;
+  notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  // Joined data
+  guest?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  vehicle?: TransportationVehicle;
+  pickup_location?: TransportationPickupLocation;
+}
+
+export interface TransportationGroup {
+  id: string;
+  wedding_id: string | null;
+  direction: TransportationDirection;
+  vehicle_type_id: string | null;
+  pickup_location_id: string | null;
+  departure_datetime: string | null;
+  total_passengers: number | null;
+  is_finalized: boolean | null;
+  created_at: string | null;
+  // Joined data
+  vehicle_type?: TransportationVehicleType;
+  pickup_location?: TransportationPickupLocation;
+  reservations?: TransportationReservation[];
 }
 
 export type PheraDatabase = {
@@ -451,6 +547,355 @@ export type PheraDatabase = {
           wedding_id?: string
         }
         Relationships: []
+      }
+      transportation_settings: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          setup_complete: boolean | null
+          mode: 'prescheduled' | 'flexible' | null
+          arrival_configured: boolean | null
+          departure_configured: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          setup_complete?: boolean | null
+          mode?: 'prescheduled' | 'flexible' | null
+          arrival_configured?: boolean | null
+          departure_configured?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          setup_complete?: boolean | null
+          mode?: 'prescheduled' | 'flexible' | null
+          arrival_configured?: boolean | null
+          departure_configured?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_settings_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_vehicles: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_name: string | null
+          capacity: number
+          departure_datetime: string
+          pickup_location: string | null
+          pickup_location_coordinates: Json | null
+          dropoff_location: string | null
+          dropoff_location_coordinates: Json | null
+          order_index: number | null
+          is_full: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_name?: string | null
+          capacity: number
+          departure_datetime: string
+          pickup_location?: string | null
+          pickup_location_coordinates?: Json | null
+          dropoff_location?: string | null
+          dropoff_location_coordinates?: Json | null
+          order_index?: number | null
+          is_full?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          direction?: 'arrival' | 'departure'
+          vehicle_name?: string | null
+          capacity?: number
+          departure_datetime?: string
+          pickup_location?: string | null
+          pickup_location_coordinates?: Json | null
+          dropoff_location?: string | null
+          dropoff_location_coordinates?: Json | null
+          order_index?: number | null
+          is_full?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_vehicles_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_pickup_locations: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          direction: 'arrival' | 'departure'
+          name: string
+          address: string | null
+          coordinates: Json | null
+          order_index: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          direction: 'arrival' | 'departure'
+          name: string
+          address?: string | null
+          coordinates?: Json | null
+          order_index?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          direction?: 'arrival' | 'departure'
+          name?: string
+          address?: string | null
+          coordinates?: Json | null
+          order_index?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_pickup_locations_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_time_ranges: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          direction: 'arrival' | 'departure'
+          start_datetime: string
+          end_datetime: string
+          interval_minutes: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          direction: 'arrival' | 'departure'
+          start_datetime: string
+          end_datetime: string
+          interval_minutes?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          direction?: 'arrival' | 'departure'
+          start_datetime?: string
+          end_datetime?: string
+          interval_minutes?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_time_ranges_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_vehicle_types: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          name: string
+          capacity: number
+          quantity: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          name: string
+          capacity: number
+          quantity?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          name?: string
+          capacity?: number
+          quantity?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_vehicle_types_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_reservations: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          guest_id: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_id: string | null
+          pickup_location_id: string | null
+          preferred_datetime: string | null
+          party_size: number | null
+          status: 'pending' | 'confirmed' | 'cancelled' | null
+          assigned_group_id: string | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          guest_id?: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_id?: string | null
+          pickup_location_id?: string | null
+          preferred_datetime?: string | null
+          party_size?: number | null
+          status?: 'pending' | 'confirmed' | 'cancelled' | null
+          assigned_group_id?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          guest_id?: string | null
+          direction?: 'arrival' | 'departure'
+          vehicle_id?: string | null
+          pickup_location_id?: string | null
+          preferred_datetime?: string | null
+          party_size?: number | null
+          status?: 'pending' | 'confirmed' | 'cancelled' | null
+          assigned_group_id?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_reservations_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transportation_reservations_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transportation_reservations_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "transportation_vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transportation_reservations_pickup_location_id_fkey"
+            columns: ["pickup_location_id"]
+            isOneToOne: false
+            referencedRelation: "transportation_pickup_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportation_groups: {
+        Row: {
+          id: string
+          wedding_id: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_type_id: string | null
+          pickup_location_id: string | null
+          departure_datetime: string | null
+          total_passengers: number | null
+          is_finalized: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          wedding_id?: string | null
+          direction: 'arrival' | 'departure'
+          vehicle_type_id?: string | null
+          pickup_location_id?: string | null
+          departure_datetime?: string | null
+          total_passengers?: number | null
+          is_finalized?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          wedding_id?: string | null
+          direction?: 'arrival' | 'departure'
+          vehicle_type_id?: string | null
+          pickup_location_id?: string | null
+          departure_datetime?: string | null
+          total_passengers?: number | null
+          is_finalized?: boolean | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportation_groups_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transportation_groups_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "transportation_vehicle_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transportation_groups_pickup_location_id_fkey"
+            columns: ["pickup_location_id"]
+            isOneToOne: false
+            referencedRelation: "transportation_pickup_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_settings: {
         Row: {

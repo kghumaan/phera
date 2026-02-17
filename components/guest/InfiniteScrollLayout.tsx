@@ -25,6 +25,7 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { weddingService, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
+import { getTransportationSettings } from '@/lib/supabase/transportation-service';
 import GuestList from '@/components/guest/GuestList';
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import EventDetailCarousel from './EventDetailCarousel';
@@ -209,6 +210,7 @@ export default function InfiniteScrollLayout({
   const [hasFAQs, setHasFAQs] = useState(false);
   const [hasRegistry, setHasRegistry] = useState(false);
   const [hasShops, setHasShops] = useState(false);
+  const [hasTransportation, setHasTransportation] = useState(false);
 
   // Section refs for scroll tracking
   const homeRef = useRef<HTMLDivElement>(null);
@@ -278,6 +280,12 @@ export default function InfiniteScrollLayout({
         if (shopData && shopData.length > 0) {
           setShops(shopData as ShopItem[]);
           setHasShops(true);
+        }
+
+        // Check if transportation is configured
+        const transportationSettings = await getTransportationSettings(wedding.id);
+        if (transportationSettings && transportationSettings.setup_complete) {
+          setHasTransportation(true);
         }
       } catch (error) {
         console.error('Error fetching section data:', error);
@@ -1364,8 +1372,8 @@ export default function InfiniteScrollLayout({
                   </Box>
                 )}
 
-                {/* Change RSVP */}
-                <Box sx={{ pt: 3 }}>
+                {/* Bottom Actions */}
+                <Stack direction="row" spacing={2} sx={{ pt: 3 }}>
                   <Button
                     component={Link}
                     href={`/${weddingSlug}/rsvp`}
@@ -1386,7 +1394,28 @@ export default function InfiniteScrollLayout({
                   >
                     Change RSVP
                   </Button>
-                </Box>
+                  {hasTransportation && (
+                    <Button
+                      component={Link}
+                      href={`/${weddingSlug}/transportation`}
+                      variant="contained"
+                      sx={{
+                        bgcolor: primaryColor,
+                        color: 'white',
+                        fontSize: '0.85rem',
+                        textTransform: 'none',
+                        borderRadius: '32px',
+                        px: 3,
+                        fontWeight: 600,
+                        '&:hover': {
+                          bgcolor: '#C8365A',
+                        },
+                      }}
+                    >
+                      Reserve Transportation
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
             </Box>
           )}
@@ -1601,6 +1630,16 @@ export default function InfiniteScrollLayout({
                   <>
                     <DiamondSeparator />
                     <NavItem label="Where to Shop" onClick={() => scrollToSection(shopRef)} />
+                  </>
+                )}
+
+                {hasTransportation && (
+                  <>
+                    <DiamondSeparator />
+                    <NavItem label="Transportation" onClick={() => {
+                      setNavOpen(false);
+                      window.location.href = `/${weddingSlug}/transportation`;
+                    }} />
                   </>
                 )}
               </Box>

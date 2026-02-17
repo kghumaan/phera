@@ -82,7 +82,7 @@ export const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guests', label: 'RSVPs', path: '/guests' },
-      { id: 'travel-coordination', label: 'Transport', path: '/travel-coordination', isPro: true },
+      { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
     ]
   },
   {

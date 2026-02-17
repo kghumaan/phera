@@ -23,6 +23,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { getTransportationSettings } from '@/lib/supabase/transportation-service';
 
 // Diamond decorative component
 const DiamondDecoration = () => (
@@ -142,6 +143,7 @@ export default function DetailsPage() {
   const [hasEventsData, setHasEventsData] = useState(false);
   const [hasScheduleData, setHasScheduleData] = useState(false);
   const [hasRegistryData, setHasRegistryData] = useState(false);
+  const [hasTransportationData, setHasTransportationData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -171,6 +173,10 @@ export default function DetailsPage() {
         setHasEventsData(events.length > 0); // Use events from context
         setHasScheduleData(schedule.length > 0);
         setHasRegistryData(registry.length > 0);
+
+        // Check if transportation is configured
+        const transportationSettings = await getTransportationSettings(weddingId);
+        setHasTransportationData(transportationSettings?.setup_complete || false);
       } catch (error) {
         console.error('Error fetching section data:', error);
       } finally {
@@ -216,6 +222,9 @@ export default function DetailsPage() {
         break;
       case 'Change RSVP':
         router.push(`/${weddingSlug}/rsvp`);
+        break;
+      case 'Transportation':
+        router.push(`/${weddingSlug}/transportation`);
         break;
       default:
         setIsNavigating(false);
@@ -437,6 +446,16 @@ export default function DetailsPage() {
                       <MenuItem
                         title="Travel Details"
                         onClick={() => handleMenuItemClick('Travel Details')}
+                      />
+                      <DiamondDecoration />
+                    </>
+                  )}
+                  {/* Transportation - Only show if configured */}
+                  {hasTransportationData && (
+                    <>
+                      <MenuItem
+                        title="Transportation"
+                        onClick={() => handleMenuItemClick('Transportation')}
                       />
                       <DiamondDecoration />
                     </>
