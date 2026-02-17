@@ -17,7 +17,7 @@ import {
 // ============================================
 
 export async function getTransportationSettings(weddingId: string): Promise<TransportationSettings | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_settings')
     .select('*')
     .eq('wedding_id', weddingId)
@@ -34,7 +34,7 @@ export async function createTransportationSettings(
   weddingId: string,
   mode?: TransportationMode
 ): Promise<TransportationSettings | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_settings')
     .insert({
       wedding_id: weddingId,
@@ -57,7 +57,7 @@ export async function updateTransportationSettings(
   weddingId: string,
   updates: Partial<Omit<TransportationSettings, 'id' | 'wedding_id' | 'created_at'>>
 ): Promise<TransportationSettings | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_settings')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('wedding_id', weddingId)
@@ -79,7 +79,7 @@ export async function getVehicles(
   weddingId: string,
   direction?: TransportationDirection
 ): Promise<TransportationVehicle[]> {
-    let query = supabase
+  let query = supabase
     .from('transportation_vehicles')
     .select('*')
     .eq('wedding_id', weddingId)
@@ -112,7 +112,7 @@ export async function createVehicle(
     order_index?: number;
   }
 ): Promise<TransportationVehicle | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_vehicles')
     .insert({
       wedding_id: weddingId,
@@ -132,9 +132,9 @@ export async function updateVehicle(
   vehicleId: string,
   updates: Partial<Omit<TransportationVehicle, 'id' | 'wedding_id' | 'created_at'>>
 ): Promise<TransportationVehicle | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_vehicles')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', vehicleId)
     .select()
     .single();
@@ -147,7 +147,7 @@ export async function updateVehicle(
 }
 
 export async function deleteVehicle(vehicleId: string): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_vehicles')
     .delete()
     .eq('id', vehicleId);
@@ -162,17 +162,16 @@ export async function deleteVehicle(vehicleId: string): Promise<boolean> {
 export async function reorderVehicles(
   vehicleIds: string[]
 ): Promise<boolean> {
-  
+
   const updates = vehicleIds.map((id, index) => ({
     id,
     order_index: index,
-    updated_at: new Date().toISOString(),
   }));
 
   for (const update of updates) {
     const { error } = await supabase
       .from('transportation_vehicles')
-      .update({ order_index: update.order_index, updated_at: update.updated_at })
+      .update({ order_index: update.order_index })
       .eq('id', update.id);
 
     if (error) {
@@ -192,7 +191,7 @@ export async function getPickupLocations(
   weddingId: string,
   direction?: TransportationDirection
 ): Promise<TransportationPickupLocation[]> {
-    let query = supabase
+  let query = supabase
     .from('transportation_pickup_locations')
     .select('*')
     .eq('wedding_id', weddingId)
@@ -221,7 +220,7 @@ export async function createPickupLocation(
     order_index?: number;
   }
 ): Promise<TransportationPickupLocation | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_pickup_locations')
     .insert({
       wedding_id: weddingId,
@@ -238,7 +237,7 @@ export async function createPickupLocation(
 }
 
 export async function deletePickupLocation(locationId: string): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_pickup_locations')
     .delete()
     .eq('id', locationId);
@@ -250,6 +249,24 @@ export async function deletePickupLocation(locationId: string): Promise<boolean>
   return true;
 }
 
+export async function updatePickupLocation(
+  locationId: string,
+  updates: Partial<Omit<TransportationPickupLocation, 'id' | 'wedding_id' | 'created_at'>>
+): Promise<TransportationPickupLocation | null> {
+  const { data, error } = await supabase
+    .from('transportation_pickup_locations')
+    .update(updates)
+    .eq('id', locationId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating pickup location:', error);
+    return null;
+  }
+  return data;
+}
+
 // ============================================
 // TIME RANGES (Flexible Mode)
 // ============================================
@@ -258,7 +275,7 @@ export async function getTimeRanges(
   weddingId: string,
   direction?: TransportationDirection
 ): Promise<TransportationTimeRange[]> {
-    let query = supabase
+  let query = supabase
     .from('transportation_time_ranges')
     .select('*')
     .eq('wedding_id', weddingId);
@@ -285,7 +302,7 @@ export async function upsertTimeRange(
     interval_minutes?: number;
   }
 ): Promise<TransportationTimeRange | null> {
-  
+
   // Check if one exists for this direction
   const { data: existing } = await supabase
     .from('transportation_time_ranges')
@@ -335,7 +352,7 @@ export async function upsertTimeRange(
 // ============================================
 
 export async function getVehicleTypes(weddingId: string): Promise<TransportationVehicleType[]> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_vehicle_types')
     .select('*')
     .eq('wedding_id', weddingId);
@@ -355,7 +372,7 @@ export async function createVehicleType(
     quantity?: number;
   }
 ): Promise<TransportationVehicleType | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_vehicle_types')
     .insert({
       wedding_id: weddingId,
@@ -373,7 +390,7 @@ export async function createVehicleType(
 }
 
 export async function deleteVehicleType(vehicleTypeId: string): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_vehicle_types')
     .delete()
     .eq('id', vehicleTypeId);
@@ -393,7 +410,7 @@ export async function getReservations(
   weddingId: string,
   direction?: TransportationDirection
 ): Promise<TransportationReservation[]> {
-    let query = supabase
+  let query = supabase
     .from('transportation_reservations')
     .select(`
       *,
@@ -420,7 +437,7 @@ export async function getReservations(
 export async function getReservationsByVehicle(
   vehicleId: string
 ): Promise<TransportationReservation[]> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_reservations')
     .select(`
       *,
@@ -448,7 +465,7 @@ export async function createReservation(
     notes?: string;
   }
 ): Promise<TransportationReservation | null> {
-  
+
   // Check if reservation already exists for this guest and direction
   const { data: existing } = await supabase
     .from('transportation_reservations')
@@ -499,7 +516,7 @@ export async function updateReservation(
   reservationId: string,
   updates: Partial<Omit<TransportationReservation, 'id' | 'wedding_id' | 'guest_id' | 'created_at'>>
 ): Promise<TransportationReservation | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_reservations')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', reservationId)
@@ -517,7 +534,7 @@ export async function moveReservationToVehicle(
   reservationId: string,
   newVehicleId: string
 ): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_reservations')
     .update({
       vehicle_id: newVehicleId,
@@ -535,7 +552,7 @@ export async function moveReservationToVehicle(
 export async function confirmReservations(
   reservationIds: string[]
 ): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_reservations')
     .update({
       status: 'confirmed',
@@ -557,7 +574,7 @@ export async function confirmReservations(
 export async function getVehicleCapacityStatus(
   vehicleId: string
 ): Promise<{ capacity: number; booked: number; available: number; isFull: boolean }> {
-  
+
   // Get vehicle capacity
   const { data: vehicle } = await supabase
     .from('transportation_vehicles')
@@ -615,7 +632,7 @@ export async function getGroups(
   weddingId: string,
   direction?: TransportationDirection
 ): Promise<TransportationGroup[]> {
-    let query = supabase
+  let query = supabase
     .from('transportation_groups')
     .select(`
       *,
@@ -647,7 +664,7 @@ export async function createGroup(
     total_passengers?: number;
   }
 ): Promise<TransportationGroup | null> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_groups')
     .insert({
       wedding_id: weddingId,
@@ -667,7 +684,7 @@ export async function createGroup(
 export async function finalizeGroups(
   groupIds: string[]
 ): Promise<boolean> {
-    const { error } = await supabase
+  const { error } = await supabase
     .from('transportation_groups')
     .update({ is_finalized: true })
     .in('id', groupIds);
@@ -734,7 +751,7 @@ export async function getGuestReservations(
   weddingId: string,
   guestId: string
 ): Promise<{ arrival: TransportationReservation | null; departure: TransportationReservation | null }> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('transportation_reservations')
     .select(`
       *,
@@ -763,7 +780,7 @@ export async function getGuestPartySize(
   weddingId: string,
   guestId: string
 ): Promise<number> {
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('rsvps')
     .select('guest_count, plus_one')
     .eq('wedding_id', weddingId)

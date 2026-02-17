@@ -67,7 +67,7 @@ interface TransportationDashboardProps {
   weddingId: string;
   weddingSlug: string;
   mode: TransportationMode;
-  onResetSetup: () => void;
+  onEditSetup: () => void;
 }
 
 type VehicleWithCapacity = TransportationVehicle & { booked: number; available: number };
@@ -76,7 +76,7 @@ export default function TransportationDashboard({
   weddingId,
   weddingSlug,
   mode,
-  onResetSetup,
+  onEditSetup,
 }: TransportationDashboardProps) {
   const [activeTab, setActiveTab] = useState<'arrival' | 'departure'>('arrival');
   const [loading, setLoading] = useState(true);
@@ -220,12 +220,13 @@ export default function TransportationDashboard({
           <Button
             variant="outlined"
             startIcon={<Settings />}
-            onClick={onResetSetup}
+            onClick={onEditSetup}
             sx={{
               borderColor: '#6a6a6a',
               color: '#1a1a1a',
               textTransform: 'none',
               fontWeight: 500,
+              borderRadius: 1,
               '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' },
             }}
           >

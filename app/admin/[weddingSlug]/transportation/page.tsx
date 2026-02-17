@@ -128,7 +128,11 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
     setWizardStep('dashboard');
   };
 
-  const handleResetSetup = async () => {
+  const handleEditSetup = async () => {
+    setWizardStep('setup-arrival');
+  };
+
+  const handleRestartSetup = async () => {
     if (!weddingId) return;
     const updated = await updateTransportationSettings(weddingId, {
       setup_complete: false,
@@ -292,7 +296,20 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
           mode={settings.mode!}
           direction={wizardStep === 'setup-arrival' ? 'arrival' : 'departure'}
           onComplete={wizardStep === 'setup-arrival' ? handleArrivalComplete : handleDepartureComplete}
-          onBack={() => setWizardStep(wizardStep === 'setup-arrival' ? 'mode-select' : 'setup-arrival')}
+          onRestart={handleRestartSetup}
+          showRestart={settings.setup_complete}
+          onBack={() => {
+            if (wizardStep === 'setup-arrival') {
+              // If editing an already complete setup, go back to dashboard
+              if (settings.setup_complete) {
+                setWizardStep('dashboard');
+              } else {
+                setWizardStep('mode-select');
+              }
+            } else {
+              setWizardStep('setup-arrival');
+            }
+          }}
         />
       )}
 
@@ -305,7 +322,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
           weddingId={weddingId}
           weddingSlug={weddingSlug}
           mode={settings.mode!}
-          onResetSetup={handleResetSetup}
+          onEditSetup={handleEditSetup}
         />
       )}
     </Container>
@@ -403,7 +420,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
               cursor: 'pointer',
               border: '2px solid',
               borderColor: alpha('#000', 0.15),
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: 'white',
               transition: 'all 0.2s',
               '&:hover': {
@@ -432,7 +449,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
               cursor: 'pointer',
               border: '2px solid',
               borderColor: alpha('#000', 0.15),
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: 'white',
               transition: 'all 0.2s',
               '&:hover': {
@@ -477,7 +494,7 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
           textAlign: 'center',
           border: '2px solid',
           borderColor: '#4CAF50',
-          borderRadius: 3,
+          borderRadius: 2,
           bgcolor: alpha('#4CAF50', 0.02),
         }}
       >
@@ -497,7 +514,7 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
             color: 'white',
             px: 4,
             py: 1.5,
-            borderRadius: 2,
+            borderRadius: 1,
             fontWeight: 600,
             textTransform: 'none',
             fontSize: '1rem',

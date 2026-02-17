@@ -16,6 +16,10 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Add,
@@ -42,9 +46,11 @@ import {
 import {
   getVehicles,
   createVehicle,
+  updateVehicle,
   deleteVehicle,
   getPickupLocations,
   createPickupLocation,
+  updatePickupLocation,
   deletePickupLocation,
   getTimeRanges,
   upsertTimeRange,
@@ -56,6 +62,8 @@ interface TransportationSetupWizardProps {
   direction: TransportationDirection;
   onComplete: () => void;
   onBack: () => void;
+  onRestart?: () => void;
+  showRestart?: boolean;
 }
 
 // Vehicle form data for prescheduled mode
@@ -82,6 +90,8 @@ export default function TransportationSetupWizard({
   direction,
   onComplete,
   onBack,
+  onRestart,
+  showRestart = false,
 }: TransportationSetupWizardProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,6 +103,7 @@ export default function TransportationSetupWizard({
   const [locations, setLocations] = useState<LocationFormData[]>([]);
   const [timeRangeStart, setTimeRangeStart] = useState<Date | null>(null);
   const [timeRangeEnd, setTimeRangeEnd] = useState<Date | null>(null);
+  const [restartDialogOpen, setRestartDialogOpen] = useState(false);
 
   const isArrival = direction === 'arrival';
   const directionLabel = isArrival ? 'Arrival' : 'Departure';
@@ -185,6 +196,15 @@ export default function TransportationSetupWizard({
     coordinates: Coordinates;
   }) => {
     if (locations.length >= 5) return;
+
+    // Duplicate check - check by address or name
+    const isDuplicate = locations.some(l =>
+      l.address === location.address ||
+      (l.name.toLowerCase() === location.name.toLowerCase() && l.name !== '')
+    );
+
+    if (isDuplicate) return;
+
     setLocations([...locations, location]);
   };
 
@@ -204,7 +224,17 @@ export default function TransportationSetupWizard({
         for (const vehicle of vehicles) {
           if (!vehicle.departure_datetime) continue;
 
-          if (!vehicle.id) {
+          if (vehicle.id) {
+            // Update existing vehicle
+            await updateVehicle(vehicle.id, {
+              vehicle_name: vehicle.vehicle_name || `${directionLabel} Vehicle`,
+              capacity: vehicle.capacity,
+              departure_datetime: vehicle.departure_datetime.toISOString(),
+              pickup_location: vehicle.pickup_location,
+              pickup_location_coordinates: vehicle.pickup_location_coordinates || undefined,
+            });
+          } else {
+            // Create new vehicle
             await createVehicle(weddingId, {
               direction,
               vehicle_name: vehicle.vehicle_name || `${directionLabel} Vehicle`,
@@ -218,7 +248,15 @@ export default function TransportationSetupWizard({
       } else {
         // Flexible mode - save locations and time range
         for (const location of locations) {
-          if (!location.id && location.coordinates) {
+          if (location.id) {
+            // Update existing pickup location
+            await updatePickupLocation(location.id, {
+              name: location.name,
+              address: location.address,
+              coordinates: location.coordinates || undefined,
+            });
+          } else if (location.coordinates) {
+            // Create new pickup location
             await createPickupLocation(weddingId, {
               direction,
               name: location.name,
@@ -266,26 +304,44 @@ export default function TransportationSetupWizard({
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Stack spacing={3}>
         {/* Header */}
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Chip
-              icon={directionIcon}
-              label={directionLabel}
-              sx={{
-                bgcolor: isArrival ? alpha('#4CAF50', 0.1) : alpha('#2196F3', 0.1),
-                color: isArrival ? '#4CAF50' : '#2196F3',
-                fontWeight: 600,
-              }}
-            />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+              <Chip
+                icon={directionIcon}
+                label={directionLabel}
+                sx={{
+                  bgcolor: isArrival ? alpha('#4CAF50', 0.1) : alpha('#2196F3', 0.1),
+                  color: isArrival ? '#4CAF50' : '#2196F3',
+                  fontWeight: 600,
+                }}
+              />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+              {isArrival ? 'Arrival Transportation' : 'Departure Transportation'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              {isArrival
+                ? 'Set up how guests will get TO your wedding'
+                : 'Set up how guests will leave FROM your wedding'}
+            </Typography>
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-            {isArrival ? 'Arrival Transportation' : 'Departure Transportation'}
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            {isArrival
-              ? 'Set up how guests will get TO your wedding'
-              : 'Set up how guests will leave FROM your wedding'}
-          </Typography>
+
+          {showRestart && onRestart && (
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setRestartDialogOpen(true)}
+              sx={{
+                color: '#6a6a6a',
+                textTransform: 'none',
+                fontSize: '0.8125rem',
+                '&:hover': { color: '#DE3F5E', bgcolor: 'transparent', textDecoration: 'underline' }
+              }}
+            >
+              Restart from beginning?
+            </Button>
+          )}
         </Box>
 
         {/* Mode-specific content */}
@@ -345,6 +401,41 @@ export default function TransportationSetupWizard({
           </Button>
         </Box>
       </Stack>
+      <Dialog
+        open={restartDialogOpen}
+        onClose={() => setRestartDialogOpen(false)}
+        PaperProps={{
+          sx: { borderRadius: 1, p: 1, maxWidth: 400 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Restart Setup?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            This will reset your transportation settings. You'll need to choose between prescheduled or flexible mode again.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button
+            onClick={() => setRestartDialogOpen(false)}
+            sx={{ color: '#6a6a6a', textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setRestartDialogOpen(false);
+              onRestart?.();
+            }}
+            sx={{
+              color: '#DE3F5E',
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Yes, Restart
+          </Button>
+        </DialogActions>
+      </Dialog>
     </LocalizationProvider>
   );
 }
@@ -393,7 +484,7 @@ function PrescheduledSetup({
                 p: 2,
                 border: '1px solid',
                 borderColor: 'divider',
-                borderRadius: 2,
+                borderRadius: 1,
                 bgcolor: alpha('#000', 0.01),
               }}
             >
@@ -595,14 +686,7 @@ function FlexibleSetup({
     coordinates: Coordinates;
   } | null) => {
     if (location) {
-      setPendingLocation(location);
-    }
-  };
-
-  const handleConfirmLocation = () => {
-    if (pendingLocation) {
-      onAddLocation(pendingLocation);
-      setPendingLocation(null);
+      onAddLocation(location);
     }
   };
 
@@ -628,96 +712,87 @@ function FlexibleSetup({
   };
 
   return (
-    <Stack spacing={3}>
-      {/* Pickup Locations */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 3,
-          bgcolor: 'white',
-        }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
-          {direction === 'arrival' ? 'Pickup Locations' : 'Drop-off Locations'}
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
-          Add up to 5 locations where guests can be picked up (e.g., airports, hotels, central spots)
-        </Typography>
-
-        {/* Selected Locations */}
-        {locations.length > 0 && (
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            {locations.map((location, index) => (
-              <Paper
-                key={index}
-                elevation={0}
-                sx={{
-                  p: 1.5,
-                  display: 'flex',
-                  alignItems: 'center',
-                  bgcolor: alpha('#4CAF50', 0.05),
-                  border: '1px solid',
-                  borderColor: alpha('#4CAF50', 0.2),
-                  borderRadius: 2,
-                }}
-              >
-                <LocationOn sx={{ color: '#4CAF50', mr: 1 }} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
-                    {location.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-                    {location.address}
-                  </Typography>
-                </Box>
-                <IconButton
-                  size="small"
-                  onClick={() => onRemoveLocation(index)}
-                  sx={{ color: '#9a9a9a', '&:hover': { color: '#DE3F5E' } }}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </Paper>
-            ))}
-          </Stack>
-        )}
-
-        {/* Add Location */}
-        {locations.length < 5 && (
-          <Box>
-            <LocationPicker
-              value={pendingLocation}
-              onChange={handleLocationSelect}
-              placeholder="Search for a location..."
-            />
-            {pendingLocation && (
-              <Button
-                variant="contained"
-                size="small"
-                onClick={handleConfirmLocation}
-                startIcon={<Add />}
-                sx={{
-                  mt: 1,
-                  bgcolor: '#4CAF50',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#43A047' },
-                }}
-              >
-                Add {pendingLocation.name}
-              </Button>
-            )}
-          </Box>
-        )}
-
-        {locations.length >= 5 && (
-          <Typography variant="body2" sx={{ color: '#FF9800', mt: 1 }}>
-            Maximum 5 locations reached
+    <Stack spacing={3}
+      sx={{
+        border: '1px solid #797979ff',
+        borderRadius: 2,
+        p: 1,
+        maxWidth: 1000,
+      }}
+    >
+      {/* Pickup Locations - Only for Arrival */}
+      {direction === 'arrival' && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            bgcolor: 'white',
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+            Pickup Locations
           </Typography>
-        )}
-      </Paper>
+          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+            Add up to 5 locations where guests can be picked up (e.g., airports, hotels, central spots)
+          </Typography>
+
+          {/* Selected Locations */}
+          {locations.length > 0 && (
+            <Stack spacing={1} sx={{ mb: 2 }}>
+              {locations.map((location, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: alpha('#4CAF50', 0.05),
+                    border: '1px solid',
+                    borderColor: alpha('#4CAF50', 0.2),
+                    borderRadius: 1,
+                  }}
+                >
+                  <LocationOn sx={{ color: '#4CAF50', mr: 1 }} />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
+                      {location.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                      {location.address}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    size="small"
+                    onClick={() => onRemoveLocation(index)}
+                    sx={{ color: '#9a9a9a', '&:hover': { color: '#DE3F5E' } }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+
+          {/* Add Location */}
+          {locations.length < 5 && (
+            <Box sx={{ maxWidth: 700 }}>
+              <LocationPicker
+                value={null}
+                onChange={handleLocationSelect}
+                placeholder="Search for a location..."
+              />
+            </Box>
+          )}
+
+          {locations.length >= 5 && (
+            <Typography variant="body2" sx={{ color: '#FF9800', mt: 1 }}>
+              Maximum 5 locations reached
+            </Typography>
+          )}
+        </Paper>
+      )}
 
       {/* Time Range */}
       <Paper
@@ -726,7 +801,7 @@ function FlexibleSetup({
           p: 3,
           border: '1px solid',
           borderColor: 'divider',
-          borderRadius: 3,
+          borderRadius: 1,
           bgcolor: 'white',
         }}
       >
@@ -829,12 +904,13 @@ function FlexibleSetup({
               {previewSlots().map((slot, i) => (
                 <Chip
                   key={i}
-                  icon={<AccessTime sx={{ fontSize: 14 }} />}
+                  icon={<AccessTime sx={{ fontSize: 26, color: '#DE3F5E !important' }} />}
                   label={slot}
-                  size="small"
+                  size="medium"
                   sx={{
                     bgcolor: alpha('#DE3F5E', 0.1),
                     color: '#DE3F5E',
+                    fontSize: '18px',
                   }}
                 />
               ))}
