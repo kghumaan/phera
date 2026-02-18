@@ -396,11 +396,18 @@ export default function GuestList({
   const handleAddComment = async () => {
     if ((!newComment.trim() && !selectedGif) || !user) return;
 
+    // Use guestId (guests table UUID) not user.id (auth UUID)
+    const guestId = user.guestId;
+    if (!guestId) {
+      console.error('Cannot post comment: user has no guestId for this wedding');
+      return;
+    }
+
     try {
       // Save to database - pass GIF data if selected
       const savedComment = await addComment(
         weddingId,
-        user.id,
+        guestId,
         newComment,
         selectedGif ? {
           gif_id: selectedGif.id,
@@ -435,11 +442,12 @@ export default function GuestList({
       return;
     }
 
-    console.log('Attempting to delete comment:', commentId, 'by user:', user.id);
+    const guestId = user.guestId || user.id;
+    console.log('Attempting to delete comment:', commentId, 'by guestId:', guestId);
 
     try {
       // Delete from database
-      const result = await deleteComment(commentId, user.id);
+      const result = await deleteComment(commentId, guestId);
       console.log('Delete result:', result);
 
       // Remove from local state
@@ -532,7 +540,7 @@ export default function GuestList({
                 }}
               />
             ) : (
-              user.initials || '??'
+              <Box sx={{ width: '100%', height: '100%' }} />
             )}
           </Avatar>
           <Box sx={{ flex: 1 }}>
@@ -775,7 +783,7 @@ export default function GuestList({
                             }}
                           />
                         ) : (
-                          comment.guest?.initials || '??'
+                          <Box sx={{ width: '100%', height: '100%' }} />
                         )}
                       </Avatar>
 

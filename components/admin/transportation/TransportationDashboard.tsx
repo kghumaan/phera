@@ -687,6 +687,7 @@ function VehicleColumn({
                     autoFocus
                     sx={{
                       mb: 1,
+                      borderRadius: 1,
                       '& .MuiInputBase-root': { fontSize: '0.875rem' },
                       '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1a1a1a' },
                       '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000' },

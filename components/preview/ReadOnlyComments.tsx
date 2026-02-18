@@ -231,7 +231,25 @@ function ReadOnlyComments() {
                           fontSize: '0.9rem',
                         }}
                       >
-                        {comment.guest.initials}
+                        {/* @ts-ignore */}
+                        {(comment.guest as any).avatar_svg ? (
+                          <Box
+                            dangerouslySetInnerHTML={{ __html: (comment.guest as any).avatar_svg }}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              '& svg': {
+                                width: '100%',
+                                height: '100%',
+                              },
+                            }}
+                          />
+                        ) : (
+                          <Box sx={{ width: '100%', height: '100%' }} />
+                        )}
                       </Avatar>
 
                       <Box sx={{ flex: 1, ml: 1 }}>
@@ -270,7 +288,7 @@ function ReadOnlyComments() {
                               fontSize: '16px',
                               lineHeight: '1.5em',
                               color: '#141414',
-                              mb: comment.gif_url ? 1 : 1,
+                              mb: (comment as any).gif_url ? 1 : 1,
                             }}
                           >
                             {comment.message}
@@ -278,7 +296,7 @@ function ReadOnlyComments() {
                         )}
 
                         {/* Comment GIF */}
-                        {comment.gif_url && (
+                        {(comment as any).gif_url && (
                           <Box
                             sx={{
                               mt: comment.message ? 1 : 0,
@@ -290,8 +308,8 @@ function ReadOnlyComments() {
                             }}
                           >
                             <Image
-                              src={comment.gif_preview_url || comment.gif_url}
-                              alt={comment.gif_title || 'GIF'}
+                              src={(comment as any).gif_preview_url || (comment as any).gif_url}
+                              alt={(comment as any).gif_title || 'GIF'}
                               width={160}
                               height={120}
                               style={{
@@ -333,7 +351,7 @@ function ReadOnlyComments() {
                           fontSize: '0.9rem',
                         }}
                       >
-                        {getInitials(guestName)}
+                        <Box sx={{ width: '100%', height: '100%' }} />
                       </Avatar>
 
                       <Typography
@@ -376,7 +394,7 @@ function ReadOnlyComments() {
                           fontSize: '0.9rem',
                         }}
                       >
-                        {getInitials(guestName)}
+                        <Box sx={{ width: '100%', height: '100%' }} />
                       </Avatar>
 
                       <Typography
@@ -403,7 +421,7 @@ function ReadOnlyComments() {
           )}
         </Stack>
       </Box>
-    </Paper>
+    </Paper >
   );
 }
 

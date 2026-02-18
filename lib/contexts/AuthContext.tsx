@@ -58,17 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isCheckingAuthRef = useRef(false);
   const hasCheckedAdminRef = useRef(false);
   const lastCheckedWeddingSlug = useRef<string | null>(null);
-
-  // Set the current wedding slug and trigger RSVP recheck if changed
-  const setCurrentWeddingSlug = React.useCallback((slug: string) => {
-    if (slug && slug !== currentWeddingSlug) {
-      console.log('🔄 [AuthContext] Wedding slug changed:', currentWeddingSlug, '->', slug);
-      setCurrentWeddingSlugState(slug);
-      // Reset RSVP state when wedding changes
-      setHasRSVPed(false);
-      setRsvpResponse(null);
-    }
-  }, [currentWeddingSlug]);
+  // Ref always mirrors currentWeddingSlug state - lets checkAuthStatus read the latest slug
+  // without being recreated (avoids stale closure issues with useCallback)
+  const currentWeddingSlugRef = useRef<string | null>(null);
 
   const generateInitials = (name: string) => {
     return name
@@ -93,6 +85,215 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return colors[Math.abs(hash) % colors.length];
   };
+
+  const checkAuthStatus = React.useCallback(async (slugOverride?: string) => {
+    // Prevent multiple simultaneous auth checks using ref
+    if (isCheckingAuthRef.current) {
+      console.log('checkAuthStatus: Skipping - already checking');
+      return;
+    }
+
+    // Use the override slug if provided, then the ref (always current), then the closure value
+    const effectiveSlug = slugOverride ?? currentWeddingSlugRef.current ?? currentWeddingSlug;
+
+    console.log('checkAuthStatus: Starting auth check, slug:', effectiveSlug);
+    isCheckingAuthRef.current = true;
+    try {
+      // Get the Supabase user once
+      const { data: { user: sbUser }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        if (userError.name === 'AbortError') {
+          console.log('checkAuthStatus: Auth check aborted');
+          // Don't clear loading yet if it was just an abort, let another check handle it
+          return;
+        }
+        console.error('checkAuthStatus: User check error:', userError);
+      }
+
+      if (sbUser) {
+        console.log('checkAuthStatus: Found session for:', sbUser.email);
+
+        // Re-read the ref here (after the async getUser call) to get the latest slug.
+        // The slug may have been set while getUser() was in-flight.
+        const latestSlug = currentWeddingSlugRef.current ?? effectiveSlug;
+
+        let guestData = null;
+        if (sbUser.email && latestSlug) {
+          try {
+            const { data: guest } = await (supabase as any)
+              .from('guests')
+              .select('id, name, email, phone, avatar_color, avatar_style, avatar_seed, avatar_svg')
+              .eq('email', sbUser.email.toLowerCase())
+              .eq('wedding_id', latestSlug)
+              .single();
+            guestData = guest;
+          } catch (err) {
+            console.error('checkAuthStatus: Error fetching guest data:', err);
+          }
+        }
+
+        const userData: User = {
+          id: sbUser.id,
+          guestId: guestData?.id || null,
+          email: sbUser.email || '',
+          name: guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || '',
+          phone: guestData?.phone || sbUser.phone,
+          initials: generateInitials(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
+          // Use DB avatar_color as source of truth so it matches posted comments
+          avatar_color: guestData?.avatar_color || generateAvatarColor(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
+          avatar_style: guestData?.avatar_style,
+          avatar_seed: guestData?.avatar_seed,
+          avatar_svg: guestData?.avatar_svg,
+        };
+
+        setUser(userData);
+        checkAdminStatus(sbUser.id);
+      } else {
+        // Fallback to guest authentication if no Supabase session
+        if (typeof window !== 'undefined') {
+          const guestAuthData = localStorage.getItem('phera_guest_auth');
+          if (guestAuthData) {
+            try {
+              const guestInfo = JSON.parse(guestAuthData);
+              const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
+
+              if (isRecent && guestInfo.email && (guestInfo.id !== 'temp-guest' || guestInfo.id === 'temp-bypass-guest')) {
+                const isPlusOne = guestInfo.id?.startsWith('plus-one-');
+                const isBypassGuest = guestInfo.id === 'temp-bypass-guest';
+
+                if (isPlusOne || isBypassGuest) {
+                  const userData: User = {
+                    id: guestInfo.id,
+                    email: guestInfo.email,
+                    name: guestInfo.name,
+                    phone: guestInfo.phone,
+                    initials: generateInitials(guestInfo.name),
+                    avatar_color: generateAvatarColor(guestInfo.name),
+                    avatar_style: guestInfo.avatar_style,
+                    avatar_seed: guestInfo.avatar_seed,
+                    avatar_svg: guestInfo.avatar_svg,
+                  };
+                  setUser(userData);
+                } else {
+                  // Fetch updated guest data if missing
+                  if (!guestInfo.avatar_svg && guestInfo.email && (effectiveSlug || guestInfo.weddingId)) {
+                    try {
+                      const { data: guestData } = await supabase
+                        .from('guests')
+                        .select('avatar_style, avatar_seed, avatar_svg')
+                        .eq('email', guestInfo.email.toLowerCase())
+                        .eq('wedding_id', effectiveSlug || guestInfo.weddingId)
+                        .single();
+
+                      if (guestData) {
+                        guestInfo.avatar_style = (guestData as any).avatar_style;
+                        guestInfo.avatar_seed = (guestData as any).avatar_seed;
+                        guestInfo.avatar_svg = (guestData as any).avatar_svg;
+                        localStorage.setItem('phera_guest_auth', JSON.stringify({
+                          ...guestInfo,
+                          timestamp: Date.now() // Keep it fresh
+                        }));
+                      }
+                    } catch (err) {
+                      console.error('checkAuthStatus: Guest data fetch failed:', err);
+                    }
+                  }
+
+                  setUser({
+                    id: guestInfo.id,
+                    email: guestInfo.email,
+                    name: guestInfo.name,
+                    phone: guestInfo.phone,
+                    initials: generateInitials(guestInfo.name),
+                    avatar_color: generateAvatarColor(guestInfo.name),
+                    avatar_style: guestInfo.avatar_style,
+                    avatar_seed: guestInfo.avatar_seed,
+                    avatar_svg: guestInfo.avatar_svg,
+                  });
+                }
+              } else {
+                localStorage.removeItem('phera_guest_auth');
+                setUser(null);
+              }
+            } catch (err) {
+              console.error('checkAuthStatus: Guest parse error:', err);
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      console.error('checkAuthStatus: Critical error:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+      isCheckingAuthRef.current = false;
+    }
+  }, [currentWeddingSlug]);
+
+  // Lightweight guest profile fetch - patches user state with guestId/avatar for a specific wedding.
+  // Unlike checkAuthStatus, this has no lock guard so it can run even while auth is initializing.
+  const fetchGuestProfile = React.useCallback(async (slug: string) => {
+    if (!slug) return;
+
+    try {
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (!sbUser?.email) return;
+
+      const { data: guest, error } = await (supabase as any)
+        .from('guests')
+        .select('id, name, email, phone, avatar_color, avatar_style, avatar_seed, avatar_svg')
+        .eq('email', sbUser.email.toLowerCase())
+        .eq('wedding_id', slug)
+        .single();
+
+      if (error || !guest) {
+        console.log('fetchGuestProfile: No guest record found for', sbUser.email, 'in', slug);
+        return;
+      }
+
+      console.log('fetchGuestProfile: Found guest record, patching user state with guestId:', guest.id);
+
+      // Patch the existing user state with the guest profile data
+      setUser(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          guestId: guest.id,
+          name: guest.name || prev.name,
+          avatar_color: guest.avatar_color || prev.avatar_color,
+          avatar_style: guest.avatar_style,
+          avatar_seed: guest.avatar_seed,
+          avatar_svg: guest.avatar_svg,
+        };
+      });
+    } catch (err) {
+      console.error('fetchGuestProfile: Error:', err);
+    }
+  }, []);
+
+  // Set the current wedding slug and trigger RSVP recheck if changed
+  const setCurrentWeddingSlug = React.useCallback((slug: string) => {
+    if (slug && slug !== currentWeddingSlug) {
+      console.log('🔄 [AuthContext] Wedding slug changed:', currentWeddingSlug, '->', slug);
+      // Update the ref immediately so any in-flight checkAuthStatus reads the new slug
+      currentWeddingSlugRef.current = slug;
+      setCurrentWeddingSlugState(slug);
+      // Reset RSVP state when wedding changes
+      setHasRSVPed(false);
+      setRsvpResponse(null);
+
+      // Fetch guest profile directly - no lock conflicts, patches user state immediately
+      fetchGuestProfile(slug);
+    }
+  }, [currentWeddingSlug, fetchGuestProfile]);
+
+
 
   // Check if user is admin of any wedding (only runs once per session)
   const checkAdminStatus = async (userId: string) => {
@@ -405,149 +606,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const checkAuthStatus = React.useCallback(async () => {
-    // Prevent multiple simultaneous auth checks using ref
-    if (isCheckingAuthRef.current) {
-      console.log('checkAuthStatus: Skipping - already checking');
-      return;
-    }
 
-    console.log('checkAuthStatus: Starting auth check');
-    isCheckingAuthRef.current = true;
-    try {
-      // Get the Supabase user once
-      const { data: { user: sbUser }, error: userError } = await supabase.auth.getUser();
-
-      if (userError) {
-        if (userError.name === 'AbortError') {
-          console.log('checkAuthStatus: Auth check aborted');
-          // Don't clear loading yet if it was just an abort, let another check handle it
-          return;
-        }
-        console.error('checkAuthStatus: User check error:', userError);
-      }
-
-      if (sbUser) {
-        console.log('checkAuthStatus: Found session for:', sbUser.email);
-
-        let guestData = null;
-        if (sbUser.email) {
-          try {
-            const { data: guest } = await (supabase as any)
-              .from('guests')
-              .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
-              .eq('email', sbUser.email.toLowerCase())
-              .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
-              )
-              .single();
-            guestData = guest;
-          } catch (err) {
-            console.error('checkAuthStatus: Error fetching guest data:', err);
-          }
-        }
-
-        const userData: User = {
-          id: sbUser.id,
-          guestId: guestData?.id || null,
-          email: sbUser.email || '',
-          name: guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || '',
-          phone: guestData?.phone || sbUser.phone,
-          initials: generateInitials(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
-          avatar_color: generateAvatarColor(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
-          avatar_style: guestData?.avatar_style,
-          avatar_seed: guestData?.avatar_seed,
-          avatar_svg: guestData?.avatar_svg,
-        };
-
-        setUser(userData);
-        checkAdminStatus(sbUser.id);
-      } else {
-        // Fallback to guest authentication if no Supabase session
-        if (typeof window !== 'undefined') {
-          const guestAuthData = localStorage.getItem('phera_guest_auth');
-          if (guestAuthData) {
-            try {
-              const guestInfo = JSON.parse(guestAuthData);
-              const isRecent = Date.now() - guestInfo.timestamp < 24 * 60 * 60 * 1000;
-
-              if (isRecent && guestInfo.email && (guestInfo.id !== 'temp-guest' || guestInfo.id === 'temp-bypass-guest')) {
-                const isPlusOne = guestInfo.id?.startsWith('plus-one-');
-                const isBypassGuest = guestInfo.id === 'temp-bypass-guest';
-
-                if (isPlusOne || isBypassGuest) {
-                  const userData: User = {
-                    id: guestInfo.id,
-                    email: guestInfo.email,
-                    name: guestInfo.name,
-                    phone: guestInfo.phone,
-                    initials: generateInitials(guestInfo.name),
-                    avatar_color: generateAvatarColor(guestInfo.name),
-                    avatar_style: guestInfo.avatar_style,
-                    avatar_seed: guestInfo.avatar_seed,
-                    avatar_svg: guestInfo.avatar_svg,
-                  };
-                  setUser(userData);
-                } else {
-                  // Fetch updated guest data if missing
-                  if (!guestInfo.avatar_svg && guestInfo.email) {
-                    try {
-                      const { data: guestData } = await supabase
-                        .from('guests')
-                        .select('avatar_style, avatar_seed, avatar_svg')
-                        .eq('email', guestInfo.email.toLowerCase())
-                        .eq('wedding_id', currentWeddingSlug || guestInfo.weddingId || 'simran-karanvir'
-                        )
-                        .single();
-
-                      if (guestData) {
-                        guestInfo.avatar_style = (guestData as any).avatar_style;
-                        guestInfo.avatar_seed = (guestData as any).avatar_seed;
-                        guestInfo.avatar_svg = (guestData as any).avatar_svg;
-                        localStorage.setItem('phera_guest_auth', JSON.stringify({
-                          ...guestInfo,
-                          timestamp: Date.now() // Keep it fresh
-                        }));
-                      }
-                    } catch (err) {
-                      console.error('checkAuthStatus: Guest data fetch failed:', err);
-                    }
-                  }
-
-                  setUser({
-                    id: guestInfo.id,
-                    email: guestInfo.email,
-                    name: guestInfo.name,
-                    phone: guestInfo.phone,
-                    initials: generateInitials(guestInfo.name),
-                    avatar_color: generateAvatarColor(guestInfo.name),
-                    avatar_style: guestInfo.avatar_style,
-                    avatar_seed: guestInfo.avatar_seed,
-                    avatar_svg: guestInfo.avatar_svg,
-                  });
-                }
-              } else {
-                localStorage.removeItem('phera_guest_auth');
-                setUser(null);
-              }
-            } catch (err) {
-              console.error('checkAuthStatus: Guest parse error:', err);
-              setUser(null);
-            }
-          } else {
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      }
-    } catch (error) {
-      console.error('checkAuthStatus: Critical error:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-      isCheckingAuthRef.current = false;
-    }
-  }, [currentWeddingSlug]);
 
   const signOut = React.useCallback(async () => {
     try {
@@ -709,20 +768,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Set user directly from session to avoid calling getUser() again
-          // This prevents the AbortError lock conflict
-          const sbUser = session.user;
-          const userData: User = {
-            id: sbUser.id,
-            email: sbUser.email || '',
-            name: sbUser.user_metadata?.full_name || sbUser.email || '',
-            phone: sbUser.phone,
-            initials: generateInitials(sbUser.user_metadata?.full_name || sbUser.email || ''),
-            avatar_color: generateAvatarColor(sbUser.user_metadata?.full_name || sbUser.email || ''),
-          };
-          setUser(userData);
-          setIsLoading(false);
-          console.log('User set from SIGNED_IN event:', userData.email);
+          // Don't set user directly from session as it lacks avatar data
+          // Instead, trigger a full auth check to get the guest profile
+          checkAuthStatus();
+          console.log('SIGNED_IN event triggered full auth check for:', session.user.email);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setHasRSVPed(false);
@@ -759,6 +808,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(safetyTimeout);
     };
   }, []);
+
+  // Re-fetch guest profile (avatar, guestId) whenever the wedding slug changes in state.
+  // Uses fetchGuestProfile (not checkAuthStatus) to avoid the isCheckingAuthRef lock.
+  useEffect(() => {
+    if (currentWeddingSlug) {
+      fetchGuestProfile(currentWeddingSlug);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWeddingSlug]);
 
   useEffect(() => {
     if (user && !isLoading) {
