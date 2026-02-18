@@ -612,12 +612,13 @@ function VehicleColumn({
           {vehicle && (
             <Chip
               label={`${vehicle.booked}/${vehicle.capacity}`}
-              size="small"
               sx={{
+                height: 28,
                 bgcolor: alpha('#DE3F5E', 0.1),
                 color: '#1a1a1a',
-                fontWeight: 600,
-                fontSize: '0.8rem',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                px: 0.5
               }}
             />
           )}
@@ -826,14 +827,13 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
               {reservation.guest?.name || reservation.notes || 'Guest'}
             </Typography>
             <Chip
-              icon={<People sx={{ fontSize: 18 }} />}
+              icon={<People sx={{ fontSize: 20 }} />}
               label={reservation.party_size || 1}
-              size="small"
               sx={{
-                height: 24,
-                '& .MuiChip-label': { px: 0.5, fontSize: '0.8rem' },
-                '& .MuiChip-icon': { color: '#1a1a1a', mr: .5 },
-                // bgcolor: alpha('#DE3F5E', 0.1),
+                height: 28,
+                '& .MuiChip-label': { px: 0.8, fontSize: '0.875rem' },
+                '& .MuiChip-icon': { color: '#1a1a1a', mr: 0.5 },
+                fontWeight: 700,
                 color: '#1a1a1a',
               }}
             />
@@ -847,16 +847,15 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
             {reservation.pickup_location && (
               <Chip
-                icon={<LocationOn sx={{ fontSize: 14 }} />}
+                icon={<LocationOn sx={{ fontSize: 16 }} />}
                 label={reservation.pickup_location.name}
-                size="small"
                 sx={{
-                  height: 26,
-                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  height: 30,
+                  '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha('#4CAF50', 0.1),
                   color: '#2E7D32',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   border: '1px solid',
                   borderColor: alpha('#4CAF50', 0.2),
                 }}
@@ -936,15 +935,15 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 0.5 }}>
             {reservation.pickup_location && (
               <Chip
-                icon={<LocationOn sx={{ fontSize: 14 }} />}
+                icon={<LocationOn sx={{ fontSize: 16 }} />}
                 label={reservation.pickup_location.name}
-                size="small"
                 sx={{
-                  height: 26,
-                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  height: 30,
+                  '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha('#DE3F5E', 0.08),
                   color: '#1a1a1a',
+                  fontWeight: 600,
                 }}
               />
             )}
@@ -965,13 +964,14 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
           </Box>
         </Box>
         <Chip
-          icon={<People sx={{ fontSize: 18 }} />}
+          icon={<People sx={{ fontSize: 20 }} />}
           label={reservation.party_size || 1}
-          size="small"
           sx={{
-            height: 24,
+            height: 28,
             bgcolor: alpha('#DE3F5E', 0.1),
             color: '#1a1a1a',
+            fontWeight: 700,
+            fontSize: '0.875rem',
             '& .MuiChip-icon': { color: '#1a1a1a' },
           }}
         />

@@ -15,6 +15,7 @@ import {
   Collapse,
 } from '@mui/material';
 import { Mic, Stop, Close, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import VoiceWaveform from './VoiceWaveform';
 
 interface ExtractedTask {
   title: string;
@@ -35,6 +36,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
   const [pendingTasks, setPendingTasks] = useState<ExtractedTask[] | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -50,6 +52,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      setActiveStream(stream);
 
       // Determine supported MIME type (Safari uses mp4, others use webm)
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
@@ -109,6 +112,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
+    setActiveStream(null);
   }, []);
 
   const uploadAndExtract = async (blob: Blob, mimeType: string) => {
@@ -210,6 +214,11 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
               },
             }}
           />
+          {activeStream && (
+            <Box sx={{ width: 140, mx: 1 }}>
+              <VoiceWaveform stream={activeStream} isActive={state === 'recording'} />
+            </Box>
+          )}
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
             {formatTime(elapsed)}
           </Typography>

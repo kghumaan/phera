@@ -683,13 +683,17 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                               <Chip
                                 icon={getAttendingIcon(rsvp.attending)}
                                 label={rsvp.attending === 'yes' ? 'Attending' : rsvp.attending === 'no' ? 'Not Attending' : 'Maybe'}
-                                size="small"
                                 sx={{
+                                  height: 32,
+                                  px: 1,
                                   bgcolor: alpha(getAttendingColor(rsvp.attending), 0.1),
                                   color: getAttendingColor(rsvp.attending),
-                                  fontWeight: 600,
+                                  fontWeight: 700,
+                                  fontSize: '0.85rem',
+                                  borderRadius: '16px',
                                   '& .MuiChip-icon': {
                                     color: 'inherit',
+                                    fontSize: 20,
                                   },
                                 }}
                               />
@@ -709,11 +713,12 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 <Chip
                                   key={i}
                                   label={pref}
-                                  size="small"
                                   sx={{
+                                    height: 28,
                                     bgcolor: alpha('#DE3F5E', 0.1),
                                     color: '#DE3F5E',
                                     fontWeight: 600,
+                                    fontSize: '0.8rem',
                                   }}
                                 />
                               ))}
@@ -764,92 +769,90 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                         <TableRow>
                           <TableCell colSpan={activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
                             <Box sx={{ px: 2 }}>
-                              <Stack spacing={2}>
-                                {/* Main details in one row with proper spacing */}
-                                <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                  {rsvp.food_preference && rsvp.food_preference.length > 0 && (
-                                    <Box sx={{ minWidth: 200 }}>
-                                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                        Food Preferences
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                                        {rsvp.food_preference.map((pref, i) => (
-                                          <Chip
-                                            key={i}
-                                            label={pref}
-                                            size="small"
-                                            sx={{
-                                              bgcolor: '#e0e0e0',
-                                              color: '#1a1a1a',
-                                              fontWeight: 500,
-                                            }}
-                                          />
-                                        ))}
-                                      </Box>
-                                    </Box>
-                                  )}
-
+                              <Box sx={{ display: 'flex', gap: 4, rowGap: 3, flexWrap: 'wrap' }}>
+                                {rsvp.food_preference && rsvp.food_preference.length > 0 && (
                                   <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Guest Contact
+                                      Food Preferences
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
-                                      {rsvp.guest?.email || '-'}
-                                    </Typography>
-                                    {rsvp.guest?.phone && (
-                                      <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
-                                        {rsvp.guest.phone}
-                                      </Typography>
-                                    )}
-                                  </Box>
-
-                                  <Box sx={{ minWidth: 120 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Party Size
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
-                                      {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
-                                    </Typography>
-                                  </Box>
-
-                                  {rsvp.guest?.wedding_side && (
-                                    <Box sx={{ minWidth: 150 }}>
-                                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                        Wedding Side
-                                      </Typography>
-                                      <Box sx={{ mt: 0.5 }}>
+                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                      {rsvp.food_preference.map((pref, i) => (
                                         <Chip
-                                          label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
-                                          size="small"
+                                          key={i}
+                                          label={pref}
                                           sx={{
-                                            bgcolor: alpha('#6B7280', 0.1),
-                                            color: '#6B7280',
-                                            fontWeight: 500,
+                                            height: 28,
+                                            bgcolor: '#e0e0e0',
+                                            color: '#1a1a1a',
+                                            fontWeight: 600,
+                                            fontSize: '0.8rem',
                                           }}
                                         />
-                                      </Box>
+                                      ))}
                                     </Box>
-                                  )}
-
-                                  <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
-                                      Responded Date
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
-                                      {new Date(rsvp.created_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </Typography>
                                   </Box>
+                                )}
+
+                                <Box sx={{ minWidth: 200 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    Guest Contact
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    {rsvp.guest?.email || '-'}
+                                  </Typography>
+                                  {rsvp.guest?.phone && (
+                                    <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
+                                      {rsvp.guest.phone}
+                                    </Typography>
+                                  )}
                                 </Box>
 
-                                {/* Additional details in separate sections */}
+                                <Box sx={{ minWidth: 120 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    Party Size
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
+                                  </Typography>
+                                </Box>
+
+                                {rsvp.guest?.wedding_side && (
+                                  <Box sx={{ minWidth: 150 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                      Wedding Side
+                                    </Typography>
+                                    <Box sx={{ mt: 0.5 }}>
+                                      <Chip
+                                        label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
+                                        sx={{
+                                          height: 28,
+                                          bgcolor: alpha('#6B7280', 0.1),
+                                          color: '#6B7280',
+                                          fontWeight: 600,
+                                          fontSize: '0.8rem',
+                                        }}
+                                      />
+                                    </Box>
+                                  </Box>
+                                )}
+
+                                <Box sx={{ minWidth: 200 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    Responded Date
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    {new Date(rsvp.created_at).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </Typography>
+                                </Box>
+
                                 {rsvp.dietary_restrictions && (
-                                  <Box>
+                                  <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
                                       Dietary Restrictions
                                     </Typography>
@@ -858,8 +861,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     </Typography>
                                   </Box>
                                 )}
+
                                 {rsvp.song_request && (
-                                  <Box>
+                                  <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
                                       Song Request
                                     </Typography>
@@ -868,8 +872,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     </Typography>
                                   </Box>
                                 )}
+
                                 {rsvp.special_message && (
-                                  <Box>
+                                  <Box sx={{ minWidth: 300, maxWidth: 500 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
                                       Special Message
                                     </Typography>
@@ -878,8 +883,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     </Typography>
                                   </Box>
                                 )}
+
                                 {rsvp.maybe_comment && rsvp.attending === 'maybe' && (
-                                  <Box>
+                                  <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
                                       Comment
                                     </Typography>
@@ -888,8 +894,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     </Typography>
                                   </Box>
                                 )}
+
                                 {rsvp.plus_one && rsvp.plus_one_name && (
-                                  <Box>
+                                  <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
                                       Plus One
                                     </Typography>
@@ -903,8 +910,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     )}
                                   </Box>
                                 )}
-
-                              </Stack>
+                              </Box>
                             </Box>
                           </TableCell>
                         </TableRow>

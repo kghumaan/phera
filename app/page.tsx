@@ -64,6 +64,8 @@ const features = [
     problem: 'Every wedding website template out there looks the same... and none of them get Indian weddings!',
     solution: 'Beautiful custom website built to feel like an Indian wedding.',
     imagePlaceholder: 'Demo: Beautiful wedding website preview on multiple devices',
+    featureImage: '/images/feature_images/wedding_website.png',
+    frameType: 'desktop' as const,
   },
   {
     id: 'rsvp-management',
@@ -71,6 +73,8 @@ const features = [
     problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Did anyone actually reply to that WhatsApp message??',
     solution: 'Simplified RSVP process to collect all the details, viewable in one dashboard.',
     imagePlaceholder: 'Demo: RSVP dashboard showing responses with dietary info',
+    featureImage: '/images/feature_images/rsvp_collection.png',
+    frameType: 'desktop' as const,
   },
   {
     id: 'multi-event',
@@ -78,6 +82,8 @@ const features = [
     problem: 'Haldi on Thursday, Ceremony on Friday, Sangeet on Saturday... and my international guests are clueless...',
     solution: 'Display multi-day events with explanations for rituals, traditions, and dress codes—especially for international guests.',
     imagePlaceholder: 'Demo: Event pages for Sangeet, Mehendi, and Reception',
+    featureImage: '/images/feature_images/multi_event.png',
+    frameType: 'desktop' as const,
   },
   {
     id: 'guest-access',
@@ -85,6 +91,8 @@ const features = [
     problem: 'This auntie isn\'t invited to my cocktail party…',
     solution: 'Create different PINs so guests only see the events they\'re invited to. Even control who gets a plus one!',
     imagePlaceholder: 'Demo: PIN-based access control for different guest groups',
+    featureImage: '/images/feature_images/guest_access.png',
+    frameType: 'mobile' as const,
   },
   {
     id: 'travel-coordination',
@@ -92,6 +100,8 @@ const features = [
     problem: 'When\'s this friend arriving? When\'s the vendor landing? How many shuttles do I book??',
     solution: 'View everyone\'s arrival times and let guests sign up for shuttles—all in one place.',
     imagePlaceholder: 'Demo: Travel dashboard with flight arrivals and shuttle schedule',
+    featureImage: '/images/feature_images/travel_coordination.png',
+    frameType: 'desktop' as const,
     isPro: true,
   },
   {
@@ -100,6 +110,7 @@ const features = [
     problem: 'I have 30 unread messages from guests about this or that… I don\'t have time for this!',
     solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
     imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
+    frameType: 'none' as const,
     isPro: true,
   },
   {
@@ -108,6 +119,8 @@ const features = [
     problem: 'I need to talk to the decorator, send the DJ my song list, buy welcome gifts… I can\'t keep track!',
     solution: 'Ramble to our voice agent anytime and we\'ll organize your to-do items so you don\'t forget anything.',
     imagePlaceholder: 'Demo: Voice recording being converted to organized task list',
+    featureImage: '/images/feature_images/task_management.png',
+    frameType: 'desktop' as const,
     isPro: true,
   },
 ];
@@ -195,6 +208,8 @@ interface FeatureItem {
   problem: string;
   solution: string;
   imagePlaceholder: string;
+  featureImage?: string;
+  frameType?: 'desktop' | 'mobile' | 'none';
   isPro?: boolean;
 }
 
@@ -231,6 +246,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           display: { xs: 'none', md: 'block' },
           position: 'relative',
           height: `${containerHeight}vh`,
+          overflow: 'clip', // Clip the right-edge bleed from desktop browser frames
         }}
       >
         <Box
@@ -244,20 +260,19 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             zIndex: 10,
           }}
         >
-          {/* Max-width container for left/right padding */}
+          {/* Full-width container - left side padded, right side extends to viewport edge */}
           <Box
             sx={{
               width: '100%',
-              maxWidth: '1600px',
-              mx: 'auto',
-              px: { md: 6, lg: 10 },
+              pl: { md: 6, lg: 10 },
+              pr: 0,
               display: 'flex',
-              gap: { md: 8, lg: 12 },
+              gap: { md: 4, lg: 6 },
               alignItems: 'center',
             }}
           >
             {/* Left Side - Content */}
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, maxWidth: { md: '420px', lg: '520px' } }}>
               {/* Section Header - Big */}
               <Typography
                 sx={{
@@ -376,12 +391,14 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               </Stack>
             </Box>
 
-            {/* Right Side - Image Placeholder */}
+            {/* Right Side - Feature Images */}
             <Box
               sx={{
-                flex: 1,
-                height: '550px',
+                flex: 1.4,
+                height: '90vh',
                 position: 'relative',
+                overflow: 'visible',
+                minWidth: 0, // Allow flex child to shrink
               }}
             >
               {items.map((item, idx) => (
@@ -391,75 +408,166 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   animate={{
                     opacity: idx === activeIndex ? 1 : 0,
                     scale: idx === activeIndex ? 1 : 0.95,
-                    y: idx === activeIndex ? 0 : 20,
+                    y: idx === activeIndex ? 0 : 30,
                   }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
                     pointerEvents: idx === activeIndex ? 'auto' : 'none',
                   }}
                 >
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '24px',
-                      bgcolor: alpha('#DE3F5E', 0.03),
-                      border: '1px solid',
-                      borderColor: alpha('#000', 0.06),
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      p: 5,
-                    }}
-                  >
-                    {/* Placeholder for image */}
+                  {item.featureImage && item.frameType === 'desktop' && (
+                    /* Browser Frame — extends past viewport right edge */
                     <Box
                       sx={{
-                        width: '100%',
-                        height: '380px',
+                        width: 'calc(100% + 8vw)', // Extends past the right edge of the viewport
+                        minWidth: { md: '700px', lg: '900px' },
+                        borderRadius: '12px 0 0 12px',
+                        overflow: 'hidden',
+                        boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
                         bgcolor: 'white',
-                        borderRadius: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 4,
-                        border: '2px dashed',
-                        borderColor: alpha('#DE3F5E', 0.2),
+                        border: '1px solid',
+                        borderColor: alpha('#000', 0.08),
+                        borderRight: 'none',
                       }}
                     >
-                      <Typography
+                      {/* Browser Title Bar */}
+                      <Box
                         sx={{
-                          color: '#999',
-                          textAlign: 'center',
-                          px: 4,
-                          fontStyle: 'italic',
-                          fontSize: '1.1rem',
+                          height: { md: 36, lg: 42 },
+                          bgcolor: '#f1f1f1',
+                          borderBottom: '1px solid',
+                          borderColor: alpha('#000', 0.08),
+                          display: 'flex',
+                          alignItems: 'center',
+                          px: 2,
+                          gap: 1,
                         }}
                       >
-                        {item.imagePlaceholder}
-                      </Typography>
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      </Box>
+                      {/* Screenshot */}
+                      <Box sx={{ width: '100%', lineHeight: 0 }}>
+                        <Box
+                          component="img"
+                          src={item.featureImage}
+                          alt={item.title}
+                          sx={{
+                            width: '100%',
+                            height: 'auto',
+                            display: 'block',
+                          }}
+                        />
+                      </Box>
                     </Box>
+                  )}
 
-                    {/* Item title under image */}
-                    <Typography
+                  {item.featureImage && item.frameType === 'mobile' && (
+                    /* Mobile Phone Frame — large, positioned toward right */
+                    <Box
                       sx={{
-                        fontFamily: 'var(--font-instrument-serif)',
-                        fontStyle: 'italic',
-                        fontWeight: 500,
-                        color: '#1a1a1a',
-                        fontSize: '1.75rem',
+                        width: { md: '460px', lg: '500px' },
+                        mx: 'auto',
+                        borderRadius: '48px',
+                        overflow: 'hidden',
+                        boxShadow: '0 30px 80px rgba(0,0,0,0.22), 0 10px 30px rgba(0,0,0,0.12)',
+                        bgcolor: '#1a1a1a',
+                        border: '16px solid #1a1a1a',
+                        position: 'relative',
                       }}
                     >
-                      {item.title}
-                    </Typography>
-                  </Paper>
+                      {/* Dynamic Island / Notch */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '135px',
+                          height: '30px',
+                          bgcolor: '#1a1a1a',
+                          borderBottomLeftRadius: '18px',
+                          borderBottomRightRadius: '18px',
+                          zIndex: 20,
+                        }}
+                      />
+                      {/* Phone Screen */}
+                      <Box
+                        sx={{
+                          borderRadius: '34px',
+                          overflow: 'hidden',
+                          lineHeight: 0,
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={item.featureImage}
+                          alt={item.title}
+                          sx={{
+                            width: '100%',
+                            height: 'auto',
+                            display: 'block',
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {!item.featureImage && (
+                    /* Placeholder for features without images (Guest Communication) */
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: '100%',
+                        maxWidth: '600px',
+                        height: '400px',
+                        borderRadius: '24px',
+                        bgcolor: alpha('#DE3F5E', 0.03),
+                        border: '1px solid',
+                        borderColor: alpha('#000', 0.06),
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 5,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: '280px',
+                          bgcolor: 'white',
+                          borderRadius: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '2px dashed',
+                          borderColor: alpha('#DE3F5E', 0.2),
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: '#999',
+                            textAlign: 'center',
+                            px: 4,
+                            fontStyle: 'italic',
+                            fontSize: '1.1rem',
+                          }}
+                        >
+                          {item.imagePlaceholder}
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  )}
                 </motion.div>
               ))}
             </Box>
@@ -499,33 +607,80 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   borderColor: alpha('#000', 0.08),
                 }}
               >
-                {/* Image placeholder */}
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: '180px',
-                    bgcolor: alpha('#DE3F5E', 0.03),
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 3,
-                    border: '2px dashed',
-                    borderColor: alpha('#DE3F5E', 0.2),
-                  }}
-                >
-                  <Typography
+                {/* Feature Image */}
+                {item.featureImage && item.frameType === 'desktop' && (
+                  <Box
                     sx={{
-                      color: '#999',
-                      textAlign: 'center',
-                      px: 2,
-                      fontStyle: 'italic',
-                      fontSize: '0.85rem',
+                      borderRadius: '10px 0 0 10px',
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                      bgcolor: 'white',
+                      border: '1px solid',
+                      borderColor: alpha('#000', 0.08),
+                      mb: 3,
+                      mr: -3, // Extend to right edge on mobile
+                      width: 'calc(100% + 24px)',
                     }}
                   >
-                    {item.imagePlaceholder}
-                  </Typography>
-                </Box>
+                    <Box
+                      sx={{
+                        height: 24,
+                        bgcolor: '#f1f1f1',
+                        borderBottom: '1px solid',
+                        borderColor: alpha('#000', 0.08),
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 1,
+                        gap: 0.5,
+                      }}
+                    >
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+                    </Box>
+                    <Box component="img" src={item.featureImage} alt={item.title} sx={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </Box>
+                )}
+                {item.featureImage && item.frameType === 'mobile' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                    <Box
+                      sx={{
+                        width: '220px',
+                        borderRadius: '28px',
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
+                        bgcolor: '#1a1a1a',
+                        border: '8px solid #1a1a1a',
+                        position: 'relative',
+                      }}
+                    >
+                      <Box sx={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '70px', height: '18px', bgcolor: '#1a1a1a', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px', zIndex: 20 }} />
+                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0 }}>
+                        <Box component="img" src={item.featureImage} alt={item.title} sx={{ width: '100%', height: 'auto', display: 'block' }} />
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
+                {!item.featureImage && (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '180px',
+                      bgcolor: alpha('#DE3F5E', 0.03),
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 3,
+                      border: '2px dashed',
+                      borderColor: alpha('#DE3F5E', 0.2),
+                    }}
+                  >
+                    <Typography sx={{ color: '#999', textAlign: 'center', px: 2, fontStyle: 'italic', fontSize: '0.85rem' }}>
+                      {item.imagePlaceholder}
+                    </Typography>
+                  </Box>
+                )}
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Typography

@@ -287,7 +287,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                 sx={{
                                     flex: 1,
                                     bgcolor: '#ebebeb', // Background matches bezel to hide gaps
-                                    borderRadius: '24px 24px 0 0',
+                                    borderRadius: '24px',
                                     overflow: 'hidden',
                                     mt: -2.2, // Pull up to meet the notch and overlap its border
                                     position: 'relative',

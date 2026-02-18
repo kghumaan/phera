@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use, useCallback } from 'react';
+import React, { useState, use, useCallback, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -46,18 +46,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import VoiceRecorder from '@/components/admin/VoiceRecorder';
+import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
+import { toast } from 'sonner';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Column = 'todo' | 'doing' | 'done';
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  column: Column;
-  tags?: string[];
-}
+// Types are moved to wedding-service.ts
 
 // ─── Default tasks ────────────────────────────────────────────────────────────
 
@@ -143,13 +137,13 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
               label={tag}
               size="small"
               sx={{
-                height: 18,
-                fontSize: '0.65rem',
+                height: 24,
+                fontSize: '0.75rem',
                 fontWeight: 600,
                 bgcolor: alpha('#DE3F5E', 0.08),
                 color: '#DE3F5E',
                 border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
-                '& .MuiChip-label': { px: 0.8 }
+                '& .MuiChip-label': { px: 1.2 }
               }}
             />
           ))}
@@ -199,13 +193,13 @@ function TaskCardStatic({ task }: { task: Task }) {
               label={tag}
               size="small"
               sx={{
-                height: 18,
-                fontSize: '0.65rem',
+                height: 24,
+                fontSize: '0.75rem',
                 fontWeight: 600,
                 bgcolor: alpha('#DE3F5E', 0.08),
                 color: '#DE3F5E',
                 border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
-                '& .MuiChip-label': { px: 0.8 }
+                '& .MuiChip-label': { px: 1.2 }
               }}
             />
           ))}
@@ -335,8 +329,8 @@ function KanbanColumn({
                       size="small"
                       onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
                       sx={{
-                        height: 22,
-                        fontSize: '0.7rem',
+                        height: 28,
+                        fontSize: '0.8rem',
                         cursor: 'pointer',
                         bgcolor: isSelected ? alpha('#DE3F5E', 0.1) : 'rgba(0,0,0,0.03)',
                         color: isSelected ? '#DE3F5E' : '#666',
@@ -389,13 +383,13 @@ function KanbanColumn({
 // ─── Mock board (non-pro, static blurred) ─────────────────────────────────────
 
 const mockTasks: Task[] = [
-  { id: 'm1', title: 'Confirm venue final headcount', column: 'todo' },
-  { id: 'm2', title: 'Send shuttle timing to guests', description: 'Pickup from Taj at 5:30pm', column: 'todo' },
-  { id: 'm3', title: 'Book second shooter', column: 'todo' },
-  { id: 'm4', title: 'Finalise seating chart', column: 'doing' },
-  { id: 'm5', title: 'Review catering menu', column: 'doing' },
-  { id: 'm6', title: 'Send save-the-dates', column: 'done' },
-  { id: 'm7', title: 'Book honeymoon flights', column: 'done' },
+  { id: 'm1', wedding_id: '', title: 'Confirm venue final headcount', column: 'todo', order_index: 0, created_at: '' },
+  { id: 'm2', wedding_id: '', title: 'Send shuttle timing to guests', description: 'Pickup from Taj at 5:30pm', column: 'todo', order_index: 1, created_at: '' },
+  { id: 'm3', wedding_id: '', title: 'Book second shooter', column: 'todo', order_index: 2, created_at: '' },
+  { id: 'm4', wedding_id: '', title: 'Finalise seating chart', column: 'doing', order_index: 0, created_at: '' },
+  { id: 'm5', wedding_id: '', title: 'Review catering menu', column: 'doing', order_index: 1, created_at: '' },
+  { id: 'm6', wedding_id: '', title: 'Send save-the-dates', column: 'done', order_index: 0, created_at: '' },
+  { id: 'm7', wedding_id: '', title: 'Book honeymoon flights', column: 'done', order_index: 1, created_at: '' },
 ];
 
 function MockBoard() {
@@ -431,31 +425,41 @@ function MockBoard() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-import { useEffect } from 'react';
-import { weddingService } from '@/lib/supabase/wedding-service';
-
 export default function TaskManagerPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
+  const [weddingId, setWeddingId] = useState<string | null>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>(defaultTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>(['Vendors', 'Guests', 'RSVPs']);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const initPage = async () => {
+      setLoading(true);
       try {
         const wedding = await weddingService.getWeddingBySlug(weddingSlug);
         if (wedding) {
+          setWeddingId(wedding.id);
+
+          // Fetch tasks
+          const fetchedTasks = await weddingService.getTasks(wedding.id);
+          setTasks(fetchedTasks);
+
+          // Fetch events for tags
           const events = await weddingService.getWeddingEvents(wedding.id);
           const eventNames = events.map(e => e.name);
           setAvailableTags(prev => Array.from(new Set([...prev, ...eventNames])));
         }
       } catch (err) {
-        console.error('Error fetching events for tags:', err);
+        console.error('Error initializing task manager:', err);
+        toast.error('Failed to load tasks');
+      } finally {
+        setLoading(false);
       }
     };
-    fetchEvents();
+    initPage();
   }, [weddingSlug]);
 
   const sensors = useSensors(
@@ -483,49 +487,92 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     }
   };
 
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
     setActiveId(null);
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
     const activeTask = tasks.find(t => t.id === active.id);
-    const overTask = tasks.find(t => t.id === over.id);
+    if (!activeTask) return;
 
-    if (activeTask && overTask && activeTask.column === overTask.column) {
+    // Determine target column
+    const overTask = tasks.find(t => t.id === over.id);
+    const targetColumn = overTask ? overTask.column : (over.id as Column);
+
+    // Sync column change to DB
+    if (activeTask.column !== targetColumn) {
+      weddingService.updateTask(activeTask.id, { column: targetColumn });
+    }
+
+    // Handle reordering within the same column
+    if (active.id !== over.id && overTask && activeTask.column === overTask.column) {
       setTasks(prev => {
-        const col = activeTask.column;
-        const colTasks = prev.filter(t => t.column === col);
-        const rest = prev.filter(t => t.column !== col);
-        const oldIdx = colTasks.findIndex(t => t.id === active.id);
-        const newIdx = colTasks.findIndex(t => t.id === over.id);
-        return [...rest, ...arrayMove(colTasks, oldIdx, newIdx)];
+        const oldIdx = prev.findIndex(t => t.id === active.id);
+        const newIdx = prev.findIndex(t => t.id === over.id);
+        const newTasks = arrayMove(prev, oldIdx, newIdx);
+
+        // Sync all indices for this column to DB
+        const sameColTasks = newTasks.filter(t => t.column === targetColumn);
+        Promise.all(sameColTasks.map((t, idx) =>
+          weddingService.updateTask(t.id, { order_index: idx })
+        ));
+
+        return newTasks;
       });
     }
   };
 
-  const handleDelete = useCallback((id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
+  const handleDelete = useCallback(async (id: string) => {
+    const success = await weddingService.deleteTask(id);
+    if (success) {
+      setTasks(prev => prev.filter(t => t.id !== id));
+      toast.success('Task deleted');
+    } else {
+      toast.error('Failed to delete task');
+    }
   }, []);
 
-  const handleAdd = useCallback((column: Column, title: string, description?: string, tags?: string[]) => {
-    setTasks(prev => [...prev, {
-      id: `task-${Date.now()}`,
+  const handleAdd = useCallback(async (column: Column, title: string, description?: string, tags?: string[]) => {
+    if (!weddingId) return;
+
+    const newTask = await weddingService.createTask({
+      wedding_id: weddingId,
       title,
       description,
       column,
       tags,
-    }]);
-  }, []);
+      order_index: tasks.filter(t => t.column === column).length
+    });
 
-  const handleVoiceTasks = useCallback((extractedTasks: { title: string; description: string; tag: string }[]) => {
-    const newTasks: Task[] = extractedTasks.map((t, i) => ({
-      id: `voice-${Date.now()}-${i}`,
+    if (newTask) {
+      setTasks(prev => [...prev, newTask]);
+      toast.success('Task added');
+    } else {
+      toast.error('Failed to add task');
+    }
+  }, [weddingId, tasks]);
+
+  const handleVoiceTasks = useCallback(async (extractedTasks: { title: string; description: string; tag: string }[]) => {
+    if (!weddingId) return;
+
+    const promises = extractedTasks.map((t, i) => weddingService.createTask({
+      wedding_id: weddingId,
       title: t.title,
       description: t.description || undefined,
       column: 'todo' as Column,
       tags: t.tag ? [t.tag] : undefined,
+      order_index: tasks.filter(t => t.column === 'todo').length + i
     }));
-    setTasks(prev => [...prev, ...newTasks]);
-  }, []);
+
+    const results = await Promise.all(promises);
+    const createdTasks = results.filter((t): t is Task => t !== null);
+
+    if (createdTasks.length > 0) {
+      setTasks(prev => [...prev, ...createdTasks]);
+      toast.success(`Created ${createdTasks.length} tasks`);
+    } else {
+      toast.error('Failed to create tasks from voice');
+    }
+  }, [weddingId, tasks]);
 
   // ── Non-pro teaser ──────────────────────────────────────────────────────────
 
