@@ -10,7 +10,6 @@ import {
   Paper,
   IconButton,
   TextField,
-  Tooltip,
   alpha,
 } from '@mui/material';
 import {
@@ -46,6 +45,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import VoiceRecorder from '@/components/admin/VoiceRecorder';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -516,6 +516,17 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     }]);
   }, []);
 
+  const handleVoiceTasks = useCallback((extractedTasks: { title: string; description: string; tag: string }[]) => {
+    const newTasks: Task[] = extractedTasks.map((t, i) => ({
+      id: `voice-${Date.now()}-${i}`,
+      title: t.title,
+      description: t.description || undefined,
+      column: 'todo' as Column,
+      tags: t.tag ? [t.tag] : undefined,
+    }));
+    setTasks(prev => [...prev, ...newTasks]);
+  }, []);
+
   // ── Non-pro teaser ──────────────────────────────────────────────────────────
 
   if (!isPro) {
@@ -628,22 +639,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               Voice-to-tasks — speak your to-do list, we handle the rest
             </Typography>
           </Box>
-          <Tooltip title="Voice input coming soon — you'll be able to speak your tasks and we'll add them automatically" placement="left">
-            <span>
-              <Button
-                variant="outlined"
-                startIcon={<Mic />}
-                disabled
-                sx={{
-                  borderColor: '#DE3F5E', color: '#DE3F5E', px: 2.5, py: 1,
-                  borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem',
-                  '&.Mui-disabled': { borderColor: '#DE3F5E80', color: '#DE3F5E80' },
-                }}
-              >
-                Voice Input
-              </Button>
-            </span>
-          </Tooltip>
+          <VoiceRecorder onTasksExtracted={handleVoiceTasks} />
         </Box>
 
         {/* Kanban board */}
