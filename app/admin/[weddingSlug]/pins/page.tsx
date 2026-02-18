@@ -18,6 +18,8 @@ import {
   ListItemText,
   Chip,
   alpha,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Add, Delete, Edit } from '@mui/icons-material';
@@ -35,7 +37,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [settings, setSettings] = useState<any>(null);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
-  const [newPin, setNewPin] = useState({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
+  const [newPin, setNewPin] = useState<{ pin: string; type: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
+  const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     loadData();
@@ -50,6 +53,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         if (settingsData) {
           setSettings(settingsData);
         }
+        const weddingEvents = await weddingService.getWeddingEvents(wedding.id);
+        setEvents(weddingEvents.map((e: any) => ({ id: e.id, name: e.name })));
       }
     } catch (err) {
       console.error('Error loading PIN settings:', err);
@@ -94,7 +99,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
       setPinDialogOpen(false);
       setEditingPinIndex(null);
-      setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
+      setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
       await loadData();
       toast.success(editingPinIndex !== null ? 'PIN updated successfully' : 'PIN added successfully');
     } catch (err) {
@@ -109,6 +114,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       type: pinData.type || 'guest',
       allows_plus_one: pinData.allows_plus_one || false,
       skip_rsvp: pinData.skip_rsvp || false,
+      hidden_events: pinData.hidden_events || [],
     });
     setEditingPinIndex(index);
     setPinDialogOpen(true);
@@ -117,7 +123,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const handleCloseDialog = () => {
     setPinDialogOpen(false);
     setEditingPinIndex(null);
-    setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false });
+    setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   };
 
   const handleDeletePin = async (pinToDelete: string) => {
@@ -254,6 +260,20 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               px: 1,
                             }}
                           />
+                          {pinData.hidden_events?.length > 0 && (
+                            <Chip
+                              label={`${pinData.hidden_events.length} hidden`}
+                              size="medium"
+                              sx={{
+                                fontSize: '1rem',
+                                height: 36,
+                                bgcolor: alpha('#6366F1', 0.1),
+                                color: '#6366F1',
+                                fontWeight: 600,
+                                px: 1,
+                              }}
+                            />
+                          )}
                           {pinData.skip_rsvp ? (
                             <Chip
                               label="Skip RSVP"
@@ -434,6 +454,48 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       Toggle
                     </Button>
                   </Box>
+                </Box>
+              )}
+              {events.length > 0 && (
+                <Box sx={{
+                  p: 2,
+                  borderRadius: '12px',
+                  bgcolor: alpha('#6366F1', 0.05),
+                  border: `1px solid ${alpha('#6366F1', 0.2)}`
+                }}>
+                  <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem', mb: 1.5 }}>
+                    Hide Events for This PIN
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem', mb: 2 }}>
+                    Selected events will be hidden from guests using this PIN
+                  </Typography>
+                  <Stack spacing={0.5}>
+                    {events.map((event) => (
+                      <FormControlLabel
+                        key={event.id}
+                        control={
+                          <Checkbox
+                            checked={newPin.hidden_events.includes(event.id)}
+                            onChange={(e) => {
+                              const updated = e.target.checked
+                                ? [...newPin.hidden_events, event.id]
+                                : newPin.hidden_events.filter(id => id !== event.id);
+                              setNewPin({ ...newPin, hidden_events: updated });
+                            }}
+                            sx={{
+                              color: '#6366F1',
+                              '&.Mui-checked': { color: '#6366F1' },
+                            }}
+                          />
+                        }
+                        label={
+                          <Typography sx={{ fontSize: '1rem', color: '#1a1a1a' }}>
+                            {event.name}
+                          </Typography>
+                        }
+                      />
+                    ))}
+                  </Stack>
                 </Box>
               )}
             </Stack>

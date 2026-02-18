@@ -40,8 +40,9 @@ export default function ChatCountPicker({
                 color: '#1a1a1a !important',
                 WebkitTextFillColor: '#1a1a1a !important',
             },
-            '& fieldset': { border: 'none' },
-            '&.Mui-focused fieldset': { border: 'none' },
+            '& fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+            '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+            '&:hover fieldset': { borderColor: '#c73552', borderWidth: '2px' },
             '&:hover': {
                 bgcolor: '#eeeeee',
             }
@@ -56,7 +57,7 @@ export default function ChatCountPicker({
             border: '2px solid',
             borderColor: alpha('#000', 0.12),
             width: '100%',
-            maxWidth: 240,
+            maxWidth: 360,
             mt: 1,
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
         }}>
@@ -73,6 +74,8 @@ export default function ChatCountPicker({
                             sx: {
                                 borderRadius: '12px',
                                 mt: 1,
+                                border: '2px solid',
+                                borderColor: alpha('#000', 0.12),
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                                 '& .MuiMenuItem-root': {
                                     fontWeight: 600,

@@ -30,6 +30,7 @@ interface PinCode {
   type: string;
   allows_plus_one: boolean;
   skip_rsvp?: boolean;
+  hidden_events?: string[];
 }
 
 interface WeddingSettings {
@@ -243,6 +244,13 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
         } else {
           localStorage.removeItem(`phera_skip_rsvp_${weddingSlug}`);
+        }
+
+        // Store hidden_events for event filtering
+        if (matchedPin.hidden_events && matchedPin.hidden_events.length > 0) {
+          localStorage.setItem(`phera_hidden_events_${weddingSlug}`, JSON.stringify(matchedPin.hidden_events));
+        } else {
+          localStorage.removeItem(`phera_hidden_events_${weddingSlug}`);
         }
 
         // Call the callback to notify parent component

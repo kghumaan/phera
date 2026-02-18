@@ -1344,6 +1344,31 @@ export class WeddingService {
       return false;
     }
   }
+
+  // RSVP Stats
+  async getRSVPStats(weddingId: string): Promise<{ total: number; yes: number; no: number; maybe: number; plusOnes: number }> {
+    try {
+      const { data, error } = await this.supabase
+        .from('rsvps')
+        .select('attending, plus_one')
+        .eq('wedding_id', weddingId);
+
+      if (error || !data) {
+        return { total: 0, yes: 0, no: 0, maybe: 0, plusOnes: 0 };
+      }
+
+      return {
+        total: data.length,
+        yes: data.filter(r => r.attending === 'yes').length,
+        no: data.filter(r => r.attending === 'no').length,
+        maybe: data.filter(r => r.attending === 'maybe').length,
+        plusOnes: data.filter(r => r.plus_one).length,
+      };
+    } catch (err) {
+      console.error('Error fetching RSVP stats:', err);
+      return { total: 0, yes: 0, no: 0, maybe: 0, plusOnes: 0 };
+    }
+  }
 }
 
 // Export a singleton instance

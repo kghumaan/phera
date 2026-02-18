@@ -6,31 +6,33 @@ import {
     Button,
     TextField,
     FormControl,
-    InputLabel,
     Select,
     MenuItem,
     Typography,
     alpha,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
+    Switch,
+    FormControlLabel,
+    Tooltip,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PeopleIcon from '@mui/icons-material/People';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Stack from '@mui/material/Stack';
-
-import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { EVENT_TEMPLATES } from '@/components/admin/EventTemplates';
 
 interface ChatEventFormProps {
     onSave: (event: any) => void;
     onCancel?: () => void;
     initialData?: any;
 }
+
+// Template chips for quick event creation
+const TEMPLATE_CHIPS = EVENT_TEMPLATES.map(t => ({
+  name: t.name,
+  time: t.time,
+}));
 
 // Custom Digital Time Picker Component (from Schedule & Events)
 function DigitalTimePicker({
@@ -41,7 +43,7 @@ function DigitalTimePicker({
     onChange: (newValue: { hour: string; minute: string; period: 'AM' | 'PM' }) => void;
 }) {
     const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-    const minutes = ['00', '15', '30', '45']; // 15-minute intervals as requested
+    const minutes = ['00', '15', '30', '45'];
 
     const handleChange = (field: keyof typeof value, newVal: string) => {
         onChange({ ...value, [field]: newVal });
@@ -56,7 +58,7 @@ function DigitalTimePicker({
                         onChange={(e) => handleChange('hour', e.target.value)}
                         sx={{
                             bgcolor: '#f5f5f5',
-                            '& fieldset': { border: 'none' },
+                            '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                             borderRadius: '8px',
                             fontWeight: 600,
                             fontSize: '1.1rem',
@@ -78,7 +80,7 @@ function DigitalTimePicker({
                         onChange={(e) => handleChange('minute', e.target.value)}
                         sx={{
                             bgcolor: '#f5f5f5',
-                            '& fieldset': { border: 'none' },
+                            '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                             borderRadius: '8px',
                             fontWeight: 600,
                             fontSize: '1.1rem'
@@ -130,7 +132,6 @@ function DigitalTimePicker({
 export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEventFormProps) {
     const theme = useTheme();
 
-    // Time parsing for initial data
     const parseInitialTime = (timeStr: string) => {
         if (!timeStr) return { hour: '11', minute: '00', period: 'AM' as const };
         const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
@@ -152,7 +153,24 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
         guestCount: initialData?.guestCount || 0,
         color: initialData?.color || theme.palette.primary.main,
         icon: initialData?.icon || '🎉',
+        is_major_event: initialData?.is_major_event ?? true,
     });
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
+    const handleTemplateSelect = (templateName: string) => {
+        if (templateName === 'Custom') {
+            setSelectedTemplate('Custom');
+            setFormData(prev => ({ ...prev, name: '', is_major_event: true }));
+            setTimeField({ hour: '11', minute: '00', period: 'AM' });
+            return;
+        }
+        const template = TEMPLATE_CHIPS.find(t => t.name === templateName);
+        if (template) {
+            setSelectedTemplate(templateName);
+            setFormData(prev => ({ ...prev, name: template.name, is_major_event: true }));
+            setTimeField(parseInitialTime(template.time));
+        }
+    };
 
     const handleSave = () => {
         if (!formData.name) return;
@@ -172,8 +190,8 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                 color: '#1a1a1a !important',
                 WebkitTextFillColor: '#1a1a1a !important',
             },
-            '& fieldset': { border: 'none' },
-            '&.Mui-focused fieldset': { border: 'none' },
+            '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+            '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
         },
     };
 
@@ -201,6 +219,50 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                 New Event Details
             </Typography>
 
+            {/* Template Chips */}
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="caption" sx={labelSx}>
+                    Quick Templates
+                </Typography>
+                <Box sx={{
+                    display: 'flex',
+                    gap: 1,
+                    overflowX: 'auto',
+                    pb: 1,
+                    WebkitOverflowScrolling: 'touch',
+                    '&::-webkit-scrollbar': { height: 3 },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: alpha('#000', 0.15), borderRadius: 2 },
+                }}>
+                    {[...TEMPLATE_CHIPS.map(t => t.name), 'Custom'].map((name) => (
+                        <Box
+                            key={name}
+                            onClick={() => handleTemplateSelect(name)}
+                            sx={{
+                                flexShrink: 0,
+                                px: 2,
+                                py: 0.75,
+                                borderRadius: '20px',
+                                border: '2px solid',
+                                borderColor: selectedTemplate === name ? '#DE3F5E' : alpha('#000', 0.12),
+                                bgcolor: selectedTemplate === name ? alpha('#DE3F5E', 0.06) : 'white',
+                                color: selectedTemplate === name ? '#DE3F5E' : '#555',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.15s',
+                                '&:hover': {
+                                    borderColor: selectedTemplate === name ? '#DE3F5E' : alpha('#000', 0.25),
+                                    bgcolor: selectedTemplate === name ? alpha('#DE3F5E', 0.08) : alpha('#000', 0.02),
+                                },
+                            }}
+                        >
+                            {name}
+                        </Box>
+                    ))}
+                </Box>
+            </Box>
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box>
                     <Typography variant="caption" sx={labelSx}>
@@ -216,7 +278,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                     />
                 </Box>
 
-                {/* Time Picker Section (Style matched from Schedule & Events) */}
+                {/* Time Picker Section */}
                 <Box>
                     <Typography variant="caption" sx={labelSx}>
                         Event Time
@@ -258,6 +320,25 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         sx={commonFieldSx}
                     />
                 </Box>
+
+                {/* Major Event Toggle */}
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={formData.is_major_event}
+                            onChange={(e) => setFormData({ ...formData, is_major_event: e.target.checked })}
+                            sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                        />
+                    }
+                    label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>Major Event</Typography>
+                            <Tooltip title="Major events are highlighted more prominently on your wedding timeline and schedule. Use this for key moments like the ceremony or reception." arrow>
+                                <InfoOutlinedIcon sx={{ fontSize: 16, color: '#999', cursor: 'help' }} />
+                            </Tooltip>
+                        </Box>
+                    }
+                />
 
                 <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
                     {onCancel && (

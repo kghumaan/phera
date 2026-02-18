@@ -23,7 +23,21 @@ export default function GuestEventsPage() {
   const { user, hasRSVPed, rsvpResponse } = useAuth();
 
   // Use WeddingContext instead of fetching directly
-  const { wedding, events: weddingEvents, isLoading: loading, error } = useWedding();
+  const { wedding, events: allWeddingEvents, isLoading: loading, error } = useWedding();
+
+  // Filter events by hidden_events from PIN (stored in localStorage)
+  const weddingEvents = (() => {
+    if (typeof window === 'undefined') return allWeddingEvents;
+    const hiddenEventsStr = localStorage.getItem(`phera_hidden_events_${weddingSlug}`);
+    if (!hiddenEventsStr) return allWeddingEvents;
+    try {
+      const hiddenEvents: string[] = JSON.parse(hiddenEventsStr);
+      if (!Array.isArray(hiddenEvents) || hiddenEvents.length === 0) return allWeddingEvents;
+      return allWeddingEvents.filter(event => !hiddenEvents.includes(event.id));
+    } catch {
+      return allWeddingEvents;
+    }
+  })();
 
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
