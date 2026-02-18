@@ -185,9 +185,11 @@ export default function TransportationSetupWizard({
     field: keyof VehicleFormData,
     value: VehicleFormData[keyof VehicleFormData]
   ) => {
-    const updated = [...vehicles];
-    updated[index] = { ...updated[index], [field]: value };
-    setVehicles(updated);
+    setVehicles((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
   };
 
   const handleAddLocation = (location: {
@@ -615,8 +617,8 @@ function PrescheduledSetup({
                       value={
                         vehicle.pickup_location_coordinates
                           ? {
-                            name: vehicle.pickup_location,
-                            address: vehicle.pickup_location,
+                            name: vehicle.pickup_location || 'Selected Location',
+                            address: vehicle.pickup_location || 'Address unknown',
                             coordinates: vehicle.pickup_location_coordinates,
                           }
                           : null

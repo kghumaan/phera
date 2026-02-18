@@ -12,10 +12,13 @@ import {
   Switch,
   Divider,
 } from '@mui/material';
-import React, { useState, use } from 'react';
-import { WhatsApp, LockOutlined } from '@mui/icons-material';
+import React, { useState, use, useEffect } from 'react';
+import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import { CircularProgress } from '@mui/material';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -44,7 +47,77 @@ const notifications = [
 export default function ConciergePage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
+  const { user } = useAuth();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
+
+  useEffect(() => {
+    if (isPro && user?.email) {
+      const checkExistingRequest = async () => {
+        // Check local storage first for immediate feedback
+        const hasRequestedLocal = localStorage.getItem(`phera_concierge_requested_${user.email.toLowerCase()}`);
+        if (hasRequestedLocal === 'true') {
+          setRequestStatus('success');
+          return;
+        }
+
+        setRequestStatus('checking');
+        try {
+          console.log('Checking existing concierge request for:', user.email.toLowerCase());
+          const { data, error } = await (supabase as any)
+            .from('contact_submissions')
+            .select('id')
+            .eq('email', user.email.toLowerCase())
+            .eq('message', 'Phera Concierge: Early Preview Setup Request')
+            .limit(1);
+
+          if (error) {
+            console.error('Database error checking request:', error);
+            setRequestStatus('idle');
+            return;
+          }
+
+          if (data && data.length > 0) {
+            console.log('Found existing request in database');
+            setRequestStatus('success');
+            // Cache in local storage
+            localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
+          } else {
+            console.log('No existing request found in database');
+            setRequestStatus('idle');
+          }
+        } catch (err) {
+          console.error('Error checking existing request:', err);
+          setRequestStatus('idle');
+        }
+      };
+
+      checkExistingRequest();
+    }
+  }, [isPro, user?.email]);
+
+  const handleRequestSetup = async () => {
+    if (!user?.email) return;
+    setRequestStatus('submitting');
+    try {
+      const { error } = await (supabase as any)
+        .from('contact_submissions')
+        .insert([{
+          name: user.name || 'Admin',
+          email: user.email.toLowerCase(),
+          message: 'Phera Concierge: Early Preview Setup Request'
+        }]);
+
+      if (error) throw error;
+
+      // Cache success in local storage immediately
+      localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
+      setRequestStatus('success');
+    } catch (err) {
+      console.error('Error submitting setup request:', err);
+      setRequestStatus('error');
+    }
+  };
 
   if (isPro) {
     return (
@@ -58,22 +131,99 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               24/7 WhatsApp concierge for your guests — powered by your wedding details
             </Typography>
           </Box>
-          <Box
+
+          <Paper
+            elevation={0}
             sx={{
-              p: 8,
-              border: '2px dashed rgba(0, 0, 0, 0.1)',
-              borderRadius: '24px',
+              p: { xs: 4, md: 8 },
+              borderRadius: '32px',
+              bgcolor: 'white',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: 'rgba(0, 0, 0, 0.02)',
+              textAlign: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
             }}
           >
-            <Typography sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
-              This screen is currently blank. Content coming soon.
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '20px',
+                bgcolor: '#DE3F5E10',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 3,
+              }}
+            >
+              <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+            </Box>
+
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+              Early Preview Mode
             </Typography>
-          </Box>
+
+            <Typography variant="body1" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
+              Phera Concierge is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your guests.
+            </Typography>
+
+            {requestStatus === 'checking' ? (
+              <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+            ) : requestStatus === 'success' ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 3,
+                  bgcolor: '#F1F8E9',
+                  borderRadius: '16px',
+                  border: '1px solid #C5E1A5',
+                }}
+              >
+                <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
+                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600 }}>
+                  We've received your request! Someone from our team will be in touch shortly to get you set up.
+                </Typography>
+              </Box>
+            ) : (
+              <Stack spacing={2} alignItems="center">
+                <Button
+                  variant="contained"
+                  disabled={requestStatus === 'submitting'}
+                  onClick={handleRequestSetup}
+                  sx={{
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: '14px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
+                    '&:hover': { bgcolor: '#c73552' },
+                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' }
+                  }}
+                >
+                  {requestStatus === 'submitting' ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Request Early Access'
+                  )}
+                </Button>
+                {requestStatus === 'error' && (
+                  <Typography variant="caption" sx={{ color: '#d32f2f' }}>
+                    Something went wrong. Please try again or contact support.
+                  </Typography>
+                )}
+              </Stack>
+            )}
+          </Paper>
         </Stack>
       </Container>
     );

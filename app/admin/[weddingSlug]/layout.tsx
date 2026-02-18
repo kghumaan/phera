@@ -5,7 +5,7 @@ import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar'
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { PlanProvider } from '@/lib/contexts/PlanContext';
+import { usePlan } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect } from 'react';
 import { usePathname, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
@@ -18,6 +18,7 @@ export default function OnboardingLayout({
   params: Promise<{ weddingSlug: string }>;
 }) {
   const { weddingSlug } = use(params);
+  const { isLoading: isLoadingPlan } = usePlan();
   const [wedding, setWedding] = useState<Wedding | undefined>(undefined);
   const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -75,7 +76,7 @@ export default function OnboardingLayout({
   const TOP_NAV_HEIGHT = { xs: '56px', md: '64px' };
 
   return (
-    <PlanProvider>
+    <>
       <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
         <AdminTopNav
           weddingSlug={weddingSlug}
@@ -170,10 +171,21 @@ export default function OnboardingLayout({
                 </Box>
               );
             })()}
-
           </Box>
         </Box>
       </OptimizedBackground>
-    </PlanProvider>
+
+      {/* Plan loading guard - show full page backdrop if plan is still loading */}
+      <Backdrop
+        open={isLoadingPlan}
+        sx={{
+          color: '#DE3F5E',
+          zIndex: (theme) => theme.zIndex.drawer + 2, // Highest priority
+          bgcolor: 'white', // Solid white background for initial load
+        }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </>
   );
 }

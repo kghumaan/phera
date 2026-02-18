@@ -631,11 +631,11 @@ function VehicleColumn({
                 {formatDateTime(vehicle.departure_datetime)}
               </Typography>
             </Box>
-            {vehicle.pickup_location && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LocationOn sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-                  {vehicle.pickup_location}
+            {(vehicle.pickup_location || vehicle.pickup_location_coordinates) && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
+                <LocationOn sx={{ fontSize: 16, color: '#DE3F5E' }} />
+                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                  {vehicle.pickup_location || 'Location set (name missing)'}
                 </Typography>
               </Box>
             )}
@@ -854,8 +854,11 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                   height: 26,
                   '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                  color: '#1a1a1a',
+                  bgcolor: alpha('#4CAF50', 0.1),
+                  color: '#2E7D32',
+                  fontWeight: 500,
+                  border: '1px solid',
+                  borderColor: alpha('#4CAF50', 0.2),
                 }}
               />
             )}
@@ -874,6 +877,23 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
               />
             )}
           </Box>
+          {reservation.notes && !(!reservation.guest_id) && (
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 1,
+                display: 'block',
+                color: '#6a6a6a',
+                fontStyle: 'italic',
+                bgcolor: alpha('#000', 0.03),
+                p: 0.75,
+                borderRadius: 0.5,
+                borderLeft: '2px solid #DE3F5E'
+              }}
+            >
+              "{reservation.notes}"
+            </Typography>
+          )}
         </Box>
         {/* <Chip
           label={reservation.status}

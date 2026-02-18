@@ -3,6 +3,7 @@ import { Outfit, Instrument_Serif } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { PlanProvider } from '@/lib/contexts/PlanContext';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { Toaster } from 'sonner';
 import "./globals.css";
@@ -108,7 +109,9 @@ export default function RootLayout({
           <AppRouterCacheProvider>
             <ClientThemeProvider>
               <AuthProvider>
-                {children}
+                <PlanProvider>
+                  {children}
+                </PlanProvider>
               </AuthProvider>
             </ClientThemeProvider>
           </AppRouterCacheProvider>
