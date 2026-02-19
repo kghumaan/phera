@@ -98,12 +98,12 @@ export const BACKGROUNDS = {
 
 // Background Options for UI
 export const BACKGROUND_UI_OPTIONS = [
+  { name: 'Blue Clouds', url: BACKGROUNDS.BLUE_CLOUDS },
   { name: 'Pearl', url: BACKGROUNDS.PEARL },
-  { name: 'Jade', url: BACKGROUNDS.JADE },
   { name: 'Rose Quartz', url: BACKGROUNDS.ROSE_QUARTZ },
+  { name: 'Jade', url: BACKGROUNDS.JADE },
   { name: 'Lavender', url: BACKGROUNDS.LAVENDER },
   { name: 'Sunset', url: BACKGROUNDS.SUNSET },
-  { name: 'Blue Clouds', url: BACKGROUNDS.BLUE_CLOUDS },
 
   { name: 'Tropical Sage', url: BACKGROUNDS.TROPICAL_SAGE },
   { name: 'Marble Gold', url: BACKGROUNDS.MARBLE_GOLD },
@@ -201,7 +201,7 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
 export const APP_BACKGROUND_CONFIG = {
   // Current default - can be changed here to affect entire app
   default: {
-    background: BACKGROUNDS.WATERCOLOR_BLUE_SKY,
+    background: BACKGROUNDS.BLUE_CLOUDS,
   },
 
 

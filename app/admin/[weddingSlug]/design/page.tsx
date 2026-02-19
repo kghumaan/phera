@@ -114,14 +114,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState('');
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
-  const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.PEARL);
+  const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
 
   // Main site customization state
-  const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.ROSE_QUARTZ);
+  const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
 
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
@@ -234,13 +234,13 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
-        setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.PEARL);
+        setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS);
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(wedding.pin_entry_font_color || '#000000');
         setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
 
         // Load main site customizations
-        setMainBackground(wedding.background_image || BACKGROUNDS.PEARL);
+        setMainBackground(wedding.background_image || BACKGROUNDS.BLUE_CLOUDS);
         setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
         setWebsiteLayout((wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested');
       }

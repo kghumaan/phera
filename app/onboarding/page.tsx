@@ -357,7 +357,7 @@ export default function OnboardingPage() {
               rsvp_deadline: '',
               status: 'draft',
               created_by: data.userId,
-              background_image: '/images/backgrounds/rose-quartz.png',
+              background_image: '/images/backgrounds/blue-clouds.jpg',
               primary_color: '#DE3F5E',
             });
 

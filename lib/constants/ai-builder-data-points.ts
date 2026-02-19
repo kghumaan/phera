@@ -395,13 +395,13 @@ export const DEFAULT_WEDDING_DATA: Partial<CompleteWeddingData> = {
   mainDesign: {
     website_layout: 'nested',
     welcome_text: "",
-    background_image: '/images/backgrounds/pearl.png',
+    background_image: '/images/backgrounds/blue-clouds.jpg',
     primary_color: '#DE3F5E',
   },
   lockScreenDesign: {
     pin_entry_text: "You're invited!",
     pin_entry_subtitle_text: 'Enter your invitation code to see all the details and RSVP for our celebration',
-    pin_entry_background: '/images/backgrounds/pearl.png',
+    pin_entry_background: '/images/backgrounds/blue-clouds.jpg',
     pin_entry_primary_color: '#141414',
     pin_entry_font_color: '#000000',
     pin_entry_button_font_color: '#FFFFFF',

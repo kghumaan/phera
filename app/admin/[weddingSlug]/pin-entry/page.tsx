@@ -20,6 +20,7 @@ import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
+import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -32,15 +33,7 @@ const sectionPaperSx = {
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
 };
 
-const BACKGROUND_OPTIONS = [
-  { name: 'Pearl', url: '/images/backgrounds/pearl.png' },
-  { name: 'Jade', url: '/images/backgrounds/jade.png' },
-  { name: 'Rose Quartz', url: '/images/backgrounds/rose-quartz.png' },
-  { name: 'Lavender', url: '/images/backgrounds/lavendar.png' },
-  { name: 'Blue Clouds', url: '/images/backgrounds/blue-clouds.jpg' },
-  { name: 'Green', url: '/images/backgrounds/green.jpg' },
-  { name: 'Rose', url: '/images/backgrounds/rose.jpg' },
-];
+const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
 const COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
@@ -80,7 +73,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState('');
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
-  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.png');
+  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/blue-clouds.jpg');
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');

@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
   TextField,
   Stack,
 } from '@mui/material';
@@ -40,7 +40,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
         }
         setPin(newPin);
         setError(false);
-        
+
         // Focus the next empty field or the last field
         const nextIndex = Math.min(digits.length, 3);
         inputRefs[nextIndex].current?.focus();
@@ -73,7 +73,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     const digits = pastedText.replace(/[^0-9]/g, '').slice(0, 4);
-    
+
     if (digits.length > 0) {
       const newPin = ['', '', '', ''];
       for (let i = 0; i < digits.length && i < 4; i++) {
@@ -81,7 +81,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
       }
       setPin(newPin);
       setError(false);
-      
+
       // Focus the next empty field or the last field
       const nextIndex = Math.min(digits.length, 3);
       inputRefs[nextIndex].current?.focus();
@@ -90,16 +90,16 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
 
   const handleContinue = async () => {
     const enteredPin = pin.join('');
-    
+
     // Admin PIN code
     const ADMIN_PIN = '7777';
-    
+
     if (enteredPin === ADMIN_PIN) {
       // Set admin authentication flag
       if (typeof window !== 'undefined') {
         localStorage.setItem('phera_admin_authenticated', 'true');
         localStorage.setItem('phera_admin_timestamp', Date.now().toString());
-        
+
         // Call the callback to notify parent component
         onPinVerified();
       }
@@ -117,7 +117,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
   useEffect(() => {
     // Disable scrolling when component mounts
     document.body.style.overflow = 'hidden';
-    
+
     // Re-enable scrolling when component unmounts
     return () => {
       document.body.style.overflow = 'unset';
@@ -125,13 +125,13 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
   }, []);
 
   return (
-    <OptimizedBackground 
-      src="/images/backgrounds/pearl.png"
+    <OptimizedBackground
+      src="/images/backgrounds/blue-clouds.jpg"
       className="min-h-screen flex flex-col"
     >
       {/* Desktop Alert */}
       {/* <DesktopAlert /> */}
-      
+
       {/* Top Left Decorative Image */}
       <Box
         component="img"
@@ -201,10 +201,10 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
       </Box>
 
       {/* Main Content */}
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
-          position: 'relative', 
+      <Container
+        maxWidth="sm"
+        sx={{
+          position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -222,8 +222,8 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
@@ -271,8 +271,8 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
@@ -281,8 +281,8 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
           }}
         >
           {/* Pin Input Section */}
-          <Stack 
-            direction="row" 
+          <Stack
+            direction="row"
             spacing={{ xs: 1.5, sm: 1.5, md: 1.5 }}
             justifyContent="center"
             mb={4}
@@ -329,7 +329,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
                 inputProps={{
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
-                  style: { 
+                  style: {
                     textAlign: 'center',
                     fontSize: 'inherit',
                     fontWeight: 'inherit',

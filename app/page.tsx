@@ -53,7 +53,7 @@ import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import LoginModal from '@/components/auth/LoginModal';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import WhatsAppConcierge from '@/components/ui/WhatsAppConcierge';
+import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 
 // --- Data & Content ---
 
@@ -112,7 +112,7 @@ const features = [
     solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
     imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
     frameType: 'mobile' as const,
-    customComponent: <WhatsAppConcierge />,
+    customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
     isPro: true,
   },
   {
@@ -281,10 +281,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
-                  fontSize: { md: '3rem', lg: '4rem' },
+                  fontSize: { md: '3rem', lg: '3.5rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
-                  mb: 5,
+                  mb: { sm: 2, md: 3, lg: 3 },
                 }}
               >
                 Everything you need,{' '}
@@ -313,7 +313,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         <Typography
                           sx={{
                             color: '#1a1a1a',
-                            fontSize: isActive ? { md: '2rem', lg: '2.5rem' } : { md: '1.15rem', lg: '1.35rem' },
+                            fontSize: isActive ? { md: '1.5rem', lg: '2rem' } : { md: '1rem', lg: '1.25rem' },
                             transition: 'all 0.3s ease',
                             fontWeight: 500,
                             lineHeight: 1.3,
@@ -364,7 +364,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           <Typography
                             sx={{
                               color: '#888',
-                              fontSize: { md: '1.5rem', lg: '1.5rem' },
+                              fontSize: { md: '1rem', lg: '1.25rem' },
                               lineHeight: 1.6,
                               mb: 1.5,
                             }}
@@ -377,7 +377,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           <Typography
                             sx={{
                               color: '#555',
-                              fontSize: { md: '1.5rem', lg: '1.5rem' },
+                              fontSize: { md: '1rem', lg: '1.25rem' },
                               lineHeight: 1.6,
                             }}
                           >
@@ -475,17 +475,17 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   )}
 
                   {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                    /* Mobile Phone Frame — large, positioned toward right */
+                    /* Mobile Phone Frame — more compact, positioned toward right */
                     <Box
                       sx={{
-                        width: { md: '480px', lg: '540px' },
-                        aspectRatio: '9 / 17',
+                        width: { md: '320px', lg: '380px' },
+                        aspectRatio: '9 / 18', // Slightly taller aspect ratio for modern phones
                         mx: 'auto',
-                        borderRadius: '48px',
+                        borderRadius: '40px',
                         overflow: 'hidden',
-                        boxShadow: '0 30px 80px rgba(0,0,0,0.22), 0 10px 30px rgba(0,0,0,0.12)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)',
                         bgcolor: '#1a1a1a',
-                        border: '16px solid #1a1a1a',
+                        border: '12px solid #1a1a1a',
                         position: 'relative',
                       }}
                     >
@@ -496,8 +496,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           top: 0,
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          width: '135px',
-                          height: '30px',
+                          width: '100px',
+                          height: '24px',
                           bgcolor: '#1a1a1a',
                           borderBottomLeftRadius: '18px',
                           borderBottomRightRadius: '18px',
@@ -507,7 +507,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       {/* Phone Screen */}
                       <Box
                         sx={{
-                          borderRadius: '34px',
+                          borderRadius: '28px',
                           overflow: 'hidden',
                           lineHeight: 0,
                           height: '100%',
@@ -789,12 +789,53 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function LandingPage() {
+  const conciergeMessages: Message[] = [
+    {
+      type: 'guest',
+      text: "Hey! What time is the shuttle for the Sangeet leaving?",
+      time: "10:42 AM",
+    },
+    {
+      type: 'bot',
+      text: <>Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>. Would you like to reserve a seat? 🚐</>,
+      time: "10:42 AM",
+      hasCheck: true,
+    },
+    {
+      type: 'guest',
+      text: "Yes please, for 2 people.",
+      time: "10:43 AM",
+    },
+    {
+      type: 'bot',
+      text: "Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.",
+      time: "10:43 AM",
+      hasCheck: true,
+    },
+    {
+      type: 'guest',
+      text: "We have some free time before the reception. Any recommendations nearby?",
+      time: "11:05 AM",
+    },
+    {
+      type: 'bot',
+      text: <>Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.</>,
+      time: "11:06 AM",
+      hasCheck: true,
+    },
+  ];
+
   const { user } = useAuth();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [pendingProAction, setPendingProAction] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [roadmapIndex, setRoadmapIndex] = useState(0);
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   const roadmapRef = useRef<HTMLDivElement>(null);
 
@@ -857,7 +898,7 @@ export default function LandingPage() {
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
                     fontStyle: 'italic',
-                    fontSize: { xs: '3.2rem', md: '4.5rem', lg: '6rem' },
+                    fontSize: { xs: '3.2rem', md: '4rem', lg: '5rem' },
                     lineHeight: 1.1,
                     color: '#1a1a1a',
                     maxWidth: '1000px',
@@ -897,7 +938,7 @@ export default function LandingPage() {
                 <Typography
                   variant="h5"
                   sx={{
-                    fontSize: { xs: '1.35rem', md: '1.75rem' },
+                    fontSize: { xs: '1.25rem', md: '1.5rem' },
                     fontWeight: 600,
                     color: '#1a1a1a',
                     maxWidth: '800px',
@@ -1077,11 +1118,13 @@ export default function LandingPage() {
                   }}
                 >
                   <WhatsAppConcierge
+                    messages={conciergeMessages}
                     sx={{
                       width: { xs: '100%', sm: '340px', md: '380px' },
                       height: { xs: '500px', md: '780px' },
                       maxWidth: { xs: '320px', md: '420px' },
                       mx: 'auto',
+                      borderRadius: { xs: '32px', md: '62px' },
                       border: { xs: '8px solid #1a1a1a', md: '14px solid #1a1a1a' },
                     }}
                   />
@@ -1299,15 +1342,15 @@ export default function LandingPage() {
         }
 
         {/* --- PRICING --- */}
-        <Box id="pricing" sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 14 } }}>
+        <Box id="pricing" sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 10 } }}>
           <Container maxWidth="lg">
-            <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 8 } }}>
+            <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 4 } }}>
               <Typography
                 variant="h2"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
-                  fontSize: { xs: '1.5rem', md: '3.5rem' },
+                  fontSize: { xs: '1.5rem', md: '3rem' },
                   color: '#1a1a1a',
                 }}
               >
@@ -1404,11 +1447,11 @@ export default function LandingPage() {
                         {tier.price}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 4 }, color: '#4a4a4a', fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
+                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: '#4a4a4a', fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
                       {tier.description}
                     </Typography>
 
-                    <List dense sx={{ mb: { xs: 1, md: 4 }, flexGrow: 1 }}>
+                    <List dense sx={{ mb: { xs: 1, md: 2 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (
                         <ListItem key={fIdx} disableGutters sx={{ py: { xs: 0.5, md: 0.75 } }}>
                           <ListItemIcon sx={{ minWidth: { xs: 32, md: 44 } }}>
@@ -1427,7 +1470,7 @@ export default function LandingPage() {
                               sx: {
                                 color: '#1a1a1a',
                                 fontWeight: 400,
-                                fontSize: { xs: '0.9rem', md: '1.05rem' },
+                                fontSize: { xs: '0.8rem', md: '.9rem' },
                                 lineHeight: 1.4
                               }
                             }}
@@ -1472,7 +1515,7 @@ export default function LandingPage() {
         </Box>
 
         {/* --- FAQ --- */}
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 14 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 10 } }}>
           <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 3, md: 8 }, alignItems: 'center' }}>
             <Typography
               variant="overline"
@@ -1483,34 +1526,36 @@ export default function LandingPage() {
             <Typography
               variant="h2"
               align="center"
-              sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3.5rem' }, color: '#1a1a1a' }}
+              sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3rem' }, color: '#1a1a1a' }}
             >
               Common Questions
             </Typography>
           </Stack>
 
           <Container maxWidth="md">
-            <Stack spacing={3}>
+            <Stack spacing={1.5}>
               {faqs.map((faq, idx) => (
                 <Accordion
                   key={idx}
+                  expanded={expanded === `panel${idx}`}
+                  onChange={handleAccordionChange(`panel${idx}`)}
+                  disableGutters
                   elevation={0}
                   sx={{
                     bgcolor: 'white',
                     border: '1px solid',
                     borderColor: 'rgba(0,0,0,0.06)',
-                    borderRadius: '24px !important',
+                    borderRadius: '16px !important',
                     overflow: 'hidden',
                     transition: 'all 0.2s ease',
                     '&:before': { display: 'none' },
                     '&:hover': {
                       borderColor: 'rgba(0,0,0,0.12)',
-                      transform: 'translateY(-2px)',
+                      transform: 'translateY(-1px)',
                     },
                     '&.Mui-expanded': {
-                      boxShadow: '0 12px 32px rgba(0,0,0,0.06)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                       borderColor: 'transparent',
-                      m: 0, // Reset default margin expansion
                     }
                   }}
                 >
@@ -1519,20 +1564,20 @@ export default function LandingPage() {
                       bgcolor: alpha('#DE3F5E', 0.05),
                       color: '#DE3F5E',
                       borderRadius: '50%',
-                      p: { xs: 0.3, md: 0.5 },
+                      p: { xs: 0.3, md: 0.4 },
                       display: 'flex',
-                      '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } }
+                      '& svg': { fontSize: { xs: '1rem', md: '1.25rem' } }
                     }}>
                       <ExpandMore />
                     </Box>}
-                    sx={{ px: { xs: 2, md: 4 }, py: { xs: 0.75, md: 2 } }}
+                    sx={{ px: { xs: 2, md: 3 }, py: { xs: 0.5, md: 1 } }}
                   >
-                    <Typography variant="h6" sx={{ fontSize: { xs: '0.9rem', md: '1.6rem' }, fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
                       {faq.q}
                     </Typography>
                   </AccordionSummary>
-                  <AccordionDetails sx={{ px: { xs: 2, md: 4 }, pb: { xs: 2, md: 4 }, pt: 0 }}>
-                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.7, fontSize: { xs: '0.8rem', md: '1.05rem' } }}>
+                  <AccordionDetails sx={{ px: { xs: 2, md: 3 }, pb: { xs: 1.5, md: 2.5 }, pt: 0 }}>
+                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.6, fontSize: { xs: '0.8rem', md: '1rem' } }}>
                       {faq.a}
                     </Typography>
                   </AccordionDetails>
@@ -1543,7 +1588,7 @@ export default function LandingPage() {
         </Container>
 
         {/* --- FINAL CTA --- */}
-        <Container maxWidth="lg" sx={{ pb: { xs: 3, md: 12 } }}>
+        <Container maxWidth="lg" sx={{ pb: { xs: 3, md: 10 } }}>
           <Paper
             sx={{
               p: { xs: 3, md: 8 },
@@ -1639,17 +1684,16 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 4 }}>
-                <Typography
-                  variant="h5"
+                <Box
+                  component="img"
+                  src="/logo.svg"
+                  alt="Phera Logo"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontStyle: 'italic',
-                    color: '#DE3F5E',
+                    height: '32px',
                     mb: 2,
+                    filter: 'brightness(0)',
                   }}
-                >
-                  Phera
-                </Typography>
+                />
                 <Typography variant="body2" sx={{ mb: 2, color: '#4a4a4a' }}>
                   Phera was built by a couple frustrated with the complexity of
                   planning a modern Indian destination wedding. We knew there had
