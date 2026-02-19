@@ -53,6 +53,7 @@ import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import LoginModal from '@/components/auth/LoginModal';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import WhatsAppConcierge from '@/components/ui/WhatsAppConcierge';
 
 // --- Data & Content ---
 
@@ -98,7 +99,7 @@ const features = [
     id: 'travel-coordination',
     title: 'Travel Coordination',
     problem: 'When\'s this friend arriving? When\'s the vendor landing? How many shuttles do I book??',
-    solution: 'View everyone\'s arrival times and let guests sign up for shuttles—all in one place.',
+    solution: 'View everyone\'s arrival times and let guests sign up for shuttles — all in one place.',
     imagePlaceholder: 'Demo: Travel dashboard with flight arrivals and shuttle schedule',
     featureImage: '/images/feature_images/travel_coordination.png',
     frameType: 'desktop' as const,
@@ -110,7 +111,8 @@ const features = [
     problem: 'I have 30 unread messages from guests about this or that… I don\'t have time for this!',
     solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
     imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
-    frameType: 'none' as const,
+    frameType: 'mobile' as const,
+    customComponent: <WhatsAppConcierge />,
     isPro: true,
   },
   {
@@ -209,6 +211,7 @@ interface FeatureItem {
   solution: string;
   imagePlaceholder: string;
   featureImage?: string;
+  customComponent?: React.ReactNode;
   frameType?: 'desktop' | 'mobile' | 'none';
   isPro?: boolean;
 }
@@ -471,11 +474,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     </Box>
                   )}
 
-                  {item.featureImage && item.frameType === 'mobile' && (
+                  {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
                     /* Mobile Phone Frame — large, positioned toward right */
                     <Box
                       sx={{
-                        width: { md: '460px', lg: '500px' },
+                        width: { md: '480px', lg: '540px' },
+                        aspectRatio: '9 / 17',
                         mx: 'auto',
                         borderRadius: '48px',
                         overflow: 'hidden',
@@ -506,23 +510,30 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           borderRadius: '34px',
                           overflow: 'hidden',
                           lineHeight: 0,
+                          height: '100%',
                         }}
                       >
-                        <Box
-                          component="img"
-                          src={item.featureImage}
-                          alt={item.title}
-                          sx={{
-                            width: '100%',
-                            height: 'auto',
-                            display: 'block',
-                          }}
-                        />
+                        {item.customComponent ? (
+                          item.customComponent
+                        ) : (
+                          <Box
+                            component="img"
+                            src={item.featureImage}
+                            alt={item.title}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'block',
+                              objectFit: 'cover',
+                              objectPosition: 'top',
+                            }}
+                          />
+                        )}
                       </Box>
                     </Box>
                   )}
 
-                  {!item.featureImage && (
+                  {!item.featureImage && !item.customComponent && (
                     /* Placeholder for features without images (Guest Communication) */
                     <Paper
                       elevation={0}
@@ -641,11 +652,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     <Box component="img" src={item.featureImage} alt={item.title} sx={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
                 )}
-                {item.featureImage && item.frameType === 'mobile' && (
+                {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
                     <Box
                       sx={{
                         width: '220px',
+                        height: item.customComponent ? '400px' : 'auto',
                         borderRadius: '28px',
                         overflow: 'hidden',
                         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
@@ -654,9 +666,31 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         position: 'relative',
                       }}
                     >
-                      <Box sx={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '70px', height: '18px', bgcolor: '#1a1a1a', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px', zIndex: 20 }} />
-                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0 }}>
-                        <Box component="img" src={item.featureImage} alt={item.title} sx={{ width: '100%', height: 'auto', display: 'block' }} />
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '70px',
+                          height: '18px',
+                          bgcolor: '#1a1a1a',
+                          borderBottomLeftRadius: '10px',
+                          borderBottomRightRadius: '10px',
+                          zIndex: 20,
+                        }}
+                      />
+                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0, height: '100%' }}>
+                        {item.customComponent ? (
+                          item.customComponent
+                        ) : (
+                          <Box
+                            component="img"
+                            src={item.featureImage}
+                            alt={item.title}
+                            sx={{ width: '100%', height: 'auto', display: 'block' }}
+                          />
+                        )}
                       </Box>
                     </Box>
                   </Box>
@@ -883,9 +917,9 @@ export default function LandingPage() {
                     px: { xs: 2, md: 0 }
                   }}
                 >
-                  Custom Indian wedding websites, smart RSVPs, 24/7 WhatsApp concierge
+                  Custom Indian wedding websites, smart RSVPs, 24/7 WhatsApp concierge,
                   <br />
-                  —all in one place.
+                  and much more - all in one place.
                 </Typography>
 
                 <Stack
@@ -1042,175 +1076,20 @@ export default function LandingPage() {
                     visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
                   }}
                 >
-                  <Paper
-                    elevation={20}
+                  <WhatsAppConcierge
                     sx={{
-                      p: 0, // Remove padding to let header flush
-                      borderRadius: { xs: '24px', md: '48px' },
-                      bgcolor: '#EFE7DE', // WhatsApp chat bg
-                      width: { xs: '100%', sm: '340px', md: '380px' }, // Wider on desktop
-                      height: { xs: '500px', md: '780px' }, // Shorter to fix aspect ratio
+                      width: { xs: '100%', sm: '340px', md: '380px' },
+                      height: { xs: '500px', md: '780px' },
                       maxWidth: { xs: '320px', md: '420px' },
                       mx: 'auto',
-                      position: 'relative',
                       border: { xs: '8px solid #1a1a1a', md: '14px solid #1a1a1a' },
-                      overflow: 'hidden',
-                      backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
-                      backgroundSize: 'cover',
-                      display: 'flex',
-                      flexDirection: 'column'
                     }}
-                  >
-                    {/* Dynamic Island / Notch */}
-                    <Box sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: { xs: '80px', md: '120px' },
-                      height: { xs: '20px', md: '28px' },
-                      bgcolor: '#1a1a1a',
-                      borderBottomLeftRadius: { xs: '12px', md: '14px' },
-                      borderBottomRightRadius: { xs: '12px', md: '14px' },
-                      zIndex: 20
-                    }} />
-
-                    {/* Custom WhatsApp Header */}
-                    <Box sx={{
-                      bgcolor: '#202C33', // Dark header
-                      color: 'primary.contrastText',
-                      pt: { xs: 4, md: 6 }, // Space for notch/status bar
-                      pb: { xs: 1, md: 1.5 },
-                      px: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                      zIndex: 10
-                    }}>
-                      <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1, color: 'white' }}>
-                        <ArrowBack sx={{ fontSize: { xs: '1.25rem', md: '1.75rem' } }} />
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center" spacing={{ xs: 1, md: 1.5 }} sx={{ flexGrow: 1 }}>
-                        <Avatar
-                          src="/Phera Logomark.jpg"
-                          sx={{ width: { xs: 32, md: 42 }, height: { xs: 32, md: 42 } }}
-                        />
-                        <Box>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white', lineHeight: 1.2, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                              Phera
-                            </Typography>
-                            <Verified sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' }, color: '#2979FF' }} />
-                          </Stack>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Chat Area */}
-                    <Stack spacing={{ xs: 1.5, md: 2 }} sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1, overflowY: 'auto' }}>
-                      {/* Date Separator */}
-                      <Box sx={{ alignSelf: 'center', bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', px: { xs: 1, md: 1.5 }, py: 0.5, borderRadius: '8px', mb: { xs: 1, md: 2 } }}>
-                        <Typography variant="caption" sx={{ color: '#54656F', fontWeight: 500, bgcolor: '#FFF', px: { xs: 0.75, md: 1 }, py: 0.5, borderRadius: '8px', boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)', fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
-                          Today
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Guest */}
-                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
-                          Hey! What time is the shuttle for the Sangeet leaving?
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                          10:42 AM
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Bot */}
-                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' }, lineHeight: 1.3 }}>
-                          Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>.
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          Would you like to reserve a seat? 🚐
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                          10:42 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Guest */}
-                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          Yes please, for 2 people.
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                          10:43 AM
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Bot */}
-                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                          10:43 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Guest (Kill Time) */}
-                      <Box sx={{ alignSelf: 'flex-start', bgcolor: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '0px 12px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, left: -8, width: 0, height: 0, borderTop: '12px solid white', borderLeft: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          We have some free time before the reception. Any recommendations nearby?
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#667781', textAlign: 'right', fontSize: { xs: '0.6rem', md: '0.7rem' } }}>
-                          11:15 AM
-                        </Typography>
-                      </Box>
-
-                      {/* Chat Bubble Bot (Recommendation) */}
-                      <Box sx={{ alignSelf: 'flex-end', bgcolor: '#E7FFDB', p: { xs: 1, md: 1.5 }, borderRadius: '12px 0px 12px 12px', maxWidth: '85%', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)', position: 'relative' }}>
-                        {/* Triangle */}
-                        <Box sx={{ position: 'absolute', top: 0, right: -8, width: 0, height: 0, borderTop: '12px solid #E7FFDB', borderRight: '12px solid transparent' }} />
-
-                        <Typography variant="body2" sx={{ color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: { xs: 0.75, md: 1 }, color: '#111b21', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
-                          Check out the full guide here:
-                        </Typography>
-                        {/* Link Preview Mockup */}
-                        <Box sx={{ mt: { xs: 0.75, md: 1 }, bgcolor: '#CFE9BA', p: { xs: 0.75, md: 1 }, borderRadius: '8px', borderLeft: '4px solid #53bdeb' }}>
-                          <Typography variant="caption" sx={{ color: '#007AFF', fontWeight: 600, fontSize: { xs: '0.6rem', md: '0.75rem' } }}>maps.google.com</Typography>
-                          <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', md: '0.85rem' }, color: '#111b21' }}>Udaipur Local Guide • Best Cafes & Spas</Typography>
-                        </Box>
-                        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, color: '#667781', fontSize: { xs: '0.6rem', md: '0.7rem' }, gap: 0.5 }}>
-                          11:15 AM <Check sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: '#53bdeb' }} />
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Paper>
+                  />
                 </motion.div>
               </Grid>
             </Grid>
-          </Container>
-        </Box>
+          </Container >
+        </Box >
 
 
         {/* --- WEDDING ROADMAP SECTION --- */}
