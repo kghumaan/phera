@@ -10,7 +10,7 @@ import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 function isPublicRoute(): boolean {
   if (typeof window === 'undefined') return false;
   const path = window.location.pathname;
-  const publicPaths = ['/', '/auth/signup', '/auth/login', '/auth/callback'];
+  const publicPaths = ['/auth/signup', '/auth/login', '/auth/callback'];
   return publicPaths.some(p => path === p) || path.startsWith('/auth/');
 }
 
@@ -133,18 +133,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
+        // If no guest record, try to get avatar from user_settings (for admin users)
+        let userSettingsAvatar = null;
+        if (!guestData) {
+          // Retry loop for user_settings to handle race conditions during signup
+          let attempts = 0;
+          const maxAttempts = 3;
+
+          while (attempts < maxAttempts) {
+            try {
+              const { data: settings } = await (supabase as any)
+                .from('user_settings')
+                .select('avatar_style, avatar_seed, avatar_svg, avatar_color')
+                .eq('user_id', sbUser.id)
+                .single();
+
+              if (settings?.avatar_svg) {
+                userSettingsAvatar = settings;
+                break; // Found it!
+              }
+            } catch (err) {
+              // Non-critical - user_settings may not exist yet
+            }
+
+            // If it's a new login and we didn't find settings, wait and retry
+            if (attempts < maxAttempts - 1) {
+              attempts++;
+              console.log(`checkAuthStatus: User settings not found, retry ${attempts}/${maxAttempts}...`);
+              await new Promise(resolve => setTimeout(resolve, 800)); // Wait 800ms
+            } else {
+              break;
+            }
+          }
+        }
+
+        const displayName = guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || '';
         const userData: User = {
           id: sbUser.id,
           guestId: guestData?.id || null,
           email: sbUser.email || '',
-          name: guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || '',
+          name: displayName,
           phone: guestData?.phone || sbUser.phone,
-          initials: generateInitials(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
+          initials: generateInitials(displayName),
           // Use DB avatar_color as source of truth so it matches posted comments
-          avatar_color: guestData?.avatar_color || generateAvatarColor(guestData?.name || sbUser.user_metadata?.full_name || sbUser.email || ''),
-          avatar_style: guestData?.avatar_style,
-          avatar_seed: guestData?.avatar_seed,
-          avatar_svg: guestData?.avatar_svg,
+          avatar_color: guestData?.avatar_color || userSettingsAvatar?.avatar_color || generateAvatarColor(displayName),
+          avatar_style: guestData?.avatar_style || userSettingsAvatar?.avatar_style,
+          avatar_seed: guestData?.avatar_seed || userSettingsAvatar?.avatar_seed,
+          avatar_svg: guestData?.avatar_svg || userSettingsAvatar?.avatar_svg,
         };
 
         setUser(userData);
@@ -563,8 +598,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .eq('plus_one_email', email.toLowerCase())
-        .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
-        )
+        .eq('wedding_id', currentWeddingSlug || '')
         .single();
 
       if (rsvpData && rsvpData.plus_one_email) {
@@ -574,8 +608,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: rsvpData.plus_one_email,
           name: rsvpData.plus_one_name || 'Plus One',
           phone: undefined,
-          weddingId: currentWeddingSlug || 'simran-karanvir'
-          ,
+          weddingId: currentWeddingSlug || '',
           avatar_style: undefined,
           avatar_seed: undefined,
           avatar_svg: undefined,
@@ -697,8 +730,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .from('guests')
                 .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
                 .eq('email', guestEmail.toLowerCase())
-                .eq('wedding_id', currentWeddingSlug || 'simran-karanvir'
-                )
+                .eq('wedding_id', currentWeddingSlug || '')
                 .single();
 
               if (guestData) {

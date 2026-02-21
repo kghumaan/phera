@@ -189,14 +189,32 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             sx={{
                                 width: 32,
                                 height: 32,
-                                bgcolor: '#DE3F5E',
+                                bgcolor: user?.avatar_color || '#DE3F5E',
+                                color: 'white',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
                                 border: '2px solid white',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                             }}
                         >
-                            {user?.email?.[0].toUpperCase() || 'U'}
+                            {user?.avatar_svg ? (
+                                <Box
+                                    dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        '& svg': {
+                                            width: '100%',
+                                            height: '100%',
+                                        },
+                                    }}
+                                />
+                            ) : (
+                                user?.initials || user?.email?.[0].toUpperCase() || 'U'
+                            )}
                         </Avatar>
                         <Typography
                             onClick={(e) => {
@@ -250,13 +268,31 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         <Box sx={{ p: 2.5, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Avatar
                                 sx={{
-                                    bgcolor: '#DE3F5E',
+                                    bgcolor: user?.avatar_color || '#DE3F5E',
+                                    color: 'white',
                                     fontSize: '1.5rem',
                                     fontWeight: 700,
                                     mb: 1,
                                 }}
                             >
-                                {user?.email?.[0].toUpperCase() || 'U'}
+                                {user?.avatar_svg ? (
+                                    <Box
+                                        dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            '& svg': {
+                                                width: '100%',
+                                                height: '100%',
+                                            },
+                                        }}
+                                    />
+                                ) : (
+                                    user?.initials || user?.email?.[0].toUpperCase() || 'U'
+                                )}
                             </Avatar>
                             <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
                                 {wedding?.couple_name || 'Your Wedding'}

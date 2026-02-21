@@ -18,9 +18,10 @@ interface LoginModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  redirectTo?: string;
 }
 
-const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
+const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) => {
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [authError, setAuthError] = useState('');
@@ -85,9 +86,9 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
     setAuthError('');
     
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle(redirectTo);
       if (result.success) {
-        // Google sign in redirects
+        // Google sign in redirects - onSuccess won't fire for OAuth (full page redirect)
         onSuccess?.();
         handleCloseDialog();
       } else {

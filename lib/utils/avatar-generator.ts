@@ -1,12 +1,9 @@
 import { createAvatar } from '@dicebear/core';
-import { notionists, personas, funEmoji, shapes } from '@dicebear/collection';
+import { notionistsNeutral } from '@dicebear/collection';
 
-// Available avatar styles - simplified for type safety
+// Available avatar styles - switched exclusively to 'notionists-neutral'
 export const AVATAR_STYLES = [
-  'notionists',
-  'personas', 
-  'funEmoji',
-  'shapes'
+  'notionists-neutral'
 ] as const;
 
 export type AvatarStyleKey = typeof AVATAR_STYLES[number];
@@ -22,64 +19,33 @@ interface GeneratedAvatar {
   dataUri: string;
   style: AvatarStyleKey;
   seed: string;
+  color: string;
 }
 
 /**
  * Generate a unique avatar using DiceBear
  */
-export function generateAvatar({ 
-  seed, 
-  style = 'notionists', 
-  size = 128 
+export function generateAvatar({
+  seed,
+  style = 'notionists-neutral',
+  size = 128
 }: AvatarOptions): GeneratedAvatar {
-  let avatar;
-
-  // Handle each style explicitly to avoid TypeScript issues
-  switch (style) {
-    case 'notionists':
-      avatar = createAvatar(notionists, {
-        seed,
-        size,
-        backgroundColor: ['transparent'],
-      });
-      break;
-    case 'personas':
-      avatar = createAvatar(personas, {
-        seed,
-        size,
-        backgroundColor: ['transparent'],
-      });
-      break;
-    case 'funEmoji':
-      avatar = createAvatar(funEmoji, {
-        seed,
-        size,
-        backgroundColor: ['transparent'],
-      });
-      break;
-    case 'shapes':
-      avatar = createAvatar(shapes, {
-        seed,
-        size,
-        backgroundColor: ['transparent'],
-      });
-      break;
-    default:
-      avatar = createAvatar(notionists, {
-        seed,
-        size,
-        backgroundColor: ['transparent'],
-      });
-  }
+  const avatar = createAvatar(notionistsNeutral, {
+    seed,
+    size,
+    backgroundColor: ['transparent'],
+  });
 
   const svg = avatar.toString();
   const dataUri = avatar.toDataUri();
+  const color = generateFallbackColor(seed);
 
   return {
     svg,
     dataUri,
     style,
-    seed
+    seed,
+    color
   };
 }
 
@@ -87,16 +53,16 @@ export function generateAvatar({
  * Generate avatar for a guest based on their data
  */
 export function generateGuestAvatar(
-  email: string, 
-  name?: string, 
+  email: string,
+  name?: string,
   preferredStyle?: AvatarStyleKey
 ): GeneratedAvatar {
   // Use email as primary seed for consistency
   const seed = email.toLowerCase().trim();
-  
-  // Choose style based on name characteristics or default to notionists
-  const style = preferredStyle || chooseStyleForGuest(name, email);
-  
+
+  // We only use 'notionists-neutral' now
+  const style = 'notionists-neutral';
+
   return generateAvatar({ seed, style });
 }
 
@@ -104,21 +70,7 @@ export function generateGuestAvatar(
  * Intelligently choose avatar style based on guest data
  */
 function chooseStyleForGuest(name?: string, email?: string): AvatarStyleKey {
-  if (!name && !email) return 'notionists';
-  
-  const identifier = (name || email || '').toLowerCase();
-  
-  // Simple hashing to distribute styles
-  let hash = 0;
-  for (let i = 0; i < identifier.length; i++) {
-    const char = identifier.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  
-  const index = Math.abs(hash) % AVATAR_STYLES.length;
-  
-  return AVATAR_STYLES[index];
+  return 'notionists-neutral';
 }
 
 /**
@@ -144,11 +96,11 @@ export function generateFallbackColor(name: string): string {
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
     '#DDA0DD', '#FFA07A', '#98D8C8', '#6C5CE7', '#FDCB6E'
   ];
-  
+
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   return colors[Math.abs(hash) % colors.length];
 } 

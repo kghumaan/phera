@@ -65,6 +65,24 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
     useRef<HTMLInputElement>(null),
   ];
 
+  // Persist pin verification to DB for authenticated users
+  const storePinAccessToDB = async (pinType: string, allowsPlusOne: boolean) => {
+    try {
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (!sbUser) return;
+
+      await supabase.from('pin_access').upsert([{
+        user_id: sbUser.id,
+        wedding_id: weddingSlug,
+        pin_type: pinType,
+        allows_plus_one: allowsPlusOne,
+      }], { onConflict: 'user_id,wedding_id' });
+      console.log('Pin access stored to DB for user:', sbUser.id);
+    } catch (err) {
+      console.error('Failed to store pin_access to DB (non-fatal):', err);
+    }
+  };
+
   const handlePinChange = (index: number, value: string) => {
     // Handle paste or multi-character input (typically only at index 0 or if first char is empty)
     if (value.length > 1 && (index === 0 || pin[index] === '')) {
@@ -253,6 +271,9 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           localStorage.removeItem(`phera_hidden_events_${weddingSlug}`);
         }
 
+        // Persist pin verification to DB if user is authenticated
+        storePinAccessToDB(matchedPin.type, matchedPin.allows_plus_one);
+
         // Call the callback to notify parent component
         onPinVerified();
       }
@@ -301,11 +322,8 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
       return true;
     };
 
-    const checkInitialState = () => {
+    const checkInitialState = async () => {
       if (typeof window !== 'undefined') {
-        // Note: Authenticated users now need to verify PIN for each wedding
-        // We don't auto-bypass based on login status anymore
-
         // Check for stored PIN verification (wedding-specific)
         const pinVerified = localStorage.getItem(`phera_pin_verified_${weddingSlug}`);
         const pinTimestamp = localStorage.getItem(`phera_pin_timestamp_${weddingSlug}`);
@@ -341,6 +359,35 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           console.log('Auth URL parameter detected, bypassing PIN entry...');
           triggerBypass();
           return;
+        }
+
+        // Check DB for existing pin_access (for authenticated users)
+        try {
+          const { data: { user: sbUser } } = await supabase.auth.getUser();
+          if (sbUser) {
+            const { data: pinAccess } = await supabase
+              .from('pin_access')
+              .select('verified_at, pin_type, allows_plus_one')
+              .eq('user_id', sbUser.id)
+              .eq('wedding_id', weddingSlug)
+              .single();
+
+            if (pinAccess) {
+              console.log('Found pin_access in DB, restoring localStorage and bypassing...');
+              localStorage.setItem(`phera_pin_verified_${weddingSlug}`, 'true');
+              localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, Date.now().toString());
+              if (pinAccess.allows_plus_one) {
+                localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, 'true');
+              }
+              if (pinAccess.pin_type) {
+                localStorage.setItem(`phera_pin_type_${weddingSlug}`, pinAccess.pin_type);
+              }
+              triggerBypass();
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Error checking pin_access DB (non-fatal):', err);
         }
       }
     };
@@ -738,6 +785,13 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           </Button>
         </motion.div>
       </Container>
+
+      <LoginModal
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        onSuccess={handleLoginSuccess}
+        redirectTo={`/${weddingSlug}?bypass_pin=true`}
+      />
 
       <Snackbar
         open={showPreviewToast}

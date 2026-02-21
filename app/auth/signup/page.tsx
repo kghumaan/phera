@@ -29,9 +29,12 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailLoading, setEmailLoading] = useState(false);
@@ -87,7 +90,24 @@ export default function SignupPage() {
         return;
       }
 
+      // Generate avatar and store in user_settings
+      try {
+        const avatar = generateGuestAvatar(email);
+        await supabase.from('user_settings').upsert([{
+          user_id: authData.user.id,
+          avatar_style: avatar.style,
+          avatar_seed: avatar.seed,
+          avatar_svg: avatar.svg,
+          avatar_color: avatar.color,
+        }], { onConflict: 'user_id' });
+      } catch (avatarErr) {
+        console.error('Failed to generate avatar on signup:', avatarErr);
+      }
+
       // Redirect to onboarding
+      setTimeout(() => {
+        refreshAuth();
+      }, 100);
       router.push('/onboarding');
     } catch (err) {
       console.error('Signup error:', err);

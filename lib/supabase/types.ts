@@ -897,9 +897,40 @@ export type PheraDatabase = {
           },
         ]
       }
+      pin_access: {
+        Row: {
+          id: string
+          user_id: string
+          wedding_id: string
+          verified_at: string | null
+          pin_type: string | null
+          allows_plus_one: boolean | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          wedding_id: string
+          verified_at?: string | null
+          pin_type?: string | null
+          allows_plus_one?: boolean | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          wedding_id?: string
+          verified_at?: string | null
+          pin_type?: string | null
+          allows_plus_one?: boolean | null
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           account_type: string | null
+          avatar_color: string | null
+          avatar_seed: string | null
+          avatar_style: string | null
+          avatar_svg: string | null
           created_at: string | null
           enabled_features: string[] | null
           id: string
@@ -910,6 +941,10 @@ export type PheraDatabase = {
         }
         Insert: {
           account_type?: string | null
+          avatar_color?: string | null
+          avatar_seed?: string | null
+          avatar_style?: string | null
+          avatar_svg?: string | null
           created_at?: string | null
           enabled_features?: string[] | null
           id?: string
@@ -920,6 +955,10 @@ export type PheraDatabase = {
         }
         Update: {
           account_type?: string | null
+          avatar_color?: string | null
+          avatar_seed?: string | null
+          avatar_style?: string | null
+          avatar_svg?: string | null
           created_at?: string | null
           enabled_features?: string[] | null
           id?: string

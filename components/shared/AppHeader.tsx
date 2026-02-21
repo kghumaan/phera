@@ -18,6 +18,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
 
 interface AppHeaderProps {
@@ -101,6 +102,27 @@ export default function AppHeader({
 
   return (
     <>
+      {/* Full Screen Loading Overlay for Admin Navigation */}
+      {isNavigatingToAdmin && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <LoadingSpinner message="Heading to your dashboard..." />
+        </Box>
+      )}
+
       <Box sx={headerSx}>
         <Container
           maxWidth={false}
@@ -259,7 +281,7 @@ export default function AppHeader({
                       }}
                     />
                   ) : (
-                    <Box sx={{ width: '100%', height: '100%' }} />
+                    user.initials
                   )}
                 </Avatar>
               </Box>
@@ -322,6 +344,45 @@ export default function AppHeader({
             },
           }}
         >
+          {/* User Email Info */}
+          <Box
+            sx={{
+              px: 2,
+              py: 1.5,
+              borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+              mb: 0.5,
+              display: 'flex',
+              flexDirection: 'column',
+              pointerEvents: 'none'
+            }}
+          >
+            {/* <Box
+              sx={{
+                color: '#999',
+                fontSize: '10px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                mb: 0.5
+              }}
+            >
+              Signed in as
+            </Box> */}
+            <Box
+              sx={{
+                color: '#333',
+                fontSize: '13px',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '200px'
+              }}
+            >
+              {user.email}
+            </Box>
+          </Box>
+
           {/* Admin Dashboard - Show if user is admin */}
           {isAdmin && adminWeddingSlug && (
             <MenuItem

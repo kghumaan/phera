@@ -196,7 +196,7 @@ export default function ReadOnlyComments() {
       <Box sx={{ px: 3, pb: 2.5, mt: 3 }}>
         <Stack spacing={3}>
           {/* Preview Notice */}
-          <Box
+          {/* <Box
             sx={{
               backgroundColor: 'rgba(222, 63, 94, 0.05)',
               border: '1px solid rgba(222, 63, 94, 0.2)',
@@ -215,7 +215,7 @@ export default function ReadOnlyComments() {
             >
               Preview: Showing sample {activeTab === 0 ? 'comments' : activeTab === 1 ? 'going guests' : 'maybe guests'}
             </Typography>
-          </Box>
+          </Box> */}
 
           {/* Activity Tab - Comments List */}
           {activeTab === 0 && (

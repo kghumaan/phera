@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -33,4 +34,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Suppresses Sentry build logs for cleaner output
+  silent: true,
+
+  // Reduces client-side bundle size by tree-shaking logger statements
+  disableLogger: true,
+
+  // Routes Sentry events through a Next.js rewrite so ad-blockers don't block them
+  tunnelRoute: "/monitoring",
+
+  // Automatically upload source maps when SENTRY_AUTH_TOKEN is set
+  // When the token is not set (e.g. local dev), this silently skips
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+});
+

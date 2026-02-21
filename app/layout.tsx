@@ -6,6 +6,8 @@ import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { PlanProvider } from '@/lib/contexts/PlanContext';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 
 const outfit = Outfit({
@@ -117,6 +119,8 @@ export default function RootLayout({
           </AppRouterCacheProvider>
           <Toaster richColors position="bottom-right" />
         </ErrorBoundary>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

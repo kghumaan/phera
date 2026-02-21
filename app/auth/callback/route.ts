@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Database } from '@/lib/supabase/types';
+import type { PheraDatabase as Database } from '@/lib/supabase/types';
+import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 
 // Helper function to process pending wedding invites for a user
-async function processPendingInvites(supabase: ReturnType<typeof createServerClient<Database>>, userId: string, userEmail: string): Promise<number> {
+async function processPendingInvites(supabase: ReturnType<typeof createServerClient<Database, 'public'>>, userId: string, userEmail: string): Promise<number> {
   try {
     // Find all pending invites for this email
     const { data: invites, error: fetchError } = await supabase
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
   // Extract custom redirect parameter (for admin flows)
   const redirectParam = searchParams.get('redirect');
   const nextParam = searchParams.get('next');
-  
+
   // Extract PIN verification state from URL params (for guest flows)
   const pinVerified = searchParams.get('pin_verified');
   const pinTimestamp = searchParams.get('pin_timestamp');
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
       console.log('[Callback] Received code, exchanging for session...');
       const cookieStore = await cookies();
 
-      const supabase = createServerClient<Database>(
+      const supabase = createServerClient<Database, 'public'>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -101,9 +102,9 @@ export async function GET(request: NextRequest) {
             getAll() {
               return cookieStore.getAll()
             },
-            setAll(cookiesToSet) {
+            setAll(cookiesToSet: any[]) {
               try {
-                cookiesToSet.forEach(({ name, value, options }) =>
+                cookiesToSet.forEach(({ name, value, options }: { name: string, value: string, options: any }) =>
                   cookieStore.set(name, value, options)
                 )
               } catch {
@@ -130,6 +131,33 @@ export async function GET(request: NextRequest) {
       // Process any pending wedding invites for this user
       if (data.session?.user?.email) {
         await processPendingInvites(supabase, data.session.user.id, data.session.user.email);
+      }
+
+      // Generate avatar for new users (if no user_settings exist yet)
+      if (data.session?.user) {
+        try {
+          const { data: existingSettings } = await supabase
+            .from('user_settings')
+            .select('avatar_svg')
+            .eq('user_id', data.session.user.id)
+            .single();
+
+          if (!existingSettings?.avatar_svg) {
+            const userEmail = data.session.user.email || data.session.user.id;
+            const userName = data.session.user.user_metadata?.full_name;
+            const avatar = generateGuestAvatar(userEmail, userName);
+            await supabase.from('user_settings').upsert([{
+              user_id: data.session.user.id,
+              avatar_style: avatar.style,
+              avatar_seed: avatar.seed,
+              avatar_svg: avatar.svg,
+              avatar_color: avatar.color,
+            }], { onConflict: 'user_id' });
+            console.log('[Callback] Generated avatar for user:', userEmail);
+          }
+        } catch (avatarErr) {
+          console.error('[Callback] Avatar generation error (non-fatal):', avatarErr);
+        }
       }
 
       // Determine redirect destination

@@ -45,6 +45,7 @@ import {
 import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -95,8 +96,9 @@ const features: Feature[] = [
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
+    borderRadius: '12px',
     backgroundColor: '#f8f9fa !important',
+    fontSize: '0.9rem',
     '& fieldset': {
       borderColor: 'rgba(222, 63, 94, 0.2) !important',
       borderWidth: '1px !important',
@@ -111,6 +113,8 @@ const StyledTextField = styled(TextField)({
     '& input': {
       color: '#1a1a1a !important',
       WebkitTextFillColor: '#1a1a1a !important',
+      padding: '10px 14px',
+      fontSize: '0.9rem',
     },
     '& .MuiPickersSectionList-selectableSection': {
       color: '#1a1a1a !important',
@@ -121,6 +125,7 @@ const StyledTextField = styled(TextField)({
   },
   '& .MuiInputLabel-root': {
     color: '#666 !important',
+    fontSize: '0.85rem',
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: '#DE3F5E !important',
@@ -301,14 +306,20 @@ export default function OnboardingPage() {
     console.log('[Onboarding DEBUG] Supabase client available:', !!supabase);
 
     try {
-      // 1. Save user settings
+      // 1. Save user settings (with avatar)
       console.log('[Onboarding DEBUG] Step 1: Upserting user_settings...');
+      const userEmail = authUser?.email || data.userId;
+      const avatar = generateGuestAvatar(userEmail, data.coupleName);
       const settingsToSave = {
         user_id: data.userId,
         account_type: data.role,
         enabled_features: data.selectedFeatures,
         subscription_tier: data.plan,
         onboarding_completed: true,
+        avatar_style: avatar.style,
+        avatar_seed: avatar.seed,
+        avatar_svg: avatar.svg,
+        avatar_color: null,
       };
       console.log('[Onboarding DEBUG] Data to upsert:', settingsToSave);
 
@@ -349,7 +360,7 @@ export default function OnboardingPage() {
               couple_name: data.coupleName,
               partner1_name: data.coupleName,
               partner2_name: data.partnerName || null,
-              wedding_date: (data.weddingDate ? new Date(data.weddingDate).toISOString() : null) as any,
+              wedding_date: data.weddingDate ? new Date(data.weddingDate).toISOString() : new Date('2099-12-31').toISOString(),
               wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
               wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
               venue_name: (data.venueName === 'TBD' || !data.venueName) ? 'Venue Name' : data.venueName,
@@ -509,7 +520,7 @@ export default function OnboardingPage() {
       }}>
         <Box sx={{
           width: '100%',
-          maxWidth: checkoutClientSecret ? '1000px' : '1200px',
+          maxWidth: checkoutClientSecret ? '1000px' : '600px',
           transition: 'max-width 0.5s ease-in-out'
         }}>
 
@@ -540,14 +551,14 @@ export default function OnboardingPage() {
               transition={{ duration: 0.3 }}
             >
               <Paper elevation={0} sx={{
-                py: { xs: 3, md: 5 },
+                py: { xs: 2.5, md: 4 },
                 px: { xs: 1.5, md: 3 },
-                borderRadius: '32px',
+                borderRadius: '24px',
                 bgcolor: alpha('#fff', 0.9),
                 backdropFilter: 'blur(10px)',
                 textAlign: 'center',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
-                minHeight: '500px', // Set min-height to maintain container size during loading
+                minHeight: '400px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: submitting ? 'center' : 'flex-start',
@@ -707,19 +718,19 @@ export default function OnboardingPage() {
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
-                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 2, color: '#1a1a1a' }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
-                        <Typography variant="h6" sx={{ color: '#666', mb: 6, fontWeight: 400 }}>
+                        <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           How do you plan to use our platform?
                         </Typography>
 
-                        <Grid container spacing={3}>
+                        <Grid container spacing={2} sx={{ maxWidth: '500px', mx: 'auto' }}>
                           <Grid size={{ xs: 12, sm: 6 }}>
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '24px',
+                                borderRadius: '16px',
                                 border: '2px solid',
                                 borderColor: role === 'couple' ? '#DE3F5E' : 'transparent',
                                 bgcolor: role === 'couple' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
@@ -727,10 +738,10 @@ export default function OnboardingPage() {
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 4, height: '100%' }} onClick={() => setRole('couple')}>
-                                <Favorite sx={{ fontSize: 60, color: '#DE3F5E', mb: 2 }} />
-                                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>I'm a Couple</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444' }}>Planning my own multi-day destination wedding</Typography>
+                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('couple')}>
+                                <Favorite sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Couple</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own multi-day destination wedding</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -738,7 +749,7 @@ export default function OnboardingPage() {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '24px',
+                                borderRadius: '16px',
                                 border: '2px solid',
                                 borderColor: role === 'planner' ? '#DE3F5E' : 'transparent',
                                 bgcolor: role === 'planner' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
@@ -746,10 +757,10 @@ export default function OnboardingPage() {
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 4, height: '100%' }} onClick={() => setRole('planner')}>
-                                <Work sx={{ fontSize: 60, color: '#DE3F5E', mb: 2 }} />
-                                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>I'm a Planner</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444' }}>Managing multiple weddings for my clients</Typography>
+                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('planner')}>
+                                <Work sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Planner</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings for my clients</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -760,17 +771,17 @@ export default function OnboardingPage() {
                     {/* STEP 2: NAMES, VENUE, DATE (Moved from step 4) */}
                     {step === 2 && (
                       <Box>
-                        <Typography variant="h3" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontWeight: 700 }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 700, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Let's get ready to get planning
                         </Typography>
-                        <Typography variant="h6" sx={{ color: '#666', mb: 6, fontWeight: 400 }}>
+                        <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
                         </Typography>
 
-                        <Box sx={{ maxWidth: '400px', mx: 'auto', textAlign: 'left' }}>
-                          <Stack spacing={4}>
+                        <Box sx={{ maxWidth: '360px', mx: 'auto', textAlign: 'left' }}>
+                          <Stack spacing={2.5}>
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Your First Name</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
                               <StyledTextField
                                 fullWidth
                                 label=""
@@ -782,7 +793,7 @@ export default function OnboardingPage() {
                             </Box>
 
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Your Partner's First Name</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your Partner's First Name</Typography>
                               <StyledTextField
                                 fullWidth
                                 label=""
@@ -793,7 +804,7 @@ export default function OnboardingPage() {
                             </Box>
 
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Event Venue</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Event Venue</Typography>
                               <StyledTextField
                                 fullWidth
                                 label=""
@@ -831,14 +842,14 @@ export default function OnboardingPage() {
                                     </Box>
                                   )}
                                 </Box>
-                                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
                                   We haven't picked a venue (yet)
                                 </Typography>
                               </Stack>
                             </Box>
 
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Wedding Dates</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Dates</Typography>
                               <LocalizationProvider dateAdapter={AdapterDateFns}>
                                 <Stack direction="row" spacing={2}>
                                   <Box sx={{ flex: 1 }}>
@@ -976,7 +987,7 @@ export default function OnboardingPage() {
                                       </Box>
                                     )}
                                   </Box>
-                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
                                     One day wedding
                                   </Typography>
                                 </Stack>
@@ -1009,7 +1020,7 @@ export default function OnboardingPage() {
                                       </Box>
                                     )}
                                   </Box>
-                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
                                     Dates TBD
                                   </Typography>
                                 </Stack>
@@ -1023,19 +1034,19 @@ export default function OnboardingPage() {
                     {/* STEP 3 & 4 (LEGACY) REMOVED */}
 
                     {/* Navigation Buttons */}
-                    <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 8 }}>
+                    <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
                       {step > 1 && (
                         <Button
                           variant="text"
                           onClick={handleBack}
-                          sx={{ color: '#666', fontWeight: 700 }}
+                          sx={{ color: '#666', fontWeight: 700, fontSize: '0.9rem' }}
                         >
                           Back
                         </Button>
                       )}
                       <Button
                         variant="contained"
-                        endIcon={submitting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <ArrowForward />}
+                        endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
                         title={
                           (step === 1 && !role) ? "Please select your role" :
                             (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd))))) ? "Please fill in all celebration details" :
@@ -1049,11 +1060,11 @@ export default function OnboardingPage() {
                         sx={{
                           bgcolor: '#DE3F5E',
                           color: 'white',
-                          px: 6,
-                          py: 1.5,
-                          borderRadius: '32px',
+                          px: 4,
+                          py: 1,
+                          borderRadius: '24px',
                           textTransform: 'none',
-                          fontSize: '1.1rem',
+                          fontSize: '0.95rem',
                           fontWeight: 700,
                           boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
                           opacity: (

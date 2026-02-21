@@ -96,7 +96,7 @@ export async function verifyOTP(phone: string, token: string): Promise<AuthResul
 }
 
 // Get current user session
-export async function getCurrentUser(): Promise<AuthResult> {
+export async function getCurrentUser(weddingSlug?: string): Promise<AuthResult> {
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -109,6 +109,19 @@ export async function getCurrentUser(): Promise<AuthResult> {
 
     console.log('getCurrentUser: Found Supabase session for:', user.email);
 
+    // If no wedding slug provided, return just the auth user data (no guest lookup)
+    if (!weddingSlug) {
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.full_name || user.email || user.phone || '',
+          phone: user.phone,
+        }
+      };
+    }
+
     // Try to get enhanced user data from guests table first
     let guestData = null;
     if (user.email) {
@@ -117,8 +130,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
         .from('guests')
         .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
         .eq('email', user.email.toLowerCase())
-        .eq('wedding_id', 'simran-karanvir'
-        )
+        .eq('wedding_id', weddingSlug)
         .single();
 
       console.log('getCurrentUser: Guest lookup result:', { guest, guestError });
@@ -146,8 +158,7 @@ export async function getCurrentUser(): Promise<AuthResult> {
           )
         `)
         .eq('plus_one_email', user.email.toLowerCase())
-        .eq('wedding_id', 'simran-karanvir'
-        )
+        .eq('wedding_id', weddingSlug)
         .single();
 
       console.log('getCurrentUser: Plus-one lookup result:', { rsvpData, rsvpError });
@@ -198,15 +209,19 @@ export async function signOut(): Promise<void> {
 }
 
 // Validate if email exists in guests table or as plus one before sending magic link
-export async function validateEmailExists(email: string): Promise<{ exists: boolean; guest?: any; isPlusOne?: boolean; mainGuest?: any }> {
+export async function validateEmailExists(email: string, weddingSlug?: string): Promise<{ exists: boolean; guest?: any; isPlusOne?: boolean; mainGuest?: any }> {
+  // If no wedding slug, we can't validate against a guest list - allow the email through
+  if (!weddingSlug) {
+    return { exists: true };
+  }
+
   try {
     // First check if email exists in guests table (main guest)
     const { data: guest, error } = await supabase
       .from('guests')
       .select('id, name, email, phone, avatar_style, avatar_seed, avatar_svg')
       .eq('email', email.trim().toLowerCase())
-      .eq('wedding_id', 'simran-karanvir'
-      )
+      .eq('wedding_id', weddingSlug)
       .single();
 
     if (guest) {
@@ -236,8 +251,7 @@ export async function validateEmailExists(email: string): Promise<{ exists: bool
         )
       `)
       .eq('plus_one_email', email.trim().toLowerCase())
-      .eq('wedding_id', 'simran-karanvir'
-      )
+      .eq('wedding_id', weddingSlug)
       .single();
 
     if (rsvpData && rsvpData.plus_one_email) {

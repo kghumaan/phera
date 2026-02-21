@@ -25,9 +25,10 @@ interface LoginDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  redirectTo?: string;
 }
 
-export default function LoginDialog({ open, onClose, onSuccess }: LoginDialogProps) {
+export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: LoginDialogProps) {
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -48,7 +49,7 @@ export default function LoginDialog({ open, onClose, onSuccess }: LoginDialogPro
     setError('');
     
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle(redirectTo);
       if (result.success) {
         onSuccess?.();
         handleClose();
