@@ -17,6 +17,7 @@ import {
   Alert,
   Divider,
   Chip,
+  Tooltip,
   alpha,
 } from '@mui/material';
 import {
@@ -426,8 +427,16 @@ export default function ReserveTransportation({
         >
           Reserve Transportation
         </Typography>
-        <Typography variant="body2" sx={{ color: '#666' }}>
+        <Typography variant="body2" sx={{ color: '#666', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
           Select your preferred transportation for the wedding
+          <Tooltip
+            title="This reservation will reserve spots for you and your plus one(s) only."
+            arrow
+            enterTouchDelay={0}
+            leaveTouchDelay={3000}
+          >
+            <Info sx={{ fontSize: 16, color: '#999', cursor: 'pointer' }} />
+          </Tooltip>
         </Typography>
         {partySize > 1 && (
           <Chip

@@ -181,11 +181,8 @@ export default function GuestList({
     const doFetch = async () => {
       // Prevent multiple simultaneous fetches using immediate ref lock
       if (isFetchingRef.current) {
-        console.log('GuestList: Skipping fetch (already in progress)');
         return;
       }
-
-      console.log('GuestList: Fetching data...');
       isFetchingRef.current = true;
       lastFetchTimeRef.current = Date.now();
       setIsFetching(true);
@@ -205,14 +202,11 @@ export default function GuestList({
           timeoutPromise
         ]);
 
-        console.log(`GuestList: Initial fetch with UUID (${weddingId})`, {
-          attendeesCount: attendees.length,
-          commentsCount: commentsData.length
-        });
+
 
         // If we got nothing and we have a slug, try the slug
         if (attendees.length === 0 && commentsData.length === 0 && weddingSlug) {
-          console.log(`GuestList: No data found with UUID, trying slug (${weddingSlug})...`);
+
           const [slugAttendees, slugComments] = await Promise.race([
             Promise.all([
               getAllRSVPs(weddingSlug),
@@ -221,10 +215,7 @@ export default function GuestList({
             timeoutPromise
           ]);
 
-          console.log('GuestList: Fetch with slug completed', {
-            attendeesCount: slugAttendees.length,
-            commentsCount: slugComments.length
-          });
+
 
           if (slugAttendees.length > 0 || slugComments.length > 0) {
             attendees = slugAttendees;
@@ -232,10 +223,7 @@ export default function GuestList({
           }
         }
 
-        console.log('GuestList: Final data set determined', {
-          attendeesCount: attendees.length,
-          commentsCount: commentsData.length
-        });
+
 
         // Convert RSVP data to guest format
         const guestData = attendees.map((rsvp: any, index: number) => {
@@ -295,11 +283,11 @@ export default function GuestList({
           guest_id: c.guest_id || '',
         })) as Comment[]);
 
-        console.log('GuestList: State updated successfully');
+
       } catch (error) {
         console.error('GuestList: Error fetching data:', error);
       } finally {
-        console.log('GuestList: Setting loading to false');
+
         setLoading(false);
         setIsFetching(false);
         isFetchingRef.current = false;
@@ -343,7 +331,7 @@ export default function GuestList({
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            console.log('GuestList: Successfully subscribed to RSVP updates');
+
             isSubscribedRef.current = true;
           } else if (status === 'CHANNEL_ERROR') {
             console.error('GuestList: Failed to subscribe to RSVP updates');
@@ -362,7 +350,7 @@ export default function GuestList({
             filter: `wedding_id=eq.${weddingId}`,
           },
           (payload) => {
-            console.log('Comments change detected:', payload);
+
             realtimeFetch();
           }
         )

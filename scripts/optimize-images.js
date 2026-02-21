@@ -37,7 +37,6 @@ const targetStructure = {
 
   'public/images/frames/': [
     'frame-27.png',         // Optimized from Frame 27.png
-    'frame-4.png'           // Optimized from Frame 4.png
   ],
   'public/images/couple/': [
     'couple-1.jpg',         // Optimized from 1.png

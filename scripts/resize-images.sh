@@ -157,11 +157,6 @@ optimize_frame \
     "public/images/frames/frame-27.png" \
     "Frame 27"
 
-optimize_frame \
-    "design-reference/image-frames/Frame 4.png" \
-    "public/images/frames/frame-4.png" \
-    "Frame 4"
-
 echo -e "${GREEN}🎉 Image Optimization Complete!${NC}"
 echo ""
 echo "📊 Summary:"

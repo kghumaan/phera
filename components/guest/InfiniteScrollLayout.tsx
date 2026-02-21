@@ -42,6 +42,7 @@ interface WeddingData {
   welcome_text?: string;
   primary_color?: string;
   couple_images?: string[];
+  frame_image_url?: string | null;
 }
 
 interface InfiniteScrollLayoutProps {
@@ -1464,7 +1465,7 @@ export default function InfiniteScrollLayout({
                 }}
               >
                 <Image
-                  src="/images/frames/frame-27.png"
+                  src={wedding.frame_image_url || "/images/frames/frame-1.png"}
                   alt="Decorative frame"
                   fill
                   priority
@@ -1596,40 +1597,40 @@ export default function InfiniteScrollLayout({
                 }}
               >
                 {/* Home is always shown */}
-                <NavItem label="Home" onClick={() => scrollToSection(homeRef)} />
+                <NavItem label="Home" onClick={() => scrollToSection(homeRef as React.RefObject<HTMLDivElement>)} />
 
                 {hasSchedule && (
                   <>
                     <DiamondSeparator />
-                    <NavItem label="Schedule" onClick={() => scrollToSection(scheduleRef)} />
+                    <NavItem label="Schedule" onClick={() => scrollToSection(scheduleRef as React.RefObject<HTMLDivElement>)} />
                   </>
                 )}
 
                 {hasTravel && (
                   <>
                     <DiamondSeparator />
-                    <NavItem label="Travel & Stay" onClick={() => scrollToSection(travelRef)} />
+                    <NavItem label="Travel & Stay" onClick={() => scrollToSection(travelRef as React.RefObject<HTMLDivElement>)} />
                   </>
                 )}
 
                 {hasFAQs && (
                   <>
                     <DiamondSeparator />
-                    <NavItem label="Q & A" onClick={() => scrollToSection(faqRef)} />
+                    <NavItem label="Q & A" onClick={() => scrollToSection(faqRef as React.RefObject<HTMLDivElement>)} />
                   </>
                 )}
 
                 {hasRegistry && (
                   <>
                     <DiamondSeparator />
-                    <NavItem label="Registry" onClick={() => scrollToSection(registryRef)} />
+                    <NavItem label="Registry" onClick={() => scrollToSection(registryRef as React.RefObject<HTMLDivElement>)} />
                   </>
                 )}
 
                 {hasShops && (
                   <>
                     <DiamondSeparator />
-                    <NavItem label="Where to Shop" onClick={() => scrollToSection(shopRef)} />
+                    <NavItem label="Where to Shop" onClick={() => scrollToSection(shopRef as React.RefObject<HTMLDivElement>)} />
                   </>
                 )}
 

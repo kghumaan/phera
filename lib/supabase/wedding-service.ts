@@ -1081,16 +1081,19 @@ export class WeddingService {
   // Update order of schedule items (for drag and drop reordering)
   async updateScheduleItemsOrder(items: { id: string; order_index: number }[]): Promise<boolean> {
     try {
-      for (const item of items) {
-        const { error } = await this.supabase
-          .from('schedule_items')
-          .update({ order_index: item.order_index })
-          .eq('id', item.id);
+      const results = await Promise.all(
+        items.map(item =>
+          this.supabase
+            .from('schedule_items')
+            .update({ order_index: item.order_index })
+            .eq('id', item.id)
+        )
+      );
 
-        if (error) {
-          console.error('Error updating item order:', error);
-          return false;
-        }
+      const hasError = results.some(r => r.error);
+      if (hasError) {
+        console.error('Error updating item order');
+        return false;
       }
       return true;
     } catch (err) {

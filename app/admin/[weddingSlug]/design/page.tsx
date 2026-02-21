@@ -165,36 +165,36 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [visiblePinBgs, setVisiblePinBgs] = useState(8);
 
 
-  // Real-time Preview Sync Effect
+  // Real-time Preview Sync Effect (debounced)
   useEffect(() => {
     // Only sync if we have a weddingId and relevant data
     if (!weddingId) return;
 
-    const channel = new BroadcastChannel('phera-design-sync');
+    const timer = setTimeout(() => {
+      const channel = new BroadcastChannel('phera-design-sync');
 
-    const syncData = {
-      type: 'DESIGN_UPDATE',
-      weddingId,
-      updates: {
-        background_image: customMainBackground || mainBackground,
-        primary_color: mainPrimaryColor,
-        pin_entry_text: pinEntryText,
-        pin_entry_subtitle_text: pinEntrySubtitleText,
-        pin_entry_background: customPinEntryBackground || pinEntryBackground,
-        pin_entry_primary_color: pinEntryPrimaryColor,
-        pin_entry_font_color: pinEntryFontColor,
-        pin_entry_button_font_color: pinEntryButtonFontColor,
-        previewMode: activeTab === 1 ? 'lock_screen' : 'main',
-        website_layout: websiteLayout,
-      }
-    };
+      const syncData = {
+        type: 'DESIGN_UPDATE',
+        weddingId,
+        updates: {
+          background_image: customMainBackground || mainBackground,
+          primary_color: mainPrimaryColor,
+          pin_entry_text: pinEntryText,
+          pin_entry_subtitle_text: pinEntrySubtitleText,
+          pin_entry_background: customPinEntryBackground || pinEntryBackground,
+          pin_entry_primary_color: pinEntryPrimaryColor,
+          pin_entry_font_color: pinEntryFontColor,
+          pin_entry_button_font_color: pinEntryButtonFontColor,
+          previewMode: activeTab === 1 ? 'lock_screen' : 'main',
+          website_layout: websiteLayout,
+        }
+      };
 
-    console.log('📡 Broadcasting design update:', syncData);
-    channel.postMessage(syncData);
-
-    return () => {
+      channel.postMessage(syncData);
       channel.close();
-    };
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [
     weddingId,
     mainBackground,

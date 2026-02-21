@@ -269,7 +269,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
         // Load couple images (support both old single image and new array)
         if (wedding.couple_images && Array.isArray(wedding.couple_images)) {
-          const images: (string | null)[] = [...wedding.couple_images];
+          const images: (string | null)[] = [...wedding.couple_images as unknown as string[]];
           while (images.length < 6) images.push(null);
           setCoupleImages(images.slice(0, 6));
         } else if (wedding.couple_image_url) {
@@ -1120,7 +1120,17 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   <Grid size={{ xs: 12, md: 5 }}>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                       {[
-                        { id: 'frame-27', url: '/images/frames/frame-27.png', name: 'Classic Rose' }
+                        { id: 'frame-1', url: '/images/frames/frame-1.png', name: 'Frame 1' },
+                        { id: 'frame-2', url: '/images/frames/frame-2.png', name: 'Frame 2' },
+                        { id: 'frame-3', url: '/images/frames/frame-3.png', name: 'Frame 3' },
+                        { id: 'frame-4', url: '/images/frames/frame-4.png', name: 'Frame 4' },
+                        { id: 'frame-5', url: '/images/frames/frame-5.png', name: 'Frame 5' },
+                        { id: 'frame-6', url: '/images/frames/frame-6.png', name: 'Frame 6' },
+                        { id: 'frame-7', url: '/images/frames/frame-7.png', name: 'Frame 7' },
+                        { id: 'frame-8', url: '/images/frames/frame-8.png', name: 'Frame 8' },
+                        { id: 'frame-9', url: '/images/frames/frame-9.png', name: 'Frame 9' },
+                        { id: 'frame-10', url: '/images/frames/frame-10.png', name: 'Frame 10' },
+                        { id: 'frame-11', url: '/images/frames/frame-11.png', name: 'Frame 11' }
                       ].map((frame) => (
                         <Box
                           key={frame.id}

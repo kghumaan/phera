@@ -1062,7 +1062,7 @@ export default function HomePage() {
             >
               {/* Frame Background */}
               <Image
-                src="/images/frames/frame-27.png"
+                src={wedding?.frame_image_url || "/images/frames/frame-1.png"}
                 alt="Decorative frame"
                 fill
                 priority
@@ -1206,7 +1206,7 @@ export default function HomePage() {
             >
               {/* Frame Background */}
               <Image
-                src="/images/frames/frame-27.png"
+                src={wedding?.frame_image_url || "/images/frames/frame-1.png"}
                 alt="Decorative frame"
                 fill
                 priority
@@ -1384,6 +1384,7 @@ export default function HomePage() {
               welcome_text: wedding.welcome_text || undefined,
               primary_color: wedding.primary_color || undefined,
               couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
+              frame_image_url: wedding.frame_image_url,
             }}
             weddingSlug={weddingSlug}
             isBypassPin={isBypassPin}

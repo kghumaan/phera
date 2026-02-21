@@ -168,19 +168,26 @@ export async function reorderVehicles(
     order_index: index,
   }));
 
-  for (const update of updates) {
-    const { error } = await supabase
-      .from('transportation_vehicles')
-      .update({ order_index: update.order_index })
-      .eq('id', update.id);
+  try {
+    const results = await Promise.all(
+      updates.map(update =>
+        supabase
+          .from('transportation_vehicles')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id)
+      )
+    );
 
-    if (error) {
-      console.error('Error reordering vehicles:', error);
+    const hasError = results.some(r => r.error);
+    if (hasError) {
+      console.error('Error reordering vehicles');
       return false;
     }
+    return true;
+  } catch (err) {
+    console.error('Error reordering vehicles:', err);
+    return false;
   }
-
-  return true;
 }
 
 // ============================================
@@ -642,20 +649,37 @@ export async function getAllVehiclesWithCapacity(
   weddingId: string,
   direction: TransportationDirection
 ): Promise<(TransportationVehicle & { booked: number; available: number })[]> {
-  const vehicles = await getVehicles(weddingId, direction);
+  // Single query: fetch vehicles with their non-cancelled reservations
+  const { data, error } = await supabase
+    .from('transportation_vehicles')
+    .select(`
+      *,
+      transportation_reservations(party_size, status)
+    `)
+    .eq('wedding_id', weddingId)
+    .eq('direction', direction)
+    .order('order_index', { ascending: true });
 
-  const vehiclesWithCapacity = await Promise.all(
-    vehicles.map(async (vehicle) => {
-      const status = await getVehicleCapacityStatus(vehicle.id);
-      return {
-        ...vehicle,
-        booked: status.booked,
-        available: status.available,
-      };
-    })
-  );
+  if (error) {
+    console.error('Error fetching vehicles with capacity:', error);
+    return [];
+  }
 
-  return vehiclesWithCapacity;
+  return (data || []).map((vehicle: any) => {
+    const reservations = vehicle.transportation_reservations || [];
+    const booked = reservations
+      .filter((r: any) => r.status !== 'cancelled')
+      .reduce((sum: number, r: any) => sum + (r.party_size || 1), 0);
+    const available = Math.max(0, vehicle.capacity - booked);
+
+    // Remove the nested reservations from the vehicle object
+    const { transportation_reservations, ...vehicleData } = vehicle;
+    return {
+      ...vehicleData,
+      booked,
+      available,
+    };
+  });
 }
 
 // ============================================

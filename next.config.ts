@@ -32,14 +32,31 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Cache static assets aggressively (images, fonts, etc.)
+        source: '/images/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        // Security headers for all routes
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
   // Suppresses Sentry build logs for cleaner output
   silent: true,
-
-  // Reduces client-side bundle size by tree-shaking logger statements
-  disableLogger: true,
 
   // Routes Sentry events through a Next.js rewrite so ad-blockers don't block them
   tunnelRoute: "/monitoring",

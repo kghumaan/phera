@@ -459,12 +459,15 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
                       </Box>
                       {/* Screenshot */}
-                      <Box sx={{ width: '100%', lineHeight: 0 }}>
-                        <Box
-                          component="img"
-                          src={item.featureImage}
+                      <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
+                        <Image
+                          src={item.featureImage!}
                           alt={item.title}
-                          sx={{
+                          width={2694}
+                          height={1302}
+                          quality={85}
+                          sizes="(max-width: 768px) 100vw, 60vw"
+                          style={{
                             width: '100%',
                             height: 'auto',
                             display: 'block',
@@ -516,14 +519,13 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         {item.customComponent ? (
                           item.customComponent
                         ) : (
-                          <Box
-                            component="img"
-                            src={item.featureImage}
+                          <Image
+                            src={item.featureImage!}
                             alt={item.title}
-                            sx={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'block',
+                            fill
+                            quality={85}
+                            sizes="380px"
+                            style={{
                               objectFit: 'cover',
                               objectPosition: 'top',
                             }}
@@ -649,7 +651,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
                       <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
                     </Box>
-                    <Box component="img" src={item.featureImage} alt={item.title} sx={{ width: '100%', height: 'auto', display: 'block' }} />
+                    <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
                 )}
                 {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
@@ -684,11 +686,14 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         {item.customComponent ? (
                           item.customComponent
                         ) : (
-                          <Box
-                            component="img"
-                            src={item.featureImage}
+                          <Image
+                            src={item.featureImage!}
                             alt={item.title}
-                            sx={{ width: '100%', height: 'auto', display: 'block' }}
+                            width={726}
+                            height={1566}
+                            quality={85}
+                            sizes="220px"
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
                           />
                         )}
                       </Box>
@@ -1684,13 +1689,15 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 4 }}>
-                <Box
-                  component="img"
+                <Image
                   src="/logo.svg"
                   alt="Phera Logo"
-                  sx={{
+                  width={120}
+                  height={32}
+                  style={{
                     height: '32px',
-                    mb: 2,
+                    width: 'auto',
+                    marginBottom: '16px',
                     filter: 'brightness(0)',
                   }}
                 />

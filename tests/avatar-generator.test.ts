@@ -24,14 +24,14 @@ describe('avatar-generator', () => {
     });
 
     it('should return the seed and style used', () => {
-      const result = generateAvatar({ seed: 'my-seed', style: 'notionists-neutral' });
+      const result = generateAvatar({ seed: 'my-seed', style: 'shapes' });
       expect(result.seed).toBe('my-seed');
-      expect(result.style).toBe('notionists-neutral');
+      expect(result.style).toBe('shapes');
     });
 
     it('should default to notionists-neutral style', () => {
       const result = generateAvatar({ seed: 'default-style' });
-      expect(result.style).toBe('notionists-neutral');
+      expect(result.style).toBe('shapes');
     });
 
     it('should generate different SVGs for different seeds', () => {
@@ -75,7 +75,7 @@ describe('avatar-generator', () => {
 
     it('should always use notionists-neutral style', () => {
       const result = generateGuestAvatar('test@test.com', 'Test Name');
-      expect(result.style).toBe('notionists-neutral');
+      expect(result.style).toBe('shapes');
     });
 
     it('should consistently assign the same style for the same name', () => {
@@ -154,7 +154,7 @@ describe('avatar-generator', () => {
 
   describe('AVATAR_STYLES', () => {
     it('should contain notionists-neutral', () => {
-      expect(AVATAR_STYLES).toContain('notionists-neutral');
+      expect(AVATAR_STYLES).toContain('shapes');
     });
 
     it('should have exactly 1 style', () => {

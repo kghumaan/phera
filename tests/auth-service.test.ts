@@ -156,7 +156,7 @@ describe('auth-service', () => {
             name: 'Wedding Guest',
             email: 'test@example.com',
             phone: '+1234567890',
-            avatar_style: 'notionists-neutral',
+            avatar_style: 'shapes',
             avatar_seed: 'test-seed',
             avatar_svg: '<svg>test</svg>',
           },

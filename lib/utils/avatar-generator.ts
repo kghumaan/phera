@@ -1,9 +1,9 @@
 import { createAvatar } from '@dicebear/core';
-import { notionistsNeutral } from '@dicebear/collection';
+import { shapes } from '@dicebear/collection';
 
-// Available avatar styles - switched exclusively to 'notionists-neutral'
+// Available avatar styles - switched exclusively to 'shapes'
 export const AVATAR_STYLES = [
-  'notionists-neutral'
+  'shapes'
 ] as const;
 
 export type AvatarStyleKey = typeof AVATAR_STYLES[number];
@@ -27,10 +27,10 @@ interface GeneratedAvatar {
  */
 export function generateAvatar({
   seed,
-  style = 'notionists-neutral',
+  style = 'shapes',
   size = 128
 }: AvatarOptions): GeneratedAvatar {
-  const avatar = createAvatar(notionistsNeutral, {
+  const avatar = createAvatar(shapes, {
     seed,
     size,
     backgroundColor: ['transparent'],
@@ -60,8 +60,8 @@ export function generateGuestAvatar(
   // Use email as primary seed for consistency
   const seed = email.toLowerCase().trim();
 
-  // We only use 'notionists-neutral' now
-  const style = 'notionists-neutral';
+  // We only use 'shapes' now
+  const style = 'shapes';
 
   return generateAvatar({ seed, style });
 }
@@ -70,7 +70,7 @@ export function generateGuestAvatar(
  * Intelligently choose avatar style based on guest data
  */
 function chooseStyleForGuest(name?: string, email?: string): AvatarStyleKey {
-  return 'notionists-neutral';
+  return 'shapes';
 }
 
 /**

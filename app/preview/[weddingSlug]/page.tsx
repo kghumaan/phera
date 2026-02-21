@@ -147,7 +147,7 @@ const CoupleImageDisplay = ({
       '/images/couple/couple-3.jpeg',
     ];
 
-  const frameImage = frameImageUrl || '/images/frames/frame-27.png';
+  const frameImage = frameImageUrl || '/images/frames/frame-1.png';
 
   const advanceToNextImage = () => {
     if (coupleImages.length <= 1) return; // Don't cycle if only one image

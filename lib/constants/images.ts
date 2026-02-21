@@ -127,13 +127,17 @@ export const BACKGROUND_UI_OPTIONS = [
 
 // Frame Images - OPTIMIZED ✅
 export const FRAMES = {
-  // Legacy paths (DEPRECATED)
-  FRAME_27_LEGACY: '/design-reference/image-frames/Frame 27.png',
-  FRAME_4_LEGACY: '/design-reference/image-frames/Frame 4.png',
-
-  // OPTIMIZED versions (USE THESE!)
-  FRAME_27: '/images/frames/frame-27.png', // 756KB → 710KB
-  FRAME_4: '/images/frames/frame-4.png', // 168KB → 121KB
+  FRAME_1: '/images/frames/frame-1.png',
+  FRAME_2: '/images/frames/frame-2.png',
+  FRAME_3: '/images/frames/frame-3.png',
+  FRAME_4: '/images/frames/frame-4.png',
+  FRAME_5: '/images/frames/frame-5.png',
+  FRAME_6: '/images/frames/frame-6.png',
+  FRAME_7: '/images/frames/frame-7.png',
+  FRAME_8: '/images/frames/frame-8.png',
+  FRAME_9: '/images/frames/frame-9.png',
+  FRAME_10: '/images/frames/frame-10.png',
+  FRAME_11: '/images/frames/frame-11.png',
 } as const;
 
 // Couple Images - OPTIMIZED ✅

@@ -322,11 +322,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Reset RSVP state when wedding changes
       setHasRSVPed(false);
       setRsvpResponse(null);
-
-      // Fetch guest profile directly - no lock conflicts, patches user state immediately
-      fetchGuestProfile(slug);
+      // Note: fetchGuestProfile is triggered by the useEffect watching currentWeddingSlug
     }
-  }, [currentWeddingSlug, fetchGuestProfile]);
+  }, [currentWeddingSlug]);
 
 
 
@@ -480,24 +478,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       } else {
-        // For main guests, use the existing logic
-        const { data: rsvpData, error: rsvpError } = await (supabase as any)
-          .from('rsvps')
-          .select(`
-            id,
-            attending,
-            event_id,
-            guest_id,
-            guests (
-              id,
-              email,
-              name
-            )
-          `)
-          .eq('wedding_id', currentWeddingSlug);
-
-        console.log('All RSVPs in database:', rsvpData);
-
+        // For main guests, query the guest's RSVP directly
         const { data, error } = await (supabase as any)
           .from('guests')
           .select(`

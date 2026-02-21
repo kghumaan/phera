@@ -124,7 +124,7 @@ describe('onboarding avatar generation', () => {
     });
 
     it('should always return a valid style from AVATAR_STYLES', () => {
-      const validStyles = ['notionists-neutral'];
+      const validStyles = ['shapes'];
       const testNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
 
       for (const name of testNames) {
