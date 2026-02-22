@@ -144,9 +144,9 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
 
   if (loading) {
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading transportation data..." />
-      </Container>
+      </Box>
     );
   }
 
@@ -170,12 +170,12 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
     ];
 
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           {/* Header row with Upgrade button */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Transportation
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -262,7 +262,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Avatar sx={{ bgcolor: `${stat.color}20`, color: stat.color, mr: 2 }}>{stat.icon}</Avatar>
                           <Box>
-                            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{stat.value}</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{stat.value}</Typography>
                             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{stat.label}</Typography>
                           </Box>
                         </Box>
@@ -324,16 +324,16 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
         </Stack>
 
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4}>
         {/* Header */}
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Transportation
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -351,7 +351,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                     <FlightTakeoff />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalFlights}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalFlights}</Typography>
                     <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Flights Entered</Typography>
                   </Box>
                 </Box>
@@ -367,7 +367,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                     <DirectionsBus />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalShuttleRequests}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalShuttleRequests}</Typography>
                     <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Shuttle Requests</Typography>
                   </Box>
                 </Box>
@@ -383,7 +383,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                     <People />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalChecklistGuests}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{totalChecklistGuests}</Typography>
                     <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Guests with Checklists</Typography>
                   </Box>
                 </Box>
@@ -399,7 +399,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                     <CheckCircle />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{avgChecklistCompletion}%</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{avgChecklistCompletion}%</Typography>
                     <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Avg Checklist Done</Typography>
                   </Box>
                 </Box>
@@ -662,7 +662,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
           </TabPanel>
         </Paper>
       </Stack>
-    </Container>
+    </Box>
   );
 }
 

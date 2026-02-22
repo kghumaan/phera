@@ -78,7 +78,7 @@ export default function UpgradeSuccessPage({ params }: { params: Promise<{ weddi
         <>
           <CheckCircle sx={{ fontSize: 64, color: '#4CAF50' }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
               Welcome to Pro!
             </Typography>
             <Typography sx={{ color: '#6a6a6a' }}>
@@ -92,7 +92,7 @@ export default function UpgradeSuccessPage({ params }: { params: Promise<{ weddi
         <>
           <ErrorOutline sx={{ fontSize: 64, color: '#DE3F5E' }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
               Something went wrong
             </Typography>
             <Typography sx={{ color: '#6a6a6a' }}>

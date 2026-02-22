@@ -125,13 +125,13 @@ const baseTheme = createTheme({
       fontWeight: 400,
       lineHeight: 1.5,
       '@media (min-width:600px)': {
-        fontSize: '1rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '1.125rem',
+        fontSize: '0.95rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.25rem',
+        fontSize: '1rem',
       },
     },
     body2: {
@@ -139,13 +139,13 @@ const baseTheme = createTheme({
       fontWeight: 400,
       lineHeight: 1.43,
       '@media (min-width:600px)': {
-        fontSize: '0.875rem',
+        fontSize: '0.8rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '1rem',
+        fontSize: '0.85rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.125rem',
+        fontSize: '0.9rem',
       },
     },
     subtitle1: {
@@ -153,13 +153,13 @@ const baseTheme = createTheme({
       fontWeight: 500,
       lineHeight: 1.4,
       '@media (min-width:600px)': {
-        fontSize: '1.125rem',
+        fontSize: '0.95rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '1.25rem',
+        fontSize: '1rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.375rem',
+        fontSize: '1.05rem',
       },
     },
     subtitle2: {
@@ -167,13 +167,13 @@ const baseTheme = createTheme({
       fontWeight: 500,
       lineHeight: 1.4,
       '@media (min-width:600px)': {
-        fontSize: '1rem',
+        fontSize: '0.875rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '1.125rem',
+        fontSize: '0.95rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.25rem',
+        fontSize: '1rem',
       },
     },
     caption: {
@@ -182,13 +182,13 @@ const baseTheme = createTheme({
       lineHeight: 1.33,
 
       '@media (min-width:600px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.72rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '0.875rem',
+        fontSize: '0.78rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1rem',
+        fontSize: '0.82rem',
       },
     },
     overline: {
@@ -198,13 +198,13 @@ const baseTheme = createTheme({
       textTransform: 'uppercase',
       letterSpacing: '0.08333em',
       '@media (min-width:600px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.72rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '0.875rem',
+        fontSize: '0.78rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1rem',
+        fontSize: '0.82rem',
       },
     },
     button: {
@@ -214,13 +214,13 @@ const baseTheme = createTheme({
       textTransform: 'none',
       letterSpacing: '0.02857em',
       '@media (min-width:600px)': {
-        fontSize: '1rem',
+        fontSize: '0.875rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '1.125rem',
+        fontSize: '0.925rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.25rem',
+        fontSize: '0.975rem',
       },
     },
   },
@@ -276,25 +276,25 @@ const baseTheme = createTheme({
           },
           '& .MuiInputBase-input': {
             '@media (min-width:600px)': {
-              fontSize: '1rem',
+              fontSize: '0.875rem',
             },
             '@media (min-width:900px)': {
-              fontSize: '1.125rem',
+              fontSize: '0.925rem',
             },
           },
           '& .MuiInputBase-inputMultiline': {
             '@media (min-width:600px)': {
-              fontSize: '1rem',
+              fontSize: '0.875rem',
             },
             '@media (min-width:900px)': {
-              fontSize: '1.125rem',
+              fontSize: '0.925rem',
             },
             '&::placeholder': {
               '@media (min-width:600px)': {
-                fontSize: '1rem',
+                fontSize: '0.875rem',
               },
               '@media (min-width:900px)': {
-                fontSize: '1.125rem',
+                fontSize: '0.925rem',
               },
             },
           },
@@ -311,10 +311,10 @@ const baseTheme = createTheme({
           '& .MuiInputBase-input': {
             color: '#1a1a1a',
             '@media (min-width:600px)': {
-              fontSize: '1rem',
+              fontSize: '0.875rem',
             },
             '@media (min-width:900px)': {
-              fontSize: '1.125rem',
+              fontSize: '0.925rem',
             },
           },
         },

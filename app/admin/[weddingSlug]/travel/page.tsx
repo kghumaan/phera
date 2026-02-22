@@ -151,7 +151,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
 
   if (loading) {
     return (
-      <Box sx={{ maxWidth: 800 }}>
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading travel cards..." />
       </Box>
     );
@@ -160,13 +160,13 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
 
 
   return (
-    <Box sx={{ maxWidth: 800 }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Travel & Stay Information
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Create carousel cards with travel and accommodation details
           </Typography>
         </Box>

@@ -86,7 +86,7 @@ export default function AppHeader({
     position: 'sticky' as const,
     top: 0,
     zIndex: 10,
-    height: { xs: 64, md: 120 },
+    height: { xs: 64, md: 96 },
     display: 'flex',
     alignItems: 'center',
   } : {
@@ -95,7 +95,7 @@ export default function AppHeader({
     left: 0,
     right: 0,
     zIndex: 3,
-    height: { xs: 64, md: 120 },
+    height: { xs: 64, md: 96 },
     display: 'flex',
     alignItems: 'center',
   };
@@ -163,8 +163,8 @@ export default function AppHeader({
               <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                 <Box
                   sx={{
-                    width: { xs: 100, sm: 120, md: 160 },
-                    height: { xs: 40, sm: 48, md: 60 },
+                    width: { xs: 100, sm: 120, md: 128 },
+                    height: { xs: 40, sm: 48, md: 48 },
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
@@ -195,8 +195,8 @@ export default function AppHeader({
                   <IconButton
                     onClick={() => setWhatsAppModalOpen(true)}
                     sx={{
-                      width: { xs: 32, md: 56 },
-                      height: { xs: 32, md: 56 },
+                      width: { xs: 32, md: 45 },
+                      height: { xs: 32, md: 45 },
                       backgroundColor: '#000',
                       color: '#fff',
                       '&:hover': {
@@ -209,8 +209,8 @@ export default function AppHeader({
                     <Box
                       component="svg"
                       sx={{
-                        width: { xs: 16, md: 28 },
-                        height: { xs: 16, md: 28 },
+                        width: { xs: 16, md: 22 },
+                        height: { xs: 16, md: 22 },
                       }}
                       viewBox="0 0 24 24"
                       fill="currentColor"
@@ -229,13 +229,13 @@ export default function AppHeader({
                       backgroundColor: '#000',
                       color: '#fff',
                       borderRadius: { xs: '20px', md: '28px' },
-                      px: { xs: 2.5, md: 4.5 },
-                      py: { xs: 0.5, md: 1.5 },
-                      fontSize: { xs: '0.875rem', md: '1.125rem' },
+                      px: { xs: 2.5, md: 3.6 },
+                      py: { xs: 0.5, md: 1.2 },
+                      fontSize: { xs: '0.875rem', md: '0.9rem' },
                       fontWeight: 400,
                       letterSpacing: '7.142857142857142%',
                       textTransform: 'none',
-                      minHeight: { xs: 32, md: 56 },
+                      minHeight: { xs: 32, md: 45 },
                       fontFamily: 'Outfit',
                       '&:hover': {
                         backgroundColor: '#333',
@@ -250,12 +250,12 @@ export default function AppHeader({
                 <Avatar
                   onClick={(e) => setUserMenuAnchor(e.currentTarget)}
                   sx={{
-                    width: { xs: 32, md: 56 },
-                    height: { xs: 32, md: 56 },
+                    width: { xs: 32, md: 45 },
+                    height: { xs: 32, md: 45 },
                     backgroundColor: user.avatar_color,
                     color: 'white',
                     fontWeight: 600,
-                    fontSize: { xs: '0.9rem', md: '1.3rem' },
+                    fontSize: { xs: '0.9rem', md: '1.04rem' },
                     cursor: 'pointer',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     '&:hover': {
@@ -297,13 +297,13 @@ export default function AppHeader({
                     backgroundColor: '#000',
                     color: '#fff',
                     borderRadius: { xs: '24px', md: '28px' },
-                    px: { xs: 3, md: 5 },
-                    py: { xs: 1, md: 1.5 },
-                    fontSize: { xs: '0.9rem', md: '1.125rem' },
+                    px: { xs: 3, md: 4 },
+                    py: { xs: 1, md: 1.2 },
+                    fontSize: { xs: '0.9rem', md: '0.9rem' },
                     fontWeight: 500,
                     textTransform: 'none',
-                    minWidth: { xs: 80, md: 120 },
-                    minHeight: { xs: 40, md: 56 },
+                    minWidth: { xs: 80, md: 96 },
+                    minHeight: { xs: 40, md: 45 },
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     '&:hover': {
                       backgroundColor: '#333',

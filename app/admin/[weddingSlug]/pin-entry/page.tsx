@@ -166,7 +166,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Pin Entry Screen
           </Typography>
           <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
@@ -482,7 +482,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
               {/* Heading */}
               <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif), serif',
                   fontWeight: 400,

@@ -25,7 +25,7 @@ import {
   ViewKanban,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Wedding } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
@@ -145,6 +145,8 @@ export default function OnboardingSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const { isPro } = usePlan();
+  const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
+
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
     let foundActive = false;
@@ -174,6 +176,25 @@ export default function OnboardingSidebar({
 
     return initialState;
   });
+
+  // Measure active item positions for arrow alignment
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newPositions: Record<string, number> = {};
+      groups.forEach(group => {
+        if (group.standalone) return;
+        if (!expandedGroups[group.id]) return;
+        const container = document.getElementById(`sidebar-items-${group.id}`);
+        if (!container) return;
+        const activeItem = container.querySelector('[data-active="true"]') as HTMLElement | null;
+        if (activeItem) {
+          newPositions[group.id] = activeItem.offsetTop + activeItem.offsetHeight / 2;
+        }
+      });
+      setArrowPositions(newPositions);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [pathname, expandedGroups]);
 
   const calculateProgress = (wedding?: Wedding): number => {
     if (!wedding) return 0;
@@ -252,10 +273,10 @@ export default function OnboardingSidebar({
                 selected={isActive}
                 sx={{
                   px: 1.5,
-                  py: 1,
-                  mx: 1,
-                  mb: 0.5,
-                  borderRadius: '12px',
+                  py: 0.75,
+                  mx: 0.75,
+                  mb: 0.25,
+                  borderRadius: '10px',
                   color: isActive ? 'white' : '#1a1a1a',
                   '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
                   '&.Mui-selected': {
@@ -266,12 +287,12 @@ export default function OnboardingSidebar({
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
                 <ListItemText
                   primary={group.label}
-                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: 'inherit' } }}
+                  slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
                 />
-                {group.isPro && !isPro && <ProBadge size="tiny" />}
+                {group.isPro && !isPro && <ProBadge size="small" />}
               </ListItemButton>
             );
           }
@@ -286,9 +307,11 @@ export default function OnboardingSidebar({
                 onClick={() => handleToggleGroup(group.id)}
                 selected={isGroupActive}
                 sx={{
-                  px: 2,
-                  py: 1,
-                  borderRadius: '12px',
+                  px: 1.5,
+                  py: 0.75,
+                  mx: 0.75,
+                  mb: 0.25,
+                  borderRadius: '10px',
                   color: isGroupActive ? 'white' : '#1a1a1a',
                   '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha('#000', 0.02) },
                   '&.Mui-selected': {
@@ -299,30 +322,25 @@ export default function OnboardingSidebar({
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{group.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
                 <ListItemText
                   primary={group.label}
-                  primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem', color: 'inherit' } }}
+                  slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
                 />
                 {isExpanded ? (
-                  <ExpandLess sx={{ fontSize: 18, color: 'inherit' }} />
+                  <ExpandLess sx={{ fontSize: 14, color: 'inherit' }} />
                 ) : (
-                  <ExpandMore sx={{ fontSize: 18, color: 'inherit' }} />
+                  <ExpandMore sx={{ fontSize: 14, color: 'inherit' }} />
                 )}
               </ListItemButton>
 
               {/* Subitems with Curved Connector */}
               <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                <Box sx={{ position: 'relative', ml: 4.5 }}>
+                <Box id={`sidebar-items-${group.id}`} sx={{ position: 'relative', ml: 3.5 }}>
                   {/* SVG Curved Connector */}
                   {(() => {
-                    const activeIndex = group.items.findIndex(
-                      item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/')
-                    );
-                    const itemHeight = 52; // Actual rendered height: minHeight(36) + py(12) + mb(4) = 52px
-                    const totalHeight = group.items.length * itemHeight;
-                    // Center the arrow on the active item: (index * height) + (height / 2)
-                    const curveEndY = activeIndex >= 0 ? (activeIndex * itemHeight) + (itemHeight / 2) : -1;
+                    const curveEndY = arrowPositions[group.id];
+                    const hasActive = curveEndY !== undefined && curveEndY > 0;
 
                     return (
                       <Box
@@ -332,11 +350,11 @@ export default function OnboardingSidebar({
                           left: 0,
                           top: 0,
                           width: 20,
-                          height: totalHeight,
+                          height: '100%',
                           overflow: 'visible',
                         }}
                       >
-                        {activeIndex >= 0 && (
+                        {hasActive && (
                           <path
                             d={`M 0 0 L 0 ${curveEndY - 8} Q 0 ${curveEndY} 8 ${curveEndY} L 14 ${curveEndY}`}
                             fill="none"
@@ -346,7 +364,7 @@ export default function OnboardingSidebar({
                           />
                         )}
                         {/* Arrow head */}
-                        {activeIndex >= 0 && (
+                        {hasActive && (
                           <path
                             d={`M 10 ${curveEndY - 3} L 14 ${curveEndY} L 10 ${curveEndY + 3}`}
                             fill="none"
@@ -363,21 +381,21 @@ export default function OnboardingSidebar({
                   {group.items.map((item) => {
                     const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
                     return (
-                      <Box key={item.id} sx={{ position: 'relative' }}>
+                      <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
                           onClick={() => {
                             handleItemClick(item, false, group.id);
                           }}
                           selected={isActive}
                           sx={{
-                            ml: 1.5,
-                            mr: 1,
+                            ml: 1.25,
+                            mr: 0.75,
                             mb: 0.5,
-                            py: 0.75,
-                            pr: 1.5,
-                            borderRadius: '8px',
+                            py: 0.5,
+                            pr: 1,
+                            borderRadius: '6px',
                             color: '#6a6a6a',
-                            minHeight: 36,
+                            minHeight: 30,
                             '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
                             '&.Mui-selected': {
                               bgcolor: 'transparent',
@@ -404,15 +422,18 @@ export default function OnboardingSidebar({
                                 </Box>
                               ) : item.label
                             }
-                            primaryTypographyProps={{
-                              sx: {
-                                fontSize: '0.875rem',
-                                fontWeight: isActive ? 600 : 400,
-                                color: 'inherit',
+                            slotProps={{
+                              primary: {
+                                variant: 'inherit',
+                                sx: {
+                                  fontSize: '0.84rem',
+                                  fontWeight: isActive ? 600 : 400,
+                                  color: 'inherit',
+                                }
                               }
                             }}
                           />
-                          {item.isPro && !isPro && <ProBadge size="tiny" />}
+                          {item.isPro && !isPro && <ProBadge size="small" />}
                         </ListItemButton>
                       </Box>
                     );
@@ -439,7 +460,7 @@ export default function OnboardingSidebar({
           }}
           sx={{
             '& .MuiDrawer-paper': {
-              width: 280,
+              width: 220,
               boxSizing: 'border-box',
               bgcolor: 'white', // Solid white
             },
@@ -452,15 +473,15 @@ export default function OnboardingSidebar({
         <Drawer
           variant="permanent"
           sx={{
-            width: 280,
+            width: 220,
             flexShrink: 0,
             '& .MuiDrawer-paper': {
-              width: 280,
+              width: 220,
               boxSizing: 'border-box',
               bgcolor: 'white', // Solid white
               borderRight: `1px solid ${alpha('#000', 0.1)}`,
-              top: { xs: 56, md: 64 }, // Offset by Top Nav height
-              height: { xs: 'calc(100% - 56px)', md: 'calc(100% - 64px)' },
+              top: { xs: 48, md: 56 }, // Offset by Top Nav height
+              height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
             },
           }}
         >

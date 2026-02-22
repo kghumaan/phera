@@ -167,22 +167,22 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading settings..." />
-      </Container>
+      </Box>
     );
   }
 
   const weddingUrl = `${window.location.origin}/${weddingSlug}`;
 
   return (
-    <Container maxWidth="xl">
-      <Stack spacing={5}>
+    <Box sx={{ maxWidth: 1000 }}>
+      <Stack spacing={3}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Settings & Publish
           </Typography>
-          <Typography variant="h6" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 400, color: '#6a6a6a', fontSize: '1.1rem' }}>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Manage your wedding website settings and publish when ready
           </Typography>
         </Box>
@@ -543,6 +543,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
           </Stack>
         </Paper>
       </Stack>
-    </Container>
+    </Box>
   );
 }

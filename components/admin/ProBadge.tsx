@@ -35,7 +35,7 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
         }}
       >
         <AutoAwesome sx={{ fontSize: 12, color: '#DE3F5E' }} />
-        <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.5px', color: '#DE3F5E' }}>
+        <Typography variant="inherit" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.5px', color: '#DE3F5E' }}>
           PRO
         </Typography>
       </Box>
@@ -47,21 +47,22 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: isTiny ? 0.25 : 0.5,
+        gap: isTiny ? 0.2 : 0.5,
         bgcolor: 'white',
         color: '#DE3F5E',
         borderRadius: isTiny ? '3px' : isSmall ? '4px' : '6px',
-        px: isTiny ? 0.5 : isSmall ? 0.75 : 1,
-        py: isTiny ? 0.1 : isSmall ? 0.25 : 0.5,
+        px: isTiny ? 0.4 : isSmall ? 0.75 : 1,
+        py: isTiny ? 0 : isSmall ? 0.25 : 0.5,
         ml: isTiny ? 0.5 : 1,
         border: '1px solid #DE3F5E',
         flexShrink: 0,
       }}
     >
-      <AutoAwesome sx={{ fontSize: isTiny ? 9 : isSmall ? 12 : 14, color: '#DE3F5E' }} />
+      <AutoAwesome sx={{ fontSize: isTiny ? 7 : isSmall ? 12 : 14, color: '#DE3F5E' }} />
       <Typography
+        variant="inherit"
         sx={{
-          fontSize: isTiny ? '0.55rem' : isSmall ? '0.65rem' : '0.75rem',
+          fontSize: isTiny ? '0.5rem' : isSmall ? '0.65rem' : '0.75rem',
           fontWeight: 700,
           letterSpacing: '0.5px',
           color: '#DE3F5E',

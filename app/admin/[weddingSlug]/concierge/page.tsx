@@ -121,10 +121,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
 
   if (isPro) {
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Phera Concierge
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -162,7 +162,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
             </Box>
 
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
               Early Preview Mode
             </Typography>
 
@@ -225,18 +225,18 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             )}
           </Paper>
         </Stack>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3}>
 
         {/* Header row */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Phera Concierge
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -420,6 +420,6 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       </Stack>
 
       <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
-    </Container>
+    </Box>
   );
 }

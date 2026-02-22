@@ -146,21 +146,21 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
   if (loading) {
     return (
-      <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading PIN management..." />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
-          <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             PIN Management
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Create and manage unique PIN codes for your guests to access the wedding website
           </Typography>
         </Box>
@@ -175,7 +175,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Stack spacing={4}>
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
               <Box>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                   Guest PIN Codes
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
@@ -524,6 +524,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           </DialogActions>
         </Dialog>
       </Stack>
-    </Container>
+    </Box>
   );
 }

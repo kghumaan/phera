@@ -11,6 +11,11 @@ interface AdminPreviewPanelProps {
     refreshKey?: number; // Optional key to force iframe refresh
 }
 
+interface PinCode {
+    pin: string;
+    type: string;
+}
+
 /**
  * Persistent preview panel for admin pages
  * Shows the wedding website preview with desktop/mobile toggle
@@ -126,8 +131,8 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
         return frameWidth / (16 / 10);
     }, [containerWidth]);
 
-    // Mobile height: 85% of container height
-    const mobileHeight = containerHeight * 0.85;
+    // Mobile height: constrained to reasonable bounds
+    const mobileHeight = Math.min(containerHeight * 0.92, 850);
 
     return (
         <Box
@@ -153,44 +158,44 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                         display: 'flex',
                         gap: 1.5, // Increased gap
                         bgcolor: 'white',
-                        borderRadius: '20px', // More rounded
-                        p: 0.75, // Reduced from 1
+                        borderRadius: '16px',
+                        p: 0.5,
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                     }}
                 >
                     <IconButton
                         onClick={() => setViewMode('desktop')}
-                        size="large" // Bigger button
+                        size="medium"
                         sx={{
                             bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
                             color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
                             borderRadius: '14px',
-                            px: 4, // Wider
-                            py: 1.5,
+                            px: 2.5,
+                            py: 1,
                             '&:hover': {
                                 bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
                             },
                         }}
                         title="Desktop View"
                     >
-                        <DesktopWindows sx={{ fontSize: 28 }} /> {/* Bigger icon */}
+                        <DesktopWindows sx={{ fontSize: 22 }} />
                     </IconButton>
                     <IconButton
                         onClick={() => setViewMode('mobile')}
-                        size="large" // Bigger button
+                        size="medium"
                         sx={{
                             bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
                             color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
                             borderRadius: '14px',
-                            px: 4, // Wider
-                            py: 1.5,
+                            px: 2.5,
+                            py: 1,
                             '&:hover': {
                                 bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
                             },
                         }}
                         title="Mobile View"
                     >
-                        <PhoneAndroid sx={{ fontSize: 28 }} /> {/* Bigger icon */}
+                        <PhoneAndroid sx={{ fontSize: 22 }} />
                     </IconButton>
                 </Box>
             </Box>
@@ -209,7 +214,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
             >
                 <motion.div
                     animate={{
-                        width: viewMode === 'desktop' ? '94%' : 400, // Increased mobile width
+                        width: viewMode === 'desktop' ? '94%' : 375,
                         height: viewMode === 'desktop' ? desktopHeight : mobileHeight,
                         borderRadius: viewMode === 'desktop' ? '12px' : '40px',
                     }}
@@ -217,7 +222,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: '-100px', // Shifted even higher
+                        marginTop: viewMode === 'desktop' ? '-100px' : '-40px',
                         backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
@@ -291,16 +296,19 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                     overflow: 'hidden',
                                     mt: -2.2, // Pull up to meet the notch and overlap its border
                                     position: 'relative',
+                                    WebkitMaskImage: '-webkit-radial-gradient(white, black)', // Fixes Safari border-radius clipping bug with transformed children
                                 }}
                             >
                                 <iframe
                                     ref={iframeRefLine}
                                     src={`/preview/${weddingSlug}`}
                                     style={{
-                                        width: '100%',
-                                        height: '100%',
+                                        width: '125%', // 100% / 0.8
+                                        height: '125%', // 100% / 0.8
                                         border: 'none',
                                         backgroundColor: 'white',
+                                        transform: 'scale(0.8)',
+                                        transformOrigin: 'top left',
                                     }}
                                     title="Wedding Preview - Mobile"
                                 />
@@ -312,12 +320,12 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                 {/* View Site and Share Buttons - Positioned relative to the container, moving with the frame */}
                 <motion.div
                     animate={{
-                        width: viewMode === 'desktop' ? '92%' : 340, // Narrowed slightly more for mobile
+                        width: viewMode === 'desktop' ? '92%' : 340,
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{
                         position: 'absolute',
-                        bottom: viewMode === 'mobile' ? '60px' : '70px', // Raised buttons further to follow the frame
+                        bottom: viewMode === 'mobile' ? '0px' : '40px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
@@ -475,7 +483,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                                    {settings?.pin_codes?.map((pin, index) => (
+                                    {(settings?.pin_codes as unknown as PinCode[] | undefined)?.map((pin, index) => (
                                         <Box
                                             key={index}
                                             sx={{
@@ -507,7 +515,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                             </IconButton>
                                         </Box>
                                     ))}
-                                    {(!settings?.pin_codes || settings.pin_codes.length === 0) && (
+                                    {(!settings?.pin_codes || (settings.pin_codes as any).length === 0) && (
                                         <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
                                             No PIN codes configured yet.
                                         </Typography>

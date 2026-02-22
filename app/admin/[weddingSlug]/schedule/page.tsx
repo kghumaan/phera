@@ -627,14 +627,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const isEmpty = scheduleData.length === 0;
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <Stack spacing={4}>
+    <Box sx={{ maxWidth: 1000 }}>
+      <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
               Wedding Schedule
             </Typography>
-            <Typography variant="body1" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
               Plan the timeline for your celebration
             </Typography>
           </Box>
@@ -676,7 +676,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               </Box>
 
               <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
                   Design Your Wedding Schedule
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#666', maxWidth: 500, mx: 'auto' }}>
@@ -764,7 +764,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
             }}>
               <Check sx={{ color: '#10B981', fontSize: 32 }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
               Schedule Ready!
             </Typography>
           </DialogTitle>

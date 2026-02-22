@@ -73,7 +73,7 @@ export default function OnboardingLayout({
     }
   };
 
-  const TOP_NAV_HEIGHT = { xs: '56px', md: '64px' };
+  const TOP_NAV_HEIGHT = { xs: '48px', md: '56px' };
 
   return (
     <>

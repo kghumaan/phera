@@ -325,10 +325,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   }
 
   return (
-    <Box sx={{ maxWidth: 800 }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Events & Dress Code
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

@@ -100,11 +100,12 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
             }}
         >
-            <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 56, md: 64 }, px: { xs: 1, sm: 2 } }}>
+            <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 48, md: 56 }, px: { xs: 1, sm: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {/* Mobile Menu Toggle */}
                     {isMobile && (
                         <IconButton
+                            size="small"
                             onClick={onMenuToggle}
                             sx={{
                                 color: '#1a1a1a',
@@ -147,12 +148,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             startIcon={<span>👋</span>}
                             sx={{
                                 mr: 1,
-                                px: 2,
-                                py: 1,
+                                height: 34,
+                                px: 1.5,
+                                py: 0,
+                                minWidth: 0,
                                 borderRadius: 1,
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '0.9rem',
+                                fontSize: '0.8rem',
                                 color: '#1a1a1a',
                                 bgcolor: alpha('#DE3F5E', 0.05),
                                 border: '1px solid',
@@ -172,23 +175,27 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 1.5,
-                            bgcolor: '#f5f5f5',
-                            px: 2,
-                            py: 1,
+                            gap: 1,
+                            height: 34,
+                            bgcolor: alpha('#DE3F5E', 0.05),
+                            px: 1.5,
+                            py: 0,
                             borderRadius: 1,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
+                            border: '1px solid',
+                            borderColor: alpha('#DE3F5E', 0.1),
                             '&:hover': {
-                                bgcolor: '#ececec',
+                                bgcolor: alpha('#DE3F5E', 0.1),
+                                borderColor: alpha('#DE3F5E', 0.2),
                             },
                         }}
                     >
-                        <SettingsOutlined sx={{ fontSize: 22, color: '#1a1a1a' }} />
+                        <SettingsOutlined sx={{ fontSize: 20, color: '#1a1a1a' }} />
                         <Avatar
                             sx={{
-                                width: 32,
-                                height: 32,
+                                width: 28,
+                                height: 28,
                                 bgcolor: user?.avatar_color || '#DE3F5E',
                                 color: 'white',
                                 fontSize: '0.85rem',
@@ -224,7 +231,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 }
                             }}
                             sx={{
-                                fontSize: '0.9rem',
+                                fontSize: '0.8rem',
                                 fontWeight: 600,
                                 color: isPro ? '#DE3F5E' : '#666',
                                 cursor: isPro ? 'default' : 'pointer',
@@ -233,7 +240,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 gap: 0.5,
                             }}
                         >
-                            {isPro && <AutoAwesome sx={{ fontSize: 16, color: '#DE3F5E' }} />}
+                            {isPro && <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />}
                             {isPro ? 'Pro' : 'Basic'}
                         </Typography>
                     </Box>

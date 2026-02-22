@@ -340,7 +340,7 @@ export default function InfiniteScrollLayout({
           headerRef.current.style.transform = 'translateY(0)';
         } else if (currentScrollY > lastScrollY.current) {
           // Scrolling down - hide header
-          headerRef.current.style.transform = 'translateY(-120px)';
+          headerRef.current.style.transform = 'translateY(-96px)';
         } else if (currentScrollY < lastScrollY.current) {
           // Scrolling up - show header
           headerRef.current.style.transform = 'translateY(0)';
@@ -524,12 +524,12 @@ export default function InfiniteScrollLayout({
             backdropFilter: 'blur(10px)',
             position: 'relative',
             zIndex: 1,
-            pl: { md: 8, lg: 12, xl: 16 },
-            pr: { md: 4, lg: 6, xl: 8 },
+            pl: { md: 22, lg: 26, xl: 30 },
+            pr: { md: 3, lg: 4, xl: 5 },
             pt: {
-              md: 'calc(50vh - 200px)',
-              lg: 'calc(50vh - 220px)',
-              xl: 'calc(50vh - 250px)'
+              md: 'calc(50vh - 152px)',
+              lg: 'calc(50vh - 176px)',
+              xl: 'calc(50vh - 208px)'
             },
             pb: { md: 15, lg: 15, xl: 15 },
           }}
@@ -547,7 +547,7 @@ export default function InfiniteScrollLayout({
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
+                  fontSize: { md: '2.8rem', lg: '3.2rem', xl: '3.8rem' },
                   color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
@@ -563,7 +563,7 @@ export default function InfiniteScrollLayout({
                   variant="body2"
                   sx={{
                     color: '#000',
-                    fontSize: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' },
+                    fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                     fontWeight: 600,
                   }}
                 >
@@ -574,8 +574,8 @@ export default function InfiniteScrollLayout({
                     sx={{
                       backgroundColor: 'rgba(0, 0, 0, 0.15)',
                       border: '1px solid rgba(0, 0, 0, 0.25)',
-                      width: { md: 40, lg: 44, xl: 48 },
-                      height: { md: 40, lg: 44, xl: 48 },
+                      width: { md: 32, lg: 35, xl: 38 },
+                      height: { md: 32, lg: 35, xl: 38 },
                       color: '#000',
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -587,14 +587,14 @@ export default function InfiniteScrollLayout({
                       window.open(googleCalUrl, '_blank');
                     }}
                   >
-                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' }, color: '#000' }} />
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' }, color: '#000' }} />
                   </IconButton>
                   <IconButton
                     sx={{
                       backgroundColor: 'rgba(0, 0, 0, 0.15)',
                       border: '1px solid rgba(0, 0, 0, 0.25)',
-                      width: { md: 40, lg: 44, xl: 48 },
-                      height: { md: 40, lg: 44, xl: 48 },
+                      width: { md: 32, lg: 35, xl: 38 },
+                      height: { md: 32, lg: 35, xl: 38 },
                       color: '#000',
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -616,8 +616,8 @@ export default function InfiniteScrollLayout({
                       viewBox="0 0 24 24"
                       fill="none"
                       sx={{
-                        width: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' },
-                        height: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' },
+                        width: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
+                        height: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                         color: '#000',
                       }}
                     >
@@ -644,20 +644,20 @@ export default function InfiniteScrollLayout({
                   '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
                 }}
               >
-                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' } }} />
+                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }} />
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography
                       variant="body2"
                       sx={{
                         color: '#000',
-                        fontSize: { md: '1rem', lg: '1.1rem', xl: '1.25rem' },
+                        fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                         textDecoration: 'underline',
                       }}
                     >
                       {coupleData.venue}
                     </Typography>
-                    <Typography sx={{ fontSize: { md: '1.1rem', lg: '1.25rem', xl: '1.4rem' } }}>
+                    <Typography sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }}>
                       {coupleData.flag}
                     </Typography>
                   </Stack>
@@ -666,7 +666,7 @@ export default function InfiniteScrollLayout({
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { md: '1rem', lg: '1.1rem', xl: '1.25rem' },
+                      fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                     }}
                   >
                     <strong>RSVP</strong> to see location
@@ -679,7 +679,7 @@ export default function InfiniteScrollLayout({
                 variant="body1"
                 sx={{
                   color: '#333',
-                  fontSize: { md: '1rem', lg: '1.1rem', xl: '1.25rem' },
+                  fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                   lineHeight: 1.6,
                   maxWidth: { md: 480, lg: 540, xl: 650 },
                 }}
@@ -705,8 +705,8 @@ export default function InfiniteScrollLayout({
                       sx={{
                         backgroundColor: primaryColor,
                         color: 'white',
-                        py: 1.5,
-                        fontSize: { md: '1rem', lg: '1.1rem' },
+                        py: 1.2,
+                        fontSize: { md: '0.8rem', lg: '0.88rem' },
                         fontWeight: 600,
                         borderRadius: '32px',
                         textTransform: 'uppercase',
@@ -788,7 +788,7 @@ export default function InfiniteScrollLayout({
                         sx={{
                           fontFamily: 'var(--font-instrument-serif)',
                           fontStyle: 'italic',
-                          fontSize: { md: '1.75rem', lg: '2rem', xl: '2.25rem' },
+                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -806,7 +806,7 @@ export default function InfiniteScrollLayout({
                                 fontStyle: 'italic',
                                 color: '#000',
                                 mb: 3,
-                                fontSize: { md: '1.25rem', lg: '1.4rem' },
+                                fontSize: { md: '1rem', lg: '1.12rem' },
                                 textAlign: 'left',
                               }}
                             >
@@ -1015,7 +1015,7 @@ export default function InfiniteScrollLayout({
                         sx={{
                           fontFamily: 'var(--font-instrument-serif)',
                           fontStyle: 'italic',
-                          fontSize: { md: '1.75rem', lg: '2rem', xl: '2.25rem' },
+                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -1054,7 +1054,7 @@ export default function InfiniteScrollLayout({
                                   fontWeight: 600,
                                   color: '#141414',
                                   mb: 1.5,
-                                  fontSize: { md: '1.1rem', lg: '1.25rem' },
+                                  fontSize: { md: '0.88rem', lg: '1rem' },
                                 }}
                               >
                                 {card.title}
@@ -1107,7 +1107,7 @@ export default function InfiniteScrollLayout({
                         sx={{
                           fontFamily: 'var(--font-instrument-serif)',
                           fontStyle: 'italic',
-                          fontSize: { md: '1.75rem', lg: '2rem', xl: '2.25rem' },
+                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -1188,7 +1188,7 @@ export default function InfiniteScrollLayout({
                         sx={{
                           fontFamily: 'var(--font-instrument-serif)',
                           fontStyle: 'italic',
-                          fontSize: { md: '1.75rem', lg: '2rem', xl: '2.25rem' },
+                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 1.5,
                         }}
@@ -1255,7 +1255,7 @@ export default function InfiniteScrollLayout({
                         sx={{
                           fontFamily: 'var(--font-instrument-serif)',
                           fontStyle: 'italic',
-                          fontSize: { md: '1.75rem', lg: '2rem', xl: '2.25rem' },
+                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -1442,8 +1442,8 @@ export default function InfiniteScrollLayout({
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              pl: { md: 3, lg: 4, xl: 6 },
-              pr: { md: 3, lg: 4, xl: 6 },
+              pl: { md: 2.4, lg: 3.2, xl: 4.8 },
+              pr: { md: 2.4, lg: 3.2, xl: 4.8 },
               gap: 2,
               alignItems: 'center',
               pointerEvents: 'auto',
@@ -1460,10 +1460,30 @@ export default function InfiniteScrollLayout({
                 sx={{
                   position: 'relative',
                   width: '100%',
-                  maxWidth: { md: 380, lg: 440, xl: 520 },
+                  maxWidth: { md: 304, lg: 352, xl: 416 },
                   aspectRatio: '1',
                 }}
               >
+                {/* Couple Image */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '4%',
+                    left: '4%',
+                    width: '92%',
+                    height: '92%',
+                    overflow: 'hidden',
+                    zIndex: 1,
+                  }}
+                >
+                  <ScrollBasedCarousel
+                    images={coupleData.coupleImages}
+                    currentSectionIndex={currentSection}
+                    size={500}
+                  />
+                </Box>
+
+                {/* Frame Background */}
                 <Image
                   src={wedding.frame_image_url || "/images/frames/frame-1.png"}
                   alt="Decorative frame"
@@ -1473,26 +1493,10 @@ export default function InfiniteScrollLayout({
                   style={{
                     objectFit: 'contain',
                     objectPosition: 'center',
-                    zIndex: 1,
+                    zIndex: 3,
+                    pointerEvents: 'none',
                   }}
                 />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '7%',
-                    left: '7%',
-                    width: '87%',
-                    height: '87%',
-                    overflow: 'hidden',
-                    zIndex: 2,
-                  }}
-                >
-                  <ScrollBasedCarousel
-                    images={coupleData.coupleImages}
-                    currentSectionIndex={currentSection}
-                    size={500}
-                  />
-                </Box>
               </Box>
             </motion.div>
           </Box>

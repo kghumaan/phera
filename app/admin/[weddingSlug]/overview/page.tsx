@@ -202,18 +202,18 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading wedding details..." />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Wedding Overview
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -546,6 +546,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           </DialogActions>
         </Dialog>
       </Stack>
-    </Container>
+    </Box>
   );
 }

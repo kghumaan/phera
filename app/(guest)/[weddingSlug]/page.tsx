@@ -96,8 +96,8 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       sx={{
         backgroundColor: '#FFFFFF',
         borderRadius: 8, // 64px from Figma converted to MUI scale
-        px: { xs: 4, sm: 4.5, md: 5, lg: 6.5, xl: 8 },
-        py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
+        px: { xs: 4, sm: 4.5, md: 4, lg: 5.2, xl: 6.4 },
+        py: { xs: 1.5, sm: 1.75, md: 1.6, lg: 2, xl: 2.4 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
         maxWidth: '100%', // Let parent wrapper control width
@@ -105,7 +105,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
     >
       <Stack
         direction="row"
-        spacing={{ xs: 3, sm: 3.5, md: 3.5, lg: 4.5, xl: 6 }}
+        spacing={{ xs: 3, sm: 3.5, md: 2.8, lg: 3.6, xl: 4.8 }}
         justifyContent="center"
         alignItems="center"
       >
@@ -115,7 +115,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             alignItems="center"
             spacing={0}
             sx={{
-              minWidth: { xs: 35, sm: 40, md: 45, lg: 60, xl: 75 }, // Smoother progression
+              minWidth: { xs: 35, sm: 40, md: 36, lg: 48, xl: 60 }, // Smoother progression
             }}
           >
             <Typography
@@ -127,9 +127,9 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontSize: {
                   xs: '1.5rem',   // 360px+ (mobile)
                   sm: '1.5rem',   // 600px+ (large mobile)
-                  md: '1.75rem',  // 900px+ (small desktop) - reduced from 2.25rem
-                  lg: '2.5rem',   // 1200px+ (desktop) - reduced from 2.75rem
-                  xl: '3.25rem'   // 1536px+ (large desktop)
+                  md: '1.4rem',   // 900px+ (small desktop)
+                  lg: '2rem',     // 1200px+ (desktop)
+                  xl: '2.6rem'    // 1536px+ (large desktop)
                 },
                 lineHeight: 1.2,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
@@ -146,9 +146,9 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontSize: {
                   xs: '0.85rem',   // mobile
                   sm: '0.75rem',   // large mobile
-                  md: '0.875rem',  // small desktop - reduced from 1rem
-                  lg: '1rem',      // desktop - reduced from 1.125rem
-                  xl: '1.25rem'    // large desktop
+                  md: '0.7rem',    // small desktop
+                  lg: '0.8rem',    // desktop
+                  xl: '1rem'       // large desktop
                 },
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif', // Match Figma font
@@ -305,7 +305,7 @@ export default function HomePage() {
         if (currentScrollY < 50) {
           headerRef.current.style.transform = 'translateY(0)';
         } else if (currentScrollY > lastScrollY.current) {
-          headerRef.current.style.transform = 'translateY(-120px)';
+          headerRef.current.style.transform = 'translateY(-96px)';
         } else if (currentScrollY < lastScrollY.current) {
           headerRef.current.style.transform = 'translateY(0)';
         }
@@ -769,15 +769,15 @@ export default function HomePage() {
             minHeight: '100vh',
             display: 'flex',
             justifyContent: 'flex-start', // Start from top, don't center
-            pl: { md: 6, lg: 8, xl: 10 }, // Outer padding
-            pr: { md: 18, lg: 20, xl: 22 }, // Inner gap - User set
+            pl: { md: 5, lg: 6.4, xl: 8 }, // Outer padding
+            pr: { md: 14.4, lg: 16, xl: 17.6 }, // Inner gap
             // Align with top of the centered image on the right
-            // Image max sizes: md: 500px, lg: 600px, xl: 700px
+            // Image max sizes: md: 400px, lg: 480px, xl: 560px
             // Top of image = 50vh - (image height / 2)
             pt: {
-              md: 'calc(50vh - 250px)', // 500px / 2 = 250px
-              lg: 'calc(50vh - 300px)', // 600px / 2 = 300px
-              xl: 'calc(50vh - 350px)'  // 700px / 2 = 350px
+              md: 'calc(50vh - 200px)', // 400px / 2 = 200px
+              lg: 'calc(50vh - 240px)', // 480px / 2 = 240px
+              xl: 'calc(50vh - 280px)'  // 560px / 2 = 280px
             },
             pb: { md: 15, lg: 15, xl: 15 }, // Bottom padding
             alignItems: 'flex-end', // Align content to the right (towards center)
@@ -791,12 +791,12 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
           >
-            <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 700 } }}>
+            <Stack spacing={3.2} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 400, lg: 480, xl: 560 } }}>
               {/* Names - Large italic serif */}
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { md: '3.5rem', lg: '4.5rem', xl: '5.5rem' },
+                  fontSize: { md: '2.8rem', lg: '3.6rem', xl: '4.4rem' },
                   color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
@@ -813,7 +813,7 @@ export default function HomePage() {
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                      fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                       fontWeight: 600,
                     }}
                   >
@@ -825,8 +825,8 @@ export default function HomePage() {
                     sx={{
                       backgroundColor: 'rgba(0, 0, 0, 0.15)',
                       border: '1px solid rgba(0, 0, 0, 0.25)',
-                      width: { md: 48, lg: 56, xl: 64 },
-                      height: { md: 48, lg: 56, xl: 64 },
+                      width: { md: 38, lg: 45, xl: 51 },
+                      height: { md: 38, lg: 45, xl: 51 },
                       color: '#000',
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -844,14 +844,14 @@ export default function HomePage() {
                       window.open(googleCalUrl, '_blank');
                     }}
                   >
-                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' }, color: '#000' }} />
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' }, color: '#000' }} />
                   </IconButton>
                   <IconButton
                     sx={{
                       backgroundColor: 'rgba(0, 0, 0, 0.15)',
                       border: '1px solid rgba(0, 0, 0, 0.25)',
-                      width: { md: 48, lg: 56, xl: 64 },
-                      height: { md: 48, lg: 56, xl: 64 },
+                      width: { md: 38, lg: 45, xl: 51 },
+                      height: { md: 38, lg: 45, xl: 51 },
                       color: '#000',
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -874,8 +874,8 @@ export default function HomePage() {
                       viewBox="0 0 24 24"
                       fill="none"
                       sx={{
-                        width: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
-                        height: { md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                        width: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
+                        height: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                         color: '#000',
                       }}
                     >
@@ -902,20 +902,20 @@ export default function HomePage() {
                   '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
                 }}
               >
-                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }} />
+                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }} />
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography
                       variant="body2"
                       sx={{
                         color: '#000',
-                        fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                        fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                         textDecoration: 'underline',
                       }}
                     >
                       {coupleData.venue}
                     </Typography>
-                    <Typography sx={{ fontSize: { md: '1.5rem', lg: '1.75rem', xl: '2rem' } }}>
+                    <Typography sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }}>
                       {coupleData.flag}
                     </Typography>
                   </Stack>
@@ -937,22 +937,22 @@ export default function HomePage() {
                 variant="body1"
                 sx={{
                   color: '#333',
-                  fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
+                  fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                   lineHeight: 1.6,
-                  maxWidth: { md: 550, lg: 650, xl: 750 },
+                  maxWidth: { md: 440, lg: 520, xl: 600 },
                 }}
               >
                 {wedding?.welcome_text}
               </Typography>
 
               {/* Countdown Timer */}
-              <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+              <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 440, lg: 520, xl: 600 } }}>
                 <CountdownTimer targetDate={coupleData.weddingDate} />
               </Box>
 
               {/* RSVP Button - Desktop (Same width as CountdownTimer) */}
               {!isPageLoading && isPinVerified && !isBypassPin && (!user || !hasRSVPed) && (
-                <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 440, lg: 520, xl: 600 } }}>
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -967,8 +967,8 @@ export default function HomePage() {
                       sx={{
                         backgroundColor: wedding?.primary_color || '#DE3F5E',
                         color: 'white',
-                        py: 2,
-                        fontSize: { md: '1.25rem', lg: '1.5rem' },
+                        py: 1.6,
+                        fontSize: { md: '1rem', lg: '1.2rem' },
                         fontWeight: 600,
                         borderRadius: 1, // Matches mobile button style
                         textTransform: 'uppercase',
@@ -1001,7 +1001,7 @@ export default function HomePage() {
 
               {/* Guest List Section - Only show if user has RSVP'd OR using bypass PIN */}
               {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
-                <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                <Box sx={{ mt: 2, width: '100%', maxWidth: { md: 440, lg: 520, xl: 600 } }}>
                   <motion.div
                     initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1029,8 +1029,8 @@ export default function HomePage() {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            pl: { md: 6, lg: 8, xl: 10 }, // Inner gap
-            pr: { md: 6, lg: 8, xl: 10 }, // Outer padding
+            pl: { md: 5, lg: 6.4, xl: 8 }, // Inner gap
+            pr: { md: 5, lg: 6.4, xl: 8 }, // Outer padding
             pt: { md: 0, lg: 0, xl: 0 }, // Remove padding - let centering handle it
             pb: { md: 0, lg: 0, xl: 0 }, // Remove padding - let centering handle it
             gap: 3,
@@ -1048,7 +1048,7 @@ export default function HomePage() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: { md: 500, lg: 600, xl: 700 }, // Match text column width constraint
+                maxWidth: { md: 400, lg: 480, xl: 560 }, // Match text column width constraint
                 aspectRatio: '1',
                 cursor: 'pointer',
                 transition: 'transform 0.2s ease-in-out',
@@ -1070,7 +1070,8 @@ export default function HomePage() {
                 style={{
                   objectFit: 'contain',
                   objectPosition: 'center',
-                  zIndex: 1,
+                  zIndex: 3,
+                  pointerEvents: 'none',
                 }}
               />
 
@@ -1078,12 +1079,12 @@ export default function HomePage() {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: '7%',
-                  left: '7%',
-                  width: '87%',
-                  height: '87%',
+                  top: '4%',
+                  left: '4%',
+                  width: '92%',
+                  height: '92%',
                   overflow: 'hidden',
-                  zIndex: 2,
+                  zIndex: 1,
                 }}
               >
                 <CoupleImageCarousel size={500} />
@@ -1093,7 +1094,7 @@ export default function HomePage() {
 
           {/* View Details Button */}
           {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
-            <Box sx={{ width: '100%', maxWidth: { md: 500, lg: 600, xl: 700 } }}>
+            <Box sx={{ width: '100%', maxWidth: { md: 400, lg: 480, xl: 560 } }}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1112,8 +1113,8 @@ export default function HomePage() {
                   sx={{
                     backgroundColor: wedding?.primary_color || '#DE3F5E',
                     color: 'white',
-                    py: { md: 2, lg: 2.25, xl: 2.5 },
-                    fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
+                    py: { md: 1.6, lg: 1.8, xl: 2 },
+                    fontSize: { md: '0.9rem', lg: '1rem', xl: '1.1rem' },
                     fontWeight: 700,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
@@ -1214,7 +1215,8 @@ export default function HomePage() {
                 style={{
                   objectFit: 'contain',
                   objectPosition: 'center',
-                  zIndex: 1,
+                  zIndex: 3,
+                  pointerEvents: 'none',
                 }}
               />
 
@@ -1222,12 +1224,12 @@ export default function HomePage() {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: '7%',
-                  left: '7%',
-                  width: '87%',
-                  height: '87%',
+                  top: '4%',
+                  left: '4%',
+                  width: '92%',
+                  height: '92%',
                   overflow: 'hidden',
-                  zIndex: 2,
+                  zIndex: 1,
                 }}
               >
                 <CoupleImageCarousel images={coupleData.coupleImages} />

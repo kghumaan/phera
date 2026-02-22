@@ -578,13 +578,13 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
 
   if (!isPro) {
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
 
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Task Manager
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -666,20 +666,20 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
 
         </Stack>
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
-      </Container>
+      </Box>
     );
   }
 
   // ── Pro view — full kanban ──────────────────────────────────────────────────
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3}>
 
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Task Manager
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -716,6 +716,6 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
         </DndContext>
 
       </Stack>
-    </Container>
+    </Box>
   );
 }

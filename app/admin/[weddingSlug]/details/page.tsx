@@ -495,7 +495,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Wedding Details
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -535,9 +535,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
         {/* Form Content */}
-        <Stack spacing={5}>
+        <Stack spacing={3}>
           {/* Couple Names */}
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
             Couple Information *
           </Typography>
 
@@ -572,7 +572,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
           {/* Wedding Date */}
-          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Wedding Date *
           </Typography>
 
@@ -796,7 +796,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           )} */}
 
           {/* Venue */}
-          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Venue Information *
           </Typography>
 
@@ -843,7 +843,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </Grid>
 
           {/* Welcome Message Section */}
-          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Welcome Message
           </Typography>
           <Box>
@@ -862,7 +862,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </Box>
 
           {/* RSVP Deadline */}
-          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             RSVP Information
           </Typography>
 
@@ -952,7 +952,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </Stack>
 
           {/* Images */}
-          <Typography variant="h5" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Images
           </Typography>
 
@@ -1130,7 +1130,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         { id: 'frame-8', url: '/images/frames/frame-8.png', name: 'Frame 8' },
                         { id: 'frame-9', url: '/images/frames/frame-9.png', name: 'Frame 9' },
                         { id: 'frame-10', url: '/images/frames/frame-10.png', name: 'Frame 10' },
-                        { id: 'frame-11', url: '/images/frames/frame-11.png', name: 'Frame 11' }
+                        { id: 'frame-11', url: '/images/frames/frame-11.png', name: 'Frame 11' },
+                        { id: 'frame-12', url: '/images/frames/frame-12.png', name: 'Frame 12' }
                       ].map((frame) => (
                         <Box
                           key={frame.id}
@@ -1191,33 +1192,16 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                               overflow: 'visible',
                             }}
                           >
-                            {/* Frame background - at zIndex 1 (behind) */}
-                            <Box
-                              component="img"
-                              src={formData.frame_image_url || ''}
-                              alt="Decorative frame"
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                zIndex: 1,
-                                pointerEvents: 'none',
-                              }}
-                            />
-
-                            {/* Couple Image on top - at zIndex 3 (in front) */}
+                            {/* Couple Image on top - at zIndex 1 (behind) */}
                             <Box
                               sx={{
                                 position: 'absolute',
-                                top: '7%',
-                                left: '7%',
-                                width: '87%',
-                                height: '87%',
+                                top: '4%',
+                                left: '4%',
+                                width: '92%',
+                                height: '92%',
                                 overflow: 'hidden',
-                                zIndex: 3,
+                                zIndex: 1,
                               }}
                             >
                               <Box
@@ -1231,6 +1215,23 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                                 }}
                               />
                             </Box>
+
+                            {/* Frame background - at zIndex 3 (in front) */}
+                            <Box
+                              component="img"
+                              src={formData.frame_image_url || ''}
+                              alt="Decorative frame"
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                zIndex: 3,
+                                pointerEvents: 'none',
+                              }}
+                            />
                           </Box>
                         </Stack>
                       </Grid>

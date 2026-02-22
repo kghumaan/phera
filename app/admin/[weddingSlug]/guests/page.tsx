@@ -285,29 +285,29 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading guest responses..." />
-      </Container>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: alpha('#EF4444', 0.1), textAlign: 'center' }}>
           <Typography color="error">{error}</Typography>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Guest Responses
             </Typography>
             <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
@@ -923,7 +923,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
           ) : (
             <Box sx={{ textAlign: 'center', py: 10, px: 3 }}>
               <People sx={{ fontSize: 80, color: alpha('#DE3F5E', 0.1), mb: 3 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1.5 }}>
                 {weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
               </Typography>
               <Typography variant="body1" sx={{ color: '#6a6a6a', maxWidth: 500, mx: 'auto', mb: 4 }}>
@@ -940,6 +940,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
           )}
         </Paper>
       </Stack>
-    </Container>
+    </Box>
   );
 }

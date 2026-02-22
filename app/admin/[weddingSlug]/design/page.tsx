@@ -18,9 +18,11 @@ import {
   Radio,
   Tabs,
   Tab,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Save, Check, ViewAgenda, UnfoldMore } from '@mui/icons-material';
+import { Save, Check, ViewAgenda, UnfoldMore, InfoOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
@@ -326,9 +328,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading pin entry settings..." />
-      </Container>
+      </Box>
     );
   }
 
@@ -337,14 +339,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const previewSubtitle = pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName);
 
   return (
-    <Container maxWidth={ENHANCED_CONTAINER_MAX_WIDTH}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Look & Feel
             </Typography>
-            <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
               Customize the colors, backgrounds, and overall design of your wedding website
             </Typography>
           </Box>
@@ -462,11 +464,16 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           label={
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
                               <Box sx={{ flex: 1 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   Nested
+                                  <Tooltip title="Guests tap 'View Details' to see event info, schedule, etc." arrow placement="top">
+                                    <IconButton size="small" sx={{ p: 0.5, display: { xs: 'inline-flex', sm: 'none' } }} onClick={(e) => e.stopPropagation()}>
+                                      <InfoOutlined sx={{ fontSize: 18, color: '#666' }} />
+                                    </IconButton>
+                                  </Tooltip>
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                                  Guests tap 'View Details' to see event info, schedule, and more in an overlay
+                                <Typography variant="body2" sx={{ color: '#4a4a4a', display: { xs: 'none', sm: 'block' }, mt: 0.5 }}>
+                                  Guests tap 'View Details' to see event info, schedule, etc.
                                 </Typography>
                               </Box>
                               <ViewAgenda sx={{ fontSize: 32, color: '#DE3F5E', flexShrink: 0, ml: 2 }} />
@@ -497,10 +504,15 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           label={
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
                               <Box sx={{ flex: 1 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   Infinite Scroll
+                                  <Tooltip title="All wedding details are displayed as you scroll down the page" arrow placement="top">
+                                    <IconButton size="small" sx={{ p: 0.5, display: { xs: 'inline-flex', sm: 'none' } }} onClick={(e) => e.stopPropagation()}>
+                                      <InfoOutlined sx={{ fontSize: 18, color: '#666' }} />
+                                    </IconButton>
+                                  </Tooltip>
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                                <Typography variant="body2" sx={{ color: '#4a4a4a', display: { xs: 'none', sm: 'block' }, mt: 0.5 }}>
                                   All wedding details are displayed as you scroll down the page
                                 </Typography>
                               </Box>
@@ -945,6 +957,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack >
-    </Container >
+    </Box>
   );
 }

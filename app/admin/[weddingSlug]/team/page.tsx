@@ -394,29 +394,28 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
+      <Box sx={{ maxWidth: 1000 }}>
         <LoadingSpinner message="Loading team..." />
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4}>
         {/* Header */}
         <Box>
           <Typography
-            variant="h4"
+            variant="h6"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
-              fontWeight: 700,
-              mb: 1,
+              fontWeight: 600,
+              mb: 0.5,
               color: '#1a1a1a',
             }}
           >
             Team
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
+          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Manage who can access and edit your wedding website
           </Typography>
         </Box>
@@ -434,7 +433,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
             <Stack spacing={3}>
               <Box display="flex" alignItems="center" gap={1.5}>
                 <PersonAdd sx={{ color: '#DE3F5E', fontSize: 28 }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                   Invite Team Member
                 </Typography>
               </Box>
@@ -522,7 +521,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           <Stack spacing={3}>
             <Box display="flex" alignItems="center" gap={1.5}>
               <CheckCircle sx={{ color: '#10B981', fontSize: 28 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                 Team Members
               </Typography>
               <Chip
@@ -744,7 +743,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           </Alert>
         </Snackbar>
       </Stack>
-    </Container>
+    </Box>
   );
 }
 

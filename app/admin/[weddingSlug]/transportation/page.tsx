@@ -146,22 +146,22 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
 
   if (loading) {
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
           <CircularProgress sx={{ color: '#DE3F5E' }} />
         </Box>
-      </Container>
+      </Box>
     );
   }
 
   // Non-Pro users see locked preview
   if (!isPro) {
     return (
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Transportation
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -275,13 +275,13 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
         </Stack>
 
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
-      </Container>
+      </Box>
     );
   }
 
   // Pro users - show appropriate view based on wizard step
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1000 }}>
       {wizardStep === 'initial' && (
         <InitialPrompt onStart={handleStartSetup} />
       )}
@@ -325,7 +325,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
           onEditSetup={handleEditSetup}
         />
       )}
-    </Container>
+    </Box>
   );
 }
 
@@ -334,7 +334,7 @@ function InitialPrompt({ onStart }: { onStart: () => void }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
           Transportation
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -388,7 +388,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
           Transportation Setup
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -406,7 +406,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
           bgcolor: 'white',
         }}
       >
-        <Typography variant="h5" sx={{ color: '#1a1a1a', mb: 3, textAlign: 'left', fontWeight: 400 }}>
+        <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 3, textAlign: 'left', fontWeight: 400 }}>
           Do you already have shuttles or buses booked?
         </Typography>
 
@@ -479,7 +479,7 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
           Transportation
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

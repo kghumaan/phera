@@ -51,7 +51,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
                 Build with AI
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
@@ -143,7 +143,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     <Container maxWidth="xl" sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', pb: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, pt: 1 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Build with AI
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>

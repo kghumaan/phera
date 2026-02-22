@@ -71,17 +71,17 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
     <Box
       sx={{
         backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        px: { xs: 4, lg: 4.25, xl: 4.5 },
-        py: { xs: 1.5, lg: 1.625, xl: 1.75 },
+        borderRadius: 8, // 64px from Figma converted to MUI scale
+        px: { xs: 3, sm: 4, md: 5, lg: 5.5, xl: 6 }, // slightly less padding on mobile to fit 340px, reduced on lg/xl for overflow
+        py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: { xs: 400, lg: 420, xl: 440 },
+        maxWidth: { xs: 340, md: '100%' }, // Match comments block width on mobile
       }}
     >
       <Stack
         direction="row"
-        spacing={{ xs: 3, lg: 3.5, xl: 4 }}
+        spacing={{ xs: 3, sm: 3.5, md: 3.5, lg: 4, xl: 5 }}
         justifyContent="center"
         alignItems="center"
       >
@@ -91,17 +91,24 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             alignItems="center"
             spacing={0}
             sx={{
-              minWidth: { xs: 35, sm: 40, lg: 45, xl: 50 },
+              minWidth: { xs: 35, sm: 40, md: 45, lg: 55, xl: 65 }, // Smoother progression
             }}
           >
             <Typography
               variant="h4"
               sx={{
-                fontWeight: 400,
+                fontWeight: 400, // Regular weight like in Figma
                 color: '#000000',
-                fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                // Smoother font size progression to prevent overflow on small desktop
+                fontSize: {
+                  xs: '1.25rem',  // Scaled down to fit smaller 340px container
+                  sm: '1.5rem',   // 600px+ (large mobile)
+                  md: '1.75rem',  // 900px+ (small desktop)
+                  lg: '2.25rem',  // 1200px+ (desktop)
+                  xl: '2.75rem'   // 1536px+ (large desktop)
+                },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif',
+                fontFamily: 'Outfit, sans-serif', // Match Figma font
               }}
             >
               {unit.value}
@@ -111,7 +118,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               sx={{
                 color: '#000000',
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
+                fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
                 fontFamily: 'Outfit, sans-serif',
                 textAlign: 'center',
@@ -192,7 +199,9 @@ const CoupleImageDisplay = ({
       sx={{
         position: 'relative',
         width: '100%',
-        maxWidth: { xs: 320, lg: '100%', xl: '100%' },
+        maxWidth: { xs: 320, sm: 340 },
+        mx: 'auto',
+        mb: 2,
         aspectRatio: '1',
         cursor: coupleImages.length > 1 ? 'pointer' : 'default',
         transition: 'transform 0.2s ease-in-out',
@@ -205,30 +214,16 @@ const CoupleImageDisplay = ({
       }}
       onClick={handleImageClick}
     >
-      {/* Frame Background */}
-      <Image
-        src={frameImage}
-        alt="Decorative frame"
-        fill
-        priority
-        sizes="(max-width: 768px) 320px, 400px"
-        style={{
-          objectFit: 'contain',
-          objectPosition: 'center',
-          zIndex: 1,
-        }}
-      />
-
       {/* Couple Image */}
       <Box
         sx={{
           position: 'absolute',
-          top: '7%',
-          left: '7%',
-          width: '87%',
-          height: '87%',
+          top: '4%',
+          left: '4%',
+          width: '92%',
+          height: '92%',
           overflow: 'hidden',
-          zIndex: 2,
+          zIndex: 1,
         }}
       >
         <Image
@@ -245,6 +240,21 @@ const CoupleImageDisplay = ({
           }}
         />
       </Box>
+
+      {/* Frame Background */}
+      <Image
+        src={frameImage}
+        alt="Decorative frame"
+        fill
+        priority
+        sizes="(max-width: 768px) 320px, 400px"
+        style={{
+          objectFit: 'contain',
+          objectPosition: 'center',
+          zIndex: 3,
+          pointerEvents: 'none',
+        }}
+      />
     </Box>
   );
 };
@@ -531,8 +541,8 @@ function PreviewContent() {
                 minHeight: '100vh',
                 display: 'flex',
                 justifyContent: 'flex-start',
-                pl: { md: 6, lg: 2, xl: 10 },
-                pr: { md: 2, lg: 8, xl: 10 },
+                pl: { md: 6, lg: 8, xl: 12 },
+                pr: { md: 2, lg: 4, xl: 6 },
                 pt: {
                   md: 'calc(50vh - 190px)',
                   lg: 'calc(50vh - 220px)',
@@ -550,8 +560,8 @@ function PreviewContent() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
               >
-                <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 350, lg: 400, xl: 480 } }}>
-                  <Stack spacing={1}>
+                <Stack spacing={4} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 400, lg: 460, xl: 520 } }}>
+                  <Stack spacing={1} sx={{ width: '100%' }}>
                     {/* Names */}
                     <Typography
                       variant="h2"
@@ -666,19 +676,19 @@ function PreviewContent() {
                       color: '#333',
                       fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                       lineHeight: 1.6,
-                      maxWidth: { md: 550, lg: 650, xl: 750 },
+                      maxWidth: { md: 400, lg: 460, xl: 520 },
                     }}
                   >
                     {wedding.welcome_text}
                   </Typography>
 
                   {/* Countdown Timer */}
-                  <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 550, lg: 650, xl: 750 } }}>
+                  <Box sx={{ mt: 1, width: '100%', maxWidth: { md: 400, lg: 460, xl: 520 } }}>
                     <CountdownTimer targetDate={wedding.wedding_date} />
                   </Box>
 
                   {/* Comments Section */}
-                  <Box sx={{ width: '100%', mt: 4 }}>
+                  <Box sx={{ width: '100%', mt: 4, maxWidth: { md: 400, lg: 460, xl: 520 } }}>
                     <ReadOnlyComments />
                   </Box>
 
@@ -698,8 +708,8 @@ function PreviewContent() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                pl: { md: 2, lg: 3, xl: 4 },
-                pr: { md: 6, lg: 8, xl: 10 },
+                pl: { md: 2, lg: 4, xl: 6 },
+                pr: { md: 6, lg: 8, xl: 12 },
                 gap: 3,
                 alignItems: 'flex-start',
               }}
@@ -767,7 +777,7 @@ function PreviewContent() {
           {/* Mobile/Tablet Layout (xs to md) */}
           <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
             <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-              <Box sx={{ pt: 4, pb: 4 }}>
+              <Box sx={{ pt: 10, pb: 4 }}>
                 {/* Couple Photo Section */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -848,7 +858,9 @@ function PreviewContent() {
                     </Box>
 
                     {/* Countdown Timer */}
-                    <CountdownTimer targetDate={wedding.wedding_date} />
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                      <CountdownTimer targetDate={wedding.wedding_date} />
+                    </Box>
                   </Stack>
                 </motion.div>
               </Box>
@@ -861,8 +873,11 @@ function PreviewContent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true, margin: '-100px' }}
+                style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
               >
-                <ReadOnlyComments />
+                <Box sx={{ width: '100%', maxWidth: 340, mx: 'auto' }}>
+                  <ReadOnlyComments />
+                </Box>
               </motion.div>
             </Container>
 
@@ -883,30 +898,28 @@ function PreviewContent() {
               }}
             >
               <Container maxWidth="sm">
-                <Stack spacing={1} alignItems="center">
-                  <Button
-                    component={Link}
-                    href={`/preview/${wedding.slug}/details`}
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    sx={{
-                      backgroundColor: wedding.primary_color || '#DE3F5E',
-                      color: 'white',
-                      py: 1.5,
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      borderRadius: '16px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      fontFamily: 'Outfit',
-                      '&:hover': {
-                        backgroundColor: wedding.primary_color || '#C8365A',
-                      },
-                    }}
-                  >
-                    View Details
-                  </Button>
+                <Stack spacing={1.5} alignItems="center" sx={{ width: '100%' }}>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
+                    <Button
+                      component={Link}
+                      href={`/preview/${wedding.slug}/details`}
+                      variant="contained"
+                      fullWidth
+                      sx={{
+                        bgcolor: wedding?.primary_color || '#DE3F5E',
+                        color: 'white',
+                        py: 1.5,
+                        borderRadius: '16px',
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        fontFamily: 'Outfit, sans-serif',
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </motion.div>
                 </Stack>
               </Container>
             </Box>

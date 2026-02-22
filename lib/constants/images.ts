@@ -138,6 +138,7 @@ export const FRAMES = {
   FRAME_9: '/images/frames/frame-9.png',
   FRAME_10: '/images/frames/frame-10.png',
   FRAME_11: '/images/frames/frame-11.png',
+  FRAME_12: '/images/frames/frame-12.png',
 } as const;
 
 // Couple Images - OPTIMIZED ✅

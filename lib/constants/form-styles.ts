@@ -5,19 +5,19 @@
 
 export const ENHANCED_TEXT_FIELD_SX = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
+    borderRadius: '12px',
     bgcolor: 'white',
-    fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
+    fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     '& input': {
-      py: { xs: 2, md: 2.5, lg: 3 },
-      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
+      py: { xs: 1.5, md: 1.75, lg: 2 },
+      fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     },
     '& textarea': {
-      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
+      fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     },
     '& .MuiSelect-select': {
-      py: { xs: 2, md: 2.5, lg: 3 },
-      fontSize: { xs: '1rem', md: '1.125rem', lg: '1.25rem' },
+      py: { xs: 1.5, md: 1.75, lg: 2 },
+      fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     },
     '& .MuiInputAdornment-root .MuiSvgIcon-root': {
       color: '#666',
@@ -41,7 +41,7 @@ export const ENHANCED_TEXT_FIELD_SX = {
   },
   '& .MuiInputLabel-root': {
     color: '#4a4a4a',
-    fontSize: { xs: '1.125rem', md: '1.25rem', lg: '1.375rem' },
+    fontSize: { xs: '0.95rem', md: '1rem', lg: '1.05rem' },
     fontWeight: 500,
     lineHeight: 1.5,
     '&.Mui-disabled': {
@@ -67,7 +67,7 @@ export const ENHANCED_TEXT_FIELD_SX = {
   },
   '& .MuiFormHelperText-root': {
     color: '#6a6a6a',
-    fontSize: { xs: '0.875rem', md: '0.9375rem', lg: '1rem' },
+    fontSize: { xs: '0.75rem', md: '0.8rem', lg: '0.85rem' },
   },
 };
 
@@ -87,7 +87,35 @@ export const ENHANCED_PAPER_SX = {
  * Enhanced section spacing
  * Use for Stack components containing form sections
  */
-export const ENHANCED_SECTION_SPACING = 5;
+export const ENHANCED_SECTION_SPACING = 3;
+
+/**
+ * Standard max width for admin form pages
+ */
+export const ADMIN_PAGE_MAX_WIDTH = 1000;
+
+/**
+ * Spacing between form inputs within a section
+ */
+export const ADMIN_INNER_SPACING = 2.5;
+
+/**
+ * SX props for section sub-headings within admin pages
+ */
+export const ADMIN_SECTION_HEADING_SX = {
+  fontWeight: 600,
+  color: '#1a1a1a',
+  fontSize: '1rem',
+};
+
+/**
+ * SX props for the main page heading (use with variant="h6")
+ */
+export const ADMIN_PAGE_HEADING_SX = {
+  fontWeight: 600,
+  color: '#1a1a1a',
+  mb: 0.5,
+};
 
 /**
  * Enhanced container max width for desktop

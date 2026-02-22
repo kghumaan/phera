@@ -126,7 +126,7 @@ function ReadOnlyComments() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 1,
-                py: 2,
+                py: 1.25,
                 px: 1,
                 borderBottom: activeTab === index ? '2px solid #DE3F5E' : '2px solid #EBEBEB',
                 cursor: 'pointer',
@@ -140,7 +140,7 @@ function ReadOnlyComments() {
                 sx={{
                   fontFamily: 'Outfit',
                   fontWeight: activeTab === index ? 600 : 400,
-                  fontSize: '16px',
+                  fontSize: '14px',
                   lineHeight: '1.26em',
                   textAlign: 'center',
                   color: activeTab === index ? '#DE3F5E' : '#000000',
@@ -190,7 +190,7 @@ function ReadOnlyComments() {
       </Box>
 
       {/* Tab Content */}
-      <Box sx={{ px: 3, pb: 2.5, mt: 3 }}>
+      <Box sx={{ px: 2, pb: 1.5, mt: 1.5 }}>
         <Stack spacing={3}>
           {/* Preview Notice */}
           {/* <Box
@@ -223,8 +223,8 @@ function ReadOnlyComments() {
                     <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
                       <Avatar
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: 32,
+                          height: 32,
                           backgroundColor: comment.guest.avatar_color,
                           color: 'white',
                           fontWeight: 600,
@@ -259,7 +259,7 @@ function ReadOnlyComments() {
                             sx={{
                               fontFamily: 'Outfit',
                               fontWeight: 600,
-                              fontSize: '16px',
+                              fontSize: '14px',
                               lineHeight: '1.5em',
                               color: '#141414',
                             }}
@@ -285,7 +285,7 @@ function ReadOnlyComments() {
                             sx={{
                               fontFamily: 'Outfit',
                               fontWeight: 400,
-                              fontSize: '16px',
+                              fontSize: '14px',
                               lineHeight: '1.5em',
                               color: '#141414',
                               mb: (comment as any).gif_url ? 1 : 1,
@@ -343,8 +343,8 @@ function ReadOnlyComments() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2.5 }}>
                       <Avatar
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: 32,
+                          height: 32,
                           backgroundColor: getAvatarColor(guestName, index),
                           color: 'white',
                           fontWeight: 600,
@@ -358,7 +358,7 @@ function ReadOnlyComments() {
                         sx={{
                           fontFamily: 'Outfit',
                           fontWeight: 400,
-                          fontSize: '16px',
+                          fontSize: '14px',
                           lineHeight: '1.5em',
                           color: '#141414',
                         }}
@@ -386,8 +386,8 @@ function ReadOnlyComments() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2.5 }}>
                       <Avatar
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: 32,
+                          height: 32,
                           backgroundColor: getAvatarColor(guestName, index + mockGoingGuests.length),
                           color: 'white',
                           fontWeight: 600,
@@ -401,7 +401,7 @@ function ReadOnlyComments() {
                         sx={{
                           fontFamily: 'Outfit',
                           fontWeight: 400,
-                          fontSize: '16px',
+                          fontSize: '14px',
                           lineHeight: '1.5em',
                           color: '#141414',
                         }}
