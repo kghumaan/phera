@@ -23,6 +23,7 @@ import {
   ExpandMore,
   WhatsApp,
   ViewKanban,
+  ArrowBack,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -127,6 +128,7 @@ interface OnboardingSidebarProps {
   onSlugChange?: (newSlug: string) => void;
   mobileOpen: boolean;
   onClose: () => void;
+  isPlanner?: boolean;
 }
 
 export default function OnboardingSidebar({
@@ -139,6 +141,7 @@ export default function OnboardingSidebar({
   onSlugChange,
   mobileOpen,
   onClose,
+  isPlanner,
 }: OnboardingSidebarProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
@@ -259,6 +262,46 @@ export default function OnboardingSidebar({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Navigation Groups */}
       <Box sx={{ flex: 1, py: 2, overflowY: 'auto' }}>
+        {/* Planner context: couple name + All Weddings button */}
+        {isPlanner && (
+          <>
+            {wedding?.couple_name && (
+              <Typography
+                sx={{
+                  px: 2.25,
+                  py: 0.5,
+                  fontFamily: 'var(--font-instrument-serif)',
+                  fontStyle: 'italic',
+                  color: '#1a1a1a',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                }}
+              >
+                {wedding.couple_name}
+              </Typography>
+            )}
+            <ListItemButton
+              onClick={() => router.push('/admin')}
+              sx={{
+                px: 1.5,
+                py: 0.75,
+                mx: 0.75,
+                mb: 0.25,
+                borderRadius: '10px',
+                color: '#1a1a1a',
+                '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>
+                <ArrowBack />
+              </ListItemIcon>
+              <ListItemText
+                primary="All Weddings"
+                slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
+              />
+            </ListItemButton>
+          </>
+        )}
         {groups.map((group) => {
           // ... existing mapping logic ...
           if (group.standalone) {

@@ -1415,6 +1415,37 @@ export class WeddingService {
     }
   }
 
+  // Planner Profiles
+  async createPlannerProfile({ userId, companyName, location }: { userId: string; companyName: string; location: string }): Promise<boolean> {
+    const { error } = await (this.supabase as any)
+      .from('planner_profiles')
+      .upsert([{
+        user_id: userId,
+        company_name: companyName,
+        location,
+      }], { onConflict: 'user_id' });
+
+    if (error) {
+      console.error('Error creating planner profile:', error);
+      return false;
+    }
+    return true;
+  }
+
+  async getPlannerProfile(userId: string): Promise<{ company_name: string; location: string } | null> {
+    const { data, error } = await (this.supabase as any)
+      .from('planner_profiles')
+      .select('company_name, location')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching planner profile:', error);
+      return null;
+    }
+    return data;
+  }
+
   // RSVP Stats
   async getRSVPStats(weddingId: string): Promise<{ total: number; yes: number; no: number; maybe: number; plusOnes: number }> {
     try {

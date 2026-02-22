@@ -8,29 +8,32 @@ import {
   CircularProgress,
 } from '@mui/material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import PlannerDashboard from '@/components/admin/PlannerDashboard';
 
 export default function AdminPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlanner, setIsPlanner] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     let authSubscription: { unsubscribe: () => void } | null = null;
     let retryCount = 0;
     const MAX_RETRIES = 5;
-    
+
     const fetchUserAndWedding = async () => {
       try {
         console.log('[Admin] Attempt', retryCount + 1, '- Fetching user and wedding...');
-        
+
         // First try to get user (re-authenticates with server, more secure)
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+
         console.log('[Admin] User check:', user ? 'Found' : 'Not found', userError || '');
-        
+
         if (!user) {
           retryCount++;
-          
+
           // Retry a few times before giving up (for OAuth flow)
           if (retryCount < MAX_RETRIES) {
             console.log(`[Admin] No user yet, retrying in ${retryCount}s... (${retryCount}/${MAX_RETRIES})`);
@@ -41,17 +44,16 @@ export default function AdminPage() {
             }, retryCount * 1000); // Exponential backoff: 1s, 2s, 3s, 4s
             return;
           }
-          
+
           // After retries, set up listener for future auth events
           console.log('[Admin] Max retries reached, setting up auth listener...');
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
               if (!isMounted) return;
-              
+
               console.log('[Admin] Auth state changed:', event, 'Has session:', !!session);
-              
+
               if (event === 'SIGNED_IN' && session) {
-                // For SIGNED_IN, we can use session.user but getUser() is still safer if we want to confirm
                 const { data: { user: verifiedUser } } = await supabase.auth.getUser();
                 if (verifiedUser) {
                   await fetchUserAndWeddingWithUser(verifiedUser);
@@ -63,9 +65,9 @@ export default function AdminPage() {
               }
             }
           );
-          
+
           authSubscription = subscription;
-          
+
           // Final fallback - stop loading after 10 seconds
           setTimeout(() => {
             if (isMounted && isLoading) {
@@ -73,14 +75,14 @@ export default function AdminPage() {
               setIsLoading(false);
             }
           }, 10000);
-          
+
           return;
         }
-        
+
         // User exists, proceed
         console.log('[Admin] User found, fetching wedding...');
         await fetchUserAndWeddingWithUser(user);
-        
+
       } catch (err) {
         console.error('[Admin] Unexpected error:', err);
         if (isMounted) {
@@ -88,17 +90,17 @@ export default function AdminPage() {
         }
       }
     };
-    
+
     const fetchUserAndWeddingWithUser = async (currentUser: any) => {
       if (!isMounted) return;
-      
+
       try {
         console.log('[Admin] User found:', currentUser.email);
 
-        // 1. Check Onboarding Status
-        const { data: settings, error: settingsError } = await supabase
+        // 1. Check Onboarding Status and account type
+        const { data: settings } = await supabase
           .from('user_settings')
-          .select('onboarding_completed')
+          .select('onboarding_completed, account_type')
           .eq('user_id', currentUser.id)
           .single();
 
@@ -108,9 +110,20 @@ export default function AdminPage() {
           return;
         }
 
-        // 2. Fetch user's wedding
+        // 2. If planner, show PlannerDashboard instead of redirecting
+        if (settings.account_type === 'planner') {
+          console.log('[Admin] Planner account detected, showing dashboard...');
+          if (isMounted) {
+            setUserId(currentUser.id);
+            setIsPlanner(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // 3. Couple flow: Fetch user's wedding and redirect
         console.log('[Admin] Fetching wedding for user:', currentUser.id);
-        
+
         const { data: weddingData, error } = await supabase
           .from('weddings')
           .select('*')
@@ -119,21 +132,15 @@ export default function AdminPage() {
           .limit(1)
           .single();
 
-        console.log('[Admin] Wedding data:', weddingData);
-        console.log('[Admin] Wedding error:', error);
-
         if (!isMounted) return;
 
         if (error && error.code !== 'PGRST116') {
-          // PGRST116 = no rows returned
           console.error('[Admin] Error fetching wedding:', error);
         } else if (weddingData) {
-          // User has a wedding, redirect to overview (main editing interface)
           console.log('[Admin] Wedding found, redirecting to overview...');
           router.replace(`/admin/${weddingData.slug}/overview`);
           return;
         } else {
-          // No wedding found - redirect to onboarding to create one
           console.log('[Admin] No wedding found, redirecting to onboarding...');
           router.replace('/onboarding');
           return;
@@ -142,7 +149,6 @@ export default function AdminPage() {
         console.error('[Admin] Error in fetchUserAndWeddingWithUser:', err);
       } finally {
         if (isMounted) {
-          console.log('[Admin] Setting loading to false');
           setIsLoading(false);
         }
       }
@@ -156,15 +162,20 @@ export default function AdminPage() {
         authSubscription.unsubscribe();
       }
     };
-  }, [router]); // Add router back since we use it
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Always show loading state - this page just handles redirects
+  // Planner dashboard
+  if (isPlanner && userId) {
+    return <PlannerDashboard userId={userId} />;
+  }
+
+  // Loading / redirect spinner
   return (
     <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh'
       }}>
         <CircularProgress sx={{ color: '#DE3F5E' }} />

@@ -42,6 +42,19 @@ export default function NewWeddingPage() {
 
       setUserId(user.id);
 
+      // Check if user is a planner — planners can create multiple weddings, skip redirect
+      const { data: settings } = await supabase
+        .from('user_settings')
+        .select('account_type')
+        .eq('user_id', user.id)
+        .single();
+
+      if (settings?.account_type === 'planner') {
+        // Planners can always create new weddings
+        setCheckingAuth(false);
+        return;
+      }
+
       // Check if user already has weddings
       const { data: existingWeddings } = await supabase
         .from('weddings')

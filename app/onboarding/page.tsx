@@ -153,6 +153,8 @@ export default function OnboardingPage() {
   const [venueTbd, setVenueTbd] = useState(false);
   const [dateTbd, setDateTbd] = useState(false);
   const [isOneDay, setIsOneDay] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [plannerLocation, setPlannerLocation] = useState('');
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
@@ -202,23 +204,31 @@ export default function OnboardingPage() {
 
       console.log('[Onboarding DEBUG] restoreSettings: Received data:', settings);
 
-      if (settings?.onboarding_completed && settings.subscription_tier === 'basic') {
-        // Verify user actually has a wedding before skipping onboarding
-        const { data: wedding } = await supabase
-          .from('weddings')
-          .select('slug')
-          .eq('created_by', userId)
-          .limit(1)
-          .single();
-
-        if (wedding?.slug) {
-          console.log('[Onboarding DEBUG] Onboarding completed and wedding exists. Redirecting to admin.');
-          router.push(`/admin/${wedding.slug}/overview`);
+      if (settings?.onboarding_completed) {
+        if (settings.account_type === 'planner') {
+          console.log('[Onboarding DEBUG] Planner onboarding completed. Redirecting to admin.');
+          router.push('/admin');
           return;
         }
 
-        // onboarding_completed = true but no wedding — data integrity gap, continue onboarding
-        console.log('[Onboarding DEBUG] onboarding_completed but no wedding found. Continuing onboarding to create wedding.');
+        if (settings.subscription_tier === 'basic') {
+          // Verify user actually has a wedding before skipping onboarding
+          const { data: wedding } = await supabase
+            .from('weddings')
+            .select('slug')
+            .eq('created_by', userId)
+            .limit(1)
+            .single();
+
+          if (wedding?.slug) {
+            console.log('[Onboarding DEBUG] Onboarding completed and wedding exists. Redirecting to admin.');
+            router.push(`/admin/${wedding.slug}/overview`);
+            return;
+          }
+
+          // onboarding_completed = true but no wedding — data integrity gap, continue onboarding
+          console.log('[Onboarding DEBUG] onboarding_completed but no wedding found. Continuing onboarding to create wedding.');
+        }
       }
 
       if (settings) {
@@ -300,7 +310,9 @@ export default function OnboardingPage() {
     weddingDate?: string | null,
     weddingEndDate?: string | null,
     venueName?: string | null,
-    selectedFeatures: string[]
+    selectedFeatures: string[],
+    companyName?: string,
+    plannerLocation?: string,
   }) => {
     console.log('[Onboarding DEBUG] Starting finalizeOnboarding with data:', data);
     console.log('[Onboarding DEBUG] Supabase client available:', !!supabase);
@@ -333,7 +345,18 @@ export default function OnboardingPage() {
       }
       console.log('[Onboarding DEBUG] Step 1 SUCCESS:', upsertData);
 
-      // 2. Create Wedding if applicable
+      // 2. Create planner profile if applicable
+      if (data.role === 'planner' && data.companyName) {
+        console.log('[Onboarding DEBUG] Step 2: Creating planner profile...');
+        await weddingService.createPlannerProfile({
+          userId: data.userId,
+          companyName: data.companyName,
+          location: data.plannerLocation || '',
+        });
+        console.log('[Onboarding DEBUG] Step 2 SUCCESS: Planner profile created');
+      }
+
+      // 3. Create Wedding if applicable
       if (data.role === 'couple' && data.coupleName) {
         console.log('[Onboarding DEBUG] Step 2: Creating wedding record...');
         let baseSlug = data.coupleName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -469,7 +492,9 @@ export default function OnboardingPage() {
         weddingDate: dateTbd ? null : weddingDate,
         weddingEndDate: dateTbd ? null : weddingEndDate,
         venueName: venueTbd ? 'TBD' : venueName,
-        selectedFeatures
+        selectedFeatures,
+        companyName,
+        plannerLocation,
       });
     } catch (error) {
       console.error('[Onboarding DEBUG] handleSubmit: Error completing onboarding:', error);
@@ -772,7 +797,7 @@ export default function OnboardingPage() {
                     {step === 2 && (
                       <Box>
                         <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 700, fontSize: { xs: '1.6rem', md: '2rem' } }}>
-                          Let's get ready to get planning
+                          {role === 'planner' ? 'Tell us about your practice' : "Let's get ready to get planning"}
                         </Typography>
                         <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
@@ -780,6 +805,35 @@ export default function OnboardingPage() {
 
                         <Box sx={{ maxWidth: '360px', mx: 'auto', textAlign: 'left' }}>
                           <Stack spacing={2.5}>
+                            {role === 'planner' && (
+                              <>
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Company / Practice Name</Typography>
+                                  <StyledTextField
+                                    fullWidth
+                                    label=""
+                                    placeholder="Elegant Events Co."
+                                    value={companyName}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setCompanyName(e.target.value)}
+                                    autoFocus
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Where are you based?</Typography>
+                                  <StyledTextField
+                                    fullWidth
+                                    label=""
+                                    placeholder="Mumbai, India"
+                                    value={plannerLocation}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPlannerLocation(e.target.value)}
+                                  />
+                                </Box>
+                              </>
+                            )}
+
+                            {role === 'couple' && (
+                              <>
                             <Box>
                               <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
                               <StyledTextField
@@ -1026,6 +1080,8 @@ export default function OnboardingPage() {
                                 </Stack>
                               </Stack>
                             </Box>
+                              </>
+                            )}
                           </Stack>
                         </Box>
                       </Box>
@@ -1049,12 +1105,14 @@ export default function OnboardingPage() {
                         endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
                         title={
                           (step === 1 && !role) ? "Please select your role" :
-                            (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd))))) ? "Please fill in all celebration details" :
+                            (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ? "Please fill in all celebration details" :
+                            (step === 2 && role === 'planner' && !companyName) ? "Please enter your company name" :
                               ""
                         }
                         onClick={() => {
                           if (step === 1 && !role) return;
-                          if (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd))))) return;
+                          if (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) return;
+                          if (step === 2 && role === 'planner' && !companyName) return;
                           handleNext();
                         }}
                         sx={{
@@ -1069,7 +1127,8 @@ export default function OnboardingPage() {
                           boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
                           opacity: (
                             (step === 1 && !role) ||
-                            (step === 2 && (!coupleName || (role === 'couple' && (!partnerName || (!weddingDate && !dateTbd)))))
+                            (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
+                            (step === 2 && role === 'planner' && !companyName)
                           ) ? 0.6 : 1, // Desaturate if "disabled"
                           '&:hover': { bgcolor: '#C8365A' },
                         }}

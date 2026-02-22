@@ -9,6 +9,7 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect } from 'react';
 import { usePathname, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
+import { supabase } from '@/lib/supabase/client';
 
 export default function OnboardingLayout({
   children,
@@ -23,18 +24,37 @@ export default function OnboardingLayout({
   const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isPlanner, setIsPlanner] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    const fetchWedding = async () => {
+    const fetchWeddingAndSettings = async () => {
       setIsLoadingWedding(true);
-      const weddingData = await weddingService.getWeddingBySlug(weddingSlug);
+
+      // Fetch wedding and account type in parallel
+      const weddingPromise = weddingService.getWeddingBySlug(weddingSlug);
+      const settingsPromise = supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return null;
+        const { data } = await supabase
+          .from('user_settings')
+          .select('account_type')
+          .eq('user_id', user.id)
+          .single();
+        return data;
+      });
+
+      const [weddingData, settings] = await Promise.all([weddingPromise, settingsPromise]);
+
       if (weddingData) {
         setWedding(weddingData);
       }
+      if (settings?.account_type === 'planner') {
+        setIsPlanner(true);
+      }
+
       setIsLoadingWedding(false);
     };
-    fetchWedding();
+    fetchWeddingAndSettings();
   }, [weddingSlug]);
 
   if (!isLoadingWedding && !wedding) {
@@ -96,6 +116,7 @@ export default function OnboardingLayout({
             onSlugChange={handleSlugChange}
             mobileOpen={mobileOpen}
             onClose={() => setMobileOpen(false)}
+            isPlanner={isPlanner}
           />
 
           {/* Main Content Area - Two Column Layout on Desktop */}
