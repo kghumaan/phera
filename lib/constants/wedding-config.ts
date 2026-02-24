@@ -17,6 +17,6 @@ export const WEDDING_CONFIG = {
   coupleNames: "Simran & Karanvir",
 
   // Images
-  coupleImage: "/images/couple/couple-1.jpg",
+  coupleImage: "/images/couple/placeholder1.png",
   frameImage: "/images/frames/frame-1.png",
 } as const;

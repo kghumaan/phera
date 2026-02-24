@@ -123,7 +123,9 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         couple_name: `${partner1Name} & ${partner2Name}`,
         partner1_name: partner1Name,
         partner2_name: partner2Name,
-        wedding_date: dateTbd ? new Date('2099-12-31').toISOString() : (weddingDate ? new Date(weddingDate).toISOString() : new Date('2099-12-31').toISOString()),
+        wedding_date: (dateTbd || !weddingDate)
+          ? new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString()
+          : new Date(weddingDate).toISOString(),
         wedding_date_end: dateTbd ? null : (weddingEndDate ? new Date(weddingEndDate).toISOString() : null),
         wedding_date_display: dateTbd ? 'TBD' : (weddingDate ? new Date(weddingDate).toLocaleDateString() : 'TBD'),
         venue_name: venueTbd || !venueName ? 'Venue Name' : venueName,
@@ -133,6 +135,8 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         created_by: userId,
         background_image: '/images/backgrounds/blue-clouds.jpg',
         primary_color: '#DE3F5E',
+        couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
+        couple_image_url: '/images/couple/placeholder1.png',
       });
 
       if (wedding) {
@@ -242,7 +246,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
-                borderRadius: '24px',
+                borderRadius: 1,
                 textTransform: 'none',
                 fontWeight: 700,
                 px: 4,
@@ -417,7 +421,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center' }}>
           <Button
             onClick={() => { setDialogOpen(false); resetForm(); }}
-            sx={{ color: '#666', fontWeight: 700, textTransform: 'none' }}
+            sx={{ color: '#666', fontWeight: 700, textTransform: 'none', borderRadius: 1 }}
           >
             Cancel
           </Button>
@@ -428,7 +432,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             sx={{
               bgcolor: '#DE3F5E',
               color: 'white',
-              borderRadius: '24px',
+              borderRadius: 1,
               textTransform: 'none',
               fontWeight: 700,
               px: 4,

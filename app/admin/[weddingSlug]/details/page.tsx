@@ -29,6 +29,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { getFrameConfig } from '@/lib/constants/images';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -1196,10 +1197,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                             <Box
                               sx={{
                                 position: 'absolute',
-                                top: '4%',
-                                left: '4%',
-                                width: '92%',
-                                height: '92%',
+                                ...getFrameConfig(formData.frame_image_url),
                                 overflow: 'hidden',
                                 zIndex: 1,
                               }}

@@ -13,6 +13,8 @@ import ChatTravelForm from '@/components/admin/build-ai/ChatTravelForm';
 import ChatShoppingForm from '@/components/admin/build-ai/ChatShoppingForm';
 import ChatPinForm from '@/components/admin/build-ai/ChatPinForm';
 import ChatLookFeelForm from '@/components/admin/build-ai/ChatLookFeelForm';
+import ChatCoupleImagesForm from '@/components/admin/build-ai/ChatCoupleImagesForm';
+import ChatFrameSelectionForm from '@/components/admin/build-ai/ChatFrameSelectionForm';
 
 // ─── Shared Button Styles ────────────────────────────────────────────────────
 
@@ -62,6 +64,10 @@ export interface FormRenderHandlers {
   onShoppingFormCancel: () => void;
   onPinFormSave: (pinData: any) => void;
   onPinFormCancel: () => void;
+  onCoupleImagesSave: (images: string[]) => void;
+  onCoupleImagesCancel: () => void;
+  onFrameSelectionSave: (frameUrl: string | null) => void;
+  onFrameSelectionCancel: () => void;
   onLookFeelSave: (designData: Record<string, any>) => void;
   onLookFeelCancel: () => void;
   onCountChange: (val: number) => void;
@@ -142,6 +148,25 @@ export function renderFormComponent(
           onSave={(pinData) => handlers.onPinFormSave(pinData)}
           onCancel={() => handlers.onPinFormCancel()}
           weddingId={handlers.weddingId}
+        />
+      );
+
+    case 'couple_images':
+      return (
+        <ChatCoupleImagesForm
+          onSave={(images) => handlers.onCoupleImagesSave(images)}
+          onCancel={() => handlers.onCoupleImagesCancel()}
+          weddingId={handlers.weddingId}
+          currentImages={(handlers.collectedData.couple_images as string[]) || []}
+        />
+      );
+
+    case 'frame_selection':
+      return (
+        <ChatFrameSelectionForm
+          onSave={(frameUrl) => handlers.onFrameSelectionSave(frameUrl)}
+          onCancel={() => handlers.onFrameSelectionCancel()}
+          currentFrame={handlers.collectedData.frame_image_url || null}
         />
       );
 

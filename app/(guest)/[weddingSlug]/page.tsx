@@ -35,6 +35,7 @@ import { useParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { format, parseISO } from 'date-fns';
+import { getFrameConfig } from '@/lib/constants/images';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -1079,10 +1080,7 @@ export default function HomePage() {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: '4%',
-                  left: '4%',
-                  width: '92%',
-                  height: '92%',
+                  ...getFrameConfig(coupleData.frameImage),
                   overflow: 'hidden',
                   zIndex: 1,
                 }}
@@ -1224,10 +1222,7 @@ export default function HomePage() {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: '4%',
-                  left: '4%',
-                  width: '92%',
-                  height: '92%',
+                  ...getFrameConfig(coupleData.frameImage),
                   overflow: 'hidden',
                   zIndex: 1,
                 }}

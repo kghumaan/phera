@@ -37,6 +37,13 @@ export const BACKGROUNDS = {
   WATERCOLOR_BLUE_SKY: '/images/backgrounds/watercolor-blue-sky.png',
   PERIWINKLE_PINK_SUNSET: '/images/backgrounds/periwinkle-pink-sunset.png',
 
+  // Pro Mesh Collection
+  PRO_MESH_1: '/images/backgrounds/pro-bg-mesh-1.jpg',
+  PRO_MESH_2: '/images/backgrounds/pro-bg-mesh-2.jpg',
+  PRO_MESH_3: '/images/backgrounds/pro-bg-mesh-3.jpg',
+  PRO_MESH_4: '/images/backgrounds/pro-bg-mesh-4.jpg',
+  PRO_MESH_5: '/images/backgrounds/pro-bg-mesh-5.jpg',
+
   // Collections
   PREMIUM_COLLECTION: [
     '/images/backgrounds/tropical-sage.png',
@@ -61,7 +68,12 @@ export const BACKGROUNDS = {
     '/images/backgrounds/sage-watercolor.png',
     '/images/backgrounds/bamboo-sage.png',
     '/images/backgrounds/watercolor-blue-sky.png',
-    '/images/backgrounds/periwinkle-pink-sunset.png'
+    '/images/backgrounds/periwinkle-pink-sunset.png',
+    '/images/backgrounds/pro-bg-mesh-1.jpg',
+    '/images/backgrounds/pro-bg-mesh-2.jpg',
+    '/images/backgrounds/pro-bg-mesh-3.jpg',
+    '/images/backgrounds/pro-bg-mesh-4.jpg',
+    '/images/backgrounds/pro-bg-mesh-5.jpg'
   ],
 
   BLUE_VARIANTS: [
@@ -123,6 +135,11 @@ export const BACKGROUND_UI_OPTIONS = [
   { name: 'Bamboo', url: BACKGROUNDS.BAMBOO_SAGE },
   { name: 'Sky Watercolor', url: BACKGROUNDS.WATERCOLOR_BLUE_SKY },
   { name: 'Periwinkle Sunset', url: BACKGROUNDS.PERIWINKLE_PINK_SUNSET },
+  { name: 'Misty Rose Mesh', url: BACKGROUNDS.PRO_MESH_1 },
+  { name: 'Golden Aura Mesh', url: BACKGROUNDS.PRO_MESH_2 },
+  { name: 'Azure Mist Mesh', url: BACKGROUNDS.PRO_MESH_3 },
+  { name: 'Midnight Silk Mesh', url: BACKGROUNDS.PRO_MESH_4 },
+  { name: 'Emerald Wash Mesh', url: BACKGROUNDS.PRO_MESH_5 },
 ] as const;
 
 // Frame Images - OPTIMIZED ✅
@@ -140,6 +157,32 @@ export const FRAMES = {
   FRAME_11: '/images/frames/frame-11.png',
   FRAME_12: '/images/frames/frame-12.png',
 } as const;
+// Frame Configurations - Calibrated for perfect fit
+export const FRAME_CONFIGS: Record<string, { top: string, left: string, width: string, height: string }> = {
+  'frame-1': { top: '13.2%', left: '14.2%', width: '71.8%', height: '72.4%' },
+  'frame-2': { top: '12.9%', left: '13.6%', width: '73%', height: '73.2%' },
+  'frame-3': { top: '16.4%', left: '17%', width: '66.1%', height: '64.3%' },
+  'frame-4': { top: '6.5%', left: '6.3%', width: '87%', height: '86.9%' },
+  'frame-5': { top: '15.6%', left: '16.6%', width: '67.2%', height: '66.1%' },
+  'frame-6': { top: '12.1%', left: '12.9%', width: '74.5%', height: '74.9%' },
+  'frame-7': { top: '14.2%', left: '14.7%', width: '70.5%', height: '71.7%' },
+  'frame-8': { top: '14.6%', left: '17.1%', width: '66.3%', height: '65.2%' },
+  'frame-9': { top: '17.3%', left: '17.4%', width: '65.1%', height: '65.5%' },
+  'frame-10': { top: '12%', left: '13.3%', width: '75.2%', height: '74.9%' },
+  'frame-11': { top: '15.1%', left: '15.6%', width: '68.9%', height: '68.6%' },
+  'frame-12': { top: '15.2%', left: '16.8%', width: '66.5%', height: '65.4%' },
+};
+
+// Helper to get frame configuration from URL
+export function getFrameConfig(frameUrl: string | null) {
+  if (!frameUrl) return FRAME_CONFIGS['frame-1'];
+
+  // Extract frame filename (e.g., frame-1 from /images/frames/frame-1.png)
+  const match = frameUrl.match(/frame-\d+/);
+  const frameId = match ? match[0] : 'frame-1';
+
+  return FRAME_CONFIGS[frameId] || FRAME_CONFIGS['frame-1'];
+}
 
 // Couple Images - OPTIMIZED ✅
 export const COUPLE_IMAGES = {

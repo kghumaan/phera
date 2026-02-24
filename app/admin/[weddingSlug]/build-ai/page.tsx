@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useState, useRef, use } from 'react';
 import {
   Box,
   Button,
@@ -9,12 +9,16 @@ import {
   Stack,
   Paper,
   alpha,
+  Popper,
+  ClickAwayListener,
+  Grow,
 } from '@mui/material';
 import {
   AutoAwesome,
   LockOutlined,
   ArrowUpward,
   Check,
+  HistoryOutlined,
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -41,7 +45,13 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     messagesEndRef,
     handleSend,
     isFormDisabled,
+    completedSteps,
+    goBackToStep,
+    currentQuestionId,
   } = useBuildAI(weddingSlug);
+
+  const [goBackOpen, setGoBackOpen] = useState(false);
+  const goBackAnchorRef = useRef<HTMLButtonElement>(null);
 
   // ── Non-pro teaser ──────────────────────────────────────────────────────────
 
@@ -190,7 +200,84 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
           <div ref={messagesEndRef} />
         </Box>
 
-        {/* Input area */}
+        {/* Go Back + Input area */}
+        {completedSteps.length > 0 && currentQuestionId !== 'complete' && (
+          <Box sx={{ px: 3, pt: 1.5, pb: 0, bgcolor: 'white', borderTop: '1px solid', borderColor: alpha('#000', 0.06) }}>
+            <Button
+              ref={goBackAnchorRef}
+              size="small"
+              startIcon={<HistoryOutlined sx={{ fontSize: 16 }} />}
+              onClick={() => setGoBackOpen(prev => !prev)}
+              sx={{
+                color: '#888',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: alpha('#DE3F5E', 0.06), color: '#DE3F5E' },
+              }}
+            >
+              Go back to...
+            </Button>
+            <Popper
+              open={goBackOpen}
+              anchorEl={goBackAnchorRef.current}
+              placement="top-start"
+              transition
+              sx={{ zIndex: 1300 }}
+            >
+              {({ TransitionProps }) => (
+                <Grow {...TransitionProps}>
+                  <Box>
+                    <ClickAwayListener onClickAway={() => setGoBackOpen(false)}>
+                      <Paper
+                        elevation={8}
+                        sx={{
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          maxHeight: 300,
+                          overflowY: 'auto',
+                          minWidth: 220,
+                          border: '1px solid',
+                          borderColor: alpha('#000', 0.1),
+                          mb: 1,
+                        }}
+                      >
+                        {completedSteps.map(({ questionId, label }) => (
+                          <Box
+                            key={questionId}
+                            onClick={() => {
+                              setGoBackOpen(false);
+                              goBackToStep(questionId);
+                            }}
+                            sx={{
+                              px: 2,
+                              py: 1.25,
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                              color: '#333',
+                              fontWeight: 500,
+                              transition: 'all 0.1s',
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E' },
+                              borderBottom: '1px solid',
+                              borderColor: alpha('#000', 0.05),
+                              '&:last-child': { borderBottom: 'none' },
+                            }}
+                          >
+                            {label}
+                          </Box>
+                        ))}
+                      </Paper>
+                    </ClickAwayListener>
+                  </Box>
+                </Grow>
+              )}
+            </Popper>
+          </Box>
+        )}
+
         <ChatInput
           input={input}
           onInputChange={setInput}

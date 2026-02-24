@@ -114,11 +114,6 @@ optimize_background \
     "public/images/backgrounds/blue-clouds.jpg" \
     "Blue Clouds"
 
-optimize_background \
-    "design-reference/backgrounds/Green.png" \
-    "public/images/backgrounds/green.jpg" \
-    "Green"
-
 echo -e "${YELLOW}👫 Optimizing Couple Photos${NC}"
 echo "Converting PNG to JPG and resizing for web..."
 echo ""
@@ -133,17 +128,6 @@ optimize_couple_photo \
     "design-reference/couple-images/2.png" \
     "public/images/couple/couple-2.jpg" \
     "Couple Photo 2"
-
-# Also optimize the ones in public/couple-images if they exist
-optimize_couple_photo \
-    "public/couple-images/1.png" \
-    "public/images/couple/couple-1-alt.jpg" \
-    "Couple Photo 1 (Public)"
-
-optimize_couple_photo \
-    "public/couple-images/2.png" \
-    "public/images/couple/couple-2-alt.jpg" \
-    "Couple Photo 2 (Public)"
 
 
 

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import React from 'react';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { toast } from 'sonner';
-import { Message, QuestionId, AnswerHistoryEntry, ClassifyResponse, FIELD_LABELS } from './types';
+import { Message, QuestionId, AnswerHistoryEntry, ClassifyResponse, FIELD_LABELS, STEP_LABELS } from './types';
 import { QUESTIONS, generateAIResponse, getQuestionText, getNextQuestion, determineStartQuestion, isFormQuestion } from './question-flow';
 import { renderFormComponent, renderAddAnotherPrompt, FormRenderHandlers } from './form-renderer';
 
@@ -62,6 +62,10 @@ export function useBuildAI(weddingSlug: string) {
     onShoppingFormCancel: handleShoppingFormCancel,
     onPinFormSave: handlePinFormSave,
     onPinFormCancel: handlePinFormCancel,
+    onCoupleImagesSave: handleCoupleImagesSave,
+    onCoupleImagesCancel: handleCoupleImagesCancel,
+    onFrameSelectionSave: handleFrameSelectionSave,
+    onFrameSelectionCancel: handleFrameSelectionCancel,
     onLookFeelSave: handleLookFeelSave,
     onLookFeelCancel: handleLookFeelCancel,
     onCountChange: (val: number) => handleSend(val.toString()),
@@ -94,6 +98,14 @@ export function useBuildAI(weddingSlug: string) {
         if (wedding.primary_color) existingData.primary_color = wedding.primary_color;
         if (wedding.website_layout) existingData.website_layout = wedding.website_layout;
         if (wedding.rsvp_deadline) existingData.rsvp_deadline = wedding.rsvp_deadline;
+        if (wedding.frame_image_url) existingData.frame_image_url = wedding.frame_image_url;
+        if (wedding.couple_images && Array.isArray(wedding.couple_images) && (wedding.couple_images as any[]).length > 0) {
+          existingData.couple_images = wedding.couple_images;
+          existingData.couple_image_url = (wedding.couple_images as string[])[0] || wedding.couple_image_url;
+        } else if (wedding.couple_image_url) {
+          existingData.couple_images = [wedding.couple_image_url];
+          existingData.couple_image_url = wedding.couple_image_url;
+        }
 
         const [scheduleData, faqData, registryData, travelData, shopData, settingsData] = await Promise.all([
           weddingService.getWeddingSchedule(wedding.id),
@@ -110,6 +122,8 @@ export function useBuildAI(weddingSlug: string) {
         existingData._has_registry = registryData && registryData.length > 0;
         existingData._has_travel = travelData && travelData.length > 0;
         existingData._has_shopping = shopData && shopData.length > 0;
+        existingData._has_couple_images = !!(existingData.couple_images && (existingData.couple_images as any[]).length > 0);
+        existingData._has_frame_selection = !!existingData.frame_image_url;
         existingData._has_look_feel = !!(existingData.background_image || existingData.primary_color || existingData.website_layout);
         existingData._has_pins = settingsData?.pin_codes && (settingsData.pin_codes as any[]).length > 0;
 
@@ -758,6 +772,81 @@ export function useBuildAI(weddingSlug: string) {
     setTimeout(() => advanceToQuestion(nextQId, collectedDataRef.current), 600);
   };
 
+  // ── Couple Images Handler ────────────────────────────────────────────────
+
+  const handleCoupleImagesSave = async (images: string[]) => {
+    const count = images.length;
+    setMessages(prev => [...prev, {
+      id: `user-couple-img-${Date.now()}`,
+      role: 'user',
+      text: `Uploaded ${count} photo${count > 1 ? 's' : ''}`,
+    }]);
+
+    const updateData: Record<string, any> = {
+      couple_images: images,
+      couple_image_url: images[0] || null,
+    };
+
+    const newCollectedData = { ...collectedDataRef.current, ...updateData, _has_couple_images: true };
+    setCollectedData(newCollectedData);
+    await saveToDatabase(updateData);
+
+    setTimeout(() => {
+      const ack: Message = { id: `ai-couple-img-ack-${Date.now()}`, role: 'ai', text: `${count} photo${count > 1 ? 's' : ''} uploaded! Looking great! 📸` };
+      setMessages(prev => [...prev, ack]);
+
+      const nextQId = QUESTIONS['couple_images'].nextQuestion as QuestionId;
+      setCurrentQuestionId(nextQId);
+      setTimeout(() => advanceToQuestion(nextQId, newCollectedData), 100);
+    }, 600);
+  };
+
+  const handleCoupleImagesCancel = () => {
+    const newCollectedData = { ...collectedDataRef.current, _has_couple_images: true };
+    setCollectedData(newCollectedData);
+
+    setMessages(prev => [...prev, { id: `user-skip-couple-img-${Date.now()}`, role: 'user', text: 'Skipped' }]);
+
+    const nextQId = QUESTIONS['couple_images'].nextQuestion as QuestionId;
+    setCurrentQuestionId(nextQId);
+    setTimeout(() => advanceToQuestion(nextQId, newCollectedData), 600);
+  };
+
+  // ── Frame Selection Handler ─────────────────────────────────────────────
+
+  const handleFrameSelectionSave = async (frameUrl: string | null) => {
+    setMessages(prev => [...prev, {
+      id: `user-frame-${Date.now()}`,
+      role: 'user',
+      text: frameUrl ? 'Selected a frame' : 'No frame selected',
+    }]);
+
+    const updateData: Record<string, any> = { frame_image_url: frameUrl };
+    const newCollectedData = { ...collectedDataRef.current, ...updateData, _has_frame_selection: true };
+    setCollectedData(newCollectedData);
+    await saveToDatabase(updateData);
+
+    setTimeout(() => {
+      const ack: Message = { id: `ai-frame-ack-${Date.now()}`, role: 'ai', text: frameUrl ? "Beautiful frame choice! 🖼️" : "No frame selected — you can add one anytime in the Design section." };
+      setMessages(prev => [...prev, ack]);
+
+      const nextQId = QUESTIONS['frame_selection'].nextQuestion as QuestionId;
+      setCurrentQuestionId(nextQId);
+      setTimeout(() => advanceToQuestion(nextQId, newCollectedData), 100);
+    }, 600);
+  };
+
+  const handleFrameSelectionCancel = () => {
+    const newCollectedData = { ...collectedDataRef.current, _has_frame_selection: true };
+    setCollectedData(newCollectedData);
+
+    setMessages(prev => [...prev, { id: `user-skip-frame-${Date.now()}`, role: 'user', text: 'Skipped' }]);
+
+    const nextQId = QUESTIONS['frame_selection'].nextQuestion as QuestionId;
+    setCurrentQuestionId(nextQId);
+    setTimeout(() => advanceToQuestion(nextQId, newCollectedData), 600);
+  };
+
   // ── Look & Feel Handler ───────────────────────────────────────────────────
 
   const handleLookFeelSave = async (designData: Record<string, any>) => {
@@ -820,6 +909,39 @@ export function useBuildAI(weddingSlug: string) {
     }, 600);
   };
 
+  // ── Go Back To Step ─────────────────────────────────────────────────────────
+
+  const completedSteps = Object.entries(STEP_LABELS)
+    .filter(([qId]) => {
+      const q = QUESTIONS[qId as QuestionId];
+      if (!q) return false;
+      const fields = Array.isArray(q.field) ? q.field : [q.field];
+      // Check if any field has data, or if the corresponding _has_ flag is set
+      return fields.some(f => collectedData[f] != null && collectedData[f] !== '') ||
+        collectedData[`_has_${qId}`] === true ||
+        // Special checks for intro questions with _add_ flags
+        collectedData[`_add_${qId.replace('_intro', 's')}`] !== undefined ||
+        collectedData[`_add_${qId.replace('_intro', '')}`] !== undefined;
+    })
+    .map(([qId, label]) => ({ questionId: qId as QuestionId, label: label! }));
+
+  const goBackToStep = useCallback((targetQId: QuestionId) => {
+    setReturnToQuestionId(currentQuestionIdRef.current);
+
+    const currentValue = collectedDataRef.current[QUESTIONS[targetQId]?.field as string] || '';
+    setMessages(prev => [...prev, {
+      id: `user-goback-${Date.now()}`,
+      role: 'user',
+      text: `Go back to: ${STEP_LABELS[targetQId] || targetQId}`,
+    }, {
+      id: `ai-goback-${Date.now()}`,
+      role: 'ai',
+      text: `Sure! Let's update that. Current value: **${currentValue || '(not set)'}**`,
+    }]);
+
+    advanceToQuestion(targetQId, collectedDataRef.current);
+  }, [advanceToQuestion]);
+
   // ── Return values ───────────────────────────────────────────────────────────
 
   return {
@@ -835,5 +957,7 @@ export function useBuildAI(weddingSlug: string) {
     isFormDisabled: isFormQuestion(currentQuestionId),
     answerHistory,
     returnToQuestionId,
+    completedSteps,
+    goBackToStep,
   };
 }

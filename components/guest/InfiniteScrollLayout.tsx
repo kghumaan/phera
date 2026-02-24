@@ -29,6 +29,7 @@ import { getTransportationSettings } from '@/lib/supabase/transportation-service
 import GuestList from '@/components/guest/GuestList';
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import EventDetailCarousel from './EventDetailCarousel';
+import { getFrameConfig } from '@/lib/constants/images';
 
 // Types
 interface WeddingData {
@@ -1468,10 +1469,7 @@ export default function InfiniteScrollLayout({
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: '4%',
-                    left: '4%',
-                    width: '92%',
-                    height: '92%',
+                    ...getFrameConfig(wedding.frame_image_url),
                     overflow: 'hidden',
                     zIndex: 1,
                   }}

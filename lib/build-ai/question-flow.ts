@@ -349,7 +349,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
       const add = !['no', 'skip', 'nope', 'none', 'n', 'not now'].includes(lower);
       return { _add_shopping: add };
     },
-    nextQuestion: (parsedData) => parsedData._add_shopping ? 'shopping_item' : 'look_feel',
+    nextQuestion: (parsedData) => parsedData._add_shopping ? 'shopping_item' : 'couple_images',
     formType: 'yes_no',
   },
   shopping_item: {
@@ -357,8 +357,28 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     question: "Add a shop recommendation below.",
     field: ['_shopping_items'],
     parser: () => ({}),
-    nextQuestion: 'look_feel',
+    nextQuestion: 'couple_images',
     formType: 'shopping',
+  },
+
+  // ── Couple Images ───────────────────────────────────────────────────────
+  couple_images: {
+    id: 'couple_images',
+    question: "Would you like to upload photos of the couple? These appear on your wedding homepage.",
+    field: ['couple_images', 'couple_image_url'],
+    parser: () => ({}), // Handled by form component
+    nextQuestion: 'frame_selection',
+    formType: 'couple_images',
+  },
+
+  // ── Frame Selection ─────────────────────────────────────────────────────
+  frame_selection: {
+    id: 'frame_selection',
+    question: "Pick a decorative frame for your couple photos!",
+    field: ['frame_image_url'],
+    parser: () => ({}), // Handled by form component
+    nextQuestion: 'look_feel',
+    formType: 'frame_selection',
   },
 
   // ── Look & Feel ─────────────────────────────────────────────────────────
@@ -437,6 +457,11 @@ export function generateAIResponse(question: Question, parsedData: Record<string
     travel_item: () => "Travel card added! Your guests will find this super helpful. ✈️",
     shopping_intro: (data) => data._add_shopping ? "Great, let's add some shop recommendations!" : "No problem — you can add shops anytime.",
     shopping_item: () => "Shop added! 🛍️",
+    couple_images: (data) => {
+      const count = (data.couple_images || []).length;
+      return count > 0 ? `${count} photo${count > 1 ? 's' : ''} uploaded! Looking great! 📸` : "No photos added — you can upload them anytime in the Design section.";
+    },
+    frame_selection: (data) => data.frame_image_url ? "Beautiful frame choice! 🖼️" : "No frame selected — you can add one anytime in the Design section.",
     look_feel: () => "Looking gorgeous! Your design choices are saved. ✨",
     pin_setup: (data) => data._add_pins ? "Let's set up your guest access PINs!" : "No PIN set — you can configure access codes in the PIN Management section.",
     pin_item: () => "PIN added! Your guests will use this to access your site. 🔐",
@@ -487,7 +512,9 @@ export function determineStartQuestion(existingData: Record<string, any>): Quest
   if (existingData._has_faqs) startQuestion = 'registry_intro';
   if (existingData._has_registry) startQuestion = 'travel_intro';
   if (existingData._has_travel) startQuestion = 'shopping_intro';
-  if (existingData._has_shopping) startQuestion = 'look_feel';
+  if (existingData._has_shopping) startQuestion = 'couple_images';
+  if (existingData._has_couple_images) startQuestion = 'frame_selection';
+  if (existingData._has_frame_selection) startQuestion = 'look_feel';
   if (existingData._has_look_feel) startQuestion = 'pin_setup';
   if (existingData._has_pins) startQuestion = 'complete';
   return startQuestion;
@@ -496,7 +523,7 @@ export function determineStartQuestion(existingData: Record<string, any>): Quest
 // ─── Check if question uses form (disables text input) ──────────────────────
 
 export function isFormQuestion(questionId: QuestionId): boolean {
-  const formTypes = ['event', 'faq', 'registry', 'date', 'background', 'color', 'layout', 'look_feel', 'travel', 'shopping', 'pin', 'count'];
+  const formTypes = ['event', 'faq', 'registry', 'date', 'background', 'color', 'layout', 'look_feel', 'couple_images', 'frame_selection', 'travel', 'shopping', 'pin', 'count'];
   return formTypes.includes(QUESTIONS[questionId]?.formType);
 }
 

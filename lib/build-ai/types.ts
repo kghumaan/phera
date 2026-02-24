@@ -37,6 +37,8 @@ export type QuestionId =
   | 'travel_item'
   | 'shopping_intro'
   | 'shopping_item'
+  | 'couple_images'
+  | 'frame_selection'
   | 'look_feel'
   | 'pin_setup'
   | 'pin_item'
@@ -55,6 +57,8 @@ export type FormType =
   | 'color'
   | 'layout'
   | 'look_feel'
+  | 'couple_images'
+  | 'frame_selection'
   | 'travel'
   | 'shopping'
   | 'pin'
@@ -128,7 +132,32 @@ export const FIELD_LABELS: Record<string, QuestionId> = {
   'accommodation': 'travel_intro',
   'shopping': 'shopping_intro',
   'shops': 'shopping_intro',
+  'couple photos': 'couple_images',
+  'couple images': 'couple_images',
+  'photos': 'couple_images',
+  'frame': 'frame_selection',
+  'photo frame': 'frame_selection',
   'pin': 'pin_setup',
   'pins': 'pin_setup',
   'access code': 'pin_setup',
+};
+
+// ─── Step Labels (for Go Back dropdown) ─────────────────────────────────────
+
+export const STEP_LABELS: Partial<Record<QuestionId, string>> = {
+  partner1_name: 'Your Name',
+  partner2_name: "Partner's Name",
+  venue_name: 'Venue Name',
+  venue_location: 'Venue Location',
+  welcome_text: 'Welcome Message',
+  rsvp_deadline: 'RSVP Deadline',
+  schedule_intro: 'Event Schedule',
+  faq_intro: 'FAQs',
+  registry_intro: 'Gift Registry',
+  travel_intro: 'Travel & Accommodation',
+  shopping_intro: 'Shopping Recommendations',
+  couple_images: 'Couple Photos',
+  frame_selection: 'Photo Frame',
+  look_feel: 'Look & Feel',
+  pin_setup: 'Access PINs',
 };

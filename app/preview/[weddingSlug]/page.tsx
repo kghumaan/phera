@@ -12,6 +12,7 @@ import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PinEntry from '@/components/guest/PinEntry';
 import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
+import { getFrameConfig } from '@/lib/constants/images';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -218,10 +219,7 @@ const CoupleImageDisplay = ({
       <Box
         sx={{
           position: 'absolute',
-          top: '4%',
-          left: '4%',
-          width: '92%',
-          height: '92%',
+          ...getFrameConfig(frameImage),
           overflow: 'hidden',
           zIndex: 1,
         }}

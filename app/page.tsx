@@ -71,7 +71,7 @@ const features = [
   {
     id: 'rsvp-management',
     title: 'RSVP Collection',
-    problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Did anyone actually reply to that WhatsApp message??',
+    problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Who has RSVPd??',
     solution: 'Simplified RSVP process to collect all the details, viewable in one dashboard.',
     imagePlaceholder: 'Demo: RSVP dashboard showing responses with dietary info',
     featureImage: '/images/feature_images/rsvp_collection.png',
@@ -219,6 +219,8 @@ interface FeatureItem {
 const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const isScrollingToFeature = useRef(false);
+  const scrollTargetIndex = useRef<number | null>(null);
 
   // Use framer-motion for reliable scroll tracking
   const { scrollYProgress } = useScroll({
@@ -228,6 +230,21 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 
   // Map the scroll progress (0-1) to the active index
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    // When programmatically scrolling, only update when we reach the target
+    if (isScrollingToFeature.current && scrollTargetIndex.current !== null) {
+      const targetIndex = scrollTargetIndex.current;
+      const currentIndex = Math.min(
+        Math.floor(latest * items.length),
+        items.length - 1
+      );
+      if (currentIndex === targetIndex) {
+        setActiveIndex(targetIndex);
+        isScrollingToFeature.current = false;
+        scrollTargetIndex.current = null;
+      }
+      return;
+    }
+
     const newIndex = Math.min(
       Math.floor(latest * items.length),
       items.length - 1
@@ -239,6 +256,32 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 
   // Calculate container height (60vh per item)
   const containerHeight = items.length * 60;
+
+  // Click handler to scroll to a specific feature
+  const scrollToFeature = (index: number) => {
+    if (!containerRef.current || index === activeIndex) return;
+
+    // Immediately set the active index so the UI updates right away
+    isScrollingToFeature.current = true;
+    scrollTargetIndex.current = index;
+    setActiveIndex(index);
+
+    const containerTop = containerRef.current.offsetTop;
+    const containerPxHeight = containerRef.current.offsetHeight;
+    const viewportHeight = window.innerHeight;
+    // scrollYProgress goes 0→1 as we scroll from containerTop to (containerTop + containerPxHeight - viewportHeight)
+    // For feature index i, target progress = (i + 0.5) / items.length
+    const scrollRange = containerPxHeight - viewportHeight;
+    const targetProgress = (index + 0.5) / items.length;
+    const targetScroll = containerTop + targetProgress * scrollRange;
+    window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+
+    // Safety timeout to re-enable scroll tracking if scroll event never hits exact target
+    setTimeout(() => {
+      isScrollingToFeature.current = false;
+      scrollTargetIndex.current = null;
+    }, 1200);
+  };
 
   return (
     <>
@@ -300,12 +343,17 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   return (
                     <Box
                       key={item.id}
+                      onClick={() => scrollToFeature(idx)}
                       sx={{
                         py: isActive ? 3 : 1.5,
                         borderBottom: idx < items.length - 1 ? '1px solid' : 'none',
                         borderColor: alpha('#000', 0.06),
                         transition: 'padding 0.3s ease',
                         opacity: isActive ? 1 : 0.35,
+                        cursor: isActive ? 'default' : 'pointer',
+                        '&:hover': !isActive ? {
+                          opacity: 0.6,
+                        } : {},
                       }}
                     >
                       {/* Title - Not bold, left aligned always */}
