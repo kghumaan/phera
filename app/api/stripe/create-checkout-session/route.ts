@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil' as any,
 });
 
-const PRO_PRICE_ID = 'price_1T03dzQ00cCUwDx3uZi5ISon';
+const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID!;
 
 export async function POST(request: NextRequest) {
   try {

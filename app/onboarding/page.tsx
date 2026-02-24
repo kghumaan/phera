@@ -359,7 +359,8 @@ export default function OnboardingPage() {
       // 3. Create Wedding if applicable
       if (data.role === 'couple' && data.coupleName) {
         console.log('[Onboarding DEBUG] Step 2: Creating wedding record...');
-        let baseSlug = data.coupleName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const fullCoupleName = data.partnerName ? `${data.coupleName} & ${data.partnerName}` : data.coupleName;
+        let baseSlug = (data.partnerName ? `${data.coupleName}-${data.partnerName}` : data.coupleName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
         let slug = baseSlug;
         let counter = 1;
 
@@ -380,7 +381,7 @@ export default function OnboardingPage() {
           try {
             wedding = await weddingService.createWedding({
               slug,
-              couple_name: data.coupleName,
+              couple_name: fullCoupleName,
               partner1_name: data.coupleName,
               partner2_name: data.partnerName || null,
               wedding_date: data.weddingDate
@@ -663,7 +664,7 @@ export default function OnboardingPage() {
                             </Box>
                             <Box>
                               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a1a1a', lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, color: '#DE3F5E', fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$199</Typography>
+                              <Typography variant="h4" sx={{ fontWeight: 800, color: '#DE3F5E', fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
                             </Box>
                           </Stack>
 

@@ -147,7 +147,7 @@ const pricingTiers = [
   },
   {
     name: 'PRO',
-    price: '$199',
+    price: '$99',
     description: 'Advanced features for destination weddings',
     features: [
       'Everything in Basic, plus:',
