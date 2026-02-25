@@ -110,6 +110,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const [weddingDateStart, setWeddingDateStart] = useState<Date | null>(null);
   const [weddingDateEnd, setWeddingDateEnd] = useState<Date | null>(null);
   const [dateDisplayManuallyEdited, setDateDisplayManuallyEdited] = useState(false);
+  const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
 
   // Inline editing state
   const [editingCoupleName, setEditingCoupleName] = useState(false);
@@ -351,6 +352,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         delete next.wedding_date_start;
         return next;
       });
+    }
+
+    // Auto-open end date picker after selecting start date (unless one-day)
+    if (date && !formData.is_one_day) {
+      setTimeout(() => setEndDatePickerOpen(true), 300);
     }
   };
 
@@ -666,6 +672,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                     label="Wedding End Date"
                     value={weddingDateEnd}
                     onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
+                    open={endDatePickerOpen}
+                    onOpen={() => setEndDatePickerOpen(true)}
+                    onClose={() => setEndDatePickerOpen(false)}
+                    minDate={weddingDateStart || undefined}
                     enableAccessibleFieldDOMStructure={false}
                     slots={{
                       textField: TextField,

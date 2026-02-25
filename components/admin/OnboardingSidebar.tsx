@@ -310,6 +310,7 @@ export default function OnboardingSidebar({
             return (
               <ListItemButton
                 key={group.id}
+                data-tour={`tour-${group.id}`}
                 onClick={() => {
                   handleItemClick(item, true);
                 }}
@@ -344,9 +345,10 @@ export default function OnboardingSidebar({
           const isGroupActive = group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'));
 
           return (
-            <Box key={group.id} sx={{ mb: 1 }}>
+            <Box key={group.id} data-tour-group={group.id} sx={{ mb: 1 }}>
               {/* Parent Item */}
               <ListItemButton
+                data-tour={`tour-${group.id}`}
                 onClick={() => handleToggleGroup(group.id)}
                 selected={isGroupActive}
                 sx={{
@@ -426,6 +428,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
+                          {...(['build-ai', 'pins', 'guests'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           onClick={() => {
                             handleItemClick(item, false, group.id);
                           }}

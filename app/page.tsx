@@ -21,6 +21,7 @@ import {
   AccordionDetails,
   IconButton,
   Avatar,
+  Dialog,
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
@@ -46,6 +47,7 @@ import {
   AutoAwesome,
   WhatsApp,
   Email,
+  Close,
 } from '@mui/icons-material';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -64,7 +66,6 @@ const features = [
     title: 'Wedding Website',
     problem: 'Every wedding website template out there looks the same... and none of them get Indian weddings!',
     solution: 'Beautiful custom website built to feel like an Indian wedding.',
-    imagePlaceholder: 'Demo: Beautiful wedding website preview on multiple devices',
     featureImage: '/images/feature_images/wedding_website.png',
     frameType: 'desktop' as const,
   },
@@ -73,7 +74,6 @@ const features = [
     title: 'RSVP Collection',
     problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Who has RSVPd??',
     solution: 'Simplified RSVP process to collect all the details, viewable in one dashboard.',
-    imagePlaceholder: 'Demo: RSVP dashboard showing responses with dietary info',
     featureImage: '/images/feature_images/rsvp_collection.png',
     frameType: 'desktop' as const,
   },
@@ -82,7 +82,6 @@ const features = [
     title: 'Multi-Event Support',
     problem: 'Haldi on Thursday, Ceremony on Friday, Sangeet on Saturday... and my international guests are clueless...',
     solution: 'Display multi-day events with explanations for rituals, traditions, and dress codes—especially for international guests.',
-    imagePlaceholder: 'Demo: Event pages for Sangeet, Mehendi, and Reception',
     featureImage: '/images/feature_images/multi_event.png',
     frameType: 'desktop' as const,
   },
@@ -91,7 +90,6 @@ const features = [
     title: 'Guest Access Control',
     problem: 'This auntie isn\'t invited to my cocktail party…',
     solution: 'Create different PINs so guests only see the events they\'re invited to. Even control who gets a plus one!',
-    imagePlaceholder: 'Demo: PIN-based access control for different guest groups',
     featureImage: '/images/feature_images/guest_access.png',
     frameType: 'mobile' as const,
   },
@@ -100,7 +98,6 @@ const features = [
     title: 'Travel Coordination',
     problem: 'When\'s this friend arriving? When\'s the vendor landing? How many shuttles do I book??',
     solution: 'View everyone\'s arrival times and let guests sign up for shuttles — all in one place.',
-    imagePlaceholder: 'Demo: Travel dashboard with flight arrivals and shuttle schedule',
     featureImage: '/images/feature_images/travel_coordination.png',
     frameType: 'desktop' as const,
     isPro: true,
@@ -110,7 +107,6 @@ const features = [
     title: 'Guest Communication',
     problem: 'I have 30 unread messages from guests about this or that… I don\'t have time for this!',
     solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
-    imagePlaceholder: 'Demo: WhatsApp conversation with AI concierge helping guest',
     frameType: 'mobile' as const,
     customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
     isPro: true,
@@ -120,7 +116,6 @@ const features = [
     title: 'Task Management',
     problem: 'I need to talk to the decorator, send the DJ my song list, buy welcome gifts… I can\'t keep track!',
     solution: 'Ramble to our voice agent anytime and we\'ll organize your to-do items so you don\'t forget anything.',
-    imagePlaceholder: 'Demo: Voice recording being converted to organized task list',
     featureImage: '/images/feature_images/task_management.png',
     frameType: 'desktop' as const,
     isPro: true,
@@ -209,7 +204,6 @@ interface FeatureItem {
   title: string;
   problem: string;
   solution: string;
-  imagePlaceholder: string;
   featureImage?: string;
   customComponent?: React.ReactNode;
   frameType?: 'desktop' | 'mobile' | 'none';
@@ -221,6 +215,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const isScrollingToFeature = useRef(false);
   const scrollTargetIndex = useRef<number | null>(null);
+  const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
 
   // Use framer-motion for reliable scroll tracking
   const { scrollYProgress } = useScroll({
@@ -583,52 +578,6 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     </Box>
                   )}
 
-                  {!item.featureImage && !item.customComponent && (
-                    /* Placeholder for features without images (Guest Communication) */
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        width: '100%',
-                        maxWidth: '600px',
-                        height: '400px',
-                        borderRadius: '24px',
-                        bgcolor: alpha('#DE3F5E', 0.03),
-                        border: '1px solid',
-                        borderColor: alpha('#000', 0.06),
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        p: 5,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: '100%',
-                          height: '280px',
-                          bgcolor: 'white',
-                          borderRadius: '16px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: '2px dashed',
-                          borderColor: alpha('#DE3F5E', 0.2),
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: '#999',
-                            textAlign: 'center',
-                            px: 4,
-                            fontStyle: 'italic',
-                            fontSize: '1.1rem',
-                          }}
-                        >
-                          {item.imagePlaceholder}
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  )}
                 </motion.div>
               ))}
             </Box>
@@ -671,16 +620,16 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 {/* Feature Image */}
                 {item.featureImage && item.frameType === 'desktop' && (
                   <Box
+                    onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
                     sx={{
-                      borderRadius: '10px 0 0 10px',
+                      borderRadius: '10px',
                       overflow: 'hidden',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                       bgcolor: 'white',
                       border: '1px solid',
                       borderColor: alpha('#000', 0.08),
                       mb: 3,
-                      mr: -3, // Extend to right edge on mobile
-                      width: 'calc(100% + 24px)',
+                      cursor: 'zoom-in',
                     }}
                   >
                     <Box
@@ -746,26 +695,6 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         )}
                       </Box>
                     </Box>
-                  </Box>
-                )}
-                {!item.featureImage && (
-                  <Box
-                    sx={{
-                      width: '100%',
-                      height: '180px',
-                      bgcolor: alpha('#DE3F5E', 0.03),
-                      borderRadius: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 3,
-                      border: '2px dashed',
-                      borderColor: alpha('#DE3F5E', 0.2),
-                    }}
-                  >
-                    <Typography sx={{ color: '#999', textAlign: 'center', px: 2, fontStyle: 'italic', fontSize: '0.85rem' }}>
-                      {item.imagePlaceholder}
-                    </Typography>
                   </Box>
                 )}
 
@@ -837,6 +766,68 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           </Stack>
         </Box>
       </Box>
+
+      {/* Lightbox for mobile image expansion */}
+      <Dialog
+        open={!!expandedImage}
+        onClose={() => setExpandedImage(null)}
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            bgcolor: 'transparent',
+            boxShadow: 'none',
+            m: 1,
+            maxWidth: '100vw',
+            maxHeight: '100vh',
+            overflow: 'visible',
+          },
+        }}
+        sx={{
+          '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.85)' },
+        }}
+      >
+        <IconButton
+          onClick={() => setExpandedImage(null)}
+          sx={{
+            position: 'absolute',
+            top: -40,
+            right: 0,
+            color: 'white',
+            zIndex: 1,
+          }}
+        >
+          <Close />
+        </IconButton>
+        {expandedImage && (
+          <Box sx={{ borderRadius: '8px', overflow: 'hidden', bgcolor: 'white' }}>
+            <Box
+              sx={{
+                height: 24,
+                bgcolor: '#f1f1f1',
+                borderBottom: '1px solid',
+                borderColor: alpha('#000', 0.08),
+                display: 'flex',
+                alignItems: 'center',
+                px: 1,
+                gap: 0.5,
+              }}
+            >
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+            </Box>
+            <Image
+              src={expandedImage.src}
+              alt={expandedImage.alt}
+              width={2694}
+              height={1302}
+              quality={90}
+              sizes="95vw"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </Box>
+        )}
+      </Dialog>
     </>
   );
 };
@@ -1040,10 +1031,9 @@ export default function LandingPage() {
                   >
                     Start Planning Free
                   </Button>
-                  {/* <Button
+                  <Button
                     component={Link}
-                    href="/simran-karanvir"
-
+                    href="/demo"
                     variant="outlined"
                     size="large"
                     sx={{
@@ -1062,7 +1052,7 @@ export default function LandingPage() {
                     }}
                   >
                     See How It Works
-                  </Button> */}
+                  </Button>
                 </Stack>
               </Stack>
             </motion.div>
@@ -1774,6 +1764,9 @@ export default function LandingPage() {
                   <Link href="#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Pricing
                   </Link>
+                  <Link href="/demo" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                    Demo
+                  </Link>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 6, md: 2 }}>
@@ -1787,6 +1780,9 @@ export default function LandingPage() {
                 <Stack spacing={1}>
                   <Link href="/about" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     About Us
+                  </Link>
+                  <Link href="/blog" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                    Blog
                   </Link>
                   <Link href="/contact" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                     Contact

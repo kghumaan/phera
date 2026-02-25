@@ -330,57 +330,59 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             />
                         </Box>
 
-                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+                        {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
-                        {/* Test Mode Toggle - For Development */}
-                        <Box sx={{ px: 2, py: 1.5 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                <Box>
-                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
-                                        Test Mode
-                                    </Typography>
-                                    <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
-                                        Toggle plan for testing
-                                    </Typography>
+                        {/* Dev Tools - Only visible to super admins */}
+                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com') && (
+                            <Box sx={{ px: 2, py: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                    <Box>
+                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                            Test Mode
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                            Toggle plan for testing
+                                        </Typography>
+                                    </Box>
+                                    <Switch
+                                        checked={isPro}
+                                        onChange={togglePlan}
+                                        size="small"
+                                        sx={{
+                                            '& .MuiSwitch-switchBase.Mui-checked': {
+                                                color: '#DE3F5E',
+                                            },
+                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                                backgroundColor: '#DE3F5E',
+                                            },
+                                        }}
+                                    />
                                 </Box>
-                                <Switch
-                                    checked={isPro}
-                                    onChange={togglePlan}
+                                <Button
+                                    fullWidth
+                                    variant="outlined"
+                                    color="error"
                                     size="small"
+                                    onClick={handleClearData}
                                     sx={{
-                                        '& .MuiSwitch-switchBase.Mui-checked': {
-                                            color: '#DE3F5E',
-                                        },
-                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                            backgroundColor: '#DE3F5E',
-                                        },
-                                    }}
-                                />
-                            </Box>
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                onClick={handleClearData}
-                                sx={{
-                                    mt: 1,
-                                    borderRadius: '100px',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    fontSize: '0.8rem',
-                                    borderWidth: '2px',
-                                    '&:hover': {
+                                        mt: 1,
+                                        borderRadius: '100px',
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
                                         borderWidth: '2px',
-                                        bgcolor: alpha(theme.palette.error.main, 0.05)
-                                    }
-                                }}
-                            >
-                                Clear Local Data
-                            </Button>
-                        </Box>
+                                        '&:hover': {
+                                            borderWidth: '2px',
+                                            bgcolor: alpha(theme.palette.error.main, 0.05)
+                                        }
+                                    }}
+                                >
+                                    Clear Local Data
+                                </Button>
+                            </Box>
+                        )}
 
-                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+                        {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Menu Items */}
                         <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
@@ -413,7 +415,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             />
                         </ListItemButton>
 
-                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+                        {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         <ListItemButton
                             onClick={handleSignOut}

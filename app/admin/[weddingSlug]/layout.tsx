@@ -5,9 +5,10 @@ import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar'
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import DemoTour from '@/components/demo/DemoTour';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect } from 'react';
-import { usePathname, notFound } from 'next/navigation';
+import { usePathname, useSearchParams, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 
@@ -26,6 +27,9 @@ export default function OnboardingLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isPlanner, setIsPlanner] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const showTour = searchParams.get('tour') === 'true'
+    || (typeof window !== 'undefined' && sessionStorage.getItem('demo-tour-step') !== null);
 
   useEffect(() => {
     const fetchWeddingAndSettings = async () => {
@@ -195,6 +199,9 @@ export default function OnboardingLayout({
           </Box>
         </Box>
       </OptimizedBackground>
+
+      {/* Demo tour overlay */}
+      {showTour && <DemoTour weddingSlug={weddingSlug} />}
 
       {/* Plan loading guard - show full page backdrop if plan is still loading */}
       <Backdrop

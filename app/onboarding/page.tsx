@@ -388,9 +388,22 @@ export default function OnboardingPage() {
                 ? new Date(data.weddingDate).toISOString()
                 : new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString(),
               wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
-              wedding_date_display: data.weddingDate ? new Date(data.weddingDate).toLocaleDateString() : 'TBD',
+              wedding_date_display: data.weddingDate
+                ? (() => {
+                  const start = new Date(data.weddingDate);
+                  const end = data.weddingEndDate ? new Date(data.weddingEndDate) : null;
+                  const fmt = (d: Date) => d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+                  const fmtDay = (d: Date) => d.getDate().toString();
+                  const fmtMonth = (d: Date) => d.toLocaleDateString('en-US', { month: 'long' }).toUpperCase();
+                  const fmtYear = (d: Date) => d.getFullYear().toString();
+                  if (!end || start.getTime() === end.getTime()) return fmt(start);
+                  if (fmtYear(start) !== fmtYear(end)) return `${fmt(start)} - ${fmt(end)}`;
+                  if (fmtMonth(start) !== fmtMonth(end)) return `${fmtDay(start)} ${fmtMonth(start)} - ${fmtDay(end)} ${fmtMonth(end)}, ${fmtYear(start)}`;
+                  return `${fmtDay(start)}-${fmtDay(end)} ${fmtMonth(start)}, ${fmtYear(start)}`;
+                })()
+                : 'TBD',
               venue_name: (data.venueName === 'TBD' || !data.venueName) ? 'Venue Name' : data.venueName,
-              venue_location: (data.venueName === 'TBD' || !data.venueName) ? 'City, Country' : data.venueName,
+              venue_location: 'City, Country',
               rsvp_deadline: '',
               status: 'draft',
               created_by: data.userId,

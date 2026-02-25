@@ -86,7 +86,7 @@ export async function middleware(request: NextRequest) {
 
     // For wedding-specific admin routes, verify wedding ownership
     // Exclude general admin pages like /admin/page, /admin/dashboard, etc.
-    if (pathname.match(/^\/admin\/[^\/]+/) && !pathname.match(/^\/admin\/(page|dashboard|events|guests|settings|new)($|\/)/)) {
+    if (pathname.match(/^\/admin\/[^\/]+/) && !pathname.match(/^\/admin\/(page|dashboard|events|guests|settings|new|demo)($|\/)/)) {
       const weddingSlugMatch = pathname.match(/\/admin\/([^\/]+)/);
       if (weddingSlugMatch) {
         const weddingSlug = weddingSlugMatch[1];

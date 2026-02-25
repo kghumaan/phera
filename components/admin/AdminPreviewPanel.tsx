@@ -136,6 +136,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
 
     return (
         <Box
+            data-tour="tour-preview"
             sx={{
                 height: '100%',
                 display: 'flex',
