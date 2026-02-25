@@ -26,12 +26,15 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Phera",
+  title: {
+    default: "Phera | Indian Wedding Planning Platform",
+    template: "%s | Phera"
+  },
   description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
 
   // Open Graph tags for rich link previews - Optimized for large rectangular format
   openGraph: {
-    title: "Phera",
+    title: "Phera | Indian Wedding Planning Platform",
     description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
     type: "website",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io",
@@ -51,7 +54,7 @@ export const metadata: Metadata = {
   // Twitter Card tags - Using large image format for maximum impact
   twitter: {
     card: "summary_large_image",
-    title: "Phera",
+    title: "Phera | Indian Wedding Planning Platform",
     description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
     images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`],
     creator: "@phera",

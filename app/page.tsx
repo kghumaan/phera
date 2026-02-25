@@ -923,6 +923,41 @@ export default function LandingPage() {
       useAppDefault={true}
       className="min-h-screen flex flex-col"
     >
+      {/* SEO Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Phera",
+              "url": "https://www.phera.io",
+              "logo": "https://www.phera.io/logo.svg",
+              "sameAs": [
+                "https://instagram.com/withphera"
+              ],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "kv@phera.io",
+                "contactType": "customer support"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": faqs.map(faq => ({
+                "@type": "Question",
+                "name": faq.q,
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": faq.a
+                }
+              }))
+            }
+          ])
+        }}
+      />
       <AppHeader
         variant="transparent"
       />

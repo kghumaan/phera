@@ -13,7 +13,9 @@ import {
 import {
   Instagram,
   Email,
-  WhatsApp
+  WhatsApp,
+  LinkedIn,
+  Language
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -144,57 +146,110 @@ export default function AboutPage() {
                     </Typography>
                   </Paper>
 
-                  <Stack spacing={2}>
+                  <Stack spacing={3}>
                     <Typography
                       variant="subtitle1"
                       sx={{ fontWeight: 'bold', color: '#1a1a1a' }}
                     >
-                      Connect with us
+                      Connect with the founders:
                     </Typography>
-                    <Stack direction="row" spacing={2}>
-                      <IconButton
-                        component="a"
-                        href="https://instagram.com/withphera"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          color: '#DE3F5E',
-                          bgcolor: alpha('#DE3F5E', 0.1),
-                          '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
-                          width: 50,
-                          height: 50,
-                        }}
-                      >
-                        <Instagram />
-                      </IconButton>
-                      <IconButton
-                        component="a"
-                        href="mailto:kv@phera.io"
-                        sx={{
-                          color: '#DE3F5E',
-                          bgcolor: alpha('#DE3F5E', 0.1),
-                          '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
-                          width: 50,
-                          height: 50,
-                        }}
-                      >
-                        <Email />
-                      </IconButton>
-                      <IconButton
-                        component="a"
-                        href="https://wa.me/15558397813"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          color: '#DE3F5E',
-                          bgcolor: alpha('#DE3F5E', 0.1),
-                          '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
-                          width: 50,
-                          height: 50,
-                        }}
-                      >
-                        <WhatsApp />
-                      </IconButton>
+
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      justifyContent="space-between"
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      spacing={3}
+                      sx={{ width: '100%' }}
+                    >
+                      {/* Sim (Left) */}
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography sx={{ fontWeight: 700, color: '#1a1a1a' }}>Sim</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <IconButton
+                            component="a"
+                            href="https://www.instagram.com/simransimranaway/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: '#DE3F5E',
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
+                              width: 32,
+                              height: 32,
+                            }}
+                          >
+                            <Instagram sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                          <IconButton
+                            component="a"
+                            href="https://www.linkedin.com/in/simransavani/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: '#DE3F5E',
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
+                              width: 32,
+                              height: 32,
+                            }}
+                          >
+                            <LinkedIn sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                          <IconButton
+                            component="a"
+                            href="https://simmetrystudios.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: '#DE3F5E',
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
+                              width: 32,
+                              height: 32,
+                            }}
+                          >
+                            <Language sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                        </Stack>
+                      </Stack>
+
+                      {/* KV (Right) */}
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography sx={{ fontWeight: 700, color: '#1a1a1a', textAlign: 'right' }}>KV</Typography>
+
+                        <Stack direction="row" spacing={1}>
+                          <IconButton
+                            component="a"
+                            href="https://www.instagram.com/kvghumaan/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: '#DE3F5E',
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
+                              width: 32,
+                              height: 32,
+                            }}
+                          >
+                            <Instagram sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                          <IconButton
+                            component="a"
+                            href="https://www.linkedin.com/in/kv-ghumaan-132863a3/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: '#DE3F5E',
+                              bgcolor: alpha('#DE3F5E', 0.1),
+                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) },
+                              width: 32,
+                              height: 32,
+                            }}
+                          >
+                            <LinkedIn sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                        </Stack>
+                      </Stack>
                     </Stack>
                   </Stack>
                 </Stack>
