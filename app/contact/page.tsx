@@ -19,6 +19,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { Send } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import AppFooter from '@/components/shared/AppFooter';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -201,6 +202,7 @@ export default function ContactPage() {
           {error}
         </Alert>
       </Snackbar>
+      <AppFooter />
     </OptimizedBackground>
   );
 }

@@ -56,6 +56,8 @@ import LoginModal from '@/components/auth/LoginModal';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
+import FinalCTA from '@/components/shared/FinalCTA';
+import AppFooter from '@/components/shared/AppFooter';
 
 // --- Data & Content ---
 
@@ -876,6 +878,7 @@ export default function LandingPage() {
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
+  const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
@@ -1062,6 +1065,148 @@ export default function LandingPage() {
         {/* --- FEATURES SECTION --- */}
         <Box id="features">
           <FeaturesSection items={features} />
+        </Box>
+
+        {/* --- FOR PLANNERS SECTION --- */}
+        <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#FFFFFF', overflow: 'hidden' }}>
+          <Container maxWidth="xl">
+            <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
+              <Grid size={{ xs: 12, md: 5 }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeIn}
+                >
+                  <Typography
+                    variant="overline"
+                    sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.65rem', md: '0.75rem' } }}
+                  >
+                    FOR WEDDING PLANNERS
+                  </Typography>
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      fontFamily: 'var(--font-instrument-serif)',
+                      fontStyle: 'italic',
+                      lineHeight: 1.1,
+                      color: '#1a1a1a',
+                      mt: 1,
+                      mb: 2,
+                      fontSize: { xs: '2.5rem', md: '3.5rem' },
+                    }}
+                  >
+                    Manage multiple weddings with ease.
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: '#4a4a4a', fontWeight: 400, fontSize: { xs: '1rem', md: '1.25rem' }, lineHeight: 1.6, mb: 4 }}>
+                    Give your clients a premium, tech-forward guest experience.
+                    Manage all your events, RSVPs, and guest communications from a single, unified dashboard.
+                  </Typography>
+
+                  <List sx={{ mb: { xs: 2, md: 4 } }}>
+                    {[
+                      { icon: <Dashboard />, text: "Single dashboard for all your clients" },
+                      { icon: <AutoAwesome />, text: "Premium, modern guest experience" },
+                      { icon: <SupportAgent />, text: "Reduce repetitive guest questions" }
+                    ].map((item, idx) => (
+                      <ListItem key={idx} sx={{ px: 0, py: { xs: 0.5, md: 1 } }}>
+                        <ListItemIcon sx={{ minWidth: { xs: 36, md: 44 } }}>
+                          <Box sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), p: 1, borderRadius: '50%', display: 'flex' }}>
+                            {item.icon}
+                          </Box>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          primaryTypographyProps={{ fontSize: { xs: '0.95rem', md: '1.1rem' }, color: '#1a1a1a', fontWeight: 500 }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+
+                  <Button
+                    component={Link}
+                    href="/auth/signup?role=planner"
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      px: { xs: 4, md: 5 },
+                      py: { xs: 1.2, md: 1.5 },
+                      borderRadius: '32px',
+                      fontSize: { xs: '0.95rem', md: '1.1rem' },
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#C8365A' },
+                    }}
+                  >
+                    Start as a Planner
+                  </Button>
+                </motion.div>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 7 }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={{
+                    hidden: { opacity: 0, x: 20 },
+                    visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
+                  }}
+                >
+                  <Box
+                    onClick={() => setExpandedImage({ src: "/images/feature_images/planner.png", alt: "Planner Dashboard" })}
+                    sx={{
+                      width: { md: '110%', lg: '120%' },
+                      maxWidth: 'none',
+                      borderRadius: '12px 0 0 12px',
+                      overflow: 'hidden',
+                      boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1)',
+                      bgcolor: 'white',
+                      border: '1px solid',
+                      borderColor: alpha('#000', 0.08),
+                      borderRight: 'none',
+                      cursor: 'zoom-in'
+                    }}
+                  >
+                    {/* Browser Title Bar */}
+                    <Box
+                      sx={{
+                        height: { xs: 24, md: 36 },
+                        bgcolor: '#f1f1f1',
+                        borderBottom: '1px solid',
+                        borderColor: alpha('#000', 0.08),
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 1.5,
+                        gap: 0.8,
+                      }}
+                    >
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
+                    </Box>
+                    {/* Screenshot */}
+                    <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
+                      <Image
+                        src="/images/feature_images/planner.png"
+                        alt="Planner Dashboard"
+                        width={2694}
+                        height={1302}
+                        quality={85}
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          display: 'block',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </Container>
         </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
@@ -1631,96 +1776,7 @@ export default function LandingPage() {
         </Container>
 
         {/* --- FINAL CTA --- */}
-        <Container maxWidth="lg" sx={{ pb: { xs: 3, md: 10 } }}>
-          <Paper
-            sx={{
-              p: { xs: 3, md: 8 },
-              borderRadius: { xs: '24px', md: '40px' },
-              background: 'linear-gradient(135deg, rgba(222, 63, 94, 0.05) 0%, rgba(255, 142, 83, 0.05) 100%)',
-              border: '1px solid rgba(222, 63, 94, 0.1)',
-              color: '#1a1a1a',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <Box sx={{ position: 'relative', zIndex: 2 }}>
-              <Typography
-                variant="h2"
-                sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: '#1a1a1a', fontSize: { xs: '1.5rem', md: '2.5rem' } }}
-              >
-                Your Wedding, Your Way
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: { xs: 3, md: 5 },
-                  color: '#4a4a4a',
-                  maxWidth: '600px',
-                  mx: 'auto',
-                  fontSize: { xs: '0.8rem', md: '1.25rem' }
-                }}
-              >
-                Join the couples who are planning beautiful Indian weddings
-                without the burnout. Start free, upgrade when you need to.
-              </Typography>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                sx={{ justifyContent: 'center' }}
-              >
-                <Button
-                  component={Link}
-                  href="/auth/signup"
-                  variant="contained"
-                  size="large"
-                  sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    px: { xs: 3, md: 5 },
-                    py: { xs: 1, md: 1.5 },
-                    borderRadius: '32px',
-                    fontSize: { xs: '0.85rem', md: '1.1rem' },
-                    fontWeight: 'bold',
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: '#C8365A' },
-                  }}
-                >
-                  Get Started for Free
-                </Button>
-                {/* Demo button can be linked to Calendly or kept as is for now with clear label */}
-              </Stack>
-              <Stack
-                direction="row"
-                spacing={3}
-                sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
-              >
-                <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                  label="No credit card required"
-                  sx={{
-                    bgcolor: 'transparent',
-                    color: '#4a4a4a',
-                    border: 'none',
-                    fontWeight: 500,
-                    fontSize: '1.1rem',
-                  }}
-                />
-                <Chip
-                  icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                  label="Free forever plan"
-                  sx={{
-                    bgcolor: 'transparent',
-                    color: '#4a4a4a',
-                    border: 'none',
-                    fontWeight: 500,
-                    fontSize: '1.1rem',
-                  }}
-                />
-              </Stack>
-            </Box>
-          </Paper>
-        </Container>
+        <FinalCTA />
 
         {/* --- FOOTER --- */}
         <Box sx={{ bgcolor: '#F5F5F5', color: '#1a1a1a', py: 8 }}>
@@ -1867,6 +1923,68 @@ export default function LandingPage() {
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
       />
+
+      {/* Lightbox for image expansion */}
+      <Dialog
+        open={!!expandedImage}
+        onClose={() => setExpandedImage(null)}
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            bgcolor: 'transparent',
+            boxShadow: 'none',
+            m: 1,
+            maxWidth: '100vw',
+            maxHeight: '100vh',
+            overflow: 'visible',
+          },
+        }}
+        sx={{
+          '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.85)' },
+        }}
+      >
+        <IconButton
+          onClick={() => setExpandedImage(null)}
+          sx={{
+            position: 'absolute',
+            top: -40,
+            right: 0,
+            color: 'white',
+            zIndex: 1,
+          }}
+        >
+          <Close />
+        </IconButton>
+        {expandedImage && (
+          <Box sx={{ borderRadius: '8px', overflow: 'hidden', bgcolor: 'white' }}>
+            <Box
+              sx={{
+                height: 24,
+                bgcolor: '#f1f1f1',
+                borderBottom: '1px solid',
+                borderColor: alpha('#000', 0.08),
+                display: 'flex',
+                alignItems: 'center',
+                px: 1.5,
+                gap: 0.5,
+              }}
+            >
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+            </Box>
+            <Image
+              src={expandedImage.src}
+              alt={expandedImage.alt}
+              width={2694}
+              height={1302}
+              quality={90}
+              sizes="95vw"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </Box>
+        )}
+      </Dialog>
     </OptimizedBackground >
   );
 }

@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { BACKGROUNDS } from '@/lib/constants/images';
+import AppFooter from '@/components/shared/AppFooter';
 
 
 export default function AboutPage() {
@@ -202,6 +203,7 @@ export default function AboutPage() {
           </Grid>
         </Container>
       </Box>
+      <AppFooter />
     </OptimizedBackground>
   );
 }

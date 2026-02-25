@@ -5,6 +5,7 @@ import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { BACKGROUNDS } from '@/lib/constants/images';
 import { getAllPosts } from '@/lib/blog';
+import AppFooter from '@/components/shared/AppFooter';
 
 export const metadata: Metadata = {
   title: 'Indian Wedding Planning Blog | Phera',
@@ -232,6 +233,7 @@ export default function BlogIndexPage() {
           </Box>
         </Container>
       </Box>
+      <AppFooter />
     </OptimizedBackground>
   );
 }

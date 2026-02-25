@@ -9,6 +9,7 @@ import { BACKGROUNDS } from '@/lib/constants/images';
 import MDXComponents from '@/components/blog/MDXComponents';
 import { getPostBySlug, getAllSlugs } from '@/lib/blog';
 import { notFound } from 'next/navigation';
+import AppFooter from '@/components/shared/AppFooter';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -253,6 +254,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </Box>
         </Container>
       </Box>
+      <AppFooter />
     </OptimizedBackground>
   );
 }

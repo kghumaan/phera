@@ -20,6 +20,10 @@ import {
     ListItemText,
     Switch,
     Chip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -56,6 +60,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
     const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
+    const [homeModalOpen, setHomeModalOpen] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -118,7 +123,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
                     {/* Left: Logo */}
                     <Box
-                        onClick={() => router.push(`/admin/${weddingSlug}/overview`)}
+                        onClick={() => setHomeModalOpen(true)}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -449,6 +454,78 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 open={upgradeModalOpen}
                 onClose={() => setUpgradeModalOpen(false)}
             />
+            <Dialog
+                open={homeModalOpen}
+                onClose={() => setHomeModalOpen(false)}
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        p: { xs: 2, md: 3 },
+                        textAlign: 'center',
+                        maxWidth: '400px'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    fontFamily: 'var(--font-instrument-serif)',
+                    fontStyle: 'italic',
+                    fontWeight: 700,
+                    fontSize: '1.8rem',
+                    color: '#1a1a1a',
+                    pb: 1
+                }}>
+                    Leave Admin Dashboard?
+                </DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                        You are about to be taken to the Home page. Any unsaved data may be lost.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
+                    <Button
+                        onClick={() => {
+                            setHomeModalOpen(false);
+                            router.push('/');
+                        }}
+                        variant="contained"
+                        sx={{
+                            bgcolor: '#DE3F5E',
+                            color: 'white',
+                            borderRadius: '32px',
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            fontSize: '0.95rem',
+                            px: 4,
+                            py: 1,
+                            boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                            '&:hover': {
+                                bgcolor: '#C8365A',
+                                boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
+                            },
+                        }}
+                    >
+                        Go Home
+                    </Button>
+                    <Button
+                        onClick={() => setHomeModalOpen(false)}
+                        sx={{
+                            color: '#666',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            borderRadius: '32px',
+                            px: 3,
+                            py: 1,
+                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                            '&:hover': {
+                                bgcolor: 'rgba(0, 0, 0, 0.08)',
+                            }
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </AppBar>
     );
 }

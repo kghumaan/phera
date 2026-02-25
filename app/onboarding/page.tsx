@@ -242,6 +242,12 @@ export default function OnboardingPage() {
         if (settings.subscription_tier) setPlan(settings.subscription_tier as 'basic' | 'pro');
       } else {
         console.log('[Onboarding DEBUG] restoreSettings: No existing settings found, starting fresh.');
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('role') === 'planner') {
+          setRole('planner');
+          // Start at step 2 if we pre-selected planner to reduce friction
+          setStep(2);
+        }
       }
     } catch (err) {
       console.error('[Onboarding DEBUG] FATAL error in restoreSettings:', err);

@@ -23,6 +23,7 @@ import { styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { AccessTime, LocationOn } from '@mui/icons-material';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import AdminTopNav from './AdminTopNav';
 
@@ -257,60 +258,104 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Button>
           </Paper>
         ) : (
-          <Stack spacing={2}>
-            {weddings.map((wedding) => (
-              <Paper
-                key={wedding.id}
-                elevation={0}
-                onClick={() => router.push(`/admin/${wedding.slug}/overview`)}
-                sx={{
-                  p: 3,
-                  borderRadius: '16px',
-                  bgcolor: 'white',
-                  border: '1px solid',
-                  borderColor: alpha('#000', 0.08),
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    borderColor: alpha('#DE3F5E', 0.3),
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                  },
-                }}
-              >
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontFamily: 'var(--font-instrument-serif)',
-                        fontStyle: 'italic',
-                        color: '#1a1a1a',
-                        fontWeight: 700,
-                        fontSize: '1.1rem',
-                        mb: 0.5,
-                      }}
-                    >
-                      {wedding.couple_name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#888', fontSize: '0.85rem' }}>
-                      {wedding.wedding_date_display || 'Date TBD'}
-                      {wedding.venue_name && wedding.venue_name !== 'Venue Name' && ` \u00B7 ${wedding.venue_name}`}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={wedding.status === 'live' ? 'Live' : 'Draft'}
-                    size="small"
-                    sx={{
-                      bgcolor: wedding.status === 'live' ? alpha('#4caf50', 0.1) : alpha('#000', 0.05),
-                      color: wedding.status === 'live' ? '#2e7d32' : '#888',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                    }}
-                  />
-                </Stack>
-              </Paper>
-            ))}
-          </Stack>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              bgcolor: 'white',
+              border: '1px solid',
+              borderColor: alpha('#000', 0.08),
+              overflow: 'hidden',
+            }}
+          >
+            <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: alpha('#000', 0.08) }} />}>
+              {weddings.map((wedding) => (
+                <Box
+                  key={wedding.id}
+                  onClick={() => router.push(`/admin/${wedding.slug}/overview`)}
+                  sx={{
+                    p: 3,
+                    cursor: 'pointer',
+                    bgcolor: 'white',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      bgcolor: alpha('#DE3F5E', 0.04),
+                    },
+                  }}
+                >
+                  <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} width="100%">
+                    <Box sx={{ flex: 2, minWidth: 0, pr: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontFamily: 'var(--font-instrument-serif)',
+                          fontStyle: 'italic',
+                          color: '#1a1a1a',
+                          fontWeight: 700,
+                          fontSize: '1.4rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {wedding.couple_name}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ flex: 2, minWidth: 0, display: 'flex', justifyContent: 'flex-start' }}>
+                      <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        bgcolor: alpha('#000', 0.04),
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '8px',
+                      }}>
+                        <AccessTime sx={{ fontSize: '1.1rem', color: '#666' }} />
+                        <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                          {wedding.wedding_date_display || 'Date TBD'}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ flex: 3, minWidth: 0, display: 'flex', justifyContent: 'flex-start' }}>
+                      {(wedding.venue_name && wedding.venue_name !== 'Venue Name' || wedding.venue_location && wedding.venue_location !== 'City, Country') && (
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          bgcolor: alpha('#000', 0.04),
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: '8px',
+                          maxWidth: '100%',
+                        }}>
+                          <LocationOn sx={{ fontSize: '1.1rem', color: '#666', flexShrink: 0 }} />
+                          <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {[wedding.venue_name !== 'Venue Name' ? wedding.venue_name : null, wedding.venue_location !== 'City, Country' ? wedding.venue_location : null].filter(Boolean).join(', ')}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', pr: 1 }}>
+                      <Chip
+                        label={wedding.status === 'live' ? 'Live' : 'Draft'}
+                        size="small"
+                        sx={{
+                          bgcolor: wedding.status === 'live' ? alpha('#4caf50', 0.1) : alpha('#000', 0.05),
+                          color: wedding.status === 'live' ? '#2e7d32' : '#888',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                        }}
+                      />
+                    </Box>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
         )}
       </Container>
 

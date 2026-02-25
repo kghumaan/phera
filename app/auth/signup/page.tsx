@@ -55,7 +55,9 @@ export default function SignupPage() {
           router.push(`/admin/${weddings[0].slug}/overview`);
         } else {
           // User doesn't have a wedding, redirect to onboarding
-          router.push('/onboarding');
+          const searchParams = new URLSearchParams(window.location.search);
+          const queryString = searchParams.toString();
+          router.push(`/onboarding${queryString ? `?${queryString}` : ''}`);
         }
       } else {
         setCheckingAuth(false);
@@ -108,7 +110,9 @@ export default function SignupPage() {
       setTimeout(() => {
         refreshAuth();
       }, 100);
-      router.push('/onboarding');
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryString = searchParams.toString();
+      router.push(`/onboarding${queryString ? `?${queryString}` : ''}`);
     } catch (err) {
       console.error('Signup error:', err);
       toast.error('An unexpected error occurred');
@@ -122,7 +126,9 @@ export default function SignupPage() {
     try {
       // Build the callback URL with redirect to onboarding
       const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', '/onboarding');
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryString = searchParams.toString();
+      callbackUrl.searchParams.set('redirect', `/onboarding${queryString ? `?${queryString}` : ''}`);
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
