@@ -44,11 +44,17 @@ export default function ContactPage() {
     setError(null);
 
     try {
-      const { error: submitError } = await (supabase as any)
-        .from('contact_submissions')
-        .insert([formData]);
+      const response = await fetch('/api/contact/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-      if (submitError) throw submitError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || result.details || 'Failed to submit message');
+      }
 
       setSuccess(true);
       setFormData({

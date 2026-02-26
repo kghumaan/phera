@@ -34,9 +34,22 @@ export default function FeatureRequestModal({ open, onClose, weddingId }: Featur
 
         setIsSubmitting(true);
         try {
-            const success = await weddingService.submitFeatureRequest(user.id, weddingId, content);
-            if (success) {
+            const response = await fetch('/api/feature-request/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    weddingId: weddingId,
+                    content: content,
+                    userEmail: user.email
+                }),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
                 setIsSubmitted(true);
+            } else {
+                console.error('Error submitting feedback:', result.error || result.details);
             }
         } catch (error) {
             console.error('Error submitting feedback:', error);

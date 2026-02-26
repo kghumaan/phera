@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
 import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminWeddingSlug, setAdminWeddingSlug] = useState<string | null>(null);
   const [currentWeddingSlug, setCurrentWeddingSlugState] = useState<string | null>(null);
+  const pathname = usePathname();
   const isCheckingAuthRef = useRef(false);
   const hasCheckedAdminRef = useRef(false);
   const lastCheckedWeddingSlug = useRef<string | null>(null);
@@ -754,6 +756,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false); // Ensure loading state is always cleared
     }
   }, [isRefreshing, checkAuthStatus, currentWeddingSlug]);
+
+  // Auto-logout demo user if they leave admin routes
+  useEffect(() => {
+    const isDemoUser = user?.email === 'demo@phera.io';
+    const isAdminRoute = pathname.startsWith('/admin');
+    const isDemoEntryPoint = pathname === '/demo';
+
+    if (isDemoUser && !isAdminRoute && !isDemoEntryPoint) {
+      console.log('👋 [AuthContext] Demo user leaving admin area, signing out...');
+      signOut();
+    }
+  }, [pathname, user?.email, signOut]);
 
   useEffect(() => {
     let mounted = true;

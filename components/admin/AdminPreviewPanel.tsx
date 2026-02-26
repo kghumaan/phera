@@ -21,7 +21,7 @@ interface PinCode {
  * Shows the wedding website preview with desktop/mobile toggle
  */
 export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: AdminPreviewPanelProps) {
-    const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+    const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);

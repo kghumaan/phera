@@ -821,7 +821,7 @@ export default function OnboardingPage() {
                     {step === 2 && (
                       <Box>
                         <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 700, fontSize: { xs: '1.6rem', md: '2rem' } }}>
-                          {role === 'planner' ? 'Tell us about your practice' : "Let's get ready to get planning"}
+                          {role === 'planner' ? 'Tell us about your business' : "Let's get ready to get planning"}
                         </Typography>
                         <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
@@ -832,7 +832,7 @@ export default function OnboardingPage() {
                             {role === 'planner' && (
                               <>
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Company / Practice Name</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Company / Business Name</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
