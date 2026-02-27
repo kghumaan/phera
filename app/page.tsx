@@ -1493,7 +1493,6 @@ export default function LandingPage() {
             fontFamily: 'var(--font-instrument-serif)',
             fontStyle: 'italic',
             color: alpha('#DE3F5E', 0.2),
-            fontWeight: 700,
             transition: 'all 0.3s ease',
             zIndex: 1
           }}
@@ -1521,7 +1520,7 @@ export default function LandingPage() {
           {item.icon}
         </Box>
 
-        <Typography variant="h5" sx={{ fontWeight: 800, mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
+        <Typography variant="h5" sx={{ mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: '#1a1a1a', fontSize: { xs: '1rem', md: '1.5rem' } }}>
           {item.title}
         </Typography>
 
