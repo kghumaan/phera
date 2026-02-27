@@ -6,13 +6,22 @@ import { getCurrentUser } from '@/lib/supabase/auth-service';
 import { supabase } from '@/lib/supabase/client';
 import { isOnLandingPage } from '@/lib/utils/wedding-id-helpers';
 
-// Helper to detect public routes where auth check should be skipped
-// This prevents AbortError from Supabase's lock mechanism on pages without sessions
+// Helper to detect public routes where the initial auth check should be skipped.
+// The onAuthStateChange listener is still kept active on these routes so that
+// sign-in events (e.g. from /demo) are caught.
 function isPublicRoute(): boolean {
   if (typeof window === 'undefined') return false;
   const path = window.location.pathname;
-  const publicPaths = ['/auth/signup', '/auth/login', '/auth/callback'];
-  return publicPaths.some(p => path === p) || path.startsWith('/auth/');
+  // Marketing/landing pages, auth pages don't need the initial auth check
+  const publicPaths = ['/', '/auth/signup', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
+  return publicPaths.some(p => path === p) || path.startsWith('/auth/') || path.startsWith('/blog/');
+}
+
+// Preview routes are rendered inside an iframe on admin pages.
+// Skip ALL auth (including onAuthStateChange) to avoid Navigator Lock contention.
+function isPreviewRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.startsWith('/preview/');
 }
 
 interface User {
@@ -101,16 +110,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('checkAuthStatus: Starting auth check, slug:', effectiveSlug);
     isCheckingAuthRef.current = true;
     try {
-      // Get the Supabase user once
+      // First check local session (no network, no Navigator Lock) to avoid lock contention
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('checkAuthStatus: No local session, skipping getUser');
+        setUser(null);
+        setIsLoading(false);
+        isCheckingAuthRef.current = false;
+        return;
+      }
+
+      // Session exists — now verify with the server (acquires Navigator Lock)
       const { data: { user: sbUser }, error: userError } = await supabase.auth.getUser();
 
       if (userError) {
         if (userError.name === 'AbortError') {
           console.log('checkAuthStatus: Auth check aborted');
-          // Don't clear loading yet if it was just an abort, let another check handle it
           return;
         }
-        // "Auth session missing" is expected on pages where no user is logged in - log quietly
         if (userError.name === 'AuthSessionMissingError') {
           console.log('checkAuthStatus: No active session');
         } else {
@@ -284,7 +301,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!slug) return;
 
     try {
-      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      // Use getSession (no Navigator Lock) instead of getUser to avoid lock contention
+      const { data: { session } } = await supabase.auth.getSession();
+      const sbUser = session?.user;
       if (!sbUser?.email) return;
 
       const { data: guest, error } = await (supabase as any)
@@ -777,22 +796,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
-      // Skip auth check on public routes to prevent AbortError
-      if (isPublicRoute()) {
-        console.log('Skipping auth check on public route:', window.location.pathname);
-        setIsLoading(false);
-        return;
-      }
+    // Preview routes are rendered inside an iframe on admin pages.
+    // Skip ALL auth to avoid Navigator Lock contention (same-origin exclusive lock).
+    if (isPreviewRoute()) {
+      console.log('Skipping auth on preview route:', window.location.pathname);
+      setIsLoading(false);
+      return () => { mounted = false; };
+    }
 
-      if (mounted) {
-        await checkAuthStatus();
-      }
-    };
+    // For non-preview public routes (/, /pricing, etc.), skip the initial auth check
+    // but keep the onAuthStateChange listener active (needed for /demo sign-in flow).
+    if (!isPublicRoute()) {
+      const initAuth = async () => {
+        if (mounted) {
+          await checkAuthStatus();
+        }
+      };
+      initAuth().catch(console.error);
+    } else {
+      console.log('Skipping initial auth check on public route:', window.location.pathname);
+      setIsLoading(false);
+    }
 
-    initAuth().catch(console.error);
-
-    // Listen for auth changes - SIMPLIFIED to avoid lock conflicts
+    // Always subscribe on non-preview routes so sign-in events are caught
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -800,11 +826,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Don't set user directly from session as it lacks avatar data
-          // Instead, trigger a full auth check to get the guest profile
           checkAuthStatus();
           console.log('SIGNED_IN event triggered full auth check for:', session.user.email);
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('Token refreshed for:', session.user.email);
         } else if (event === 'SIGNED_OUT') {
+          // Guard: try to recover the session before clearing state.
+          // Supabase can emit SIGNED_OUT during token refresh cycles.
+          try {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (currentSession?.user) {
+              console.log('SIGNED_OUT event ignored - session still valid for:', currentSession.user.email);
+              return;
+            }
+          } catch {
+            // getSession failed, proceed with sign-out
+          }
+
           setUser(null);
           setHasRSVPed(false);
           setRsvpResponse(null);
@@ -816,7 +854,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Also listen for storage events to handle cross-tab auth changes
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'phera_guest_auth' && mounted) {
         console.log('Guest auth changed in storage, refreshing auth status');

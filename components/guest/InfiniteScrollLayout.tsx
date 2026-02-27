@@ -38,6 +38,8 @@ interface WeddingData {
   wedding_date: string;
   wedding_date_display: string;
   venue_name: string;
+  venue_location?: string;
+  show_venue_location?: boolean | null;
   venue_flag: string;
   rsvp_deadline: string;
   welcome_text?: string;
@@ -394,6 +396,8 @@ export default function InfiniteScrollLayout({
     date: wedding.wedding_date_display,
     weddingDate: wedding.wedding_date,
     venue: wedding.venue_name,
+    venueLocation: wedding.venue_location || '',
+    showVenueLocation: wedding.show_venue_location !== false,
     flag: wedding.venue_flag,
     rsvpDeadline: wedding.rsvp_deadline,
     coupleImages: wedding.couple_images || [],
@@ -656,7 +660,7 @@ export default function InfiniteScrollLayout({
                         textDecoration: 'underline',
                       }}
                     >
-                      {coupleData.venue}
+                      {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                     </Typography>
                     <Typography sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }}>
                       {coupleData.flag}

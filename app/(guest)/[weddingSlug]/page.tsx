@@ -279,6 +279,8 @@ export default function HomePage() {
     date: wedding?.wedding_date_display || WEDDING_CONFIG.weddingDateDisplay,
     weddingDate: wedding?.wedding_date || WEDDING_CONFIG.weddingDate,
     venue: wedding?.venue_name || WEDDING_CONFIG.venue,
+    venueLocation: wedding?.venue_location || '',
+    showVenueLocation: wedding?.show_venue_location !== false,
     flag: wedding?.venue_flag || WEDDING_CONFIG.venueFlag,
     rsvpDeadline: wedding?.rsvp_deadline || WEDDING_CONFIG.rsvpDeadline,
     coupleImage: wedding?.couple_image_url || WEDDING_CONFIG.coupleImage,
@@ -914,7 +916,7 @@ export default function HomePage() {
                         textDecoration: 'underline',
                       }}
                     >
-                      {coupleData.venue}
+                      {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                     </Typography>
                     <Typography sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }}>
                       {coupleData.flag}
@@ -1293,7 +1295,7 @@ export default function HomePage() {
                       textDecoration: 'underline',
                     }}
                   >
-                    {coupleData.venue}
+                    {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                   </Typography>
                   <Typography sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem' } }}>
                     {coupleData.flag}
@@ -1376,6 +1378,8 @@ export default function HomePage() {
               wedding_date: wedding.wedding_date,
               wedding_date_display: wedding.wedding_date_display,
               venue_name: wedding.venue_name,
+              venue_location: wedding.venue_location || '',
+              show_venue_location: wedding.show_venue_location,
               venue_flag: wedding.venue_flag || '',
               rsvp_deadline: wedding.rsvp_deadline,
               welcome_text: wedding.welcome_text || undefined,

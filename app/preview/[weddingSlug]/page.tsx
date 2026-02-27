@@ -657,7 +657,7 @@ function PreviewContent() {
                           textDecoration: 'underline',
                         }}
                       >
-                        {wedding.venue_name}{wedding.venue_location ? `, ${wedding.venue_location}` : ''}
+                        {wedding.venue_name}{wedding.show_venue_location !== false && wedding.venue_location ? `, ${wedding.venue_location}` : ''}
                       </Typography>
                       {wedding.venue_flag && (
                         <Typography sx={{ fontSize: { md: '1.25rem', lg: '1.375rem', xl: '1.5rem' } }}>
@@ -845,7 +845,7 @@ function PreviewContent() {
                             textDecoration: 'underline',
                           }}
                         >
-                          {wedding.venue_location}
+                          {wedding.venue_name}{wedding.show_venue_location !== false && wedding.venue_location ? `, ${wedding.venue_location}` : ''}
                         </Typography>
                         {wedding.venue_flag && (
                           <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.3rem', xl: '1.4rem' } }}>
@@ -933,7 +933,7 @@ export default function PreviewPage({ params }: { params: Promise<{ weddingSlug:
   const { weddingSlug } = use(params);
 
   return (
-    <WeddingProvider weddingSlug={weddingSlug}>
+    <WeddingProvider weddingSlug={weddingSlug} mode="preview">
       <PreviewContent />
     </WeddingProvider>
   );
