@@ -3,7 +3,13 @@
  * Handles parsing and processing of WhatsApp webhook payloads
  */
 
-import { supabase } from '../supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Use service role client to bypass RLS for server-side webhook operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export interface WebhookStatus {
   id: string;

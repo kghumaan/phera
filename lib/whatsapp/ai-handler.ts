@@ -1,5 +1,11 @@
 import Groq from 'groq-sdk';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Use service role client to bypass RLS for server-side operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 

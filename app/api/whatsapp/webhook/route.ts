@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingMessage, logChatMessage } from '@/lib/whatsapp/webhooks';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
+
+// Use service role client to bypass RLS for server-side webhook processing
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * GET handler for webhook verification
