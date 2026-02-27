@@ -112,6 +112,12 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
         await weddingService.createRegistryItem(currentItem);
       }
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setEditDialogOpen(false);
       setCurrentItem(null);
       setSuccess(true);
@@ -130,6 +136,12 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     try {
       await weddingService.deleteRegistryItem(itemId);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setSuccess(true);
       showToast('Registry link deleted successfully', 'success');
     } catch (err) {

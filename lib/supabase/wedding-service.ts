@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { supabase, TypedSupabaseClient } from './client';
 import { Tables, TablesInsert, TablesUpdate } from './types';
 
 // Types for wedding data
@@ -72,7 +72,11 @@ export interface Task {
 
 // Wedding CRUD operations
 export class WeddingService {
-  private supabase = supabase;
+  private supabase: TypedSupabaseClient;
+
+  constructor(client?: TypedSupabaseClient) {
+    this.supabase = client || supabase;
+  }
 
   // Weddings
   async getWeddingBySlug(slug: string): Promise<Wedding | null> {
@@ -1444,6 +1448,72 @@ export class WeddingService {
       return null;
     }
     return data;
+  }
+
+  // Publish Snapshot
+  async publishWedding(weddingId: string): Promise<boolean> {
+    try {
+      // Fetch all wedding data in parallel
+      const [wedding, events, schedule, faqs, travelCards, registry, shops, settings] = await Promise.all([
+        this.getWeddingById(weddingId),
+        this.getWeddingEvents(weddingId),
+        this.getWeddingSchedule(weddingId),
+        this.getFAQs(weddingId),
+        this.getTravelCards(weddingId),
+        this.getRegistry(weddingId),
+        this.getShops(weddingId),
+        this.getSettings(weddingId),
+      ]);
+
+      if (!wedding) {
+        console.error('Wedding not found for publishing:', weddingId);
+        return false;
+      }
+
+      const snapshot = {
+        wedding,
+        events,
+        schedule,
+        faqs,
+        travelCards,
+        registry,
+        shops,
+        settings,
+        publishedAt: new Date().toISOString(),
+      };
+
+      const { error } = await this.supabase
+        .from('weddings')
+        .update({
+          published_snapshot: snapshot as any,
+          has_unpublished_changes: false,
+          last_published_at: new Date().toISOString(),
+          status: 'live',
+        })
+        .eq('id', weddingId);
+
+      if (error) {
+        console.error('Error publishing wedding:', error);
+        return false;
+      }
+
+      console.log('✅ Wedding published successfully');
+      return true;
+    } catch (err) {
+      console.error('Error in publishWedding:', err);
+      return false;
+    }
+  }
+
+  async markUnpublishedChanges(weddingId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('weddings')
+      .update({ has_unpublished_changes: true })
+      .eq('id', weddingId);
+
+    if (error) {
+      console.error('Error marking unpublished changes:', error);
+    }
   }
 
   // RSVP Stats

@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Divider, Switch, TextField, InputAdornment, CircularProgress } from '@mui/material';
-import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check } from '@mui/icons-material';
+import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress } from '@mui/material';
+import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 
 interface AdminPreviewPanelProps {
     weddingSlug: string;
-    refreshKey?: number; // Optional key to force iframe refresh
+    refreshKey?: number;
+    weddingId?: string;
+    hasUnpublishedChanges?: boolean;
+    lastPublishedAt?: string | null;
+    onPublished?: () => void;
 }
 
 interface PinCode {
@@ -16,16 +20,25 @@ interface PinCode {
     type: string;
 }
 
-/**
- * Persistent preview panel for admin pages
- * Shows the wedding website preview with desktop/mobile toggle
- */
-export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: AdminPreviewPanelProps) {
+export default function AdminPreviewPanel({
+    weddingSlug,
+    refreshKey = 0,
+    weddingId,
+    hasUnpublishedChanges: externalHasChanges,
+    lastPublishedAt: externalLastPublished,
+    onPublished,
+}: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
+
+    // Publish state
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [publishSuccess, setPublishSuccess] = useState(false);
+    const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(externalHasChanges ?? true);
+    const [lastPublishedAt, setLastPublishedAt] = useState(externalLastPublished ?? null);
 
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -35,6 +48,46 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingModal, setIsLoadingModal] = useState(false);
     const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+
+    // Sync with external props
+    useEffect(() => {
+        if (externalHasChanges !== undefined) setHasUnpublishedChanges(externalHasChanges);
+    }, [externalHasChanges]);
+    useEffect(() => {
+        if (externalLastPublished !== undefined) setLastPublishedAt(externalLastPublished);
+    }, [externalLastPublished]);
+
+    // Listen for CHANGES_SAVED broadcasts to update publish button visibility
+    useEffect(() => {
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.onmessage = (event) => {
+            if (event.data?.type === 'CHANGES_SAVED') {
+                setHasUnpublishedChanges(true);
+            }
+        };
+        return () => channel.close();
+    }, []);
+
+    const showPublishButton = hasUnpublishedChanges || !lastPublishedAt;
+
+    const handlePublish = async () => {
+        if (!weddingId) return;
+        setIsPublishing(true);
+        try {
+            const success = await weddingService.publishWedding(weddingId);
+            if (success) {
+                setPublishSuccess(true);
+                setHasUnpublishedChanges(false);
+                setLastPublishedAt(new Date().toISOString());
+                onPublished?.();
+                setTimeout(() => setPublishSuccess(false), 2500);
+            }
+        } catch (error) {
+            console.error('Error publishing:', error);
+        } finally {
+            setIsPublishing(false);
+        }
+    };
 
     const handleShareClick = async () => {
         setIsShareModalOpen(true);
@@ -83,6 +136,10 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
         ? `${window.location.origin}/${weddingSlug}`
         : `https://phera.app/${weddingSlug}`;
 
+    const previewUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/preview/${weddingSlug}`
+        : `https://phera.app/preview/${weddingSlug}`;
+
     // Refresh iframe when refreshKey changes
     useEffect(() => {
         if (iframeRefLine.current && refreshKey > 0) {
@@ -96,27 +153,24 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
             try {
                 iframeRefLine.current.contentWindow.scrollTo(0, 0);
             } catch (e) {
-                // Ignore cross-origin errors if any
+                // Ignore cross-origin errors
             }
         }
     }, [viewMode]);
 
-    // Track container dimensions for scaling and stable transitions
+    // Track container dimensions
     useEffect(() => {
         if (!containerRef.current) return;
-
         const observer = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 setContainerWidth(entry.contentRect.width);
                 setContainerHeight(entry.contentRect.height);
             }
         });
-
         observer.observe(containerRef.current);
         return () => observer.disconnect();
     }, []);
 
-    // Scaling logic for desktop
     const DESKTOP_WIDTH = 1280;
     const desktopScale = useMemo(() => {
         if (!containerWidth || viewMode !== 'desktop') return 1;
@@ -124,14 +178,12 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
         return frameWidth / DESKTOP_WIDTH;
     }, [containerWidth, viewMode]);
 
-    // Calculate specific pixel height for desktop to avoid 'auto' transition jump
     const desktopHeight = useMemo(() => {
         if (!containerWidth) return 0;
         const frameWidth = containerWidth * 0.94;
         return frameWidth / (16 / 10);
     }, [containerWidth]);
 
-    // Mobile height: constrained to reasonable bounds
     const mobileHeight = Math.min(containerHeight * 0.92, 850);
 
     return (
@@ -141,10 +193,10 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: '#f8f7f5', // Off-white background
+                bgcolor: '#f8f7f5',
             }}
         >
-            {/* Toggle Header */}
+            {/* Toggle Header with Publish Button */}
             <Box
                 sx={{
                     display: 'flex',
@@ -156,51 +208,115 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     position: 'relative',
                 }}
             >
-                <Box
-                    sx={{
+                <motion.div
+                    layout
+                    style={{
                         display: 'flex',
-                        gap: 1.5, // Increased gap
-                        bgcolor: 'white',
-                        borderRadius: '16px',
-                        p: 0.5,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                        justifyContent: showPublishButton ? 'space-between' : 'center',
                     }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 >
-                    <IconButton
-                        onClick={() => setViewMode('desktop')}
-                        size="medium"
-                        sx={{
-                            bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                            color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
-                            borderRadius: '14px',
-                            px: 2.5,
-                            py: 1,
-                            '&:hover': {
-                                bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
-                            },
-                        }}
-                        title="Desktop View"
-                    >
-                        <DesktopWindows sx={{ fontSize: 22 }} />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => setViewMode('mobile')}
-                        size="medium"
-                        sx={{
-                            bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                            color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
-                            borderRadius: '14px',
-                            px: 2.5,
-                            py: 1,
-                            '&:hover': {
-                                bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
-                            },
-                        }}
-                        title="Mobile View"
-                    >
-                        <PhoneAndroid sx={{ fontSize: 22 }} />
-                    </IconButton>
-                </Box>
+                    <motion.div layout>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                gap: 1.5,
+                                bgcolor: 'white',
+                                borderRadius: '16px',
+                                p: 0.5,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            <IconButton
+                                onClick={() => setViewMode('desktop')}
+                                size="medium"
+                                sx={{
+                                    bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
+                                    color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
+                                    borderRadius: '14px',
+                                    px: 2.5,
+                                    py: 1,
+                                    '&:hover': {
+                                        bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
+                                    },
+                                }}
+                                title="Desktop View"
+                            >
+                                <DesktopWindows sx={{ fontSize: 22 }} />
+                            </IconButton>
+                            <IconButton
+                                onClick={() => setViewMode('mobile')}
+                                size="medium"
+                                sx={{
+                                    bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
+                                    color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
+                                    borderRadius: '14px',
+                                    px: 2.5,
+                                    py: 1,
+                                    '&:hover': {
+                                        bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
+                                    },
+                                }}
+                                title="Mobile View"
+                            >
+                                <PhoneAndroid sx={{ fontSize: 22 }} />
+                            </IconButton>
+                        </Box>
+                    </motion.div>
+
+                    <AnimatePresence>
+                        {showPublishButton && (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 20, scale: 0.9 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                            >
+                                <Button
+                                    variant="contained"
+                                    onClick={handlePublish}
+                                    disabled={isPublishing || publishSuccess}
+                                    startIcon={
+                                        isPublishing ? (
+                                            <CircularProgress size={16} color="inherit" />
+                                        ) : publishSuccess ? (
+                                            <Check sx={{ fontSize: 18 }} />
+                                        ) : (
+                                            <Publish sx={{ fontSize: 18 }} />
+                                        )
+                                    }
+                                    sx={{
+                                        bgcolor: publishSuccess ? '#10B981' : '#DE3F5E',
+                                        color: 'white',
+                                        borderRadius: '14px',
+                                        px: 2.5,
+                                        py: 1,
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontSize: '0.9rem',
+                                        boxShadow: publishSuccess
+                                            ? '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                            : '0 4px 12px rgba(222, 63, 94, 0.3)',
+                                        '&:hover': {
+                                            bgcolor: publishSuccess ? '#059669' : '#c23450',
+                                        },
+                                        '&.Mui-disabled': {
+                                            bgcolor: publishSuccess ? '#10B981' : '#DE3F5E',
+                                            color: 'white',
+                                            opacity: 0.8,
+                                        },
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    {isPublishing ? 'Publishing...' : publishSuccess ? 'Published!' : 'Publish'}
+                                </Button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
             </Box>
 
             <Box
@@ -210,7 +326,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    overflow: 'visible', // Allow shadows to be seen
+                    overflow: 'visible',
                     p: 0,
                     position: 'relative',
                 }}
@@ -225,20 +341,19 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-80px' : '-35px', // Moved up a bit more
+                        marginTop: viewMode === 'desktop' ? '-80px' : '-35px',
                         backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
                             : '0 10px 40px rgba(0, 0, 0, 0.25)',
                         border: viewMode === 'desktop'
                             ? '1px solid rgba(0, 0, 0, 0.08)'
-                            : '12px solid #ebebeb', // Light mobile border
+                            : '12px solid #ebebeb',
                         position: 'relative',
                     }}
                 >
                     {viewMode === 'desktop' ? (
                         <>
-                            {/* Browser Header/Title Bar */}
                             <Box
                                 sx={{
                                     height: 32,
@@ -256,8 +371,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
                                 </Box>
                             </Box>
-
-                            {/* Iframe Content with Scaling */}
                             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                                 <iframe
                                     ref={iframeRefLine}
@@ -275,7 +388,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                         </>
                     ) : (
                         <>
-                            {/* Phone notch (subtle color) */}
                             <Box
                                 sx={{
                                     width: 100,
@@ -290,24 +402,23 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                     zIndex: 2,
                                 }}
                             />
-                            {/* Phone screen */}
                             <Box
                                 sx={{
                                     flex: 1,
-                                    bgcolor: '#ebebeb', // Background matches bezel to hide gaps
+                                    bgcolor: '#ebebeb',
                                     borderRadius: '24px',
                                     overflow: 'hidden',
-                                    mt: -2.2, // Pull up to meet the notch and overlap its border
+                                    mt: -2.2,
                                     position: 'relative',
-                                    WebkitMaskImage: '-webkit-radial-gradient(white, black)', // Fixes Safari border-radius clipping bug with transformed children
+                                    WebkitMaskImage: '-webkit-radial-gradient(white, black)',
                                 }}
                             >
                                 <iframe
                                     ref={iframeRefLine}
                                     src={`/preview/${weddingSlug}`}
                                     style={{
-                                        width: '125%', // 100% / 0.8
-                                        height: '125%', // 100% / 0.8
+                                        width: '125%',
+                                        height: '125%',
                                         border: 'none',
                                         backgroundColor: 'white',
                                         transform: 'scale(0.8)',
@@ -320,7 +431,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     )}
                 </motion.div>
 
-                {/* View Site and Share Buttons - Positioned relative to the container, moving with the frame */}
+                {/* View Site and Share Buttons */}
                 <motion.div
                     animate={{
                         width: viewMode === 'desktop' ? '92%' : 340,
@@ -328,7 +439,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{
                         position: 'absolute',
-                        bottom: viewMode === 'mobile' ? '-10px' : '40px', // Moved down slightly
+                        bottom: viewMode === 'mobile' ? '-10px' : '40px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
@@ -339,7 +450,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                 >
                     <Button
                         variant="text"
-                        onClick={() => window.open(publicUrl, '_blank')}
+                        onClick={() => window.open(previewUrl, '_blank')}
                         startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
                         sx={{
                             color: '#1a1a1a',
@@ -385,12 +496,13 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     sx={{
                         color: '#9a9a9a',
                         fontSize: '0.75rem',
-                        whiteSpace: 'nowrap', // Force one line
+                        whiteSpace: 'nowrap',
                     }}
                 >
                     Layout and spacing may vary slightly by device to ensure a perfect guest experience.
                 </Typography>
             </Box>
+
             {/* Share Modal */}
             <Dialog
                 open={isShareModalOpen}
@@ -453,7 +565,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                         onClick={() => copyToClipboard(publicUrl, 'url')}
                                         sx={{
                                             textTransform: 'none',
-                                            color: '#DE3F5E', // Primary pink
+                                            color: '#DE3F5E',
                                             fontWeight: 600,
                                             p: 0,
                                             minWidth: 0,
@@ -468,7 +580,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                         target="_blank"
                                         sx={{
                                             textTransform: 'none',
-                                            color: '#DE3F5E', // Primary pink
+                                            color: '#DE3F5E',
                                             fontWeight: 600,
                                             p: 0,
                                             minWidth: 0,
@@ -484,7 +596,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#1a1a1a' }}>
                                     Guest PINs
                                 </Typography>
-
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                                     {(settings?.pin_codes as unknown as PinCode[] | undefined)?.map((pin, index) => (
                                         <Box
@@ -530,7 +641,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                 <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 3 }}>
                                     Publish your site before sharing.
                                 </Typography>
-
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
                                         <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
@@ -549,7 +659,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                         }}
                                     />
                                 </Box>
-
                                 <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                                     <Button
                                         variant="contained"
@@ -571,7 +680,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                                         {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save'}
                                     </Button>
                                 </Box>
-
                                 {wedding && (
                                     <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#666' }}>
                                         Current Status: <strong>{wedding.status === 'live' ? 'Published' : 'Draft'}</strong>
@@ -582,6 +690,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     )}
                 </DialogContent>
             </Dialog>
-        </Box >
+        </Box>
     );
 }

@@ -74,7 +74,6 @@ export const groups: SidebarGroup[] = [
       { id: 'registry', label: 'Registry Integration', path: '/registry', isPro: true },
       { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
-      { id: 'publish', label: 'Publish Website', path: '/publish' },
     ]
   },
   {

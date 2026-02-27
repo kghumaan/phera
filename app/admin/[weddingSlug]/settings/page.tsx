@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
@@ -16,31 +15,32 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-  Fade,
   alpha,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
-import { Save, CheckCircle, Cancel, Launch, ContentCopy, Check } from '@mui/icons-material';
+import { useState, useEffect, use, useCallback } from 'react';
+import { CheckCircle, Cancel, Launch, ContentCopy } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
+import { useAutoSave } from '@/lib/hooks/useAutoSave';
+import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function SettingsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [settings, setSettings] = useState<any>(null);
   const [whatsappLink, setWhatsappLink] = useState('');
   const [googleSheetsId, setGoogleSheetsId] = useState('');
+  const [initialSettings, setInitialSettings] = useState<{ whatsapp: string; sheets: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -65,6 +65,12 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
           setSettings(settingsData);
           setWhatsappLink(settingsData.whatsapp_group_link || '');
           setGoogleSheetsId(settingsData.google_sheets_id || '');
+          setInitialSettings({
+            whatsapp: settingsData.whatsapp_group_link || '',
+            sheets: settingsData.google_sheets_id || '',
+          });
+        } else {
+          setInitialSettings({ whatsapp: '', sheets: '' });
         }
       }
     } catch (err) {
@@ -77,43 +83,41 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  const handleSaveSettings = async () => {
-    setSaving(true);
-    setError(null);
+  const saveSettings = useCallback(async () => {
+    if (!weddingId) return;
 
-    try {
-      if (settings?.id) {
-        await weddingService.updateSettings(weddingId!, {
-          whatsapp_group_link: whatsappLink,
-          google_sheets_id: googleSheetsId,
-        });
-      } else {
-        await weddingService.createSettings({
-          wedding_id: weddingId!,
-          whatsapp_group_link: whatsappLink,
-          google_sheets_id: googleSheetsId,
-          pin_codes: [],
-          lapse_event_codes: {},
-        });
-      }
-
-      setSuccess(true);
-      setShowSaveSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setShowSaveSuccess(false);
-      }, 2500);
-      toast.success('Integrations saved!');
-      await loadData();
-    } catch (err) {
-      console.error('Error saving settings:', err);
-      const errorMessage = 'Failed to save settings';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setSaving(false);
+    if (settings?.id) {
+      await weddingService.updateSettings(weddingId, {
+        whatsapp_group_link: whatsappLink,
+        google_sheets_id: googleSheetsId,
+      });
+    } else {
+      await weddingService.createSettings({
+        wedding_id: weddingId,
+        whatsapp_group_link: whatsappLink,
+        google_sheets_id: googleSheetsId,
+        pin_codes: [],
+        lapse_event_codes: {},
+      });
     }
-  };
+
+    await weddingService.markUnpublishedChanges(weddingId);
+    setInitialSettings({ whatsapp: whatsappLink, sheets: googleSheetsId });
+  }, [weddingId, settings?.id, whatsappLink, googleSheetsId]);
+
+  const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveSettings, enabled: !!authUser });
+
+  // Auto-save when integrations change
+  useEffect(() => {
+    if (initialSettings) {
+      const dirty =
+        whatsappLink !== initialSettings.whatsapp ||
+        googleSheetsId !== initialSettings.sheets;
+      if (dirty) {
+        debouncedSave();
+      }
+    }
+  }, [whatsappLink, googleSheetsId, initialSettings, debouncedSave]);
 
   const handleUpdateStatus = async (newStatus: 'draft' | 'live') => {
     if (newStatus === 'live') {
@@ -123,7 +127,8 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     }
 
     try {
-      await weddingService.updateWedding(weddingId!, { status: newStatus });
+      const result = await weddingService.updateWedding(weddingId!, { status: newStatus });
+      if (!result) throw new Error('Failed to update status');
       setStatus(newStatus);
       setSuccess(true);
       const statusMessages = {
@@ -156,12 +161,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    setSuccess(true);
-    setShowSaveSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      setShowSaveSuccess(false);
-    }, 2000);
     toast.success('Copied to clipboard!');
   };
 
@@ -422,42 +421,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 }}
               />
 
-              {/* Save Button with Inline Success */}
-              <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
-                <Button
-                  variant="contained"
-                  startIcon={showSaveSuccess ? <Check /> : <Save />}
-                  onClick={handleSaveSettings}
-                  disabled={saving}
-                  size="large"
-                  sx={{
-                    bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                    color: 'white',
-                    py: 1.5,
-                    px: 4,
-                    borderRadius: '16px',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    boxShadow: showSaveSuccess
-                      ? '0 4px 12px rgba(16, 185, 129, 0.4)'
-                      : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                      boxShadow: showSaveSuccess
-                        ? '0 6px 16px rgba(16, 185, 129, 0.5)'
-                        : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                    },
-                    '&:disabled': {
-                      bgcolor: 'rgba(222, 63, 94, 0.5)',
-                    },
-                  }}
-                >
-                  {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Integrations'}
-                </Button>
-
-              </Box>
+              <AutoSaveIndicator status={saveStatus} />
             </Stack>
           </Stack>
         </Paper>

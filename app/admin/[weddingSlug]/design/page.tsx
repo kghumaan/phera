@@ -194,8 +194,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     });
     setIsDirty(false);
   }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground,
-      pinEntryPrimaryColor, pinEntryFontColor, pinEntryButtonFontColor, mainBackground, customMainBackground,
-      mainPrimaryColor, websiteLayout, frameImageUrl, coupleImages]);
+    pinEntryPrimaryColor, pinEntryFontColor, pinEntryButtonFontColor, mainBackground, customMainBackground,
+    mainPrimaryColor, websiteLayout, frameImageUrl, coupleImages]);
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveDesign, enabled: !!authUser });
 
@@ -328,13 +328,30 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         setFrameImageUrl(wedding.frame_image_url || null);
 
         // Load couple images
+        let loadedCoupleImages: (string | null)[] = Array(6).fill(null);
         if (wedding.couple_images && Array.isArray(wedding.couple_images)) {
           const images: (string | null)[] = [...wedding.couple_images as unknown as string[]];
           while (images.length < 6) images.push(null);
-          setCoupleImages(images.slice(0, 6));
+          loadedCoupleImages = images.slice(0, 6);
         } else if (wedding.couple_image_url) {
-          setCoupleImages([wedding.couple_image_url, null, null, null, null, null]);
+          loadedCoupleImages = [wedding.couple_image_url, null, null, null, null, null];
         }
+        setCoupleImages(loadedCoupleImages);
+
+        // Set initial design data for dirty tracking (enables auto-save)
+        setInitialDesignData({
+          pin_entry_text: wedding.pin_entry_text || defaultText,
+          pin_entry_subtitle_text: wedding.pin_entry_subtitle_text || defaultSubtitle,
+          pin_entry_background: wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS,
+          pin_entry_primary_color: wedding.pin_entry_primary_color || '#141414',
+          pin_entry_font_color: wedding.pin_entry_font_color || '#000000',
+          pin_entry_button_font_color: wedding.pin_entry_button_font_color || '#FFFFFF',
+          background_image: wedding.background_image || BACKGROUNDS.BLUE_CLOUDS,
+          primary_color: wedding.primary_color || '#DE3F5E',
+          website_layout: (wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested',
+          frame_image_url: wedding.frame_image_url || null,
+          couple_images: loadedCoupleImages.filter(img => img),
+        });
       }
     } catch (err) {
       console.error('Error loading pin entry settings:', err);
@@ -434,14 +451,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <RadioGroup
                   value={websiteLayout}
                   onChange={(e) => setWebsiteLayout(e.target.value as 'nested' | 'infinite_scroll')}
-                  sx={{ flexDirection: 'row', gap: 2 }}
+                  sx={{ flexDirection: 'row', gap: 1.5 }}
                 >
-                  <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid container spacing={1.5}>
+                    <Grid size={{ xs: 6 }}>
                       <Paper
                         sx={{
-                          p: 2,
-                          borderRadius: '12px',
+                          p: 1.5,
+                          borderRadius: '10px',
                           bgcolor: '#ffffff',
                           border: websiteLayout === 'nested' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                           cursor: 'pointer',
@@ -453,35 +470,30 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       >
                         <FormControlLabel
                           value="nested"
-                          control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                          control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
                           label={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                               <Box sx={{ flex: 1 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                   Nested
-                                  <Tooltip title="Guests tap 'View Details' to see event info, schedule, etc." arrow placement="top">
-                                    <IconButton size="small" sx={{ p: 0.5, display: { xs: 'inline-flex', sm: 'none' } }} onClick={(e) => e.stopPropagation()}>
-                                      <InfoOutlined sx={{ fontSize: 18, color: '#666' }} />
-                                    </IconButton>
-                                  </Tooltip>
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: '#4a4a4a', display: { xs: 'none', sm: 'block' }, mt: 0.5 }}>
-                                  Guests tap 'View Details' to see event info, schedule, etc.
+                                <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
+                                  Guests tap &apos;View Details&apos; to see event info
                                 </Typography>
                               </Box>
-                              <ViewAgenda sx={{ fontSize: 32, color: '#DE3F5E', flexShrink: 0, ml: 2 }} />
+                              <ViewAgenda sx={{ fontSize: 22, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
                             </Box>
                           }
-                          sx={{ alignItems: 'flex-start', m: 0 }}
+                          sx={{ alignItems: 'center', m: 0, gap: 0.5 }}
                         />
                       </Paper>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <Grid size={{ xs: 6 }}>
                       <Paper
                         sx={{
-                          p: 2,
-                          borderRadius: '12px',
+                          p: 1.5,
+                          borderRadius: '10px',
                           bgcolor: '#ffffff',
                           border: websiteLayout === 'infinite_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                           cursor: 'pointer',
@@ -493,26 +505,21 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       >
                         <FormControlLabel
                           value="infinite_scroll"
-                          control={<Radio sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' } }} />}
+                          control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
                           label={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                               <Box sx={{ flex: 1 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                   Infinite Scroll
-                                  <Tooltip title="All wedding details are displayed as you scroll down the page" arrow placement="top">
-                                    <IconButton size="small" sx={{ p: 0.5, display: { xs: 'inline-flex', sm: 'none' } }} onClick={(e) => e.stopPropagation()}>
-                                      <InfoOutlined sx={{ fontSize: 18, color: '#666' }} />
-                                    </IconButton>
-                                  </Tooltip>
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: '#4a4a4a', display: { xs: 'none', sm: 'block' }, mt: 0.5 }}>
-                                  All wedding details are displayed as you scroll down the page
+                                <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
+                                  All details shown as you scroll down
                                 </Typography>
                               </Box>
-                              <UnfoldMore sx={{ fontSize: 32, color: '#DE3F5E', flexShrink: 0, ml: 2 }} />
+                              <UnfoldMore sx={{ fontSize: 22, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
                             </Box>
                           }
-                          sx={{ alignItems: 'flex-start', m: 0 }}
+                          sx={{ alignItems: 'center', m: 0, gap: 0.5 }}
                         />
                       </Paper>
                     </Grid>
@@ -657,12 +664,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
               {/* Images & Frames */}
               <Paper sx={sectionPaperSx}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                {/* <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
                   Images & Frames
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
                   Manage the photos of the couple and choose a decorative frame
-                </Typography>
+                </Typography> */}
 
                 <Stack spacing={4}>
                   {/* Couple Photos */}
@@ -787,10 +794,13 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                                 size="small"
                                 onClick={async () => {
                                   const { deleteImage } = await import('@/lib/utils/image-upload');
-                                  await deleteImage(img);
-                                  const newImages = [...coupleImages];
-                                  newImages[originalIndex] = null;
-                                  setCoupleImages(newImages);
+                                  // deleteImage may log "Invalid URL format" for external URLs — safe to ignore
+                                  await deleteImage(img).catch(() => {});
+                                  // Remove the image and compact: shift remaining images forward
+                                  // so the next image becomes the new "Main"
+                                  const remaining = coupleImages.filter((_, i) => i !== originalIndex).filter(i => i);
+                                  while (remaining.length < 6) remaining.push(null);
+                                  setCoupleImages(remaining);
                                 }}
                                 sx={{
                                   position: 'absolute',

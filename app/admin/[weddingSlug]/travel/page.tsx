@@ -126,6 +126,12 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
         await weddingService.createTravelCard(saveData);
       }
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setEditDialogOpen(false);
       setCurrentCard(null);
       setSuccess(true);
@@ -144,6 +150,12 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     try {
       await weddingService.deleteTravelCard(cardId);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setSuccess(true);
       showToast('Card deleted successfully', 'success');
     } catch (err) {

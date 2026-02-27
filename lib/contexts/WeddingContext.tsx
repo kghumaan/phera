@@ -1,12 +1,30 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { weddingService, Wedding, WeddingEvent, WeddingSettings } from '@/lib/supabase/wedding-service';
+import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import {
+  weddingService,
+  WeddingService,
+  Wedding,
+  WeddingEvent,
+  WeddingSettings,
+  WeddingFAQ,
+  WeddingTravelCard,
+  WeddingRegistry,
+  WeddingShop,
+  WeddingSchedule,
+  ScheduleItem,
+} from '@/lib/supabase/wedding-service';
+import { getPublicSupabaseClient } from '@/lib/supabase/client';
 
 interface WeddingContextType {
   wedding: Wedding | null;
   events: WeddingEvent[];
   settings: WeddingSettings | null;
+  faqs: WeddingFAQ[];
+  schedule: Array<WeddingSchedule & { events: ScheduleItem[] }>;
+  travelCards: WeddingTravelCard[];
+  registry: WeddingRegistry[];
+  shops: WeddingShop[];
   isLoading: boolean;
   error: string | null;
   refetchWedding: () => Promise<void>;
@@ -17,12 +35,25 @@ const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 interface WeddingProviderProps {
   children: ReactNode;
   weddingSlug: string;
+  mode?: 'preview' | 'live';
 }
 
-export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps) {
+export function WeddingProvider({ children, weddingSlug, mode = 'preview' }: WeddingProviderProps) {
+  // Use public client for live (guest-facing) mode only; preview uses authenticated client
+  const service = useMemo(() =>
+    mode === 'live'
+      ? new WeddingService(getPublicSupabaseClient())
+      : weddingService,
+    [mode]
+  );
   const [wedding, setWedding] = useState<Wedding | null>(null);
   const [events, setEvents] = useState<WeddingEvent[]>([]);
   const [settings, setSettings] = useState<WeddingSettings | null>(null);
+  const [faqs, setFaqs] = useState<WeddingFAQ[]>([]);
+  const [schedule, setSchedule] = useState<Array<WeddingSchedule & { events: ScheduleItem[] }>>([]);
+  const [travelCards, setTravelCards] = useState<WeddingTravelCard[]>([]);
+  const [registry, setRegistry] = useState<WeddingRegistry[]>([]);
+  const [shops, setShops] = useState<WeddingShop[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -49,8 +80,8 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
 
       // Fetch wedding by slug with timeout
       const weddingData = await withTimeout(
-        weddingService.getWeddingBySlug(weddingSlug),
-        10000 // 10 second timeout
+        service.getWeddingBySlug(weddingSlug),
+        10000
       );
 
       if (!weddingData) {
@@ -59,22 +90,50 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
         return;
       }
 
+      // In live mode, read from published_snapshot if available
+      if (mode === 'live' && weddingData.published_snapshot) {
+        console.log('✅ Loading from published snapshot');
+        const snapshot = weddingData.published_snapshot as any;
+        setWedding(snapshot.wedding || weddingData);
+        setEvents(snapshot.events || []);
+        setSettings(snapshot.settings || null);
+        setFaqs(snapshot.faqs || []);
+        setSchedule(snapshot.schedule || []);
+        setTravelCards(snapshot.travelCards || []);
+        setRegistry(snapshot.registry || []);
+        setShops(snapshot.shops || []);
+        setIsLoading(false);
+        setRetryCount(0);
+        return;
+      }
+
+      // Fallback: read from DB tables (preview mode, or live with no snapshot)
       console.log('✅ Wedding data loaded successfully');
       setWedding(weddingData);
 
-      // Fetch related data in parallel with timeout
-      const [eventsData, settingsData] = await withTimeout(
+      // Fetch all related data in parallel with timeout
+      const [eventsData, settingsData, faqsData, scheduleData, travelData, registryData, shopsData] = await withTimeout(
         Promise.all([
-          weddingService.getWeddingEvents(weddingData.id),
-          weddingService.getSettings(weddingData.id),
+          service.getWeddingEvents(weddingData.id),
+          service.getSettings(weddingData.id),
+          service.getFAQs(weddingData.id),
+          service.getWeddingSchedule(weddingData.id),
+          service.getTravelCards(weddingData.id),
+          service.getRegistry(weddingData.id),
+          service.getShops(weddingData.id),
         ]),
-        10000 // 10 second timeout
+        10000
       );
 
       setEvents(eventsData || []);
       setSettings(settingsData);
-      setIsLoading(false); // Ensure loading is set to false after parallel fetch
-      setRetryCount(0); // Reset retry count on success
+      setFaqs(faqsData || []);
+      setSchedule(scheduleData || []);
+      setTravelCards(travelData || []);
+      setRegistry(registryData || []);
+      setShops(shopsData || []);
+      setIsLoading(false);
+      setRetryCount(0);
     } catch (err) {
       console.error('❌ Error fetching wedding data:', err);
 
@@ -102,25 +161,31 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
       fetchWeddingData();
     }
 
-    // Real-time Design Sync Listener
-    const channel = new BroadcastChannel('phera-design-sync');
-    channel.onmessage = (event) => {
-      if (event.data?.type === 'DESIGN_UPDATE' && event.data?.updates) {
-        console.log('📥 Received design update:', event.data.updates);
-        setWedding(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            ...event.data.updates
-          };
-        });
-      }
-    };
+    // Real-time Design Sync Listener (only for preview mode)
+    if (mode === 'preview') {
+      const channel = new BroadcastChannel('phera-design-sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'DESIGN_UPDATE' && event.data?.updates) {
+          console.log('📥 Received design update:', event.data.updates);
+          setWedding(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              ...event.data.updates
+            };
+          });
+        }
+        if (event.data?.type === 'PREVIEW_REFRESH') {
+          console.log('📥 Received preview refresh signal');
+          fetchWeddingData();
+        }
+      };
 
-    return () => {
-      channel.close();
-    };
-  }, [weddingSlug]);
+      return () => {
+        channel.close();
+      };
+    }
+  }, [weddingSlug, mode]);
 
   const refetchWedding = async () => {
     await fetchWeddingData();
@@ -130,6 +195,11 @@ export function WeddingProvider({ children, weddingSlug }: WeddingProviderProps)
     wedding,
     events,
     settings,
+    faqs,
+    schedule,
+    travelCards,
+    registry,
+    shops,
     isLoading,
     error,
     refetchWedding,
@@ -149,4 +219,3 @@ export function useWedding() {
   }
   return context;
 }
-

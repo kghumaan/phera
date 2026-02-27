@@ -86,18 +86,16 @@ export default function AppHeader({
     position: 'sticky' as const,
     top: 0,
     zIndex: 10,
-    height: { xs: 64, md: 96 },
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   } : {
     position: 'absolute' as const,
     top: 0,
     left: 0,
     right: 0,
     zIndex: 3,
-    height: { xs: 64, md: 96 },
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   };
 
   return (
@@ -130,6 +128,7 @@ export default function AppHeader({
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
             px: { xs: 2, md: 4 },
+            pt: { xs: 2, md: 4 },
           }}
         >
           <Box

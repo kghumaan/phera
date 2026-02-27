@@ -36,7 +36,7 @@ export default function RegistryPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse } = useAuth();
-  const { wedding } = useWedding();
+  const { wedding, registry: contextRegistry, isLoading: contextLoading } = useWedding();
 
   const [registry, setRegistry] = useState<WeddingRegistry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,23 +47,13 @@ export default function RegistryPage() {
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
 
+  // Use registry from context (respects live/preview mode and snapshot)
   useEffect(() => {
-    loadRegistry();
-  }, [weddingSlug]);
-
-  const loadRegistry = async () => {
-    try {
-      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-      if (wedding) {
-        const data = await weddingService.getRegistry(wedding.id);
-        setRegistry(data);
-      }
-    } catch (error) {
-      console.error('Error loading registry:', error);
-    } finally {
+    if (!contextLoading) {
+      setRegistry(contextRegistry);
       setLoading(false);
     }
-  };
+  }, [contextRegistry, contextLoading]);
 
   const handleRegistryClick = (item: WeddingRegistry) => {
     setSelectedRegistry(item);

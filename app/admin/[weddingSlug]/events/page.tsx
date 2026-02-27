@@ -269,6 +269,12 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
 
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setIsEditing(false);
       setCurrentEvent(null);
       toast.success('Event saved successfully!');
@@ -284,6 +290,12 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     try {
       await weddingService.deleteEvent(eventId);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       toast.success('Event deleted successfully');
     } catch (err) {
       console.error('Error deleting event:', err);

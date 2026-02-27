@@ -1420,6 +1420,9 @@ export type PheraDatabase = {
           wedding_date_display: string
           wedding_date_end: string | null
           welcome_text: string | null
+          published_snapshot: Json | null
+          has_unpublished_changes: boolean | null
+          last_published_at: string | null
         }
         Insert: {
           background_image?: string | null
@@ -1454,6 +1457,9 @@ export type PheraDatabase = {
           wedding_date_display: string
           wedding_date_end?: string | null
           welcome_text?: string | null
+          published_snapshot?: Json | null
+          has_unpublished_changes?: boolean | null
+          last_published_at?: string | null
         }
         Update: {
           background_image?: string | null
@@ -1488,6 +1494,9 @@ export type PheraDatabase = {
           wedding_date_display?: string
           wedding_date_end?: string | null
           welcome_text?: string | null
+          published_snapshot?: Json | null
+          has_unpublished_changes?: boolean | null
+          last_published_at?: string | null
         }
         Relationships: []
       }

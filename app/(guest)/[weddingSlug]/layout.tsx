@@ -18,7 +18,7 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
   const weddingSlug = params.weddingSlug as string;
 
   return (
-    <WeddingProvider weddingSlug={weddingSlug}>
+    <WeddingProvider weddingSlug={weddingSlug} mode="live">
       <WeddingLayoutContent>
         {children}
       </WeddingLayoutContent>

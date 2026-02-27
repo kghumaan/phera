@@ -151,7 +151,7 @@ export async function deleteImage(
     const urlParts = url.split('/');
     const bucketIndex = urlParts.findIndex(part => part === bucket);
     if (bucketIndex === -1) {
-      console.error('Invalid URL format');
+      // URL doesn't match storage bucket (e.g. external URL) — skip storage deletion
       return false;
     }
 

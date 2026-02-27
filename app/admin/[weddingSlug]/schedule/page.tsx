@@ -423,6 +423,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       if (success) {
         setShowPrepopulateSuccess(true);
         await loadData();
+        if (weddingId) {
+          await weddingService.markUnpublishedChanges(weddingId);
+          const channel = new BroadcastChannel('phera-design-sync');
+          channel.postMessage({ type: 'PREVIEW_REFRESH' });
+          channel.close();
+        }
       } else {
         showToast('Failed to prepopulate schedule', 'error');
       }
@@ -468,6 +474,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       }
       setEditDialogOpen(false);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
     } catch (err) {
       console.error('Error saving day:', err);
       showToast('Failed to save day', 'error');
@@ -480,6 +492,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       await weddingService.deleteSchedule(id);
       showToast('Day deleted successfully!', 'success');
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
     } catch (err) {
       console.error('Error deleting day:', err);
       showToast('Failed to delete day', 'error');
@@ -540,6 +558,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       }
       setItemDialogOpen(false);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
     } catch (err) {
       console.error('Error saving event:', err);
       showToast('Failed to save event', 'error');
@@ -552,6 +576,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       await weddingService.deleteScheduleItem(id);
       showToast('Event deleted successfully!', 'success');
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
     } catch (err) {
       console.error('Error deleting event:', err);
       showToast('Failed to delete event', 'error');
@@ -580,6 +610,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       await weddingService.reorderScheduleItems(
         newEvents.map((item, index) => ({ id: item.id, order_index: index }))
       );
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
     } catch (err) {
       console.error('Error reordering items:', err);
       showToast('Failed to save new order', 'error');

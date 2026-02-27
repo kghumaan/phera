@@ -104,6 +104,12 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
         await weddingService.createFAQ(currentFaq);
       }
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setEditDialogOpen(false);
       setCurrentFaq(null);
       setSuccess(true);
@@ -122,6 +128,12 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
     try {
       await weddingService.deleteFAQ(faqId);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setSuccess(true);
       showToast('FAQ deleted successfully', 'success');
     } catch (err) {

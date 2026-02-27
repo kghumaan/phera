@@ -113,6 +113,12 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
         await weddingService.createShop(currentShop);
       }
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setEditDialogOpen(false);
       setCurrentShop(null);
       setSuccess(true);
@@ -131,6 +137,12 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
     try {
       await weddingService.deleteShop(shopId);
       await loadData();
+      if (weddingId) {
+        await weddingService.markUnpublishedChanges(weddingId);
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.postMessage({ type: 'PREVIEW_REFRESH' });
+        channel.close();
+      }
       setSuccess(true);
       showToast('Shop deleted successfully', 'success');
     } catch (err) {

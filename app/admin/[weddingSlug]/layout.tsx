@@ -11,6 +11,7 @@ import { use, useState, useEffect } from 'react';
 import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function OnboardingLayout({
   children,
@@ -32,31 +33,32 @@ export default function OnboardingLayout({
   const showTour = searchParams.get('tour') === 'true'
     || (typeof window !== 'undefined' && sessionStorage.getItem('demo-tour-step') !== null);
 
+  const { user: authUser, isLoading: isLoadingAuth } = useAuth();
+
   useEffect(() => {
+    // Wait for auth to finish loading before doing anything
+    if (isLoadingAuth) return;
+
     const fetchWeddingAndSettings = async () => {
       setIsLoadingWedding(true);
 
       // For demo routes, ensure the user is signed in as the demo user.
       // If not, redirect to /demo to trigger auto-login.
-      if (weddingSlug === 'demo') {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (!currentUser) {
-          router.replace('/demo');
-          return;
-        }
+      if (weddingSlug === 'demo' && !authUser) {
+        router.replace('/demo');
+        return;
       }
 
       // Fetch wedding and account type in parallel
       const weddingPromise = weddingService.getWeddingBySlug(weddingSlug);
-      const settingsPromise = supabase.auth.getUser().then(async ({ data: { user } }) => {
-        if (!user) return null;
-        const { data } = await supabase
-          .from('user_settings')
-          .select('account_type')
-          .eq('user_id', user.id)
-          .single();
-        return data;
-      });
+      const settingsPromise = authUser
+        ? supabase
+            .from('user_settings')
+            .select('account_type')
+            .eq('user_id', authUser.id)
+            .single()
+            .then(({ data }) => data)
+        : Promise.resolve(null);
 
       const [weddingData, settings] = await Promise.all([weddingPromise, settingsPromise]);
 
@@ -70,7 +72,7 @@ export default function OnboardingLayout({
       setIsLoadingWedding(false);
     };
     fetchWeddingAndSettings();
-  }, [weddingSlug, router]);
+  }, [weddingSlug, router, authUser, isLoadingAuth]);
 
   if (!isLoadingWedding && !wedding) {
     notFound();
@@ -203,7 +205,17 @@ export default function OnboardingLayout({
                     bgcolor: '#f8f7f5', // Ensure background extends to top behind nav
                   }}
                 >
-                  <AdminPreviewPanel weddingSlug={wedding?.slug || weddingSlug} />
+                  <AdminPreviewPanel
+                    weddingSlug={wedding?.slug || weddingSlug}
+                    weddingId={wedding?.id}
+                    hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
+                    lastPublishedAt={wedding?.last_published_at ?? null}
+                    onPublished={() => {
+                      if (wedding) {
+                        setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
+                      }
+                    }}
+                  />
                 </Box>
               );
             })()}

@@ -147,11 +147,11 @@ export default function DetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Use WeddingContext for wedding and events data (already loaded)
-  const { wedding, events, isLoading: contextLoading } = useWedding();
+  // Use WeddingContext for wedding and all related data (already loaded, respects live/preview mode)
+  const { wedding, events, faqs: contextFaqs, schedule: contextSchedule, travelCards: contextTravelCards, registry: contextRegistry, isLoading: contextLoading } = useWedding();
   const weddingId = wedding?.id || null;
 
-  // Fetch data availability for each section (excluding wedding and events which we get from context)
+  // Determine data availability from context (no additional DB queries needed for these)
   useEffect(() => {
     const fetchSectionData = async () => {
       if (!weddingId) return;
@@ -159,22 +159,14 @@ export default function DetailsPage() {
       try {
         setIsLoading(true);
 
-        // Fetch remaining section data in parallel (wedding and events already in context)
-        const [travelCards, faqs, schedule, registry] = await Promise.all([
-          weddingService.getTravelCards(weddingId),
-          weddingService.getFAQs(weddingId),
-          weddingService.getWeddingSchedule(weddingId),
-          weddingService.getRegistry(weddingId),
-        ]);
+        // Use data from context (already fetched, respects snapshot in live mode)
+        setHasTravelData(contextTravelCards.length > 0);
+        setHasFAQData(contextFaqs.length > 0);
+        setHasEventsData(events.length > 0);
+        setHasScheduleData(contextSchedule.length > 0);
+        setHasRegistryData(contextRegistry.length > 0);
 
-        // Check if each section has data
-        setHasTravelData(travelCards.length > 0);
-        setHasFAQData(faqs.length > 0);
-        setHasEventsData(events.length > 0); // Use events from context
-        setHasScheduleData(schedule.length > 0);
-        setHasRegistryData(registry.length > 0);
-
-        // Check if transportation is configured
+        // Check if transportation is configured (not in snapshot, always from DB)
         const transportationSettings = await getTransportationSettings(weddingId);
         setHasTransportationData(transportationSettings?.setup_complete || false);
       } catch (error) {
@@ -187,7 +179,7 @@ export default function DetailsPage() {
     if (weddingId) {
       fetchSectionData();
     }
-  }, [weddingId, events]);
+  }, [weddingId, events, contextFaqs, contextSchedule, contextTravelCards, contextRegistry]);
 
   const handleBack = () => {
     setIsNavigating(true);
