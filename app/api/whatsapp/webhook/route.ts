@@ -107,29 +107,42 @@ export async function POST(request: NextRequest) {
           `+${rawDigits.slice(-10)}`, // +3177302557 (last 10 digits with +)
         ];
 
-        let guests: any[] = [];
+        let guestRows: any[] = [];
         for (const phone of phoneVariants) {
           const { data, error } = await supabase
             .from('guests')
-            .select('*, weddings(*)')
+            .select('*')
             .eq('phone', phone);
           console.log(`🔍 Lookup phone="${phone}" → found=${data?.length || 0}, error=${error?.message || 'none'}`);
           if (data && data.length > 0) {
-            guests = data;
+            guestRows = data;
             break;
           }
         }
 
         // Fallback: fuzzy match on last 10 digits using ilike
-        if (guests.length === 0) {
+        if (guestRows.length === 0) {
           const last10 = rawDigits.slice(-10);
           const { data, error } = await supabase
             .from('guests')
-            .select('*, weddings(*)')
+            .select('*')
             .ilike('phone', `%${last10}`);
           console.log(`🔍 Fuzzy lookup last10="${last10}" → found=${data?.length || 0}, error=${error?.message || 'none'}`);
           if (data && data.length > 0) {
-            guests = data;
+            guestRows = data;
+          }
+        }
+
+        // Fetch weddings separately for each guest
+        const guests: any[] = [];
+        for (const g of guestRows) {
+          const { data: weddingData } = await supabase
+            .from('weddings')
+            .select('*')
+            .eq('id', g.wedding_id)
+            .single();
+          if (weddingData) {
+            guests.push({ ...g, weddings: weddingData });
           }
         }
 
