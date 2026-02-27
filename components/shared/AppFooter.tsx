@@ -74,6 +74,9 @@ export default function AppFooter() {
                             <Link href="/privacy" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 Privacy
                             </Link>
+                            <Link href="/terms" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                                Terms
+                            </Link>
                         </Stack>
                     </Grid>
                     <Grid size={{ xs: 12, md: 4 } as any}>
