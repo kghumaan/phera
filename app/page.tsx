@@ -1257,9 +1257,9 @@ export default function LandingPage() {
             borderRadius: '50%',
           }} />
 
-          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 } }}>
-            <Grid container spacing={{ xs: 3, md: 8 }} alignItems="center">
-              <Grid size={{ xs: 12, md: 6 }}>
+          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 }, pr: { md: 6, lg: 10 } }}>
+            <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
+              <Grid size={{ xs: 12, md: 8 }}>
                 <motion.div
                   initial="hidden"
                   whileInView="visible"
@@ -1330,7 +1330,7 @@ export default function LandingPage() {
                 </motion.div>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <motion.div
                   initial="hidden"
                   whileInView="visible"
@@ -1343,12 +1343,12 @@ export default function LandingPage() {
                   <WhatsAppConcierge
                     messages={conciergeMessages}
                     sx={{
-                      width: { xs: '100%', sm: '340px', md: '380px' },
-                      height: { xs: '500px', md: '780px' },
-                      maxWidth: { xs: '320px', md: '420px' },
-                      mx: 'auto',
-                      borderRadius: { xs: '32px', md: '62px' },
-                      border: { xs: '8px solid #1a1a1a', md: '14px solid #1a1a1a' },
+                      width: { xs: '100%', sm: '260px', md: '300px' },
+                      height: { xs: '420px', md: '620px' },
+                      maxWidth: { xs: '260px', md: '300px' },
+                      mx: 0,
+                      borderRadius: { xs: '32px', md: '52px' },
+                      border: { xs: '8px solid #1a1a1a', md: '12px solid #1a1a1a' },
                     }}
                   />
                 </motion.div>
