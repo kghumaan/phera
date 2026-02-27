@@ -42,8 +42,9 @@ const baseTheme = createTheme({
   typography: {
     fontFamily: 'var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: {
-      fontFamily: 'var(--font-outfit)',
-      fontWeight: 300,
+      fontFamily: 'var(--font-instrument-serif)',
+      fontWeight: 400,
+      fontStyle: 'italic',
       '@media (min-width:600px)': {
         fontSize: '3.5rem',
       },
@@ -55,8 +56,9 @@ const baseTheme = createTheme({
       },
     },
     h2: {
-      fontFamily: 'var(--font-outfit)',
+      fontFamily: 'var(--font-instrument-serif)',
       fontWeight: 400,
+      fontStyle: 'italic',
       '@media (min-width:600px)': {
         fontSize: '2.75rem',
       },
@@ -68,8 +70,9 @@ const baseTheme = createTheme({
       },
     },
     h3: {
-      fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontFamily: 'var(--font-instrument-serif)',
+      fontWeight: 400,
+      fontStyle: 'italic',
       '@media (min-width:600px)': {
         fontSize: '2.25rem',
       },
