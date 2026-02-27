@@ -453,7 +453,7 @@ export default function OnboardingSidebar({
                           <ListItemText
                             primary={
                               item.required && !isActive && !item.isPro ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   <span>{item.label}</span>
                                   <Box
                                     component="span"

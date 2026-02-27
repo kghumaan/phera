@@ -91,9 +91,13 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleEdit = (card: any) => {
+    // Handle content items that are objects like {p: "text"} or plain strings
+    const contentStr = Array.isArray(card.content)
+      ? card.content.map((item: any) => typeof item === 'string' ? item : (item?.p ?? '')).join('\n\n')
+      : card.content;
     setCurrentCard({
       ...card,
-      content: Array.isArray(card.content) ? card.content.join('\n\n') : card.content,
+      content: contentStr,
     });
     setEditDialogOpen(true);
   };
@@ -216,22 +220,26 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                   )}
                   {card.content && Array.isArray(card.content) && card.content.length > 0 ? (
                     <Stack spacing={0.5} sx={{ mb: 1 }}>
-                      {card.content.slice(0, 2).map((paragraph: string, index: number) => (
-                        <Typography
-                          key={index}
-                          variant="body2"
-                          sx={{
-                            color: '#6a6a6a',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {paragraph}
-                        </Typography>
-                      ))}
+                      {card.content.slice(0, 2).map((paragraph: any, index: number) => {
+                        // Handle both plain strings and objects like {p: "text"}
+                        const text = typeof paragraph === 'string' ? paragraph : (paragraph?.p ?? '');
+                        return (
+                          <Typography
+                            key={index}
+                            variant="body2"
+                            sx={{
+                              color: '#6a6a6a',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {text}
+                          </Typography>
+                        );
+                      })}
                       {card.content.length > 2 && (
                         <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
                           +{card.content.length - 2} more paragraph{card.content.length - 2 > 1 ? 's' : ''}

@@ -150,8 +150,10 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    py: 1.5, // Reduced from 3.5
+                    py: 1.5,
                     px: 2,
+                    zIndex: 10,
+                    position: 'relative',
                 }}
             >
                 <Box
@@ -208,7 +210,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    overflow: 'hidden',
+                    overflow: 'visible', // Allow shadows to be seen
                     p: 0,
                     position: 'relative',
                 }}
@@ -223,7 +225,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-100px' : '-40px',
+                        marginTop: viewMode === 'desktop' ? '-80px' : '-35px', // Moved up a bit more
                         backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
@@ -326,7 +328,7 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{
                         position: 'absolute',
-                        bottom: viewMode === 'mobile' ? '0px' : '40px',
+                        bottom: viewMode === 'mobile' ? '-10px' : '40px', // Moved down slightly
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
@@ -580,6 +582,6 @@ export default function AdminPreviewPanel({ weddingSlug, refreshKey = 0 }: Admin
                     )}
                 </DialogContent>
             </Dialog>
-        </Box>
+        </Box >
     );
 }

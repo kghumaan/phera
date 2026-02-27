@@ -18,6 +18,7 @@ export interface WebhookStatus {
 }
 
 export interface IncomingMessage {
+  id: string;
   from: string;
   senderName: string;
   timestamp: string;
@@ -60,6 +61,7 @@ export function parseIncomingMessage(payload: any): IncomingMessage[] {
         if (value.messages && Array.isArray(value.messages)) {
           for (const message of value.messages) {
             const incoming: IncomingMessage = {
+              id: message.id,
               from: message.from,
               senderName,
               timestamp: new Date(parseInt(message.timestamp) * 1000).toISOString(),

@@ -77,7 +77,11 @@ export async function middleware(request: NextRequest) {
 
   // Protect admin routes
   if (pathname.startsWith('/admin')) {
-    if (!user) {
+    // Allow demo routes through without server-side auth check.
+    // Demo auth is handled client-side via signInWithPassword on the /demo page.
+    const isDemoRoute = pathname.startsWith('/admin/demo');
+
+    if (!user && !isDemoRoute) {
       // Redirect to login with return URL
       const redirectUrl = new URL('/auth/login', request.url);
       redirectUrl.searchParams.set('redirect', pathname);

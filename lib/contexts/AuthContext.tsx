@@ -110,7 +110,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Don't clear loading yet if it was just an abort, let another check handle it
           return;
         }
-        console.error('checkAuthStatus: User check error:', userError);
+        // "Auth session missing" is expected on pages where no user is logged in - log quietly
+        if (userError.name === 'AuthSessionMissingError') {
+          console.log('checkAuthStatus: No active session');
+        } else {
+          console.error('checkAuthStatus: User check error:', userError);
+        }
       }
 
       if (sbUser) {
@@ -761,7 +766,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const isDemoUser = user?.email === 'demo@phera.io';
     const isAdminRoute = pathname.startsWith('/admin');
-    const isDemoEntryPoint = pathname === '/demo';
+    const isDemoEntryPoint = pathname === '/demo' || pathname.startsWith('/admin/demo');
 
     if (isDemoUser && !isAdminRoute && !isDemoEntryPoint) {
       console.log('👋 [AuthContext] Demo user leaving admin area, signing out...');

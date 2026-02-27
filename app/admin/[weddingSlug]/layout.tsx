@@ -8,7 +8,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import DemoTour from '@/components/demo/DemoTour';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect } from 'react';
-import { usePathname, useSearchParams, notFound } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 
@@ -21,6 +21,7 @@ export default function OnboardingLayout({
 }) {
   const { weddingSlug } = use(params);
   const { isLoading: isLoadingPlan } = usePlan();
+  const router = useRouter();
   const [wedding, setWedding] = useState<Wedding | undefined>(undefined);
   const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -34,6 +35,16 @@ export default function OnboardingLayout({
   useEffect(() => {
     const fetchWeddingAndSettings = async () => {
       setIsLoadingWedding(true);
+
+      // For demo routes, ensure the user is signed in as the demo user.
+      // If not, redirect to /demo to trigger auto-login.
+      if (weddingSlug === 'demo') {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          router.replace('/demo');
+          return;
+        }
+      }
 
       // Fetch wedding and account type in parallel
       const weddingPromise = weddingService.getWeddingBySlug(weddingSlug);
@@ -59,7 +70,7 @@ export default function OnboardingLayout({
       setIsLoadingWedding(false);
     };
     fetchWeddingAndSettings();
-  }, [weddingSlug]);
+  }, [weddingSlug, router]);
 
   if (!isLoadingWedding && !wedding) {
     notFound();

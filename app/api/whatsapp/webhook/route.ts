@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingMessage, logChatMessage } from '@/lib/whatsapp/webhooks';
 import { supabase } from '@/lib/supabase/client';
 import { whatsappClient } from '@/lib/whatsapp/client';
+import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
 
 /**
  * GET handler for webhook verification
@@ -87,24 +88,143 @@ export async function POST(request: NextRequest) {
         console.log(`📩 Incoming message from ${msg.senderName} (${msg.from}):`, msg.type);
 
         // 1. Find the guest by phone number to get wedding context
-        // Phone from WhatsApp is usually like "1234567890" (no +)
-        const recipientPhone = `+${msg.from}`;
-        
-        const { data: guestData } = await supabase
-          .from('guests')
-          .select('*, weddings(*)')
-          .eq('phone', recipientPhone)
-          .maybeSingle();
+        // Strip to just digits for flexible matching
+        const rawDigits = msg.from.replace(/\D/g, '');
+        // Try multiple phone formats to find the guest
+        const phoneVariants = [
+          `+${rawDigits}`,           // +13177302557
+          rawDigits,                  // 13177302557
+          `+${rawDigits.slice(-10)}`, // +3177302557 (last 10 digits with +)
+        ];
 
-        const guest = guestData as any;
+        let guests: any[] = [];
+        for (const phone of phoneVariants) {
+          const { data } = await supabase
+            .from('guests')
+            .select('*, weddings(*)')
+            .eq('phone', phone);
+          if (data && data.length > 0) {
+            guests = data;
+            break;
+          }
+        }
 
-        if (!guest || !guest.weddings) {
-          console.log(`⚠️ No guest or wedding found for phone ${recipientPhone}`);
+        // Fallback: fuzzy match on last 10 digits using ilike
+        if (guests.length === 0) {
+          const last10 = rawDigits.slice(-10);
+          const { data } = await supabase
+            .from('guests')
+            .select('*, weddings(*)')
+            .ilike('phone', `%${last10}`);
+          if (data && data.length > 0) {
+            guests = data;
+          }
+        }
+
+        if (guests.length === 0) {
+          console.log(`⚠️ No guest found for phone ${msg.from}`);
+          await whatsappClient.sendMessage(msg.from, `Hi there! I couldn't find your number in our guest list. Please make sure you RSVP with this phone number first, or contact the couple directly.`);
           continue;
         }
 
-        const wedding = guest.weddings;
+        // If guest appears in multiple weddings, check for an active wedding preference
+        let guest: any;
+        let wedding: any;
+
+        if (guests.length > 1 && msg.type === 'text') {
+          // Check if there's a stored wedding preference for this phone
+          const { data: pref } = await (supabase as any)
+            .from('whatsapp_chat_history')
+            .select('metadata')
+            .eq('guest_id', guests[0].id)
+            .eq('role', 'system')
+            .ilike('content', '%active_wedding%')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          const activeWeddingId = pref?.[0]?.metadata?.active_wedding_id;
+          const matchedGuest = activeWeddingId
+            ? guests.find((g: any) => g.wedding_id === activeWeddingId)
+            : null;
+
+          if (matchedGuest) {
+            guest = matchedGuest;
+            wedding = matchedGuest.weddings;
+          } else {
+            // Ask the user which wedding they mean
+            const weddingList = guests
+              .map((g: any, i: number) => `${i + 1}. ${g.weddings?.couple_name || 'Wedding'}`)
+              .join('\n');
+            await whatsappClient.sendMessage(
+              msg.from,
+              `Hi! It looks like you're a guest at multiple weddings:\n\n${weddingList}\n\nPlease reply with the number of the wedding you'd like to ask about.`
+            );
+
+            // Store the pending selection so we can resolve it on next message
+            await logChatMessage({
+              weddingId: guests[0].wedding_id,
+              guestId: guests[0].id,
+              role: 'system',
+              content: 'pending_wedding_selection',
+              metadata: {
+                guest_ids: guests.map((g: any) => g.id),
+                wedding_ids: guests.map((g: any) => g.wedding_id),
+                wedding_names: guests.map((g: any) => g.weddings?.couple_name),
+              }
+            });
+            continue;
+          }
+        } else if (guests.length > 1) {
+          // For non-text (button clicks etc.), use the first wedding
+          guest = guests[0];
+          wedding = guests[0].weddings;
+        } else {
+          guest = guests[0];
+          wedding = guests[0].weddings;
+        }
+
+        if (!wedding) {
+          console.log(`⚠️ Guest found but no wedding linked for phone ${msg.from}`);
+          continue;
+        }
+
         const guestName = guest.name?.split(' ')[0] || 'Guest';
+
+        // Check if this is a wedding selection response (user replying with a number)
+        if (msg.type === 'text' && /^[1-9]$/.test((msg.text || '').trim())) {
+          const { data: pendingSelection } = await (supabase as any)
+            .from('whatsapp_chat_history')
+            .select('metadata')
+            .eq('guest_id', guest.id)
+            .eq('role', 'system')
+            .eq('content', 'pending_wedding_selection')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (pendingSelection?.[0]) {
+            const meta = pendingSelection[0].metadata;
+            const choice = parseInt((msg.text || '').trim()) - 1;
+            if (choice >= 0 && choice < meta.wedding_ids.length) {
+              const selectedWeddingId = meta.wedding_ids[choice];
+              const selectedGuest = guests.find((g: any) => g.wedding_id === selectedWeddingId) || guest;
+
+              // Store the preference
+              await logChatMessage({
+                weddingId: selectedWeddingId,
+                guestId: selectedGuest.id,
+                role: 'system',
+                content: 'active_wedding',
+                metadata: { active_wedding_id: selectedWeddingId }
+              });
+
+              await whatsappClient.sendMessage(
+                msg.from,
+                `Got it! I'll help you with ${meta.wedding_names[choice]}'s wedding. What would you like to know?`
+              );
+              continue;
+            }
+          }
+        }
 
         // 📝 Log incoming message to history
         await logChatMessage({
@@ -112,10 +232,11 @@ export async function POST(request: NextRequest) {
           guestId: guest.id,
           role: 'user',
           content: msg.text || (msg.type === 'interactive' ? `[Interactive: ${msg.interactive?.id}]` : '[Unsupported message type]'),
-          metadata: { 
+          waMessageId: msg.id,
+          metadata: {
             type: msg.type,
             button_id: msg.interactive?.id,
-            timestamp: msg.timestamp 
+            timestamp: msg.timestamp
           }
         });
 
@@ -149,18 +270,23 @@ export async function POST(request: NextRequest) {
         } else if (msg.type === 'text') {
           console.log(`💬 Text message: ${msg.text}`);
 
-          // Generic placeholder for AI/LLM
-          const genericResponse = `Hi ${guestName}! I've received your message: "${msg.text}". Our wedding assistant is processing this and will get back to you shortly! In the meantime, you can check the wedding site here: ${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`;
-          
-          await whatsappClient.sendMessage(msg.from, genericResponse);
+          const aiResponse = await generateAIResponse({
+            weddingId: wedding.id,
+            weddingSlug: wedding.slug,
+            guestId: guest.id,
+            guestName,
+            userMessage: msg.text || '',
+          });
+
+          const sendResult = await whatsappClient.sendMessage(msg.from, aiResponse);
 
           // 📝 Log response to history
           await logChatMessage({
             weddingId: wedding.id,
             guestId: guest.id,
             role: 'assistant',
-            content: genericResponse,
-            metadata: { trigger_text: msg.text }
+            content: aiResponse,
+            waMessageId: sendResult?.messages?.[0]?.id,
           });
         }
       }

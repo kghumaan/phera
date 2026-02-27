@@ -367,8 +367,8 @@ export async function getAttendees(weddingId: string) {
   return data as any[]
 }
 
-export async function getAllRSVPs(weddingId: string) {
-  const { data, error } = await supabase
+export async function getAllRSVPs(weddingId: string, eventId: string | null = 'general') {
+  let query = supabase
     .from('rsvps')
     .select(`
       *,
@@ -376,6 +376,12 @@ export async function getAllRSVPs(weddingId: string) {
     `)
     .eq('wedding_id', weddingId)
     .order('created_at', { ascending: false })
+
+  if (eventId) {
+    query = query.eq('event_id', eventId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   return data

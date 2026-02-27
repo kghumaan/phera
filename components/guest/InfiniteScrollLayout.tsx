@@ -472,7 +472,7 @@ export default function InfiniteScrollLayout({
             mb: idx < content.length - 1 ? 1.5 : 0,
           }}
         >
-          {typeof item === 'string' ? item : JSON.stringify(item)}
+          {typeof item === 'string' ? item : (item?.p ?? JSON.stringify(item))}
         </Typography>
       ));
     }
