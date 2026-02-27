@@ -109,10 +109,11 @@ export async function POST(request: NextRequest) {
 
         let guests: any[] = [];
         for (const phone of phoneVariants) {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('guests')
             .select('*, weddings(*)')
             .eq('phone', phone);
+          console.log(`🔍 Lookup phone="${phone}" → found=${data?.length || 0}, error=${error?.message || 'none'}`);
           if (data && data.length > 0) {
             guests = data;
             break;
@@ -122,10 +123,11 @@ export async function POST(request: NextRequest) {
         // Fallback: fuzzy match on last 10 digits using ilike
         if (guests.length === 0) {
           const last10 = rawDigits.slice(-10);
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('guests')
             .select('*, weddings(*)')
             .ilike('phone', `%${last10}`);
+          console.log(`🔍 Fuzzy lookup last10="${last10}" → found=${data?.length || 0}, error=${error?.message || 'none'}`);
           if (data && data.length > 0) {
             guests = data;
           }
