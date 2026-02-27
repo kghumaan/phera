@@ -1104,7 +1104,7 @@ export default function LandingPage() {
 
         {/* --- FOR PLANNERS SECTION --- */}
         <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#FFFFFF', overflow: 'hidden' }}>
-          <Container maxWidth="xl">
+          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 } }}>
             <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
               <Grid size={{ xs: 12, md: 5 }}>
                 <motion.div
@@ -1257,7 +1257,7 @@ export default function LandingPage() {
             borderRadius: '50%',
           }} />
 
-          <Container maxWidth="xl">
+          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 } }}>
             <Grid container spacing={{ xs: 3, md: 8 }} alignItems="center">
               <Grid size={{ xs: 12, md: 6 }}>
                 <motion.div
@@ -1566,7 +1566,7 @@ export default function LandingPage() {
 
         {/* --- PRICING --- */}
         <Box id="pricing" sx={{ bgcolor: '#F0F2F5', py: { xs: 3, md: 10 } }}>
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ pl: { md: 6, lg: 10 } }}>
             <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 4 } }}>
               <Typography
                 variant="h2"
@@ -1738,7 +1738,7 @@ export default function LandingPage() {
         </Box>
 
         {/* --- FAQ --- */}
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 10 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 10 }, pl: { md: 6, lg: 10 } }}>
           <Stack spacing={2} sx={{ textAlign: 'center', mb: { xs: 3, md: 8 }, alignItems: 'center' }}>
             <Typography
               variant="overline"
@@ -1815,7 +1815,7 @@ export default function LandingPage() {
 
         {/* --- FOOTER --- */}
         <Box sx={{ bgcolor: '#F5F5F5', color: '#1a1a1a', py: 8 }}>
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ pl: { md: 6, lg: 10 } }}>
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 4 }}>
                 <Image

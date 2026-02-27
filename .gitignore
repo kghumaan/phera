@@ -54,3 +54,4 @@ public/couple-images/**/*.jpeg
 public/logo-white.png
 
 .gemini/
+.claude/
