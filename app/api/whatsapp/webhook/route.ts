@@ -36,15 +36,19 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('📨 WhatsApp webhook POST received');
+
     // Get raw body for signature verification
     const rawBody = await request.text();
     const payload = JSON.parse(rawBody);
+
+    console.log('📦 Webhook payload:', JSON.stringify(payload).slice(0, 500));
 
     // Verify webhook signature (if secret is configured)
     const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
     if (webhookSecret) {
       const signature = request.headers.get('x-hub-signature-256');
-      
+
       if (!signature) {
         console.error('❌ No signature provided in webhook');
         return NextResponse.json(
@@ -55,7 +59,7 @@ export async function POST(request: NextRequest) {
 
       const isValid = await verifySignature(rawBody, signature, webhookSecret);
       if (!isValid) {
-        console.error('❌ Invalid webhook signature');
+        console.error('❌ Invalid webhook signature — check that WHATSAPP_WEBHOOK_SECRET matches your Meta App Secret');
         return NextResponse.json(
           { error: 'Invalid signature' },
           { status: 401 }
