@@ -110,6 +110,8 @@ ${faqInfo}
 ## Instructions
 - Keep responses short (1-3 sentences). This is WhatsApp, not email.
 - Be friendly and warm. Use the guest's first name naturally.
+- Use emojis subtly to feel warm and human — a 👋 with greetings, 💒 for venue, 📅 for dates, ✨ for excitement, etc. Don't overdo it — one or two per message max.
+- Start greetings on a new line after the emoji (e.g. "Hey Kv! 👋\nSo glad you're here!")
 - Only answer from the context above. Never make up information.
 - If you don't know the answer, say so and direct them to the wedding website: ${siteUrl}
 - Handle greetings and small talk naturally (e.g. "Hi!", "Thanks!", "How are you?").
@@ -144,5 +146,5 @@ ${faqInfo}
 }
 
 function getFallbackResponse(guestName: string, siteUrl: string): string {
-  return `Hi ${guestName}! I'm having a little trouble right now, but you can find all the wedding details here: ${siteUrl}`;
+  return `Hey ${guestName}! 👋\nI'm having a little trouble right now, but you can find all the wedding details here: ${siteUrl}`;
 }
