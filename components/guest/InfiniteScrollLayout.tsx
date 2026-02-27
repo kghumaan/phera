@@ -791,9 +791,6 @@ export default function InfiniteScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -807,8 +804,6 @@ export default function InfiniteScrollLayout({
                             <Typography
                               variant="h4"
                               sx={{
-                                fontFamily: 'var(--font-instrument-serif)',
-                                fontStyle: 'italic',
                                 color: '#000',
                                 mb: 3,
                                 fontSize: { md: '1rem', lg: '1.12rem' },
@@ -844,7 +839,7 @@ export default function InfiniteScrollLayout({
                                         sx={{
                                           position: 'absolute',
                                           left: -53, // Adjust for 1px line + 8px dot
-                                          top: isMajor ? 54 : 6,
+                                          top: isMajor ? 44 : 6,
                                           width: isMajor ? 12 : 8,
                                           height: isMajor ? 12 : 8,
                                           borderRadius: '50%',
@@ -874,13 +869,11 @@ export default function InfiniteScrollLayout({
                                       >
                                         <Box sx={{ position: 'relative', zIndex: 1 }}>
                                           <Typography
-                                            variant={isMajor ? "h4" : "body1"}
+                                            variant={isMajor ? "h5" : "body1"}
                                             sx={{
-                                              fontFamily: isMajor ? 'var(--font-instrument-serif)' : 'Outfit',
                                               fontWeight: isMajor ? 600 : 500,
-                                              fontStyle: isMajor ? 'italic' : 'normal',
                                               color: '#141414',
-                                              fontSize: isMajor ? { md: '1.5rem', lg: '1.75rem' } : '0.95rem',
+                                              fontSize: isMajor ? undefined : '0.95rem',
                                               mb: 0.5,
                                               lineHeight: 1.1,
                                             }}
@@ -1018,9 +1011,6 @@ export default function InfiniteScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -1110,9 +1100,6 @@ export default function InfiniteScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}
@@ -1191,11 +1178,8 @@ export default function InfiniteScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
-                          mb: 1.5,
+                          mb: 3,
                         }}
                       >
                         Registry
@@ -1258,9 +1242,6 @@ export default function InfiniteScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
-                          fontStyle: 'italic',
-                          fontSize: { md: '1.4rem', lg: '1.6rem', xl: '1.8rem' },
                           color: '#000',
                           mb: 3,
                         }}

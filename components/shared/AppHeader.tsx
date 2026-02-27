@@ -53,6 +53,26 @@ export default function AppHeader({
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
+  const [showScrolledNav, setShowScrolledNav] = useState(false);
+
+  useEffect(() => {
+    if (!isLandingPage) return;
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingUp = currentScrollY < lastScrollY;
+      if (currentScrollY < 80) {
+        setShowScrolledNav(false);
+      } else if (scrollingUp) {
+        setShowScrolledNav(true);
+      } else {
+        setShowScrolledNav(false);
+      }
+      lastScrollY = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isLandingPage]);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -88,6 +108,21 @@ export default function AppHeader({
     zIndex: 10,
     display: 'flex',
     alignItems: 'flex-start',
+  } : isLandingPage && showScrolledNav ? {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    height: { xs: 64, md: 96 },
+    display: 'flex',
+    alignItems: 'center',
+    background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%)',
+    '@keyframes slideDown': {
+      from: { transform: 'translateY(-100%)' },
+      to: { transform: 'translateY(0)' },
+    },
+    animation: 'slideDown 0.3s ease forwards',
   } : {
     position: 'absolute' as const,
     top: 0,

@@ -217,14 +217,13 @@ const SlideContent = ({
           <Typography
             variant="body1"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: 'var(--font-outfit)',
               fontWeight: 400,
               fontSize: { xs: 16, md: 20, lg: 22 },
               lineHeight: 1.6,
               color: textColor,
               textAlign: 'center',
               maxWidth: 400,
-              fontStyle: 'italic',
               px: 2,
             }}
           >
