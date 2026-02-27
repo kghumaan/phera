@@ -17,19 +17,19 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { useState, useEffect, use } from 'react';
-import { Save, Check, Add, ArrowForward, Delete, Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
+import { Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
-import ImageUpload from '@/components/admin/ImageUpload';
 import { TablesUpdate } from '@/lib/supabase/types';
 import { weddingService } from '@/lib/supabase/wedding-service';
-import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { useAutoSave } from '@/lib/hooks/useAutoSave';
+import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
-import { getFrameConfig } from '@/lib/constants/images';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -98,12 +98,11 @@ const formatWeddingDateDisplay = (startDate: Date | null, endDate: Date | null):
 export default function DetailsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
+  const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
 
   // Date state for date pickers
@@ -134,6 +133,35 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   });
   const [initialFormData, setInitialFormData] = useState<DetailsFormData | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+
+  // Auto-save hook - only enabled when auth is ready
+  const { saveStatus, debouncedSave } = useAutoSave({
+    onSave: async () => {
+      if (!weddingId) return;
+
+      const updateData: TablesUpdate<'weddings'> = {
+        couple_name: formData.couple_name,
+        partner1_name: formData.partner1_name,
+        partner2_name: formData.partner2_name,
+        wedding_date: weddingDateStart?.toISOString() || undefined,
+        wedding_date_end: weddingDateEnd ? weddingDateEnd.toISOString() : null,
+        wedding_date_display: formData.wedding_date_display,
+        venue_name: formData.venue_name,
+        venue_location: formData.venue_location,
+        rsvp_deadline: formData.rsvp_deadline,
+        show_venue_location: formData.show_venue_location,
+        welcome_text: formData.welcome_text || '',
+      };
+
+      const result = await weddingService.updateWedding(weddingId, updateData);
+      if (!result) throw new Error('Save failed');
+      await weddingService.markUnpublishedChanges(weddingId);
+      setInitialFormData(formData);
+      setIsDirty(false);
+    },
+    debounceMs: 1500,
+    enabled: !!authUser,
+  });
 
 
   // Countdown timer logic for preview
@@ -268,17 +296,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         setInitialFormData(currentData);
         setIsDirty(false);
 
-
-        // Load couple images (support both old single image and new array)
-        if (wedding.couple_images && Array.isArray(wedding.couple_images)) {
-          const images: (string | null)[] = [...wedding.couple_images as unknown as string[]];
-          while (images.length < 6) images.push(null);
-          setCoupleImages(images.slice(0, 6));
-        } else if (wedding.couple_image_url) {
-          // Migrate old single image to first slot
-          setCoupleImages([wedding.couple_image_url, null, null, null, null, null]);
-        }
-
+        setIsInitialLoad(false);
         console.log('✅ Form data set successfully');
       } else {
         console.warn('⚠️ No wedding found for slug:', weddingSlug);
@@ -312,13 +330,16 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
     setFormData(updatedFormData);
 
-    // Check if dirty
+    // Check if dirty and trigger auto-save
     if (initialFormData) {
-      setIsDirty(JSON.stringify(updatedFormData) !== JSON.stringify(initialFormData));
+      const dirty = JSON.stringify(updatedFormData) !== JSON.stringify(initialFormData);
+      setIsDirty(dirty);
+      if (dirty && weddingId) {
+        debouncedSave();
+      }
     }
 
     // Clear field error when user starts typing
-
     if (fieldErrors[field]) {
       setFieldErrors(prev => {
         const newErrors = { ...prev };
@@ -358,6 +379,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     if (date && !formData.is_one_day) {
       setTimeout(() => setEndDatePickerOpen(true), 300);
     }
+
+    // Trigger auto-save on date change
+    if (weddingId) debouncedSave();
   };
 
   const handleDateEndChange = (date: Date | null) => {
@@ -370,6 +394,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         return next;
       });
     }
+    // Trigger auto-save on end date change
+    if (weddingId) debouncedSave();
   };
 
 
@@ -378,113 +404,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const handleDateDisplayChange = (value: string) => {
     setFormData(prev => ({ ...prev, wedding_date_display: value }));
     setDateDisplayManuallyEdited(true);
-  };
-
-  const generateSlug = (name: string): string => {
-    return name
-      .toLowerCase()
-      .replace(/[&]/g, '') // Remove ampersands
-      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-      .replace(/^-+|-+$/g, ''); // Trim hyphens
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-
-    try {
-      // Validation with field-level error tracking
-      const newFieldErrors: Record<string, boolean> = {};
-
-      if (!weddingDateStart) newFieldErrors.wedding_date_start = true;
-      if (!formData.partner1_name) newFieldErrors.partner1_name = true;
-      if (!formData.partner2_name) newFieldErrors.partner2_name = true;
-      // weddingDateEnd is optional
-      if (!formData.venue_name) newFieldErrors.venue_name = true;
-
-      if (Object.keys(newFieldErrors).length > 0) {
-        setFieldErrors(newFieldErrors);
-        const errorMessage = 'Please fill in all required fields';
-        setError(errorMessage);
-        toast.error(errorMessage);
-        setSaving(false);
-        return;
-      }
-
-      setFieldErrors({});
-
-      // Generate slug from couple name
-      const newSlug = generateSlug(formData.couple_name);
-
-      // Check if slug needs to be updated
-      let finalSlug = weddingSlug;
-      if (newSlug !== weddingSlug) {
-        // Check if new slug is available
-        const isAvailable = await weddingService.checkSlugAvailability(newSlug);
-        if (isAvailable) {
-          finalSlug = newSlug;
-        } else {
-          // If not available, keep the old slug but warn user
-          const errorMessage = `Wedding ID "${newSlug}" is taken. Keeping current ID "${weddingSlug}". You can customize it from the Overview page.`;
-          setError(errorMessage);
-          toast.error(errorMessage);
-        }
-      }
-
-      // Filter out null values from couple images
-      const validCoupleImages = coupleImages.filter((img): img is string => img !== null && img !== '');
-
-      const updateData: TablesUpdate<'weddings'> = {
-        couple_name: formData.couple_name,
-        partner1_name: formData.partner1_name,
-        partner2_name: formData.partner2_name,
-        wedding_date: weddingDateStart!.toISOString(),
-        wedding_date_end: weddingDateEnd ? weddingDateEnd.toISOString() : null,
-        wedding_date_display: formData.wedding_date_display,
-        venue_name: formData.venue_name,
-        venue_location: formData.venue_location,
-        rsvp_deadline: formData.rsvp_deadline,
-        slug: finalSlug,
-        couple_images: validCoupleImages.length > 0 ? validCoupleImages : null,
-        // Keep first image as couple_image_url for backward compatibility
-        couple_image_url: validCoupleImages[0] || formData.couple_image_url,
-        frame_image_url: formData.frame_image_url,
-        show_venue_location: formData.show_venue_location,
-        welcome_text: formData.welcome_text || '',
-      };
-
-      if (weddingId) {
-        await weddingService.updateWedding(weddingId, updateData);
-
-        // If slug changed, redirect to new URL
-        if (finalSlug !== weddingSlug) {
-          toast.success('Changes saved! Redirecting...');
-          setTimeout(() => {
-            router.push(`/admin/${finalSlug}/details`);
-          }, 1000);
-          return;
-        }
-      } else {
-        const newWedding = await weddingService.createWedding(updateData as any);
-        if (newWedding) {
-          setWeddingId(newWedding.id);
-        }
-      }
-
-      toast.success('Changes saved successfully!');
-      setShowSaveSuccess(true);
-      setInitialFormData(formData);
-      setIsDirty(false);
-      setTimeout(() => setShowSaveSuccess(false), 2000);
-
-    } catch (err) {
-      console.error('Error saving wedding:', err);
-      const errorMessage = 'Failed to save changes';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setSaving(false);
-    }
   };
 
   if (loading) {
@@ -509,35 +428,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               Basic information about your wedding - couple names, date, venue, and photos
             </Typography>
           </Box>
-          {isDirty && (
-            <Button
-              variant="contained"
-              startIcon={showSaveSuccess ? <Check /> : <Save />}
-              onClick={handleSave}
-              disabled={saving || showSaveSuccess}
-              sx={{
-                bgcolor: showSaveSuccess ? '#10B981' : '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                px: 3,
-                py: 1.5,
-                textTransform: 'none',
-                fontWeight: 600,
-
-                boxShadow: showSaveSuccess
-                  ? '0 4px 12px rgba(16, 185, 129, 0.4)'
-                  : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                '&:hover': {
-                  bgcolor: showSaveSuccess ? '#059669' : '#C8365A',
-                  boxShadow: showSaveSuccess
-                    ? '0 6px 16px rgba(16, 185, 129, 0.5)'
-                    : '0 6px 16px rgba(222, 63, 94, 0.4)',
-                },
-              }}
-            >
-              {saving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save Details'}
-            </Button>
-          )}
+          <AutoSaveIndicator status={saveStatus} />
         </Box>
 
 
@@ -962,293 +853,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             )}
           </Stack>
 
-          {/* Images */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            Images
-          </Typography>
-
-          {weddingId && (
-            <>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Couple Photos (up to 6)
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                  Add multiple photos of the couple. Recommended size: 800x800px each
-                </Typography>
-
-                {/* Add Photo Button */}
-                {coupleImages.filter(img => img).length < 6 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<Add />}
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                        input.onchange = async (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) {
-                            // Upload the file using ImageUpload's upload logic
-                            const { uploadImage } = await import('@/lib/utils/image-upload');
-                            const result = await uploadImage(file, getWeddingImagePath(weddingId, 'couple'));
-                            if (result.success && result.url) {
-                              const newImages = [...coupleImages];
-                              const nextEmptyIndex = newImages.findIndex(img => !img);
-                              if (nextEmptyIndex !== -1) {
-                                newImages[nextEmptyIndex] = result.url;
-                              } else {
-                                newImages.push(result.url);
-                              }
-                              setCoupleImages(newImages.slice(0, 6));
-                            }
-                          }
-                        };
-                        input.click();
-                      }}
-                      sx={{
-                        borderColor: '#DE3F5E',
-                        color: '#DE3F5E',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        '&:hover': {
-                          borderColor: '#C8365A',
-                          bgcolor: 'rgba(222, 63, 94, 0.05)',
-                        },
-                      }}
-                    >
-                      Add Photo
-                    </Button>
-                  </Box>
-                )}
-
-                {/* Horizontal scrollable thumbnails */}
-                {coupleImages.filter(img => img).length > 0 && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      overflowX: 'auto',
-                      pb: 2,
-                      '&::-webkit-scrollbar': {
-                        height: 8,
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        backgroundColor: '#f5f5f5',
-                        borderRadius: 4,
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#DE3F5E',
-                        borderRadius: 4,
-                      },
-                    }}
-                  >
-                    {coupleImages.filter((img): img is string => img !== null && img !== '').map((img, actualIndex) => {
-                      const originalIndex = coupleImages.indexOf(img);
-                      return (
-                        <Box
-                          key={originalIndex}
-                          sx={{
-                            position: 'relative',
-                            minWidth: 120,
-                            width: 120,
-                            height: 120,
-                            flexShrink: 0,
-                            borderRadius: 2,
-                            overflow: 'hidden',
-                            border: originalIndex === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                          }}
-                        >
-                          <Box
-                            component="img"
-                            src={img}
-                            alt={`Couple photo ${originalIndex + 1}`}
-                            sx={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                          />
-                          {originalIndex === 0 && (
-                            <Chip
-                              label="Main"
-                              size="small"
-                              sx={{
-                                position: 'absolute',
-                                top: 4,
-                                left: 4,
-                                bgcolor: '#DE3F5E',
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '0.7rem',
-                              }}
-                            />
-                          )}
-                          <IconButton
-                            size="small"
-                            onClick={async () => {
-                              const { deleteImage } = await import('@/lib/utils/image-upload');
-                              await deleteImage(img);
-                              const newImages = [...coupleImages];
-                              newImages[originalIndex] = null;
-                              setCoupleImages(newImages);
-                            }}
-                            sx={{
-                              position: 'absolute',
-                              top: 4,
-                              right: 4,
-                              bgcolor: 'rgba(0, 0, 0, 0.6)',
-                              color: 'white',
-                              '&:hover': {
-                                bgcolor: 'rgba(222, 63, 94, 0.9)',
-                              },
-                              width: 28,
-                              height: 28,
-                            }}
-                          >
-                            <Delete sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                )}
-              </Box>
-
-              {/* Frame Selection */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                  Frame Options
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                  Choose a decorative frame for your photos
-                </Typography>
-
-                <Grid container spacing={3} alignItems="center">
-                  <Grid size={{ xs: 12, md: 5 }}>
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      {[
-                        { id: 'frame-1', url: '/images/frames/frame-1.png', name: 'Frame 1' },
-                        { id: 'frame-2', url: '/images/frames/frame-2.png', name: 'Frame 2' },
-                        { id: 'frame-3', url: '/images/frames/frame-3.png', name: 'Frame 3' },
-                        { id: 'frame-4', url: '/images/frames/frame-4.png', name: 'Frame 4' },
-                        { id: 'frame-5', url: '/images/frames/frame-5.png', name: 'Frame 5' },
-                        { id: 'frame-6', url: '/images/frames/frame-6.png', name: 'Frame 6' },
-                        { id: 'frame-7', url: '/images/frames/frame-7.png', name: 'Frame 7' },
-                        { id: 'frame-8', url: '/images/frames/frame-8.png', name: 'Frame 8' },
-                        { id: 'frame-9', url: '/images/frames/frame-9.png', name: 'Frame 9' },
-                        { id: 'frame-10', url: '/images/frames/frame-10.png', name: 'Frame 10' },
-                        { id: 'frame-11', url: '/images/frames/frame-11.png', name: 'Frame 11' },
-                        { id: 'frame-12', url: '/images/frames/frame-12.png', name: 'Frame 12' }
-                      ].map((frame) => (
-                        <Box
-                          key={frame.id}
-                          onClick={() => handleChange('frame_image_url', frame.url)}
-                          sx={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: '12px',
-                            border: formData.frame_image_url === frame.url ? '3px solid #DE3F5E' : '1px solid #eee',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            position: 'relative',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              transform: 'scale(1.05)',
-                              borderColor: '#DE3F5E',
-                            }
-                          }}
-                        >
-                          <Box
-                            component="img"
-                            src={frame.url}
-                            alt={frame.name}
-                            sx={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'contain',
-                              p: 1
-                            }}
-                          />
-                          {formData.frame_image_url === frame.url && (
-                            <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
-                              <Check sx={{ color: 'white', fontSize: 14 }} />
-                            </Box>
-                          )}
-                        </Box>
-                      ))}
-                    </Box>
-                  </Grid>
-
-                  {/* Show preview if both frame and main photo exist */}
-                  {formData.frame_image_url && (
-                    <>
-                      <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <ArrowForward sx={{ color: '#DE3F5E', fontSize: 32 }} />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 5 }}>
-                        <Stack spacing={1}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                            Preview with Frame
-                          </Typography>
-                          <Box
-                            sx={{
-                              position: 'relative',
-                              width: '100%',
-                              maxWidth: 400,
-                              aspectRatio: '1/1',
-                              overflow: 'visible',
-                            }}
-                          >
-                            {/* Couple Image on top - at zIndex 1 (behind) */}
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                ...getFrameConfig(formData.frame_image_url),
-                                overflow: 'hidden',
-                                zIndex: 1,
-                              }}
-                            >
-                              <Box
-                                component="img"
-                                src={coupleImages[0] || ''}
-                                alt="Couple photo"
-                                sx={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                }}
-                              />
-                            </Box>
-
-                            {/* Frame background - at zIndex 3 (in front) */}
-                            <Box
-                              component="img"
-                              src={formData.frame_image_url || ''}
-                              alt="Decorative frame"
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                zIndex: 3,
-                                pointerEvents: 'none',
-                              }}
-                            />
-                          </Box>
-                        </Stack>
-                      </Grid>
-                    </>
-                  )}
-                </Grid>
-              </Box>
-            </>
-          )}
 
         </Stack>
       </Stack>
