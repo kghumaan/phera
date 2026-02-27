@@ -66,9 +66,9 @@ Location: ${wedding.venue_location || 'TBD'}`
 
     const scheduleInfo = schedule?.length
       ? schedule.map((s: any) => {
-          const items = s.schedule_items?.map((item: any) => `  - ${item.time || ''} ${item.title || ''}: ${item.description || ''}`).join('\n') || '';
-          return `${s.name || 'Schedule'}:\n${items}`;
-        }).join('\n')
+        const items = s.schedule_items?.map((item: any) => `  - ${item.time || ''} ${item.title || ''}: ${item.description || ''}`).join('\n') || '';
+        return `${s.name || 'Schedule'}:\n${items}`;
+      }).join('\n')
       : 'No schedule available.';
 
     const travelInfo = travelCards?.length
