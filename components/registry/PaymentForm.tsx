@@ -103,7 +103,7 @@ export default function PaymentForm({
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="body2" color="#666">Amount:</Typography>
-          <Typography variant="body1" color="#141414" fontWeight={600}>${amount}</Typography>
+          <Typography variant="body2" color="#141414" fontWeight={600}>${amount}</Typography>
         </Stack>
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>

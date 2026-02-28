@@ -96,7 +96,7 @@ export default function AboutPage() {
                   </Box>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       fontSize: '1.2rem',
                       lineHeight: 1.8,
@@ -111,7 +111,7 @@ export default function AboutPage() {
                   </Typography>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       fontSize: '1.2rem',
                       lineHeight: 1.8,

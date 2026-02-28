@@ -288,6 +288,14 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
   const isPinComplete = pin.every(digit => digit !== '');
   const isReady = isPreview || (!isLoadingSettings && weddingSettings !== null);
 
+  // Auto-submit when all digits are entered
+  useEffect(() => {
+    if (isPinComplete && isReady) {
+      handleContinue();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin, isReady]);
+
   const handleLogin = () => {
     setLoginDialogOpen(true);
   };
@@ -509,7 +517,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             src="/logo-stacked.svg"
             alt="Phera Logo"
             sx={{
-              height: { xs: 80, sm: 100, md: 120, lg: 130, xl: 140 },
+              height: { xs: 60, sm: 60, md: 80, lg: 100, xl: 100 },
               width: 'auto',
               filter: 'brightness(0)',
             }}
@@ -533,10 +541,10 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
 
           {/* Subtitle */}
           <Typography
-            variant="body1"
+            variant="body2"
             sx={{
               color: pinEntryFontColor,
-              fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
+              // fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
               lineHeight: 1.5,
               maxWidth: { xs: 355, sm: 400, lg: 800, xl: 800 },
               mx: 'auto',
@@ -663,94 +671,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             gap: '16px',
           }}
         >
-          {/* Continue Button */}
-          <Button
-            onClick={handleContinue}
-            disabled={!isPinComplete || !isReady}
-            sx={{
-              backgroundColor: pinEntryPrimaryColor,
-              color: pinEntryButtonFontColor,
-              borderRadius: '16px',
-              px: { xs: '20px', lg: '22px', xl: '24px' },
-              py: { xs: '12px', lg: '13px', xl: '14px' },
-              fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '6.25%',
-              width: '100%',
-              maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: pinEntryPrimaryColor,
-                opacity: 0.9,
-                boxShadow: 'none',
-              },
-              '&:disabled': {
-                backgroundColor: pinEntryPrimaryColor,
-                opacity: 0.3,
-                color: pinEntryButtonFontColor,
-                boxShadow: 'none',
-              },
-              transition: 'all 0.2s ease-in-out',
-            }}
-          >
-            {isLoadingSettings ? 'Loading...' : 'Continue'}
-          </Button>
-
-          {/* Or Divider */}
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              my: { xs: 1, sm: 2 },
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                maxWidth: { xs: 280, sm: 300, lg: 320, xl: 350 },
-                gap: 2,
-              }}
-            >
-              {/* Left line */}
-              <Box
-                sx={{
-                  flex: 1,
-                  height: '1px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                }}
-              />
-
-              {/* Or text */}
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#000',
-                  fontWeight: 400,
-                  fontSize: { xs: '1rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '6.25%',
-                  flexShrink: 0,
-                }}
-              >
-                or
-              </Typography>
-
-              {/* Right line */}
-              <Box
-                sx={{
-                  flex: 1,
-                  height: '1px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                }}
-              />
-            </Box>
-          </Box>
-
           {/* Login Button */}
           <Button
             onClick={handleLogin}
@@ -776,7 +696,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            Login
+            Or log in with email
           </Button>
         </motion.div>
       </Container>

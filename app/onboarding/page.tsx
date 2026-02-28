@@ -770,7 +770,7 @@ export default function OnboardingPage() {
                         <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
-                        <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           How do you plan to use our platform?
                         </Typography>
 
@@ -823,7 +823,7 @@ export default function OnboardingPage() {
                         <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           {role === 'planner' ? 'Tell us about your business' : "Let's get ready to get planning"}
                         </Typography>
-                        <Typography variant="body1" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
                         </Typography>
 

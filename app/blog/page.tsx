@@ -54,7 +54,7 @@ export default function BlogIndexPage() {
               The Phera Blog
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 fontSize: { xs: '1rem', md: '1.125rem' },
                 color: '#4a4a4a',

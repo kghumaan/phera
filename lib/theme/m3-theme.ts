@@ -1,5 +1,25 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
+// Module augmentation for custom typography variants
+declare module '@mui/material/styles' {
+  interface TypographyVariants {
+    body3: React.CSSProperties;
+    body4: React.CSSProperties;
+  }
+
+  interface TypographyVariantsOptions {
+    body3?: any; // Using any to properly support nested media queries in theme definition
+    body4?: any;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    body3: true;
+    body4: true;
+  }
+}
+
 // Cultural color tokens
 const culturalColors = {
   // Traditional
@@ -61,13 +81,13 @@ const baseTheme = createTheme({
       // fontSize: '8rem', // Base size for < 600px
       fontStyle: 'italic',
       '@media (min-width:600px)': {
-        fontSize: '3.50rem',
+        fontSize: '3.25rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '3.75rem',
+        fontSize: '3.50rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '4.0rem',
+        fontSize: '3.75rem',
       },
     },
     h3: {
@@ -129,6 +149,34 @@ const baseTheme = createTheme({
       fontWeight: 400,
       lineHeight: 1.5,
       '@media (min-width:600px)': {
+        fontSize: '1.1rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.1875rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.25rem',
+      },
+    },
+    body2: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 400,
+      lineHeight: 1.5,
+      '@media (min-width:600px)': {
+        fontSize: '1.0rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.0625rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.125rem',
+      },
+    },
+    body3: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 400,
+      lineHeight: 1.5,
+      '@media (min-width:600px)': {
         fontSize: '0.9rem',
       },
       '@media (min-width:900px)': {
@@ -138,7 +186,7 @@ const baseTheme = createTheme({
         fontSize: '1rem',
       },
     },
-    body2: {
+    body4: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.43,

@@ -313,7 +313,7 @@ export default function ReserveTransportation({
           Reservation Submitted!
         </Typography>
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#666',
             maxWidth: 500,

@@ -98,7 +98,7 @@ export default function WhatsAppTestPage() {
               WhatsApp Integration Test
             </Typography>
           </Stack>
-          <Typography variant="body1" sx={{ color: '#000', opacity: 0.7 }}>
+          <Typography variant="body2" sx={{ color: '#000', opacity: 0.7 }}>
             Test your WhatsApp Business Cloud API integration and ensure credentials are correct.
           </Typography>
         </Box>

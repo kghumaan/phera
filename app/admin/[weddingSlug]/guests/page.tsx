@@ -310,7 +310,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Guest Responses
             </Typography>
-            <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
               Track RSVPs, dietary restrictions, and guest preferences
             </Typography>
           </Box>
@@ -926,7 +926,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1.5 }}>
                 {weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
               </Typography>
-              <Typography variant="body1" sx={{ color: '#6a6a6a', maxWidth: 500, mx: 'auto', mb: 4 }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', maxWidth: 500, mx: 'auto', mb: 4 }}>
                 {weddingStatus === 'live'
                   ? 'Your guests haven\'t started RSVPing yet. Once they do, their responses will appear here automatically.'
                   : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'}

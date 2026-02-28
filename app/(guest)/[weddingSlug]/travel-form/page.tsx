@@ -206,7 +206,7 @@ export default function TravelFormPage() {
                 All Set!
               </Typography>
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   mb: 4,
                   color: '#333333',
@@ -492,7 +492,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -572,7 +572,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -639,7 +639,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },

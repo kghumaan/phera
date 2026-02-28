@@ -296,7 +296,7 @@ export default function AdminDashboard() {
                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                     <EventIcon sx={{ color: 'secondary.main', mr: 2 }} />
                     <Box>
-                      <Typography variant="body1" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium">
                         {dashboardData.upcomingEvent}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">

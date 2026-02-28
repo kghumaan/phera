@@ -642,7 +642,7 @@ export default function AdminPreviewPanel({
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                             Publish your website
                                         </Typography>
                                         <Typography variant="body2" sx={{ color: '#666', mt: 0.5, mr: 4 }}>

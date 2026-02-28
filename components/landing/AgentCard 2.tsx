@@ -113,7 +113,7 @@ export default function AgentCard({
               {name} {persona}
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#DE3F5E',
                 fontWeight: 500,
@@ -147,7 +147,7 @@ export default function AgentCard({
                     }}
                   />
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: '#4a4a4a',
                       lineHeight: 1.6,
@@ -189,7 +189,7 @@ export default function AgentCard({
             ${pricing}
             <Typography
               component="span"
-              variant="body1"
+              variant="body2"
               sx={{ color: '#666', fontWeight: 400, ml: 0.5 }}
             >
               /wedding

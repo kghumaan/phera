@@ -212,7 +212,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
             
             {step === 'email' && (
               <Typography 
-                variant="body1" 
+                variant="body2" 
                 sx={{ 
                   color: '#858585',
                   fontSize: '16px',
@@ -227,7 +227,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
 
             {step === 'phone' && (
               <Typography 
-                variant="body1" 
+                variant="body2" 
                 sx={{ 
                   color: '#858585',
                   fontSize: '16px',
@@ -242,7 +242,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
             
             {step === 'email-otp' && (
               <Typography 
-                variant="body1" 
+                variant="body2" 
                 sx={{ 
                   color: '#858585',
                   fontSize: '16px',

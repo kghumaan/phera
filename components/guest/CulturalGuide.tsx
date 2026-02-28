@@ -387,7 +387,7 @@ export default function CulturalGuide() {
                 </Box>
               </Box>
               
-              <Typography variant="body1" sx={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
+              <Typography variant="body2" sx={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
                 {currentCeremony.description}
               </Typography>
             </Box>
@@ -406,7 +406,7 @@ export default function CulturalGuide() {
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+                  <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
                     {currentCeremony.significance}
                   </Typography>
                 </AccordionDetails>
@@ -427,7 +427,7 @@ export default function CulturalGuide() {
                   <Typography variant="h6" gutterBottom>
                     {currentCeremony.dressCode.title}
                   </Typography>
-                  <Typography variant="body1" paragraph>
+                  <Typography variant="body2" paragraph>
                     {currentCeremony.dressCode.description}
                   </Typography>
                   

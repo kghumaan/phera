@@ -158,7 +158,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
 
               {/* Description */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   fontWeight: 300,
                   fontSize: 16,

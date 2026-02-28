@@ -93,7 +93,7 @@ export default function SettingsPage() {
             <Typography variant="h5" gutterBottom sx={{  }}>
               WhatsApp Community Management
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Create and manage WhatsApp groups for different wedding guest categories. 
               Share invite links and QR codes to build your wedding community.
             </Typography>

@@ -471,9 +471,10 @@ export default function InfiniteScrollLayout({
           variant="body2"
           sx={{
             color: '#474747',
-            fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            fontWeight: 400,
             lineHeight: 1.7,
-            mb: idx < content.length - 1 ? 1.5 : 0,
+            mb: 2,
           }}
         >
           {typeof item === 'string' ? item : (item?.p ?? JSON.stringify(item))}
@@ -486,8 +487,10 @@ export default function InfiniteScrollLayout({
           variant="body2"
           sx={{
             color: '#474747',
-            fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            fontWeight: 400,
             lineHeight: 1.7,
+            whiteSpace: 'pre-line',
           }}
         >
           {content}
@@ -671,7 +674,7 @@ export default function InfiniteScrollLayout({
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                      // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                     }}
                   >
                     <strong>RSVP</strong> to see location
@@ -711,7 +714,7 @@ export default function InfiniteScrollLayout({
                         backgroundColor: primaryColor,
                         color: 'white',
                         py: 1.2,
-                        fontSize: { md: '0.8rem', lg: '0.88rem' },
+                        // fontSize: { md: '0.8rem', lg: '0.88rem' },
                         fontWeight: 600,
                         borderRadius: '32px',
                         textTransform: 'uppercase',
@@ -918,11 +921,12 @@ export default function InfiniteScrollLayout({
                                               {event.location ? (
                                                 <Stack direction="row" spacing={0.75} alignItems="center">
                                                   <LocationOnOutlined sx={{ fontSize: 18, color: '#111' }} />
-                                                  <Typography
+                                                   <Typography
+                                                    variant="body2"
                                                     sx={{
                                                       color: '#111',
-                                                      fontSize: '0.9rem',
-                                                      fontWeight: 500,
+                                                      // fontSize: '0.9rem',
+                                                      // fontWeight: 500,
                                                     }}
                                                   >
                                                     {event.location}
@@ -955,21 +959,23 @@ export default function InfiniteScrollLayout({
                                                       },
                                                     }}
                                                   >
-                                                    <Typography
+                                                     <Typography
                                                       className="learn-more-text"
+                                                      variant="body3"
                                                       sx={{
                                                         color: primaryColor,
-                                                        fontSize: '0.9rem',
-                                                        fontWeight: 500,
+                                                        // fontSize: '0.9rem',
+                                                        // fontWeight: 500,
                                                       }}
                                                     >
                                                       Learn More
                                                     </Typography>
-                                                    <Typography
+                                                     <Typography
+                                                      variant="body3"
                                                       sx={{
                                                         color: primaryColor,
-                                                        fontSize: '0.9rem',
-                                                        fontWeight: 500,
+                                                        // fontSize: '0.9rem',
+                                                        // fontWeight: 500,
                                                       }}
                                                     >
                                                       →
@@ -1042,7 +1048,7 @@ export default function InfiniteScrollLayout({
                                   fontWeight: 600,
                                   color: '#141414',
                                   mb: 1.5,
-                                  fontSize: { md: '0.88rem', lg: '1rem' },
+                                  // fontSize: { md: '0.88rem', lg: '1rem' },
                                 }}
                               >
                                 {card.title}
@@ -1177,10 +1183,10 @@ export default function InfiniteScrollLayout({
                       </Typography>
 
                       <Typography
-                        variant="body2"
+                         variant="body2"
                         sx={{
                           color: '#666',
-                          fontSize: { md: '0.85rem', lg: '0.9rem' },
+                          // fontSize: { md: '0.85rem', lg: '0.9rem' },
                           lineHeight: 1.7,
                           mb: 3,
                         }}

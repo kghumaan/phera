@@ -937,7 +937,7 @@ export default function HomePage() {
 
               {/* Description */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: '#333',
                   fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },

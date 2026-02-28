@@ -249,7 +249,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
 
           {/* Subtitle */}
           <Typography
-            variant="body1"
+            variant="body2"
             sx={{
               color: '#000',
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem' },

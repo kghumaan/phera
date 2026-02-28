@@ -277,7 +277,7 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                   sx={{ fontSize: 16, color: '#858585' }}
                 />
                 <Typography
-                  variant="body1"
+                  variant="body2"
                   sx={{
                     color: '#858585',
                     fontSize: '1rem',

@@ -162,7 +162,7 @@ function LoginContent() {
                 >
                   Welcome to Phera
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
                   Sign in to manage your wedding website
                 </Typography>
               </Box>

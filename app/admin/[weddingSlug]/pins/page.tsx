@@ -178,7 +178,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                   Guest PIN Codes
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '1.1rem' }}>
                   {(settings?.pin_codes?.length || 0) > 0
                     ? `You have ${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
                     : 'Add unique PIN codes for your guests to access the wedding website'}
@@ -222,7 +222,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 <Typography variant="h6" sx={{ color: '#6a6a6a', mb: 1, fontSize: '1.2rem' }}>
                   No PIN codes yet
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#9a9a9a', fontSize: '1rem' }}>
+                <Typography variant="body2" sx={{ color: '#9a9a9a', fontSize: '1rem' }}>
                   Add your first PIN to give guests access to your wedding website
                 </Typography>
               </Box>
@@ -390,7 +390,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 border: `1px solid ${alpha('#F59E0B', 0.2)}`
               }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
+                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
                     Skip RSVP: <Typography component="span" sx={{ color: newPin.skip_rsvp ? '#F59E0B' : '#6a6a6a', fontWeight: 600 }}>
                       {newPin.skip_rsvp ? 'Yes' : 'No'}
                     </Typography>
@@ -429,7 +429,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   border: `1px solid ${alpha('#10B981', 0.2)}`
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
+                    <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
                       Allows Plus One: <Typography component="span" sx={{ color: newPin.allows_plus_one ? '#10B981' : '#6a6a6a', fontWeight: 600 }}>
                         {newPin.allows_plus_one ? 'Yes' : 'No'}
                       </Typography>
@@ -463,7 +463,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   bgcolor: alpha('#6366F1', 0.05),
                   border: `1px solid ${alpha('#6366F1', 0.2)}`
                 }}>
-                  <Typography variant="body1" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem', mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem', mb: 1.5 }}>
                     Hide Events for This PIN
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem', mb: 2 }}>

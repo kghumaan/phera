@@ -1052,7 +1052,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </Typography>
 
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#808080 !important',
                 mb: 3,
@@ -1288,7 +1288,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </Typography>
 
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#808080 !important',
                 mb: 3,
@@ -1314,7 +1314,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 <Typography variant="h6" sx={{ color: '#000', mb: 1 }}>
                   You're all set!
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ color: '#666' }}>
                   Logged in as {formData.email || user?.email}
                 </Typography>
               </Box>
@@ -1508,7 +1508,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
@@ -1701,7 +1701,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
@@ -2079,7 +2079,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
 
             <Box>
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
@@ -2169,7 +2169,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
@@ -2321,7 +2321,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
@@ -2428,7 +2428,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   </Stack>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,
@@ -2495,7 +2495,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   </Stack>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,

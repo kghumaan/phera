@@ -245,7 +245,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                     <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <People fontSize="small" />
                     </Avatar>
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                       {weddingData.couple_name || 'Not set'}
                     </Typography>
                   </Box>
@@ -255,7 +255,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                     <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
                       <CalendarMonth fontSize="small" />
                     </Avatar>
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                       {weddingData.wedding_date_display || 'Not set'}
                     </Typography>
                   </Box>
@@ -266,7 +266,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       <LocationOn fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                         {weddingData.venue_name || 'Not set'}
                       </Typography>
                       {weddingData.venue_location && (

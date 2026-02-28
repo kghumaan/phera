@@ -125,7 +125,7 @@ const TravelCard = ({
             {content.map((paragraph, index) => (
               <Typography
                 key={index}
-                variant="body1"
+                variant="body2"
                 component="div"
                 sx={{
                   fontWeight: 400,

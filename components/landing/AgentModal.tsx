@@ -122,7 +122,7 @@ export default function AgentModal({
 
   const renderWaitlistContent = () => (
     <Stack spacing={3}>
-      <Typography variant="body1" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
         Be the first to know when <strong>{agent?.name} {agent?.persona}</strong> launches!
         Join our waitlist and get <strong>exclusive early access</strong> with special pricing.
       </Typography>
@@ -200,7 +200,7 @@ export default function AgentModal({
 
   const renderPreOrderContent = () => (
     <Stack spacing={3}>
-      <Typography variant="body1" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
         Reserve your spot for <strong>{agent?.name} {agent?.persona}</strong> and save
         <strong> 50%</strong> at launch! Limited early bird pricing available.
       </Typography>
@@ -326,7 +326,7 @@ export default function AgentModal({
           The Problem
         </Typography>
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#666',
             fontStyle: 'italic',
@@ -344,7 +344,7 @@ export default function AgentModal({
         <Typography variant="h6" sx={{ mb: 1, color: '#1a1a1a' }}>
           How {agent?.persona} Helps
         </Typography>
-        <Typography variant="body1" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
           {agent?.solution}
         </Typography>
       </Box>

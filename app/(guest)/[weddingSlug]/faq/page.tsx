@@ -226,7 +226,7 @@ export default function FAQPage() {
                   </AccordionSummary>
                   <AccordionDetails sx={{ pt: 0 }}>
                     <Typography
-                      variant="body1"
+                      variant="body2"
                       sx={{
                         color: '#666',
                         lineHeight: 1.6,

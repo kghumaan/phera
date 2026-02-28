@@ -266,7 +266,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
 
                 {/* Content */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5, color: '#800020' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, color: '#800020' }}>
                     <Box component="span" sx={{ fontWeight: 600, color: '#800020' }}>
                       {activity.guestName}
                     </Box>{' '}

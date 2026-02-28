@@ -96,7 +96,7 @@ export default function TransportationPage() {
           Please RSVP First
         </Typography>
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{ color: '#666', textAlign: 'center', maxWidth: 400 }}
         >
           You need to RSVP to the wedding before reserving transportation.

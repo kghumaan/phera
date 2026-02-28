@@ -166,7 +166,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               Early Preview Mode
             </Typography>
 
-            <Typography variant="body1" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
+            <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
               Phera Concierge is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your guests.
             </Typography>
 

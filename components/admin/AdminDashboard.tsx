@@ -258,7 +258,7 @@ const AdminDashboard = () => {
               Wedding Data Management
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#4a4a4a',
                 mb: 4,

@@ -169,7 +169,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Pin Entry Screen
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
             Customize the styling, colors, and text displayed on your pin entry screen
           </Typography>
         </Box>

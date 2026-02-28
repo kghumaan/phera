@@ -41,7 +41,7 @@ export default function TestMagicLinkPage() {
         <Typography variant="h4" gutterBottom>
           🧪 Test Magic Link Authentication
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
+        <Typography variant="body2" color="text.secondary" paragraph>
           This sends a REAL magic link to test the authentication flow locally.
         </Typography>
       </Box>

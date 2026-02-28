@@ -66,7 +66,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               Something went wrong
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#666',
                 mb: 3,
