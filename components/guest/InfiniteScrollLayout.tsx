@@ -891,6 +891,7 @@ export default function InfiniteScrollLayout({
                                                 fontSize: isMajor ? '1rem' : '0.85rem',
                                                 fontWeight: isMajor ? 600 : 400,
                                                 mb: 0.5,
+                                                display: 'block',
                                                 letterSpacing: isMajor ? '0.5px' : 'normal',
                                               }}
                                             >
@@ -900,14 +901,15 @@ export default function InfiniteScrollLayout({
 
                                           {isMajor && event.description && (
                                             <Typography
-                                              variant="body2"
+                                              variant="body3"
                                               sx={{
                                                 color: '#333',
                                                 lineHeight: 1.6,
-                                                mt: 2,
+                                                mt: 1,
                                                 mb: 2,
+                                                display: 'block',
                                                 maxWidth: '95%',
-                                                fontSize: '0.95rem',
+                                                // fontSize: '0.95rem',
                                               }}
                                             >
                                               {event.description}

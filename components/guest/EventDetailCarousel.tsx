@@ -206,7 +206,7 @@ const SlideContent = ({
         {/* Body Text */}
         {slide.body_text && (
           <Typography
-            variant="body2"
+            variant="body1"
             sx={{
               fontWeight: 400,
               fontSize: { xs: 16, md: 20, lg: 22 },
@@ -265,7 +265,7 @@ const SlideContent = ({
 
       {slide.description && (
         <Typography
-          variant="body2"
+          variant="body1"
           sx={{
             fontWeight: 300,
             fontSize: { xs: 14, md: 16 },
@@ -339,6 +339,7 @@ export default function EventDetailCarousel({
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          padding: '16px',
           zIndex: 10,
         }}
       >
@@ -379,8 +380,10 @@ export default function EventDetailCarousel({
         {/* Carousel Card */}
         <Card
           sx={{
-            width: '75%',
-            aspectRatio: '10/17',
+            width: '100%',
+            maxWidth: 380,
+            height: '75vh',
+            maxHeight: 750,
             backgroundColor: 'transparent',
             borderRadius: '24px',
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
