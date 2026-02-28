@@ -802,11 +802,10 @@ export default function InfiniteScrollLayout({
                         {schedule.map((day) => (
                           <Box key={day.id}>
                             <Typography
-                              variant="h4"
+                              variant="h6"
                               sx={{
                                 color: '#000',
                                 mb: 3,
-                                fontSize: { md: '1rem', lg: '1.12rem' },
                                 textAlign: 'left',
                               }}
                             >
