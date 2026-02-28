@@ -468,7 +468,7 @@ export default function InfiniteScrollLayout({
       return content.map((item, idx) => (
         <Typography
           key={idx}
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#474747',
             fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
@@ -483,7 +483,7 @@ export default function InfiniteScrollLayout({
     if (typeof content === 'string') {
       return (
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#474747',
             fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
@@ -520,17 +520,17 @@ export default function InfiniteScrollLayout({
         {/* Left Side - Scrollable Content */}
         <Box
           sx={{
-            flex: '0 0 60%',
-            maxWidth: '60%',
+            flex: '0 0 55%',
+            maxWidth: '55%',
             minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
+            alignItems: 'center',
             backgroundColor: 'rgba(254, 249, 242, 0.9)',
             backdropFilter: 'blur(10px)',
             position: 'relative',
             zIndex: 1,
-            pl: { md: 22, lg: 26, xl: 30 },
-            pr: { md: 3, lg: 4, xl: 5 },
+            px: { md: 8, lg: 10, xl: 12 },
             pt: {
               md: 'calc(50vh - 152px)',
               lg: 'calc(50vh - 176px)',
@@ -545,7 +545,7 @@ export default function InfiniteScrollLayout({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            style={{ width: '100%' }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
           >
             <Stack spacing={3} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 480, lg: 540, xl: 650 } }}>
               {/* Names */}
@@ -565,11 +565,11 @@ export default function InfiniteScrollLayout({
               {/* Date and Action Icons */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <Typography
-                  variant="body2"
+                  variant="h6"
                   sx={{
                     color: '#000',
-                    fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
-                    fontWeight: 600,
+                    // fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
+                    // fontWeight: 600,
                   }}
                 >
                   {coupleData.date}
@@ -653,10 +653,10 @@ export default function InfiniteScrollLayout({
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography
-                      variant="body2"
+                      variant="body1"
                       sx={{
                         color: '#000',
-                        fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                        // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                         textDecoration: 'underline',
                       }}
                     >
@@ -681,11 +681,11 @@ export default function InfiniteScrollLayout({
 
               {/* Welcome Text */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: '#333',
-                  fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
-                  lineHeight: 1.6,
+                  // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                  // lineHeight: 1.6,
                   maxWidth: { md: 480, lg: 540, xl: 650 },
                 }}
               >
@@ -763,14 +763,14 @@ export default function InfiniteScrollLayout({
               sx={{
                 width: '100%',
                 display: 'flex',
-                justifyContent: 'flex-start',
-                mt: 6,
+                justifyContent: 'center',
+                mt: 16,
                 position: 'relative',
               }}
             >
 
               <Stack
-                spacing={10}
+                spacing={16}
                 sx={{
                   width: '100%',
                   maxWidth: { md: 480, lg: 540, xl: 650 },
@@ -882,7 +882,7 @@ export default function InfiniteScrollLayout({
 
                                           {event.time && (
                                             <Typography
-                                              variant="body2"
+                                              variant="body3"
                                               sx={{
                                                 color: isMajor ? '#000' : '#888',
                                                 fontSize: isMajor ? '1rem' : '0.85rem',
@@ -897,7 +897,7 @@ export default function InfiniteScrollLayout({
 
                                           {isMajor && event.description && (
                                             <Typography
-                                              variant="body1"
+                                              variant="body2"
                                               sx={{
                                                 color: '#333',
                                                 lineHeight: 1.6,
@@ -1177,7 +1177,7 @@ export default function InfiniteScrollLayout({
                       </Typography>
 
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
                           color: '#666',
                           fontSize: { md: '0.85rem', lg: '0.9rem' },
@@ -1412,13 +1412,12 @@ export default function InfiniteScrollLayout({
               position: 'fixed',
               right: 0,
               top: 0,
-              width: '40%',
+              width: '45%',
               height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              pl: { md: 2.4, lg: 3.2, xl: 4.8 },
-              pr: { md: 2.4, lg: 3.2, xl: 4.8 },
+              px: { md: 6, lg: 8, xl: 10 },
               gap: 2,
               alignItems: 'center',
               pointerEvents: 'auto',
@@ -1434,8 +1433,7 @@ export default function InfiniteScrollLayout({
               <Box
                 sx={{
                   position: 'relative',
-                  width: '100%',
-                  maxWidth: { md: 304, lg: 352, xl: 416 },
+                  width: '85%',
                   aspectRatio: '1',
                 }}
               >
