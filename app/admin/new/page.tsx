@@ -211,7 +211,7 @@ export default function NewWeddingPage() {
                   Create Your Wedding
                 </Typography>
                 <Typography
-                  variant="body1"
+                  variant="body2"
                   sx={{
                     color: '#666',
                     fontSize: { xs: '0.95rem', sm: '1.05rem' },

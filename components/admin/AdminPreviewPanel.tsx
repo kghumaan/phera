@@ -551,10 +551,9 @@ export default function AdminPreviewPanel({
                     sx={{
                         color: '#9a9a9a',
                         fontSize: '0.75rem',
-                        whiteSpace: 'nowrap',
                     }}
                 >
-                    Layout and spacing may vary slightly by device to ensure a perfect guest experience.
+                    This preview gives you a general idea of your site. To see the exact version your guests will see, click &quot;View Site&quot; above.
                 </Typography>
             </Box>
 
@@ -698,7 +697,7 @@ export default function AdminPreviewPanel({
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                                             Publish your website
                                         </Typography>
                                         <Typography variant="body2" sx={{ color: '#666', mt: 0.5, mr: 4 }}>

@@ -179,7 +179,6 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
         <Typography
           variant="h4"
           sx={{
-            fontFamily: 'Outfit',
             fontWeight: 600,
             color: '#141414',
             mb: 0,
@@ -232,7 +231,6 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontFamily: 'Outfit',
                       fontWeight: 600,
                       color: '#141414',
                       // fontSize: '1rem',
@@ -279,7 +277,7 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                   sx={{ fontSize: 16, color: '#858585' }}
                 />
                 <Typography
-                  variant="body1"
+                  variant="body2"
                   sx={{
                     color: '#858585',
                     fontSize: '1rem',
@@ -373,7 +371,6 @@ export default function SchedulePage() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: 18,
                   lineHeight: 1.5,

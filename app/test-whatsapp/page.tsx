@@ -94,11 +94,11 @@ export default function WhatsAppTestPage() {
           
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
             <WhatsApp sx={{ color: '#000', fontSize: 32 }} />
-            <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
+            <Typography variant="h4" sx={{ fontWeight: 400, fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
               WhatsApp Integration Test
             </Typography>
           </Stack>
-          <Typography variant="body1" sx={{ color: '#000', opacity: 0.7 }}>
+          <Typography variant="body2" sx={{ color: '#000', opacity: 0.7 }}>
             Test your WhatsApp Business Cloud API integration and ensure credentials are correct.
           </Typography>
         </Box>

@@ -1,5 +1,25 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
+// Module augmentation for custom typography variants
+declare module '@mui/material/styles' {
+  interface TypographyVariants {
+    body3: React.CSSProperties;
+    body4: React.CSSProperties;
+  }
+
+  interface TypographyVariantsOptions {
+    body3?: any; // Using any to properly support nested media queries in theme definition
+    body4?: any;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    body3: true;
+    body4: true;
+  }
+}
+
 // Cultural color tokens
 const culturalColors = {
   // Traditional
@@ -58,15 +78,16 @@ const baseTheme = createTheme({
     h2: {
       fontFamily: 'var(--font-instrument-serif)',
       fontWeight: 400,
+      // fontSize: '8rem', // Base size for < 600px
       fontStyle: 'italic',
       '@media (min-width:600px)': {
-        fontSize: '2.75rem',
+        fontSize: '3.25rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '3rem',
+        fontSize: '3.50rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '3.25rem',
+        fontSize: '3.75rem',
       },
     },
     h3: {
@@ -77,7 +98,7 @@ const baseTheme = createTheme({
         fontSize: '2.25rem',
       },
       '@media (min-width:900px)': {
-        fontSize: '2.5rem',
+        fontSize: '2.50rem',
       },
       '@media (min-width:1200px)': {
         fontSize: '2.75rem',
@@ -85,7 +106,7 @@ const baseTheme = createTheme({
     },
     h4: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 400,
+      fontWeight: 500,
       '@media (min-width:600px)': {
         fontSize: '1.75rem',
       },
@@ -98,7 +119,7 @@ const baseTheme = createTheme({
     },
     h5: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 600,
+      fontWeight: 500,
       '@media (min-width:600px)': {
         fontSize: '1.375rem',
       },
@@ -111,7 +132,7 @@ const baseTheme = createTheme({
     },
     h6: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 600,
+      fontWeight: 500,
       '@media (min-width:600px)': {
         fontSize: '1.125rem',
       },
@@ -128,6 +149,34 @@ const baseTheme = createTheme({
       fontWeight: 400,
       lineHeight: 1.5,
       '@media (min-width:600px)': {
+        fontSize: '1.1rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.1875rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.25rem',
+      },
+    },
+    body2: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 400,
+      lineHeight: 1.5,
+      '@media (min-width:600px)': {
+        fontSize: '1.0rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.0625rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.125rem',
+      },
+    },
+    body3: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 400,
+      lineHeight: 1.5,
+      '@media (min-width:600px)': {
         fontSize: '0.9rem',
       },
       '@media (min-width:900px)': {
@@ -137,7 +186,7 @@ const baseTheme = createTheme({
         fontSize: '1rem',
       },
     },
-    body2: {
+    body4: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.43,
@@ -252,7 +301,7 @@ const baseTheme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
-          color: '#1a1a1a',
+          // Allow variants to determine color
         },
       },
     },
@@ -335,4 +384,6 @@ const baseTheme = createTheme({
   },
 });
 
-export const theme = responsiveFontSizes(baseTheme); 
+// Disable for testing manual overrides
+// export const theme = responsiveFontSizes(baseTheme);
+export const theme = baseTheme; 

@@ -249,9 +249,8 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
 
           {/* Subtitle */}
           <Typography
-            variant="body1"
+            variant="body2"
             sx={{
-              fontFamily: 'var(--font-outfit), sans-serif',
               color: '#000',
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem' },
               lineHeight: 1.5,
@@ -302,7 +301,6 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
                     borderRadius: '50%',
                     height: { xs: 72, sm: 72, md: 73 },
                     fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem' },
-                    fontFamily: 'var(--font-outfit), sans-serif',
                     fontWeight: 700,
                     textAlign: 'center',
                     border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
@@ -393,7 +391,6 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
               px: '20px',
               py: '12px',
               fontSize: '1rem',
-              fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',

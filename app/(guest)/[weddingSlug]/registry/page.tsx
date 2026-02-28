@@ -134,7 +134,6 @@ export default function RegistryPage() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: 18,
                   lineHeight: 1.5,
@@ -198,7 +197,6 @@ export default function RegistryPage() {
           >
             <Typography
               sx={{
-                fontFamily: 'Outfit',
                 fontSize: 18,
                 color: '#6a6a6a',
                 textAlign: 'center',
@@ -256,7 +254,6 @@ export default function RegistryPage() {
                       <Typography
                         variant="h4"
                         sx={{
-                          fontFamily: 'Outfit',
                           fontWeight: 600,
                           fontSize: { xs: 28, md: 32, lg: 36 },
                           lineHeight: 1,
@@ -295,7 +292,6 @@ export default function RegistryPage() {
         }}
       >
         <DialogTitle sx={{
-          fontFamily: 'Outfit',
           fontWeight: 600,
           fontSize: 24,
           color: '#141414',
@@ -309,7 +305,6 @@ export default function RegistryPage() {
             <OpenInNew sx={{ fontSize: 48, color: wedding?.primary_color || '#DE3F5E' }} />
             <Typography
               sx={{
-                fontFamily: 'Outfit',
                 fontSize: 16,
                 color: '#4a4a4a',
                 textAlign: 'center',
@@ -319,7 +314,6 @@ export default function RegistryPage() {
             </Typography>
             <Typography
               sx={{
-                fontFamily: 'Outfit',
                 fontSize: 18,
                 fontWeight: 600,
                 color: '#141414',

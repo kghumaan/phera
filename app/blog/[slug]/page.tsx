@@ -87,7 +87,6 @@ export default async function BlogPostPage({ params }: PageProps) {
             <Button
               startIcon={<ArrowBack />}
               sx={{
-                fontFamily: 'var(--font-outfit)',
                 color: '#4a4a4a',
                 textTransform: 'none',
                 mb: 3,
@@ -118,7 +117,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <Typography
               component="time"
               variant="body2"
-              sx={{ fontFamily: 'var(--font-outfit)', color: '#888' }}
+              sx={{ color: '#888' }}
             >
               {new Date(post.date).toLocaleDateString('en-US', {
                 month: 'long',
@@ -128,13 +127,13 @@ export default async function BlogPostPage({ params }: PageProps) {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ fontFamily: 'var(--font-outfit)', color: '#888' }}
+              sx={{ color: '#888' }}
             >
               ·
             </Typography>
             <Typography
               variant="body2"
-              sx={{ fontFamily: 'var(--font-outfit)', color: '#888' }}
+              sx={{ color: '#888' }}
             >
               {post.readingTime}
             </Typography>
@@ -146,7 +145,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                 key={tag}
                 component="span"
                 sx={{
-                  fontFamily: 'var(--font-outfit)',
                   fontSize: '0.625rem',
                   fontWeight: 600,
                   letterSpacing: '0.08em',
@@ -224,7 +222,6 @@ export default async function BlogPostPage({ params }: PageProps) {
             </Typography>
             <Typography
               sx={{
-                fontFamily: 'var(--font-outfit)',
                 color: '#4a4a4a',
                 fontSize: '1rem',
                 mb: 3,
@@ -236,7 +233,6 @@ export default async function BlogPostPage({ params }: PageProps) {
               <Button
                 variant="contained"
                 sx={{
-                  fontFamily: 'var(--font-outfit)',
                   bgcolor: '#DE3F5E',
                   color: '#fff',
                   textTransform: 'none',

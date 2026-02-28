@@ -54,9 +54,8 @@ export default function BlogIndexPage() {
               The Phera Blog
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
-                fontFamily: 'var(--font-outfit)',
                 fontSize: { xs: '1rem', md: '1.125rem' },
                 color: '#4a4a4a',
                 maxWidth: 560,
@@ -150,7 +149,6 @@ export default function BlogIndexPage() {
                           key={tag}
                           component="span"
                           sx={{
-                            fontFamily: 'var(--font-outfit)',
                             fontSize: '0.3rem',
                             fontWeight: 600,
                             letterSpacing: '0.08em',
@@ -170,7 +168,6 @@ export default function BlogIndexPage() {
                     <Typography
                       variant="h6"
                       sx={{
-                        fontFamily: 'var(--font-outfit)',
                         fontWeight: 600,
                         fontSize: '1.1rem',
                         color: '#1a1a1a',
@@ -184,7 +181,6 @@ export default function BlogIndexPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        fontFamily: 'var(--font-outfit)',
                         color: '#666',
                         fontSize: '0.9rem',
                         lineHeight: 1.5,
@@ -206,7 +202,6 @@ export default function BlogIndexPage() {
                         component="time"
                         variant="caption"
                         sx={{
-                          fontFamily: 'var(--font-outfit)',
                           color: '#888',
                         }}
                       >
@@ -219,7 +214,6 @@ export default function BlogIndexPage() {
                       <Typography
                         variant="caption"
                         sx={{
-                          fontFamily: 'var(--font-outfit)',
                           color: '#888',
                         }}
                       >

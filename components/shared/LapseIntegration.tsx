@@ -80,10 +80,10 @@ export default function LapseIntegration() {
     <Box>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ fontFamily: 'var(--font-playfair)', mb: 1 }}>
+        <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           Lapse Photo Sharing
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary">
           Manage wedding photo albums with timed reveals for each ceremony
         </Typography>
       </Box>
@@ -211,7 +211,7 @@ export default function LapseIntegration() {
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       Photo Reveal Time
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
                       {new Date(event.revealTime).toLocaleDateString()} at{' '}
                       {new Date(event.revealTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Typography>

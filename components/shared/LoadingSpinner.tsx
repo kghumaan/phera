@@ -35,7 +35,7 @@ export default function LoadingSpinner({
       />
       {message && (
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#6a6a6a',
             fontWeight: 500,

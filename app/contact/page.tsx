@@ -96,7 +96,7 @@ export default function ContactPage() {
                 >
                   Contact Us
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#666', fontSize: '1.1rem' }}>
+                <Typography variant="body2" sx={{ color: '#666', fontSize: '1.1rem' }}>
                   Have questions? We'd love to hear from you.
                 </Typography>
               </Box>

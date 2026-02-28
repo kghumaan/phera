@@ -125,7 +125,6 @@ export default function FAQPage() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: 18,
                   lineHeight: 1.5,
@@ -217,7 +216,6 @@ export default function FAQPage() {
                     <Typography
                       variant="h6"
                       sx={{
-                        fontFamily: 'Outfit',
                         fontWeight: 600,
                         color: '#141414',
                         fontSize: { xs: '1.1rem', md: '1.25rem' },
@@ -228,7 +226,7 @@ export default function FAQPage() {
                   </AccordionSummary>
                   <AccordionDetails sx={{ pt: 0 }}>
                     <Typography
-                      variant="body1"
+                      variant="body2"
                       sx={{
                         color: '#666',
                         lineHeight: 1.6,
@@ -249,7 +247,6 @@ export default function FAQPage() {
                           textTransform: 'uppercase',
                           fontWeight: 700,
                           letterSpacing: '6.25%',
-                          fontFamily: 'Outfit',
                           px: 4,
                           py: 1.5,
                         }}

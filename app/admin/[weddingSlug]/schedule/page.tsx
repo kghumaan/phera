@@ -715,7 +715,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                 <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
                   Design Your Wedding Schedule
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#666', maxWidth: 500, mx: 'auto' }}>
+                <Typography variant="body2" sx={{ color: '#666', maxWidth: 500, mx: 'auto' }}>
                   {!weddingDate
                     ? "We don't know your wedding dates yet! Please set them in the Wedding Details section so we can organize your schedule."
                     : "Your wedding dates are set! Use our template to get started with common wedding events, adjusted to your dates."
@@ -1537,7 +1537,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   </Typography>
                                 )}
                                 {currentSlides[previewSlideIndex].main_heading && (
-                                  <Typography sx={{ fontSize: '1.5rem', fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#333', mb: 1 }}>
+                                  <Typography variant="h3" sx={{ fontSize: '1.5rem', color: '#333', mb: 1 }}>
                                     {currentSlides[previewSlideIndex].main_heading}
                                   </Typography>
                                 )}

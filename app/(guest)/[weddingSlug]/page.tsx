@@ -133,7 +133,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                   xl: '2.6rem'    // 1536px+ (large desktop)
                 },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
               }}
             >
               {unit.value}
@@ -152,7 +152,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                   xl: '1rem'       // large desktop
                 },
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
                 textAlign: 'center',
               }}
             >
@@ -937,7 +937,7 @@ export default function HomePage() {
 
               {/* Description */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: '#333',
                   fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
@@ -1119,7 +1119,6 @@ export default function HomePage() {
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
                     '&:hover': {
                       backgroundColor: '#C8365A',
                     },

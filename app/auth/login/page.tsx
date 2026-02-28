@@ -155,15 +155,14 @@ function LoginContent() {
                 <Typography
                   variant="h4"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     mb: 1,
                     color: '#1a1a1a',
                   }}
                 >
                   Welcome to Phera
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
                   Sign in to manage your wedding website
                 </Typography>
               </Box>

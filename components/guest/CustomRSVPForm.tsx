@@ -911,7 +911,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         {/* Define common Typography styles */}
                         {(() => {
                           const headingStyle = {
-                            fontFamily: 'Outfit',
                             color: '#000',
                             lineHeight: 1.5,
                             textAlign: 'center' as const,
@@ -920,7 +919,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           };
 
                           const bodyStyle = {
-                            fontFamily: 'Outfit',
                             color: '#474747',
                             lineHeight: 1.5,
                             textAlign: 'center' as const,
@@ -1014,7 +1012,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         textTransform: 'uppercase',
                         letterSpacing: '6.25%',
                         boxShadow: 'none',
-                        fontFamily: 'Outfit',
                         '&:hover': {
                           backgroundColor: '#C8365A',
                           boxShadow: 'none',
@@ -1048,7 +1045,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
-                fontFamily: 'Outfit',
                 fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
@@ -1056,11 +1052,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </Typography>
 
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#808080 !important',
                 mb: 3,
-                fontFamily: 'Outfit',
                 lineHeight: 1.5,
               }}
             >
@@ -1099,7 +1094,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       border: 'none',
                       outline: 'none',
                       width: '100%',
-                      fontFamily: 'Outfit',
                       fontSize: 'inherit',
                       color: formData.firstName ? '#000' : '#888888',
                       backgroundColor: 'transparent',
@@ -1144,7 +1138,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       border: 'none',
                       outline: 'none',
                       width: '100%',
-                      fontFamily: 'Outfit',
                       fontSize: 'inherit',
                       color: formData.lastName ? '#000' : '#888888',
                       backgroundColor: 'transparent',
@@ -1250,7 +1243,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     border: 'none',
                     outline: 'none',
                     flex: 1,
-                    fontFamily: 'Outfit',
                     fontSize: 'inherit',
                     color: formData.phone ? '#000' : '#888888',
                     backgroundColor: 'transparent',
@@ -1271,7 +1263,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 color: '#666',
                 mt: 2,
                 mb: 2,
-                fontFamily: 'Outfit',
                 lineHeight: 1.4,
               }}
             >
@@ -1290,7 +1281,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
-                fontFamily: 'Outfit',
                 fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
@@ -1298,11 +1288,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </Typography>
 
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: '#808080 !important',
                 mb: 3,
-                fontFamily: 'Outfit',
                 lineHeight: 1.5,
               }}
             >
@@ -1322,10 +1311,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             {isAuthenticated ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <CheckCircleOutlined sx={{ fontSize: 64, color: '#DE3F5E', mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#000', fontFamily: 'Outfit', mb: 1 }}>
+                <Typography variant="h6" sx={{ color: '#000', mb: 1 }}>
                   You're all set!
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#666', fontFamily: 'Outfit' }}>
+                <Typography variant="body2" sx={{ color: '#666' }}>
                   Logged in as {formData.email || user?.email}
                 </Typography>
               </Box>
@@ -1362,7 +1351,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                        fontFamily: 'Outfit',
                         fontSize: 'inherit',
                         color: formData.email ? '#000' : '#888888',
                         backgroundColor: 'transparent',
@@ -1407,7 +1395,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         border: 'none',
                         outline: 'none',
                         width: '100%',
-                        fontFamily: 'Outfit',
                         fontSize: 'inherit',
                         color: (formData.password && formData.password.length > 0) ? '#000' : '#888888',
                         backgroundColor: 'transparent',
@@ -1515,18 +1502,16 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Will you be celebrating with us in Thailand? 🏖️
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
-                  fontFamily: 'Outfit',
                   lineHeight: 1.5,
                 }}
               >
@@ -1560,7 +1545,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         sx={{
                           color: formData.attending === option.value ? '#DE3F5E' : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
-                          fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
                         }}
@@ -1624,7 +1608,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                               width: '100%',
                               height: '70px',
                               resize: 'none',
-                              fontFamily: 'Outfit',
                               fontSize: 'inherit',
                               color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
                               backgroundColor: 'transparent',
@@ -1648,7 +1631,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           <Typography sx={{
                             fontWeight: 400,
                             lineHeight: 1.5,
-                            fontFamily: 'Outfit'
                           }}>
                             📅  Final answer needed by: <strong>September 30, 2025</strong>
                           </Typography>
@@ -1670,7 +1652,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               sx={{
                 color: 'rgba(0, 0, 0, 0.48)',
                 lineHeight: 1.5,
-                fontFamily: 'Outfit',
                 mt: 3
               }}
             >
@@ -1695,7 +1676,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 <Typography variant="body2" sx={{ 
                   fontWeight: 400,
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}>
                   We'll miss you! We hope to celebrate with you in the future. 💕
                 </Typography>
@@ -1715,20 +1695,18 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Bringing your special someone? 💕
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Couples share one invitation - add your partner here! They will be able to sign in to the website with their email address as well.
@@ -1771,7 +1749,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         sx={{
                           color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
-                          fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
                         }}
@@ -1840,7 +1817,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   border: 'none',
                                   outline: 'none',
                                   width: '100%',
-                                  fontFamily: 'Outfit',
                                   fontSize: 'inherit',
                                   color: formData.plusOneName.split(' ')[0] ? '#000' : '#888888',
                                   backgroundColor: 'transparent',
@@ -1887,7 +1863,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   border: 'none',
                                   outline: 'none',
                                   width: '100%',
-                                  fontFamily: 'Outfit',
                                   fontSize: 'inherit',
                                   color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#888888',
                                   backgroundColor: 'transparent',
@@ -1928,7 +1903,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 border: 'none',
                                 outline: 'none',
                                 width: '100%',
-                                fontFamily: 'Outfit',
                                 fontSize: 'inherit',
                                 color: formData.plusOneEmail ? '#000' : '#888888',
                                 backgroundColor: 'transparent',
@@ -2033,7 +2007,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 border: 'none',
                                 outline: 'none',
                                 flex: 1,
-                                fontFamily: 'Outfit',
                                 fontSize: '1rem',
                               }}
                             />
@@ -2061,7 +2034,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         sx={{
                           color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
-                          fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
                         }}
@@ -2107,12 +2079,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
 
             <Box>
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mb: 2,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Total number in your party (including kids)?
@@ -2154,7 +2125,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     color: '#000',
                     fontWeight: 500,
                     py: 1,
-                    fontFamily: 'Outfit'
                   }}
                 >
                   {formData.guestCount}
@@ -2193,20 +2163,18 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontFamily: 'Outfit'
                 }}
               >
                 What's your dining preference? 🍛
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}
               >
                 {allowsPlusOne ? 'Select all that apply for you (and your plus one)!' : 'Select all that apply for you!'}
@@ -2252,7 +2220,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         sx={{
                           color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
-                          fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
                         }}
@@ -2326,7 +2293,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       width: '100%',
                       height: '20px',
                       resize: 'none',
-                      fontFamily: 'Outfit',
                       fontSize: 'inherit',
                       color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
                       backgroundColor: 'transparent',
@@ -2349,20 +2315,18 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
-                  fontFamily: 'Outfit'
                 }}
               >
                 Which side of the celebration? 👰🏻‍♀️🤵🏻‍♂️
               </Typography>
 
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
                   fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
-                  fontFamily: 'Outfit'
                 }}
               >
                 This helps us with logistics and organization!
@@ -2396,7 +2360,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         sx={{
                           color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
-                          fontFamily: 'Outfit',
                           lineHeight: 1.3,
                           flex: 1
                         }}
@@ -2457,7 +2420,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         color: '#000',
                         fontWeight: 400,
                         lineHeight: 1.3,
-                        fontFamily: 'Outfit'
                       }}
                     >
                       Music requests
@@ -2466,11 +2428,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   </Stack>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,
-                      fontFamily: 'Outfit',
                       lineHeight: 1.5,
                     }}
                   >
@@ -2508,7 +2469,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       border: 'none',
                       outline: 'none',
                       width: '100%',
-                      fontFamily: 'Outfit',
                       fontSize: 'inherit',
                       color: formData.songRequest ? '#000' : '#888888',
                       backgroundColor: 'transparent',
@@ -2527,7 +2487,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         color: '#000',
                         fontWeight: 400,
                         lineHeight: 1.3,
-                        fontFamily: 'Outfit'
                       }}
                     >
                       Share your excitement
@@ -2536,11 +2495,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   </Stack>
 
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
                       fontWeight: 400,
-                      fontFamily: 'Outfit',
                       lineHeight: 1.5,
                     }}
                   >
@@ -2579,7 +2537,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       width: '100%',
                       height: '60px',
                       resize: 'none',
-                      fontFamily: 'Outfit',
                       fontSize: 'inherit',
                       color: formData.specialMessage ? '#000' : '#888888',
                       backgroundColor: 'transparent',
@@ -2801,7 +2758,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
-                fontFamily: 'Outfit',
                 '&:hover': {
                   backgroundColor: '#C8365A',
                 },
@@ -2828,7 +2784,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 borderRadius: '16px',
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
-                fontFamily: 'Outfit',
                 '&:hover': {
                   backgroundColor: '#C8365A',
                 },

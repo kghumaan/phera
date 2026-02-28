@@ -175,10 +175,10 @@ export default function EventBuilder() {
       {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Typography variant="h4" component="h1" sx={{ fontFamily: 'var(--font-playfair)', mb: 1 }}>
+          <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
             Wedding Events
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" color="text.secondary">
             Create and manage your wedding celebration timeline
           </Typography>
         </Box>
@@ -262,7 +262,7 @@ export default function EventBuilder() {
                     </Box>
                   </Box>
 
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     {event.description}
                   </Typography>
 

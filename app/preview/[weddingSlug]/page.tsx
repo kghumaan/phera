@@ -110,7 +110,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                   xl: '2.75rem'   // 1536px+ (large desktop)
                 },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
               }}
             >
               {unit.value}
@@ -122,7 +122,6 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif',
                 textAlign: 'center',
               }}
             >
@@ -274,9 +273,28 @@ function PreviewContent() {
   const [previewView, setPreviewView] = useState<PreviewView>('rsvp_submitted');
   const [viewMenuAnchor, setViewMenuAnchor] = useState<null | HTMLElement>(null);
   const [isInIframe, setIsInIframe] = useState(true); // default true to avoid flash
+  const [showScrolledNav, setShowScrolledNav] = useState(false);
 
   useEffect(() => {
     setIsInIframe(window.self !== window.top);
+  }, []);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingUp = currentScrollY < lastScrollY;
+      if (currentScrollY < 80) {
+        setShowScrolledNav(false);
+      } else if (scrollingUp) {
+        setShowScrolledNav(true);
+      } else {
+        setShowScrolledNav(false);
+      }
+      lastScrollY = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Check if we should use infinite scroll layout (desktop only)
@@ -396,12 +414,21 @@ function PreviewContent() {
             left: 0,
             right: 0,
             zIndex: 10,
-            backgroundColor: 'transparent',
-            transition: 'transform 0.3s ease-in-out',
+            background: showScrolledNav
+              ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%)'
+              : 'transparent',
+            transition: 'background 0.3s ease',
+            ...(showScrolledNav && {
+              '@keyframes slideDown': {
+                from: { transform: 'translateY(-100%)' },
+                to: { transform: 'translateY(0)' },
+              },
+              animation: 'slideDown 0.3s ease forwards',
+            }),
           }}
         >
           <Box sx={{
-            height: { xs: 64, md: 120 },
+            height: { xs: 56, md: 64 },
             display: 'flex',
             alignItems: 'center',
             px: { xs: 2, md: 4 },
@@ -536,7 +563,17 @@ function PreviewContent() {
               left: 0,
               right: 0,
               zIndex: 10,
-              backgroundColor: 'transparent',
+              background: showScrolledNav
+                ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%)'
+                : 'transparent',
+              transition: 'background 0.3s ease',
+              ...(showScrolledNav && {
+                '@keyframes slideDown': {
+                  from: { transform: 'translateY(-100%)' },
+                  to: { transform: 'translateY(0)' },
+                },
+                animation: 'slideDown 0.3s ease forwards',
+              }),
             }}
           >
             {/* Mock Header for Preview - Simplified version of AppHeader */}
@@ -544,7 +581,8 @@ function PreviewContent() {
               display: 'flex',
               alignItems: 'center',
               px: { xs: 2, md: 4 },
-              pt: { xs: 2, md: 4 },
+              pt: { xs: 1.5, md: 2 },
+              pb: { xs: 1.5, md: 2 },
               width: '100%',
               justifyContent: 'space-between'
             }}>
@@ -765,7 +803,7 @@ function PreviewContent() {
 
                 {/* Description */}
                 <Typography
-                  variant="body1"
+                  variant="body2"
                   sx={{
                     color: '#333',
                     fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
@@ -853,7 +891,6 @@ function PreviewContent() {
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
                     '&:hover': {
                       backgroundColor: wedding.primary_color || '#C8365A',
                       opacity: 0.9,
@@ -986,7 +1023,7 @@ function PreviewContent() {
               left: 0,
               right: 0,
               zIndex: 4,
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backgroundColor: 'rgba(254, 249, 242, 0.4)',
               backdropFilter: 'blur(4px)',
               borderTop: '1px solid rgba(0, 0, 0, 0.1)',
               px: 2,
@@ -1011,7 +1048,6 @@ function PreviewContent() {
                       fontWeight: 600,
                       textTransform: 'uppercase',
                       letterSpacing: '0.1em',
-                      fontFamily: 'Outfit, sans-serif',
                     }}
                   >
                     {previewView === 'rsvp_submitted' ? 'View Details' : 'RSVP'}

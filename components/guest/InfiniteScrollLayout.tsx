@@ -504,12 +504,13 @@ export default function InfiniteScrollLayout({
       return content.map((item, idx) => (
         <Typography
           key={idx}
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#474747',
-            fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            fontWeight: 400,
             lineHeight: 1.7,
-            mb: idx < content.length - 1 ? 1.5 : 0,
+            mb: 2,
           }}
         >
           {typeof item === 'string' ? item : (item?.p ?? JSON.stringify(item))}
@@ -519,11 +520,13 @@ export default function InfiniteScrollLayout({
     if (typeof content === 'string') {
       return (
         <Typography
-          variant="body1"
+          variant="body2"
           sx={{
             color: '#474747',
-            fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
+            fontWeight: 400,
             lineHeight: 1.7,
+            whiteSpace: 'pre-line',
           }}
         >
           {content}
@@ -556,17 +559,17 @@ export default function InfiniteScrollLayout({
         {/* Left Side - Scrollable Content */}
         <Box
           sx={{
-            flex: '0 0 60%',
-            maxWidth: '60%',
+            flex: '0 0 55%',
+            maxWidth: '55%',
             minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            alignItems: 'center',
+            backgroundColor: 'rgba(254, 249, 242, 0.9)',
             backdropFilter: 'blur(10px)',
             position: 'relative',
             zIndex: 1,
-            pl: { md: 22, lg: 26, xl: 30 },
-            pr: { md: 3, lg: 4, xl: 5 },
+            px: { md: 8, lg: 10, xl: 12 },
             pt: {
               md: 'calc(50vh - 152px)',
               lg: 'calc(50vh - 176px)',
@@ -581,15 +584,15 @@ export default function InfiniteScrollLayout({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            style={{ width: '100%' }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
           >
             <Stack spacing={3} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 480, lg: 540, xl: 650 } }}>
               {/* Names */}
               <Typography
                 variant="h2"
                 sx={{
-                  fontSize: { md: '2.8rem', lg: '3.2rem', xl: '3.8rem' },
-                  color: '#000',
+                  // fontSize: { md: '2.8rem', lg: '3.2rem', xl: '3.8rem' },
+                  // color: '#000',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
@@ -601,11 +604,11 @@ export default function InfiniteScrollLayout({
               {/* Date and Action Icons */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <Typography
-                  variant="body2"
+                  variant="h6"
                   sx={{
                     color: '#000',
-                    fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
-                    fontWeight: 600,
+                    // fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
+                    // fontWeight: 600,
                   }}
                 >
                   {coupleData.date}
@@ -689,10 +692,10 @@ export default function InfiniteScrollLayout({
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography
-                      variant="body2"
+                      variant="body1"
                       sx={{
                         color: '#000',
-                        fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                        // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                         textDecoration: 'underline',
                       }}
                     >
@@ -707,7 +710,7 @@ export default function InfiniteScrollLayout({
                     variant="body2"
                     sx={{
                       color: '#000',
-                      fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                      // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                     }}
                   >
                     <strong>RSVP</strong> to see location
@@ -717,11 +720,11 @@ export default function InfiniteScrollLayout({
 
               {/* Welcome Text */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   color: '#333',
-                  fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
-                  lineHeight: 1.6,
+                  // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
+                  // lineHeight: 1.6,
                   maxWidth: { md: 480, lg: 540, xl: 650 },
                 }}
               >
@@ -747,7 +750,7 @@ export default function InfiniteScrollLayout({
                         backgroundColor: primaryColor,
                         color: 'white',
                         py: 1.2,
-                        fontSize: { md: '0.8rem', lg: '0.88rem' },
+                        // fontSize: { md: '0.8rem', lg: '0.88rem' },
                         fontWeight: 600,
                         borderRadius: '32px',
                         textTransform: 'uppercase',
@@ -799,14 +802,14 @@ export default function InfiniteScrollLayout({
               sx={{
                 width: '100%',
                 display: 'flex',
-                justifyContent: 'flex-start',
-                mt: 6,
+                justifyContent: 'center',
+                mt: 16,
                 position: 'relative',
               }}
             >
 
               <Stack
-                spacing={10}
+                spacing={16}
                 sx={{
                   width: '100%',
                   maxWidth: { md: 480, lg: 540, xl: 650 },
@@ -838,15 +841,14 @@ export default function InfiniteScrollLayout({
                         {schedule.map((day) => (
                           <Box key={day.id}>
                             <Typography
-                              variant="h4"
+                              variant="h6"
                               sx={{
                                 color: '#000',
                                 mb: 3,
-                                fontSize: { md: '1rem', lg: '1.12rem' },
                                 textAlign: 'left',
                               }}
                             >
-                              {day.day_name}, {day.date}
+                              {day.date}
                             </Typography>
 
                             <Box sx={{ position: 'relative', pl: 7 }}>
@@ -890,8 +892,8 @@ export default function InfiniteScrollLayout({
                                           flex: 1,
                                           p: isMajor ? 3 : 0,
                                           mb: isMajor ? 2 : 0,
-                                          backgroundColor: isMajor ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
-                                          backgroundImage: bgUrl ? `linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)), url(${bgUrl})` : 'none',
+                                          backgroundColor: isMajor ? 'rgba(254, 249, 242, 0.95)' : 'transparent',
+                                          backgroundImage: bgUrl ? `linear-gradient(rgba(254, 249, 242, 0.65), rgba(254, 249, 242, 0.65)), url(${bgUrl})` : 'none',
                                           backgroundSize: 'cover',
                                           backgroundPosition: 'center',
                                           borderRadius: isMajor ? '16px' : 0,
@@ -905,11 +907,11 @@ export default function InfiniteScrollLayout({
                                       >
                                         <Box sx={{ position: 'relative', zIndex: 1 }}>
                                           <Typography
-                                            variant={isMajor ? "h5" : "body1"}
+                                            variant={isMajor ? "h6" : "body1"}
                                             sx={{
-                                              fontWeight: isMajor ? 600 : 500,
+                                              // fontWeight: isMajor ? 600 : 500,
                                               color: '#141414',
-                                              fontSize: isMajor ? undefined : '0.95rem',
+                                              // fontSize: isMajor ? undefined : '0.95rem',
                                               mb: 0.5,
                                               lineHeight: 1.1,
                                             }}
@@ -919,13 +921,13 @@ export default function InfiniteScrollLayout({
 
                                           {event.time && (
                                             <Typography
-                                              variant="body2"
+                                              variant="body3"
                                               sx={{
                                                 color: isMajor ? '#000' : '#888',
-                                                fontFamily: 'Outfit',
                                                 fontSize: isMajor ? '1rem' : '0.85rem',
                                                 fontWeight: isMajor ? 600 : 400,
                                                 mb: 0.5,
+                                                display: 'block',
                                                 letterSpacing: isMajor ? '0.5px' : 'normal',
                                               }}
                                             >
@@ -935,15 +937,15 @@ export default function InfiniteScrollLayout({
 
                                           {isMajor && event.description && (
                                             <Typography
-                                              variant="body1"
+                                              variant="body3"
                                               sx={{
                                                 color: '#333',
                                                 lineHeight: 1.6,
-                                                mt: 2,
+                                                mt: 1,
                                                 mb: 2,
-                                                fontFamily: 'Outfit',
+                                                display: 'block',
                                                 maxWidth: '95%',
-                                                fontSize: '0.95rem',
+                                                // fontSize: '0.95rem',
                                               }}
                                             >
                                               {event.description}
@@ -957,12 +959,12 @@ export default function InfiniteScrollLayout({
                                               {event.location ? (
                                                 <Stack direction="row" spacing={0.75} alignItems="center">
                                                   <LocationOnOutlined sx={{ fontSize: 18, color: '#111' }} />
-                                                  <Typography
+                                                   <Typography
+                                                    variant="body2"
                                                     sx={{
                                                       color: '#111',
-                                                      fontSize: '0.9rem',
-                                                      fontFamily: 'Outfit',
-                                                      fontWeight: 500,
+                                                      // fontSize: '0.9rem',
+                                                      // fontWeight: 500,
                                                     }}
                                                   >
                                                     {event.location}
@@ -995,23 +997,23 @@ export default function InfiniteScrollLayout({
                                                       },
                                                     }}
                                                   >
-                                                    <Typography
+                                                     <Typography
                                                       className="learn-more-text"
+                                                      variant="body3"
                                                       sx={{
                                                         color: primaryColor,
-                                                        fontSize: '0.9rem',
-                                                        fontFamily: 'Outfit',
-                                                        fontWeight: 500,
+                                                        // fontSize: '0.9rem',
+                                                        // fontWeight: 500,
                                                       }}
                                                     >
                                                       Learn More
                                                     </Typography>
-                                                    <Typography
+                                                     <Typography
+                                                      variant="body3"
                                                       sx={{
                                                         color: primaryColor,
-                                                        fontSize: '0.9rem',
-                                                        fontFamily: 'Outfit',
-                                                        fontWeight: 500,
+                                                        // fontSize: '0.9rem',
+                                                        // fontWeight: 500,
                                                       }}
                                                     >
                                                       →
@@ -1060,7 +1062,7 @@ export default function InfiniteScrollLayout({
                             key={card.id}
                             elevation={0}
                             sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              backgroundColor: 'rgba(254, 249, 242, 0.8)',
                               borderRadius: 2, // 16px
                               overflow: 'hidden',
                               border: '1px solid rgba(0,0,0,0.08)',
@@ -1081,11 +1083,10 @@ export default function InfiniteScrollLayout({
                               <Typography
                                 variant="h5"
                                 sx={{
-                                  fontFamily: 'Outfit',
                                   fontWeight: 600,
                                   color: '#141414',
                                   mb: 1.5,
-                                  fontSize: { md: '0.88rem', lg: '1rem' },
+                                  // fontSize: { md: '0.88rem', lg: '1rem' },
                                 }}
                               >
                                 {card.title}
@@ -1149,7 +1150,7 @@ export default function InfiniteScrollLayout({
                             key={faq.id}
                             elevation={0}
                             sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              backgroundColor: 'rgba(254, 249, 242, 0.8)',
                               borderRadius: '12px !important',
                               border: '1px solid rgba(0,0,0,0.08)',
                               '&:before': { display: 'none' },
@@ -1160,7 +1161,7 @@ export default function InfiniteScrollLayout({
                               transition: 'all 0.3s ease',
                               '&:hover': {
                                 borderColor: primaryColor,
-                                backgroundColor: 'white',
+                                backgroundColor: '#FEF9F2',
                               }
                             }}
                           >
@@ -1174,7 +1175,6 @@ export default function InfiniteScrollLayout({
                             >
                               <Typography
                                 sx={{
-                                  fontFamily: 'Outfit',
                                   fontWeight: 600,
                                   color: '#141414',
                                   fontSize: { md: '0.95rem', lg: '1.05rem' },
@@ -1189,7 +1189,6 @@ export default function InfiniteScrollLayout({
                                   color: '#333',
                                   fontSize: '0.9rem',
                                   lineHeight: 1.7,
-                                  fontFamily: 'Outfit',
                                 }}
                               >
                                 {faq.answer}
@@ -1222,10 +1221,10 @@ export default function InfiniteScrollLayout({
                       </Typography>
 
                       <Typography
-                        variant="body1"
+                         variant="body2"
                         sx={{
                           color: '#666',
-                          fontSize: { md: '0.85rem', lg: '0.9rem' },
+                          // fontSize: { md: '0.85rem', lg: '0.9rem' },
                           lineHeight: 1.7,
                           mb: 3,
                         }}
@@ -1292,13 +1291,13 @@ export default function InfiniteScrollLayout({
                             elevation={0}
                             sx={{
                               p: 2,
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              backgroundColor: 'rgba(254, 249, 242, 0.8)',
                               borderRadius: 2,
                               border: '1px solid rgba(0,0,0,0.08)',
                               cursor: shop.url ? 'pointer' : 'default',
                               transition: 'all 0.3s ease',
                               '&:hover': shop.url ? {
-                                backgroundColor: 'white',
+                                backgroundColor: '#FEF9F2',
                                 borderColor: primaryColor,
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
                                 transform: 'translateY(-2px)',
@@ -1337,7 +1336,6 @@ export default function InfiniteScrollLayout({
                                   <Typography
                                     variant="h6"
                                     sx={{
-                                      fontFamily: 'Outfit',
                                       fontWeight: 600,
                                       color: '#141414',
                                       fontSize: { md: '0.95rem', lg: '1.05rem' },
@@ -1352,7 +1350,6 @@ export default function InfiniteScrollLayout({
                                         color: '#444',
                                         fontSize: '0.85rem',
                                         lineHeight: 1.5,
-                                        fontFamily: 'Outfit',
                                       }}
                                     >
                                       {shop.details}
@@ -1459,13 +1456,12 @@ export default function InfiniteScrollLayout({
               position: 'fixed',
               right: 0,
               top: 0,
-              width: '40%',
+              width: '45%',
               height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              pl: { md: 2.4, lg: 3.2, xl: 4.8 },
-              pr: { md: 2.4, lg: 3.2, xl: 4.8 },
+              px: { md: 6, lg: 8, xl: 10 },
               gap: 2,
               alignItems: 'center',
               pointerEvents: 'auto',
@@ -1481,8 +1477,7 @@ export default function InfiniteScrollLayout({
               <Box
                 sx={{
                   position: 'relative',
-                  width: '100%',
-                  maxWidth: { md: 304, lg: 352, xl: 416 },
+                  width: '85%',
                   aspectRatio: '1',
                 }}
               >
@@ -1693,7 +1688,6 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
     >
       <Typography
         sx={{
-          fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: '0.95rem',
           letterSpacing: '0.12em',

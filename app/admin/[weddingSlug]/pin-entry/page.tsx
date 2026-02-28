@@ -169,7 +169,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
             Pin Entry Screen
           </Typography>
-          <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
             Customize the styling, colors, and text displayed on your pin entry screen
           </Typography>
         </Box>
@@ -482,15 +482,12 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
               {/* Heading */}
               <Typography
-                variant="h6"
+                variant="h3"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif), serif',
-                  fontWeight: 400,
-                  color: pinEntryFontColor,
                   fontSize: '1.5rem',
                   lineHeight: 1.3,
                   textAlign: 'center',
-                  fontStyle: 'italic',
+                  color: pinEntryFontColor,
                 }}
               >
                 {previewText || `Please join ${coupleName} on their special night`}
@@ -500,7 +497,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
               <Typography
                 variant="body2"
                 sx={{
-                  fontFamily: 'var(--font-outfit), sans-serif',
                   color: pinEntryFontColor,
                   fontSize: '0.875rem',
                   lineHeight: 1.4,
@@ -528,7 +524,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '1rem',
-                      fontFamily: 'var(--font-outfit), sans-serif',
                       fontWeight: 700,
                       color: 'rgba(0, 0, 0, 0.2)',
                     }}
@@ -549,7 +544,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                   px: '16px',
                   py: '8px',
                   fontSize: '0.875rem',
-                  fontFamily: 'var(--font-outfit), sans-serif',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '6.25%',

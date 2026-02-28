@@ -226,8 +226,6 @@ const AdminDashboard = () => {
               component="div"
               sx={{
                 flexGrow: 1,
-                fontFamily: 'var(--font-instrument-serif), serif',
-                fontStyle: 'italic',
               }}
             >
               Admin Dashboard
@@ -252,7 +250,6 @@ const AdminDashboard = () => {
             <Typography
               variant="h4"
               sx={{
-                fontFamily: 'var(--font-instrument-serif), serif',
                 fontWeight: 700,
                 color: '#1a1a1a',
                 mb: 1,
@@ -261,9 +258,8 @@ const AdminDashboard = () => {
               Wedding Data Management
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
-                fontFamily: 'var(--font-outfit), sans-serif',
                 color: '#4a4a4a',
                 mb: 4,
               }}
@@ -318,7 +314,6 @@ const AdminDashboard = () => {
                         sx={{
                           fontWeight: 700,
                           color: stat.color,
-                          fontFamily: 'var(--font-outfit), sans-serif',
                           mb: 0.5,
                         }}
                       >
@@ -328,7 +323,6 @@ const AdminDashboard = () => {
                         variant="body2"
                         sx={{
                           color: '#4a4a4a',
-                          fontFamily: 'var(--font-outfit), sans-serif',
                           fontWeight: 500,
                         }}
                       >
@@ -350,7 +344,6 @@ const AdminDashboard = () => {
             <Typography
               variant="h5"
               sx={{
-                fontFamily: 'var(--font-instrument-serif), serif',
                 fontWeight: 700,
                 color: '#1a1a1a',
                 mb: 3,
@@ -401,7 +394,6 @@ const AdminDashboard = () => {
                               <Typography
                                 variant="h6"
                                 sx={{
-                                  fontFamily: 'var(--font-outfit), sans-serif',
                                   fontWeight: 600,
                                   color: '#1a1a1a',
                                 }}
@@ -425,7 +417,6 @@ const AdminDashboard = () => {
                               variant="body2"
                               sx={{
                                 color: '#4a4a4a',
-                                fontFamily: 'var(--font-outfit), sans-serif',
                                 mb: 2,
                               }}
                             >
@@ -444,7 +435,6 @@ const AdminDashboard = () => {
                                 fontSize: '1rem',
                                 fontWeight: 600,
                                 textTransform: 'none',
-                                fontFamily: 'var(--font-outfit), sans-serif',
                                 boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                                 '&:hover': {
                                   bgcolor: '#C8365A',
@@ -473,7 +463,6 @@ const AdminDashboard = () => {
               variant="body2"
               sx={{
                 color: '#6a6a6a',
-                fontFamily: 'var(--font-outfit), sans-serif',
               }}
             >
               Phera Wedding Platform - Admin Dashboard

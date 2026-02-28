@@ -212,7 +212,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 fontWeight: 700,
                 color: '#000000',
                 fontSize: 64,
-                fontFamily: 'Outfit',
                 lineHeight: 1
               }}>
                 {unit.value}
@@ -220,7 +219,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               <Typography sx={{
                 color: '#000000',
                 fontSize: 11,
-                fontFamily: 'Outfit',
                 textAlign: 'center',
                 opacity: 0.7,
                 textTransform: 'lowercase'

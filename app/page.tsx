@@ -1030,7 +1030,7 @@ export default function LandingPage() {
                   Wedding Planner in your Pocket
                 </Typography>
                 <Typography
-                  variant="body1"
+                  variant="body2"
                   sx={{
                     fontSize: { xs: '1rem', md: '1.25rem' },
                     color: '#4a4a4a',
@@ -1524,7 +1524,7 @@ export default function LandingPage() {
           {item.title}
         </Typography>
 
-        <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+        <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
           {item.desc}
         </Typography>
       </Paper>
@@ -1794,12 +1794,12 @@ export default function LandingPage() {
                     </Box>}
                     sx={{ px: { xs: 2, md: 3 }, py: { xs: 0.5, md: 1 } }}
                   >
-                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#1a1a1a' }}>
                       {faq.q}
                     </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ px: { xs: 2, md: 3 }, pb: { xs: 1.5, md: 2.5 }, pt: 0 }}>
-                    <Typography variant="body1" sx={{ color: '#666', lineHeight: 1.6, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+                    <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.6, fontSize: { xs: '0.8rem', md: '1rem' } }}>
                       {faq.a}
                     </Typography>
                   </AccordionDetails>

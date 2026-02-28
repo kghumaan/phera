@@ -158,9 +158,8 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
 
               {/* Description */}
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 300,
                   fontSize: 16,
                   lineHeight: 1.5,
@@ -200,7 +199,6 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     <Typography
                       variant="body2"
                       sx={{
-                        fontFamily: 'Outfit',
                         fontWeight: 400,
                         fontSize: 14,
                         color: '#666',
@@ -240,7 +238,6 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      fontFamily: 'Outfit',
                       fontSize: 12,
                       color: '#666',
                     }}
@@ -261,7 +258,6 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     fontSize: '0.9rem',
                     fontWeight: 500,
                     textTransform: 'none',
-                    fontFamily: 'Outfit',
                     width: '100%',
                     maxWidth: 320,
                     '&:hover': {
@@ -292,7 +288,6 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     fontSize: '1rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    fontFamily: 'Outfit',
                     width: '100%',
                     maxWidth: 320,
                     '&:hover': {

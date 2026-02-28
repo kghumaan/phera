@@ -141,7 +141,6 @@ export default function ReadOnlyComments() {
             >
               <Typography
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: activeTab === index ? 600 : 400,
                   fontSize: '16px',
                   lineHeight: '1.26em',
@@ -207,7 +206,6 @@ export default function ReadOnlyComments() {
           >
             <Typography
               sx={{
-                fontFamily: 'Outfit',
                 fontSize: '14px',
                 color: '#DE3F5E',
                 textAlign: 'center',
@@ -247,7 +245,6 @@ export default function ReadOnlyComments() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 600,
                               fontSize: '16px',
                               lineHeight: '1.5em',
@@ -258,7 +255,6 @@ export default function ReadOnlyComments() {
                           </Typography>
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
@@ -273,7 +269,6 @@ export default function ReadOnlyComments() {
                         {comment.message && (
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 400,
                               fontSize: '16px',
                               lineHeight: '1.5em',
@@ -351,7 +346,6 @@ export default function ReadOnlyComments() {
 
                       <Typography
                         sx={{
-                          fontFamily: 'Outfit',
                           fontWeight: 400,
                           fontSize: '16px',
                           lineHeight: '1.5em',
@@ -399,7 +393,6 @@ export default function ReadOnlyComments() {
 
                       <Typography
                         sx={{
-                          fontFamily: 'Outfit',
                           fontWeight: 400,
                           fontSize: '16px',
                           lineHeight: '1.5em',

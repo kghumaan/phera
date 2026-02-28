@@ -10,7 +10,7 @@ export default function TestSMSPage() {
         <Typography variant="h4" gutterBottom>
           SMS OTP Debugging
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary">
           Use this page to test SMS OTP functionality and see detailed error messages.
         </Typography>
       </Box>

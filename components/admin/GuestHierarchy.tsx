@@ -215,10 +215,10 @@ export default function GuestHierarchy() {
       {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Typography variant="h4" component="h1" sx={{ fontFamily: 'var(--font-playfair)', mb: 1 }}>
+          <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
             Guest Management
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" color="text.secondary">
             Organize your wedding guests with family grouping and tier management
           </Typography>
         </Box>

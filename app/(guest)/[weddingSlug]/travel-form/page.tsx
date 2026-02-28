@@ -197,7 +197,6 @@ export default function TravelFormPage() {
               <Typography
                 variant="h4"
                 sx={{
-                  fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
                   color: '#000000',
@@ -207,7 +206,7 @@ export default function TravelFormPage() {
                 All Set!
               </Typography>
               <Typography
-                variant="body1"
+                variant="body2"
                 sx={{
                   mb: 4,
                   color: '#333333',
@@ -232,7 +231,6 @@ export default function TravelFormPage() {
                   <Typography
                     variant="h4"
                     sx={{
-                      fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
                       color: '#000000',
@@ -494,7 +492,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -574,7 +572,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -641,7 +639,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body1"
+                              variant="body2"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },

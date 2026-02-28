@@ -155,7 +155,6 @@ export default function AdminDashboard() {
                 variant="h3"
                 component="h1"
                 sx={{
-                  fontFamily: 'var(--font-playfair)',
                   fontWeight: 600,
                   color: 'primary.main',
                   fontSize: { xs: '2rem', md: '3rem' }
@@ -297,7 +296,7 @@ export default function AdminDashboard() {
                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                     <EventIcon sx={{ color: 'secondary.main', mr: 2 }} />
                     <Box>
-                      <Typography variant="body1" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium">
                         {dashboardData.upcomingEvent}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">

@@ -83,7 +83,6 @@ export default function PaymentForm({
         <Typography
           variant="body2"
           sx={{
-            fontFamily: 'Outfit',
             fontWeight: 300,
             color: '#666',
             mb: 1,
@@ -94,7 +93,6 @@ export default function PaymentForm({
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'Outfit',
             fontWeight: 600,
             color: '#141414',
             mb: 2,
@@ -105,7 +103,7 @@ export default function PaymentForm({
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="body2" color="#666">Amount:</Typography>
-          <Typography variant="body1" color="#141414" fontWeight={600}>${amount}</Typography>
+          <Typography variant="body2" color="#141414" fontWeight={600}>${amount}</Typography>
         </Stack>
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -170,7 +168,6 @@ export default function PaymentForm({
                 px: 3,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
-                fontFamily: 'Outfit',
                 fontSize: 16,
                 fontWeight: 600,
                 '&:hover': {
@@ -189,7 +186,6 @@ export default function PaymentForm({
           <Typography
             variant="caption"
             sx={{
-              fontFamily: 'Outfit',
               fontSize: 12,
               textAlign: 'center',
               color: '#666',
