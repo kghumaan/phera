@@ -126,8 +126,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
         backgroundColor: 'white',
         p: 2,
         py: 1.5,
-        fontFamily: 'Outfit', 
-        fontWeight: 500,
+                fontWeight: 500,
         color: '#000',
         fontSize: '1.1rem'
       }}>
@@ -199,7 +198,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                 },
                 '& .MuiOutlinedInput-input': {
                   color: '#000',
-                  fontFamily: 'Outfit',
                   fontSize: '0.9rem',
                   py: 0,
                   '&::placeholder': {
@@ -227,7 +225,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   px: 1.5,
                   py: 0.5,
                   fontSize: '0.75rem',
-                  fontFamily: 'Outfit',
                   backgroundColor: 'rgba(222, 63, 94, 0.08)',
                   color: '#DE3F5E',
                   cursor: 'pointer',
@@ -298,7 +295,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="body2" sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
-                fontFamily: 'Outfit',
                 fontSize: '0.9rem'
               }}>
                 No GIFs found. Try a different search term.
@@ -309,7 +305,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
               <GifIcon sx={{ fontSize: 48, color: '#ccc', mb: 1 }} />
               <Typography variant="body2" sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
-                fontFamily: 'Outfit',
                 fontSize: '0.9rem'
               }}>
                 Search for GIFs to add to your message!
@@ -328,7 +323,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
             borderRadius: '12px',
             borderColor: 'rgba(0, 0, 0, 0.23)',
             color: '#000',
-            fontFamily: 'Outfit',
             fontWeight: 500,
             textTransform: 'none',
             px: 2,

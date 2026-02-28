@@ -270,7 +270,6 @@ export default function AppHeader({
                       letterSpacing: '7.142857142857142%',
                       textTransform: 'none',
                       minHeight: { xs: 32, md: 45 },
-                      fontFamily: 'Outfit',
                       '&:hover': {
                         backgroundColor: '#333',
                       },

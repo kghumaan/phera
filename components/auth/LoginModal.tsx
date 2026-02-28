@@ -203,7 +203,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                 fontSize: '26px',
                 lineHeight: '1.26em',
                 textAlign: 'center',
-                fontFamily: 'Outfit, sans-serif',
                 borderRadius: '16px',
               }}
             >
@@ -219,7 +218,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
-                  fontFamily: 'Outfit, sans-serif',
                   fontWeight: 400,
                 }}
               >
@@ -235,7 +233,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
-                  fontFamily: 'Outfit, sans-serif',
                   fontWeight: 400,
                 }}
               >
@@ -251,7 +248,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
-                  fontFamily: 'Outfit, sans-serif',
                   fontWeight: 400,
                 }}
               >
@@ -279,7 +275,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       backgroundColor: '#F5F5F5',
                       fontSize: '16px',
                       color: '#141414',
-                      fontFamily: 'Outfit, sans-serif',
                       '& fieldset': {
                         borderColor: 'transparent',
                       },
@@ -305,7 +300,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       color: '#DE3F5E',
                       fontSize: '14px',
                       textAlign: 'center',
-                      fontFamily: 'Outfit, sans-serif',
                     }}
                   >
                     {authError}
@@ -324,7 +318,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
-                    fontFamily: 'Outfit, sans-serif',
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },
@@ -363,7 +356,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             textTransform: 'none',
                             fontSize: '16px',
                             fontWeight: 500,
-                            fontFamily: 'Outfit, sans-serif',
                             '&:hover': {
                                 borderColor: '#B0B0B0',
                                 backgroundColor: '#F5F5F5',
@@ -380,7 +372,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             color: '#666',
                             textTransform: 'none',
                             fontSize: '14px',
-                            fontFamily: 'Outfit, sans-serif',
                             '&:hover': {
                                 color: '#141414',
                                 backgroundColor: 'transparent',
@@ -409,7 +400,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       backgroundColor: '#F5F5F5',
                       fontSize: '16px',
                       color: '#141414',
-                      fontFamily: 'Outfit, sans-serif',
                       '& fieldset': {
                         borderColor: 'transparent',
                       },
@@ -431,7 +421,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       color: '#DE3F5E',
                       fontSize: '14px',
                       textAlign: 'center',
-                      fontFamily: 'Outfit, sans-serif',
                     }}
                   >
                     {authError}
@@ -450,7 +439,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
-                    fontFamily: 'Outfit, sans-serif',
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },
@@ -468,7 +456,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                         color: '#666',
                         textTransform: 'none',
                         fontSize: '14px',
-                        fontFamily: 'Outfit, sans-serif',
                         mt: 2,
                         '&:hover': {
                             color: '#141414',
@@ -528,7 +515,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       opacity: 1,
                       letterSpacing: 'normal',
                       fontSize: '16px',
-                      fontFamily: 'Outfit, sans-serif'
                     }
                   }}
                 />
@@ -540,7 +526,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       color: '#DE3F5E',
                       fontSize: '14px',
                       textAlign: 'center',
-                      fontFamily: 'Outfit, sans-serif',
                     }}
                   >
                     {authError}
@@ -560,7 +545,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     fontSize: '14px',
                     fontWeight: 700,
                     color: '#FFFFFF',
-                    fontFamily: 'Outfit, sans-serif',
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },
@@ -586,7 +570,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       textTransform: 'uppercase',
                       fontSize: '12px',
                       fontWeight: 700,
-                      fontFamily: 'Outfit, sans-serif',
                       '&:hover': {
                         borderColor: '#C73652',
                         backgroundColor: 'rgba(222, 63, 94, 0.04)',
@@ -609,7 +592,6 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       textTransform: 'uppercase',
                       fontSize: '12px',
                       fontWeight: 700,
-                      fontFamily: 'Outfit, sans-serif',
                       '&:hover': {
                         borderColor: '#666666',
                         backgroundColor: 'rgba(133, 133, 133, 0.04)',

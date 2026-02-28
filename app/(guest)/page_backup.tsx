@@ -124,7 +124,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 color: '#000000',
                 fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.75rem', xl: '2rem' }, // 24px from Figma
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
               }}
             >
               {unit.value}
@@ -136,7 +136,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontWeight: 400,
                 fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' }, // 12px from Figma
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
                 textAlign: 'center',
               }}
             >
@@ -748,7 +748,6 @@ export default function HomePage() {
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
                     '&:hover': {
                       backgroundColor: '#C8365A',
                     },

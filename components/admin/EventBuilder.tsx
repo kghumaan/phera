@@ -175,7 +175,7 @@ export default function EventBuilder() {
       {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Typography variant="h4" component="h1" sx={{ fontFamily: 'var(--font-playfair)', mb: 1 }}>
+          <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
             Wedding Events
           </Typography>
           <Typography variant="body1" color="text.secondary">

@@ -485,7 +485,6 @@ export default function GuestList({
         }}
       >
         <Typography sx={{
-          fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: '16px',
           lineHeight: '1.5em',
@@ -566,7 +565,6 @@ export default function GuestList({
                     disableUnderline: true,
                     sx: {
                       fontSize: '16px',
-                      fontFamily: 'Outfit',
                       color: '#141414',
                       paddingBottom: selectedGif ? '160px' : '0px',
                       '& textarea::placeholder': {
@@ -712,7 +710,6 @@ export default function GuestList({
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography sx={{
               color: '#858585',
-              fontFamily: 'Outfit',
               fontSize: '16px',
               lineHeight: '1.5em',
               mb: 1
@@ -721,7 +718,6 @@ export default function GuestList({
             </Typography>
             <Typography sx={{
               color: '#BCBCBC',
-              fontFamily: 'Outfit',
               fontSize: '14px',
               lineHeight: '1.5em'
             }}>
@@ -780,7 +776,6 @@ export default function GuestList({
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 600,
                               fontSize: '16px',
                               lineHeight: '1.5em',
@@ -791,7 +786,6 @@ export default function GuestList({
                           </Typography>
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
@@ -832,7 +826,6 @@ export default function GuestList({
                         {comment.message && (
                           <Typography
                             sx={{
-                              fontFamily: 'Outfit',
                               fontWeight: 400,
                               fontSize: '16px',
                               lineHeight: '1.5em',
@@ -943,7 +936,6 @@ export default function GuestList({
     <Stack spacing={0}>
       {filteredGuests.length === 0 ? (
         <Typography sx={{
-          fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: '16px',
           lineHeight: '1.5em',
@@ -996,7 +988,6 @@ export default function GuestList({
 
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{
-                    fontFamily: 'Outfit',
                     fontWeight: 600,
                     fontSize: '16px',
                     lineHeight: '1.5em',
@@ -1006,7 +997,6 @@ export default function GuestList({
                   </Typography>
                   {guest.guestCount > 1 && (
                     <Typography sx={{
-                      fontFamily: 'Outfit',
                       fontWeight: 400,
                       fontSize: '14px',
                       lineHeight: '1.5em',
@@ -1101,7 +1091,6 @@ export default function GuestList({
             >
               <Typography
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: index === activeTab ? 600 : 400,
                   fontSize: '16px',
                   lineHeight: '1.26em',
@@ -1206,7 +1195,6 @@ export default function GuestList({
                 background: 'none',
                 outline: 'none',
                 width: '100%',
-                fontFamily: 'Outfit',
                 fontSize: '16px',
                 color: '#141414',
               }}

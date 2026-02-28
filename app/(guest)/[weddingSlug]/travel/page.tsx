@@ -112,7 +112,6 @@ const TravelCard = ({
           <Typography
             variant="h4"
             sx={{
-              fontFamily: 'Outfit',
               fontWeight: 400,
               fontSize: { xs: 28, md: 36, lg: 40 },
               lineHeight: 1.3,
@@ -129,7 +128,6 @@ const TravelCard = ({
                 variant="body1"
                 component="div"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: { xs: 16, md: 18, lg: 20 },
                   lineHeight: 1.5,
@@ -429,7 +427,6 @@ export default function TravelPage() {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: 'Outfit',
                     fontWeight: 400,
                     fontSize: 18,
                     lineHeight: 1.5,

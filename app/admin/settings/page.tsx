@@ -54,7 +54,6 @@ export default function SettingsPage() {
             variant="h3"
             component="h1"
             sx={{
-              fontFamily: 'var(--font-playfair)',
               fontWeight: 600,
               color: 'primary.main',
               fontSize: { xs: '2rem', md: '3rem' }
@@ -91,7 +90,7 @@ export default function SettingsPage() {
 
         <TabPanel value={activeTab} index={0}>
           <Box sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontFamily: 'var(--font-playfair)' }}>
+            <Typography variant="h5" gutterBottom sx={{  }}>
               WhatsApp Community Management
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>

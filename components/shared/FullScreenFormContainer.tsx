@@ -112,7 +112,6 @@ export default function FullScreenFormContainer({
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   color: '#141414',
                   fontWeight: 400,
                   lineHeight: '1.26em',

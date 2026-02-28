@@ -127,7 +127,6 @@ export default function WhereToShopPage() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: 18,
                   lineHeight: 1.5,
@@ -164,7 +163,6 @@ export default function WhereToShopPage() {
             <Typography
               variant="body1"
               sx={{
-                fontFamily: 'Outfit',
                 fontWeight: 300,
                 fontSize: 16,
                 lineHeight: 1.5,
@@ -218,7 +216,6 @@ export default function WhereToShopPage() {
                         <Typography
                           variant="h6"
                           sx={{
-                            fontFamily: 'Outfit',
                             fontWeight: 500,
                             fontSize: 20,
                             lineHeight: 1.3,
@@ -237,7 +234,6 @@ export default function WhereToShopPage() {
                               component="div"
                               variant="body2"
                               sx={{
-                                fontFamily: 'Outfit',
                                 fontWeight: 300,
                                 fontSize: 16,
                                 lineHeight: 1.5,

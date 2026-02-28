@@ -136,7 +136,6 @@ const EventCard = ({
               <Typography
                 variant="subtitle2"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 600,
                   fontSize: 16,
                   lineHeight: 1.5,
@@ -153,14 +152,11 @@ const EventCard = ({
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: 'Instrument Serif',
-                  fontWeight: 400,
                   fontSize: 40,
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: textColor,
                   textAlign: 'center',
-                  fontStyle: 'italic',
                   mb: 1,
                 }}
               >
@@ -170,7 +166,6 @@ const EventCard = ({
               <Typography
                 variant="body1"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 300,
                   fontSize: 16,
                   lineHeight: 1.5,
@@ -191,7 +186,6 @@ const EventCard = ({
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      fontFamily: 'Outfit',
                       fontWeight: 600,
                       fontSize: { xs: 16, md: 18, lg: 20 },
                       lineHeight: 1.5,
@@ -210,16 +204,13 @@ const EventCard = ({
                     {slide.women.map((item) => (
                       <Typography
                         key={item}
-                        variant="h6"
+                        variant="h3"
                         sx={{
-                          fontFamily: 'Instrument Serif',
-                          fontWeight: 400,
                           fontSize: { xs: 28, md: 34, lg: 38 },
                           lineHeight: 1.3,
                           textTransform: 'capitalize',
                           color: textColor,
                           textAlign: 'center',
-                          fontStyle: 'italic',
                         }}
                       >
                         {item}
@@ -235,7 +226,6 @@ const EventCard = ({
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      fontFamily: 'Outfit',
                       fontWeight: 600,
                       fontSize: { xs: 16, md: 18, lg: 20 },
                       lineHeight: 1.5,
@@ -254,16 +244,13 @@ const EventCard = ({
                     {slide.men.map((item) => (
                       <Typography
                         key={item}
-                        variant="h6"
+                        variant="h3"
                         sx={{
-                          fontFamily: 'Instrument Serif',
-                          fontWeight: 400,
                           fontSize: { xs: 28, md: 34, lg: 38 },
                           lineHeight: 1.3,
                           textTransform: 'capitalize',
                           color: textColor,
                           textAlign: 'center',
-                          fontStyle: 'italic',
                         }}
                       >
                         {item}
@@ -278,7 +265,6 @@ const EventCard = ({
               <Typography
                 variant="subtitle2"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 600,
                   fontSize: 16,
                   lineHeight: 1.5,
@@ -295,15 +281,12 @@ const EventCard = ({
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: 'Instrument Serif',
-                  fontWeight: 400,
                   fontSize: 40,
                   lineHeight: 1.3,
                   textTransform: 'capitalize',
                   color: textColor,
                   textAlign: 'center',
                   mb: 1,
-                  fontStyle: 'italic',
                 }}
               >
                 {slide.heading}
@@ -312,7 +295,6 @@ const EventCard = ({
               <Typography
                 variant="body1"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 300,
                   fontSize: 16,
                   lineHeight: 1.5,
@@ -478,7 +460,6 @@ export default function EventDetailPage() {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: 'Outfit',
                     fontWeight: 400,
                     fontSize: 18,
                     lineHeight: 1.5,

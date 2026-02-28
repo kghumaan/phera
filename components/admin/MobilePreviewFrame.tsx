@@ -94,7 +94,6 @@ export default function MobilePreviewFrame({
               {title !== 'Preview' && (
                 <Typography
                   sx={{
-                    fontFamily: 'Outfit',
                     fontWeight: 400,
                     fontSize: 14,
                     lineHeight: 1.5,

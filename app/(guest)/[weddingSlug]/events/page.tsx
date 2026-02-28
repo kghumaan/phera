@@ -104,7 +104,6 @@ export default function GuestEventsPage() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Outfit',
                   fontWeight: 400,
                   fontSize: 18,
                   lineHeight: 1.5,
@@ -230,7 +229,6 @@ export default function GuestEventsPage() {
                             <Typography
                               variant="subtitle2"
                               sx={{
-                                fontFamily: 'Outfit',
                                 fontWeight: 600,
                                 fontSize: 14,
                                 lineHeight: 1.5,
@@ -249,7 +247,6 @@ export default function GuestEventsPage() {
                             <Typography
                               variant="h6"
                               sx={{
-                                fontFamily: 'Outfit',
                                 fontWeight: 500,
                                 fontSize: 22,
                                 lineHeight: 1.3,
@@ -267,7 +264,6 @@ export default function GuestEventsPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                fontFamily: 'Outfit',
                                 fontWeight: 300,
                                 fontSize: 16,
                                 lineHeight: 1.5,

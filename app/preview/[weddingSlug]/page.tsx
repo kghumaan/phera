@@ -110,7 +110,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                   xl: '2.75rem'   // 1536px+ (large desktop)
                 },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif', // Match Figma font
+                // Match Figma font
               }}
             >
               {unit.value}
@@ -122,7 +122,6 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif',
                 textAlign: 'center',
               }}
             >
@@ -892,7 +891,6 @@ function PreviewContent() {
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
-                    fontFamily: 'Outfit',
                     '&:hover': {
                       backgroundColor: wedding.primary_color || '#C8365A',
                       opacity: 0.9,
@@ -1050,7 +1048,6 @@ function PreviewContent() {
                       fontWeight: 600,
                       textTransform: 'uppercase',
                       letterSpacing: '0.1em',
-                      fontFamily: 'Outfit, sans-serif',
                     }}
                   >
                     {previewView === 'rsvp_submitted' ? 'View Details' : 'RSVP'}

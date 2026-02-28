@@ -497,7 +497,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
               <Typography
                 variant="body2"
                 sx={{
-                  fontFamily: 'var(--font-outfit), sans-serif',
                   color: pinEntryFontColor,
                   fontSize: '0.875rem',
                   lineHeight: 1.4,
@@ -525,7 +524,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '1rem',
-                      fontFamily: 'var(--font-outfit), sans-serif',
                       fontWeight: 700,
                       color: 'rgba(0, 0, 0, 0.2)',
                     }}
@@ -546,7 +544,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                   px: '16px',
                   py: '8px',
                   fontSize: '0.875rem',
-                  fontFamily: 'var(--font-outfit), sans-serif',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '6.25%',

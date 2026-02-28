@@ -155,7 +155,6 @@ export default function AdminDashboard() {
                 variant="h3"
                 component="h1"
                 sx={{
-                  fontFamily: 'var(--font-playfair)',
                   fontWeight: 600,
                   color: 'primary.main',
                   fontSize: { xs: '2rem', md: '3rem' }

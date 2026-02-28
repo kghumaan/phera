@@ -428,7 +428,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
   const displayText = pinEntryText
     ? pinEntryText.replace(/\{couple_name\}/g, coupleName)
     : coupleName
-      ? `Please join ${coupleName} on their special night`
+      ? `Celebrate with ${coupleName}!`
       : "You're Invited!";
   const displaySubtitle = pinEntrySubtitleText
     ? pinEntrySubtitleText.replace(/\{couple_name\}/g, coupleName)
@@ -517,15 +517,15 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
 
           {/* Heading */}
           <Typography
-            variant="h3"
+            variant="h2"
             sx={{
-              fontFamily: 'var(--font-instrument-serif), serif',
-              fontWeight: 400,
+              // fontFamily: 'var(--font-instrument-serif), serif',
+              // fontWeight: 400,
               color: pinEntryFontColor,
-              fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
-              lineHeight: 1.4,
+              // fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
+              // lineHeight: 1.4,
               textAlign: 'center',
-              fontStyle: 'italic',
+              // fontStyle: 'italic',
             }}
           >
             {displayText}
@@ -535,11 +535,10 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           <Typography
             variant="body1"
             sx={{
-              fontFamily: 'var(--font-outfit), sans-serif',
               color: pinEntryFontColor,
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
               lineHeight: 1.5,
-              maxWidth: { xs: 355, sm: 400, lg: 450, xl: 500 },
+              maxWidth: { xs: 355, sm: 400, lg: 800, xl: 800 },
               mx: 'auto',
               fontWeight: 400,
               textAlign: 'center',
@@ -585,7 +584,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                     borderRadius: '50%', // Perfect circle
                     height: { xs: 72, sm: 72, md: 73, lg: 80, xl: 88 },
                     fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
-                    fontFamily: 'var(--font-outfit), sans-serif',
                     fontWeight: 700,
                     textAlign: 'center',
                     border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
@@ -676,7 +674,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               px: { xs: '20px', lg: '22px', xl: '24px' },
               py: { xs: '12px', lg: '13px', xl: '14px' },
               fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
-              fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
@@ -733,7 +730,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                 variant="body2"
                 sx={{
                   color: '#000',
-                  fontFamily: 'var(--font-outfit), sans-serif',
                   fontWeight: 400,
                   fontSize: { xs: '1rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                   textTransform: 'uppercase',
@@ -765,7 +761,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               px: { xs: '20px', lg: '22px', xl: '24px' },
               py: { xs: '12px', lg: '13px', xl: '14px' },
               fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
-              fontFamily: 'var(--font-outfit), sans-serif',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',

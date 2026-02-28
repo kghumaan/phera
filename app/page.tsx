@@ -1794,7 +1794,7 @@ export default function LandingPage() {
                     </Box>}
                     sx={{ px: { xs: 2, md: 3 }, py: { xs: 0.5, md: 1 } }}
                   >
-                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#1a1a1a', fontFamily: 'Outfit, sans-serif' }}>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#1a1a1a' }}>
                       {faq.q}
                     </Typography>
                   </AccordionSummary>

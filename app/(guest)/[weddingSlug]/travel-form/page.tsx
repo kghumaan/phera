@@ -197,7 +197,6 @@ export default function TravelFormPage() {
               <Typography
                 variant="h4"
                 sx={{
-                  fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
                   color: '#000000',
@@ -232,7 +231,6 @@ export default function TravelFormPage() {
                   <Typography
                     variant="h4"
                     sx={{
-                      fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
                       color: '#000000',

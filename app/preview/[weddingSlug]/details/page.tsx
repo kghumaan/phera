@@ -98,7 +98,6 @@ const MenuItem = ({
       <Typography
         variant="h6"
         sx={{
-          fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: { xs: 16, sm: 18, md: 20, lg: 22, xl: 24 },
           lineHeight: 1.5,
@@ -283,7 +282,7 @@ function PreviewDetailsContent() {
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
               {isLoadingSections ? (
-                <Typography sx={{ color: '#141414', fontFamily: 'Outfit' }}>Loading...</Typography>
+                <Typography sx={{ color: '#141414' }}>Loading...</Typography>
               ) : (
                 <Stack
                   spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}

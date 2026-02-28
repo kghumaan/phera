@@ -161,7 +161,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           textAlign: 'center',
         }}
       >
-        <Typography sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}>Loading activity...</Typography>
+        <Typography sx={{ color: '#666' }}>Loading activity...</Typography>
       </Paper>
     );
   }
@@ -211,7 +211,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
       <Stack spacing={0} sx={{ px: 3, pb: 3 }}>
         {activities.length === 0 ? (
           <Typography
-            sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}
+            sx={{ color: '#666' }}
             textAlign="center"
             py={4}
           >
@@ -266,13 +266,13 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
 
                 {/* Content */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5, color: '#800020', fontFamily: 'var(--font-playfair)' }}>
+                  <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5, color: '#800020' }}>
                     <Box component="span" sx={{ fontWeight: 600, color: '#800020' }}>
                       {activity.guestName}
                     </Box>{' '}
                     {activity.action} 👍
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#666', fontFamily: 'var(--font-playfair)' }}>
+                  <Typography variant="caption" sx={{ color: '#666' }}>
                     {activity.timestamp}
                   </Typography>
                 </Box>

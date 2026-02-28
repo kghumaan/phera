@@ -266,7 +266,6 @@ export default function CulturalGuide() {
             variant="h3"
             component="h1"
             sx={{
-              fontFamily: 'var(--font-playfair)',
               fontWeight: 600,
               mb: 2,
               background: `linear-gradient(45deg, ${culturalColors.maroon}, ${culturalColors.gold})`,

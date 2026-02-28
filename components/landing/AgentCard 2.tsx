@@ -108,7 +108,6 @@ export default function AgentCard({
                 fontWeight: 700,
                 color: '#1a1a1a',
                 mb: 0.5,
-                fontFamily: 'Outfit',
               }}
             >
               {name} {persona}

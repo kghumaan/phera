@@ -62,7 +62,6 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
                 variant="h3"
                 component="div"
                 sx={{
-                  fontFamily: 'var(--font-playfair)',
                   fontWeight: 700,
                   color: theme.palette.primary.main,
                   fontSize: { xs: '2rem', md: '2.5rem' },

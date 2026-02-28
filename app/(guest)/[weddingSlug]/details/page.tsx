@@ -108,7 +108,6 @@ const MenuItem = ({
       <Typography
         variant="h6"
         sx={{
-          fontFamily: 'Outfit',
           fontWeight: 400,
           fontSize: { xs: 16, sm: 18, md: 20, lg: 22, xl: 24 },
           lineHeight: 1.5,

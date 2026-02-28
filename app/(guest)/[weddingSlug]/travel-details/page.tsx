@@ -213,7 +213,7 @@ export default function TravelDetailsPage() {
           }}
         >
           <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3, maxWidth: 500 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Outfit' }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
               Please provide your arrival details through the RSVP form
             </Typography>
             <Button 
@@ -223,7 +223,6 @@ export default function TravelDetailsPage() {
                 bgcolor: '#DE3F5E',
                 '&:hover': { bgcolor: '#C8365A' },
                 borderRadius: 2,
-                fontFamily: 'Outfit',
               }}
             >
               Go to RSVP
@@ -292,7 +291,6 @@ export default function TravelDetailsPage() {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: 'Outfit',
                     fontWeight: 400,
                     fontSize: 18,
                     textTransform: 'uppercase',
@@ -334,12 +332,12 @@ export default function TravelDetailsPage() {
                 <Stack spacing={3}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <FlightTakeoff sx={{ color: '#DE3F5E' }} />
-                    <Typography variant="h6" sx={{ fontFamily: 'Outfit', fontWeight: 500, color: '#141414' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 500, color: '#141414' }}>
                       Your Flight Details
                     </Typography>
                   </Box>
 
-                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)', fontFamily: 'Outfit' }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                     Share your flight info so we can coordinate airport pickups. All fields are optional.
                   </Typography>
 
@@ -352,7 +350,7 @@ export default function TravelDetailsPage() {
                       fullWidth
                       placeholder="e.g. Thai Airways"
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -366,7 +364,7 @@ export default function TravelDetailsPage() {
                       fullWidth
                       placeholder="e.g. TG123"
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -384,7 +382,7 @@ export default function TravelDetailsPage() {
                       fullWidth
                       placeholder="e.g. LAX"
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -398,7 +396,7 @@ export default function TravelDetailsPage() {
                       fullWidth
                       placeholder="e.g. BKK"
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -418,7 +416,7 @@ export default function TravelDetailsPage() {
                       InputLabelProps={{ shrink: true }}
                       inputProps={{ min: '2025-12-01', max: '2026-01-10' }}
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -433,7 +431,7 @@ export default function TravelDetailsPage() {
                       fullWidth
                       InputLabelProps={{ shrink: true }}
                       sx={{ 
-                        '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                        '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666' },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -455,11 +453,11 @@ export default function TravelDetailsPage() {
                 }}
               >
                 <Stack spacing={3}>
-                  <Typography variant="h6" sx={{ fontFamily: 'Outfit', fontWeight: 500, color: '#141414' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 500, color: '#141414' }}>
                     Shuttle Preference
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)', fontFamily: 'Outfit' }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                     When would you like to be picked up from Bangkok to travel to Hua Hin?
                   </Typography>
 
@@ -472,7 +470,7 @@ export default function TravelDetailsPage() {
                     InputLabelProps={{ shrink: true }}
                     helperText="This is your preferred time. We'll confirm the closest available shuttle slot."
                     sx={{ 
-                      '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                      '& .MuiInputBase-root': { color: '#141414' },
                       '& .MuiInputLabel-root': { color: '#666' },
                       '& .MuiOutlinedInput-root': { 
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -490,7 +488,7 @@ export default function TravelDetailsPage() {
                     rows={2}
                     placeholder="e.g. Traveling with luggage, need wheelchair access, etc."
                     sx={{ 
-                      '& .MuiInputBase-root': { fontFamily: 'Outfit', color: '#141414' },
+                      '& .MuiInputBase-root': { color: '#141414' },
                       '& .MuiInputLabel-root': { color: '#666' },
                       '& .MuiOutlinedInput-root': { 
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
@@ -511,7 +509,6 @@ export default function TravelDetailsPage() {
                   color: 'white',
                   py: 1.5,
                   borderRadius: 2,
-                  fontFamily: 'Outfit',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   '&:hover': { bgcolor: '#C8365A' },
@@ -543,11 +540,11 @@ export default function TravelDetailsPage() {
                   }}
                 >
                   <Stack spacing={2}>
-                    <Typography variant="h6" sx={{ fontFamily: 'Outfit', fontWeight: 500, color: '#141414' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 500, color: '#141414' }}>
                       Thailand Travel Checklist
                     </Typography>
 
-                    <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)', fontFamily: 'Outfit' }}>
+                    <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                       Keep track of your travel prep:
                     </Typography>
 
@@ -575,7 +572,6 @@ export default function TravelDetailsPage() {
                           <Box>
                             <Typography 
                               sx={{ 
-                                fontFamily: 'Outfit',
                                 fontWeight: checklistItems[item.key] ? 500 : 400,
                                 color: checklistItems[item.key] ? '#DE3F5E' : '#141414',
                                 textDecoration: checklistItems[item.key] ? 'line-through' : 'none',
@@ -588,7 +584,6 @@ export default function TravelDetailsPage() {
                                 variant="caption" 
                                 sx={{ 
                                   color: 'rgba(0,0,0,0.5)', 
-                                  fontFamily: 'Outfit',
                                   display: 'block',
                                 }}
                               >
@@ -600,7 +595,7 @@ export default function TravelDetailsPage() {
                       ))}
                     </Stack>
 
-                    <Typography variant="caption" sx={{ color: 'rgba(0,0,0,0.5)', fontFamily: 'Outfit', textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'rgba(0,0,0,0.5)', textAlign: 'center' }}>
                       {Object.values(checklistItems).filter(Boolean).length} of {THAILAND_CHECKLIST.length} completed
                     </Typography>
                   </Stack>

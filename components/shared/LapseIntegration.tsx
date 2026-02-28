@@ -80,7 +80,7 @@ export default function LapseIntegration() {
     <Box>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ fontFamily: 'var(--font-playfair)', mb: 1 }}>
+        <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           Lapse Photo Sharing
         </Typography>
         <Typography variant="body1" color="text.secondary">
