@@ -105,16 +105,13 @@ const SlideContent = ({
               {section1Items.map((item, idx) => (
                 <Typography
                   key={idx}
-                  variant="h6"
+                  variant="h3"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontWeight: 400,
                     fontSize: { xs: 24, md: 32, lg: 36 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: textColor,
                     textAlign: 'center',
-                    fontStyle: 'italic',
                   }}
                 >
                   {item}
@@ -149,16 +146,13 @@ const SlideContent = ({
               {section2Items.map((item, idx) => (
                 <Typography
                   key={idx}
-                  variant="h6"
+                  variant="h3"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontWeight: 400,
                     fontSize: { xs: 24, md: 32, lg: 36 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: textColor,
                     textAlign: 'center',
-                    fontStyle: 'italic',
                   }}
                 >
                   {item}
@@ -362,7 +356,7 @@ export default function EventDetailCarousel({
             position: 'absolute',
             top: 24,
             right: 24,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backgroundColor: 'rgba(254, 249, 242, 0.9)',
             color: '#000',
             zIndex: 20,
             '&:hover': {
@@ -400,7 +394,7 @@ export default function EventDetailCarousel({
             backgroundColor: 'transparent',
             borderRadius: '24px',
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
-            border: '2px solid #FFFFFF',
+            border: '2px solid #FEF9F2',
             overflow: 'hidden',
             position: 'relative',
             display: 'flex',
@@ -453,13 +447,13 @@ export default function EventDetailCarousel({
             sx={{
               width: 48,
               height: 48,
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              backgroundColor: 'rgba(254, 249, 242, 0.9)',
               color: '#000',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 1)',
+                backgroundColor: '#FEF9F2',
               },
               '&:disabled': {
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: 'rgba(254, 249, 242, 0.3)',
                 color: 'rgba(0, 0, 0, 0.3)',
               },
             }}
@@ -473,13 +467,13 @@ export default function EventDetailCarousel({
             sx={{
               width: 48,
               height: 48,
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              backgroundColor: 'rgba(254, 249, 242, 0.9)',
               color: '#000',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 1)',
+                backgroundColor: '#FEF9F2',
               },
               '&:disabled': {
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: 'rgba(254, 249, 242, 0.3)',
                 color: 'rgba(0, 0, 0, 0.3)',
               },
             }}

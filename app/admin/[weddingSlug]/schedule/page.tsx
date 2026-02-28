@@ -1537,7 +1537,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   </Typography>
                                 )}
                                 {currentSlides[previewSlideIndex].main_heading && (
-                                  <Typography sx={{ fontSize: '1.5rem', fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#333', mb: 1 }}>
+                                  <Typography variant="h3" sx={{ fontSize: '1.5rem', color: '#333', mb: 1 }}>
                                     {currentSlides[previewSlideIndex].main_heading}
                                   </Typography>
                                 )}

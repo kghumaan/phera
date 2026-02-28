@@ -226,8 +226,6 @@ const AdminDashboard = () => {
               component="div"
               sx={{
                 flexGrow: 1,
-                fontFamily: 'var(--font-instrument-serif), serif',
-                fontStyle: 'italic',
               }}
             >
               Admin Dashboard
@@ -252,7 +250,6 @@ const AdminDashboard = () => {
             <Typography
               variant="h4"
               sx={{
-                fontFamily: 'var(--font-instrument-serif), serif',
                 fontWeight: 700,
                 color: '#1a1a1a',
                 mb: 1,
@@ -350,7 +347,6 @@ const AdminDashboard = () => {
             <Typography
               variant="h5"
               sx={{
-                fontFamily: 'var(--font-instrument-serif), serif',
                 fontWeight: 700,
                 color: '#1a1a1a',
                 mb: 3,

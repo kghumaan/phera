@@ -467,9 +467,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 }}
             >
                 <DialogTitle sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontStyle: 'italic',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: '1.8rem',
                     color: '#1a1a1a',
                     pb: 1

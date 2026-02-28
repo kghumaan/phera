@@ -482,15 +482,12 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
               {/* Heading */}
               <Typography
-                variant="h6"
+                variant="h3"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif), serif',
-                  fontWeight: 400,
-                  color: pinEntryFontColor,
                   fontSize: '1.5rem',
                   lineHeight: 1.3,
                   textAlign: 'center',
-                  fontStyle: 'italic',
+                  color: pinEntryFontColor,
                 }}
               >
                 {previewText || `Please join ${coupleName} on their special night`}

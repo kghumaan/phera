@@ -192,8 +192,7 @@ export default function SignupPage() {
                 <Typography
                   variant="h4"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     mb: 1,
                     color: '#1a1a1a',
                   }}

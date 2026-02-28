@@ -269,10 +269,8 @@ export default function OnboardingSidebar({
                 sx={{
                   px: 2.25,
                   py: 0.5,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
                   color: '#1a1a1a',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   fontSize: '0.95rem',
                 }}
               >

@@ -94,7 +94,7 @@ export default function WhatsAppTestPage() {
           
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
             <WhatsApp sx={{ color: '#000', fontSize: 32 }} />
-            <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
+            <Typography variant="h4" sx={{ fontWeight: 400, fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
               WhatsApp Integration Test
             </Typography>
           </Stack>
