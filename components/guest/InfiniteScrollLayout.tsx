@@ -57,6 +57,7 @@ interface InfiniteScrollLayoutProps {
   user: any;
   CountdownTimer: React.ComponentType<{ targetDate: string }>;
   headerRef?: React.RefObject<HTMLDivElement>;
+  initialSection?: string;
 }
 
 interface ScheduleItem {
@@ -191,6 +192,7 @@ export default function InfiniteScrollLayout({
   user,
   CountdownTimer,
   headerRef,
+  initialSection,
 }: InfiniteScrollLayoutProps) {
   const [currentSection, setCurrentSection] = useState(0);
   const [guestListExpanded, setGuestListExpanded] = useState(false);
@@ -461,6 +463,40 @@ export default function InfiniteScrollLayout({
       ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 300);
   };
+
+  // Section ref map for navigation
+  const sectionRefMap: Record<string, React.RefObject<HTMLDivElement>> = {
+    schedule: scheduleRef as React.RefObject<HTMLDivElement>,
+    travel: travelRef as React.RefObject<HTMLDivElement>,
+    faq: faqRef as React.RefObject<HTMLDivElement>,
+    registry: registryRef as React.RefObject<HTMLDivElement>,
+    shopping: shopRef as React.RefObject<HTMLDivElement>,
+  };
+
+  // Scroll to initial section after content loads
+  useEffect(() => {
+    if (!initialSection) return;
+    const ref = sectionRefMap[initialSection];
+    if (!ref) return;
+    const timer = setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [initialSection, schedule, travelCards, faqs, registry, shops]);
+
+  // Listen for postMessage navigation from admin panel
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NAVIGATE_TO_SECTION') {
+        const ref = sectionRefMap[event.data.section];
+        if (ref?.current) {
+          ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   // Helper to render travel card content
   const renderTravelContent = (content: any) => {
@@ -781,7 +817,7 @@ export default function InfiniteScrollLayout({
               >
                 {/* Schedule Section */}
                 {hasSchedule && (
-                  <Box ref={scheduleRef}>
+                  <Box ref={scheduleRef} sx={{ scrollMarginTop: '48px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1001,7 +1037,7 @@ export default function InfiniteScrollLayout({
 
                 {/* Travel & Stay Section */}
                 {hasTravel && (
-                  <Box ref={travelRef}>
+                  <Box ref={travelRef} sx={{ scrollMarginTop: '48px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1090,7 +1126,7 @@ export default function InfiniteScrollLayout({
 
                 {/* Q&A Section */}
                 {hasFAQs && (
-                  <Box ref={faqRef}>
+                  <Box ref={faqRef} sx={{ scrollMarginTop: '48px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1168,7 +1204,7 @@ export default function InfiniteScrollLayout({
 
                 {/* Registry Section */}
                 {hasRegistry && (
-                  <Box ref={registryRef}>
+                  <Box ref={registryRef} sx={{ scrollMarginTop: '48px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1232,7 +1268,7 @@ export default function InfiniteScrollLayout({
 
                 {/* Where to Shop Section */}
                 {hasShops && (
-                  <Box ref={shopRef}>
+                  <Box ref={shopRef} sx={{ scrollMarginTop: '48px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       whileInView={{ opacity: 1, y: 0 }}

@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress } from '@mui/material';
+import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress, Menu, MenuItem } from '@mui/material';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
+
+const SECTION_MAP: Record<string, string> = {
+    '/schedule': 'Schedule',
+    '/travel': 'Travel & Stay',
+    '/faq': 'FAQ',
+    '/registry': 'Registry',
+    '/shopping': 'Shopping Guide',
+};
 
 interface AdminPreviewPanelProps {
     weddingSlug: string;
@@ -13,6 +21,7 @@ interface AdminPreviewPanelProps {
     hasUnpublishedChanges?: boolean;
     lastPublishedAt?: string | null;
     onPublished?: () => void;
+    currentAdminPath?: string | null;
 }
 
 interface PinCode {
@@ -27,6 +36,7 @@ export default function AdminPreviewPanel({
     hasUnpublishedChanges: externalHasChanges,
     lastPublishedAt: externalLastPublished,
     onPublished,
+    currentAdminPath,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -48,6 +58,16 @@ export default function AdminPreviewPanel({
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingModal, setIsLoadingModal] = useState(false);
     const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+
+    // Derive active section from admin path
+    const sectionLabel = currentAdminPath ? SECTION_MAP[currentAdminPath] ?? null : null;
+    const sectionSlug = sectionLabel && currentAdminPath ? currentAdminPath.replace('/', '') : null;
+
+    // Always load main preview — section navigation happens via postMessage
+    const iframeSrc = `/preview/${weddingSlug}`;
+
+    // View Site dropdown
+    const [viewSiteAnchor, setViewSiteAnchor] = useState<null | HTMLElement>(null);
 
     // Sync with external props
     useEffect(() => {
@@ -157,6 +177,20 @@ export default function AdminPreviewPanel({
             }
         }
     }, [viewMode]);
+
+    // Send postMessage to iframe when section changes (for smooth in-page navigation)
+    useEffect(() => {
+        if (sectionSlug && iframeRefLine.current?.contentWindow) {
+            try {
+                iframeRefLine.current.contentWindow.postMessage(
+                    { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
+                    '*'
+                );
+            } catch (e) {
+                // Ignore cross-origin errors
+            }
+        }
+    }, [sectionSlug]);
 
     // Track container dimensions
     useEffect(() => {
@@ -374,7 +408,7 @@ export default function AdminPreviewPanel({
                             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                                 <iframe
                                     ref={iframeRefLine}
-                                    src={`/preview/${weddingSlug}`}
+                                    src={iframeSrc}
                                     style={{
                                         width: DESKTOP_WIDTH,
                                         height: `${100 / desktopScale}%`,
@@ -415,7 +449,7 @@ export default function AdminPreviewPanel({
                             >
                                 <iframe
                                     ref={iframeRefLine}
-                                    src={`/preview/${weddingSlug}`}
+                                    src={iframeSrc}
                                     style={{
                                         width: '125%',
                                         height: '125%',
@@ -450,7 +484,13 @@ export default function AdminPreviewPanel({
                 >
                     <Button
                         variant="text"
-                        onClick={() => window.open(previewUrl, '_blank')}
+                        onClick={(e) => {
+                            if (sectionLabel) {
+                                setViewSiteAnchor(e.currentTarget);
+                            } else {
+                                window.open(previewUrl, '_blank');
+                            }
+                        }}
                         startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
                         sx={{
                             color: '#1a1a1a',
@@ -467,6 +507,21 @@ export default function AdminPreviewPanel({
                     >
                         View Site
                     </Button>
+                    <Menu
+                        anchorEl={viewSiteAnchor}
+                        open={Boolean(viewSiteAnchor)}
+                        onClose={() => setViewSiteAnchor(null)}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        slotProps={{ paper: { sx: { borderRadius: '12px', mt: -1 } } }}
+                    >
+                        <MenuItem onClick={() => { window.open(`${previewUrl}/${sectionSlug}`, '_blank'); setViewSiteAnchor(null); }}>
+                            {sectionLabel}
+                        </MenuItem>
+                        <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
+                            Home
+                        </MenuItem>
+                    </Menu>
                     <Button
                         variant="text"
                         onClick={handleShareClick}
