@@ -1,61 +1,15 @@
 'use client';
 
-import { Box, Container, Typography, IconButton, Stack, Link, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Container, Typography, IconButton, Stack, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { useRouter } from 'next/navigation';
 import { ArrowBack } from '@mui/icons-material';
 import { useParams } from 'next/navigation';
-
-// Store data based on the Figma design
-const stores = [
-  {
-    name: 'House of Indya',
-    details: 'Ships to US in 5–7 business days\nAvg. outfit $30–$250',
-    url: 'https://www.houseofindya.com'
-  },
-  {
-    name: 'Lashkaraa',
-    details: 'Ships to US in 10–14 business days\nAvg. outfit $60–$180',
-    url: 'https://www.lashkaraa.com'
-  },
-  {
-    name: 'Utsav Fashion',
-    details: 'Ships to US in 5–7 business days\nAvg. outfit $50–$200',
-    url: 'https://www.utsavfashion.com'
-  },
-  {
-    name: 'KALKI Fashion',
-    details: 'Ships to US in 7–14 business days\nAvg. outfit $120–$350',
-    url: 'https://www.kalkifashion.com'
-  },
-  {
-    name: 'Mulmul',
-    details: 'Ships to US in 4–5 business days\nAvg. outfit $150–$300',
-    url: 'https://shopmulmul.com/'
-  },
-  {
-    name: 'KYNAH',
-    details: 'Ready-to-ship from Los Angeles in 4–7 business days\nAvg. outfit $140–$1,000',
-    url: 'https://shopkynah.com/'
-  },
-  {
-    name: 'Mirraw',
-    details: 'Ships to US in 7–12 business days\nAvg. outfit $50–$150',
-    url: 'https://www.mirraw.com'
-  },
-  {
-    name: 'Cbazaar',
-    details: 'Ships to US in 7–10 business days\nAvg. outfit $30–$80',
-    url: 'https://www.cbazaar.com'
-  },
-  {
-    name: 'Fabricoz USA',
-    details: 'US-domestic shipping in 3–5 business days\nAvg. outfit $60–$200',
-    url: 'https://www.fabricoz.com'
-  }
-];
+import { useWedding } from '@/lib/contexts/WeddingContext';
+import type { WeddingShop } from '@/lib/supabase/wedding-service';
 
 export default function WhereToShopPage() {
   const params = useParams();
@@ -64,6 +18,16 @@ export default function WhereToShopPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
+  const { wedding, shops: contextShops, isLoading: contextLoading } = useWedding();
+  const [shops, setShops] = useState<WeddingShop[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!contextLoading) {
+      setShops(contextShops);
+      setLoading(false);
+    }
+  }, [contextShops, contextLoading]);
 
   return (
     <OptimizedBackground
@@ -144,15 +108,40 @@ export default function WhereToShopPage() {
       )}
 
       {/* Main Content */}
-      <Container 
+      <Container
         maxWidth={false}
         sx={{
           maxWidth: { xs: '100%', md: 800, lg: 900 },
           px: { xs: 2, md: 4 },
           pb: 4,
           pt: { xs: 10, md: 14 },
+          ...(loading || shops.length === 0 ? {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '80vh',
+          } : {}),
         }}
       >
+        {loading ? (
+          <CircularProgress sx={{ color: wedding?.primary_color || '#DE3F5E' }} />
+        ) : shops.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Typography
+              sx={{
+                fontSize: 18,
+                color: '#6a6a6a',
+                textAlign: 'center',
+              }}
+            >
+              No shops configured yet.
+            </Typography>
+          </motion.div>
+        ) : (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,16 +165,16 @@ export default function WhereToShopPage() {
 
             {/* Store Cards */}
             <Stack spacing={2}>
-              {stores.map((store, index) => (
+              {shops.map((shop, index) => (
                 <motion.div
-                  key={store.name}
+                  key={shop.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
                   <Box
                     component="a"
-                    href={store.url}
+                    href={shop.url || undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
@@ -223,12 +212,13 @@ export default function WhereToShopPage() {
                             mb: 1,
                           }}
                         >
-                          {store.name}
+                          {shop.name}
                         </Typography>
-                        
+
                         {/* Store Details */}
+                        {shop.details && (
                         <Stack spacing={0.5}>
-                          {store.details.split('\n').map((detail, idx) => (
+                          {shop.details.split('\n').map((detail, idx) => (
                             <Typography
                               key={idx}
                               component="div"
@@ -258,8 +248,9 @@ export default function WhereToShopPage() {
                             </Typography>
                           ))}
                         </Stack>
+                        )}
                       </Box>
-                      
+
                       {/* Outward Arrow Icon */}
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -273,6 +264,7 @@ export default function WhereToShopPage() {
             </Stack>
           </Stack>
         </motion.div>
+        )}
       </Container>
     </OptimizedBackground>
   );
