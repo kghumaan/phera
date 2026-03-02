@@ -298,40 +298,10 @@ describe('Performance optimization patterns', () => {
 
     // ─── Batch update pattern (Promise.all vs sequential) ─────────────
 
-    describe('batch update patterns', () => {
-        it('Promise.all should resolve faster than sequential for multiple items', async () => {
-            vi.useRealTimers(); // Need real async for this test
-
-            const DELAY = 10; // ms
-            const ITEM_COUNT = 5;
-
-            async function sequentialUpdate(items: number[]): Promise<void> {
-                for (const item of items) {
-                    await new Promise(r => setTimeout(r, DELAY));
-                }
-            }
-
-            async function parallelUpdate(items: number[]): Promise<void> {
-                await Promise.all(items.map(() => new Promise(r => setTimeout(r, DELAY))));
-            }
-
-            const items = Array.from({ length: ITEM_COUNT }, (_, i) => i);
-
-            const seqStart = Date.now();
-            await sequentialUpdate(items);
-            const seqTime = Date.now() - seqStart;
-
-            const parStart = Date.now();
-            await parallelUpdate(items);
-            const parTime = Date.now() - parStart;
-
-            // Parallel should be significantly faster than sequential
-            // Sequential: ~50ms (5 × 10ms), Parallel: ~10ms (all concurrent)
-            expect(parTime).toBeLessThan(seqTime);
-
-            vi.useFakeTimers(); // Restore for afterEach
-        });
-    });
+    // Removed: "Promise.all should resolve faster than sequential" test.
+    // It compared wall-clock timing of setTimeout calls, which is inherently
+    // flaky under system load. It was testing a JS language guarantee
+    // (Promise.all concurrency), not application logic.
 
     // ─── Auth check retry with timeout ─────────────────────────────────
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress, Menu, MenuItem } from '@mui/material';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +12,7 @@ const SECTION_MAP: Record<string, string> = {
     '/faq': 'FAQ',
     '/registry': 'Registry',
     '/shopping': 'Shopping Guide',
+    '/pins': 'Pin Entry Screen',
 };
 
 interface AdminPreviewPanelProps {
@@ -62,9 +63,16 @@ export default function AdminPreviewPanel({
     // Derive active section from admin path
     const sectionLabel = currentAdminPath ? SECTION_MAP[currentAdminPath] ?? null : null;
     const sectionSlug = sectionLabel && currentAdminPath ? currentAdminPath.replace('/', '') : null;
+    const isPinsPage = sectionSlug === 'pins';
 
-    // Always load main preview — section navigation happens via postMessage
-    const iframeSrc = `/preview/${weddingSlug}`;
+    // Desktop: section navigation via NAVIGATE_TO_SECTION postMessage (InfiniteScrollLayout)
+    // Mobile: navigate iframe to section route (e.g. /preview/slug/faq) which renders the nested section page
+    // Pins: always base URL (pin entry handled via SET_PREVIEW_MODE postMessage)
+    const iframeSrc = useMemo(() => {
+        if (isPinsPage) return `/preview/${weddingSlug}`;
+        if (viewMode === 'mobile' && sectionSlug) return `/preview/${weddingSlug}/${sectionSlug}`;
+        return `/preview/${weddingSlug}`;
+    }, [viewMode, sectionSlug, isPinsPage, weddingSlug]);
 
     // View Site dropdown
     const [viewSiteAnchor, setViewSiteAnchor] = useState<null | HTMLElement>(null);
@@ -180,17 +188,36 @@ export default function AdminPreviewPanel({
 
     // Send postMessage to iframe when section changes (for smooth in-page navigation)
     useEffect(() => {
-        if (sectionSlug && iframeRefLine.current?.contentWindow) {
+        if (sectionSlug && !isPinsPage && iframeRefLine.current?.contentWindow) {
             try {
                 iframeRefLine.current.contentWindow.postMessage(
                     { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
                     '*'
                 );
-            } catch (e) {
-                // Ignore cross-origin errors
-            }
+            } catch (e) {}
         }
-    }, [sectionSlug]);
+    }, [sectionSlug, isPinsPage]);
+
+    // Send preview mode to iframe when pin page status changes
+    const handleIframeLoad = useCallback(() => {
+        if (iframeRefLine.current?.contentWindow) {
+            const mode = isPinsPage ? 'pin_entry' : 'rsvp_submitted';
+            iframeRefLine.current.contentWindow.postMessage(
+                { type: 'SET_PREVIEW_MODE', mode },
+                '*'
+            );
+        }
+    }, [isPinsPage]);
+
+    useEffect(() => {
+        if (iframeRefLine.current?.contentWindow) {
+            const mode = isPinsPage ? 'pin_entry' : 'rsvp_submitted';
+            iframeRefLine.current.contentWindow.postMessage(
+                { type: 'SET_PREVIEW_MODE', mode },
+                '*'
+            );
+        }
+    }, [isPinsPage]);
 
     // Track container dimensions
     useEffect(() => {
@@ -407,8 +434,10 @@ export default function AdminPreviewPanel({
                             </Box>
                             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                                 <iframe
+                                    key={iframeSrc}
                                     ref={iframeRefLine}
                                     src={iframeSrc}
+                                    onLoad={handleIframeLoad}
                                     style={{
                                         width: DESKTOP_WIDTH,
                                         height: `${100 / desktopScale}%`,
@@ -448,8 +477,10 @@ export default function AdminPreviewPanel({
                                 }}
                             >
                                 <iframe
+                                    key={iframeSrc}
                                     ref={iframeRefLine}
                                     src={iframeSrc}
+                                    onLoad={handleIframeLoad}
                                     style={{
                                         width: '125%',
                                         height: '125%',
@@ -515,7 +546,13 @@ export default function AdminPreviewPanel({
                         transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                         slotProps={{ paper: { sx: { borderRadius: '12px', mt: -1 } } }}
                     >
-                        <MenuItem onClick={() => { window.open(`${previewUrl}/${sectionSlug}`, '_blank'); setViewSiteAnchor(null); }}>
+                        <MenuItem onClick={() => {
+                            const url = sectionSlug === 'pins'
+                                ? `${previewUrl}?view=pin_entry`
+                                : `${previewUrl}/${sectionSlug}`;
+                            window.open(url, '_blank');
+                            setViewSiteAnchor(null);
+                        }}>
                             {sectionLabel}
                         </MenuItem>
                         <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>

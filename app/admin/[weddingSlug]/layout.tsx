@@ -7,7 +7,7 @@ import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import DemoTour from '@/components/demo/DemoTour';
 import { usePlan } from '@/lib/contexts/PlanContext';
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
@@ -35,6 +35,15 @@ export default function OnboardingLayout({
 
   const { user: authUser, isLoading: isLoadingAuth } = useAuth();
 
+  // Extract the current sidebar item path (e.g., '/schedule', '/faq') from pathname
+  const currentAdminPath = useMemo(() => {
+    for (const group of groups) {
+      const match = group.items.find(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'));
+      if (match) return match.path;
+    }
+    return null;
+  }, [pathname]);
+
   useEffect(() => {
     // Wait for auth to finish loading before doing anything
     if (isLoadingAuth) return;
@@ -44,8 +53,16 @@ export default function OnboardingLayout({
 
       // For demo routes, ensure the user is signed in as the demo user.
       // If not, redirect to /demo to trigger auto-login.
+      // Check Supabase session directly to avoid race condition where
+      // AuthContext hasn't received the onAuthStateChange event yet.
       if (weddingSlug === 'demo' && !authUser) {
-        router.replace('/demo');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.replace('/demo');
+          return;
+        }
+        // Session exists but AuthContext hasn't caught up yet — skip redirect,
+        // the effect will re-run once authUser updates.
         return;
       }
 
@@ -210,6 +227,7 @@ export default function OnboardingLayout({
                     weddingId={wedding?.id}
                     hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
                     lastPublishedAt={wedding?.last_published_at ?? null}
+                    currentAdminPath={currentAdminPath}
                     onPublished={() => {
                       if (wedding) {
                         setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });

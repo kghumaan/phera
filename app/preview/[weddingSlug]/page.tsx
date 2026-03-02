@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Visibility, Lock, PersonOff, HowToReg } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -274,9 +275,39 @@ function PreviewContent() {
   const [viewMenuAnchor, setViewMenuAnchor] = useState<null | HTMLElement>(null);
   const [isInIframe, setIsInIframe] = useState(true); // default true to avoid flash
   const [showScrolledNav, setShowScrolledNav] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setIsInIframe(window.self !== window.top);
+  }, []);
+
+  // Listen for SET_PREVIEW_MODE postMessage from admin panel
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SET_PREVIEW_MODE') {
+        setPreviewView(event.data.mode);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Watch wedding.previewMode as fallback for real-time lock screen updates
+  useEffect(() => {
+    if (!isInIframe) return;
+    if (wedding?.previewMode === 'lock_screen') {
+      setPreviewView('pin_entry');
+    } else if (wedding?.previewMode === 'main') {
+      setPreviewView('rsvp_submitted');
+    }
+  }, [wedding?.previewMode, isInIframe]);
+
+  // Read ?view= query param for standalone "View Site" link
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam === 'pin_entry') {
+      setPreviewView('pin_entry');
+    }
   }, []);
 
   useEffect(() => {

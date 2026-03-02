@@ -7,6 +7,7 @@ import {
   Button,
   Stack,
   Paper,
+  Grid,
   IconButton,
   Dialog,
   DialogTitle,
@@ -21,17 +22,62 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
-import { Add, Delete, Edit } from '@mui/icons-material';
+import { useState, useEffect, use, useCallback } from 'react';
+import { Add, Delete, Edit, Check } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import ImageUpload from '@/components/admin/ImageUpload';
+import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { BACKGROUNDS, BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import ProBadge from '@/components/admin/ProBadge';
+import UpgradeModal from '@/components/admin/UpgradeModal';
+import { useAutoSave } from '@/lib/hooks/useAutoSave';
+import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
+const sectionPaperSx = {
+  p: 3,
+  borderRadius: '16px',
+  bgcolor: '#fafafa',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+};
+
+const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
+
+const FREE_BACKGROUND_COUNT = 3;
+const FREE_COLOR_COUNT = 3;
+
+const COLOR_OPTIONS = [
+  { name: 'Black', value: '#141414' },
+  { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Plum', value: '#59114D' },
+  { name: 'Purple', value: '#AC3FBA' },
+  { name: 'Ocean', value: '#004550' },
+  { name: 'Sky', value: '#6290C8' },
+  { name: 'Teal', value: '#489991' },
+  { name: 'Maroon', value: '#941C28' },
+  { name: 'Green', value: '#76B041' },
+  { name: 'Forest', value: '#59814B' },
+  { name: 'Orange', value: '#DF6507' },
+  { name: 'Amber', value: '#FA9A00' },
+];
+
+const FONT_COLOR_OPTIONS = [
+  { name: 'Black', value: '#000000' },
+  { name: 'Dark Gray', value: '#4a4a4a' },
+  { name: 'Medium Gray', value: '#6a6a6a' },
+  { name: 'White', value: '#FFFFFF' },
+];
+
 export default function PINManagementPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isPro } = usePlan();
+  const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
@@ -39,6 +85,131 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
   const [newPin, setNewPin] = useState<{ pin: string; type: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  // Lock screen design state
+  const [pinEntryText, setPinEntryText] = useState('');
+  const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
+  const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
+  const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
+  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
+  const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
+  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
+  const [visiblePinBgs, setVisiblePinBgs] = useState(8);
+  const [initialLockScreenData, setInitialLockScreenData] = useState<any>(null);
+  const [isLockScreenDirty, setIsLockScreenDirty] = useState(false);
+
+  // Auto-save for lock screen design
+  const saveLockScreenDesign = useCallback(async () => {
+    if (!weddingId) return;
+
+    // Check if any selected options require pro
+    if (!isPro) {
+      const pinBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
+      const pinColorIndex = COLOR_OPTIONS.findIndex(c => c.value === pinEntryPrimaryColor);
+
+      const hasProSelection =
+        (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) ||
+        pinColorIndex >= FREE_COLOR_COUNT;
+
+      if (hasProSelection) {
+        setUpgradeModalOpen(true);
+        return;
+      }
+    }
+
+    const pinBackgroundToUse = customPinEntryBackground || pinEntryBackground;
+
+    const result = await weddingService.updateWedding(weddingId, {
+      pin_entry_text: pinEntryText,
+      pin_entry_subtitle_text: pinEntrySubtitleText,
+      pin_entry_background: pinBackgroundToUse,
+      pin_entry_primary_color: pinEntryPrimaryColor,
+      pin_entry_font_color: pinEntryFontColor,
+      pin_entry_button_font_color: pinEntryButtonFontColor,
+    });
+    if (!result) throw new Error('Save failed');
+
+    await weddingService.markUnpublishedChanges(weddingId);
+
+    setInitialLockScreenData({
+      pin_entry_text: pinEntryText,
+      pin_entry_subtitle_text: pinEntrySubtitleText,
+      pin_entry_background: pinBackgroundToUse,
+      pin_entry_primary_color: pinEntryPrimaryColor,
+      pin_entry_font_color: pinEntryFontColor,
+      pin_entry_button_font_color: pinEntryButtonFontColor,
+    });
+    setIsLockScreenDirty(false);
+  }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground,
+    pinEntryPrimaryColor, pinEntryFontColor, pinEntryButtonFontColor]);
+
+  const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveLockScreenDesign, enabled: !!authUser });
+
+  // Track lock screen dirty state and trigger auto-save
+  useEffect(() => {
+    if (initialLockScreenData) {
+      const currentData = {
+        pin_entry_text: pinEntryText,
+        pin_entry_subtitle_text: pinEntrySubtitleText,
+        pin_entry_background: pinEntryBackground,
+        pin_entry_primary_color: pinEntryPrimaryColor,
+        pin_entry_font_color: pinEntryFontColor,
+        pin_entry_button_font_color: pinEntryButtonFontColor,
+      };
+      const dirty = JSON.stringify(currentData) !== JSON.stringify(initialLockScreenData);
+      setIsLockScreenDirty(dirty);
+      if (dirty) {
+        debouncedSave();
+      }
+    }
+  }, [
+    pinEntryText,
+    pinEntrySubtitleText,
+    pinEntryBackground,
+    pinEntryPrimaryColor,
+    pinEntryFontColor,
+    pinEntryButtonFontColor,
+    initialLockScreenData,
+    debouncedSave,
+  ]);
+
+  // Real-time Preview Sync for lock screen (debounced)
+  useEffect(() => {
+    if (!weddingId) return;
+
+    const timer = setTimeout(() => {
+      const channel = new BroadcastChannel('phera-design-sync');
+
+      const syncData = {
+        type: 'DESIGN_UPDATE',
+        weddingId,
+        updates: {
+          pin_entry_text: pinEntryText,
+          pin_entry_subtitle_text: pinEntrySubtitleText,
+          pin_entry_background: customPinEntryBackground || pinEntryBackground,
+          pin_entry_primary_color: pinEntryPrimaryColor,
+          pin_entry_font_color: pinEntryFontColor,
+          pin_entry_button_font_color: pinEntryButtonFontColor,
+          previewMode: 'lock_screen',
+        }
+      };
+
+      channel.postMessage(syncData);
+      channel.close();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [
+    weddingId,
+    pinEntryText,
+    pinEntrySubtitleText,
+    pinEntryBackground,
+    customPinEntryBackground,
+    pinEntryPrimaryColor,
+    pinEntryFontColor,
+    pinEntryButtonFontColor,
+  ]);
 
   useEffect(() => {
     loadData();
@@ -55,6 +226,26 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         }
         const weddingEvents = await weddingService.getWeddingEvents(wedding.id);
         setEvents(weddingEvents.map((e: any) => ({ id: e.id, name: e.name })));
+
+        // Load lock screen design fields
+        const defaultText = "You're invited!";
+        const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
+
+        setPinEntryText(wedding.pin_entry_text || defaultText);
+        setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
+        setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS);
+        setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
+        setPinEntryFontColor(wedding.pin_entry_font_color || '#000000');
+        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
+
+        setInitialLockScreenData({
+          pin_entry_text: wedding.pin_entry_text || defaultText,
+          pin_entry_subtitle_text: wedding.pin_entry_subtitle_text || defaultSubtitle,
+          pin_entry_background: wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS,
+          pin_entry_primary_color: wedding.pin_entry_primary_color || '#141414',
+          pin_entry_font_color: wedding.pin_entry_font_color || '#000000',
+          pin_entry_button_font_color: wedding.pin_entry_button_font_color || '#FFFFFF',
+        });
       }
     } catch (err) {
       console.error('Error loading PIN settings:', err);
@@ -156,13 +347,16 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            PIN Management
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Create and manage unique PIN codes for your guests to access the wedding website
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              PIN Management
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              Create and manage unique PIN codes for your guests to access the wedding website
+            </Typography>
+          </Box>
+          <AutoSaveIndicator status={saveStatus} />
         </Box>
 
         {/* PIN Management Section */}
@@ -345,6 +539,279 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           </Stack>
         </Paper>
 
+        {/* Lock Screen Design Section */}
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Lock Screen Design
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+            Customize the appearance of the PIN entry screen your guests see
+          </Typography>
+        </Box>
+
+        {/* Welcome Text */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            Welcome Text
+          </Typography>
+
+          <Stack spacing={3}>
+            <TextField
+              label="Main Heading"
+              value={pinEntryText}
+              onChange={(e) => setPinEntryText(e.target.value)}
+              placeholder="You're invited!"
+              fullWidth
+              multiline
+              rows={2}
+              helperText="Use {couple_name} as a placeholder for the couple's name"
+              sx={textFieldSx}
+            />
+
+            <TextField
+              label="Subtitle Text"
+              value={pinEntrySubtitleText}
+              onChange={(e) => setPinEntrySubtitleText(e.target.value)}
+              placeholder="Enter your invitation code to see all the details and RSVP for our celebration"
+              fullWidth
+              multiline
+              rows={2}
+              helperText="This appears below the main heading"
+              sx={textFieldSx}
+            />
+          </Stack>
+        </Paper>
+
+        {/* Background Selection */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            Background Image
+          </Typography>
+
+          <Grid container spacing={2} mb={3}>
+            {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg, index) => {
+              const isProOption = index >= FREE_BACKGROUND_COUNT;
+
+              return (
+                <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
+                  <Box
+                    onClick={() => {
+                      setPinEntryBackground(bg.url);
+                      setCustomPinEntryBackground(null);
+                    }}
+                    sx={{
+                      width: '100%',
+                      aspectRatio: '1/1',
+                      backgroundImage: `url(${bg.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      border: 3,
+                      borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                      transition: 'all 0.2s',
+                      position: 'relative',
+                      '&:hover': {
+                        borderColor: '#DE3F5E',
+                        transform: 'scale(1.05)',
+                      },
+                    }}
+                  >
+                    {isProOption && !isPro && <ProBadge position="corner" />}
+                  </Box>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                    {bg.name}
+                  </Typography>
+                </Grid>
+              );
+            })}
+          </Grid>
+
+          <Stack direction="row" spacing={2} mb={3} justifyContent="center">
+            {visiblePinBgs < BACKGROUND_OPTIONS.length && (
+              <Button
+                onClick={() => setVisiblePinBgs((prev: number) => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
+                variant="outlined"
+                sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
+              >
+                Show More
+              </Button>
+            )}
+            {visiblePinBgs > 8 && (
+              <Button
+                onClick={() => setVisiblePinBgs(8)}
+                variant="text"
+                sx={{ color: '#666' }}
+              >
+                Show Less
+              </Button>
+            )}
+          </Stack>
+
+          {weddingId && (
+            <ImageUpload
+              label="Upload Custom Background"
+              value={customPinEntryBackground}
+              onChange={(url) => {
+                setCustomPinEntryBackground(url);
+                if (url) setPinEntryBackground('');
+              }}
+              path={getWeddingImagePath(weddingId, 'backgrounds')}
+              helperText="Upload your own background image (recommended: 1920x1080px)"
+              aspectRatio="16/9"
+              maxWidth={600}
+            />
+          )}
+        </Paper>
+
+        {/* Colors */}
+        <Paper sx={sectionPaperSx}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+            Colors
+          </Typography>
+
+          <Stack spacing={4}>
+            {/* Button Color */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Button Color
+              </Typography>
+
+              <Grid container spacing={2} mb={2}>
+                {COLOR_OPTIONS.map((color, index) => {
+                  const isProOption = index >= FREE_COLOR_COUNT;
+
+                  return (
+                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
+                      <Box
+                        onClick={() => setPinEntryPrimaryColor(color.value)}
+                        sx={{
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          backgroundColor: color.value,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          border: 3,
+                          borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
+                          transition: 'all 0.2s',
+                          position: 'relative',
+                          '&:hover': {
+                            borderColor: '#666',
+                            transform: 'scale(1.05)',
+                          },
+                        }}
+                      >
+                        {isProOption && !isPro && <ProBadge position="corner" />}
+                      </Box>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                        {color.name}
+                      </Typography>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+
+              <TextField
+                label="Custom Hex"
+                value={pinEntryPrimaryColor}
+                onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
+                placeholder="#141414"
+                sx={{ ...textFieldSx, maxWidth: 200 }}
+              />
+            </Box>
+
+            {/* Text Color */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Text Color
+              </Typography>
+
+              <Grid container spacing={2} mb={2}>
+                {FONT_COLOR_OPTIONS.map((color) => (
+                  <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-txt-${color.value}`}>
+                    <Box
+                      onClick={() => setPinEntryFontColor(color.value)}
+                      sx={{
+                        width: '100%',
+                        aspectRatio: '1/1',
+                        backgroundColor: color.value,
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        border: 3,
+                        borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          borderColor: pinEntryPrimaryColor,
+                          transform: 'scale(1.05)',
+                        },
+                        ...(color.value === '#FFFFFF' && {
+                          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                        }),
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                      {color.name}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <TextField
+                label="Custom Hex"
+                value={pinEntryFontColor}
+                onChange={(e) => setPinEntryFontColor(e.target.value)}
+                placeholder="#000000"
+                sx={{ ...textFieldSx, maxWidth: 200 }}
+              />
+            </Box>
+
+            {/* Button Text Color */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Button Text Color
+              </Typography>
+
+              <Grid container spacing={2} mb={2}>
+                {FONT_COLOR_OPTIONS.map((color) => (
+                  <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-txt-${color.value}`}>
+                    <Box
+                      onClick={() => setPinEntryButtonFontColor(color.value)}
+                      sx={{
+                        width: '100%',
+                        aspectRatio: '1/1',
+                        backgroundColor: color.value,
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        border: 3,
+                        borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          borderColor: pinEntryPrimaryColor,
+                          transform: 'scale(1.05)',
+                        },
+                        ...(color.value === '#FFFFFF' && {
+                          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                        }),
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                      {color.name}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <TextField
+                label="Custom Hex"
+                value={pinEntryButtonFontColor}
+                onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
+                placeholder="#FFFFFF"
+                sx={{ ...textFieldSx, maxWidth: 200 }}
+              />
+            </Box>
+          </Stack>
+        </Paper>
+
         {/* PIN Dialog */}
         <Dialog
           open={pinDialogOpen}
@@ -523,6 +990,12 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          open={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+        />
       </Stack>
     </Box>
   );

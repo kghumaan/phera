@@ -65,7 +65,7 @@ export default function FAQPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/lavendar.png"
+      src="/images/backgrounds/lavender.png"
       className="min-h-screen"
     >
       {/* Desktop Header - AppHeader with consistent styling */}

@@ -9,6 +9,11 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
 import Image from 'next/image';
+import FAQPage from '@/app/(guest)/[weddingSlug]/faq/page';
+import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
+import TravelPage from '@/app/(guest)/[weddingSlug]/travel/page';
+import RegistryPage from '@/app/(guest)/[weddingSlug]/registry/page';
+import WhereToShopPage from '@/app/(guest)/[weddingSlug]/where-to-shop/page';
 
 const VALID_SECTIONS = ['schedule', 'travel', 'faq', 'registry', 'shopping'];
 
@@ -116,6 +121,8 @@ function SectionPreviewContent({ section }: { section: string }) {
   const [previewView, setPreviewView] = useState<PreviewView>('rsvp_submitted');
   const [viewMenuAnchor, setViewMenuAnchor] = useState<null | HTMLElement>(null);
   const [isInIframe, setIsInIframe] = useState(true);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     setIsInIframe(window.self !== window.top);
@@ -135,6 +142,18 @@ function SectionPreviewContent({ section }: { section: string }) {
         <Typography>Wedding not found or you don't have access</Typography>
       </Box>
     );
+  }
+
+  if (isMobile) {
+    const SectionComponent: Record<string, React.ComponentType> = {
+      faq: FAQPage,
+      schedule: SchedulePage,
+      travel: TravelPage,
+      registry: RegistryPage,
+      shopping: WhereToShopPage,
+    };
+    const Component = SectionComponent[section];
+    if (Component) return <Box sx={{ pt: 2 }}><Component /></Box>;
   }
 
   const ViewSwitcher = isInIframe ? null : (
