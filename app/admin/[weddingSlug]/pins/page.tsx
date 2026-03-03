@@ -21,6 +21,7 @@ import {
   alpha,
   Checkbox,
   FormControlLabel,
+  Switch,
 } from '@mui/material';
 import { useState, useEffect, use, useCallback } from 'react';
 import { Add, Delete, Edit, Check } from '@mui/icons-material';
@@ -43,8 +44,9 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 const sectionPaperSx = {
   p: 3,
   borderRadius: '16px',
-  bgcolor: '#fafafa',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+  bgcolor: '#F8F8F8',
+  boxShadow: 'none',
+  border: '1px solid rgba(0,0,0,0.07)',
 };
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
@@ -83,7 +85,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [settings, setSettings] = useState<any>(null);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
-  const [newPin, setNewPin] = useState<{ pin: string; type: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
+  const [newPin, setNewPin] = useState<{ pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
@@ -290,7 +292,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
       setPinDialogOpen(false);
       setEditingPinIndex(null);
-      setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
+      setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
       await loadData();
       toast.success(editingPinIndex !== null ? 'PIN updated successfully' : 'PIN added successfully');
     } catch (err) {
@@ -302,7 +304,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const handleEditPin = (pinData: any, index: number) => {
     setNewPin({
       pin: pinData.pin,
-      type: pinData.type || 'guest',
+      name: pinData.name || pinData.type || '',
       allows_plus_one: pinData.allows_plus_one || false,
       skip_rsvp: pinData.skip_rsvp || false,
       hidden_events: pinData.hidden_events || [],
@@ -314,7 +316,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const handleCloseDialog = () => {
     setPinDialogOpen(false);
     setEditingPinIndex(null);
-    setNewPin({ pin: '', type: 'guest', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
+    setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   };
 
   const handleDeletePin = async (pinToDelete: string) => {
@@ -360,11 +362,11 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         </Box>
 
         {/* PIN Management Section */}
-        <Paper sx={{
+        <Paper elevation={0} sx={{
           p: { xs: 4, md: 6 },
-          borderRadius: '24px',
+          borderRadius: '16px',
           bgcolor: 'white',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+          border: '1px solid rgba(0,0,0,0.07)',
         }}>
           <Stack spacing={4}>
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
@@ -432,10 +434,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       py: 2.5,
                       px: 3,
                       border: '2px solid',
-                      borderColor: alpha('#DE3F5E', 0.2),
+                      borderColor: 'rgba(0,0,0,0.07)',
                       '&:last-child': { mb: 0 },
                       '&:hover': {
-                        borderColor: alpha('#DE3F5E', 0.4),
+                        borderColor: 'rgba(0,0,0,0.15)',
                         bgcolor: '#f5f5f5',
                       },
                     }}
@@ -443,7 +445,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       <Box display="flex" alignItems="center" gap={2}>
                         <Stack direction="row" spacing={1.5}>
                           <Chip
-                            label={pinData.type}
+                            label={pinData.name || pinData.type || 'Guest'}
                             size="medium"
                             sx={{
                               fontSize: '1rem',
@@ -461,8 +463,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               sx={{
                                 fontSize: '1rem',
                                 height: 36,
-                                bgcolor: alpha('#6366F1', 0.1),
-                                color: '#6366F1',
+                                bgcolor: alpha('#1a1a1a', 0.08),
+                                color: '#4a4a4a',
                                 fontWeight: 600,
                                 px: 1,
                               }}
@@ -475,8 +477,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               sx={{
                                 fontSize: '1rem',
                                 height: 36,
-                                bgcolor: alpha('#F59E0B', 0.1),
-                                color: '#F59E0B',
+                                bgcolor: alpha('#1a1a1a', 0.08),
+                                color: '#4a4a4a',
                                 fontWeight: 600,
                                 px: 1,
                               }}
@@ -488,8 +490,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               sx={{
                                 fontSize: '1rem',
                                 height: 36,
-                                bgcolor: pinData.allows_plus_one ? alpha('#10B981', 0.1) : alpha('#6a6a6a', 0.1),
-                                color: pinData.allows_plus_one ? '#10B981' : '#6a6a6a',
+                                bgcolor: pinData.allows_plus_one ? alpha('#1a1a1a', 0.08) : alpha('#6a6a6a', 0.1),
+                                color: pinData.allows_plus_one ? '#4a4a4a' : '#6a6a6a',
                                 fontWeight: 600,
                                 px: 1,
                               }}
@@ -820,7 +822,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           fullWidth
           PaperProps={{
             sx: {
-              borderRadius: '24px',
+              borderRadius: '16px',
               bgcolor: 'white',
             }
           }}
@@ -842,93 +844,47 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 sx={textFieldSx}
               />
               <TextField
-                label="Type"
+                label="Name"
                 fullWidth
-                value={newPin.type}
-                onChange={(e) => setNewPin({ ...newPin, type: e.target.value })}
-                placeholder="e.g., guest, family, vip, vendor"
-                helperText="Optional: Categorize this PIN"
+                value={newPin.name}
+                onChange={(e) => setNewPin({ ...newPin, name: e.target.value })}
+                placeholder="e.g., Smith Family, VIP Table"
+                helperText="Optional: Give this PIN a friendly name"
                 sx={textFieldSx}
               />
-              <Box sx={{
-                p: 2,
-                borderRadius: '12px',
-                bgcolor: alpha('#F59E0B', 0.05),
-                border: `1px solid ${alpha('#F59E0B', 0.2)}`
-              }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
-                    Skip RSVP: <Typography component="span" sx={{ color: newPin.skip_rsvp ? '#F59E0B' : '#6a6a6a', fontWeight: 600 }}>
-                      {newPin.skip_rsvp ? 'Yes' : 'No'}
-                    </Typography>
-                  </Typography>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    onClick={() => setNewPin({ ...newPin, skip_rsvp: !newPin.skip_rsvp, allows_plus_one: newPin.skip_rsvp ? false : newPin.allows_plus_one })}
-                    sx={{
-                      borderColor: '#F59E0B',
-                      color: '#F59E0B',
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      minWidth: '80px',
-                      '&:hover': {
-                        borderColor: '#D97706',
-                        bgcolor: 'rgba(245, 158, 11, 0.08)',
-                      },
-                    }}
-                  >
-                    Toggle
-                  </Button>
-                </Box>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                  {newPin.skip_rsvp
-                    ? 'This PIN will skip the RSVP process (useful for vendors or guests who don\'t need to RSVP)'
-                    : 'This PIN will require RSVP. You can configure plus one options below.'}
-                </Typography>
-              </Box>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={newPin.skip_rsvp}
+                    onChange={(e) => setNewPin({ ...newPin, skip_rsvp: e.target.checked, allows_plus_one: e.target.checked ? false : newPin.allows_plus_one })}
+                    sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                  />
+                }
+                label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
+              />
+              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem', ml: 7, mt: -1 }}>
+                {newPin.skip_rsvp
+                  ? 'This PIN will skip the RSVP process (useful for vendors or guests who don\'t need to RSVP)'
+                  : 'This PIN will require RSVP. You can configure plus one options below.'}
+              </Typography>
               {!newPin.skip_rsvp && (
-                <Box sx={{
-                  p: 2,
-                  borderRadius: '12px',
-                  bgcolor: alpha('#10B981', 0.05),
-                  border: `1px solid ${alpha('#10B981', 0.2)}`
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem' }}>
-                      Allows Plus One: <Typography component="span" sx={{ color: newPin.allows_plus_one ? '#10B981' : '#6a6a6a', fontWeight: 600 }}>
-                        {newPin.allows_plus_one ? 'Yes' : 'No'}
-                      </Typography>
-                    </Typography>
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      onClick={() => setNewPin({ ...newPin, allows_plus_one: !newPin.allows_plus_one })}
-                      sx={{
-                        borderColor: '#10B981',
-                        color: '#10B981',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        minWidth: '80px',
-                        '&:hover': {
-                          borderColor: '#059669',
-                          bgcolor: 'rgba(16, 185, 129, 0.08)',
-                        },
-                      }}
-                    >
-                      Toggle
-                    </Button>
-                  </Box>
-                </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={newPin.allows_plus_one}
+                      onChange={(e) => setNewPin({ ...newPin, allows_plus_one: e.target.checked })}
+                      sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                    />
+                  }
+                  label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Allows Plus One</Typography>}
+                />
               )}
               {events.length > 0 && (
                 <Box sx={{
                   p: 2,
                   borderRadius: '12px',
-                  bgcolor: alpha('#6366F1', 0.05),
-                  border: `1px solid ${alpha('#6366F1', 0.2)}`
+                  bgcolor: '#f8f8f8',
+                  border: '1px solid rgba(0,0,0,0.07)',
                 }}>
                   <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem', mb: 1.5 }}>
                     Hide Events for This PIN
@@ -950,8 +906,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               setNewPin({ ...newPin, hidden_events: updated });
                             }}
                             sx={{
-                              color: '#6366F1',
-                              '&.Mui-checked': { color: '#6366F1' },
+                              color: '#DE3F5E',
+                              '&.Mui-checked': { color: '#DE3F5E' },
                             }}
                           />
                         }

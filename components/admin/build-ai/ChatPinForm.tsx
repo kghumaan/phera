@@ -7,9 +7,6 @@ import {
   TextField,
   Typography,
   alpha,
-  FormControl,
-  Select,
-  MenuItem,
   Switch,
   FormControlLabel,
   Checkbox,
@@ -21,7 +18,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 interface ChatPinFormProps {
   onSave: (pin: {
     pin: string;
-    type: string;
+    name: string;
     allows_plus_one: boolean;
     skip_rsvp: boolean;
     hidden_events: string[];
@@ -34,8 +31,7 @@ interface ChatPinFormProps {
 export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }: ChatPinFormProps) {
   const [formData, setFormData] = useState({
     pin: initialData?.pin || '',
-    type: initialData?.type || 'guest',
-    customType: initialData?.customType || '',
+    name: initialData?.name || initialData?.type || '',
     allows_plus_one: initialData?.allows_plus_one || false,
     skip_rsvp: initialData?.skip_rsvp || false,
     hidden_events: initialData?.hidden_events || [] as string[],
@@ -54,10 +50,10 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
 
   const handleSave = () => {
     if (!formData.pin) return;
-    const type = formData.type === 'other' ? formData.customType || 'other' : formData.type;
+    const name = formData.name;
     onSave({
       pin: formData.pin,
-      type,
+      name,
       allows_plus_one: formData.allows_plus_one,
       skip_rsvp: formData.skip_rsvp,
       hidden_events: formData.restrictEvents ? formData.hidden_events : [],
@@ -129,36 +125,14 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
         </Box>
 
         <Box>
-          <Typography variant="caption" sx={labelSx}>PIN Type</Typography>
-          <FormControl fullWidth size="small">
-            <Select
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              sx={{
-                borderRadius: '12px',
-                bgcolor: '#f5f5f5',
-                fontWeight: 600,
-                '& .MuiSelect-select': { py: 1.5, px: 2, color: '#1a1a1a' },
-                '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
-                '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-              }}
-            >
-              <MenuItem value="guest">Guest</MenuItem>
-              <MenuItem value="family">Family</MenuItem>
-              <MenuItem value="vip">VIP</MenuItem>
-              <MenuItem value="vendor">Vendor</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-          {formData.type === 'other' && (
-            <TextField
-              value={formData.customType}
-              onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
-              fullWidth
-              placeholder="Enter custom type name"
-              sx={{ ...commonFieldSx, mt: 1.5 }}
-            />
-          )}
+          <Typography variant="caption" sx={labelSx}>Name (optional)</Typography>
+          <TextField
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            fullWidth
+            placeholder="e.g., Smith Family"
+            sx={commonFieldSx}
+          />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

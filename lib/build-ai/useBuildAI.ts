@@ -271,7 +271,7 @@ export function useBuildAI(weddingSlug: string) {
         const existingSettings = await weddingService.getSettings(weddingId);
         const newPin = {
           pin: parsedData.pin,
-          type: parsedData.type || 'guest',
+          name: parsedData.name || parsedData.type || '',
           allows_plus_one: parsedData.allows_plus_one || false,
           skip_rsvp: parsedData.skip_rsvp || false,
           hidden_events: parsedData.hidden_events || [],
@@ -736,7 +736,7 @@ export function useBuildAI(weddingSlug: string) {
     setMessages(prev => [...prev, {
       id: `user-pin-${Date.now()}`,
       role: 'user',
-      text: `Added PIN: **${pinData.pin}** (${pinData.type})`
+      text: `Added PIN: **${pinData.pin}** (${pinData.name || 'Guest'})`
     }]);
 
     await saveSpecialData('pin_item', pinData, collectedDataRef.current);

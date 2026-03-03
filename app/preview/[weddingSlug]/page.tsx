@@ -417,14 +417,10 @@ function PreviewContent() {
   // Pin Entry view
   if (previewView === 'pin_entry') {
     return (
-      <OptimizedBackground
-        src={wedding.pin_entry_background || wedding.background_image || undefined}
-        useAppDefault={!wedding.pin_entry_background && !wedding.background_image}
-        className="min-h-screen flex flex-col"
-      >
+      <>
         {ViewSwitcher}
         <PinEntry weddingSlug={wedding.slug} onPinVerified={() => { }} isPreview={true} />
-      </OptimizedBackground>
+      </>
     );
   }
 

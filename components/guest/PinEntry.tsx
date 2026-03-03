@@ -671,6 +671,37 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             gap: '16px',
           }}
         >
+          {/* Continue Button */}
+          <Button
+            onClick={handleContinue}
+            disabled={!isPinComplete}
+            sx={{
+              backgroundColor: pinEntryPrimaryColor,
+              color: pinEntryButtonFontColor,
+              borderRadius: '16px',
+              px: '20px',
+              py: '14px',
+              fontSize: '1rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              width: '100%',
+              maxWidth: '354px',
+              '&:hover': { backgroundColor: pinEntryPrimaryColor, opacity: 0.9 },
+              '&.Mui-disabled': { bgcolor: 'rgba(0,0,0,0.12)', color: 'rgba(0,0,0,0.26)' },
+            }}
+          >
+            Continue
+          </Button>
+
+          {/* Or Divider */}
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '354px' }}>
+            <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
+            <Typography sx={{ px: 2, color: '#6a6a6a', fontSize: '0.875rem', fontWeight: 500 }}>
+              or
+            </Typography>
+            <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
+          </Box>
+
           {/* Login Button */}
           <Button
             onClick={handleLogin}
@@ -696,7 +727,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            Or log in with email
+            Log in with email
           </Button>
         </motion.div>
       </Container>
