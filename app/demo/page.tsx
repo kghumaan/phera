@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
+const DEMO_EMAIL = 'demo@phera.io';
+const PRE_DEMO_SESSION_KEY = 'phera_pre_demo_session';
+
 export default function DemoPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -15,16 +18,26 @@ export default function DemoPage() {
       sessionStorage.removeItem('demo-tour-step');
 
       try {
-        // Check if user is already logged in
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
 
-        if (user) {
-          // Already authenticated - just redirect to demo dashboard
-          router.replace('/admin/demo/overview?tour=true');
-          return;
+        if (session?.user) {
+          // Already the demo user — just redirect
+          if (session.user.email === DEMO_EMAIL) {
+            router.replace('/admin/demo/overview?tour=true');
+            return;
+          }
+
+          // Signed in as a different user — save their session so we can restore it later
+          sessionStorage.setItem(PRE_DEMO_SESSION_KEY, JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          }));
+
+          // Sign out the current user before signing in as demo
+          await supabase.auth.signOut();
         }
 
-        // Not logged in - sign in as demo user
+        // Sign in as demo user
         const demoPassword = process.env.NEXT_PUBLIC_DEMO_USER_PASSWORD;
         if (!demoPassword) {
           setError('Demo is not configured. Please contact support.');
@@ -32,7 +45,7 @@ export default function DemoPage() {
         }
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: 'demo@phera.io',
+          email: DEMO_EMAIL,
           password: demoPassword,
         });
 
