@@ -24,6 +24,7 @@ import {
   WhatsApp,
   ViewKanban,
   ArrowBack,
+  SupportAgent,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -103,6 +104,16 @@ export const groups: SidebarGroup[] = [
     isPro: true,
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true }
+    ]
+  },
+  {
+    id: 'coordinator',
+    label: 'Coordinator',
+    icon: <SupportAgent />,
+    standalone: true,
+    isPro: true,
+    items: [
+      { id: 'coordinator', label: 'Coordinator', path: '/coordinator', isPro: true }
     ]
   },
   {

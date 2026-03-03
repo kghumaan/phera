@@ -1,0 +1,190 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { whapiClient } from '@/lib/vendors/whapi-client';
+import { extractVendorInsights, saveInsights, generateCoordinatorReply } from '@/lib/vendors/ai-extractor';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * POST handler — receives incoming group messages from Whapi.Cloud
+ * Always returns 200 to avoid retries.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const payload = await request.json();
+    console.log('📨 Vendor webhook received:', JSON.stringify(payload).slice(0, 500));
+
+    // Whapi.Cloud sends an array of messages
+    const messages: any[] = Array.isArray(payload.messages)
+      ? payload.messages
+      : payload.message
+        ? [payload.message]
+        : [];
+
+    if (messages.length === 0) {
+      return NextResponse.json({ success: true });
+    }
+
+    for (const msg of messages) {
+      // Only process group messages
+      if (!msg.chat_id?.includes('@g.us')) continue;
+
+      const groupId = msg.chat_id;
+      const senderPhone = msg.from?.replace('@s.whatsapp.net', '') || '';
+      const senderName = msg.from_name || senderPhone;
+      const content = msg.text?.body || msg.body || '';
+      const messageId = msg.id;
+      const timestamp = msg.timestamp
+        ? new Date(msg.timestamp * 1000).toISOString()
+        : new Date().toISOString();
+
+      if (!content) continue;
+
+      // 1. Find or create conversation by group ID
+      let { data: conversation } = await supabase
+        .from('vendor_conversations')
+        .select('*')
+        .eq('whatsapp_group_id', groupId)
+        .single();
+
+      let weddingId: string | null = null;
+
+      if (conversation) {
+        weddingId = conversation.wedding_id;
+      } else {
+        // Try to match by participant phones → vendors table
+        const { data: vendorMatch } = await supabase
+          .from('vendors')
+          .select('wedding_id, id')
+          .eq('phone', senderPhone)
+          .limit(1)
+          .single();
+
+        if (vendorMatch) {
+          weddingId = vendorMatch.wedding_id;
+        } else {
+          // Also try with whatsapp_group_id on vendors
+          const { data: groupMatch } = await supabase
+            .from('vendors')
+            .select('wedding_id, id')
+            .eq('whatsapp_group_id', groupId)
+            .limit(1)
+            .single();
+
+          if (groupMatch) {
+            weddingId = groupMatch.wedding_id;
+          }
+        }
+
+        if (!weddingId) {
+          console.log(`⚠️ No wedding match for group ${groupId}, skipping`);
+          continue;
+        }
+
+        // Create new conversation
+        const { data: newConvo, error: convoError } = await supabase
+          .from('vendor_conversations')
+          .insert({
+            wedding_id: weddingId,
+            whatsapp_group_id: groupId,
+            source: 'whapi_webhook',
+            title: msg.chat_name || `Vendor Chat`,
+            status: 'ready',
+            first_message_at: timestamp,
+            last_message_at: timestamp,
+          })
+          .select()
+          .single();
+
+        if (convoError) {
+          console.error('Failed to create conversation:', convoError);
+          continue;
+        }
+        conversation = newConvo;
+      }
+
+      // 2. Determine sender type
+      let senderType = 'unknown';
+      const { data: vendorRecord } = await supabase
+        .from('vendors')
+        .select('id')
+        .eq('wedding_id', weddingId)
+        .eq('phone', senderPhone)
+        .limit(1)
+        .single();
+
+      if (vendorRecord) {
+        senderType = 'vendor';
+      }
+
+      // 3. Store message
+      const { error: msgError } = await supabase.from('vendor_messages').insert({
+        conversation_id: conversation.id,
+        wedding_id: weddingId,
+        sender_name: senderName,
+        sender_phone: senderPhone,
+        sender_type: senderType,
+        content,
+        message_timestamp: timestamp,
+        has_media: !!msg.media,
+        media_type: msg.media?.type || null,
+        media_url: msg.media?.link || null,
+        whapi_message_id: messageId,
+      });
+
+      if (msgError) {
+        console.error('Failed to store vendor message:', msgError);
+      }
+
+      // 4. Update conversation counters
+      await supabase
+        .from('vendor_conversations')
+        .update({
+          message_count: (conversation.message_count || 0) + 1,
+          last_message_at: timestamp,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', conversation.id);
+
+      // 5. Check if coordinator is tagged — reply if so
+      const lowerContent = content.toLowerCase();
+      if (
+        lowerContent.includes('@phera') ||
+        lowerContent.includes('hey phera') ||
+        lowerContent.includes('hi phera')
+      ) {
+        try {
+          const reply = await generateCoordinatorReply({
+            weddingId: weddingId!,
+            conversationId: conversation.id,
+            senderName,
+            message: content,
+          });
+
+          await whapiClient.sendMessage(groupId, reply);
+
+          // Store coordinator reply
+          await supabase.from('vendor_messages').insert({
+            conversation_id: conversation.id,
+            wedding_id: weddingId,
+            sender_name: 'Phera Coordinator',
+            sender_type: 'coordinator',
+            content: reply,
+            message_timestamp: new Date().toISOString(),
+          });
+        } catch (replyError) {
+          console.error('Failed to send coordinator reply:', replyError);
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Vendor webhook error:', error);
+    // Always return 200 to avoid retries
+    return NextResponse.json({ success: true }, { status: 200 });
+  }
+}
