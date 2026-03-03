@@ -45,12 +45,13 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
             borderRadius: '12px',
             fontSize: '1rem',
             bgcolor: 'white',
+            minHeight: 48,
             '& fieldset': { border: '2px solid', borderColor: alpha('#000', 0.15) },
             '&:hover fieldset': { borderColor: alpha('#000', 0.25) },
             '&.Mui-focused fieldset': { border: '2px solid #DE3F5E' },
             '&.Mui-disabled': { bgcolor: alpha('#000', 0.02) },
           },
-          '& .MuiOutlinedInput-input': { py: 1.5, px: 2 },
+          '& .MuiOutlinedInput-input': { py: 1.25, px: 2 },
         }}
       />
       <IconButton

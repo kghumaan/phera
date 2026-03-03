@@ -7,7 +7,6 @@ import {
   Stack,
   Paper,
   Chip,
-  TextField,
   IconButton,
   CircularProgress,
   Dialog,
@@ -21,14 +20,15 @@ import {
   InputLabel,
   Divider,
   Checkbox,
-  FormControlLabel,
+  Switch,
+  Tooltip,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import React, { useState, use, useEffect, useCallback } from 'react';
+import React, { useState, use, useEffect, useCallback, useRef } from 'react';
 import {
   SupportAgent,
   Upload,
-  Send,
-  Add,
   CheckCircleOutline,
   Chat,
   Assignment,
@@ -38,11 +38,14 @@ import {
   Close,
   WhatsApp,
   Sync,
+  CloudSync,
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
+import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -69,12 +72,6 @@ interface Vendor {
     due_date: string | null;
   }>;
 }
-
-const VENDOR_CATEGORIES = [
-  'Venue', 'Catering', 'Photography', 'Videography', 'Florist',
-  'DJ/Music', 'Decor', 'Makeup', 'Mehndi', 'Priest',
-  'Invitations', 'Cake', 'Rental', 'Transportation', 'Planner', 'Other',
-];
 
 const STATUS_COLORS: Record<string, string> = {
   active: '#2196F3',
@@ -114,12 +111,6 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [coordinatorLink, setCoordinatorLink] = useState('');
   const [phoneConfigured, setPhoneConfigured] = useState(false);
   const [phoneCopied, setPhoneCopied] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
-
-  // Add vendor dialog
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newVendor, setNewVendor] = useState({ name: '', category: '', phone: '', email: '' });
-  const [addingVendor, setAddingVendor] = useState(false);
 
   // Import chat dialog
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -132,12 +123,25 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [discoveringGroups, setDiscoveringGroups] = useState(false);
   const [discoveredGroups, setDiscoveredGroups] = useState<Array<{ id: string; name: string; participantCount: number }>>([]);
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
+  const [discoveredDirectChats, setDiscoveredDirectChats] = useState<Array<{ id: string; name: string; participantCount: number }>>([]);
+  const [selectedChatIds, setSelectedChatIds] = useState<Set<string>>(new Set());
+  const [syncDialogTab, setSyncDialogTab] = useState(0);
 
-  // Ask Phera
-  const [askQuestion, setAskQuestion] = useState('');
-  const [askAnswer, setAskAnswer] = useState('');
-  const [asking, setAsking] = useState(false);
+  // Sync All
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [syncAllLabel, setSyncAllLabel] = useState('');
+
+  // Ref guards to prevent duplicate API calls
+  const discoverGuardRef = useRef(false);
+  const syncAllGuardRef = useRef(false);
+  const importGuardRef = useRef(false);
+
+  // Ask Phera panel
+  const [askPheraOpen, setAskPheraOpen] = useState(true);
+
+  // Testing toggle
+  const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com' || user?.email === 'demo@phera.io';
+  const [forceOnboarding, setForceOnboarding] = useState(false);
 
   // Load wedding ID and vendors
   const loadData = useCallback(async () => {
@@ -179,26 +183,12 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         setPhoneConfigured(data.isConfigured);
         setCoordinatorPhone(data.phoneNumber || '');
         setCoordinatorLink(data.whatsappLink || '');
-      } catch {
-        // silently fail
+      } catch (err) {
+        console.error('Failed to fetch coordinator info:', err);
       }
     };
     fetchCoordinatorInfo();
   }, [isPro]);
-
-  // Stats
-  const totalVendors = vendors.length;
-  const activeConversations = vendors.filter(
-    (v) => v.vendor_conversations?.some((c) => c.status === 'ready')
-  ).length;
-  const openActionItems = vendors.reduce(
-    (sum, v) =>
-      sum +
-      (v.vendor_insights?.filter(
-        (i) => i.insight_type === 'action_item' && !i.is_completed
-      ).length || 0),
-    0
-  );
 
   // Copy phone number
   const handleCopyPhone = async () => {
@@ -212,35 +202,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     }
   };
 
-  // Add vendor
-  const handleAddVendor = async () => {
-    if (!weddingId || !newVendor.name) return;
-    setAddingVendor(true);
-    try {
-      const res = await fetch('/api/vendors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weddingId, ...newVendor }),
-      });
-      if (res.ok) {
-        toast.success('Vendor added');
-        setAddDialogOpen(false);
-        setNewVendor({ name: '', category: '', phone: '', email: '' });
-        loadData();
-      } else {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to add vendor');
-      }
-    } catch {
-      toast.error('Failed to add vendor');
-    } finally {
-      setAddingVendor(false);
-    }
-  };
-
   // Import chat
   const handleImportChat = async () => {
-    if (!weddingId || !importFile) return;
+    if (!weddingId || !importFile || importGuardRef.current) return;
+    importGuardRef.current = true;
     setImporting(true);
     try {
       const formData = new FormData();
@@ -259,73 +224,67 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         setImportDialogOpen(false);
         setImportFile(null);
         setImportVendorId('');
-        loadData();
+        await loadData();
       } else {
         const err = await res.json();
+        console.error('Import failed:', err);
         toast.error(err.error || 'Import failed');
       }
-    } catch {
+    } catch (err) {
+      console.error('Import chat error:', err);
       toast.error('Import failed');
     } finally {
       setImporting(false);
+      importGuardRef.current = false;
     }
   };
 
-  // Ask Phera
-  const handleAskPhera = async () => {
-    if (!weddingId || !askQuestion.trim()) return;
-    setAsking(true);
-    setAskAnswer('');
-    try {
-      const res = await fetch('/api/vendors/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weddingId, question: askQuestion }),
-      });
-      const data = await res.json();
-      setAskAnswer(data.answer || 'No answer available.');
-    } catch {
-      setAskAnswer('Something went wrong. Try again.');
-    } finally {
-      setAsking(false);
-    }
-  };
-
-  // Discover WhatsApp groups (step 1 — opens picker)
+  // Discover WhatsApp chats (step 1 — opens picker)
   const handleDiscoverGroups = async () => {
+    if (discoverGuardRef.current) return;
+    discoverGuardRef.current = true;
     setDiscoveringGroups(true);
     setDiscoveredGroups([]);
-    setSelectedGroupIds(new Set());
+    setDiscoveredDirectChats([]);
+    setSelectedChatIds(new Set());
+    setSyncDialogTab(0);
     setSyncDialogOpen(true);
+
     try {
       const res = await fetch('/api/vendors/sync-groups');
       const data = await res.json();
-      if (res.ok && data.groups) {
-        setDiscoveredGroups(data.groups);
+      if (res.ok) {
+        setDiscoveredGroups(data.groups || []);
+        setDiscoveredDirectChats(data.directChats || []);
       } else {
-        toast.error(data.error || 'Failed to discover groups');
+        console.error('Failed to discover chats:', data);
+        toast.error(data.error || 'Failed to discover chats');
         setSyncDialogOpen(false);
       }
-    } catch {
-      toast.error('Failed to discover groups');
+    } catch (err) {
+      console.error('Discover chats error:', err);
+      toast.error('Failed to discover chats');
       setSyncDialogOpen(false);
     } finally {
       setDiscoveringGroups(false);
+      discoverGuardRef.current = false;
     }
   };
 
-  // Sync selected groups (step 2 — imports messages)
+  // Sync selected chats (step 2 — imports messages)
   const handleSyncSelected = async () => {
-    if (!weddingId || selectedGroupIds.size === 0) return;
+    if (!weddingId || selectedChatIds.size === 0) return;
     setSyncing(true);
     try {
+      const groupIds = Array.from(selectedChatIds).filter(id => id.endsWith('@g.us'));
+      const chatIds = Array.from(selectedChatIds).filter(id => id.endsWith('@s.whatsapp.net'));
+
       const res = await fetch('/api/vendors/sync-groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weddingId, groupIds: Array.from(selectedGroupIds) }),
+        body: JSON.stringify({ weddingId, groupIds, chatIds }),
       });
       const data = await res.json();
-      console.log('[Coordinator] Sync response:', JSON.stringify(data, null, 2));
       if (res.ok) {
         if (data.errors?.length) {
           toast.error(data.message || `Sync issues: ${data.errors.map((e: any) => e.error).join('; ')}`);
@@ -333,24 +292,66 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           toast.success(data.message || 'Sync complete');
         }
         if (data.synced > 0) {
+          await loadData();
           setSyncDialogOpen(false);
-          loadData();
+          setSyncing(false);
+          return;
         }
       } else {
         toast.error(data.error || 'Sync failed');
       }
     } catch {
       toast.error('Sync failed');
+    }
+    setSyncing(false);
+  };
+
+  // Sync All — re-fetch all tracked conversations
+  const handleSyncAll = async () => {
+    if (!weddingId || syncAllGuardRef.current) return;
+    syncAllGuardRef.current = true;
+    setSyncingAll(true);
+
+    // Count tracked conversations for progress label
+    const trackedCount = vendors.reduce(
+      (n, v) => n + (v.vendor_conversations?.length || 0), 0
+    );
+    setSyncAllLabel(`Refreshing ${trackedCount} conversation${trackedCount !== 1 ? 's' : ''}...`);
+
+    try {
+      const res = await fetch('/api/vendors/sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weddingId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.errors?.length) {
+          console.error('Sync-all partial errors:', data.errors);
+          toast.error(`Sync finished with errors: ${data.errors.join('; ')}`);
+        } else {
+          toast.success(data.message || 'Sync complete');
+        }
+        await loadData();
+      } else {
+        console.error('Sync-all failed:', data);
+        toast.error(data.error || 'Sync failed');
+      }
+    } catch (err) {
+      console.error('Sync-all error:', err);
+      toast.error('Sync failed');
     } finally {
-      setSyncing(false);
+      setSyncingAll(false);
+      setSyncAllLabel('');
+      syncAllGuardRef.current = false;
     }
   };
 
-  const toggleGroupSelection = (groupId: string) => {
-    setSelectedGroupIds((prev) => {
+  const toggleChatSelection = (chatId: string) => {
+    setSelectedChatIds((prev) => {
       const next = new Set(prev);
-      if (next.has(groupId)) next.delete(groupId);
-      else next.add(groupId);
+      if (next.has(chatId)) next.delete(chatId);
+      else next.add(chatId);
       return next;
     });
   };
@@ -556,7 +557,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   }
 
   // ─── STATE B: Pro user, no vendors (onboarding) ─────────────────────
-  if (vendors.length === 0) {
+  if (vendors.length === 0 || forceOnboarding) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
@@ -702,9 +703,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   </Typography>
                   <Button
                     size="small"
-                    startIcon={<Sync />}
+                    startIcon={discoveringGroups ? <CircularProgress size={14} sx={{ color: '#DE3F5E' }} /> : <Sync />}
                     onClick={handleDiscoverGroups}
-                    disabled={!phoneConfigured}
+                    disabled={!phoneConfigured || discoveringGroups}
                     sx={{
                       mt: 1.5,
                       textTransform: 'none',
@@ -716,7 +717,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       '&:hover': { bgcolor: alpha('#DE3F5E', 0.04) },
                     }}
                   >
-                    Sync WhatsApp Groups
+                    {discoveringGroups ? 'Discovering...' : 'Connect WhatsApp Chats'}
                   </Button>
                 </Box>
               </Box>
@@ -763,22 +764,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         fontSize: '0.8rem',
                       }}
                     >
-                      Import Chat
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<Add />}
-                      onClick={() => setAddDialogOpen(true)}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '12px',
-                        bgcolor: '#DE3F5E',
-                        fontSize: '0.8rem',
-                        '&:hover': { bgcolor: '#C8365A' },
-                      }}
-                    >
-                      Add Vendor Manually
+                      Upload Chat Manually
                     </Button>
                   </Stack>
                 </Box>
@@ -789,338 +775,259 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
         </Stack>
 
+        {/* Super admin toggle */}
+        {isSuperAdmin && forceOnboarding && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
+            <Box>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                Test Mode
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                Force onboarding view
+              </Typography>
+            </Box>
+            <Switch
+              checked={forceOnboarding}
+              onChange={() => setForceOnboarding((p) => !p)}
+              size="small"
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
+              }}
+            />
+          </Box>
+        )}
+
         {/* Dialogs */}
-        {renderAddVendorDialog()}
         {renderImportChatDialog()}
-        {renderSyncGroupsDialog()}
+        {renderSyncDialog()}
       </Box>
     );
   }
 
   // ─── STATE C: Pro user, has vendors (dashboard) ─────────────────────
   return (
-    <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={3}>
+    <Box sx={{ display: 'flex', gap: 0 }}>
+      {/* Main content — shrinks when panel is open */}
+      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s' }}>
+        <Box sx={{ maxWidth: 1000, pr: askPheraOpen ? 3 : 0 }}>
+          <Stack spacing={3}>
 
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Coordinator
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Track vendor conversations and get AI-powered insights
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1}>
-            <Button
-              size="small"
-              startIcon={<Sync />}
-              onClick={handleDiscoverGroups}
-              sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
-            >
-              Sync
-            </Button>
-            <Button
-              size="small"
-              startIcon={<Upload />}
-              onClick={() => setImportDialogOpen(true)}
-              sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
-            >
-              Import Chat
-            </Button>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setAddDialogOpen(true)}
-              sx={{ textTransform: 'none', borderRadius: '12px', bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' } }}
-            >
-              Add Vendor
-            </Button>
-          </Stack>
-        </Box>
+            {/* Header */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                  Coordinator
+                </Typography>
+                {phoneConfigured && (
+                  <Tooltip title="Add this number to vendor conversations. Click to copy.">
+                    <Chip
+                      icon={<PhoneAndroid sx={{ fontSize: '14px !important' }} />}
+                      label={coordinatorPhone}
+                      size="small"
+                      onClick={handleCopyPhone}
+                      sx={{
+                        bgcolor: alpha('#DE3F5E', 0.08),
+                        color: '#DE3F5E',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        '& .MuiChip-icon': { color: '#DE3F5E' },
+                        '&:hover': { bgcolor: alpha('#DE3F5E', 0.14) },
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
+                  onClick={handleSyncAll}
+                  disabled={syncingAll}
+                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+                >
+                  {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
+                </Button>
+                <Button
+                  size="small"
+                  startIcon={discoveringGroups ? <CircularProgress size={14} /> : <Sync />}
+                  onClick={handleDiscoverGroups}
+                  disabled={discoveringGroups}
+                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+                >
+                  {discoveringGroups ? 'Discovering...' : 'Connect new Chat'}
+                </Button>
+                <Button
+                  size="small"
+                  startIcon={importing ? <CircularProgress size={14} /> : <Upload />}
+                  onClick={() => setImportDialogOpen(true)}
+                  disabled={importing}
+                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                >
+                  Upload Chat Manually
+                </Button>
+              </Stack>
+            </Box>
 
-        {/* Compact coordinator number banner */}
-        {phoneConfigured && !bannerDismissed && (
-          <Paper
-            elevation={0}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 2,
-              py: 1.25,
-              borderRadius: 1,
-              border: '1px solid rgba(0,0,0,0.07)',
-              bgcolor: '#F8F8F8',
-            }}
-          >
-            <PhoneAndroid sx={{ fontSize: 18, color: '#DE3F5E' }} />
-            <Typography variant="body2" sx={{ color: '#4a4a4a', flex: 1 }}>
-              Coordinator number: <strong>{coordinatorPhone}</strong>
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={handleCopyPhone}
-              sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
-            >
-              {phoneCopied ? <CheckCircleOutline sx={{ fontSize: 16 }} /> : <ContentCopy sx={{ fontSize: 16 }} />}
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => setBannerDismissed(true)}
-              sx={{ color: '#9a9a9a' }}
-            >
-              <Close sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Paper>
-        )}
-
-        {/* Stats */}
-        <Stack direction="row" spacing={2}>
-          {[
-            { label: 'Vendors', value: totalVendors, icon: <SupportAgent fontSize="small" /> },
-            { label: 'Conversations', value: activeConversations, icon: <Chat fontSize="small" /> },
-            { label: 'Open Items', value: openActionItems, icon: <Assignment fontSize="small" /> },
-          ].map((stat) => (
-            <Paper
-              key={stat.label}
-              elevation={0}
+            {/* Conversation Tile Grid */}
+            <Box
               sx={{
-                flex: 1,
-                p: 2,
-                textAlign: 'center',
-                borderRadius: 1,
-                border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: '#F8F8F8',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.5,
               }}
             >
-              <Box sx={{ color: '#DE3F5E', mb: 0.5 }}>{stat.icon}</Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stat.value}</Typography>
-              <Typography variant="caption" sx={{ color: '#1a1a1a' }}>{stat.label}</Typography>
-            </Paper>
-          ))}
-        </Stack>
+              {vendors.map((vendor) => {
+                const summary = vendor.vendor_insights?.find(i => i.insight_type === 'summary');
+                const actionItems = vendor.vendor_insights?.filter(
+                  (i) => i.insight_type === 'action_item' && !i.is_completed
+                ) || [];
+                const totalMessages = vendor.vendor_conversations?.reduce((s, c) => s + (c.message_count || 0), 0) || 0;
 
-        {/* Vendor List */}
-        <Stack spacing={1.5}>
-          {vendors.map((vendor) => {
-            const lastConvo = vendor.vendor_conversations?.[0];
-            const actionItems = vendor.vendor_insights?.filter(
-              (i) => i.insight_type === 'action_item' && !i.is_completed
-            ) || [];
-
-            return (
-              <Paper
-                key={vendor.id}
-                elevation={0}
-                onClick={() =>
-                  router.push(`/admin/${weddingSlug}/coordinator/${vendor.id}`)
-                }
-                sx={{
-                  p: 2,
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  border: '1px solid rgba(0,0,0,0.07)',
-                  bgcolor: 'white',
-                  transition: 'all 0.15s',
-                  '&:hover': {
-                    borderColor: alpha('#DE3F5E', 0.3),
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                return (
+                  <Paper
+                    key={vendor.id}
+                    elevation={0}
+                    onClick={() =>
+                      router.push(`/admin/${weddingSlug}/coordinator/${vendor.id}`)
+                    }
+                    sx={{
+                      p: 1.75,
+                      cursor: 'pointer',
+                      borderRadius: 1,
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      bgcolor: 'white',
+                      transition: 'all 0.15s',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      width: { xs: '100%', sm: 'calc(50% - 6px)', md: 'calc(33.333% - 8px)' },
+                      minWidth: 0,
+                      '&:hover': {
+                        borderColor: alpha('#DE3F5E', 0.3),
+                        bgcolor: alpha('#DE3F5E', 0.02),
+                      },
+                    }}
+                  >
+                    {/* Vendor name + category */}
+                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {vendor.name}
                       </Typography>
                       {vendor.category && (
                         <Chip
                           label={vendor.category}
                           size="small"
-                          sx={{ fontSize: '0.7rem', height: 20, borderRadius: '4px' }}
+                          sx={{ color: '#4a4a4a', bgcolor: alpha('#000', 0.06), fontSize: '0.6rem', height: 16, borderRadius: '4px' }}
                         />
                       )}
+                    </Stack>
+
+                    {/* Summary snippet */}
+                    <Typography
+                      sx={{
+                        fontSize: '0.72rem',
+                        color: '#6a6a6a',
+                        lineHeight: 1.45,
+                        mb: 1.25,
+                        flex: 1,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {summary?.content || 'No summary yet'}
+                    </Typography>
+
+                    {/* Footer: message count + status + action items */}
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography sx={{ fontSize: '0.65rem', color: '#999' }}>
+                        {totalMessages} msgs
+                      </Typography>
                       <Chip
                         label={vendor.status}
                         size="small"
                         sx={{
-                          fontSize: '0.7rem',
-                          height: 20,
+                          fontSize: '0.6rem',
+                          height: 16,
                           borderRadius: '4px',
                           bgcolor: alpha(STATUS_COLORS[vendor.status] || '#9E9E9E', 0.1),
                           color: STATUS_COLORS[vendor.status] || '#9E9E9E',
                         }}
                       />
+                      {actionItems.length > 0 && (
+                        <Chip
+                          icon={<Assignment sx={{ fontSize: '0.65rem !important' }} />}
+                          label={actionItems.length}
+                          size="small"
+                          sx={{
+                            fontSize: '0.6rem',
+                            height: 16,
+                            borderRadius: '4px',
+                            bgcolor: alpha('#FF9800', 0.1),
+                            color: '#E65100',
+                            '& .MuiChip-icon': { color: '#E65100' },
+                          }}
+                        />
+                      )}
                     </Stack>
-                    {lastConvo && (
-                      <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-                        {lastConvo.message_count} messages
-                        {lastConvo.last_message_at &&
-                          ` · Last: ${new Date(lastConvo.last_message_at).toLocaleDateString()}`}
-                      </Typography>
-                    )}
-                  </Box>
-                  {actionItems.length > 0 && (
-                    <Chip
-                      icon={<Assignment sx={{ fontSize: '0.85rem !important' }} />}
-                      label={`${actionItems.length} action item${actionItems.length !== 1 ? 's' : ''}`}
-                      size="small"
-                      sx={{
-                        fontSize: '0.75rem',
-                        borderRadius: '4px',
-                        bgcolor: alpha('#FF9800', 0.1),
-                        color: '#E65100',
-                      }}
-                    />
-                  )}
-                </Stack>
-              </Paper>
-            );
-          })}
-        </Stack>
+                  </Paper>
+                );
+              })}
+            </Box>
 
-        {/* Ask Phera */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2.5,
-            borderRadius: 1,
-            border: '1px solid rgba(0,0,0,0.07)',
-            bgcolor: '#F8F8F8',
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-            Ask Phera
-          </Typography>
-          <Typography variant="body4" sx={{ color: '#4a4a4a', mb: 1.5 }}>
-            Ask a question across all your vendor conversations
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="e.g. What's the latest on catering pricing?"
-              value={askQuestion}
-              onChange={(e) => setAskQuestion(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAskPhera()}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
-            />
-            <IconButton
-              onClick={handleAskPhera}
-              disabled={asking || !askQuestion.trim()}
-              sx={{ color: '#DE3F5E' }}
-            >
-              {asking ? <CircularProgress size={20} /> : <Send />}
-            </IconButton>
           </Stack>
-          {askAnswer && (
-            <Paper
-              elevation={0}
-              sx={{
-                mt: 1.5,
-                p: 2,
-                bgcolor: alpha('#DE3F5E', 0.03),
-                borderRadius: 1,
-                color: '#1a1a1a',
-              }}
-            >
-              <Typography variant="body3" sx={{ lineHeight: 1.7, color: '#1a1a1a' }}>
-                {askAnswer}
-              </Typography>
-            </Paper>
+
+          {/* Super admin toggle */}
+          {isSuperAdmin && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
+              <Box>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                  Test Mode
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                  Force onboarding view
+                </Typography>
+              </Box>
+              <Switch
+                checked={forceOnboarding}
+                onChange={() => setForceOnboarding((p) => !p)}
+                size="small"
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
+                }}
+              />
+            </Box>
           )}
-        </Paper>
 
-      </Stack>
+          {/* Dialogs */}
+          {renderImportChatDialog()}
+          {renderSyncDialog()}
+        </Box>
+      </Box>
 
-      {/* Dialogs */}
-      {renderAddVendorDialog()}
-      {renderImportChatDialog()}
-      {renderSyncGroupsDialog()}
+      {/* Ask Phera Panel */}
+      {weddingId && (
+        <AskPheraPanel
+          weddingId={weddingId}
+          open={askPheraOpen}
+          onClose={() => setAskPheraOpen(false)}
+        />
+      )}
+
+      {/* Ask Phera FAB — shown when panel is closed */}
+      {weddingId && (
+        <AskPheraFab
+          onClick={() => setAskPheraOpen(true)}
+          visible={!askPheraOpen}
+        />
+      )}
     </Box>
   );
 
   // ─── Shared dialog renderers ────────────────────────────────────────
-
-  function renderAddVendorDialog() {
-    return (
-      <Dialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { bgcolor: '#ffffff', color: '#1a1a1a', borderRadius: 1 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>Add Vendor</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Vendor Name"
-              fullWidth
-              required
-              value={newVendor.name}
-              onChange={(e) => setNewVendor((p) => ({ ...p, name: e.target.value }))}
-              sx={{
-                '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                '& .MuiInputLabel-root': { color: '#6a6a6a' },
-                '& .MuiOutlinedInput-input': { color: '#1a1a1a' },
-              }}
-            />
-            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a' } }}>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={newVendor.category}
-                label="Category"
-                onChange={(e) => setNewVendor((p) => ({ ...p, category: e.target.value }))}
-                sx={{ color: '#1a1a1a' }}
-              >
-                {VENDOR_CATEGORIES.map((c) => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Phone"
-              fullWidth
-              value={newVendor.phone}
-              onChange={(e) => setNewVendor((p) => ({ ...p, phone: e.target.value }))}
-              sx={{
-                '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                '& .MuiInputLabel-root': { color: '#6a6a6a' },
-                '& .MuiOutlinedInput-input': { color: '#1a1a1a' },
-              }}
-            />
-            <TextField
-              label="Email"
-              fullWidth
-              value={newVendor.email}
-              onChange={(e) => setNewVendor((p) => ({ ...p, email: e.target.value }))}
-              sx={{
-                '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                '& .MuiInputLabel-root': { color: '#6a6a6a' },
-                '& .MuiOutlinedInput-input': { color: '#1a1a1a' },
-              }}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setAddDialogOpen(false)} sx={{ color: '#1a1a1a' }}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleAddVendor}
-            disabled={addingVendor || !newVendor.name}
-            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' } }}
-          >
-            {addingVendor ? <CircularProgress size={20} /> : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
 
   function renderImportChatDialog() {
     return (
@@ -1133,7 +1040,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       >
         <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>Import WhatsApp Chat</DialogTitle>
         <DialogContent>
-          <Typography variant="body4" sx={{ color: '#4a4a4a', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 2 }}>
             Export a WhatsApp chat as .txt (without media) and upload it here.
           </Typography>
           <Stack spacing={2}>
@@ -1184,7 +1091,11 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     );
   }
 
-  function renderSyncGroupsDialog() {
+  function renderSyncDialog() {
+    const currentTabChats = syncDialogTab === 0 ? discoveredGroups : discoveredDirectChats;
+    const currentTabLoading = discoveringGroups;
+    const currentTabChatIds = currentTabChats.map(c => c.id);
+
     return (
       <Dialog
         open={syncDialogOpen}
@@ -1193,103 +1104,104 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         fullWidth
         PaperProps={{ sx: { bgcolor: '#ffffff', color: '#1a1a1a', borderRadius: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-          Sync WhatsApp Groups
+        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a', pb: 0 }}>
+          Connect WhatsApp Chat
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: 0 }}>
           {discoveringGroups ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, gap: 2 }}>
               <CircularProgress sx={{ color: '#DE3F5E' }} size={32} />
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Discovering your WhatsApp groups...
+                Discovering your WhatsApp chats...
               </Typography>
             </Box>
-          ) : discoveredGroups.length === 0 ? (
-            <Typography variant="body2" sx={{ color: '#6a6a6a', py: 2 }}>
-              No groups found. Make sure the Coordinator number has been added to at least one WhatsApp group.
-            </Typography>
           ) : (
             <>
-              <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 2 }}>
-                Select the vendor group chats you want to import. We&apos;ll pull in message history and run AI analysis.
+              <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, px: 3 }}>
+                Select the chats you want to import. We&apos;ll pull in message history and run AI analysis.
               </Typography>
-              <Stack spacing={0.5}>
-                {discoveredGroups.map((group) => (
-                  <Paper
-                    key={group.id}
-                    elevation={0}
-                    onClick={() => !syncing && toggleGroupSelection(group.id)}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      px: 1.5,
-                      py: 1,
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: selectedGroupIds.has(group.id)
-                        ? alpha('#DE3F5E', 0.4)
-                        : 'rgba(0,0,0,0.07)',
-                      bgcolor: selectedGroupIds.has(group.id)
-                        ? alpha('#DE3F5E', 0.03)
-                        : 'white',
-                      cursor: syncing ? 'default' : 'pointer',
-                      transition: 'all 0.15s',
-                      '&:hover': syncing ? {} : {
-                        borderColor: alpha('#DE3F5E', 0.3),
-                      },
-                    }}
-                  >
-                    <Checkbox
-                      checked={selectedGroupIds.has(group.id)}
-                      disabled={syncing}
-                      size="small"
-                      sx={{
-                        color: '#ccc',
-                        '&.Mui-checked': { color: '#DE3F5E' },
-                        p: 0.5,
-                      }}
-                    />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 600,
-                          color: '#1a1a1a',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {group.name}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-                        {group.participantCount} participants
-                      </Typography>
-                    </Box>
-                  </Paper>
-                ))}
-              </Stack>
-              {discoveredGroups.length > 2 && (
-                <Box sx={{ mt: 1.5, display: 'flex', gap: 1 }}>
-                  <Button
-                    size="small"
-                    onClick={() => setSelectedGroupIds(new Set(discoveredGroups.map((g) => g.id)))}
-                    disabled={syncing}
-                    sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
-                  >
-                    Select all
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => setSelectedGroupIds(new Set())}
-                    disabled={syncing}
-                    sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
-                  >
-                    Clear
-                  </Button>
-                </Box>
-              )}
+
+              <Tabs
+                value={syncDialogTab}
+                onChange={(_, v) => setSyncDialogTab(v)}
+                sx={{
+                  px: 3,
+                  mb: 1.5,
+                  minHeight: 36,
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    minHeight: 36,
+                    color: '#6a6a6a',
+                    '&.Mui-selected': { color: '#DE3F5E' },
+                  },
+                  '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+                }}
+              >
+                <Tab label={`Group Chats (${discoveredGroups.length})`} />
+                <Tab label={`Direct Chats (${discoveredDirectChats.length})`} />
+              </Tabs>
+
+              <Box sx={{ px: 3 }}>
+                {currentTabLoading ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, gap: 1.5 }}>
+                    <CircularProgress sx={{ color: '#DE3F5E' }} size={24} />
+                    <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.8rem' }}>
+                      {syncDialogTab === 0 ? 'Loading group chats...' : 'Loading direct chats...'}
+                    </Typography>
+                  </Box>
+                ) : currentTabChats.length === 0 ? (
+                  <Typography variant="body2" sx={{ color: '#6a6a6a', py: 2 }}>
+                    {syncDialogTab === 0
+                      ? 'No group chats found. Make sure the Coordinator number has been added to at least one WhatsApp group.'
+                      : 'No direct chats found.'}
+                  </Typography>
+                ) : (
+                  <>
+                    <Stack spacing={0.5}>
+                      {currentTabChats.map((chat) => (
+                        <ChatPickerItem
+                          key={chat.id}
+                          chat={chat}
+                          selected={selectedChatIds.has(chat.id)}
+                          disabled={syncing}
+                          onToggle={() => toggleChatSelection(chat.id)}
+                        />
+                      ))}
+                    </Stack>
+
+                    {currentTabChats.length > 2 && (
+                      <Box sx={{ mt: 1.5, display: 'flex', gap: 1 }}>
+                        <Button
+                          size="small"
+                          onClick={() => setSelectedChatIds(prev => {
+                            const next = new Set(prev);
+                            currentTabChatIds.forEach(id => next.add(id));
+                            return next;
+                          })}
+                          disabled={syncing}
+                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
+                        >
+                          Select all
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={() => setSelectedChatIds(prev => {
+                            const next = new Set(prev);
+                            currentTabChatIds.forEach(id => next.delete(id));
+                            return next;
+                          })}
+                          disabled={syncing}
+                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
+                        >
+                          Clear
+                        </Button>
+                      </Box>
+                    )}
+                  </>
+                )}
+              </Box>
             </>
           )}
         </DialogContent>
@@ -1304,16 +1216,80 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           <Button
             variant="contained"
             onClick={handleSyncSelected}
-            disabled={syncing || selectedGroupIds.size === 0}
+            disabled={syncing || selectedChatIds.size === 0}
             startIcon={syncing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Sync />}
             sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' }, textTransform: 'none', borderRadius: '12px' }}
           >
             {syncing
-              ? `Syncing ${selectedGroupIds.size} group${selectedGroupIds.size !== 1 ? 's' : ''}...`
-              : `Sync ${selectedGroupIds.size} group${selectedGroupIds.size !== 1 ? 's' : ''}`}
+              ? `Connecting ${selectedChatIds.size} chat${selectedChatIds.size !== 1 ? 's' : ''}...`
+              : `Connect ${selectedChatIds.size} chat${selectedChatIds.size !== 1 ? 's' : ''}`}
           </Button>
         </DialogActions>
       </Dialog>
     );
   }
+}
+
+// Chat picker item used in sync dialog
+function ChatPickerItem({
+  chat,
+  selected,
+  disabled,
+  onToggle,
+}: {
+  chat: { id: string; name: string; participantCount: number };
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Paper
+      elevation={0}
+      onClick={() => !disabled && onToggle()}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        px: 1.5,
+        py: 1,
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: selected ? alpha('#DE3F5E', 0.4) : 'rgba(0,0,0,0.07)',
+        bgcolor: selected ? alpha('#DE3F5E', 0.03) : 'white',
+        cursor: disabled ? 'default' : 'pointer',
+        transition: 'all 0.15s',
+        '&:hover': disabled ? {} : { borderColor: alpha('#DE3F5E', 0.3) },
+      }}
+    >
+      <Checkbox
+        checked={selected}
+        disabled={disabled}
+        size="small"
+        sx={{
+          color: '#ccc',
+          '&.Mui-checked': { color: '#DE3F5E' },
+          p: 0.5,
+        }}
+      />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: '#1a1a1a',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {chat.name}
+        </Typography>
+        {chat.participantCount > 0 && (
+          <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+            {chat.participantCount} participants
+          </Typography>
+        )}
+      </Box>
+    </Paper>
+  );
 }
