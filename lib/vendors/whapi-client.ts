@@ -80,13 +80,14 @@ export class WhapiClient {
   }
 
   /**
-   * Get messages from a specific group
+   * Get messages from a specific group.
+   * Returns raw Whapi response — caller should handle the shape.
    */
   async getGroupMessages(
     chatId: string,
     count: number = 100
-  ): Promise<{ messages: WhapiGroupMessage[] }> {
-    return this.request<{ messages: WhapiGroupMessage[] }>(
+  ): Promise<any> {
+    return this.request<any>(
       `/messages/list/${chatId}?count=${count}`
     );
   }

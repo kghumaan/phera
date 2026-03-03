@@ -115,12 +115,33 @@ export async function POST(request: NextRequest) {
       let messages: any[] = [];
       try {
         const response = await whapiClient.getGroupMessages(groupId, 500);
-        messages = response.messages || [];
+        console.log(`📨 Whapi messages response for ${groupName}:`, JSON.stringify(response).slice(0, 1000));
+
+        // Handle both possible response shapes
+        if (Array.isArray(response)) {
+          messages = response;
+        } else if (response?.messages && Array.isArray(response.messages)) {
+          messages = response.messages;
+        } else if (response?.data && Array.isArray(response.data)) {
+          messages = response.data;
+        } else {
+          // Try to find any array in the response
+          const keys = Object.keys(response || {});
+          console.log(`📨 Whapi response keys for ${groupName}:`, keys);
+          for (const key of keys) {
+            if (Array.isArray(response[key])) {
+              console.log(`📨 Found array at key "${key}" with ${response[key].length} items`);
+              messages = response[key];
+              break;
+            }
+          }
+        }
       } catch (err) {
         console.error(`Failed to fetch messages for group ${groupName}:`, err);
         continue;
       }
 
+      console.log(`📨 ${groupName}: ${messages.length} messages found`);
       if (messages.length === 0) continue;
 
       // Create or get conversation
@@ -171,9 +192,16 @@ export async function POST(request: NextRequest) {
 
       const existingIds = new Set((existingMsgs || []).map((m: any) => m.whapi_message_id));
 
+      // Log first message structure for debugging
+      if (messages.length > 0) {
+        console.log(`📨 First message sample for ${groupName}:`, JSON.stringify(messages[0]).slice(0, 500));
+      }
+
       const newMessages = messages.filter(
-        (m: any) => m.id && !existingIds.has(m.id) && !m.from_me
+        (m: any) => m.id && !existingIds.has(m.id)
       );
+
+      console.log(`📨 ${groupName}: ${newMessages.length} new messages after dedup (${existingIds.size} existing)`);
 
       // Batch insert in chunks of 200
       for (let i = 0; i < newMessages.length; i += 200) {
@@ -182,8 +210,8 @@ export async function POST(request: NextRequest) {
           wedding_id: weddingId,
           sender_name: m.from_name || m.from?.replace('@s.whatsapp.net', '') || 'Unknown',
           sender_phone: m.from?.replace('@s.whatsapp.net', '') || '',
-          sender_type: 'unknown',
-          content: m.text?.body || m.body || '',
+          sender_type: m.from_me ? 'couple' : 'unknown',
+          content: m.text?.body || m.body || m.caption || '',
           message_timestamp: m.timestamp
             ? new Date(m.timestamp * 1000).toISOString()
             : new Date().toISOString(),
