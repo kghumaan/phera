@@ -325,10 +325,17 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         body: JSON.stringify({ weddingId, groupIds: Array.from(selectedGroupIds) }),
       });
       const data = await res.json();
+      console.log('[Coordinator] Sync response:', JSON.stringify(data, null, 2));
       if (res.ok) {
-        toast.success(data.message || 'Sync complete');
-        setSyncDialogOpen(false);
-        loadData();
+        if (data.errors?.length) {
+          toast.error(data.message || `Sync issues: ${data.errors.map((e: any) => e.error).join('; ')}`);
+        } else {
+          toast.success(data.message || 'Sync complete');
+        }
+        if (data.synced > 0) {
+          setSyncDialogOpen(false);
+          loadData();
+        }
       } else {
         toast.error(data.error || 'Sync failed');
       }

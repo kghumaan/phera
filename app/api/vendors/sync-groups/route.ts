@@ -24,6 +24,37 @@ async function getAuthenticatedClient() {
 }
 
 /**
+ * Extract readable content from a Whapi message object.
+ * Handles text, image captions, video captions, document captions, etc.
+ */
+function extractMessageContent(m: any): string {
+  // Text messages
+  if (m.text?.body) return m.text.body;
+  // Image / video / gif / short / document captions
+  if (m.image?.caption) return m.image.caption;
+  if (m.video?.caption) return m.video.caption;
+  if (m.gif?.caption) return m.gif.caption;
+  if (m.short?.caption) return m.short.caption;
+  if (m.document?.caption) return m.document.caption;
+  // Link preview
+  if (m.link_preview?.body) return m.link_preview.body;
+  // Interactive messages
+  if (m.interactive?.body?.text) return m.interactive.body.text;
+  // System messages
+  if (m.system?.body) return m.system.body;
+  // List messages
+  if (m.list?.body) return m.list.body;
+  // Buttons messages
+  if (m.buttons?.text) return m.buttons.text;
+  // HSM (template) messages
+  if (m.hsm?.body) return m.hsm.body;
+  // Fallback: top-level body or caption (shouldn't happen per Whapi schema, but just in case)
+  if (m.body) return m.body;
+  if (m.caption) return m.caption;
+  return '';
+}
+
+/**
  * GET /api/vendors/sync-groups
  * Discovers WhatsApp groups the Coordinator number is in.
  * Returns the list so the user can pick which to sync.
@@ -39,21 +70,52 @@ export async function GET() {
       return NextResponse.json({ error: 'Whapi not configured' }, { status: 500 });
     }
 
-    const { groups } = await whapiClient.getGroups();
+    const rawResponse = await whapiClient.getGroups();
+    console.log('[sync-groups GET] Raw groups response keys:', Object.keys(rawResponse || {}));
+
+    // Handle flexible response: { groups: [...] } or direct array or { data: [...] }
+    let groups: any[] = [];
+    if (rawResponse?.groups && Array.isArray(rawResponse.groups)) {
+      groups = rawResponse.groups;
+    } else if (Array.isArray(rawResponse)) {
+      groups = rawResponse;
+    } else if (rawResponse?.data && Array.isArray(rawResponse.data)) {
+      groups = rawResponse.data;
+    } else {
+      // Check for error response
+      if (rawResponse?.error) {
+        console.error('[sync-groups GET] Whapi returned error:', rawResponse.error);
+        return NextResponse.json(
+          { error: `Whapi error: ${rawResponse.error.message || JSON.stringify(rawResponse.error)}` },
+          { status: 502 }
+        );
+      }
+      // Try to find any array in the response
+      for (const key of Object.keys(rawResponse || {})) {
+        if (Array.isArray(rawResponse[key]) && rawResponse[key].length > 0) {
+          console.log(`[sync-groups GET] Found groups array at key "${key}" with ${rawResponse[key].length} items`);
+          groups = rawResponse[key];
+          break;
+        }
+      }
+    }
 
     if (!groups || groups.length === 0) {
-      return NextResponse.json({ groups: [] });
+      return NextResponse.json({ groups: [], _debug: { responseKeys: Object.keys(rawResponse || {}) } });
     }
+
+    // Log first group structure for debugging
+    console.log('[sync-groups GET] First group sample:', JSON.stringify(groups[0]).slice(0, 500));
 
     const groupList = groups.map((g: any) => ({
       id: g.id,
-      name: g.name || 'Unknown Group',
-      participantCount: g.participants?.length || 0,
+      name: g.name || g.subject || 'Unknown Group',
+      participantCount: g.participants?.length || g.size || 0,
     }));
 
     return NextResponse.json({ groups: groupList });
   } catch (error: any) {
-    console.error('Discover groups error:', error);
+    console.error('[sync-groups GET] Error:', error);
     return NextResponse.json(
       { error: error?.message || 'Failed to discover groups' },
       { status: 500 }
@@ -89,19 +151,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch full group list from Whapi to get names
-    const { groups: allGroups } = await whapiClient.getGroups();
-    const groupMap = new Map((allGroups || []).map((g: any) => [g.id, g]));
+    const rawGroupsResponse = await whapiClient.getGroups();
+    let allGroups: any[] = [];
+    if (rawGroupsResponse?.groups && Array.isArray(rawGroupsResponse.groups)) {
+      allGroups = rawGroupsResponse.groups;
+    } else if (Array.isArray(rawGroupsResponse)) {
+      allGroups = rawGroupsResponse;
+    } else if (rawGroupsResponse?.data && Array.isArray(rawGroupsResponse.data)) {
+      allGroups = rawGroupsResponse.data;
+    } else {
+      for (const key of Object.keys(rawGroupsResponse || {})) {
+        if (Array.isArray(rawGroupsResponse[key])) {
+          allGroups = rawGroupsResponse[key];
+          break;
+        }
+      }
+    }
+    const groupMap = new Map(allGroups.map((g: any) => [g.id, g]));
 
     const results: Array<{
       groupName: string;
       messagesImported: number;
       vendorName: string;
       isNew: boolean;
+      _debug?: any;
     }> = [];
+    const errors: Array<{ groupId: string; groupName: string; error: string }> = [];
 
     for (const groupId of groupIds) {
       const group = groupMap.get(groupId);
-      const groupName = group?.name || 'Unknown Group';
+      const groupName = group?.name || group?.subject || 'Unknown Group';
 
       // Check if conversation already exists for this group
       const { data: existingConvo } = await supabase
@@ -111,38 +190,68 @@ export async function POST(request: NextRequest) {
         .eq('wedding_id', weddingId)
         .single();
 
-      // Fetch messages from Whapi (up to 500)
+      // Fetch messages from Whapi
       let messages: any[] = [];
+      let debugInfo: any = {};
       try {
         const response = await whapiClient.getGroupMessages(groupId, 500);
-        console.log(`📨 Whapi messages response for ${groupName}:`, JSON.stringify(response).slice(0, 1000));
 
-        // Handle both possible response shapes
+        // Detect Whapi error responses (returned with HTTP 200)
+        if (response?.error) {
+          const errMsg = response.error.message || response.error.details || JSON.stringify(response.error);
+          console.error(`[sync-groups] Whapi error for ${groupName}:`, errMsg);
+          errors.push({ groupId, groupName, error: `Whapi API error: ${errMsg}` });
+          continue;
+        }
+
+        const responseKeys = Object.keys(response || {});
+        debugInfo.responseKeys = responseKeys;
+        debugInfo.responseType = typeof response;
+        debugInfo.isArray = Array.isArray(response);
+
+        // Parse the response — try all known shapes
         if (Array.isArray(response)) {
           messages = response;
+          debugInfo.source = 'direct_array';
         } else if (response?.messages && Array.isArray(response.messages)) {
           messages = response.messages;
+          debugInfo.source = 'messages_key';
+          debugInfo.count = response.count;
+          debugInfo.total = response.total;
         } else if (response?.data && Array.isArray(response.data)) {
           messages = response.data;
+          debugInfo.source = 'data_key';
         } else {
-          // Try to find any array in the response
-          const keys = Object.keys(response || {});
-          console.log(`📨 Whapi response keys for ${groupName}:`, keys);
-          for (const key of keys) {
-            if (Array.isArray(response[key])) {
-              console.log(`📨 Found array at key "${key}" with ${response[key].length} items`);
+          // Fallback: find any array in the response
+          for (const key of responseKeys) {
+            if (Array.isArray(response[key]) && response[key].length > 0) {
+              console.log(`[sync-groups] Found messages at key "${key}" with ${response[key].length} items`);
               messages = response[key];
+              debugInfo.source = `fallback_key_${key}`;
               break;
             }
           }
+          if (messages.length === 0) {
+            debugInfo.source = 'no_array_found';
+            debugInfo.responseSample = JSON.stringify(response).slice(0, 500);
+          }
         }
-      } catch (err) {
-        console.error(`Failed to fetch messages for group ${groupName}:`, err);
+
+        console.log(`[sync-groups] ${groupName}: parsed ${messages.length} messages (source: ${debugInfo.source})`);
+      } catch (err: any) {
+        console.error(`[sync-groups] Failed to fetch messages for ${groupName}:`, err);
+        errors.push({ groupId, groupName, error: err?.message || 'Failed to fetch messages' });
         continue;
       }
 
-      console.log(`📨 ${groupName}: ${messages.length} messages found`);
-      if (messages.length === 0) continue;
+      // Log first message for debugging
+      if (messages.length > 0) {
+        console.log(`[sync-groups] First message sample for ${groupName}:`, JSON.stringify(messages[0]).slice(0, 800));
+      } else {
+        console.log(`[sync-groups] ${groupName}: 0 messages returned from Whapi`);
+        errors.push({ groupId, groupName, error: 'Whapi returned 0 messages for this group' });
+        continue;
+      }
 
       // Create or get conversation
       let conversationId: string;
@@ -175,7 +284,8 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (convoError) {
-          console.error(`Failed to create conversation for ${groupName}:`, convoError);
+          console.error(`[sync-groups] Failed to create conversation for ${groupName}:`, convoError);
+          errors.push({ groupId, groupName, error: `DB error: ${convoError.message}` });
           continue;
         }
         conversationId = newConvo.id;
@@ -192,45 +302,52 @@ export async function POST(request: NextRequest) {
 
       const existingIds = new Set((existingMsgs || []).map((m: any) => m.whapi_message_id));
 
-      // Log first message structure for debugging
-      if (messages.length > 0) {
-        console.log(`📨 First message sample for ${groupName}:`, JSON.stringify(messages[0]).slice(0, 500));
-      }
-
       const newMessages = messages.filter(
         (m: any) => m.id && !existingIds.has(m.id)
       );
 
-      console.log(`📨 ${groupName}: ${newMessages.length} new messages after dedup (${existingIds.size} existing)`);
+      console.log(`[sync-groups] ${groupName}: ${newMessages.length} new messages after dedup (${existingIds.size} existing)`);
 
       // Batch insert in chunks of 200
+      let skippedEmpty = 0;
       for (let i = 0; i < newMessages.length; i += 200) {
-        const batch = newMessages.slice(i, i + 200).map((m: any) => ({
-          conversation_id: conversationId,
-          wedding_id: weddingId,
-          sender_name: m.from_name || m.from?.replace('@s.whatsapp.net', '') || 'Unknown',
-          sender_phone: m.from?.replace('@s.whatsapp.net', '') || '',
-          sender_type: m.from_me ? 'couple' : 'unknown',
-          content: m.text?.body || m.body || m.caption || '',
-          message_timestamp: m.timestamp
-            ? new Date(m.timestamp * 1000).toISOString()
-            : new Date().toISOString(),
-          has_media: !!(m.media || m.image || m.video || m.document),
-          media_type: m.media?.type || m.type || null,
-          whapi_message_id: m.id,
-        })).filter((m: any) => m.content);
+        const batch = newMessages.slice(i, i + 200).map((m: any) => {
+          const content = extractMessageContent(m);
+          return {
+            conversation_id: conversationId,
+            wedding_id: weddingId,
+            sender_name: m.from_name || m.from?.replace('@s.whatsapp.net', '') || 'Unknown',
+            sender_phone: m.from?.replace('@s.whatsapp.net', '') || '',
+            sender_type: m.from_me ? 'couple' : 'unknown',
+            content,
+            message_timestamp: m.timestamp
+              ? new Date(m.timestamp * 1000).toISOString()
+              : new Date().toISOString(),
+            has_media: !!(m.image || m.video || m.gif || m.short || m.audio || m.voice || m.document || m.sticker),
+            media_type: m.type || null,
+            whapi_message_id: m.id,
+          };
+        });
 
-        if (batch.length > 0) {
+        // Keep messages with content; count skipped for diagnostics
+        const nonEmpty = batch.filter((m: any) => m.content);
+        skippedEmpty += batch.length - nonEmpty.length;
+
+        if (nonEmpty.length > 0) {
           const { error: insertError } = await supabase
             .from('vendor_messages')
-            .insert(batch);
+            .insert(nonEmpty);
 
           if (insertError) {
-            console.error(`Failed to insert batch for ${groupName}:`, insertError);
+            console.error(`[sync-groups] Insert error for ${groupName}:`, insertError);
           } else {
-            importedCount += batch.length;
+            importedCount += nonEmpty.length;
           }
         }
+      }
+
+      if (skippedEmpty > 0) {
+        console.log(`[sync-groups] ${groupName}: skipped ${skippedEmpty} messages with no extractable content`);
       }
 
       // Update conversation counters
@@ -288,7 +405,7 @@ export async function POST(request: NextRequest) {
                 .single();
 
               if (vendorError) {
-                console.error(`Failed to create vendor for ${groupName}:`, vendorError);
+                console.error(`[sync-groups] Failed to create vendor for ${groupName}:`, vendorError);
                 continue;
               }
               vendorId = newVendor.id;
@@ -309,7 +426,7 @@ export async function POST(request: NextRequest) {
             });
           }
         } catch (aiError) {
-          console.error(`AI extraction failed for ${groupName}:`, aiError);
+          console.error(`[sync-groups] AI extraction failed for ${groupName}:`, aiError);
         }
       }
 
@@ -318,18 +435,22 @@ export async function POST(request: NextRequest) {
         messagesImported: importedCount,
         vendorName,
         isNew,
+        _debug: { ...debugInfo, totalFromWhapi: messages.length, newAfterDedup: newMessages.length, skippedEmpty },
       });
     }
 
     return NextResponse.json({
       synced: results.length,
       results,
+      errors: errors.length > 0 ? errors : undefined,
       message: results.length > 0
         ? `Synced ${results.length} group(s) with ${results.reduce((s, r) => s + r.messagesImported, 0)} new messages`
-        : 'No new messages to sync',
+        : errors.length > 0
+          ? `Sync failed: ${errors.map(e => `${e.groupName}: ${e.error}`).join('; ')}`
+          : 'No new messages to sync',
     });
   } catch (error: any) {
-    console.error('Sync groups error:', error);
+    console.error('[sync-groups POST] Error:', error);
     return NextResponse.json(
       { error: error?.message || 'Failed to sync groups' },
       { status: 500 }

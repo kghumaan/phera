@@ -73,10 +73,11 @@ export class WhapiClient {
   }
 
   /**
-   * Get list of groups the number is part of
+   * Get list of groups the number is part of.
+   * Returns raw response — caller handles flexible shape.
    */
-  async getGroups(count: number = 100): Promise<{ groups: WhapiGroup[] }> {
-    return this.request<{ groups: WhapiGroup[] }>(`/groups?count=${count}`);
+  async getGroups(count: number = 100): Promise<any> {
+    return this.request<any>(`/groups?count=${count}`);
   }
 
   /**
