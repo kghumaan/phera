@@ -114,6 +114,12 @@ export async function DELETE(
 
     const { vendorId } = await params;
 
+    // Delete associated conversations first (messages, insights, members cascade via ON DELETE CASCADE)
+    await supabase
+      .from('vendor_conversations')
+      .delete()
+      .eq('vendor_id', vendorId);
+
     const { error } = await supabase
       .from('vendors')
       .delete()

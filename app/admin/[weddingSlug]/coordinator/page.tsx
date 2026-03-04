@@ -872,21 +872,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 )}
               </Box>
               <Stack direction="row" spacing={1}>
-                <Button
-                  size="small"
-                  startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
-                  onClick={handleSyncAll}
-                  disabled={syncingAll}
-                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
-                >
-                  {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
-                </Button>
+
                 <Button
                   size="small"
                   startIcon={discoveringGroups ? <CircularProgress size={14} /> : <Sync />}
                   onClick={handleDiscoverGroups}
                   disabled={discoveringGroups}
-                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
                 >
                   {discoveringGroups ? 'Discovering...' : 'Connect new Chat'}
                 </Button>
@@ -898,6 +890,15 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
                 >
                   Upload Chat Manually
+                </Button>
+                <Button
+                  size="small"
+                  startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
+                  onClick={handleSyncAll}
+                  disabled={syncingAll}
+                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                >
+                  {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
                 </Button>
               </Stack>
             </Box>
@@ -961,7 +962,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       {/* Summary snippet */}
                       <Typography
                         sx={{
-                          fontSize: '0.75rem',
+                          fontSize: '0.5rem',
                           color: '#6a6a6a',
                           lineHeight: 1.5,
                           display: '-webkit-box',
@@ -1054,7 +1055,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           <Dialog
             open={!!deleteConfirmId}
             onClose={() => !deleting && setDeleteConfirmId(null)}
-            PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}
+            PaperProps={{ sx: { borderRadius: 1, maxWidth: 380 } }}
           >
             <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
               Remove vendor?
@@ -1301,7 +1302,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
             onClick={handleSyncSelected}
             disabled={syncing || selectedChatIds.size === 0}
             startIcon={syncing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Sync />}
-            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' }, textTransform: 'none', borderRadius: '12px' }}
+            sx={{
+              bgcolor: '#DE3F5E',
+              '&:hover': { bgcolor: '#C8365A' },
+              '&.Mui-disabled': { bgcolor: syncing ? '#DE3F5E' : undefined, color: syncing ? 'white' : undefined },
+              textTransform: 'none',
+              borderRadius: '12px',
+            }}
           >
             {syncing
               ? `Connecting ${selectedChatIds.size} chat${selectedChatIds.size !== 1 ? 's' : ''}...`

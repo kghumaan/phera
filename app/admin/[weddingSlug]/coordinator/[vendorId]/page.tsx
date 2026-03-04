@@ -671,7 +671,7 @@ export default function VendorDetailPage({
                       const showDate =
                         !prevMsg ||
                         new Date(msg.message_timestamp).toDateString() !==
-                          new Date(prevMsg.message_timestamp).toDateString();
+                        new Date(prevMsg.message_timestamp).toDateString();
 
                       return (
                         <React.Fragment key={msg.id}>
@@ -754,7 +754,7 @@ export default function VendorDetailPage({
       <Dialog
         open={deleteConfirmOpen}
         onClose={() => !deleting && setDeleteConfirmOpen(false)}
-        PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}
+        PaperProps={{ sx: { borderRadius: 1, maxWidth: 380 } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
           Remove vendor?

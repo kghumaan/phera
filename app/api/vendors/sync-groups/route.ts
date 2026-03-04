@@ -475,7 +475,9 @@ export async function POST(request: NextRequest) {
             } : undefined;
 
             const extraction = await extractVendorInsights(sampleMsgs, vendorContext);
-            vendorName = extraction.vendor_name || chatName;
+            vendorName = (extraction.vendor_name && extraction.vendor_name !== 'Unknown Vendor')
+              ? extraction.vendor_name
+              : chatName;
 
             // Create or find vendor record
             let vendorId: string;

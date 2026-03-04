@@ -509,7 +509,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         sx={{
                             bgcolor: '#DE3F5E',
                             color: 'white',
-                            borderRadius: '32px',
+                            borderRadius: '12px',
                             textTransform: 'none',
                             fontWeight: 700,
                             fontSize: '0.95rem',
@@ -531,7 +531,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             fontWeight: 600,
                             textTransform: 'none',
                             fontSize: '0.95rem',
-                            borderRadius: '32px',
+                            borderRadius: '12px',
                             px: 3,
                             py: 1,
                             bgcolor: 'rgba(0, 0, 0, 0.04)',
