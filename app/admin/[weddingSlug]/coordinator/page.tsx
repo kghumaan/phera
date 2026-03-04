@@ -39,6 +39,7 @@ import {
   WhatsApp,
   Sync,
   CloudSync,
+  Delete,
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -141,6 +142,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   // Ask Phera panel
   const [askPheraOpen, setAskPheraOpen] = useState(true);
 
+  // Delete vendor
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   // Testing toggle
   const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com' || user?.email === 'demo@phera.io';
   const [forceOnboarding, setForceOnboarding] = useState(false);
@@ -191,6 +196,26 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     };
     fetchCoordinatorInfo();
   }, [isPro]);
+
+  // Delete vendor
+  const handleDeleteVendor = async () => {
+    if (!deleteConfirmId) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/vendors/${deleteConfirmId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setVendors((prev) => prev.filter((v) => v.id !== deleteConfirmId));
+        toast.success('Vendor removed');
+      } else {
+        toast.error('Failed to delete vendor');
+      }
+    } catch {
+      toast.error('Failed to delete vendor');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmId(null);
+    }
+  };
 
   // Copy phone number
   const handleCopyPhone = async () => {
@@ -463,6 +488,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             fontSize: '0.7rem',
                             height: 20,
                             borderRadius: '4px',
+                            textTransform: 'capitalize',
                             bgcolor: alpha(STATUS_COLORS[v.status] || '#9E9E9E', 0.1),
                             color: STATUS_COLORS[v.status] || '#9E9E9E',
                           }}
@@ -813,10 +839,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // ─── STATE C: Pro user, has vendors (dashboard) ─────────────────────
   return (
-    <Box sx={{ display: 'flex', gap: 0 }}>
+    <Box sx={{ display: 'flex', gap: 0, mt: { md: 'calc(-56px - 32px)' }, mr: { md: -4 }, mb: { md: -4 } }}>
       {/* Main content — shrinks when panel is open */}
-      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s' }}>
-        <Box sx={{ maxWidth: 1000, pr: askPheraOpen ? 3 : 0 }}>
+      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s', pt: { md: 'calc(56px + 32px)' } }}>
+        <Box sx={{ pr: askPheraOpen ? 3 : 0 }}>
           <Stack spacing={3}>
 
             {/* Header */}
@@ -899,7 +925,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       router.push(`/admin/${weddingSlug}/coordinator/${vendor.id}`)
                     }
                     sx={{
-                      p: 1.75,
+                      p: 2.5,
                       cursor: 'pointer',
                       borderRadius: 1,
                       border: '1px solid rgba(0,0,0,0.07)',
@@ -907,7 +933,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       transition: 'all 0.15s',
                       display: 'flex',
                       flexDirection: 'column',
+                      justifyContent: 'space-between',
                       width: { xs: '100%', sm: 'calc(50% - 6px)', md: 'calc(33.333% - 8px)' },
+                      minHeight: 260,
                       minWidth: 0,
                       '&:hover': {
                         borderColor: alpha('#DE3F5E', 0.3),
@@ -915,65 +943,75 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       },
                     }}
                   >
-                    {/* Vendor name + category */}
-                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {vendor.name}
+                    {/* Top: Vendor name + delete */}
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                          {vendor.name}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(vendor.id); }}
+                          sx={{ ml: 0.5, color: '#DE3F5E', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
+                        >
+                          <Delete sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Box>
+
+                      {/* Summary snippet */}
+                      <Typography
+                        sx={{
+                          fontSize: '0.75rem',
+                          color: '#6a6a6a',
+                          lineHeight: 1.5,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 5,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {summary?.content || 'No summary yet'}
                       </Typography>
+                    </Box>
+
+                    {/* Bottom: badges row */}
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 2 }}>
+                      <Chip
+                        label={`${totalMessages} msgs`}
+                        size="small"
+                        sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha('#000', 0.06), color: '#4a4a4a' }}
+                      />
                       {vendor.category && (
                         <Chip
                           label={vendor.category}
                           size="small"
-                          sx={{ color: '#4a4a4a', bgcolor: alpha('#000', 0.06), fontSize: '0.6rem', height: 16, borderRadius: '4px' }}
+                          sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha('#000', 0.06), color: '#4a4a4a' }}
                         />
                       )}
-                    </Stack>
-
-                    {/* Summary snippet */}
-                    <Typography
-                      sx={{
-                        fontSize: '0.72rem',
-                        color: '#6a6a6a',
-                        lineHeight: 1.45,
-                        mb: 1.25,
-                        flex: 1,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {summary?.content || 'No summary yet'}
-                    </Typography>
-
-                    {/* Footer: message count + status + action items */}
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Typography sx={{ fontSize: '0.65rem', color: '#999' }}>
-                        {totalMessages} msgs
-                      </Typography>
                       <Chip
                         label={vendor.status}
                         size="small"
                         sx={{
-                          fontSize: '0.6rem',
-                          height: 16,
-                          borderRadius: '4px',
-                          bgcolor: alpha(STATUS_COLORS[vendor.status] || '#9E9E9E', 0.1),
-                          color: STATUS_COLORS[vendor.status] || '#9E9E9E',
+                          fontSize: '0.7rem',
+                          height: 22,
+                          borderRadius: '6px',
+                          textTransform: 'capitalize',
+                          bgcolor: alpha('#000', 0.06),
+                          color: '#4a4a4a',
                         }}
                       />
                       {actionItems.length > 0 && (
                         <Chip
-                          icon={<Assignment sx={{ fontSize: '0.65rem !important' }} />}
-                          label={actionItems.length}
+                          icon={<Assignment sx={{ fontSize: '0.7rem !important' }} />}
+                          label={`${actionItems.length} action`}
                           size="small"
                           sx={{
-                            fontSize: '0.6rem',
-                            height: 16,
-                            borderRadius: '4px',
-                            bgcolor: alpha('#FF9800', 0.1),
-                            color: '#E65100',
-                            '& .MuiChip-icon': { color: '#E65100' },
+                            fontSize: '0.7rem',
+                            height: 22,
+                            borderRadius: '6px',
+                            bgcolor: alpha('#000', 0.06),
+                            color: '#4a4a4a',
+                            '& .MuiChip-icon': { color: '#4a4a4a' },
                           }}
                         />
                       )}
@@ -1011,6 +1049,45 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {/* Dialogs */}
           {renderImportChatDialog()}
           {renderSyncDialog()}
+
+          {/* Delete confirmation */}
+          <Dialog
+            open={!!deleteConfirmId}
+            onClose={() => !deleting && setDeleteConfirmId(null)}
+            PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}
+          >
+            <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
+              Remove vendor?
+            </DialogTitle>
+            <DialogContent>
+              <Typography sx={{ fontSize: '0.85rem', color: '#4a4a4a' }}>
+                This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+              <Button
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={deleting}
+                sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteVendor}
+                disabled={deleting}
+                variant="contained"
+                startIcon={deleting ? <CircularProgress size={14} /> : <Delete />}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '12px',
+                  bgcolor: '#DE3F5E',
+                  '&:hover': { bgcolor: '#c73552' },
+                }}
+              >
+                {deleting ? 'Removing...' : 'Remove'}
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Box>
 

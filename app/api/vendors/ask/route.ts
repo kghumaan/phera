@@ -34,13 +34,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { weddingId, question } = body;
+    const { weddingId, question, conversationId } = body;
 
     if (!weddingId || !question) {
       return NextResponse.json({ error: 'Missing weddingId or question' }, { status: 400 });
     }
 
-    const answer = await askPhera({ weddingId, question });
+    const answer = await askPhera({ weddingId, question, conversationId });
 
     return NextResponse.json({ answer });
   } catch (error: any) {

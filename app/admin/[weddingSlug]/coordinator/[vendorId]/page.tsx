@@ -19,6 +19,10 @@ import {
   Tabs,
   Tab,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import React, { useState, use, useEffect, useCallback, useRef } from 'react';
 import {
@@ -35,6 +39,7 @@ import {
   Save,
   ExpandMore,
   ExpandLess,
+  Delete,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
@@ -145,6 +150,10 @@ export default function VendorDetailPage({
   // Ask Phera panel
   const [askPheraOpen, setAskPheraOpen] = useState(true);
 
+  // Delete vendor
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   // Collapsible insight sections
   const [decisionsOpen, setDecisionsOpen] = useState(false);
   const [priceQuotesOpen, setPriceQuotesOpen] = useState(false);
@@ -238,6 +247,24 @@ export default function VendorDetailPage({
     }
   };
 
+  const handleDeleteVendor = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/vendors/${vendorId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Vendor removed');
+        router.push(`/admin/${weddingSlug}/coordinator`);
+      } else {
+        toast.error('Failed to delete vendor');
+      }
+    } catch {
+      toast.error('Failed to delete vendor');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+    }
+  };
+
   const handleToggleInsight = async (insightId: string, currentCompleted: boolean) => {
     if (isViewOnly) return;
     try {
@@ -304,10 +331,10 @@ export default function VendorDetailPage({
   }
 
   return (
-    <Box sx={{ display: 'flex', gap: 0 }}>
+    <Box sx={{ display: 'flex', gap: 0, mt: { md: 'calc(-56px - 32px)' }, mr: { md: -4 }, mb: { md: -4 } }}>
       {/* Main content */}
-      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s' }}>
-        <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1000, bgcolor: 'white' }}>
+      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s', pt: { md: 'calc(56px + 32px)' } }}>
+        <Box sx={{ pr: askPheraOpen ? 3 : 0, bgcolor: 'white' }}>
           {/* Header */}
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
             <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)} sx={{ color: '#1a1a1a' }}>
@@ -318,15 +345,20 @@ export default function VendorDetailPage({
                 <Stack direction="row" spacing={1} alignItems="center">
                   <TextField
                     size="small"
+                    placeholder="Vendor name"
                     value={editForm.name}
                     onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
                     sx={{
-                      width: 200,
+                      width: 180,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: 1,
-                        '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                        borderRadius: '8px',
+                        bgcolor: 'white',
+                        height: 36,
+                        '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                        '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
+                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
                       },
-                      '& .MuiOutlinedInput-input': { color: '#1a1a1a', fontSize: '0.85rem' },
+                      '& .MuiOutlinedInput-input': { color: '#1a1a1a', fontSize: '0.82rem', py: 0 },
                     }}
                   />
                   <Select
@@ -334,7 +366,19 @@ export default function VendorDetailPage({
                     value={editForm.category}
                     onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
                     displayEmpty
-                    sx={{ width: 140, fontSize: '0.85rem', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                    IconComponent={ExpandMore}
+                    sx={{
+                      width: 180,
+                      height: 36,
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      color: '#1a1a1a',
+                      bgcolor: 'white',
+                      '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                      '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
+                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                      '& .MuiSvgIcon-root': { fontSize: 18, color: '#6a6a6a' },
+                    }}
                   >
                     <MenuItem value="">No category</MenuItem>
                     {VENDOR_CATEGORIES.map((c) => (
@@ -345,10 +389,22 @@ export default function VendorDetailPage({
                     size="small"
                     value={editForm.status}
                     onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
-                    sx={{ width: 120, fontSize: '0.85rem', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                    IconComponent={ExpandMore}
+                    sx={{
+                      width: 180,
+                      height: 36,
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      color: '#1a1a1a',
+                      bgcolor: 'white',
+                      '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                      '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
+                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                      '& .MuiSvgIcon-root': { fontSize: 18, color: '#6a6a6a' },
+                    }}
                   >
                     {STATUS_OPTIONS.map((s) => (
-                      <MenuItem key={s} value={s}>{s}</MenuItem>
+                      <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>{s}</MenuItem>
                     ))}
                   </Select>
                   <IconButton size="small" onClick={handleSaveVendor} disabled={saving} sx={{ color: '#1a1a1a' }}>
@@ -388,6 +444,7 @@ export default function VendorDetailPage({
                         fontSize: '0.7rem',
                         height: 20,
                         borderRadius: '4px',
+                        textTransform: 'capitalize',
                         bgcolor: alpha(STATUS_COLORS[vendor.status] || '#9E9E9E', 0.1),
                         color: STATUS_COLORS[vendor.status] || '#9E9E9E',
                       }}
@@ -401,15 +458,24 @@ export default function VendorDetailPage({
                 </Box>
               )}
             </Box>
-            <Button
-              size="small"
-              startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
-              onClick={handleReanalyze}
-              disabled={reanalyzing}
-              sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
-            >
-              Re-analyze
-            </Button>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Button
+                size="small"
+                startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
+                onClick={handleReanalyze}
+                disabled={reanalyzing}
+                sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+              >
+                Refresh
+              </Button>
+              <IconButton
+                size="small"
+                onClick={() => setDeleteConfirmOpen(true)}
+                sx={{ color: '#DE3F5E', '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
+              >
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Stack>
           </Stack>
 
           {/* Tabs */}
@@ -478,7 +544,7 @@ export default function VendorDetailPage({
                         key={item.id}
                         direction="row"
                         alignItems="flex-start"
-                        spacing={0.5}
+                        spacing={1}
                         sx={{
                           py: 0.75,
                           px: 0.5,
@@ -493,8 +559,8 @@ export default function VendorDetailPage({
                           icon={<RadioButtonUnchecked sx={{ fontSize: 18 }} />}
                           checkedIcon={<CheckCircle sx={{ fontSize: 18 }} />}
                           sx={{
-                            p: 0.25,
-                            color: PRIORITY_COLORS[item.priority],
+                            p: 0,
+                            color: '#DE3F5E',
                             '&.Mui-checked': { color: '#DE3F5E' },
                           }}
                         />
@@ -502,7 +568,7 @@ export default function VendorDetailPage({
                           <Typography
                             sx={{
                               fontSize: '0.78rem',
-                              lineHeight: 1.4,
+                              lineHeight: 1.5,
                               textDecoration: item.is_completed ? 'line-through' : 'none',
                               color: item.is_completed ? '#aaa' : '#1a1a1a',
                             }}
@@ -683,6 +749,45 @@ export default function VendorDetailPage({
           visible={!askPheraOpen}
         />
       )}
+
+      {/* Delete confirmation */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => !deleting && setDeleteConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
+          Remove vendor?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.85rem', color: '#4a4a4a' }}>
+            This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteConfirmOpen(false)}
+            disabled={deleting}
+            sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteVendor}
+            disabled={deleting}
+            variant="contained"
+            startIcon={deleting ? <CircularProgress size={14} /> : <Delete />}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '12px',
+              bgcolor: '#DE3F5E',
+              '&:hover': { bgcolor: '#c73552' },
+            }}
+          >
+            {deleting ? 'Removing...' : 'Remove'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

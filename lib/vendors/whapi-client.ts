@@ -99,6 +99,21 @@ export class WhapiClient {
   async getGroupInfo(groupId: string): Promise<WhapiGroup> {
     return this.request<WhapiGroup>(`/groups/${groupId}`);
   }
+
+  /**
+   * Get all chats (groups + direct) the number is part of.
+   * Returns raw response — caller handles flexible shape.
+   */
+  async getChats(count: number = 100): Promise<any> {
+    return this.request<any>(`/chats?count=${count}`);
+  }
+
+  /**
+   * Get contact info by ID (e.g. "1234567890@s.whatsapp.net")
+   */
+  async getContactInfo(contactId: string): Promise<any> {
+    return this.request<any>(`/contacts/${contactId}`);
+  }
 }
 
 /**

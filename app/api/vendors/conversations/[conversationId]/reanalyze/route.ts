@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { extractVendorInsights, saveInsights } from '@/lib/vendors/ai-extractor';
+import { extractVendorInsights, saveInsights, predictMemberRoles } from '@/lib/vendors/ai-extractor';
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,8 +67,67 @@ export async function POST(
       return NextResponse.json({ error: 'No messages to analyze' }, { status: 422 });
     }
 
+    // Re-predict member roles before extraction
+    const { data: members } = await serviceSupabase
+      .from('conversation_members')
+      .select('id, phone, name, role, role_source')
+      .eq('conversation_id', conversationId);
+
+    // Re-predict roles for non-manual members
+    const hasNonManual = (members || []).some(
+      (m: any) => !m.role_source || m.role_source !== 'manual'
+    );
+    if (hasNonManual && (members || []).length > 0) {
+      try {
+        const { data: msgSamples } = await serviceSupabase
+          .from('vendor_messages')
+          .select('sender_phone, sender_name, content')
+          .eq('conversation_id', conversationId)
+          .order('message_timestamp', { ascending: true })
+          .limit(200);
+
+        if (msgSamples && msgSamples.length > 0) {
+          const nonManualMembers = (members || []).filter(
+            (m: any) => !m.role_source || m.role_source !== 'manual'
+          );
+          const predictions = await predictMemberRoles(
+            nonManualMembers.map((m: any) => ({ phone: m.phone, name: m.name })),
+            msgSamples
+          );
+
+          for (const pred of predictions) {
+            if (pred.confidence === 'low') continue;
+            const member = nonManualMembers.find((m: any) => m.phone === pred.phone);
+            if (member) {
+              await serviceSupabase
+                .from('conversation_members')
+                .update({
+                  role: pred.predicted_role,
+                  role_source: 'ai_predicted',
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', member.id);
+            }
+          }
+        }
+      } catch (predErr) {
+        console.error('Role prediction failed during reanalyze:', predErr);
+      }
+    }
+
+    // Re-fetch members after prediction for vendor context
+    const { data: updatedMembers } = await serviceSupabase
+      .from('conversation_members')
+      .select('name, phone, role')
+      .eq('conversation_id', conversationId);
+
+    const vendorContext = updatedMembers ? {
+      vendorMembers: updatedMembers.filter((m: any) => m.role === 'vendor').map((m: any) => m.name || m.phone),
+      adminMembers: updatedMembers.filter((m: any) => m.role === 'admin').map((m: any) => m.name || m.phone),
+    } : undefined;
+
     // Run extraction
-    const result = await extractVendorInsights(messages);
+    const result = await extractVendorInsights(messages, vendorContext);
 
     // Save insights (replaces old ones)
     await saveInsights({

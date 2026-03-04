@@ -314,7 +314,7 @@ export default function OnboardingSidebar({
           // ... existing mapping logic ...
           if (group.standalone) {
             const item = group.items[0];
-            const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
+            const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/');
             return (
               <ListItemButton
                 key={group.id}
@@ -350,7 +350,7 @@ export default function OnboardingSidebar({
           }
 
           const isExpanded = expandedGroups[group.id] ?? true;
-          const isGroupActive = group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'));
+          const isGroupActive = group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/'));
 
           return (
             <Box key={group.id} data-tour-group={group.id} sx={{ mb: 1 }}>
@@ -432,7 +432,7 @@ export default function OnboardingSidebar({
                   })()}
 
                   {group.items.map((item) => {
-                    const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/');
+                    const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/');
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton

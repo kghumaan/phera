@@ -29,10 +29,13 @@ export async function POST(request: NextRequest) {
     }
 
     for (const msg of messages) {
-      // Only process group messages
-      if (!msg.chat_id?.includes('@g.us')) continue;
+      // Process both group (@g.us) and direct (@s.whatsapp.net) messages
+      const chatId = msg.chat_id;
+      if (!chatId) continue;
+      const isGroup = chatId.endsWith('@g.us');
+      const isDirect = chatId.endsWith('@s.whatsapp.net');
+      if (!isGroup && !isDirect) continue;
 
-      const groupId = msg.chat_id;
       const senderPhone = msg.from?.replace('@s.whatsapp.net', '') || '';
       const senderName = msg.from_name || senderPhone;
       const content = msg.text?.body || msg.body || '';
@@ -43,12 +46,18 @@ export async function POST(request: NextRequest) {
 
       if (!content) continue;
 
-      // 1. Find or create conversation by group ID
-      let { data: conversation } = await supabase
-        .from('vendor_conversations')
-        .select('*')
-        .eq('whatsapp_group_id', groupId)
-        .single();
+      // 1. Find or create conversation by group ID or chat ID
+      let { data: conversation } = isGroup
+        ? await supabase
+            .from('vendor_conversations')
+            .select('*')
+            .eq('whatsapp_group_id', chatId)
+            .single()
+        : await supabase
+            .from('vendor_conversations')
+            .select('*')
+            .eq('whatsapp_chat_id', chatId)
+            .single();
 
       let weddingId: string | null = null;
 
@@ -70,7 +79,7 @@ export async function POST(request: NextRequest) {
           const { data: groupMatch } = await supabase
             .from('vendors')
             .select('wedding_id, id')
-            .eq('whatsapp_group_id', groupId)
+            .eq('whatsapp_group_id', chatId)
             .limit(1)
             .single();
 
@@ -80,22 +89,26 @@ export async function POST(request: NextRequest) {
         }
 
         if (!weddingId) {
-          console.log(`⚠️ No wedding match for group ${groupId}, skipping`);
+          console.log(`⚠️ No wedding match for chat ${chatId}, skipping`);
           continue;
         }
 
         // Create new conversation
+        const insertData: any = {
+          wedding_id: weddingId,
+          source: isDirect ? 'whapi_direct' : 'whapi_webhook',
+          chat_type: isDirect ? 'direct' : 'group',
+          title: msg.chat_name || `Vendor Chat`,
+          status: 'ready',
+          first_message_at: timestamp,
+          last_message_at: timestamp,
+        };
+        if (isGroup) insertData.whatsapp_group_id = chatId;
+        if (isDirect) insertData.whatsapp_chat_id = chatId;
+
         const { data: newConvo, error: convoError } = await supabase
           .from('vendor_conversations')
-          .insert({
-            wedding_id: weddingId,
-            whatsapp_group_id: groupId,
-            source: 'whapi_webhook',
-            title: msg.chat_name || `Vendor Chat`,
-            status: 'ready',
-            first_message_at: timestamp,
-            last_message_at: timestamp,
-          })
+          .insert(insertData)
           .select()
           .single();
 
@@ -164,7 +177,7 @@ export async function POST(request: NextRequest) {
             message: content,
           });
 
-          await whapiClient.sendMessage(groupId, reply);
+          await whapiClient.sendMessage(chatId, reply);
 
           // Store coordinator reply
           await supabase.from('vendor_messages').insert({

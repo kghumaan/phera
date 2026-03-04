@@ -10,18 +10,24 @@ interface ChatInputProps {
   onSend: () => void;
   disabled: boolean;
   placeholder?: string;
+  compact?: boolean;
+  noBorder?: boolean;
 }
 
-export default function ChatInput({ input, onInputChange, onSend, disabled, placeholder = "Type your answer..." }: ChatInputProps) {
+export default function ChatInput({ input, onInputChange, onSend, disabled, placeholder = "Type your answer...", compact, noBorder }: ChatInputProps) {
+  const size = compact ? 40 : 48;
   return (
     <Box
       sx={{
-        px: 3, py: 2.5,
-        borderTop: '2px solid',
-        borderColor: alpha('#000', 0.12),
+        px: compact ? 2 : 3,
+        py: compact ? 1.5 : 2.5,
+        ...(!noBorder && {
+          borderTop: '2px solid',
+          borderColor: alpha('#000', 0.12),
+        }),
         display: 'flex',
-        gap: 1.5,
-        alignItems: 'flex-end',
+        gap: compact ? 1 : 1.5,
+        alignItems: 'stretch',
         bgcolor: 'white',
       }}
     >
@@ -43,22 +49,22 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
         sx={{
           '& .MuiOutlinedInput-root': {
             borderRadius: '12px',
-            fontSize: '1rem',
+            fontSize: compact ? '0.88rem' : '1rem',
             bgcolor: 'white',
-            minHeight: 48,
+            minHeight: size,
             '& fieldset': { border: '2px solid', borderColor: alpha('#000', 0.15) },
             '&:hover fieldset': { borderColor: alpha('#000', 0.25) },
             '&.Mui-focused fieldset': { border: '2px solid #DE3F5E' },
             '&.Mui-disabled': { bgcolor: alpha('#000', 0.02) },
           },
-          '& .MuiOutlinedInput-input': { py: 1.25, px: 2 },
+          '& .MuiOutlinedInput-input': { py: compact ? 0.75 : 1.25, px: compact ? 1.5 : 2 },
         }}
       />
       <IconButton
         onClick={onSend}
         disabled={!input.trim() || disabled}
         sx={{
-          width: 48, height: 48,
+          width: size, minHeight: size,
           bgcolor: input.trim() ? '#DE3F5E' : alpha('#000', 0.06),
           color: input.trim() ? 'white' : '#bbb',
           borderRadius: '12px',
@@ -70,7 +76,7 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
           '&.Mui-disabled': { bgcolor: alpha('#000', 0.04), color: '#ccc', borderColor: alpha('#000', 0.1) },
         }}
       >
-        <ArrowUpward sx={{ fontSize: 22 }} />
+        <ArrowUpward sx={{ fontSize: compact ? 18 : 22 }} />
       </IconButton>
     </Box>
   );
