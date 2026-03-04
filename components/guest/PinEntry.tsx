@@ -260,8 +260,10 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         // Store skip_rsvp flag if present
         if (matchedPin.skip_rsvp) {
           localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
+          localStorage.setItem(`phera_bypass_rsvp_${weddingSlug}`, 'true');
         } else {
           localStorage.removeItem(`phera_skip_rsvp_${weddingSlug}`);
+          localStorage.removeItem(`phera_bypass_rsvp_${weddingSlug}`);
         }
 
         // Store hidden_events for event filtering

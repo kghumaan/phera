@@ -451,7 +451,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Check for bypass RSVP flag first - if set, skip all database checks
       if (typeof window !== 'undefined') {
-        const bypassFlag = localStorage.getItem('phera_bypass_rsvp');
+        const bypassFlag = localStorage.getItem(`phera_bypass_rsvp_${currentWeddingSlug}`);
         if (bypassFlag === 'true') {
           console.log('Bypass RSVP flag detected - setting hasRSVPed to true without database check');
           setHasRSVPed(true);
@@ -662,6 +662,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem(`phera_bypass_rsvp_${currentWeddingSlug}`);
           localStorage.removeItem(`phera_skip_rsvp_${currentWeddingSlug}`);
           localStorage.removeItem(`phera_pin_type_${currentWeddingSlug}`);
+          localStorage.removeItem(`phera_hidden_events_${currentWeddingSlug}`);
         }
       }
       setUser(null);

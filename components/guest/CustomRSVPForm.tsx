@@ -188,7 +188,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
 
   // Check if plus-ones are allowed based on PIN
   const allowsPlusOne = typeof window !== 'undefined' ?
-    localStorage.getItem('phera_allows_plus_one') === 'true' : true;
+    localStorage.getItem(`phera_allows_plus_one_${weddingId}`) === 'true' : true;
 
   // Set default values for non-plus-one guests
   useEffect(() => {

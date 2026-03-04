@@ -243,8 +243,23 @@ export default function InfiniteScrollLayout({
           weddingService.getWeddingEvents(wedding.id),
         ]);
 
+        // Read hidden events from localStorage for filtering
+        const hiddenEventsStr = typeof window !== 'undefined'
+          ? localStorage.getItem(`phera_hidden_events_${weddingSlug}`)
+          : null;
+        let hiddenEventIds: string[] = [];
+        if (hiddenEventsStr) {
+          try {
+            const parsed = JSON.parse(hiddenEventsStr);
+            if (Array.isArray(parsed)) hiddenEventIds = parsed;
+          } catch {}
+        }
+
         if (eventsData && eventsData.length > 0) {
-          setWeddingEvents(eventsData);
+          const filteredEvents = hiddenEventIds.length > 0
+            ? eventsData.filter(event => !hiddenEventIds.includes(event.id))
+            : eventsData;
+          setWeddingEvents(filteredEvents);
         }
 
         if (scheduleData && scheduleData.length > 0) {
@@ -252,17 +267,22 @@ export default function InfiniteScrollLayout({
             id: day.id,
             date: day.date,
             day_name: day.day_name,
-            events: day.events.map(event => ({
-              id: event.id,
-              name: event.name,
-              time: event.time,
-              icon: event.icon,
-              description: event.description,
-              location: event.location,
-              gradient_background: event.gradient_background,
-              is_major_event: event.is_major_event,
-              linked_event_id: (event as any).linked_event_id,
-            })),
+            events: day.events
+              .filter(event => {
+                const linkedId = (event as any).linked_event_id;
+                return !linkedId || !hiddenEventIds.includes(linkedId);
+              })
+              .map(event => ({
+                id: event.id,
+                name: event.name,
+                time: event.time,
+                icon: event.icon,
+                description: event.description,
+                location: event.location,
+                gradient_background: event.gradient_background,
+                is_major_event: event.is_major_event,
+                linked_event_id: (event as any).linked_event_id,
+              })),
           }));
           setSchedule(mappedSchedule);
           setHasSchedule(true);
