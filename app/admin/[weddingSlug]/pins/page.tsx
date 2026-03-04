@@ -19,9 +19,13 @@ import {
   ListItemText,
   Chip,
   alpha,
-  Checkbox,
   FormControlLabel,
   Switch,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Tooltip,
 } from '@mui/material';
 import { useState, useEffect, use, useCallback } from 'react';
 import { Add, Delete, Edit, Check } from '@mui/icons-material';
@@ -76,6 +80,34 @@ const FONT_COLOR_OPTIONS = [
   { name: 'White', value: '#FFFFFF' },
 ];
 
+function generatePinSummary(
+  pin: { skip_rsvp: boolean; allows_plus_one: boolean; hidden_events: string[] },
+  events: { id: string; name: string }[]
+): string {
+  const parts: string[] = [];
+
+  if (pin.skip_rsvp) {
+    parts.push('skip RSVP');
+  } else {
+    parts.push('require RSVP');
+    parts.push(pin.allows_plus_one ? 'allow plus ones' : 'not allow plus ones');
+  }
+
+  if (pin.hidden_events.length > 0) {
+    const hiddenNames = pin.hidden_events
+      .map(id => events.find(e => e.id === id)?.name)
+      .filter(Boolean);
+    if (hiddenNames.length > 0) {
+      parts.push(`hide ${hiddenNames.join(' and ')} from the schedule`);
+    }
+  }
+
+  if (parts.length === 1) return `This code will ${parts[0]}.`;
+  if (parts.length === 2) return `This code will ${parts[0]} and ${parts[1]}.`;
+  const last = parts.pop();
+  return `This code will ${parts.join(', ')}, and ${last}.`;
+}
+
 export default function PINManagementPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
@@ -88,6 +120,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [newPin, setNewPin] = useState<{ pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [deletePinTarget, setDeletePinTarget] = useState<string | null>(null);
 
   // Lock screen design state
   const [pinEntryText, setPinEntryText] = useState('');
@@ -319,17 +352,18 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   };
 
-  const handleDeletePin = async (pinToDelete: string) => {
-    if (!confirm('Delete this PIN?')) return;
+  const handleDeletePin = async () => {
+    if (!deletePinTarget) return;
 
     try {
       const currentPins = settings?.pin_codes || [];
-      const updatedPins = currentPins.filter((p: any) => p.pin !== pinToDelete);
+      const updatedPins = currentPins.filter((p: any) => p.pin !== deletePinTarget);
 
       await weddingService.updateSettings(weddingId!, {
         pin_codes: updatedPins,
       });
 
+      setDeletePinTarget(null);
       await loadData();
       toast.success('PIN deleted successfully');
     } catch (err) {
@@ -363,13 +397,15 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
         {/* PIN Management Section */}
         <Paper elevation={0} sx={{
-          p: { xs: 4, md: 6 },
+          pt: 3,
+          pb: 2,
+          px: 2,
           borderRadius: '16px',
           bgcolor: 'white',
           border: '1px solid rgba(0,0,0,0.07)',
         }}>
           <Stack spacing={4}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} px={2}>
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                   Guest PIN Codes
@@ -457,18 +493,31 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                             }}
                           />
                           {pinData.hidden_events?.length > 0 && (
-                            <Chip
-                              label={`${pinData.hidden_events.length} hidden`}
-                              size="medium"
-                              sx={{
-                                fontSize: '1rem',
-                                height: 36,
-                                bgcolor: alpha('#1a1a1a', 0.08),
-                                color: '#4a4a4a',
-                                fontWeight: 600,
-                                px: 1,
-                              }}
-                            />
+                            <Tooltip
+                              title={
+                                <Stack spacing={0.5} sx={{ py: 0.5 }}>
+                                  {pinData.hidden_events.map((eid: string) => {
+                                    const ev = events.find(e => e.id === eid);
+                                    return ev ? <Typography key={eid} variant="body2">{ev.name}</Typography> : null;
+                                  })}
+                                </Stack>
+                              }
+                              arrow
+                            >
+                              <Chip
+                                label={`${pinData.hidden_events.length} hidden`}
+                                size="medium"
+                                sx={{
+                                  fontSize: '1rem',
+                                  height: 36,
+                                  bgcolor: alpha('#1a1a1a', 0.08),
+                                  color: '#4a4a4a',
+                                  fontWeight: 600,
+                                  px: 1,
+                                  cursor: 'pointer',
+                                }}
+                              />
+                            </Tooltip>
                           )}
                           {pinData.skip_rsvp ? (
                             <Chip
@@ -513,12 +562,12 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         </IconButton>
                         <IconButton
                           edge="end"
-                          onClick={() => handleDeletePin(pinData.pin)}
+                          onClick={() => setDeletePinTarget(pinData.pin)}
                           sx={{
-                            color: '#EF4444',
+                            color: '#DE3F5E',
                             ml: 1,
                             '&:hover': {
-                              bgcolor: alpha('#EF4444', 0.1),
+                              bgcolor: alpha('#DE3F5E', 0.1),
                             },
                           }}
                         >
@@ -836,11 +885,15 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 label="PIN Code"
                 fullWidth
                 value={newPin.pin}
-                onChange={(e) => setNewPin({ ...newPin, pin: e.target.value })}
-                placeholder="e.g., JOHN2026"
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setNewPin({ ...newPin, pin: val });
+                }}
+                placeholder="e.g., 1234"
                 required
-                helperText="Create a unique PIN for your guest(s)"
+                helperText="4-digit PIN code"
                 disabled={editingPinIndex !== null}
+                inputProps={{ inputMode: 'numeric', maxLength: 4 }}
                 sx={textFieldSx}
               />
               <TextField
@@ -862,11 +915,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 }
                 label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
               />
-              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem', ml: 7, mt: -1 }}>
-                {newPin.skip_rsvp
-                  ? 'This PIN will skip the RSVP process (useful for vendors or guests who don\'t need to RSVP)'
-                  : 'This PIN will require RSVP. You can configure plus one options below.'}
-              </Typography>
               {!newPin.skip_rsvp && (
                 <FormControlLabel
                   control={
@@ -880,47 +928,57 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 />
               )}
               {events.length > 0 && (
-                <Box sx={{
-                  p: 2,
-                  borderRadius: '12px',
-                  bgcolor: '#f8f8f8',
-                  border: '1px solid rgba(0,0,0,0.07)',
-                }}>
-                  <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '1.1rem', mb: 1.5 }}>
-                    Hide Events for This PIN
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem', mb: 2 }}>
-                    Selected events will be hidden from guests using this PIN
-                  </Typography>
-                  <Stack spacing={0.5}>
-                    {events.map((event) => (
-                      <FormControlLabel
-                        key={event.id}
-                        control={
-                          <Checkbox
-                            checked={newPin.hidden_events.includes(event.id)}
-                            onChange={(e) => {
-                              const updated = e.target.checked
-                                ? [...newPin.hidden_events, event.id]
-                                : newPin.hidden_events.filter(id => id !== event.id);
-                              setNewPin({ ...newPin, hidden_events: updated });
-                            }}
-                            sx={{
-                              color: '#DE3F5E',
-                              '&.Mui-checked': { color: '#DE3F5E' },
-                            }}
-                          />
-                        }
-                        label={
-                          <Typography sx={{ fontSize: '1rem', color: '#1a1a1a' }}>
-                            {event.name}
-                          </Typography>
-                        }
+                <FormControl fullWidth>
+                  <InputLabel shrink sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Hide Events</InputLabel>
+                  <Select
+                    value=""
+                    onChange={(e) => {
+                      const val = e.target.value as string;
+                      if (val && !newPin.hidden_events.includes(val)) {
+                        setNewPin({ ...newPin, hidden_events: [...newPin.hidden_events, val] });
+                      }
+                    }}
+                    label="Hide Events"
+                    displayEmpty
+                    notched
+                    renderValue={() => <Typography sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
+                    sx={{
+                      borderRadius: '12px',
+                      bgcolor: 'white',
+                      color: '#1a1a1a',
+                      '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#DE3F5E' },
+                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                    }}
+                  >
+                    {events
+                      .filter(event => !newPin.hidden_events.includes(event.id))
+                      .map((event) => (
+                        <MenuItem key={event.id} value={event.id}>{event.name}</MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              )}
+              {newPin.hidden_events.length > 0 && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {newPin.hidden_events.map((eventId) => {
+                    const event = events.find(e => e.id === eventId);
+                    return event ? (
+                      <Chip
+                        key={eventId}
+                        label={event.name}
+                        onDelete={() => setNewPin({ ...newPin, hidden_events: newPin.hidden_events.filter(id => id !== eventId) })}
+                        sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#DE3F5E' } }}
                       />
-                    ))}
-                  </Stack>
+                    ) : null;
+                  })}
                 </Box>
               )}
+              <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
+                <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.875rem' }}>
+                  {generatePinSummary(newPin, events)}
+                </Typography>
+              </Box>
             </Stack>
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 3 }}>
@@ -943,6 +1001,47 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               }}
             >
               {editingPinIndex !== null ? 'Update PIN' : 'Add PIN'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={!!deletePinTarget}
+          onClose={() => setDeletePinTarget(null)}
+          PaperProps={{
+            sx: {
+              borderRadius: '16px',
+              p: 1,
+              maxWidth: 400,
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+            Delete PIN?
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+              Are you sure you want to delete PIN <strong>{deletePinTarget}</strong>? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={() => setDeletePinTarget(null)} sx={{ color: '#6a6a6a', borderRadius: '12px', textTransform: 'none' }}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleDeletePin}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { bgcolor: '#C8365A' },
+              }}
+            >
+              Delete
             </Button>
           </DialogActions>
         </Dialog>
