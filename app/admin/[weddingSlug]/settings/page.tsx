@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -33,6 +34,7 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 export default function SettingsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { user: authUser } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
@@ -84,6 +86,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const saveSettings = useCallback(async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     if (settings?.id) {
@@ -120,6 +123,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   }, [whatsappLink, googleSheetsId, initialSettings, debouncedSave]);
 
   const handleUpdateStatus = async (newStatus: 'draft' | 'live') => {
+    if (isViewOnly) return;
     if (newStatus === 'live') {
       if (!confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
         return;
@@ -144,6 +148,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handlePublishToggle = async () => {
+    if (isViewOnly) return;
     if (status === 'live') {
       // Deactivate
       if (!confirm('Are you sure you want to deactivate your wedding website? It will no longer be accessible to guests.')) {

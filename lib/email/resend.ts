@@ -44,7 +44,7 @@ export async function sendTeamInviteEmail({
 }: SendInviteEmailParams) {
   const roleDescription = role === 'admin' ? 'edit' : 'view';
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://phera.app';
-  const loginUrl = `${baseUrl}/auth/login`;
+  const loginUrl = `${baseUrl}/auth/login?redirect=${encodeURIComponent(`/admin/${weddingSlug}/overview`)}`;
   const previewUrl = `${baseUrl}/preview/${weddingSlug}`;
 
   try {

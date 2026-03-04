@@ -49,6 +49,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 interface RSVPData {
   id: string;
@@ -76,6 +77,7 @@ interface RSVPData {
 
 export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -126,6 +128,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleDeleteClick = async (id: string) => {
+    if (isViewOnly) return;
     if (confirm('Are you sure you want to delete this RSVP?')) {
       try {
         await deleteRSVP(id);

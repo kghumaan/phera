@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -51,6 +52,7 @@ interface RSVPData {
 export default function OverviewPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -144,7 +146,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleUpdateSlug = async () => {
-    if (!customSlug || !weddingId) return;
+    if (isViewOnly || !customSlug || !weddingId) return;
 
     setSavingSlug(true);
     try {
@@ -178,7 +180,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleStatusUpdate = async (newStatus: 'draft' | 'live') => {
-    if (!weddingId) return;
+    if (isViewOnly || !weddingId) return;
 
     if (newStatus === 'live') {
       const confirmed = window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.');

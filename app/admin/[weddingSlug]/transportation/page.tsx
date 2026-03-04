@@ -31,6 +31,7 @@ import {
 import { TransportationSettings, TransportationMode } from '@/lib/supabase/types';
 import TransportationSetupWizard from '@/components/admin/transportation/TransportationSetupWizard';
 import TransportationDashboard from '@/components/admin/transportation/TransportationDashboard';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 type WizardStep =
   | 'initial'
@@ -43,6 +44,7 @@ type WizardStep =
 export default function TransportationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
+  const { isViewOnly } = useAdminRole();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -87,6 +89,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   };
 
   const handleStartSetup = async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     // Create settings if they don't exist
@@ -98,6 +101,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   };
 
   const handleModeSelect = async (mode: TransportationMode) => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     const updated = await updateTransportationSettings(weddingId, { mode });
@@ -106,6 +110,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   };
 
   const handleArrivalComplete = async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     const updated = await updateTransportationSettings(weddingId, { arrival_configured: true });
@@ -114,6 +119,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   };
 
   const handleDepartureComplete = async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     const updated = await updateTransportationSettings(weddingId, {
@@ -133,6 +139,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   };
 
   const handleRestartSetup = async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
     const updated = await updateTransportationSettings(weddingId, {
       setup_complete: false,

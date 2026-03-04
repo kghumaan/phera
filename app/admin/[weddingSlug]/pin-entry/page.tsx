@@ -21,6 +21,7 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -59,6 +60,7 @@ const FONT_COLOR_OPTIONS = [
 
 export default function PinEntryCustomizationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -118,6 +120,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
   };
 
   const handleSave = async () => {
+    if (isViewOnly) return;
     setSaving(true);
     setError(null);
 

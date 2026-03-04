@@ -52,6 +52,7 @@ import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -92,6 +93,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null); // Kept for local usage if needed, but primary feedback is toast
   // success state removed as replaced by toast
+  const { isViewOnly } = useAdminRole();
 
   useEffect(() => {
     loadData();
@@ -119,6 +121,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleAddFromTemplate = (template: EventTemplate) => {
+    if (isViewOnly) return;
     setCurrentEvent({
       ...template,
       wedding_id: weddingId!,
@@ -139,6 +142,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleAddCustom = () => {
+    if (isViewOnly) return;
     setCurrentEvent({
       wedding_id: weddingId!,
       name: '',
@@ -204,6 +208,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleSaveSlide = () => {
+    if (isViewOnly) return;
     if (!currentSlide || !currentEvent) return;
 
     const slides = [...((currentEvent.carousel_slides as CarouselSlide[]) || [])];
@@ -222,6 +227,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleDeleteSlide = (index: number) => {
+    if (isViewOnly) return;
     if (!currentEvent) return;
     const slides = [...((currentEvent.carousel_slides as CarouselSlide[]) || [])];
     slides.splice(index, 1);
@@ -230,6 +236,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
+    if (isViewOnly) return;
     if (!currentEvent) return;
     const slides = [...((currentEvent.carousel_slides as CarouselSlide[]) || [])];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -241,6 +248,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleSaveEvent = async () => {
+    if (isViewOnly) return;
     if (!currentEvent) return;
 
     try {
@@ -285,6 +293,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleDeleteEvent = async (eventId: string) => {
+    if (isViewOnly) return;
     if (!confirm('Are you sure you want to delete this event?')) return;
 
     try {

@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
+import { weddingService } from '@/lib/supabase/wedding-service';
 
 function LoginContent() {
   const router = useRouter();
@@ -82,6 +83,17 @@ function LoginContent() {
           } else if (signUpData.user) {
             // If email confirmation is disabled, user will be signed in automatically
             if (signUpData.session) {
+              // Process any pending wedding invites
+              if (signUpData.session.user.email) {
+                try {
+                  await weddingService.processInvitesForUser(
+                    signUpData.session.user.email,
+                    signUpData.session.user.id
+                  );
+                } catch (err) {
+                  console.error('Error processing pending invites (non-fatal):', err);
+                }
+              }
               router.push(redirectTo);
               router.refresh();
             } else {
@@ -93,6 +105,17 @@ function LoginContent() {
           setError(signInError.message);
         }
       } else if (signInData.session) {
+        // Process any pending wedding invites
+        if (signInData.session.user.email) {
+          try {
+            await weddingService.processInvitesForUser(
+              signInData.session.user.email,
+              signInData.session.user.id
+            );
+          } catch (err) {
+            console.error('Error processing pending invites (non-fatal):', err);
+          }
+        }
         router.push(redirectTo);
         router.refresh();
       }

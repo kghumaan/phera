@@ -44,6 +44,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { usePlan } from '@/lib/contexts/PlanContext';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import VoiceRecorder from '@/components/admin/VoiceRecorder';
 import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
@@ -428,6 +429,7 @@ function MockBoard() {
 export default function TaskManagerPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
+  const { isViewOnly } = useAdminRole();
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -488,6 +490,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   };
 
   const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (isViewOnly) return;
     setActiveId(null);
     if (!over) return;
 
@@ -522,6 +525,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   };
 
   const handleDelete = useCallback(async (id: string) => {
+    if (isViewOnly) return;
     const success = await weddingService.deleteTask(id);
     if (success) {
       setTasks(prev => prev.filter(t => t.id !== id));
@@ -532,6 +536,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   }, []);
 
   const handleAdd = useCallback(async (column: Column, title: string, description?: string, tags?: string[]) => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     const newTask = await weddingService.createTask({
@@ -552,6 +557,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   }, [weddingId, tasks]);
 
   const handleVoiceTasks = useCallback(async (extractedTasks: { title: string; description: string; tag: string }[]) => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     const promises = extractedTasks.map((t, i) => weddingService.createTask({

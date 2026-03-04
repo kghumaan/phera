@@ -33,6 +33,7 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -70,6 +71,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { user: authUser } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +93,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
   // Auto-save hook
   const saveDesign = useCallback(async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     // Check if any selected options require pro

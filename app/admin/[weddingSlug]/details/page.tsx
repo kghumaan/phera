@@ -27,6 +27,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
@@ -99,6 +100,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const { weddingSlug } = use(params);
   const router = useRouter();
   const { user: authUser } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -311,6 +313,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   };
 
   const handleChange = (field: keyof DetailsFormData, value: any) => {
+    if (isViewOnly) return;
     let finalValue = value;
 
     // Specifically handle partner names to ensure only first names (no spaces)

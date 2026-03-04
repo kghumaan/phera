@@ -12,6 +12,8 @@ import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigati
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { AdminRoleProvider, AdminRole } from '@/lib/contexts/AdminRoleContext';
+import ViewerBanner from '@/components/admin/ViewerBanner';
 
 export default function OnboardingLayout({
   children,
@@ -28,6 +30,7 @@ export default function OnboardingLayout({
   const [isNavigating, setIsNavigating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isPlanner, setIsPlanner] = useState(false);
+  const [adminRole, setAdminRole] = useState<AdminRole>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const showTour = searchParams.get('tour') === 'true'
@@ -81,6 +84,21 @@ export default function OnboardingLayout({
 
       if (weddingData) {
         setWedding(weddingData);
+
+        // Determine admin role for this wedding
+        if (authUser) {
+          if (weddingData.created_by === authUser.id) {
+            setAdminRole('owner');
+          } else {
+            const { data: adminEntry } = await supabase
+              .from('wedding_admins')
+              .select('role')
+              .eq('wedding_id', weddingData.id)
+              .eq('user_id', authUser.id)
+              .single();
+            setAdminRole((adminEntry?.role as 'admin' | 'viewer') || null);
+          }
+        }
       }
       if (settings?.account_type === 'planner') {
         setIsPlanner(true);
@@ -130,7 +148,7 @@ export default function OnboardingLayout({
   const TOP_NAV_HEIGHT = { xs: '48px', md: '56px' };
 
   return (
-    <>
+    <AdminRoleProvider role={adminRole}>
       <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
         <AdminTopNav
           weddingSlug={weddingSlug}
@@ -255,6 +273,8 @@ export default function OnboardingLayout({
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </>
+
+      <ViewerBanner />
+    </AdminRoleProvider>
   );
 }

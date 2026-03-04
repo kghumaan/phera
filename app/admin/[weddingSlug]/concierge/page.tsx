@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { CircularProgress } from '@mui/material';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -48,6 +49,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { user } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [requestStatus, setRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
 
@@ -97,6 +99,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   }, [isPro, user?.email]);
 
   const handleRequestSetup = async () => {
+    if (isViewOnly) return;
     if (!user?.email) return;
     setRequestStatus('submitting');
     try {

@@ -26,12 +26,14 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function FAQPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [faqs, setFaqs] = useState<any[]>([]);
@@ -73,6 +75,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   };
 
   const handleAdd = () => {
+    if (isViewOnly) return;
     setCurrentFaq({
       wedding_id: weddingId,
       question: '',
@@ -90,6 +93,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   };
 
   const handleSave = async () => {
+    if (isViewOnly) return;
     if (!currentFaq?.question || !currentFaq?.answer) {
       const errorMessage = 'Please fill in question and answer';
       setError(errorMessage);
@@ -124,6 +128,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   };
 
   const handleDelete = async (faqId: string) => {
+    if (isViewOnly) return;
     if (!confirm('Delete this FAQ?')) return;
     try {
       await weddingService.deleteFAQ(faqId);

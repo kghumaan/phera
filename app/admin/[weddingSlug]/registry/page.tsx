@@ -25,12 +25,14 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function RegistryPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
+  const { isViewOnly } = useAdminRole();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -72,6 +74,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleAdd = () => {
+    if (isViewOnly) return;
     setCurrentItem({
       wedding_id: weddingId,
       fund_name: '',
@@ -88,6 +91,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleSave = async () => {
+    if (isViewOnly) return;
     if (!currentItem?.fund_name || !currentItem?.emoji || !currentItem?.external_url) {
       const errorMessage = 'Please fill in all required fields (name, emoji, and URL)';
       setError(errorMessage);
@@ -132,6 +136,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleDelete = async (itemId: string) => {
+    if (isViewOnly) return;
     if (!confirm('Delete this registry link?')) return;
     try {
       await weddingService.deleteRegistryItem(itemId);

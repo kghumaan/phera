@@ -45,6 +45,7 @@ import { toast } from 'sonner';
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
 import UpgradeModal from './UpgradeModal';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -57,6 +58,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const router = useRouter();
     const { user, signOut } = useAuth();
     const { plan, isPro, togglePlan } = usePlan();
+    const { isViewOnly } = useAdminRole();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
@@ -79,7 +81,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     };
 
     const handleClearData = async () => {
-        if (!wedding?.id) return;
+        if (isViewOnly || !wedding?.id) return;
         const confirmed = window.confirm('Are you sure you want to clear all events, schedule, FAQ and registry data for this wedding? This cannot be undone.');
         if (!confirmed) return;
 

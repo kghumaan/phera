@@ -45,6 +45,7 @@ import { weddingService, WeddingInvite, TeamMember } from '@/lib/supabase/weddin
 import { supabase } from '@/lib/supabase/client';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -82,6 +83,7 @@ const selectSx = {
 
 export default function TeamPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -151,6 +153,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   };
 
   const handleSendInvite = async () => {
+    if (isViewOnly) return;
     if (!weddingId || !currentUserId) {
       showToast('Missing required information. Please refresh the page.', 'error');
       return;
@@ -291,11 +294,13 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   };
 
   const handleDeleteClick = (type: 'member' | 'invite', id: string, email: string) => {
+    if (isViewOnly) return;
     setItemToDelete({ type, id, email });
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
+    if (isViewOnly) return;
     if (!itemToDelete) return;
 
     setDeleting(true);

@@ -71,6 +71,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { parseISO } from 'date-fns';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -333,6 +334,7 @@ const parseTime = (timeStr: string) => {
 export default function SchedulePage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [prepopulating, setPrepopulating] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -407,6 +409,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handlePrepopulate = async () => {
+    if (isViewOnly) return;
     if (!weddingId || !weddingDate) {
       showToast('Wedding date is required for prepopulation', 'error');
       return;
@@ -441,6 +444,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleAddDay = () => {
+    if (isViewOnly) return;
     setCurrentDay({
       wedding_id: weddingId,
       day_name: '',
@@ -452,6 +456,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleSaveDay = async () => {
+    if (isViewOnly) return;
     const newFieldErrors: Record<string, boolean> = {};
     if (!currentDay?.day_name) newFieldErrors.day_name = true;
     if (!currentDay?.date) newFieldErrors.date = true;
@@ -487,6 +492,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleDeleteDay = async (id: string) => {
+    if (isViewOnly) return;
     if (!confirm('Are you sure you want to delete this day and all its events?')) return;
     try {
       await weddingService.deleteSchedule(id);
@@ -505,6 +511,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleAddItem = (dayId: string) => {
+    if (isViewOnly) return;
     setCurrentItem({
       schedule_id: dayId,
       wedding_id: weddingId,
@@ -526,6 +533,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleSaveItem = async () => {
+    if (isViewOnly) return;
     if (!currentItem) return;
 
     if (!currentItem.name) {
@@ -571,6 +579,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleDeleteItem = async (id: string) => {
+    if (isViewOnly) return;
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
       await weddingService.deleteScheduleItem(id);
@@ -589,6 +598,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
+    if (isViewOnly) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -624,6 +634,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleAddSlide = () => {
+    if (isViewOnly) return;
     const newSlide: CarouselSlide = {
       type: 'three_lines',
       top_label: '',
@@ -635,12 +646,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleUpdateSlide = (index: number, updates: Partial<CarouselSlide>) => {
+    if (isViewOnly) return;
     const newSlides = [...currentSlides];
     newSlides[index] = { ...newSlides[index], ...updates };
     setCurrentSlides(newSlides);
   };
 
   const handleDeleteSlide = (index: number) => {
+    if (isViewOnly) return;
     const newSlides = currentSlides.filter((_, i) => i !== index);
     setCurrentSlides(newSlides);
     if (selectedSlideIndex === index) setSelectedSlideIndex(null);
@@ -648,6 +661,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
+    if (isViewOnly) return;
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= currentSlides.length) return;
 

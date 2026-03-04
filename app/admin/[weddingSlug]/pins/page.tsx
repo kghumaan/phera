@@ -42,6 +42,7 @@ import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -112,6 +113,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { user: authUser } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
@@ -136,6 +138,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
   // Auto-save for lock screen design
   const saveLockScreenDesign = useCallback(async () => {
+    if (isViewOnly) return;
     if (!weddingId) return;
 
     // Check if any selected options require pro
@@ -291,6 +294,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   };
 
   const handleAddPin = async () => {
+    if (isViewOnly) return;
     if (!newPin.pin) {
       toast.error('Please enter a PIN code');
       return;
@@ -353,6 +357,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   };
 
   const handleDeletePin = async () => {
+    if (isViewOnly) return;
     if (!deletePinTarget) return;
 
     try {

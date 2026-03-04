@@ -5,6 +5,7 @@ import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stac
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 const SECTION_MAP: Record<string, string> = {
     '/schedule': 'Schedule',
@@ -44,6 +45,8 @@ export default function AdminPreviewPanel({
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
+
+    const { isViewOnly } = useAdminRole();
 
     // Publish state
     const [isPublishing, setIsPublishing] = useState(false);
@@ -99,7 +102,7 @@ export default function AdminPreviewPanel({
     const showPublishButton = hasUnpublishedChanges || !lastPublishedAt;
 
     const handlePublish = async () => {
-        if (!weddingId) return;
+        if (isViewOnly || !weddingId) return;
         setIsPublishing(true);
         try {
             const success = await weddingService.publishWedding(weddingId);
@@ -136,7 +139,7 @@ export default function AdminPreviewPanel({
     };
 
     const handleSavePublish = async () => {
-        if (!wedding) return;
+        if (isViewOnly || !wedding) return;
         setIsSaving(true);
         try {
             const updated = await weddingService.updateWedding(wedding.id, {

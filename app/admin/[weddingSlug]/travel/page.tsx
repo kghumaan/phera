@@ -29,12 +29,14 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function TravelPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [cards, setCards] = useState<any[]>([]);
@@ -76,6 +78,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleAdd = () => {
+    if (isViewOnly) return;
     setCurrentCard({
       wedding_id: weddingId,
       title: '',
@@ -103,6 +106,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleSave = async () => {
+    if (isViewOnly) return;
     if (!currentCard?.title || !currentCard?.image_url) {
       const errorMessage = 'Please fill in title and image';
       setError(errorMessage);
@@ -146,6 +150,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const handleDelete = async (cardId: string) => {
+    if (isViewOnly) return;
     if (!confirm('Delete this card?')) return;
     try {
       await weddingService.deleteTravelCard(cardId);

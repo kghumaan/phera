@@ -11,12 +11,14 @@ import {
   IconButton,
   CircularProgress,
   alpha,
-  Divider,
   TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
+  Tabs,
+  Tab,
+  Collapse,
 } from '@mui/material';
 import React, { useState, use, useEffect, useCallback, useRef } from 'react';
 import {
@@ -31,11 +33,17 @@ import {
   EventNote,
   Edit,
   Save,
+  ExpandMore,
+  ExpandLess,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
+import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
+import MembersTab from '@/components/admin/coordinator/MembersTab';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 interface Message {
   id: string;
@@ -103,6 +111,13 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const STATUS_OPTIONS = ['active', 'booked', 'declined', 'paid'];
 
+const STATUS_COLORS: Record<string, string> = {
+  active: '#2196F3',
+  booked: '#4CAF50',
+  declined: '#9E9E9E',
+  paid: '#8BC34A',
+};
+
 const SENDER_COLORS: Record<string, string> = {
   vendor: '#9C27B0',
   couple: '#DE3F5E',
@@ -118,17 +133,31 @@ export default function VendorDetailPage({
 }) {
   const { weddingSlug, vendorId } = use(params);
   const { user } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [vendor, setVendor] = useState<VendorDetail | null>(null);
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Ask Phera panel
+  const [askPheraOpen, setAskPheraOpen] = useState(true);
+
+  // Collapsible insight sections
+  const [decisionsOpen, setDecisionsOpen] = useState(false);
+  const [priceQuotesOpen, setPriceQuotesOpen] = useState(false);
+  const [deadlinesOpen, setDeadlinesOpen] = useState(false);
 
   // Edit mode
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', category: '', phone: '', email: '', status: '', notes: '' });
+  const VENDOR_CATEGORIES = ['Venue', 'Catering', 'Photography', 'Videography', 'Florist', 'DJ/Music', 'Decor', 'Makeup', 'Mehndi', 'Priest', 'Invitations', 'Cake', 'Rental', 'Transportation', 'Planner', 'Other'];
   const [saving, setSaving] = useState(false);
+
+  // Wedding ID for Ask Phera
+  const [weddingId, setWeddingId] = useState<string | null>(null);
 
   const loadVendor = useCallback(async () => {
     if (!user) return;
@@ -158,6 +187,19 @@ export default function VendorDetailPage({
     loadVendor();
   }, [loadVendor]);
 
+  // Get wedding ID
+  useEffect(() => {
+    const fetchWeddingId = async () => {
+      const { data } = await (supabase as any)
+        .from('weddings')
+        .select('id')
+        .eq('slug', weddingSlug)
+        .single();
+      if (data) setWeddingId(data.id);
+    };
+    fetchWeddingId();
+  }, [weddingSlug]);
+
   // All messages across conversations, sorted by timestamp
   const allMessages = (vendor?.vendor_conversations || [])
     .flatMap((c) => c.vendor_messages || [])
@@ -173,12 +215,14 @@ export default function VendorDetailPage({
   const priceQuotes = vendor?.vendor_insights?.filter((i) => i.insight_type === 'price_quote') || [];
   const deadlines = vendor?.vendor_insights?.filter((i) => i.insight_type === 'deadline') || [];
 
+  const conversationId = vendor?.vendor_conversations?.[0]?.id;
+
   const handleReanalyze = async () => {
-    const convo = vendor?.vendor_conversations?.[0];
-    if (!convo) return;
+    if (isViewOnly) return;
+    if (!conversationId) return;
     setReanalyzing(true);
     try {
-      const res = await fetch(`/api/vendors/conversations/${convo.id}/reanalyze`, {
+      const res = await fetch(`/api/vendors/conversations/${conversationId}/reanalyze`, {
         method: 'POST',
       });
       if (res.ok) {
@@ -195,6 +239,7 @@ export default function VendorDetailPage({
   };
 
   const handleToggleInsight = async (insightId: string, currentCompleted: boolean) => {
+    if (isViewOnly) return;
     try {
       await fetch('/api/vendors/insights', {
         method: 'PATCH',
@@ -217,6 +262,7 @@ export default function VendorDetailPage({
   };
 
   const handleSaveVendor = async () => {
+    if (isViewOnly) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/vendors/${vendorId}`, {
@@ -258,344 +304,454 @@ export default function VendorDetailPage({
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1100, mx: 'auto' }}>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)}>
-          <ArrowBack />
-        </IconButton>
-        <Box sx={{ flex: 1 }}>
-          {editing ? (
-            <Stack direction="row" spacing={1} alignItems="center">
-              <TextField
-                size="small"
-                value={editForm.name}
-                onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                sx={{ width: 200 }}
-              />
-              <Select
-                size="small"
-                value={editForm.status}
-                onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
-                sx={{ width: 120 }}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
-                ))}
-              </Select>
-              <IconButton size="small" onClick={handleSaveVendor} disabled={saving}>
-                {saving ? <CircularProgress size={16} /> : <Save />}
-              </IconButton>
-            </Stack>
-          ) : (
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {vendor.name}
-              </Typography>
-              {vendor.category && <Chip label={vendor.category} size="small" />}
-              <Chip
-                label={vendor.status}
-                size="small"
-                sx={{
-                  bgcolor: alpha(
-                    vendor.status === 'booked' ? '#4CAF50' : '#2196F3',
-                    0.1
-                  ),
-                }}
-              />
-              <IconButton size="small" onClick={() => setEditing(true)}>
-                <Edit sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Stack>
-          )}
-        </Box>
-        <Button
-          size="small"
-          startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
-          onClick={handleReanalyze}
-          disabled={reanalyzing}
-          sx={{ textTransform: 'none' }}
-        >
-          Re-analyze
-        </Button>
-      </Stack>
-
-      {/* Two-panel layout */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-        {/* Left: Conversation Timeline */}
-        <Paper
-          sx={{
-            flex: 1,
-            border: '1px solid',
-            borderColor: alpha('#000', 0.08),
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
-          <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: alpha('#000', 0.08) }}>
-            <Typography sx={{ fontWeight: 600, fontSize: '0.88rem' }}>
-              Conversation ({allMessages.length} messages)
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              maxHeight: { xs: 400, md: 600 },
-              overflowY: 'auto',
-              p: 1.5,
-            }}
-          >
-            {allMessages.length === 0 ? (
-              <Typography sx={{ color: '#888', textAlign: 'center', py: 4, fontSize: '0.85rem' }}>
-                No messages yet.
-              </Typography>
-            ) : (
-              <Stack spacing={1}>
-                {allMessages.map((msg, idx) => {
-                  const prevMsg = idx > 0 ? allMessages[idx - 1] : null;
-                  const showDate =
-                    !prevMsg ||
-                    new Date(msg.message_timestamp).toDateString() !==
-                      new Date(prevMsg.message_timestamp).toDateString();
-
-                  return (
-                    <React.Fragment key={msg.id}>
-                      {showDate && (
-                        <Typography
-                          sx={{
-                            textAlign: 'center',
-                            fontSize: '0.72rem',
-                            color: '#aaa',
-                            py: 0.5,
-                          }}
-                        >
-                          {new Date(msg.message_timestamp).toLocaleDateString(undefined, {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </Typography>
-                      )}
-                      <Box>
-                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.25 }}>
-                          <Typography
-                            sx={{
-                              fontSize: '0.76rem',
-                              fontWeight: 600,
-                              color: SENDER_COLORS[msg.sender_type] || '#757575',
-                            }}
-                          >
-                            {msg.sender_name}
-                          </Typography>
-                          <Typography sx={{ fontSize: '0.68rem', color: '#bbb' }}>
-                            {new Date(msg.message_timestamp).toLocaleTimeString(undefined, {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </Typography>
-                        </Stack>
-                        <Typography sx={{ fontSize: '0.84rem', lineHeight: 1.5, pl: 0 }}>
-                          {msg.content}
-                        </Typography>
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </Stack>
-            )}
-          </Box>
-        </Paper>
-
-        {/* Right: Insights Panel */}
-        <Box sx={{ width: { xs: '100%', md: 340 }, flexShrink: 0 }}>
-          <Stack spacing={2}>
-            {/* Summary */}
-            {summaries.length > 0 && (
-              <InsightSection
-                title="Summary"
-                icon={INSIGHT_ICONS.summary}
-                color={INSIGHT_COLORS.summary}
-                items={summaries}
-              />
-            )}
-
-            {/* Action Items */}
-            {actionItems.length > 0 && (
-              <Paper
-                sx={{
-                  border: '1px solid',
-                  borderColor: alpha('#000', 0.08),
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                }}
-              >
+    <Box sx={{ display: 'flex', gap: 0 }}>
+      {/* Main content */}
+      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s' }}>
+        <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1000, bgcolor: 'white' }}>
+          {/* Header */}
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)} sx={{ color: '#1a1a1a' }}>
+              <ArrowBack sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Box sx={{ flex: 1 }}>
+              {editing ? (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <TextField
+                    size="small"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                    sx={{
+                      width: 200,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1,
+                        '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                      },
+                      '& .MuiOutlinedInput-input': { color: '#1a1a1a', fontSize: '0.85rem' },
+                    }}
+                  />
+                  <Select
+                    size="small"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
+                    displayEmpty
+                    sx={{ width: 140, fontSize: '0.85rem', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                  >
+                    <MenuItem value="">No category</MenuItem>
+                    {VENDOR_CATEGORIES.map((c) => (
+                      <MenuItem key={c} value={c}>{c}</MenuItem>
+                    ))}
+                  </Select>
+                  <Select
+                    size="small"
+                    value={editForm.status}
+                    onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
+                    sx={{ width: 120, fontSize: '0.85rem', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <MenuItem key={s} value={s}>{s}</MenuItem>
+                    ))}
+                  </Select>
+                  <IconButton size="small" onClick={handleSaveVendor} disabled={saving} sx={{ color: '#1a1a1a' }}>
+                    {saving ? <CircularProgress size={16} /> : <Save sx={{ fontSize: 18 }} />}
+                  </IconButton>
+                </Stack>
+              ) : (
                 <Box
-                  sx={{
-                    px: 1.5,
-                    py: 1,
-                    bgcolor: alpha(INSIGHT_COLORS.action_item, 0.06),
-                    borderBottom: '1px solid',
-                    borderColor: alpha('#000', 0.06),
-                  }}
+                  onClick={vendor.name.toLowerCase().includes('unknown') ? () => setEditing(true) : undefined}
+                  sx={vendor.name.toLowerCase().includes('unknown') ? { cursor: 'pointer' } : undefined}
                 >
-                  <Stack direction="row" alignItems="center" spacing={0.75}>
-                    <Box sx={{ color: INSIGHT_COLORS.action_item }}>{INSIGHT_ICONS.action_item}</Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.82rem' }}>
-                      Action Items
-                    </Typography>
+                  <Typography sx={{
+                    fontSize: '1.05rem',
+                    fontWeight: 600,
+                    color: vendor.name.toLowerCase().includes('unknown') ? '#9a9a9a' : '#1a1a1a',
+                    fontStyle: vendor.name.toLowerCase().includes('unknown') ? 'italic' : 'normal',
+                  }}>
+                    {vendor.name}
+                    {vendor.name.toLowerCase().includes('unknown') && (
+                      <Typography component="span" sx={{ fontSize: '0.75rem', color: '#bbb', ml: 1, fontStyle: 'italic' }}>
+                        (click to rename)
+                      </Typography>
+                    )}
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5 }}>
+                    {vendor.category && (
+                      <Chip
+                        label={vendor.category}
+                        size="small"
+                        sx={{ color: '#4a4a4a', bgcolor: alpha('#000', 0.06), fontSize: '0.7rem', height: 20, borderRadius: '4px' }}
+                      />
+                    )}
+                    <Chip
+                      label={vendor.status}
+                      size="small"
+                      sx={{
+                        fontSize: '0.7rem',
+                        height: 20,
+                        borderRadius: '4px',
+                        bgcolor: alpha(STATUS_COLORS[vendor.status] || '#9E9E9E', 0.1),
+                        color: STATUS_COLORS[vendor.status] || '#9E9E9E',
+                      }}
+                    />
+                    {!vendor.name.toLowerCase().includes('unknown') && (
+                      <IconButton size="small" onClick={() => setEditing(true)} sx={{ ml: 0.5 }}>
+                        <Edit sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    )}
                   </Stack>
                 </Box>
-                <Stack sx={{ p: 1 }}>
-                  {actionItems.map((item) => (
-                    <Stack
-                      key={item.id}
-                      direction="row"
-                      alignItems="flex-start"
-                      spacing={0.5}
-                      sx={{
-                        py: 0.75,
-                        px: 0.5,
-                        borderRadius: 1,
-                        '&:hover': { bgcolor: alpha('#000', 0.02) },
-                      }}
-                    >
-                      <Checkbox
-                        size="small"
-                        checked={item.is_completed}
-                        onChange={() => handleToggleInsight(item.id, item.is_completed)}
-                        icon={<RadioButtonUnchecked sx={{ fontSize: 18 }} />}
-                        checkedIcon={<CheckCircle sx={{ fontSize: 18 }} />}
-                        sx={{
-                          p: 0.25,
-                          color: PRIORITY_COLORS[item.priority],
-                          '&.Mui-checked': { color: '#4CAF50' },
-                        }}
-                      />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.82rem',
-                            lineHeight: 1.4,
-                            textDecoration: item.is_completed ? 'line-through' : 'none',
-                            color: item.is_completed ? '#aaa' : 'inherit',
-                          }}
-                        >
-                          {item.content}
-                        </Typography>
-                        {item.due_date && (
-                          <Typography sx={{ fontSize: '0.7rem', color: '#F44336' }}>
-                            Due: {new Date(item.due_date).toLocaleDateString()}
-                          </Typography>
-                        )}
-                      </Box>
+              )}
+            </Box>
+            <Button
+              size="small"
+              startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
+              onClick={handleReanalyze}
+              disabled={reanalyzing}
+              sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+            >
+              Re-analyze
+            </Button>
+          </Stack>
+
+          {/* Tabs */}
+          <Tabs
+            value={activeTab}
+            onChange={(_, v) => setActiveTab(v)}
+            sx={{
+              mb: 2,
+              borderBottom: '1px solid rgba(0,0,0,0.07)',
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                color: '#6a6a6a',
+                minHeight: 40,
+                '&.Mui-selected': { color: '#DE3F5E' },
+              },
+              '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+            }}
+          >
+            <Tab label="Summary & Action Items" />
+            <Tab label="Conversation" />
+            <Tab label="Members" />
+          </Tabs>
+
+          {/* Tab 0: Summary & Action Items */}
+          {activeTab === 0 && (
+            <Stack spacing={2}>
+              {/* Summary */}
+              {summaries.length > 0 && (
+                <Paper
+                  elevation={0}
+                  sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
+                >
+                  <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75}>
+                      <Box sx={{ color: '#6a6a6a' }}>{INSIGHT_ICONS.summary}</Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Overview</Typography>
                     </Stack>
-                  ))}
-                </Stack>
-              </Paper>
-            )}
+                  </Box>
+                  <Stack sx={{ p: 1.5 }} spacing={1}>
+                    {summaries.map((item) => (
+                      <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#1a1a1a' }}>
+                        {item.content}
+                      </Typography>
+                    ))}
+                  </Stack>
+                </Paper>
+              )}
 
-            {/* Decisions */}
-            {decisions.length > 0 && (
-              <InsightSection
-                title="Decisions"
-                icon={INSIGHT_ICONS.decision}
-                color={INSIGHT_COLORS.decision}
-                items={decisions}
-              />
-            )}
+              {/* Action Items */}
+              {actionItems.length > 0 && (
+                <Paper
+                  elevation={0}
+                  sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
+                >
+                  <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75}>
+                      <Box sx={{ color: '#6a6a6a' }}>{INSIGHT_ICONS.action_item}</Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Action Items</Typography>
+                    </Stack>
+                  </Box>
+                  <Stack sx={{ p: 1 }}>
+                    {actionItems.map((item) => (
+                      <Stack
+                        key={item.id}
+                        direction="row"
+                        alignItems="flex-start"
+                        spacing={0.5}
+                        sx={{
+                          py: 0.75,
+                          px: 0.5,
+                          borderRadius: 1,
+                          '&:hover': { bgcolor: alpha('#000', 0.02) },
+                        }}
+                      >
+                        <Checkbox
+                          size="small"
+                          checked={item.is_completed}
+                          onChange={() => handleToggleInsight(item.id, item.is_completed)}
+                          icon={<RadioButtonUnchecked sx={{ fontSize: 18 }} />}
+                          checkedIcon={<CheckCircle sx={{ fontSize: 18 }} />}
+                          sx={{
+                            p: 0.25,
+                            color: PRIORITY_COLORS[item.priority],
+                            '&.Mui-checked': { color: '#DE3F5E' },
+                          }}
+                        />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '0.78rem',
+                              lineHeight: 1.4,
+                              textDecoration: item.is_completed ? 'line-through' : 'none',
+                              color: item.is_completed ? '#aaa' : '#1a1a1a',
+                            }}
+                          >
+                            {item.content}
+                          </Typography>
+                          {item.due_date && (
+                            <Typography sx={{ fontSize: '0.7rem', color: '#F44336' }}>
+                              Due: {new Date(item.due_date).toLocaleDateString()}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Paper>
+              )}
 
-            {/* Price Quotes */}
-            {priceQuotes.length > 0 && (
-              <InsightSection
-                title="Price Quotes"
-                icon={INSIGHT_ICONS.price_quote}
-                color={INSIGHT_COLORS.price_quote}
-                items={priceQuotes}
-              />
-            )}
+              {/* Collapsible: Decisions */}
+              {decisions.length > 0 && (
+                <CollapsibleInsightSection
+                  title="Decisions"
+                  icon={INSIGHT_ICONS.decision}
+                  color={INSIGHT_COLORS.decision}
+                  items={decisions}
+                  open={decisionsOpen}
+                  onToggle={() => setDecisionsOpen((p) => !p)}
+                />
+              )}
 
-            {/* Deadlines */}
-            {deadlines.length > 0 && (
-              <InsightSection
-                title="Deadlines"
-                icon={INSIGHT_ICONS.deadline}
-                color={INSIGHT_COLORS.deadline}
-                items={deadlines}
-              />
-            )}
+              {/* Collapsible: Price Quotes */}
+              {priceQuotes.length > 0 && (
+                <CollapsibleInsightSection
+                  title="Price Quotes"
+                  icon={INSIGHT_ICONS.price_quote}
+                  color={INSIGHT_COLORS.price_quote}
+                  items={priceQuotes}
+                  open={priceQuotesOpen}
+                  onToggle={() => setPriceQuotesOpen((p) => !p)}
+                />
+              )}
 
-            {/* Show empty state if no insights at all */}
-            {(vendor.vendor_insights?.length || 0) === 0 && (
-              <Paper
+              {/* Collapsible: Deadlines */}
+              {deadlines.length > 0 && (
+                <CollapsibleInsightSection
+                  title="Deadlines"
+                  icon={INSIGHT_ICONS.deadline}
+                  color={INSIGHT_COLORS.deadline}
+                  items={deadlines}
+                  open={deadlinesOpen}
+                  onToggle={() => setDeadlinesOpen((p) => !p)}
+                />
+              )}
+
+              {/* Empty state */}
+              {(vendor.vendor_insights?.length || 0) === 0 && (
+                <Paper
+                  elevation={0}
+                  sx={{ p: 3, textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, bgcolor: 'white' }}
+                >
+                  <Typography sx={{ color: '#888', fontSize: '0.78rem' }}>
+                    No insights yet. Click "Re-analyze" to extract insights from the conversation.
+                  </Typography>
+                </Paper>
+              )}
+            </Stack>
+          )}
+
+          {/* Tab 1: Conversation */}
+          {activeTab === 1 && (
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid rgba(0,0,0,0.07)',
+                borderRadius: 1,
+                overflow: 'hidden',
+                bgcolor: 'white',
+              }}
+            >
+              <Box sx={{ p: 1.5, borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.82rem', color: '#1a1a1a' }}>
+                  Conversation ({allMessages.length} messages)
+                </Typography>
+              </Box>
+              <Box
                 sx={{
-                  p: 3,
-                  textAlign: 'center',
-                  border: '1px solid',
-                  borderColor: alpha('#000', 0.08),
-                  borderRadius: 2,
+                  maxHeight: { xs: 500, md: 600 },
+                  overflowY: 'auto',
+                  p: 1.5,
                 }}
               >
-                <Typography sx={{ color: '#888', fontSize: '0.85rem' }}>
-                  No insights yet. Click "Re-analyze" to extract insights from the conversation.
-                </Typography>
-              </Paper>
-            )}
-          </Stack>
+                {allMessages.length === 0 ? (
+                  <Typography sx={{ color: '#888', textAlign: 'center', py: 4, fontSize: '0.78rem' }}>
+                    No messages yet.
+                  </Typography>
+                ) : (
+                  <Stack spacing={1}>
+                    {allMessages.map((msg, idx) => {
+                      const prevMsg = idx > 0 ? allMessages[idx - 1] : null;
+                      const showDate =
+                        !prevMsg ||
+                        new Date(msg.message_timestamp).toDateString() !==
+                          new Date(prevMsg.message_timestamp).toDateString();
+
+                      return (
+                        <React.Fragment key={msg.id}>
+                          {showDate && (
+                            <Typography
+                              sx={{ textAlign: 'center', fontSize: '0.66rem', color: '#999', py: 0.5 }}
+                            >
+                              {new Date(msg.message_timestamp).toLocaleDateString(undefined, {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </Typography>
+                          )}
+                          <Box>
+                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.25 }}>
+                              <Typography
+                                sx={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 600,
+                                  color: SENDER_COLORS[msg.sender_type] || '#757575',
+                                }}
+                              >
+                                {msg.sender_name}
+                              </Typography>
+                              <Typography sx={{ fontSize: '0.64rem', color: '#999' }}>
+                                {new Date(msg.message_timestamp).toLocaleTimeString(undefined, {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </Typography>
+                            </Stack>
+                            <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, pl: 0, color: '#1a1a1a' }}>
+                              {msg.content}
+                            </Typography>
+                          </Box>
+                        </React.Fragment>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </Stack>
+                )}
+              </Box>
+            </Paper>
+          )}
+
+          {/* Tab 2: Members */}
+          {activeTab === 2 && conversationId && weddingId && (
+            <MembersTab conversationId={conversationId} weddingId={weddingId} />
+          )}
+          {activeTab === 2 && !conversationId && (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography sx={{ color: '#888', fontSize: '0.85rem' }}>
+                No conversation linked to this vendor yet.
+              </Typography>
+            </Box>
+          )}
         </Box>
-      </Stack>
+      </Box>
+
+      {/* Ask Phera Panel */}
+      {weddingId && (
+        <AskPheraPanel
+          weddingId={weddingId}
+          open={askPheraOpen}
+          onClose={() => setAskPheraOpen(false)}
+          conversationId={conversationId}
+        />
+      )}
+
+      {/* Ask Phera FAB */}
+      {weddingId && (
+        <AskPheraFab
+          onClick={() => setAskPheraOpen(true)}
+          visible={!askPheraOpen}
+        />
+      )}
     </Box>
   );
 }
 
-// Reusable insight section component
-function InsightSection({
+// Collapsible insight section
+function CollapsibleInsightSection({
   title,
   icon,
   color,
   items,
+  open,
+  onToggle,
 }: {
   title: string;
   icon: React.ReactNode;
   color: string;
   items: Insight[];
+  open: boolean;
+  onToggle: () => void;
 }) {
   return (
     <Paper
+      elevation={0}
       sx={{
-        border: '1px solid',
-        borderColor: alpha('#000', 0.08),
-        borderRadius: 2,
+        border: '1px solid rgba(0,0,0,0.07)',
+        borderRadius: 1,
         overflow: 'hidden',
+        bgcolor: 'white',
       }}
     >
       <Box
+        onClick={onToggle}
         sx={{
           px: 1.5,
           py: 1,
-          bgcolor: alpha(color, 0.06),
-          borderBottom: '1px solid',
+          bgcolor: '#F5F5F5',
+          borderBottom: open ? '1px solid' : 'none',
           borderColor: alpha('#000', 0.06),
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          '&:hover': { bgcolor: '#EFEFEF' },
         }}
       >
         <Stack direction="row" alignItems="center" spacing={0.75}>
-          <Box sx={{ color }}>{icon}</Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.82rem' }}>{title}</Typography>
+          <Box sx={{ color: '#6a6a6a' }}>{icon}</Box>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>
+            {title} ({items.length})
+          </Typography>
         </Stack>
+        {open ? <ExpandLess sx={{ fontSize: 18, color: '#999' }} /> : <ExpandMore sx={{ fontSize: 18, color: '#999' }} />}
       </Box>
-      <Stack sx={{ p: 1.5 }} spacing={1}>
-        {items.map((item) => (
-          <Box key={item.id}>
-            <Typography sx={{ fontSize: '0.82rem', lineHeight: 1.5 }}>
-              {item.content}
-            </Typography>
-            {item.due_date && (
-              <Typography sx={{ fontSize: '0.7rem', color: '#F44336', mt: 0.25 }}>
-                Due: {new Date(item.due_date).toLocaleDateString()}
+      <Collapse in={open}>
+        <Stack sx={{ p: 1.5 }} spacing={1}>
+          {items.map((item) => (
+            <Box key={item.id}>
+              <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, color: '#1a1a1a' }}>
+                {item.content}
               </Typography>
-            )}
-          </Box>
-        ))}
-      </Stack>
+              {item.due_date && (
+                <Typography sx={{ fontSize: '0.7rem', color: '#F44336', mt: 0.25 }}>
+                  Due: {new Date(item.due_date).toLocaleDateString()}
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      </Collapse>
     </Paper>
   );
 }

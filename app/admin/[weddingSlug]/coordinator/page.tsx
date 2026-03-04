@@ -48,6 +48,7 @@ import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
 import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 interface Vendor {
   id: string;
@@ -99,6 +100,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { user } = useAuth();
+  const { isViewOnly } = useAdminRole();
   const router = useRouter();
 
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -204,6 +206,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Import chat
   const handleImportChat = async () => {
+    if (isViewOnly) return;
     if (!weddingId || !importFile || importGuardRef.current) return;
     importGuardRef.current = true;
     setImporting(true);
@@ -241,6 +244,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Discover WhatsApp chats (step 1 — opens picker)
   const handleDiscoverGroups = async () => {
+    if (isViewOnly) return;
     if (discoverGuardRef.current) return;
     discoverGuardRef.current = true;
     setDiscoveringGroups(true);
@@ -273,6 +277,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Sync selected chats (step 2 — imports messages)
   const handleSyncSelected = async () => {
+    if (isViewOnly) return;
     if (!weddingId || selectedChatIds.size === 0) return;
     setSyncing(true);
     try {
@@ -308,6 +313,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Sync All — re-fetch all tracked conversations
   const handleSyncAll = async () => {
+    if (isViewOnly) return;
     if (!weddingId || syncAllGuardRef.current) return;
     syncAllGuardRef.current = true;
     setSyncingAll(true);
