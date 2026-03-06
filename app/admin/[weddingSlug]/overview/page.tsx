@@ -290,7 +290,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                   border: '1px solid rgba(0, 0, 0, 0.06)',
                   height: '100%'
                 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                  <Typography variant="subtitle1" sx={{ mb: 2, color: '#1a1a1a' }}>
                     Guest Responses
                   </Typography>
 
@@ -304,11 +304,11 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           borderRadius: '50%',
                           bgcolor: '#10B981'
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
                           Attending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
                         {rsvpStats.totalGuestsComing}
                       </Typography>
                     </Box>
@@ -322,11 +322,11 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           borderRadius: '50%',
                           bgcolor: '#EF4444'
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
                           Not Attending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
                         {rsvpStats.notAttending}
                       </Typography>
                     </Box>
@@ -340,11 +340,11 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           borderRadius: '50%',
                           bgcolor: '#F59E0B'
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
                           Pending
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
                         {rsvpStats.pending}
                       </Typography>
                     </Box>

@@ -163,20 +163,6 @@ const baseTheme = createTheme({
       fontWeight: 400,
       lineHeight: 1.5,
       '@media (min-width:600px)': {
-        fontSize: '1.0rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '1.0625rem',
-      },
-      '@media (min-width:1200px)': {
-        fontSize: '1.125rem',
-      },
-    },
-    body3: {
-      fontFamily: 'var(--font-outfit)',
-      fontWeight: 400,
-      lineHeight: 1.5,
-      '@media (min-width:600px)': {
         fontSize: '0.9rem',
       },
       '@media (min-width:900px)': {
@@ -186,10 +172,10 @@ const baseTheme = createTheme({
         fontSize: '1rem',
       },
     },
-    body4: {
+    body3: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
-      lineHeight: 1.43,
+      lineHeight: 1.5,
       '@media (min-width:600px)': {
         fontSize: '0.8rem',
       },
@@ -198,6 +184,20 @@ const baseTheme = createTheme({
       },
       '@media (min-width:1200px)': {
         fontSize: '0.9rem',
+      },
+    },
+    body4: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 400,
+      lineHeight: 1.43,
+      '@media (min-width:600px)': {
+        fontSize: '0.7rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '0.75rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '0.8rem',
       },
     },
     subtitle1: {

@@ -437,7 +437,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <CheckCircle />
               </Avatar>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.totalGuests}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.totalGuests}</Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Attending</Typography>
                 <Typography variant="caption" sx={{ color: '#9a9a9a', fontSize: '0.7rem', display: 'block', mt: 0.25 }}>
                   including plus-ones
@@ -464,7 +464,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <HelpOutline />
               </Avatar>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.maybe}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.maybe}</Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Maybe</Typography>
               </Box>
             </CardContent>
@@ -488,7 +488,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <Cancel />
               </Avatar>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.notAttending}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.notAttending}</Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Not Attending</Typography>
               </Box>
             </CardContent>
