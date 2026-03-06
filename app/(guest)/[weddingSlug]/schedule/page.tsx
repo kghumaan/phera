@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
+
 
 // Wedding schedule data from Figma design
 const weddingSchedule: {
@@ -20,7 +20,7 @@ const weddingSchedule: {
   events: {
     time: string;
     name: string;
-    icon?: StreamlineIconName;
+
     description: string;
     location: string;
   }[];
@@ -32,49 +32,42 @@ const weddingSchedule: {
         {
           time: '11 AM',
           name: 'Guest Arrival',
-          icon: 'buildings',
           description: 'Check in and dive straight into the festive fun (come dressed in your shades of yellow!)',
           location: 'The Palayana'
         },
         {
           time: '12 PM',
           name: 'Welcome Lunch',
-          icon: 'chef-hat',
           description: 'Bright beachfront buffet in your sunny yellows—get ready to mingle and reunite.',
           location: 'Lawn'
         },
         {
           time: '1:30 PM',
           name: 'Haldi Ceremony',
-          icon: 'sunflower',
           description: 'Splash into the turmeric celebration—feel the buzz as we kick off the good vibes.',
           location: 'Lawn'
         },
         {
           time: '12 - 5 PM',
           name: 'Mehendi Station',
-          icon: 'lotus',
           description: 'Stop by for live henna artistry—watch your hands transform into incredible works of art.',
           location: 'Thaipas'
         },
         {
           time: '3:30 PM',
           name: 'KV\'s Baarat (Grooms Side)',
-          icon: 'horse',
           description: 'Drums, music, and procession—join the vibrant celebration as we parade through the streets.',
           location: 'Resort Entrance'
         },
         {
           time: '5 PM',
           name: 'Varmala & Vows',
-          icon: 'flower',
           description: 'Exchange garlands and vows under a sunset sky—an intimate, colorful moment you won\'t want to miss.',
           location: 'Lawn'
         },
         {
           time: '6:30 - 10 PM',
           name: 'Dinner & Jaggo',
-          icon: 'microphone',
           description: 'Eat, dance, repeat—savor the feast then let loose to pounding dhol beats.',
           location: 'Lawn'
         }
@@ -87,42 +80,36 @@ const weddingSchedule: {
         {
           time: '6:30 - 9:30 AM',
           name: 'Breakfast',
-          icon: 'chef-hat',
           description: '',
           location: 'Basil Restaurant'
         },
         {
           time: '9:30 AM',
           name: 'Anand Karaj (Wedding Ceremony)',
-          icon: 'lotus',
           description: '',
           location: 'Satnam House (transportation provided)'
         },
         {
           time: '12:30 PM',
           name: 'Lunch',
-          icon: 'chef-hat',
           description: '',
           location: 'Lawn'
         },
         {
           time: '2 PM',
           name: 'Pool Party',
-          icon: 'beach',
           description: '',
           location: 'Poolside & Beach'
         },
         {
           time: '7:30 PM',
           name: 'Sangeet & Reception',
-          icon: 'party-popper',
           description: '',
           location: 'Ballroom'
         },
         {
           time: '12 - Late',
           name: 'Afterparty',
-          icon: 'sparkles',
           description: '',
           location: 'Ballroom'
         }
@@ -135,14 +122,12 @@ const weddingSchedule: {
         {
           time: '6:30 - 11 AM',
           name: 'Breakfast',
-          icon: 'chef-hat',
           description: '',
           location: 'Basil Restaurant'
         },
         {
           time: '12 PM',
           name: 'Checkout',
-          icon: 'clipboard-check',
           description: '',
           location: 'Hotel Lobby'
         }
@@ -177,9 +162,9 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
       {/* Day and Date Header */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography
-          variant="h4"
+          variant="h5"
           sx={{
-            fontWeight: 600,
+            // fontWeight: 600,
             color: '#141414',
             mb: 0,
           }}
@@ -220,26 +205,17 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
               }}
             >
               <Box>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  {event.icon && (
-                    <StreamlineIcon
-                      name={event.icon}
-                      size={20}
-                      color={primaryColor || '#DE3F5E'}
-                    />
-                  )}
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      color: '#141414',
-                      // fontSize: '1rem',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {event.name}
-                  </Typography>
-                </Stack>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    // fontWeight: 600,
+                    color: '#141414',
+                    // fontSize: '1rem',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {event.name}
+                </Typography>
                 {event.dressCode && (
                   <Typography
                     variant="caption"
@@ -260,7 +236,7 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                 sx={{
                   color: primaryColor || '#DE3F5E',
                   fontWeight: 600,
-                  fontSize: '0.95rem',
+                  // fontSize: '0.9rem',
                   letterSpacing: '0.07em',
                   textTransform: 'uppercase',
                   textAlign: 'right',
@@ -280,8 +256,8 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                   variant="body2"
                   sx={{
                     color: '#858585',
-                    fontSize: '1rem',
-                    fontWeight: 400,
+                    // fontSize: '1rem',
+                    // fontWeight: 400,
                   }}
                 >
                   {event.location}

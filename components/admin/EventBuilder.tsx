@@ -340,7 +340,7 @@ export default function EventBuilder() {
           {/* Template Selection */}
           {!editingEvent && (
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitleCaps" gutterBottom>
                 Choose a Template (Optional)
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>

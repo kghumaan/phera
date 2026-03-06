@@ -472,7 +472,7 @@ function PrescheduledSetup({
           maxWidth: 1000,
         }}
       >
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+        <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
           Add your {direction === 'arrival' ? 'pickup' : 'departure'} vehicles
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
@@ -734,7 +734,7 @@ function FlexibleSetup({
             bgcolor: 'white',
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
             Pickup Locations
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
@@ -809,7 +809,7 @@ function FlexibleSetup({
           bgcolor: 'white',
         }}
       >
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+        <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
           Available {direction === 'arrival' ? 'Pickup' : 'Departure'} Times
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>

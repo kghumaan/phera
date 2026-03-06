@@ -431,7 +431,7 @@ export default function CulturalGuide() {
                     {currentCeremony.dressCode.description}
                   </Typography>
                   
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Typography variant="subtitleCaps" gutterBottom>
                     Recommended Colors:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
@@ -440,7 +440,7 @@ export default function CulturalGuide() {
                     ))}
                   </Box>
 
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Typography variant="subtitleCaps" gutterBottom>
                     Outfit Examples:
                   </Typography>
                   <List dense>

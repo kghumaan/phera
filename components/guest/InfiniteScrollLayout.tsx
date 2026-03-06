@@ -1707,9 +1707,8 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
       }}
     >
       <Typography
+        variant="body3"
         sx={{
-          fontWeight: 400,
-          fontSize: '0.95rem',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: '#141414',

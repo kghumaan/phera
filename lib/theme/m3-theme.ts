@@ -5,11 +5,13 @@ declare module '@mui/material/styles' {
   interface TypographyVariants {
     body3: React.CSSProperties;
     body4: React.CSSProperties;
+    subtitleCaps: React.CSSProperties;
   }
 
   interface TypographyVariantsOptions {
     body3?: any; // Using any to properly support nested media queries in theme definition
     body4?: any;
+    subtitleCaps?: any;
   }
 }
 
@@ -17,6 +19,7 @@ declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     body3: true;
     body4: true;
+    subtitleCaps: true;
   }
 }
 
@@ -106,41 +109,35 @@ const baseTheme = createTheme({
     },
     h4: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontWeight: 600,
+      fontSize: '1.3rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '1.75rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '1.75rem',
+        fontSize: '1.4rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '2rem',
+        fontSize: '1.5rem',
       },
     },
     h5: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontWeight: 600,
+      fontSize: '1.1rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '1.375rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '1.5rem',
+        fontSize: '1.125rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.625rem',
+        fontSize: '1.25rem',
       },
     },
     h6: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontWeight: 600,
+      fontSize: '0.95rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '1.125rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '1.25rem',
+        fontSize: '1rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.375rem',
+        fontSize: '1.1rem',
       },
     },
     // Body text variants
@@ -148,25 +145,21 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.5,
+      fontSize: '0.95rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '1.1rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '1.1875rem',
+        fontSize: '1rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1.25rem',
+        fontSize: '1.1rem',
       },
     },
     body2: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.5,
+      fontSize: '0.85rem', // Base mobile size
       '@media (min-width:600px)': {
         fontSize: '0.9rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.95rem',
       },
       '@media (min-width:1200px)': {
         fontSize: '1rem',
@@ -176,11 +169,9 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.5,
+      fontSize: '0.75rem', // Base mobile size
       '@media (min-width:600px)': {
         fontSize: '0.8rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.85rem',
       },
       '@media (min-width:1200px)': {
         fontSize: '0.9rem',
@@ -190,10 +181,8 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.43,
+      fontSize: '0.7rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '0.7rem',
-      },
-      '@media (min-width:900px)': {
         fontSize: '0.75rem',
       },
       '@media (min-width:1200px)': {
@@ -202,30 +191,40 @@ const baseTheme = createTheme({
     },
     subtitle1: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontWeight: 600,
       lineHeight: 1.4,
+      fontSize: '0.9rem', // Base mobile size
       '@media (min-width:600px)': {
         fontSize: '0.95rem',
       },
-      '@media (min-width:900px)': {
-        fontSize: '1rem',
-      },
       '@media (min-width:1200px)': {
-        fontSize: '1.05rem',
+        fontSize: '1rem',
       },
     },
     subtitle2: {
       fontFamily: 'var(--font-outfit)',
-      fontWeight: 500,
+      fontWeight: 600,
       lineHeight: 1.4,
+      fontSize: '0.75rem', // Base mobile size
       '@media (min-width:600px)': {
-        fontSize: '0.875rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.95rem',
+        fontSize: '0.8rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '1rem',
+        fontSize: '0.875rem',
+      },
+    },
+    subtitleCaps: {
+      fontFamily: 'var(--font-outfit)',
+      fontWeight: 600,
+      lineHeight: 1.4,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+      fontSize: '0.8rem', // Base mobile size
+      '@media (min-width:600px)': {
+        fontSize: '0.85rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '0.9rem',
       },
     },
     caption: {
@@ -281,6 +280,19 @@ const baseTheme = createTheme({
   },
   components: {
     // M3 component customizations
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          fontSize: '0.85rem',
+          '@media (min-width:600px)': {
+            fontSize: '0.9rem',
+          },
+          '@media (min-width:1200px)': {
+            fontSize: '1rem',
+          },
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -299,6 +311,13 @@ const baseTheme = createTheme({
       },
     },
     MuiTypography: {
+      defaultProps: {
+        variantMapping: {
+          body3: 'p',
+          body4: 'p',
+          subtitleCaps: 'p',
+        },
+      },
       styleOverrides: {
         root: {
           // Allow variants to determine color

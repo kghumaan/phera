@@ -729,7 +729,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Stack spacing={4}>
             {/* Button Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Button Color
               </Typography>
 
@@ -778,7 +778,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
             {/* Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Text Color
               </Typography>
 
@@ -823,7 +823,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
             {/* Button Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                 Button Text Color
               </Typography>
 

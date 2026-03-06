@@ -436,7 +436,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         {/* Form Content */}
         <Stack spacing={3}>
           {/* Couple Names */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
             Couple Information *
           </Typography>
 
@@ -471,7 +471,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
           {/* Wedding Date */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Wedding Date *
           </Typography>
 
@@ -699,7 +699,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           )} */}
 
           {/* Venue */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Venue Information *
           </Typography>
 
@@ -746,7 +746,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </Grid>
 
           {/* Welcome Message Section */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             Welcome Message
           </Typography>
           <Box>
@@ -765,7 +765,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           </Box>
 
           {/* RSVP Deadline */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
             RSVP Information
           </Typography>
 

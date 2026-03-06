@@ -801,7 +801,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   <Box sx={{ p: 3 }}>
                     <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 13, textTransform: 'uppercase', color: '#474747', mb: 0.5 }}>
+                        <Typography variant="subtitleCaps" sx={{ color: '#474747', mb: 0.5 }}>
                           {event.name}
                         </Typography>
                         <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>

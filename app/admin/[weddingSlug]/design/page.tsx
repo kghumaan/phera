@@ -284,7 +284,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         <Stack spacing={3}>
           {/* Desktop Layout Selection */}
           <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+            <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
               Desktop Layout
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
@@ -373,7 +373,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
           {/* Main Background Selection */}
           <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
               Main Background Image
             </Typography>
 
@@ -455,7 +455,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
           {/* Main Primary Color Selection */}
           <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
               Primary Theme Color
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
@@ -510,10 +510,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             <Stack spacing={4}>
               {/* Couple Photos */}
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
                   Couple Photos (up to 6)
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
                   Add multiple photos of the couple. Recommended size: 800x800px each
                 </Typography>
 
@@ -662,7 +662,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
               {/* Frame Selection - Grid layout like backgrounds */}
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                <Typography variant="subtitle1" sx={{mb: 2, color: '#1a1a1a' }}>
                   Photo Frame
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>

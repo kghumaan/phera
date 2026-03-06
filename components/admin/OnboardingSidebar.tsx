@@ -305,7 +305,7 @@ export default function OnboardingSidebar({
               </ListItemIcon>
               <ListItemText
                 primary="All Weddings"
-                slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
+                slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
               />
             </ListItemButton>
           </>
@@ -342,7 +342,7 @@ export default function OnboardingSidebar({
                 <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
                 <ListItemText
                   primary={group.label}
-                  slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
+                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
                 />
                 {group.isPro && !isPro && <ProBadge size="small" />}
               </ListItemButton>
@@ -378,7 +378,7 @@ export default function OnboardingSidebar({
                 <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
                 <ListItemText
                   primary={group.label}
-                  slotProps={{ primary: { variant: 'inherit', sx: { fontWeight: 600, fontSize: '0.88rem', color: 'inherit' } } }}
+                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
                 />
                 {isExpanded ? (
                   <ExpandLess sx={{ fontSize: 14, color: 'inherit' }} />
@@ -478,9 +478,8 @@ export default function OnboardingSidebar({
                             }
                             slotProps={{
                               primary: {
-                                variant: 'inherit',
+                                variant: 'body3',
                                 sx: {
-                                  fontSize: '0.84rem',
                                   fontWeight: isActive ? 600 : 400,
                                   color: 'inherit',
                                 }

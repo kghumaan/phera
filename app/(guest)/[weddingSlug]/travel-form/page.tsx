@@ -437,7 +437,7 @@ export default function TravelFormPage() {
                 {/* Bus Options */}
                 <Box>
                   <Typography
-                    variant="subtitle1"
+                    variant="subtitleCaps"
                     sx={{
                       fontWeight: 600,
                       mb: 2,
