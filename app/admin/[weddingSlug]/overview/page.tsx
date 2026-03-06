@@ -271,11 +271,11 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                       <Typography variant="body2" sx={{color: '#1a1a1a' }}>
                         {weddingData.venue_name || 'Not set'}
                       </Typography>
-                      {/* {weddingData.venue_location && (
+                      {weddingData.venue_location && (
                         <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>
                           {weddingData.venue_location}
                         </Typography>
-                      )} */}
+                      )}
                     </Box>
                   </Box>
                 </Stack>
