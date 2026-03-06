@@ -31,7 +31,7 @@ const sectionPaperSx = {
   p: 3,
   borderRadius: '16px',
   bgcolor: '#fafafa',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+  boxShadow: 'none',
 };
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;

@@ -226,7 +226,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
               '&:hover': {
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               }
@@ -263,7 +263,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
               textAlign: 'center',
               borderRadius: '16px',
               bgcolor: 'white',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
             }}>
               <Typography sx={{ color: '#6a6a6a' }}>
                 No stores yet. Add a recommended shop from our curated list or create a custom one.
@@ -296,7 +296,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                       cursor: 'pointer',
                       borderRadius: '12px',
                       bgcolor: 'white',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                      boxShadow: 'none',
                       '&:hover': {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                       },

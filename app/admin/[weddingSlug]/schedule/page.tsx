@@ -853,7 +853,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
               '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }
             }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
