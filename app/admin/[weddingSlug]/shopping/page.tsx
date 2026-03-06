@@ -265,7 +265,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
               bgcolor: 'white',
               boxShadow: 'none',
             }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 No stores yet. Add a recommended shop from our curated list or create a custom one.
               </Typography>
             </Paper>
