@@ -327,6 +327,7 @@ const baseTheme = createTheme({
     MuiTextField: {
       styleOverrides: {
         root: {
+          marginTop: '8px',
           '& .MuiOutlinedInput-root': {
             '&.Mui-focused fieldset': {
               borderColor: '#DE3F5E',

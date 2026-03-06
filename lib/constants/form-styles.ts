@@ -4,6 +4,7 @@
  */
 
 export const ENHANCED_TEXT_FIELD_SX = {
+  mt: 1,
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
     bgcolor: 'white',
