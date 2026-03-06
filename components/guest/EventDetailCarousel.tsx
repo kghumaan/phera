@@ -86,7 +86,6 @@ const SlideContent = ({
             <Typography
               variant="subtitle2"
               sx={{
-                fontWeight: 600,
                 fontSize: { xs: 14, md: 16 },
                 lineHeight: 1.5,
                 letterSpacing: '0.1em',
@@ -126,7 +125,6 @@ const SlideContent = ({
             <Typography
               variant="subtitle2"
               sx={{
-                fontWeight: 600,
                 fontSize: { xs: 14, md: 16 },
                 lineHeight: 1.5,
                 letterSpacing: '0.1em',
@@ -170,8 +168,8 @@ const SlideContent = ({
         {/* Top Label */}
         {slide.top_label && (
           <Typography
+            variant="subtitleCaps"
             sx={{
-              fontWeight: 600,
               fontSize: { xs: 14, md: 16 },
               lineHeight: 1.5,
               letterSpacing: '0.15em',
@@ -208,7 +206,6 @@ const SlideContent = ({
           <Typography
             variant="body1"
             sx={{
-              fontWeight: 400,
               fontSize: { xs: 16, md: 20, lg: 22 },
               lineHeight: 1.6,
               color: textColor,
@@ -231,7 +228,6 @@ const SlideContent = ({
         <Typography
           variant="subtitle2"
           sx={{
-            fontWeight: 600,
             fontSize: { xs: 14, md: 16 },
             lineHeight: 1.5,
             letterSpacing: '0.1em',
@@ -365,7 +361,6 @@ export default function EventDetailCarousel({
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 500,
             fontSize: 14,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',

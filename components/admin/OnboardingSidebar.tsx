@@ -277,6 +277,7 @@ export default function OnboardingSidebar({
           <>
             {wedding?.couple_name && (
               <Typography
+                variant="body2"
                 sx={{
                   px: 2.25,
                   py: 0.5,

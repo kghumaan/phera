@@ -506,7 +506,7 @@ export default function CulturalGuide() {
                     {currentCeremony.participation.tips.map((tip, index) => (
                       <ListItem key={index}>
                         <ListItemIcon>
-                          <Typography sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
+                          <Typography variant="body1" sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
                             ✨
                           </Typography>
                         </ListItemIcon>
@@ -536,7 +536,7 @@ export default function CulturalGuide() {
                       {currentCeremony.gifts.suggestions.map((gift, index) => (
                         <ListItem key={index}>
                           <ListItemIcon>
-                            <Typography sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
+                            <Typography variant="body1" sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
                               💝
                             </Typography>
                           </ListItemIcon>

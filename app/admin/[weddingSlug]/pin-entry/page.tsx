@@ -273,7 +273,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           <Stack spacing={4}>
             {/* Button Color */}
             <Box>
-              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Color
               </Typography>
 
@@ -315,7 +315,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
             {/* Text Color */}
             <Box>
-              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Text Color
               </Typography>
 
@@ -360,7 +360,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
             {/* Button Text Color */}
             <Box>
-              <Typography variant="subtitleCaps" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Text Color
               </Typography>
 
@@ -505,7 +505,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                   lineHeight: 1.4,
                   maxWidth: 300,
                   mx: 'auto',
-                  fontWeight: 400,
                   textAlign: 'center',
                 }}
               >

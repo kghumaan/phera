@@ -528,7 +528,6 @@ export default function InfiniteScrollLayout({
           sx={{
             color: '#474747',
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
-            fontWeight: 400,
             lineHeight: 1.7,
             mb: 2,
           }}
@@ -544,7 +543,6 @@ export default function InfiniteScrollLayout({
           sx={{
             color: '#474747',
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
-            fontWeight: 400,
             lineHeight: 1.7,
             whiteSpace: 'pre-line',
           }}
@@ -721,7 +719,7 @@ export default function InfiniteScrollLayout({
                     >
                       {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                     </Typography>
-                    <Typography sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }}>
+                    <Typography variant="body1" sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }}>
                       {coupleData.flag}
                     </Typography>
                   </Stack>
@@ -1194,8 +1192,8 @@ export default function InfiniteScrollLayout({
                               }}
                             >
                               <Typography
+                                variant="subtitle1"
                                 sx={{
-                                  fontWeight: 600,
                                   color: '#141414',
                                   fontSize: { md: '0.95rem', lg: '1.05rem' },
                                 }}
@@ -1564,7 +1562,7 @@ export default function InfiniteScrollLayout({
         }}
       >
         <ViewSidebar sx={{ fontSize: 24, color: 'white' }} />
-        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: 'white', letterSpacing: '0.03em' }}>
+        <Typography variant="subtitleCaps" sx={{ fontSize: '1rem', color: 'white', letterSpacing: '0.03em' }}>
           Menu
         </Typography>
       </Box>

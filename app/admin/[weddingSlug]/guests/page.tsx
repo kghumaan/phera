@@ -498,7 +498,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         {/* Response Rate Progress - Show for all RSVP related tabs (0-3) */}
         {stats.total > 0 && activeTab <= 3 && (
           <Paper sx={{ p: 3, borderRadius: '16px', bgcolor: alpha('#fff', 0.95) }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+            <Typography variant="subtitle2" sx={{ mb: 2, color: '#1a1a1a' }}>
               Response Breakdown
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, height: 12, borderRadius: 6, overflow: 'hidden', bgcolor: '#f5f5f5' }}>
@@ -648,7 +648,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                               </Avatar>
                             )}
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                              <Typography variant="subtitle2" sx={{ color: '#1a1a1a' }}>
                                 {rsvp.guest?.name || 'Unknown'}
                               </Typography>
                               {rsvp.plus_one && rsvp.plus_one_name && (

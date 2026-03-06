@@ -477,7 +477,7 @@ export default function TransportationDashboard({
                 >
                   <Settings sx={{ color: '#DE3F5E', fontSize: 28 }} />
                 </Box>
-                <Typography sx={{ fontWeight: 600, color: '#1a1a1a', textAlign: 'center' }}>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', textAlign: 'center' }}>
                   Add transportation option?
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a', textAlign: 'center', maxWidth: 250 }}>
@@ -499,7 +499,7 @@ export default function TransportationDashboard({
       <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
         <DialogTitle>Finalize Bookings?</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography variant="body2">
             This will confirm {totalPendingCount} reservation(s). Guests will be notified that their
             transportation spot has been reserved.
           </Typography>
@@ -606,7 +606,7 @@ function VehicleColumn({
         />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <DirectionsBus sx={{ color: '#DE3F5E' }} />
-          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+          <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
             {vehicle ? vehicle.vehicle_name || 'Vehicle' : 'Unassigned'}
           </Typography>
           {vehicle && (
@@ -823,7 +823,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
         <DragIndicator sx={{ color: '#000', fontSize: 18 }} />
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
               {reservation.guest?.name || reservation.notes || 'Guest'}
             </Typography>
             <Chip
@@ -928,7 +928,7 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <DragIndicator sx={{ color: '#DE3F5E', fontSize: 18 }} />
         <Box sx={{ flex: 1 }}>
-          <Typography sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
+          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
             {reservation.guest?.name || 'Guest'}
           </Typography>
           {/* Guest preferences */}

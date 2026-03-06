@@ -472,7 +472,7 @@ function PrescheduledSetup({
           maxWidth: 1000,
         }}
       >
-        <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+        <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 2 }}>
           Add your {direction === 'arrival' ? 'pickup' : 'departure'} vehicles
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
@@ -495,7 +495,7 @@ function PrescheduledSetup({
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <DirectionsBus sx={{ color: '#DE3F5E' }} />
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                     Vehicle {index + 1}
                   </Typography>
                 </Box>
@@ -734,7 +734,7 @@ function FlexibleSetup({
             bgcolor: 'white',
           }}
         >
-          <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+          <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 1 }}>
             Pickup Locations
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
@@ -760,7 +760,7 @@ function FlexibleSetup({
                 >
                   <LocationOn sx={{ color: '#4CAF50', mr: 1 }} />
                   <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
                       {location.name}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
@@ -809,7 +809,7 @@ function FlexibleSetup({
           bgcolor: 'white',
         }}
       >
-        <Typography variant="subtitleCaps" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+        <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 1 }}>
           Available {direction === 'arrival' ? 'Pickup' : 'Departure'} Times
         </Typography>
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>

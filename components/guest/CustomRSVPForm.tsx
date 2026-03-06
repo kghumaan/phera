@@ -922,18 +922,17 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                             color: '#474747',
                             lineHeight: 1.5,
                             textAlign: 'center' as const,
-                            fontWeight: 400,
                             fontSize: { xs: '1.1rem', sm: '1.2rem' },
                           };
 
                           if (formData.attending === 'yes') {
                             return (
                               <>
-                                <Typography sx={headingStyle}>
+                                <Typography variant="h4" sx={headingStyle}>
                                   Yay! You're part of our celebration and we can't wait to have you there
                                 </Typography>
 
-                                <Typography sx={bodyStyle}>
+                                <Typography variant="body1" sx={bodyStyle}>
                                   Your room is booked and fully paid for! Check out the rest of the website for travel trips, event details, dress codes, etc. We may require more information from you closer to the wedding so keep an eye out for emails!
                                 </Typography>
                               </>
@@ -943,11 +942,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           if (formData.attending === 'maybe') {
                             return (
                               <>
-                                <Typography sx={headingStyle}>
+                                <Typography variant="h4" sx={headingStyle}>
                                   Thanks for letting us know!
                                 </Typography>
 
-                                <Typography sx={bodyStyle}>
+                                <Typography variant="body1" sx={bodyStyle}>
                                   We understand you need to figure some things out. Just remember: We need your final answer by <strong>September 30, 2025</strong>. We'll check in with you before then!
                                   {'\n\n'}
                                   Use your email or phone number to sign in anytime so you can update your response.
@@ -959,11 +958,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           if (formData.attending === 'no') {
                             return (
                               <>
-                                <Typography sx={headingStyle}>
+                                <Typography variant="h4" sx={headingStyle}>
                                   We'll miss you! :(
                                 </Typography>
 
-                                <Typography sx={bodyStyle}>
+                                <Typography variant="body1" sx={bodyStyle}>
                                   We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>.
                                 </Typography>
                               </>
@@ -1511,7 +1510,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
-                  fontWeight: 400,
                   lineHeight: 1.5,
                 }}
               >
@@ -1542,6 +1540,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       onClick={() => handleInputChange('attending', option.value)}
                     >
                       <Typography
+                        variant="body1"
                         sx={{
                           color: formData.attending === option.value ? '#DE3F5E' : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
@@ -1628,8 +1627,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                             mt: 2
                           }}
                         >
-                          <Typography sx={{
-                            fontWeight: 400,
+                          <Typography variant="body1" sx={{
                             lineHeight: 1.5,
                           }}>
                             📅  Final answer needed by: <strong>September 30, 2025</strong>
@@ -1673,8 +1671,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   mt: 2
                 }}
               >
-                <Typography variant="body2" sx={{ 
-                  fontWeight: 400,
+                <Typography variant="body2" sx={{
                   lineHeight: 1.5,
                 }}>
                   We'll miss you! We hope to celebrate with you in the future. 💕
@@ -1704,7 +1701,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
-                  fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
                 }}
@@ -1746,6 +1742,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       }}
                     >
                       <Typography
+                        variant="body1"
                         sx={{
                           color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
@@ -2031,6 +2028,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       }}
                     >
                       <Typography
+                        variant="body1"
                         sx={{
                           color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
@@ -2082,7 +2080,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
-                  fontWeight: 400,
                   mb: 2,
                 }}
               >
@@ -2123,7 +2120,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     minWidth: 60,
                     textAlign: 'center',
                     color: '#000',
-                    fontWeight: 500,
                     py: 1,
                   }}
                 >
@@ -2172,7 +2168,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
-                  fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
                 }}
@@ -2217,6 +2212,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       }}
                     >
                       <Typography
+                        variant="body1"
                         sx={{
                           color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
@@ -2324,7 +2320,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                 variant="body2"
                 sx={{
                   color: 'rgba(0, 0, 0, 0.48)',
-                  fontWeight: 400,
                   mt: 1,
                   lineHeight: 1.5,
                 }}
@@ -2357,6 +2352,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       onClick={() => handleInputChange('weddingSide', option.value)}
                     >
                       <Typography
+                        variant="body1"
                         sx={{
                           color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
@@ -2431,7 +2427,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
-                      fontWeight: 400,
                       lineHeight: 1.5,
                     }}
                   >
@@ -2498,7 +2493,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     variant="body2"
                     sx={{
                       color: 'rgba(0, 0, 0, 0.48)',
-                      fontWeight: 400,
                       lineHeight: 1.5,
                     }}
                   >
@@ -2812,7 +2806,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
       >
         <DialogTitle sx={{ color: '#000', background: 'transparent' }}>Leave RSVP?</DialogTitle>
         <DialogContent sx={{ color: '#000', background: 'transparent' }}>
-          <Typography sx={{ color: '#000' }}>
+          <Typography variant="body1" sx={{ color: '#000' }}>
             Are you sure you want to exit? Your changes will not be saved.
           </Typography>
         </DialogContent>

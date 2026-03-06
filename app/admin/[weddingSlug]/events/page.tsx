@@ -573,7 +573,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     />
 
                     <Box>
-                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>Background</Typography>
+                      <Typography variant="subtitle2" sx={{ mb: 2 }}>Background</Typography>
                       <Grid container spacing={1}>
                         {GRADIENT_BACKGROUNDS.map((bg) => (
                           <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={bg.value}>
@@ -615,7 +615,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                     </Box>
 
                     <Box>
-                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Want to display example outfits? Upload Here</Typography>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>Want to display example outfits? Upload Here</Typography>
                       <ImageUpload
                         value={currentEvent.outfit_example_url || ''}
                         onChange={(url) => updateCurrentEvent('outfit_example_url', url)}
@@ -631,7 +631,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                 <Box sx={{ pt: 3, borderTop: '1px solid #eee' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Event Detail Slides</Typography>
+                      <Typography variant="subtitle2">Event Detail Slides</Typography>
                       <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.85rem' }}>
                         These slides appear when guests click &quot;Learn More&quot; on this event
                       </Typography>
@@ -808,7 +808,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                           {event.dress_code_icon && (
                             <StreamlineIcon name={event.dress_code_icon as StreamlineIconName} size={24} color="#DE3F5E" />
                           )}
-                          <Typography variant="h6" sx={{ fontWeight: 500, fontSize: 18, color: '#000' }}>
+                          <Typography variant="h6" sx={{ fontSize: 18, color: '#000' }}>
                             {event.dress_code || 'No Dress Code Set'}
                           </Typography>
                         </Stack>
@@ -845,7 +845,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
               {events.length === 0 && (
                 <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white' }}>
-                  <Typography sx={{ color: '#6a6a6a' }}>
+                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                     No events yet. Add your first event to get started.
                   </Typography>
                 </Paper>
@@ -1042,7 +1042,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             {/* Image Type */}
             {currentSlide?.type === 'image' && (
               <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Slide Image</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Slide Image</Typography>
                 <ImageUpload
                   value={currentSlide?.src || ''}
                   onChange={(url) => setCurrentSlide({ ...currentSlide, src: url })}

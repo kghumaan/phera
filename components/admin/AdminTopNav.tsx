@@ -345,10 +345,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
                                             Test Mode
                                         </Typography>
-                                        <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                        <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#999' }}>
                                             Toggle plan for testing
                                         </Typography>
                                     </Box>
@@ -495,7 +495,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     Leave Admin Dashboard?
                 </DialogTitle>
                 <DialogContent>
-                    <Typography sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                    <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
                         You are about to be taken to the Home page. Any unsaved data may be lost.
                     </Typography>
                 </DialogContent>
