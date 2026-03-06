@@ -479,38 +479,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           {/* Wedding Date */}
           <Paper sx={sectionPaperSx}>
             <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
-              Wedding Date *
+              Wedding Dates *
             </Typography>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.is_one_day}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
-                        if (isChecked) {
-                          setWeddingDateEnd(weddingDateStart);
-                          if (!dateDisplayManuallyEdited) {
-                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
-                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
-                          }
-                        }
-                      }}
-                      sx={{
-                        color: '#DE3F5E',
-                        '&.Mui-checked': {
-                          color: '#DE3F5E',
-                        },
-                      }}
-                    />
-                  }
-                  label="This is a one day wedding"
-                  sx={{ color: '#4a4a4a', mb: 2 }}
-                />
-              </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <MobileDatePicker
                   label="Wedding Start Date"
@@ -622,6 +594,34 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   />
                 </Grid>
               )}
+              <Grid size={{ xs: 12 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.is_one_day}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
+                        if (isChecked) {
+                          setWeddingDateEnd(weddingDateStart);
+                          if (!dateDisplayManuallyEdited) {
+                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
+                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
+                          }
+                        }
+                      }}
+                      sx={{
+                        color: '#DE3F5E',
+                        '&.Mui-checked': {
+                          color: '#DE3F5E',
+                        },
+                      }}
+                    />
+                  }
+                  label="This is a one day wedding"
+                  sx={{ color: '#4a4a4a', mt: 0.5 }}
+                />
+              </Grid>
             </Grid>
           </LocalizationProvider>
           </Paper>
