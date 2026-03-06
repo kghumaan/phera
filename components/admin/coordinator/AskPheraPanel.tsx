@@ -117,7 +117,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
           >
             <AutoAwesome sx={{ fontSize: 16, color: '#DE3F5E' }} />
           </Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
             Ask Phera
           </Typography>
         </Box>
@@ -174,6 +174,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                 }}
               >
                 <Typography
+                  variant="body2"
                   sx={{
                     fontSize: '0.85rem',
                     lineHeight: 1.5,

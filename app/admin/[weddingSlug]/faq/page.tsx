@@ -234,7 +234,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               bgcolor: 'white',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
             }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 No FAQs yet. Add your first question.
               </Typography>
             </Paper>

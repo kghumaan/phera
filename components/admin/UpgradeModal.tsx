@@ -122,7 +122,7 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
           >
             Upgrade to Pro
           </Typography>
-          <Typography sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
             Unlock Travel Coordination, Phera Concierge, and all premium themes.
           </Typography>
         </Box>
@@ -137,7 +137,7 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
 
           {error && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography sx={{ color: '#c0392b', mb: 1 }}>{error}</Typography>
+              <Typography variant="body2" sx={{ color: '#c0392b', mb: 1 }}>{error}</Typography>
               <Typography
                 component="span"
                 onClick={fetchClientSecret}

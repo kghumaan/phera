@@ -161,7 +161,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           textAlign: 'center',
         }}
       >
-        <Typography sx={{ color: '#666' }}>Loading activity...</Typography>
+        <Typography variant="body2" sx={{ color: '#666' }}>Loading activity...</Typography>
       </Paper>
     );
   }

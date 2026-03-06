@@ -387,7 +387,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               bgcolor: 'white',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
             }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 No registry links yet. Add your first registry link to get started.
               </Typography>
             </Paper>

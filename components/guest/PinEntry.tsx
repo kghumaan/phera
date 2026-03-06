@@ -550,7 +550,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               lineHeight: 1.5,
               maxWidth: { xs: 355, sm: 400, lg: 800, xl: 800 },
               mx: 'auto',
-              fontWeight: 400,
               textAlign: 'center',
               px: 2,
             }}
@@ -698,7 +697,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           {/* Or Divider */}
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '354px' }}>
             <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
-            <Typography sx={{ px: 2, color: '#6a6a6a', fontSize: '0.875rem', fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ px: 2, color: '#6a6a6a', fontSize: '0.875rem', fontWeight: 500 }}>
               or
             </Typography>
             <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
