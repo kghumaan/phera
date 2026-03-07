@@ -26,7 +26,7 @@ import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
-import { BACKGROUNDS, BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
+import { BACKGROUNDS, BACKGROUND_UI_OPTIONS, FRAME_UI_OPTIONS } from '@/lib/constants/images';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -34,6 +34,9 @@ import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
+import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
+import ContinueButton from '@/components/admin/ContinueButton';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -49,18 +52,19 @@ const sectionPaperSx = {
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
 // Number of free options for basic plan
-const FREE_BACKGROUND_COUNT = 3;
-const FREE_COLOR_COUNT = 3;
+const FREE_BACKGROUND_COUNT = 4;
+const FREE_COLOR_COUNT = 5;
+const FREE_FRAME_COUNT = 4;
 
 const COLOR_OPTIONS = [
-  { name: 'Black', value: '#141414' },
   { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Black', value: '#141414' },
   { name: 'Plum', value: '#59114D' },
-  { name: 'Purple', value: '#AC3FBA' },
   { name: 'Ocean', value: '#004550' },
+  { name: 'Maroon', value: '#941C28' },
+  { name: 'Purple', value: '#AC3FBA' },
   { name: 'Sky', value: '#6290C8' },
   { name: 'Teal', value: '#489991' },
-  { name: 'Maroon', value: '#941C28' },
   { name: 'Green', value: '#76B041' },
   { name: 'Forest', value: '#59814B' },
   { name: 'Orange', value: '#DF6507' },
@@ -79,12 +83,15 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [proModalOpen, setProModalOpen] = useState(false);
+  const [proSelections, setProSelections] = useState<ProSelection[]>([]);
+  const { registerGuard, unregisterGuard } = useNavigationGuard();
 
   // Main site customization state
   const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
-  const [websiteLayout, setWebsiteLayout] = useState<'nested' | 'infinite_scroll'>('nested');
+  const [websiteLayout, setWebsiteLayout] = useState<'multi_page' | 'vertical_scroll'>('multi_page');
   const [frameImageUrl, setFrameImageUrl] = useState<string | null>(null);
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
@@ -100,13 +107,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     if (!isPro) {
       const mainBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === mainBackground);
       const mainColorIndex = COLOR_OPTIONS.findIndex(c => c.value === mainPrimaryColor);
+      const frameIndex = FRAME_UI_OPTIONS.findIndex(f => f.url === frameImageUrl);
 
       const hasProSelection =
         (mainBgIndex >= FREE_BACKGROUND_COUNT && !customMainBackground) ||
-        mainColorIndex >= FREE_COLOR_COUNT;
+        mainColorIndex >= FREE_COLOR_COUNT ||
+        frameIndex >= FREE_FRAME_COUNT;
 
       if (hasProSelection) {
-        setUpgradeModalOpen(true);
         return;
       }
     }
@@ -116,6 +124,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     const result = await weddingService.updateWedding(weddingId, {
       background_image: mainBackgroundToUse,
       primary_color: mainPrimaryColor,
+      pin_entry_primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
       couple_images: coupleImages.filter(img => img),
@@ -164,6 +173,61 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     debouncedSave,
   ]);
 
+
+  // Navigation guard: prompt on leave if pro selections exist
+  useEffect(() => {
+    if (isPro) return;
+
+    const getProSelections = () => {
+      const sels: ProSelection[] = [];
+      const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === mainBackground);
+      if (bgIndex >= FREE_BACKGROUND_COUNT && !customMainBackground) {
+        sels.push({ category: 'Background', name: BACKGROUND_OPTIONS[bgIndex].name });
+      }
+      const colorIndex = COLOR_OPTIONS.findIndex(c => c.value === mainPrimaryColor);
+      if (colorIndex >= FREE_COLOR_COUNT) {
+        sels.push({ category: 'Theme Color', name: COLOR_OPTIONS[colorIndex].name, color: mainPrimaryColor });
+      }
+      const frameIndex = FRAME_UI_OPTIONS.findIndex(f => f.url === frameImageUrl);
+      if (frameIndex >= FREE_FRAME_COUNT) {
+        sels.push({ category: 'Photo Frame', name: FRAME_UI_OPTIONS[frameIndex].name });
+      }
+      return sels;
+    };
+
+    registerGuard(() => {
+      const sels = getProSelections();
+      if (sels.length > 0) {
+        setProSelections(sels);
+        setProModalOpen(true);
+        return false;
+      }
+      return true;
+    });
+
+    return () => unregisterGuard();
+  }, [isPro, mainBackground, customMainBackground, mainPrimaryColor, frameImageUrl, registerGuard, unregisterGuard]);
+
+  // Beforeunload safety net
+  useEffect(() => {
+    if (isPro) return;
+
+    const handler = (e: BeforeUnloadEvent) => {
+      const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === mainBackground);
+      const colorIndex = COLOR_OPTIONS.findIndex(c => c.value === mainPrimaryColor);
+      const frameIndex = FRAME_UI_OPTIONS.findIndex(f => f.url === frameImageUrl);
+      const hasProSelection =
+        (bgIndex >= FREE_BACKGROUND_COUNT && !customMainBackground) ||
+        colorIndex >= FREE_COLOR_COUNT ||
+        frameIndex >= FREE_FRAME_COUNT;
+      if (hasProSelection) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isPro, mainBackground, customMainBackground, mainPrimaryColor, frameImageUrl]);
 
   // Background pagination state
   const [visibleMainBgs, setVisibleMainBgs] = useState(8);
@@ -224,7 +288,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         // Load main site customizations
         setMainBackground(wedding.background_image || BACKGROUNDS.BLUE_CLOUDS);
         setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
-        setWebsiteLayout((wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested');
+        const rawLayout = wedding.website_layout as string;
+        // Normalize legacy DB values
+        const normalizedLayout: 'multi_page' | 'vertical_scroll' =
+          (rawLayout === 'infinite_scroll' || rawLayout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
+        setWebsiteLayout(normalizedLayout);
         setFrameImageUrl(wedding.frame_image_url || null);
 
         // Load couple images
@@ -242,7 +310,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         setInitialDesignData({
           background_image: wedding.background_image || BACKGROUNDS.BLUE_CLOUDS,
           primary_color: wedding.primary_color || '#DE3F5E',
-          website_layout: (wedding.website_layout as 'nested' | 'infinite_scroll') || 'nested',
+          website_layout: normalizedLayout,
           frame_image_url: wedding.frame_image_url || null,
           couple_images: loadedCoupleImages.filter(img => img),
         });
@@ -293,7 +361,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
             <RadioGroup
               value={websiteLayout}
-              onChange={(e) => setWebsiteLayout(e.target.value as 'nested' | 'infinite_scroll')}
+              onChange={(e) => setWebsiteLayout(e.target.value as 'multi_page' | 'vertical_scroll')}
               sx={{ flexDirection: 'row', gap: 1.5 }}
             >
               <Grid container spacing={1.5}>
@@ -303,22 +371,22 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       p: 1.5,
                       borderRadius: '10px',
                       bgcolor: '#ffffff',
-                      border: websiteLayout === 'nested' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                      border: websiteLayout === 'multi_page' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
                       '&:hover': { borderColor: '#DE3F5E' },
                     }}
-                    onClick={() => setWebsiteLayout('nested')}
+                    onClick={() => setWebsiteLayout('multi_page')}
                   >
                     <FormControlLabel
-                      value="nested"
+                      value="multi_page"
                       control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
                       label={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              Nested
+                              Multi-Page
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
                               Guests tap &apos;View Details&apos; to see event info
@@ -338,22 +406,22 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       p: 1.5,
                       borderRadius: '10px',
                       bgcolor: '#ffffff',
-                      border: websiteLayout === 'infinite_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                      border: websiteLayout === 'vertical_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
                       '&:hover': { borderColor: '#DE3F5E' },
                     }}
-                    onClick={() => setWebsiteLayout('infinite_scroll')}
+                    onClick={() => setWebsiteLayout('vertical_scroll')}
                   >
                     <FormControlLabel
-                      value="infinite_scroll"
+                      value="vertical_scroll"
                       control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
                       label={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              Infinite Scroll
+                              Vertical Scroll
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
                               All details shown as you scroll down
@@ -391,7 +459,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       sx={{
                         width: '100%',
                         aspectRatio: '1/1',
-                        backgroundImage: `url(${bg.url})`,
+                        backgroundImage: `url(${bg.thumbUrl})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         borderRadius: 1,
@@ -496,13 +564,17 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
               })}
             </Grid>
 
-            <TextField
-              label="Custom Hex"
-              value={mainPrimaryColor}
-              onChange={(e) => setMainPrimaryColor(e.target.value)}
-              placeholder="#DE3F5E"
-              sx={{ ...textFieldSx, maxWidth: 200 }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TextField
+                label="Custom Hex"
+                value={mainPrimaryColor}
+                onChange={(e) => setMainPrimaryColor(e.target.value)}
+                placeholder="#DE3F5E"
+                disabled={!isPro}
+                sx={{ ...textFieldSx, maxWidth: 200 }}
+              />
+              {!isPro && <ProBadge position="inline" />}
+            </Box>
           </Paper>
 
           {/* Images & Frames */}
@@ -513,11 +585,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                   Couple Photos (up to 6)
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                  Add multiple photos of the couple. Recommended size: 800x800px each
+                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                  Add multiple photos of the couple. Drag to re-order — the first photo is used as the main image.
                 </Typography>
 
-                {/* Add Photo Button */}
+                {/* Add Photos Button (multiple) */}
                 {coupleImages.filter(img => img).length < 6 && (
                   <Box sx={{ mb: 2 }}>
                     <Button
@@ -527,22 +599,27 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         const input = document.createElement('input');
                         input.type = 'file';
                         input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                        input.multiple = true;
                         input.onchange = async (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) {
-                            const { uploadImage } = await import('@/lib/utils/image-upload');
+                          const files = Array.from((e.target as HTMLInputElement).files || []);
+                          if (!files.length) return;
+                          const currentCount = coupleImages.filter(img => img).length;
+                          const slotsAvailable = 6 - currentCount;
+                          const filesToUpload = files.slice(0, slotsAvailable);
+                          const { uploadImage } = await import('@/lib/utils/image-upload');
+                          const newImages = [...coupleImages];
+                          for (const file of filesToUpload) {
                             const result = await uploadImage(file, getWeddingImagePath(weddingId!, 'couple'));
                             if (result.success && result.url) {
-                              const newImages = [...coupleImages];
                               const nextEmptyIndex = newImages.findIndex(img => !img);
                               if (nextEmptyIndex !== -1) {
                                 newImages[nextEmptyIndex] = result.url;
                               } else {
                                 newImages.push(result.url);
                               }
-                              setCoupleImages(newImages.slice(0, 6));
                             }
                           }
+                          setCoupleImages(newImages.slice(0, 6));
                         };
                         input.click();
                       }}
@@ -558,12 +635,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         },
                       }}
                     >
-                      Add Photo
+                      Add Photos
                     </Button>
                   </Box>
                 )}
 
-                {/* Horizontal scrollable thumbnails */}
+                {/* Horizontal scrollable thumbnails with drag-to-reorder */}
                 {coupleImages.filter(img => img).length > 0 && (
                   <Box
                     sx={{
@@ -588,7 +665,36 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       const originalIndex = coupleImages.indexOf(img);
                       return (
                         <Box
-                          key={originalIndex}
+                          key={img}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', String(actualIndex));
+                            (e.currentTarget as HTMLElement).style.opacity = '0.5';
+                          }}
+                          onDragEnd={(e) => {
+                            (e.currentTarget as HTMLElement).style.opacity = '1';
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).style.outline = '2px dashed #DE3F5E';
+                          }}
+                          onDragLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.outline = 'none';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).style.outline = 'none';
+                            const fromVisualIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                            const toVisualIndex = actualIndex;
+                            if (fromVisualIndex === toVisualIndex) return;
+                            // Get only non-null images, reorder, then pad back
+                            const active = coupleImages.filter((i): i is string => i !== null && i !== '');
+                            const [moved] = active.splice(fromVisualIndex, 1);
+                            active.splice(toVisualIndex, 0, moved);
+                            const padded: (string | null)[] = [...active];
+                            while (padded.length < 6) padded.push(null);
+                            setCoupleImages(padded);
+                          }}
                           sx={{
                             position: 'relative',
                             minWidth: 160,
@@ -597,21 +703,27 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             flexShrink: 0,
                             borderRadius: 1,
                             overflow: 'hidden',
-                            border: originalIndex === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
+                            border: actualIndex === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
                             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                            cursor: 'grab',
+                            '&:active': { cursor: 'grabbing' },
+                            transition: 'transform 0.15s ease',
+                            '&:hover': { transform: 'scale(1.02)' },
                           }}
                         >
                           <Box
                             component="img"
                             src={img}
-                            alt={`Couple photo ${originalIndex + 1}`}
+                            alt={`Couple photo ${actualIndex + 1}`}
+                            draggable={false}
                             sx={{
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
+                              pointerEvents: 'none',
                             }}
                           />
-                          {originalIndex === 0 && (
+                          {actualIndex === 0 && (
                             <Chip
                               label="Main"
                               size="small"
@@ -630,10 +742,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             size="small"
                             onClick={async () => {
                               const { deleteImage } = await import('@/lib/utils/image-upload');
-                              // deleteImage may log "Invalid URL format" for external URLs — safe to ignore
                               await deleteImage(img).catch(() => { });
-                              // Remove the image and compact: shift remaining images forward
-                              // so the next image becomes the new "Main"
                               const remaining = coupleImages.filter((_, i) => i !== originalIndex).filter(i => i);
                               while (remaining.length < 6) remaining.push(null);
                               setCoupleImages(remaining);
@@ -670,20 +779,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Typography>
 
                 <Grid container spacing={2}>
-                  {[
-                    { id: 'frame-1', url: '/images/frames/frame-1.png', name: 'Frame 1' },
-                    { id: 'frame-2', url: '/images/frames/frame-2.png', name: 'Frame 2' },
-                    { id: 'frame-3', url: '/images/frames/frame-3.png', name: 'Frame 3' },
-                    { id: 'frame-4', url: '/images/frames/frame-4.png', name: 'Frame 4' },
-                    { id: 'frame-5', url: '/images/frames/frame-5.png', name: 'Frame 5' },
-                    { id: 'frame-6', url: '/images/frames/frame-6.png', name: 'Frame 6' },
-                    { id: 'frame-7', url: '/images/frames/frame-7.png', name: 'Frame 7' },
-                    { id: 'frame-8', url: '/images/frames/frame-8.png', name: 'Frame 8' },
-                    { id: 'frame-9', url: '/images/frames/frame-9.png', name: 'Frame 9' },
-                    { id: 'frame-10', url: '/images/frames/frame-10.png', name: 'Frame 10' },
-                    { id: 'frame-11', url: '/images/frames/frame-11.png', name: 'Frame 11' },
-                    { id: 'frame-12', url: '/images/frames/frame-12.png', name: 'Frame 12' },
-                  ].map((frame) => (
+                  {FRAME_UI_OPTIONS.map((frame, index) => {
+                    const isProFrame = index >= FREE_FRAME_COUNT;
+                    return (
                     <Grid size={{ xs: 6, sm: 4, md: 3 }} key={frame.id}>
                       <Box
                         onClick={() => setFrameImageUrl(frame.url)}
@@ -706,7 +804,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       >
                         <Box
                           component="img"
-                          src={frame.url}
+                          src={frame.thumbUrl}
                           alt={frame.name}
                           sx={{
                             width: '100%',
@@ -715,6 +813,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             p: 1,
                           }}
                         />
+                        {isProFrame && !isPro && <ProBadge position="corner" />}
                         {frameImageUrl === frame.url && (
                           <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
                             <Check sx={{ color: 'white', fontSize: 14 }} />
@@ -725,7 +824,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         {frame.name}
                       </Typography>
                     </Grid>
-                  ))}
+                    );
+                  })}
                 </Grid>
               </Box>
             </Stack>
@@ -748,12 +848,24 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           </Alert>
         </Snackbar>
 
+        {/* Pro Selections Modal */}
+        <ProSelectionsModal
+          open={proModalOpen}
+          selections={proSelections}
+          onCancel={() => setProModalOpen(false)}
+          onUpgrade={() => {
+            setProModalOpen(false);
+            setUpgradeModalOpen(true);
+          }}
+        />
+
         {/* Upgrade Modal */}
         <UpgradeModal
           open={upgradeModalOpen}
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack >
+      <ContinueButton weddingSlug={weddingSlug} currentSection="design" weddingId={weddingId} />
     </Box>
   );
 }

@@ -124,7 +124,7 @@ export default function PrivacyPage() {
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1, fontWeight: 'medium' }}>
                   Ghumaan Ventures LLC<br />
-                  Email: <a href="mailto:kv@phera.io" className="text-[#DE3F5E] hover:underline">kv@phera.io</a>
+                  Email: <a href="mailto:contact@phera.io" className="text-[#DE3F5E] hover:underline">contact@phera.io</a>
                 </Typography>
               </section>
             </Stack>

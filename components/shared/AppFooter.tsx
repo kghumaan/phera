@@ -99,7 +99,7 @@ export default function AppFooter() {
                             </IconButton>
                             <IconButton
                                 component="a"
-                                href="mailto:kv@phera.io"
+                                href="mailto:contact@phera.io"
                                 sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
                             >
                                 <Email />

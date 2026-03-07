@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
+import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import Image from 'next/image';
 import FAQPage from '@/app/(guest)/[weddingSlug]/faq/page';
 import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
@@ -55,6 +55,10 @@ const useCountdown = (targetDate: string) => {
 
 const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   const timeLeft = useCountdown(targetDate);
+
+  // Hide countdown when date is TBD (epoch sentinel)
+  if (new Date(targetDate).getTime() === 0) return null;
+
   const timeUnits = [
     { label: 'months', value: timeLeft.months },
     { label: 'days', value: timeLeft.days },
@@ -264,7 +268,7 @@ function SectionPreviewContent({ section }: { section: string }) {
         </Box>
       </Box>
 
-      <InfiniteScrollLayout
+      <VerticalScrollLayout
         wedding={{
           id: wedding.id,
           couple_name: wedding.couple_name,

@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { format, parseISO } from 'date-fns';
 import { weddingService, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
 import { getTransportationSettings } from '@/lib/supabase/transportation-service';
 import GuestList from '@/components/guest/GuestList';
@@ -39,7 +40,6 @@ interface WeddingData {
   wedding_date_display: string;
   venue_name: string;
   venue_location?: string;
-  show_venue_location?: boolean | null;
   venue_flag: string;
   rsvp_deadline: string;
   welcome_text?: string;
@@ -48,7 +48,7 @@ interface WeddingData {
   frame_image_url?: string | null;
 }
 
-interface InfiniteScrollLayoutProps {
+interface VerticalScrollLayoutProps {
   wedding: WeddingData;
   weddingSlug: string;
   isBypassPin: boolean;
@@ -175,15 +175,15 @@ const ScrollBasedCarousel = ({
 };
 
 // Compact Guest List - shows limited height with expand option
-const CompactGuestList = ({ weddingId, weddingSlug }: { weddingId: string; weddingSlug?: string }) => {
+const CompactGuestList = ({ weddingId, weddingSlug, primaryColor }: { weddingId: string; weddingSlug?: string; primaryColor?: string }) => {
   return (
     <Box sx={{ width: '100%' }}>
-      <GuestList weddingId={weddingId} weddingSlug={weddingSlug} compact initialTab={1} />
+      <GuestList weddingId={weddingId} weddingSlug={weddingSlug} compact initialTab={1} primaryColor={primaryColor} />
     </Box>
   );
 };
 
-export default function InfiniteScrollLayout({
+export default function VerticalScrollLayout({
   wedding,
   weddingSlug,
   isBypassPin,
@@ -193,7 +193,7 @@ export default function InfiniteScrollLayout({
   CountdownTimer,
   headerRef,
   initialSection,
-}: InfiniteScrollLayoutProps) {
+}: VerticalScrollLayoutProps) {
   const [currentSection, setCurrentSection] = useState(0);
   const [guestListExpanded, setGuestListExpanded] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -226,7 +226,7 @@ export default function InfiniteScrollLayout({
   const registryRef = useRef<HTMLDivElement>(null);
   const shopRef = useRef<HTMLDivElement>(null);
 
-  const primaryColor = '#DE3F5E'; // Force primary pink as requested
+  const primaryColor = wedding.primary_color || '#DE3F5E';
 
   // Fetch section data
   useEffect(() => {
@@ -419,7 +419,6 @@ export default function InfiniteScrollLayout({
     weddingDate: wedding.wedding_date,
     venue: wedding.venue_name,
     venueLocation: wedding.venue_location || '',
-    showVenueLocation: wedding.show_venue_location !== false,
     flag: wedding.venue_flag,
     rsvpDeadline: wedding.rsvp_deadline,
     coupleImages: wedding.couple_images || [],
@@ -609,8 +608,7 @@ export default function InfiniteScrollLayout({
               <Typography
                 variant="h2"
                 sx={{
-                  // fontSize: { md: '2.8rem', lg: '3.2rem', xl: '3.8rem' },
-                  // color: '#000',
+                  color: '#1a1a1a',
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
@@ -717,7 +715,7 @@ export default function InfiniteScrollLayout({
                         textDecoration: 'underline',
                       }}
                     >
-                      {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
+                      {coupleData.venue}{coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }}>
                       {coupleData.flag}
@@ -783,18 +781,20 @@ export default function InfiniteScrollLayout({
                       RSVP
                     </Button>
                   </motion.div>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: '#777',
-                      fontSize: '0.85rem',
-                      textAlign: 'center',
-                      lineHeight: 1.4,
-                      mt: 1.5,
-                    }}
-                  >
-                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
-                  </Typography>
+                  {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#777',
+                        fontSize: '0.85rem',
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                        mt: 1.5,
+                      }}
+                    >
+                      Please RSVP by {(() => { try { return format(parseISO(coupleData.rsvpDeadline), 'MMMM d, yyyy'); } catch { return coupleData.rsvpDeadline; } })()}
+                    </Typography>
+                  )}
                 </Box>
               )}
 
@@ -807,7 +807,7 @@ export default function InfiniteScrollLayout({
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true, margin: '-100px' }}
                   >
-                    <CompactGuestList weddingId={wedding.id} weddingSlug={weddingSlug} />
+                    <CompactGuestList weddingId={wedding.id} weddingSlug={weddingSlug} primaryColor={primaryColor} />
                   </motion.div>
                 </Box>
               )}
@@ -1467,6 +1467,7 @@ export default function InfiniteScrollLayout({
             textColor={selectedEvent.text_color || '#FFFFFF'}
             gradientBackground={selectedEvent.gradient_background || null}
             onClose={handleCloseEventCarousel}
+            primaryColor={primaryColor}
           />
         ) : (
           <Box
@@ -1602,7 +1603,7 @@ export default function InfiniteScrollLayout({
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: '#FAF6F1',
-                backgroundImage: 'url(/images/backgrounds/pearl.png)',
+                backgroundImage: 'url(/images/backgrounds/pearl.webp)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}

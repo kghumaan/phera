@@ -43,14 +43,14 @@ import {
   Remove as RemoveIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { submitRSVP, getExistingRSVP } from '@/lib/supabase/rsvp-service';
+import { submitRSVP, getExistingRSVP, getCustomQuestions } from '@/lib/supabase/rsvp-service';
 import { RSVPFormData as SupabaseRSVPFormData } from '@/lib/supabase/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
-import { GifData, RSVPFormData } from '@/lib/supabase/types';
+import { GifData, RSVPFormData, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 
@@ -76,19 +76,7 @@ const initialFormData: RSVPFormData = {
   specialMessage: '',
   maybeComment: '',
   selectedGif: undefined,
-  arrivalOption: '',
-  arrivalDate: '',
-  // Flight Details
-  flightAirline: '',
-  flightNumber: '',
-  flightDepartureAirport: '',
-  flightArrivalAirport: '',
-  flightDepartureDate: '',
-  flightDepartureTime: '',
-  flightArrivalDate: '',
-  flightArrivalTime: '',
-  shuttlePreferenceTime: '',
-  shuttlePreferenceNote: '',
+  custom_answers: {},
 };
 
 const foodPreferences = [
@@ -164,9 +152,11 @@ const countryCodes = [
 
 interface CustomRSVPFormProps {
   weddingId?: string;
+  primaryColor?: string;
 }
 
-export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: CustomRSVPFormProps) {
+export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryColor }: CustomRSVPFormProps) {
+  const themeColor = primaryColor || '#DE3F5E';
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -180,6 +170,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+
+  // Custom question steps
+  const [customQuestionSteps, setCustomQuestionSteps] = useState<RSVPCustomQuestionStep[]>([]);
 
   // Authentication states for Account Creation step
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -203,6 +196,19 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     }
   }, [allowsPlusOne]);
 
+  // Fetch custom question steps
+  useEffect(() => {
+    const fetchCustomQuestions = async () => {
+      try {
+        const steps = await getCustomQuestions(weddingId);
+        setCustomQuestionSteps(steps);
+      } catch (err) {
+        console.error('Error fetching custom questions:', err);
+      }
+    };
+    fetchCustomQuestions();
+  }, [weddingId]);
+
   // Steps definition - includes Phera Concierge as final step for attending guests
   const steps = allowsPlusOne ? [
     'Basic Information',
@@ -220,6 +226,37 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     'Personal Details',
     'Fun & Messages',
   ];
+
+  // Merge fixed steps with custom question steps
+  const mergedSteps: (string | RSVPCustomQuestionStep)[] = (() => {
+    const result: (string | RSVPCustomQuestionStep)[] = [];
+    const allFixedNames = new Set(steps);
+    for (const fixedStep of steps) {
+      result.push(fixedStep);
+      const stepsAfterThis = customQuestionSteps
+        .filter(s => s.insert_after === fixedStep)
+        .sort((a, b) => a.order_index - b.order_index);
+      result.push(...stepsAfterThis);
+    }
+    const orphans = customQuestionSteps.filter(s => !allFixedNames.has(s.insert_after));
+    result.push(...orphans);
+    return result;
+  })();
+
+  // Helper to get step name for display/logic
+  const getStepName = (step: string | RSVPCustomQuestionStep): string => {
+    return typeof step === 'string' ? step : step.step_title;
+  };
+
+  // Helper to check if current step is a custom step
+  const isCustomStep = (stepIndex: number): boolean => {
+    return typeof mergedSteps[stepIndex] !== 'string';
+  };
+
+  const getCustomStepData = (stepIndex: number): RSVPCustomQuestionStep | null => {
+    const step = mergedSteps[stepIndex];
+    return typeof step === 'string' ? null : step;
+  };
 
   // Fetch existing RSVP data when component mounts and user is authenticated
   useEffect(() => {
@@ -503,8 +540,23 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // Handle custom step validation
+    const customStep = getCustomStepData(step);
+    if (customStep) {
+      customStep.questions.forEach(q => {
+        if (q.required) {
+          const answer = formData.custom_answers?.[q.id];
+          if (!answer || (typeof answer === 'string' && !answer.trim())) {
+            newErrors[`custom_${q.id}`] = `${q.label} is required`;
+          }
+        }
+      });
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    }
+
     // Get the step name to determine validation
-    const stepName = steps[step];
+    const stepName = mergedSteps[step] as string;
 
     switch (stepName) {
       case 'Basic Information':
@@ -578,7 +630,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
   };
 
   const handleNext = () => {
-    const currentStepName = steps[currentStep];
+    const currentStepItem = mergedSteps[currentStep];
+    const currentStepName = getStepName(currentStepItem);
 
     // Special handling for Account Creation step
     if (currentStepName === 'Account Creation') {
@@ -597,7 +650,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
       // If the user just completed Basic Info and is already authenticated,
       // skip the Account Creation step entirely
       if (currentStepName === 'Basic Information' && isAuthenticated) {
-        const attendanceStepIndex = steps.indexOf('Attendance Details');
+        const attendanceStepIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'Attendance Details');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentStep(attendanceStepIndex);
         return;
@@ -616,10 +669,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
       // If plus-ones are allowed and user is not attending yes, skip the plus-one section
       if (currentStepName === 'Attendance Details' && allowsPlusOne && formData.attending !== 'yes') {
         // Find the index of Event Preferences and go there
-        const eventPrefsIndex = steps.indexOf('Event Preferences');
+        const eventPrefsIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'Event Preferences');
         setCurrentStep(eventPrefsIndex);
       } else {
-        setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+        setCurrentStep(prev => Math.min(prev + 1, mergedSteps.length - 1));
       }
     }
   };
@@ -1003,7 +1056,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       size="large"
                       fullWidth
                       sx={{
-                        backgroundColor: '#DE3F5E',
+                        backgroundColor: themeColor,
                         color: 'white',
                         py: { xs: 1.5, sm: 1.5 },
                         fontWeight: 700,
@@ -1029,9 +1082,205 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
     );
   }
 
+  const handleCustomAnswerChange = (questionId: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      custom_answers: {
+        ...(prev.custom_answers || {}),
+        [questionId]: value,
+      },
+    }));
+    // Clear error for this field
+    setErrors(prev => {
+      const updated = { ...prev };
+      delete updated[`custom_${questionId}`];
+      return updated;
+    });
+  };
+
+  const renderCustomStep = (step: RSVPCustomQuestionStep) => {
+    return (
+      <Stack spacing={2}>
+        <Typography
+          variant="h4"
+          sx={{
+            color: '#000',
+            fontWeight: 400,
+            lineHeight: 1.3,
+            mb: 2,
+            fontSize: { xs: '1.75rem', md: '2.25rem' },
+          }}
+        >
+          {step.step_title}
+        </Typography>
+
+        {step.questions.map(q => {
+          const value = formData.custom_answers?.[q.id] || '';
+          const errorKey = `custom_${q.id}`;
+          const hasError = !!errors[errorKey];
+
+          return (
+            <Box key={q.id}>
+              {q.type === 'short_text' && (
+                <Box
+                  sx={{
+                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                    placeholder={q.label + (q.required ? ' *' : '')}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontSize: '1rem',
+                      color: '#000',
+                      background: 'transparent',
+                    }}
+                  />
+                </Box>
+              )}
+              {q.type === 'long_text' && (
+                <Box
+                  sx={{
+                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                  }}
+                >
+                  <textarea
+                    value={value}
+                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                    placeholder={q.label + (q.required ? ' *' : '')}
+                    rows={3}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontSize: '1rem',
+                      color: '#000',
+                      background: 'transparent',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </Box>
+              )}
+              {q.type === 'numeric' && (
+                <Box
+                  sx={{
+                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
+                    borderRadius: { xs: '8px', md: '10px' },
+                    padding: { xs: '12px 12px', md: '14px 16px' },
+                    backgroundColor: 'white',
+                    height: { xs: '40px', md: '52px' },
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <input
+                    type="number"
+                    value={value}
+                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                    placeholder={q.label + (q.required ? ' *' : '')}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontSize: '1rem',
+                      color: '#000',
+                      background: 'transparent',
+                    }}
+                  />
+                </Box>
+              )}
+              {q.type === 'dropdown' && (
+                <FormControl fullWidth error={hasError}>
+                  <Select
+                    value={value}
+                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                    displayEmpty
+                    sx={{
+                      borderRadius: { xs: '8px', md: '10px' },
+                      bgcolor: 'white',
+                      color: value ? '#000' : '#999',
+                      '& fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)' },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      <Typography sx={{ color: '#999' }}>
+                        {q.label}{q.required ? ' *' : ''}
+                      </Typography>
+                    </MenuItem>
+                    {(q.options || []).map((opt, i) => (
+                      <MenuItem key={i} value={opt}>{opt}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              {q.type === 'date' && (
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#808080', mb: 0.5 }}>
+                    {q.label}{q.required ? ' *' : ''}
+                  </Typography>
+                  <Box
+                    sx={{
+                      border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
+                      borderRadius: { xs: '8px', md: '10px' },
+                      padding: { xs: '12px 12px', md: '14px 16px' },
+                      backgroundColor: 'white',
+                      height: { xs: '40px', md: '52px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <input
+                      type="date"
+                      value={value}
+                      onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        fontSize: '1rem',
+                        color: '#000',
+                        background: 'transparent',
+                      }}
+                    />
+                  </Box>
+                </Box>
+              )}
+              {hasError && (
+                <Typography variant="caption" sx={{ color: '#d32f2f', mt: 0.5, display: 'block' }}>
+                  {errors[errorKey]}
+                </Typography>
+              )}
+            </Box>
+          );
+        })}
+      </Stack>
+    );
+  };
+
   const renderStep = () => {
+    // Check if this is a custom step
+    const customStep = getCustomStepData(currentStep);
+    if (customStep) {
+      return renderCustomStep(customStep);
+    }
+
     // Get step name to determine which content to render
-    const stepName = steps[currentStep];
+    const stepName = mergedSteps[currentStep] as string;
 
     switch (stepName) {
       case 'Basic Information':
@@ -1078,7 +1327,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DE3F5E',
+                      borderColor: themeColor,
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -1122,7 +1371,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DE3F5E',
+                      borderColor: themeColor,
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -1167,7 +1416,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     borderColor: 'rgba(0, 0, 0, 0.4)',
                   },
                   '&:focus-within': {
-                    borderColor: '#DE3F5E',
+                    borderColor: themeColor,
                     borderWidth: '2px',
                     padding: { xs: '11px 11px', md: '13px 15px' },
                   },
@@ -1309,7 +1558,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
 
             {isAuthenticated ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <CheckCircleOutlined sx={{ fontSize: 64, color: '#DE3F5E', mb: 2 }} />
+                <CheckCircleOutlined sx={{ fontSize: 64, color: themeColor, mb: 2 }} />
                 <Typography variant="h6" sx={{ color: '#000', mb: 1 }}>
                   You're all set!
                 </Typography>
@@ -1334,7 +1583,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         borderColor: 'rgba(0, 0, 0, 0.4)',
                       },
                       '&:focus-within': {
-                        borderColor: '#DE3F5E',
+                        borderColor: themeColor,
                         borderWidth: '2px',
                         padding: { xs: '11px 11px', md: '13px 15px' },
                       },
@@ -1378,7 +1627,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                         borderColor: 'rgba(0, 0, 0, 0.4)',
                       },
                       '&:focus-within': {
-                        borderColor: '#DE3F5E',
+                        borderColor: themeColor,
                         borderWidth: '2px',
                         padding: { xs: '11px 11px', md: '13px 15px' },
                       },
@@ -1413,7 +1662,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                   onClick={handleEmailPasswordAuth}
                   disabled={isAuthenticating}
                   sx={{
-                    bgcolor: '#DE3F5E',
+                    bgcolor: themeColor,
                     color: 'white',
                     py: 1.5,
                     borderRadius: '32px',
@@ -1426,7 +1675,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                     },
                     '&:disabled': {
-                      bgcolor: alpha('#DE3F5E', 0.5),
+                      bgcolor: alpha(themeColor, 0.5),
                     },
                   }}
                 >
@@ -1470,8 +1719,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                     fontWeight: 500,
                     bgcolor: 'white',
                     '&:hover': {
-                      borderColor: '#DE3F5E',
-                      bgcolor: alpha('#DE3F5E', 0.05),
+                      borderColor: themeColor,
+                      bgcolor: alpha(themeColor, 0.05),
                       borderWidth: '1.5px',
                     },
                     '&:disabled': {
@@ -1542,7 +1791,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.attending === option.value ? '#DE3F5E' : '#141414',
+                          color: formData.attending === option.value ? themeColor : '#141414',
                           fontWeight: formData.attending === option.value ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -1556,11 +1805,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          border: `2px solid ${formData.attending === option.value ? '#DE3F5E' : '#141414'}`,
+                          border: `2px solid ${formData.attending === option.value ? themeColor : '#141414'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: formData.attending === option.value ? '#DE3F5E' : 'transparent',
+                          backgroundColor: formData.attending === option.value ? themeColor : 'transparent',
                         }}
                       >
                         {formData.attending === option.value && (
@@ -1591,7 +1840,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                               borderColor: 'rgba(0, 0, 0, 0.4)',
                             },
                             '&:focus-within': {
-                              borderColor: '#DE3F5E',
+                              borderColor: themeColor,
                               borderWidth: '2px',
                               padding: '7px 11px',
                             },
@@ -1744,7 +1993,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.plusOne === 'yes' ? '#DE3F5E' : '#000',
+                          color: formData.plusOne === 'yes' ? themeColor : '#000',
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -1758,11 +2007,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          border: `2px solid ${formData.plusOne === 'yes' ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          border: `2px solid ${formData.plusOne === 'yes' ? themeColor : 'rgba(0, 0, 0, 0.3)'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: formData.plusOne === 'yes' ? '#DE3F5E' : 'transparent',
+                          backgroundColor: formData.plusOne === 'yes' ? themeColor : 'transparent',
                         }}
                       >
                         {formData.plusOne === 'yes' && (
@@ -1796,7 +2045,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   borderColor: 'rgba(0, 0, 0, 0.4)',
                                 },
                                 '&:focus-within': {
-                                  borderColor: '#DE3F5E',
+                                  borderColor: themeColor,
                                   borderWidth: '2px',
                                   padding: { xs: '11px 11px', md: '13px 15px' },
                                 },
@@ -1842,7 +2091,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                   borderColor: 'rgba(0, 0, 0, 0.4)',
                                 },
                                 '&:focus-within': {
-                                  borderColor: '#DE3F5E',
+                                  borderColor: themeColor,
                                   borderWidth: '2px',
                                   padding: { xs: '11px 11px', md: '13px 15px' },
                                 },
@@ -1885,7 +2134,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 borderColor: 'rgba(0, 0, 0, 0.4)',
                               },
                               '&:focus-within': {
-                                borderColor: '#DE3F5E',
+                                borderColor: themeColor,
                                 borderWidth: '2px',
                                 padding: { xs: '11px 11px', md: '13px 15px' },
                               },
@@ -1930,7 +2179,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                                 borderColor: 'rgba(0, 0, 0, 0.4)',
                               },
                               '&:focus-within': {
-                                borderColor: '#DE3F5E',
+                                borderColor: themeColor,
                                 borderWidth: '2px',
                                 padding: '5px 7px',
                               },
@@ -2030,7 +2279,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.plusOne === 'no' ? '#DE3F5E' : '#000',
+                          color: formData.plusOne === 'no' ? themeColor : '#000',
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2043,11 +2292,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          border: `2px solid ${formData.plusOne === 'no' ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          border: `2px solid ${formData.plusOne === 'no' ? themeColor : 'rgba(0, 0, 0, 0.3)'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: formData.plusOne === 'no' ? '#DE3F5E' : 'transparent',
+                          backgroundColor: formData.plusOne === 'no' ? themeColor : 'transparent',
                         }}
                       >
                         {formData.plusOne === 'no' && (
@@ -2214,7 +2463,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.foodPreference.includes(option.value) ? '#DE3F5E' : '#000',
+                          color: formData.foodPreference.includes(option.value) ? themeColor : '#000',
                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2228,11 +2477,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          border: `2px solid ${formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          border: `2px solid ${formData.foodPreference.includes(option.value) ? themeColor : 'rgba(0, 0, 0, 0.3)'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: formData.foodPreference.includes(option.value) ? '#DE3F5E' : 'transparent',
+                          backgroundColor: formData.foodPreference.includes(option.value) ? themeColor : 'transparent',
                         }}
                       >
                         {formData.foodPreference.includes(option.value) && (
@@ -2273,7 +2522,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DE3F5E',
+                      borderColor: themeColor,
                       borderWidth: '2px',
                       padding: '15px 11px',
                     },
@@ -2354,7 +2603,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.weddingSide === option.value ? '#DE3F5E' : '#000',
+                          color: formData.weddingSide === option.value ? themeColor : '#000',
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2368,11 +2617,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          border: `2px solid ${formData.weddingSide === option.value ? '#DE3F5E' : 'rgba(0, 0, 0, 0.3)'}`,
+                          border: `2px solid ${formData.weddingSide === option.value ? themeColor : 'rgba(0, 0, 0, 0.3)'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: formData.weddingSide === option.value ? '#DE3F5E' : 'transparent',
+                          backgroundColor: formData.weddingSide === option.value ? themeColor : 'transparent',
                         }}
                       >
                         {formData.weddingSide === option.value && (
@@ -2449,7 +2698,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DE3F5E',
+                      borderColor: themeColor,
                       borderWidth: '2px',
                       padding: { xs: '11px 11px', md: '13px 15px' },
                     },
@@ -2515,7 +2764,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
                       borderColor: 'rgba(0, 0, 0, 0.4)',
                     },
                     '&:focus-within': {
-                      borderColor: '#DE3F5E',
+                      borderColor: themeColor,
                       borderWidth: '2px',
                       padding: '7px 11px',
                     },
@@ -2650,13 +2899,13 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               backgroundColor: '#F5F5F5',
             }}
           >
-            {steps.map((_, index) => (
+            {mergedSteps.map((_, index) => (
               <Box
                 key={index}
                 sx={{
                   flex: 1,
                   height: '100%',
-                  backgroundColor: index <= currentStep ? '#DE3F5E' : '#E0E0E0',
+                  backgroundColor: index <= currentStep ? themeColor : '#E0E0E0',
                   transition: 'background-color 0.3s ease',
                   '&:first-of-type': {
                     borderTopLeftRadius: '2px',
@@ -2738,14 +2987,14 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
             </IconButton>
           )}
 
-          {(steps[currentStep] === 'Fun & Messages' || (steps[currentStep] === 'Attendance Details' && formData.attending === 'no')) ? (
+          {(currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'Attendance Details' && formData.attending === 'no')) ? (
             <Button
               onClick={handleSubmit}
               variant="contained"
               sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
-                backgroundColor: '#DE3F5E',
+                backgroundColor: themeColor,
                 color: 'white',
                 fontWeight: 700,
                 fontSize: { xs: '0.9rem', md: '1.1rem' },
@@ -2771,7 +3020,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
               sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
-                backgroundColor: '#DE3F5E',
+                backgroundColor: themeColor,
                 color: 'white',
                 fontWeight: 700,
                 fontSize: { xs: '0.9rem', md: '1.1rem' },
@@ -2814,7 +3063,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir' }: Custom
           <Button onClick={handleCancelExit} variant="outlined" sx={{ color: '#000', borderColor: '#000', '&:hover': { borderColor: '#000', background: '#222' } }}>
             Cancel
           </Button>
-          <Button onClick={handleConfirmExit} color="error" variant="contained" sx={{ color: '#fff', background: '#DE3F5E', '&:hover': { background: '#C8365A' } }}>
+          <Button onClick={handleConfirmExit} color="error" variant="contained" sx={{ color: '#fff', background: themeColor, '&:hover': { background: '#C8365A' } }}>
             Leave
           </Button>
         </DialogActions>

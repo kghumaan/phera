@@ -55,3 +55,7 @@ public/logo-white.png
 
 .gemini/
 .claude/
+
+# Image originals (backed up by optimize-images script)
+public/images/backgrounds/_originals/
+public/images/frames/_originals/

@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 // to test their logic in isolation.
 
 function isPublicRoute(pathname: string): boolean {
-  const publicPaths = ['/', '/auth/signup', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
+  const publicPaths = ['/', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
   return publicPaths.some(p => pathname === p) || pathname.startsWith('/auth/') || pathname.startsWith('/blog/');
 }
 

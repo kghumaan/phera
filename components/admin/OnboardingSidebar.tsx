@@ -31,6 +31,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Wedding } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
+import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProBadge from './ProBadge';
 
 interface SidebarItem {
@@ -69,10 +70,11 @@ export const groups: SidebarGroup[] = [
       { id: 'build-ai', label: 'Build with AI', path: '/build-ai', isPro: true },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
+      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry Integration', path: '/registry', isPro: true },
+      { id: 'registry', label: 'Registry Integration', path: '/registry' },
       { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
     ]
@@ -158,6 +160,7 @@ export default function OnboardingSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const { isPro } = usePlan();
+  const { checkGuard } = useNavigationGuard();
   const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
@@ -242,6 +245,7 @@ export default function OnboardingSidebar({
   };
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
+    if (!checkGuard()) return;
     onNavigating?.(true);
     router.push(`/admin/${weddingSlug}${item.path}`);
 
@@ -290,7 +294,7 @@ export default function OnboardingSidebar({
               </Typography>
             )}
             <ListItemButton
-              onClick={() => router.push('/admin')}
+              onClick={() => { if (!checkGuard()) return; router.push('/admin'); }}
               sx={{
                 px: 1.5,
                 py: 0.75,
@@ -462,18 +466,8 @@ export default function OnboardingSidebar({
                           <ListItemText
                             primary={
                               item.required && !isActive && !item.isPro ? (
-                                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <span>{item.label}</span>
-                                  <Box
-                                    component="span"
-                                    sx={{
-                                      width: 4,
-                                      height: 4,
-                                      borderRadius: '50%',
-                                      bgcolor: '#DE3F5E',
-                                      display: 'inline-block',
-                                    }}
-                                  />
+                                <Box component="span" sx={{ display: 'inline' }}>
+                                  {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
                                 </Box>
                               ) : item.label
                             }

@@ -1073,7 +1073,7 @@ export default function PricingPage() {
                         }
                       }}
                       component={tier.name === 'PRO' ? 'button' : Link}
-                      href={tier.name === 'PRO' ? undefined : "/auth/signup"}
+                      href={tier.name === 'PRO' ? undefined : "/auth/login"}
                       variant={tier.highlight ? 'contained' : 'outlined'}
                       size="small"
                       sx={{

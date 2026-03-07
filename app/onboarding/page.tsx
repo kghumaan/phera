@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -18,12 +18,15 @@ import {
   TextField,
   Fade,
   IconButton,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import {
   Favorite,
   Work,
@@ -35,6 +38,7 @@ import {
   ArrowBack,
   CheckCircle,
   CreditCard,
+  LocationOn,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
@@ -136,6 +140,37 @@ const inputStyles = {
   // Keeping this for legacy compatibility or if needed for other components
 };
 
+// Custom input for react-datepicker that matches StyledTextField look
+const DateRangeInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; disabled?: boolean }>(
+  ({ value, onClick, disabled }, ref) => (
+    <input
+      ref={ref}
+      value={value}
+      onClick={onClick}
+      readOnly
+      disabled={disabled}
+      placeholder="Select dates"
+      style={{
+        width: '100%',
+        padding: '10px 14px',
+        borderRadius: '12px',
+        border: '1px solid rgba(222, 63, 94, 0.2)',
+        backgroundColor: '#f8f9fa',
+        fontSize: '0.9rem',
+        color: '#1a1a1a',
+        fontFamily: 'inherit',
+        outline: 'none',
+        cursor: disabled ? 'default' : 'pointer',
+        boxSizing: 'border-box',
+        opacity: disabled ? 0.5 : 1,
+      }}
+      onFocus={(e) => { e.target.style.borderColor = '#DE3F5E'; e.target.style.borderWidth = '2px'; e.target.style.padding = '9px 13px'; }}
+      onBlur={(e) => { e.target.style.borderColor = 'rgba(222, 63, 94, 0.2)'; e.target.style.borderWidth = '1px'; e.target.style.padding = '10px 14px'; }}
+    />
+  )
+);
+DateRangeInput.displayName = 'DateRangeInput';
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [authUser, setAuthUser] = useState<any>(null);
@@ -152,12 +187,103 @@ export default function OnboardingPage() {
   const [venueName, setVenueName] = useState('');
   const [venueTbd, setVenueTbd] = useState(false);
   const [dateTbd, setDateTbd] = useState(false);
-  const [isOneDay, setIsOneDay] = useState(false);
+
+  const [venueLocation, setVenueLocation] = useState(''); // "City, Country" parsed from Mapbox
+  const [venueSuggestions, setVenueSuggestions] = useState<Array<{ id: string; name: string; place_name: string }>>([]);
+  const [venueSearchLoading, setVenueSearchLoading] = useState(false);
+  const [showVenueSuggestions, setShowVenueSuggestions] = useState(false);
+  const venueDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const venueContainerRef = useRef<HTMLDivElement>(null);
+  const venueSessionTokenRef = useRef<string>(typeof crypto !== 'undefined' ? crypto.randomUUID() : '');
   const [companyName, setCompanyName] = useState('');
   const [plannerLocation, setPlannerLocation] = useState('');
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
+
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+  // Close venue suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (venueContainerRef.current && !venueContainerRef.current.contains(event.target as Node)) {
+        setShowVenueSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchVenues = useCallback(async (searchQuery: string) => {
+    if (!searchQuery || searchQuery.length < 2 || !mapboxToken) {
+      setVenueSuggestions([]);
+      return;
+    }
+    setVenueSearchLoading(true);
+    try {
+      const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
+        searchQuery
+      )}&access_token=${mapboxToken}&session_token=${venueSessionTokenRef.current}&types=poi,address,place,locality,neighborhood&limit=8`;
+      const response = await fetch(url);
+      const data = await response.json();
+      const mapped = (data.suggestions || []).map((s: any) => ({
+        id: s.mapbox_id,
+        name: s.name,
+        place_name: s.full_address || s.place_formatted || s.name,
+      }));
+      setVenueSuggestions(mapped);
+    } catch (error) {
+      console.error('Error searching venues:', error);
+      setVenueSuggestions([]);
+    } finally {
+      setVenueSearchLoading(false);
+    }
+  }, [mapboxToken]);
+
+  const handleVenueInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setVenueName(val);
+    setShowVenueSuggestions(true);
+    // Clear parsed location when user edits
+    setVenueLocation('');
+    if (venueDebounceRef.current) clearTimeout(venueDebounceRef.current);
+    venueDebounceRef.current = setTimeout(() => searchVenues(val), 300);
+  };
+
+  const handleSelectVenue = async (feature: { id: string; name: string; place_name: string }) => {
+    if (!mapboxToken) return;
+    setVenueSearchLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/search/searchbox/v1/retrieve/${feature.id}?access_token=${mapboxToken}&session_token=${venueSessionTokenRef.current}`
+      );
+      const data = await response.json();
+      const retrieved = data.features?.[0];
+      if (retrieved) {
+        const displayName = feature.name || retrieved.properties?.name || feature.place_name;
+        setVenueName(displayName);
+
+        // Parse city and country from context
+        const ctx = retrieved.properties?.context;
+        const city = ctx?.place?.name || ctx?.locality?.name || ctx?.region?.name || '';
+        const country = ctx?.country?.name || '';
+        if (city && country) {
+          setVenueLocation(`${city}, ${country}`);
+        } else if (country) {
+          setVenueLocation(country);
+        } else if (city) {
+          setVenueLocation(city);
+        }
+      }
+    } catch (error) {
+      console.error('Error retrieving venue details:', error);
+    } finally {
+      setVenueSearchLoading(false);
+    }
+    setShowVenueSuggestions(false);
+    setVenueSuggestions([]);
+    venueSessionTokenRef.current = crypto.randomUUID();
+  };
 
   useEffect(() => {
     // Check if we're returning from Stripe
@@ -179,7 +305,7 @@ export default function OnboardingPage() {
         setAuthUser(sessionUser);
         restoreSettings(sessionUser.id);
       } else {
-        router.push('/auth/signup');
+        router.push('/auth/login');
       }
     };
     checkSession();
@@ -316,6 +442,7 @@ export default function OnboardingPage() {
     weddingDate?: string | null,
     weddingEndDate?: string | null,
     venueName?: string | null,
+    venueLocation?: string | null,
     selectedFeatures: string[],
     companyName?: string,
     plannerLocation?: string,
@@ -392,7 +519,7 @@ export default function OnboardingPage() {
               partner2_name: data.partnerName || null,
               wedding_date: data.weddingDate
                 ? new Date(data.weddingDate).toISOString()
-                : new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString(),
+                : new Date(0).toISOString(),
               wedding_date_end: data.weddingEndDate ? new Date(data.weddingEndDate).toISOString() : null,
               wedding_date_display: data.weddingDate
                 ? (() => {
@@ -407,9 +534,9 @@ export default function OnboardingPage() {
                   if (fmtMonth(start) !== fmtMonth(end)) return `${fmtDay(start)} ${fmtMonth(start)} - ${fmtDay(end)} ${fmtMonth(end)}, ${fmtYear(start)}`;
                   return `${fmtDay(start)}-${fmtDay(end)} ${fmtMonth(start)}, ${fmtYear(start)}`;
                 })()
-                : 'TBD',
-              venue_name: (data.venueName === 'TBD' || !data.venueName) ? 'Venue Name' : data.venueName,
-              venue_location: 'City, Country',
+                : 'Dates TBD',
+              venue_name: (data.venueName === 'TBD' || !data.venueName) ? 'Venue TBD' : data.venueName,
+              venue_location: data.venueLocation || '',
               rsvp_deadline: '',
               status: 'draft',
               created_by: data.userId,
@@ -516,6 +643,7 @@ export default function OnboardingPage() {
         weddingDate: dateTbd ? null : weddingDate,
         weddingEndDate: dateTbd ? null : weddingEndDate,
         venueName: venueTbd ? 'TBD' : venueName,
+        venueLocation: venueTbd ? null : venueLocation,
         selectedFeatures,
         companyName,
         plannerLocation,
@@ -827,7 +955,7 @@ export default function OnboardingPage() {
                           We'll need a few details first.
                         </Typography>
 
-                        <Box sx={{ maxWidth: '360px', mx: 'auto', textAlign: 'left' }}>
+                        <Box sx={{ maxWidth: role === 'couple' ? '420px' : '360px', mx: 'auto', textAlign: 'left' }}>
                           <Stack spacing={2.5}>
                             {role === 'planner' && (
                               <>
@@ -858,48 +986,99 @@ export default function OnboardingPage() {
 
                             {role === 'couple' && (
                               <>
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
-                                  <StyledTextField
-                                    fullWidth
-                                    label=""
-                                    placeholder="Aarav"
-                                    value={coupleName}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleName(e.target.value.replace(/\s/g, ''))}
-                                    autoFocus
-                                  />
-                                </Box>
+                                <Stack direction="row" spacing={2}>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
+                                    <StyledTextField
+                                      fullWidth
+                                      label=""
+                                      placeholder="Aarav"
+                                      value={coupleName}
+                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleName(e.target.value.replace(/\s/g, ''))}
+                                      autoFocus
+                                    />
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Partner's First Name</Typography>
+                                    <StyledTextField
+                                      fullWidth
+                                      label=""
+                                      placeholder="Ananya"
+                                      value={partnerName}
+                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setPartnerName(e.target.value.replace(/\s/g, ''))}
+                                    />
+                                  </Box>
+                                </Stack>
 
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your Partner's First Name</Typography>
-                                  <StyledTextField
-                                    fullWidth
-                                    label=""
-                                    placeholder="Ananya"
-                                    value={partnerName}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPartnerName(e.target.value.replace(/\s/g, ''))}
-                                  />
-                                </Box>
+                                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
+                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
+                                  <Typography variant="caption" sx={{ color: '#999', fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                    Optionally provide details below
+                                  </Typography>
+                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
+                                </Stack>
 
-                                <Box>
+                                <Box ref={venueContainerRef} sx={{ position: 'relative' }}>
                                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Event Venue</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
-                                    placeholder="Sheraton Grand"
+                                    placeholder="Search for a venue..."
                                     value={venueName}
                                     disabled={venueTbd}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setVenueName(e.target.value)}
+                                    onChange={handleVenueInputChange}
+                                    onFocus={() => { if (venueSuggestions.length > 0) setShowVenueSuggestions(true); }}
+                                    InputProps={{
+                                      endAdornment: venueSearchLoading ? (
+                                        <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
+                                      ) : null,
+                                    }}
                                     sx={{ mb: 1 }}
                                   />
-                                  <Stack direction="row" spacing={1} alignItems="center" onClick={() => setVenueTbd(!venueTbd)} sx={{ cursor: 'pointer' }}>
+                                  {/* Venue suggestions dropdown */}
+                                  {showVenueSuggestions && venueSuggestions.length > 0 && (
+                                    <Paper
+                                      elevation={4}
+                                      sx={{
+                                        position: 'absolute',
+                                        // top: 'calc(100% - 30px)',
+                                        left: 0,
+                                        right: 0,
+                                        zIndex: 1000,
+                                        borderRadius: 1,
+                                        bgcolor: 'white',
+                                        overflow: 'hidden',
+                                        maxHeight: 240,
+                                        overflowY: 'auto',
+                                      }}
+                                    >
+                                      <List sx={{ py: 0 }}>
+                                        {venueSuggestions.map((s) => (
+                                          <ListItemButton
+                                            key={s.id}
+                                            onClick={() => handleSelectVenue(s)}
+                                            sx={{ py: 1, '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) } }}
+                                          >
+                                            <ListItemIcon sx={{ minWidth: 36 }}>
+                                              <LocationOn sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                              primary={<Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.85rem' }}>{s.name}</Typography>}
+                                              secondary={<Typography variant="caption" sx={{ color: '#6a6a6a' }}>{s.place_name}</Typography>}
+                                            />
+                                          </ListItemButton>
+                                        ))}
+                                      </List>
+                                    </Paper>
+                                  )}
+                                  <Stack direction="row" spacing={1} alignItems="center" onClick={() => { if (!venueTbd) { setVenueName(''); setVenueLocation(''); } setVenueTbd(!venueTbd); }} sx={{ cursor: 'pointer' }}>
                                     <Box
                                       sx={{
-                                        width: 18,
-                                        height: 18,
-                                        borderRadius: '4px',
-                                        border: '2px solid',
-                                        borderColor: venueTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
+                                        width: 15,
+                                        height: 15,
+                                        borderRadius: '3px',
+                                        border: '1.5px solid',
+                                        borderColor: venueTbd ? '#999' : 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -911,197 +1090,69 @@ export default function OnboardingPage() {
                                         <Box
                                           component="svg"
                                           viewBox="0 0 24 24"
-                                          sx={{ width: 14, height: 14 }}
+                                          sx={{ width: 11, height: 11 }}
                                         >
                                           <path
                                             d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                            fill="#1a1a1a"
+                                            fill="#999"
                                           />
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
-                                      We haven't picked a venue (yet)
+                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                      Venue TBD
                                     </Typography>
                                   </Stack>
                                 </Box>
 
                                 <Box>
                                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Dates</Typography>
-                                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                    <Stack direction="row" spacing={2}>
-                                      <Box sx={{ flex: 1 }}>
-                                        <MobileDatePicker
-                                          label=""
-                                          disabled={dateTbd}
-                                          value={weddingDate ? new Date(weddingDate) : null}
-                                          onChange={(newValue) => setWeddingDate(newValue ? (newValue as Date).toISOString() : '')}
-                                          enableAccessibleFieldDOMStructure={false}
-                                          slots={{
-                                            textField: StyledTextField,
-                                          }}
-                                          slotProps={{
-                                            textField: {
-                                              fullWidth: true,
-                                              placeholder: "Date",
-                                            },
-                                            actionBar: {
-                                              actions: ['cancel', 'accept'],
-                                              sx: {
-                                                '& .MuiButton-root': {
-                                                  color: '#DE3F5E',
-                                                  fontWeight: 700,
-                                                }
-                                              }
-                                            },
-                                            calendarHeader: {
-                                              sx: {
-                                                '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                                                '& .MuiSvgIcon-root': { color: '#000000' }
-                                              }
-                                            },
-                                            day: {
-                                              sx: {
-                                                color: '#000000 !important',
-                                                fontWeight: 500,
-                                                '&.Mui-selected': {
-                                                  backgroundColor: '#DE3F5E !important',
-                                                  color: '#ffffff !important',
-                                                },
-                                                '&.Mui-selected:hover': {
-                                                  backgroundColor: '#DE3F5E !important',
-                                                  opacity: 0.9,
-                                                },
-                                                '&.MuiPickersDay-today': {
-                                                  borderColor: '#DE3F5E !important',
-                                                  color: '#DE3F5E',
-                                                }
-                                              }
-                                            }
-                                          }}
-                                        />
-                                      </Box>
-                                      {!isOneDay && (
-                                        <Box sx={{ flex: 1 }}>
-                                          <MobileDatePicker
-                                            label=""
-                                            disabled={dateTbd}
-                                            value={weddingEndDate ? new Date(weddingEndDate) : null}
-                                            onChange={(newValue) => setWeddingEndDate(newValue ? (newValue as Date).toISOString() : '')}
-                                            enableAccessibleFieldDOMStructure={false}
-                                            slots={{
-                                              textField: StyledTextField,
-                                            }}
-                                            slotProps={{
-                                              textField: {
-                                                fullWidth: true,
-                                                placeholder: "End Date",
-                                              },
-                                              actionBar: {
-                                                actions: ['cancel', 'accept'],
-                                                sx: {
-                                                  '& .MuiButton-root': {
-                                                    color: '#DE3F5E',
-                                                    fontWeight: 700,
-                                                  }
-                                                }
-                                              },
-                                              calendarHeader: {
-                                                sx: {
-                                                  '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                                                  '& .MuiSvgIcon-root': { color: '#000000' }
-                                                }
-                                              },
-                                              day: {
-                                                sx: {
-                                                  color: '#000000 !important',
-                                                  fontWeight: 500,
-                                                  '&.Mui-selected': {
-                                                    backgroundColor: '#DE3F5E !important',
-                                                    color: '#ffffff !important',
-                                                  },
-                                                  '&.Mui-selected:hover': {
-                                                    backgroundColor: '#DE3F5E !important',
-                                                    opacity: 0.9,
-                                                  },
-                                                  '&.MuiPickersDay-today': {
-                                                    borderColor: '#DE3F5E !important',
-                                                    color: '#DE3F5E',
-                                                  }
-                                                }
-                                              }
-                                            }}
+                                  <DatePicker
+                                    selectsRange
+                                    startDate={weddingDate ? new Date(weddingDate) : undefined}
+                                    endDate={weddingEndDate ? new Date(weddingEndDate) : undefined}
+                                    onChange={(dates) => {
+                                      const [start, end] = dates as [Date | null, Date | null];
+                                      setWeddingDate(start ? start.toISOString() : '');
+                                      setWeddingEndDate(end ? end.toISOString() : '');
+                                    }}
+                                    disabled={dateTbd}
+                                    customInput={<DateRangeInput />}
+                                    dateFormat="MMM d, yyyy"
+                                    monthsShown={1}
+                                    wrapperClassName="onboarding-datepicker-wrapper"
+                                  />
+                                  <Stack direction="row" spacing={1} alignItems="center" onClick={() => { if (!dateTbd) { setWeddingDate(''); setWeddingEndDate(''); } setDateTbd(!dateTbd); }} sx={{ cursor: 'pointer', mt: 1 }}>
+                                    <Box
+                                      sx={{
+                                        width: 15,
+                                        height: 15,
+                                        borderRadius: '3px',
+                                        border: '1.5px solid',
+                                        borderColor: dateTbd ? '#999' : 'rgba(0,0,0,0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'transparent',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      {dateTbd && (
+                                        <Box
+                                          component="svg"
+                                          viewBox="0 0 24 24"
+                                          sx={{ width: 11, height: 11 }}
+                                        >
+                                          <path
+                                            d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                                            fill="#999"
                                           />
                                         </Box>
                                       )}
-                                    </Stack>
-                                  </LocalizationProvider>
-                                  <Stack direction="row" spacing={3} sx={{ mt: 1.5 }}>
-                                    <Stack direction="row" spacing={1} alignItems="center" onClick={() => setIsOneDay(!isOneDay)} sx={{ cursor: 'pointer' }}>
-                                      <Box
-                                        sx={{
-                                          width: 18,
-                                          height: 18,
-                                          borderRadius: '4px',
-                                          border: '2px solid',
-                                          borderColor: isOneDay ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          bgcolor: 'transparent',
-                                          transition: 'all 0.2s'
-                                        }}
-                                      >
-                                        {isOneDay && (
-                                          <Box
-                                            component="svg"
-                                            viewBox="0 0 24 24"
-                                            sx={{ width: 14, height: 14 }}
-                                          >
-                                            <path
-                                              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                              fill="#1a1a1a"
-                                            />
-                                          </Box>
-                                        )}
-                                      </Box>
-                                      <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
-                                        One day wedding
-                                      </Typography>
-                                    </Stack>
-
-                                    <Stack direction="row" spacing={1} alignItems="center" onClick={() => setDateTbd(!dateTbd)} sx={{ cursor: 'pointer' }}>
-                                      <Box
-                                        sx={{
-                                          width: 18,
-                                          height: 18,
-                                          borderRadius: '4px',
-                                          border: '2px solid',
-                                          borderColor: dateTbd ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          bgcolor: 'transparent',
-                                          transition: 'all 0.2s'
-                                        }}
-                                      >
-                                        {dateTbd && (
-                                          <Box
-                                            component="svg"
-                                            viewBox="0 0 24 24"
-                                            sx={{ width: 14, height: 14 }}
-                                          >
-                                            <path
-                                              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                              fill="#1a1a1a"
-                                            />
-                                          </Box>
-                                        )}
-                                      </Box>
-                                      <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
-                                        Dates TBD
-                                      </Typography>
-                                    </Stack>
+                                    </Box>
+                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                      Dates TBD
+                                    </Typography>
                                   </Stack>
                                 </Box>
                               </>

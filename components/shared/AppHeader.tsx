@@ -9,7 +9,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Typography
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -54,6 +55,7 @@ export default function AppHeader({
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
   const [showScrolledNav, setShowScrolledNav] = useState(false);
+  const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
 
   useEffect(() => {
     if (!isLandingPage) return;
@@ -325,6 +327,8 @@ export default function AppHeader({
                 <Button
                   component={Link}
                   href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+                  onClick={() => setIsNavigatingToLogin(true)}
+                  disabled={isNavigatingToLogin}
                   variant="contained"
                   sx={{
                     backgroundColor: '#000',
@@ -342,9 +346,17 @@ export default function AppHeader({
                       backgroundColor: '#333',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
                     },
+                    '&.Mui-disabled': {
+                      backgroundColor: '#000',
+                    },
                   }}
                 >
-                  Login
+                  <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box component="span" sx={{ visibility: isNavigatingToLogin ? 'hidden' : 'visible' }}>Login</Box>
+                    {isNavigatingToLogin && (
+                      <CircularProgress size={20} sx={{ color: '#fff', position: 'absolute' }} />
+                    )}
+                  </Box>
                 </Button>
               </Box>
             )}
@@ -366,11 +378,12 @@ export default function AppHeader({
             vertical: 'top',
             horizontal: 'right',
           }}
+          MenuListProps={{ sx: { py: 0 } }}
           PaperProps={{
             sx: {
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
-              borderRadius: 2,
+              borderRadius: 1,
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
               mt: 1,
@@ -383,7 +396,7 @@ export default function AppHeader({
               px: 2,
               py: 1.5,
               borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-              mb: 0.5,
+              // mb: 0.5,
               display: 'flex',
               flexDirection: 'column',
               pointerEvents: 'none'
@@ -434,7 +447,7 @@ export default function AppHeader({
               ) : (
                 <DashboardIcon fontSize="small" />
               )}
-              Admin Dashboard
+              <Typography sx={{ fontSize: '0.85rem' }}>Admin Dashboard</Typography>
             </MenuItem>
           )}
 
@@ -454,7 +467,7 @@ export default function AppHeader({
             ) : (
               <LogoutIcon fontSize="small" />
             )}
-            Sign Out
+            <Typography sx={{ fontSize: '0.85rem' }}>Sign Out</Typography>
           </MenuItem>
         </Menu>
       )}

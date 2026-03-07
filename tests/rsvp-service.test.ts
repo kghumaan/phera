@@ -75,8 +75,6 @@ describe('rsvp-service', () => {
                     song_request: 'Song A',
                     special_message: 'Can\'t wait!',
                     maybe_comment: null,
-                    arrival_option: null,
-                    arrival_date: null,
                 }],
             };
 

@@ -23,7 +23,7 @@ import { WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 
 // Diamond indicators component
-const DiamondIndicators = ({ total, current }: { total: number; current: number }) => (
+const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -39,7 +39,7 @@ const DiamondIndicators = ({ total, current }: { total: number; current: number 
             fillRule="evenodd"
             clipRule="evenodd"
             d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z"
-            fill={index === current ? '#DE3F5E' : '#D7A393'}
+            fill={index === current ? activeColor : '#D7A393'}
           />
         </svg>
       </Box>
@@ -325,7 +325,8 @@ export default function EventDetailPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Use WeddingContext to get events (already loaded)
-  const { events, isLoading: loading, error: contextError } = useWedding();
+  const { wedding, events, isLoading: loading, error: contextError } = useWedding();
+  const primaryColor = wedding?.primary_color || '#DE3F5E';
 
   // Find the event by slug from the context
   const event = events.find(e => e.slug === eventSlug) || null;
@@ -360,7 +361,7 @@ export default function EventDetailPage() {
         priority={true}
       >
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
+          <CircularProgress sx={{ color: primaryColor }} />
         </Box>
       </OptimizedBackground>
     );
@@ -584,7 +585,7 @@ export default function EventDetailPage() {
             flexShrink: 0,
           }}
         >
-          <DiamondIndicators total={totalSlides} current={currentSlide} />
+          <DiamondIndicators total={totalSlides} current={currentSlide} activeColor={primaryColor} />
         </Box>
       </Box>
     </OptimizedBackground>

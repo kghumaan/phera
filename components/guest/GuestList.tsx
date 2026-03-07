@@ -109,6 +109,7 @@ interface GuestListProps {
   compact?: boolean;
   initialMaxComments?: number;
   initialTab?: number;
+  primaryColor?: string;
 }
 
 const emojis = ['❤️', '😍', '🎉', '👏', '😂', '🥰', '🔥', '💯'];
@@ -119,7 +120,9 @@ export default function GuestList({
   compact = false,
   initialMaxComments = 2,
   initialTab = 0,
+  primaryColor: primaryColorProp,
 }: GuestListProps) {
+  const themeColor = primaryColorProp || '#DE3F5E';
   const theme = useTheme();
   const { user } = useAuth();
   const [guests, setGuests] = useState<GuestItem[]>([]);
@@ -504,7 +507,7 @@ export default function GuestList({
             sx={{
               width: 42,
               height: 42,
-              backgroundColor: user.avatar_color || '#DE3F5E',
+              backgroundColor: user.avatar_color || themeColor,
               color: 'white',
               fontWeight: 600,
               fontSize: '0.9rem',
@@ -544,7 +547,7 @@ export default function GuestList({
                   borderColor: '#BCBCBC',
                 },
                 '&:focus-within': {
-                  borderColor: '#DE3F5E',
+                  borderColor: themeColor,
                   boxShadow: '0 0 0 2px rgba(222, 63, 94, 0.1)',
                 },
               }}
@@ -617,7 +620,7 @@ export default function GuestList({
                       sx={{
                         width: 32,
                         height: 32,
-                        color: '#DE3F5E',
+                        color: themeColor,
                         backgroundColor: 'rgba(222, 63, 94, 0.1)',
                         borderRadius: '6px',
                         '&:hover': {
@@ -809,7 +812,7 @@ export default function GuestList({
                                   color: '#858585',
                                   opacity: 0.7,
                                   '&:hover': {
-                                    color: '#DE3F5E',
+                                    color: themeColor,
                                     opacity: 1,
                                     backgroundColor: 'rgba(222, 63, 94, 0.1)',
                                   },
@@ -1092,7 +1095,7 @@ export default function GuestList({
                   fontSize: '16px',
                   lineHeight: '1.26em',
                   textAlign: 'center',
-                  color: index === activeTab ? '#DE3F5E' : '#000000',
+                  color: index === activeTab ? themeColor : '#000000',
                 }}
               >
                 {tab}
@@ -1104,7 +1107,7 @@ export default function GuestList({
                   label={newActivityCount}
                   size="small"
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: themeColor,
                     color: 'white',
                     height: 20,
                     minWidth: 20,
@@ -1176,7 +1179,7 @@ export default function GuestList({
               gap: 1.5,
               minHeight: '50px',
               '&:focus-within': {
-                borderColor: '#DE3F5E',
+                borderColor: themeColor,
                 boxShadow: '0 0 0 2px rgba(222, 63, 94, 0.1)',
               },
             }}

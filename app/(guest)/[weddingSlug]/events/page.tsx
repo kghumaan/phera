@@ -208,7 +208,7 @@ export default function GuestEventsPage() {
                             sx={{
                               width: 8,
                               flexShrink: 0,
-                              backgroundImage: `url(/images/backgrounds/${event.gradient_background})`,
+                              backgroundImage: `url(/images/backgrounds/${event.gradient_background.replace(/\.(png|jpg|jpeg)$/, '.webp')})`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center'
                             }}

@@ -16,9 +16,10 @@ import {
   Alert,
   Snackbar,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import React, { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save, ChevronRight, CardGiftcard, LockOutlined } from '@mui/icons-material';
+import { Add, Edit, Delete, ChevronRight, CardGiftcard, LockOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { usePlan } from '@/lib/contexts/PlanContext';
@@ -26,6 +27,8 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ContinueButton from '@/components/admin/ContinueButton';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -90,6 +93,8 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     setEditDialogOpen(true);
   };
 
+  const [saving, setSaving] = useState(false);
+
   const handleSave = async () => {
     if (isViewOnly) return;
     if (!currentItem?.fund_name || !currentItem?.emoji || !currentItem?.external_url) {
@@ -109,6 +114,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       return;
     }
 
+    setSaving(true);
     try {
       if (currentItem.id) {
         await weddingService.updateRegistryItem(currentItem.id, currentItem);
@@ -132,28 +138,38 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
       const errorMessage = 'Failed to save registry link';
       setError(errorMessage);
       showToast(errorMessage, 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
   const handleDelete = async (itemId: string) => {
     if (isViewOnly) return;
-    if (!confirm('Delete this registry link?')) return;
-    try {
-      await weddingService.deleteRegistryItem(itemId);
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      setSuccess(true);
-      showToast('Registry link deleted successfully', 'success');
-    } catch (err) {
-      const errorMessage = 'Failed to delete registry link';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Delete this registry link?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteRegistryItem(itemId);
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+          setSuccess(true);
+          showToast('Registry link deleted successfully', 'success');
+        } catch (err) {
+          const errorMessage = 'Failed to delete registry link';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -445,8 +461,8 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
           <Button
             variant="contained"
-            startIcon={<Save />}
             onClick={handleSave}
+            disabled={saving}
             sx={{
               bgcolor: '#DE3F5E',
               color: 'white',
@@ -458,7 +474,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               },
             }}
           >
-            Save
+            {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -478,6 +494,13 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           {snackbarMessage}
         </Alert>
       </Snackbar>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
+      <ContinueButton weddingSlug={weddingSlug} currentSection="registry" weddingId={weddingId} />
     </Box>
   );
 }

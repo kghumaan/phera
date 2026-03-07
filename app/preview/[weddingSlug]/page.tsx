@@ -8,13 +8,16 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PinEntry from '@/components/guest/PinEntry';
-import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
+import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import { getFrameConfig } from '@/lib/constants/images';
+
+const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -61,6 +64,9 @@ const useCountdown = (targetDate: string) => {
 // Countdown component
 const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   const timeLeft = useCountdown(targetDate);
+
+  // Hide countdown when date is TBD (epoch sentinel)
+  if (new Date(targetDate).getTime() === 0) return null;
 
   const timeUnits = [
     { label: 'months', value: timeLeft.months },
@@ -137,19 +143,19 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
 
 // Couple Image Component with uploaded images support
 const CoupleImageDisplay = ({
-  coupleImageUrl,
+  coupleImages: coupleImagesProp,
   frameImageUrl
 }: {
-  coupleImageUrl: string | null;
+  coupleImages: string[];
   frameImageUrl: string | null;
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
 
-  // Use uploaded image or fallback to default couple images
-  const coupleImages = coupleImageUrl
-    ? [coupleImageUrl]
+  // Use uploaded images or fallback to default couple images
+  const coupleImages = coupleImagesProp.length > 0
+    ? coupleImagesProp
     : [
       '/images/couple/couple-1.jpg',
       '/images/couple/couple-2.jpg',
@@ -180,7 +186,7 @@ const CoupleImageDisplay = ({
 
     const newInterval = setInterval(() => {
       advanceToNextImage();
-    }, 4000);
+    }, 3000);
 
     setIntervalId(newInterval);
   };
@@ -190,7 +196,7 @@ const CoupleImageDisplay = ({
 
     const interval = setInterval(() => {
       advanceToNextImage();
-    }, 4000);
+    }, 3000);
 
     setIntervalId(interval);
     return () => clearInterval(interval);
@@ -328,8 +334,10 @@ function PreviewContent() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check if we should use infinite scroll layout (desktop only)
-  const useInfiniteScroll = !isMobile && wedding?.website_layout === 'infinite_scroll';
+  // Check if we should use vertical scroll layout (desktop only)
+  // Normalize legacy DB values: 'infinite_scroll' → 'vertical_scroll'
+  const normalizedLayout = (wedding?.website_layout === 'infinite_scroll' || wedding?.website_layout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
+  const useVerticalScroll = !isMobile && normalizedLayout === 'vertical_scroll';
 
   if (isLoading) {
     return (
@@ -424,8 +432,8 @@ function PreviewContent() {
     );
   }
 
-  // For infinite scroll layout, render InfiniteScrollLayout directly
-  if (useInfiniteScroll) {
+  // For vertical scroll layout, render VerticalScrollLayout directly
+  if (useVerticalScroll) {
     return (
       <OptimizedBackground
         src={wedding.background_image || undefined}
@@ -541,7 +549,7 @@ function PreviewContent() {
         </Box>
 
         {ViewSwitcher}
-        <InfiniteScrollLayout
+        <VerticalScrollLayout
           wedding={{
             id: wedding.id,
             couple_name: wedding.couple_name,
@@ -555,7 +563,7 @@ function PreviewContent() {
             couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
           }}
           weddingSlug={wedding.slug}
-          isBypassPin={true}
+          isBypassPin={previewView === 'rsvp_submitted'}
           hasRSVPed={previewView === 'rsvp_submitted'}
           user={previewView === 'no_rsvp' ? null : { id: 'preview-user' }}
           CountdownTimer={CountdownTimer}
@@ -818,7 +826,7 @@ function PreviewContent() {
                         textDecoration: 'underline',
                       }}
                     >
-                      {wedding.venue_name}{wedding.show_venue_location !== false && wedding.venue_location ? `, ${wedding.venue_location}` : ''}
+                      {wedding.venue_name}{wedding.venue_location ? `, ${wedding.venue_location}` : ''}
                     </Typography>
                     {wedding.venue_flag && (
                       <Typography sx={{ fontSize: { md: '1.25rem', lg: '1.375rem', xl: '1.5rem' } }}>
@@ -889,7 +897,7 @@ function PreviewContent() {
                 }}
               >
                 <CoupleImageDisplay
-                  coupleImageUrl={wedding.couple_image_url}
+                  coupleImages={Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : wedding.couple_image_url ? [wedding.couple_image_url] : []}
                   frameImageUrl={wedding.frame_image_url}
                 />
               </Box>
@@ -927,6 +935,20 @@ function PreviewContent() {
                   {previewView === 'rsvp_submitted' ? 'View Details' : 'RSVP'}
                 </Button>
               </motion.div>
+              {previewView !== 'rsvp_submitted' && wedding.rsvp_deadline && wedding.rsvp_deadline !== 'TBD' && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: '#777',
+                    fontSize: '0.9rem',
+                    textAlign: 'center',
+                    lineHeight: 1.4,
+                    mt: 1.5,
+                  }}
+                >
+                  Please RSVP by {formatDeadline(wedding.rsvp_deadline)}
+                </Typography>
+              )}
             </Box>
           </Box>
         </Box>
@@ -936,7 +958,7 @@ function PreviewContent() {
         {/* Mobile/Tablet Layout (xs to md) */}
         <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
           <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ pt: 10, pb: 4 }}>
+            <Box sx={{ pt: 10, pb: 1 }}>
               {/* Couple Photo Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -944,7 +966,7 @@ function PreviewContent() {
                 transition={{ duration: 0.8 }}
               >
                 <CoupleImageDisplay
-                  coupleImageUrl={wedding.couple_image_url}
+                  coupleImages={Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : wedding.couple_image_url ? [wedding.couple_image_url] : []}
                   frameImageUrl={wedding.frame_image_url}
                 />
               </motion.div>
@@ -1006,7 +1028,7 @@ function PreviewContent() {
                           textDecoration: 'underline',
                         }}
                       >
-                        {wedding.venue_name}{wedding.show_venue_location !== false && wedding.venue_location ? `, ${wedding.venue_location}` : ''}
+                        {wedding.venue_name}{wedding.venue_location ? `, ${wedding.venue_location}` : ''}
                       </Typography>
                       {wedding.venue_flag && (
                         <Typography sx={{ fontSize: { xs: '1.2rem', lg: '1.3rem', xl: '1.4rem' } }}>
@@ -1020,6 +1042,23 @@ function PreviewContent() {
                   <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                     <CountdownTimer targetDate={wedding.wedding_date} />
                   </Box>
+
+                  {/* Welcome Message */}
+                  {wedding.welcome_text && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#333',
+                        fontSize: { xs: '0.95rem', sm: '1rem' },
+                        lineHeight: 1.6,
+                        textAlign: 'center',
+                        maxWidth: 340,
+                        mt: { xs: 2, sm: 2 },
+                      }}
+                    >
+                      {wedding.welcome_text}
+                    </Typography>
+                  )}
                 </Stack>
               </motion.div>
             </Box>
@@ -1027,7 +1066,7 @@ function PreviewContent() {
 
           {/* Wedding Community Section - Comments - hidden when no RSVP */}
           {previewView === 'rsvp_submitted' && (
-            <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
+            <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pt: 1, pb: 4 }}>
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -1080,6 +1119,11 @@ function PreviewContent() {
                     {previewView === 'rsvp_submitted' ? 'View Details' : 'RSVP'}
                   </Button>
                 </motion.div>
+                {previewView !== 'rsvp_submitted' && wedding?.rsvp_deadline && wedding.rsvp_deadline !== 'TBD' && (
+                  <Typography variant="body2" color="#777">
+                    Please RSVP by {formatDeadline(wedding.rsvp_deadline)}
+                  </Typography>
+                )}
               </Stack>
             </Container>
           </Box>

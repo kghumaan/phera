@@ -54,6 +54,7 @@ interface ReserveTransportationProps {
   guestId: string;
   onClose?: () => void;
   embedded?: boolean;
+  primaryColor?: string;
 }
 
 interface VehicleWithCapacity extends TransportationVehicle {
@@ -66,6 +67,7 @@ export default function ReserveTransportation({
   guestId,
   onClose,
   embedded = false,
+  primaryColor: primaryColorProp,
 }: ReserveTransportationProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -101,7 +103,7 @@ export default function ReserveTransportation({
   const [hasExistingArrival, setHasExistingArrival] = useState(false);
   const [hasExistingDeparture, setHasExistingDeparture] = useState(false);
 
-  const primaryColor = '#DE3F5E';
+  const primaryColor = primaryColorProp || '#DE3F5E';
 
   useEffect(() => {
     loadData();
@@ -497,6 +499,7 @@ export default function ReserveTransportation({
                 onNotesChange={setArrivalNotes}
                 partySize={partySize}
                 direction="arrival"
+                primaryColor={primaryColor}
               />
             ) : (
               <FlexibleSection
@@ -509,6 +512,7 @@ export default function ReserveTransportation({
                 notes={arrivalNotes}
                 onNotesChange={setArrivalNotes}
                 direction="arrival"
+                primaryColor={primaryColor}
               />
             )}
           </Paper>
@@ -552,6 +556,7 @@ export default function ReserveTransportation({
                 onNotesChange={setDepartureNotes}
                 partySize={partySize}
                 direction="departure"
+                primaryColor={primaryColor}
               />
             ) : (
               <FlexibleSection
@@ -564,6 +569,7 @@ export default function ReserveTransportation({
                 notes={departureNotes}
                 onNotesChange={setDepartureNotes}
                 direction="departure"
+                primaryColor={primaryColor}
               />
             )}
           </Paper>
@@ -628,6 +634,7 @@ function PrescheduledSection({
   onNotesChange,
   partySize,
   direction,
+  primaryColor = '#DE3F5E',
 }: {
   vehicles: VehicleWithCapacity[];
   selection: string;
@@ -636,8 +643,8 @@ function PrescheduledSection({
   onNotesChange: (value: string) => void;
   partySize: number;
   direction: TransportationDirection;
+  primaryColor?: string;
 }) {
-  const primaryColor = '#DE3F5E';
 
   if (vehicles.length === 0) {
     return (
@@ -806,6 +813,7 @@ function FlexibleSection({
   notes,
   onNotesChange,
   direction,
+  primaryColor = '#DE3F5E',
 }: {
   locations: TransportationPickupLocation[];
   timeRange: TransportationTimeRange | null;
@@ -816,8 +824,8 @@ function FlexibleSection({
   notes: string;
   onNotesChange: (value: string) => void;
   direction: TransportationDirection;
+  primaryColor?: string;
 }) {
-  const primaryColor = '#DE3F5E';
 
   const timeSlots = timeRange
     ? generateTimeSlots(

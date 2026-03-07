@@ -939,7 +939,7 @@ export default function LandingPage() {
               ],
               "contactPoint": {
                 "@type": "ContactPoint",
-                "email": "kv@phera.io",
+                "email": "contact@phera.io",
                 "contactType": "customer support"
               }
             },
@@ -1052,7 +1052,7 @@ export default function LandingPage() {
                 >
                   <Button
                     component={Link}
-                    href="/auth/signup"
+                    href="/auth/login"
                     variant="contained"
                     size="large"
                     sx={{
@@ -1160,7 +1160,7 @@ export default function LandingPage() {
 
                   <Button
                     component={Link}
-                    href="/auth/signup?role=planner"
+                    href="/auth/login?role=planner"
                     variant="contained"
                     size="large"
                     sx={{
@@ -1709,7 +1709,7 @@ export default function LandingPage() {
                         }
                       }}
                       component={tier.name === 'PRO' ? 'button' : Link}
-                      href={tier.name === 'PRO' ? undefined : "/auth/signup"}
+                      href={tier.name === 'PRO' ? undefined : "/auth/login"}
                       variant={tier.highlight ? 'contained' : 'outlined'}
                       size="small"
                       sx={{
@@ -1902,7 +1902,7 @@ export default function LandingPage() {
                   </IconButton>
                   <IconButton
                     component="a"
-                    href="mailto:kv@phera.io"
+                    href="mailto:contact@phera.io"
                     sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
                   >
                     <Email />

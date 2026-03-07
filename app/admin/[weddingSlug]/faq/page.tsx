@@ -19,17 +19,35 @@ import {
   AccordionSummary,
   AccordionDetails,
   Grid,
+  CircularProgress,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save, ExpandMore } from '@mui/icons-material';
+import { Add, Edit, Delete, ExpandMore, Check } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ContinueButton from '@/components/admin/ContinueButton';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+
+const FAQ_TEMPLATES = [
+  { question: 'What is the dress code?', answer: 'Please refer to the event details for the dress code for each function.' },
+  { question: 'Can I bring a plus one?', answer: 'Please check your invitation for plus one details. If you have any questions, feel free to reach out to us.' },
+  { question: 'Is there parking available?', answer: 'Yes, complimentary parking is available at the venue. Details will be shared closer to the date.' },
+  { question: 'What time should I arrive?', answer: 'We recommend arriving 15-30 minutes before the ceremony start time.' },
+  { question: 'Are children welcome?', answer: 'We love your little ones! Please check your invitation for details about children at the event.' },
+  { question: 'Will there be vegetarian/dietary options?', answer: 'Yes, we will have a variety of dietary options available. Please let us know of any allergies or restrictions in your RSVP.' },
+  { question: 'Can I take photos during the ceremony?', answer: 'We kindly request an unplugged ceremony. Our photographer will capture every moment. Please feel free to take photos during the reception!' },
+  { question: 'Where is the gift registry?', answer: 'Your presence is our greatest gift! If you would like to contribute, please check our registry page.' },
+  { question: 'Will transportation be provided?', answer: 'Shuttle service will be available between the hotel and venue. Please check the transportation page for details.' },
+  { question: 'What if I have dietary restrictions?', answer: 'Please mention any dietary restrictions or allergies when you RSVP, and we will do our best to accommodate them.' },
+];
 
 export default function FAQPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -45,6 +63,9 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
   const [expandedPreview, setExpandedPreview] = useState<number | false>(0);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [showLinkFields, setShowLinkFields] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
 
   useEffect(() => {
     loadData();
@@ -84,13 +105,32 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
       button_link: '',
       order_index: faqs.length,
     });
+    setShowLinkFields(false);
     setEditDialogOpen(true);
   };
 
   const handleEdit = (faq: any) => {
     setCurrentFaq(faq);
+    setShowLinkFields(!!faq.button_text);
     setEditDialogOpen(true);
   };
+
+  const handleSelectTemplate = (template: typeof FAQ_TEMPLATES[0]) => {
+    if (isViewOnly) return;
+    setCurrentFaq({
+      wedding_id: weddingId,
+      question: template.question,
+      answer: template.answer,
+      button_text: '',
+      button_link: '',
+      order_index: faqs.length,
+    });
+    setShowLinkFields(false);
+    setTemplateDialogOpen(false);
+    setEditDialogOpen(true);
+  };
+
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (isViewOnly) return;
@@ -101,6 +141,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
       return;
     }
 
+    setSaving(true);
     try {
       if (currentFaq.id) {
         await weddingService.updateFAQ(currentFaq.id, currentFaq);
@@ -124,33 +165,45 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
       const errorMessage = 'Failed to save FAQ';
       setError(errorMessage);
       showToast(errorMessage, 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (faqId: string) => {
     if (isViewOnly) return;
-    if (!confirm('Delete this FAQ?')) return;
-    try {
-      await weddingService.deleteFAQ(faqId);
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      setSuccess(true);
-      showToast('FAQ deleted successfully', 'success');
-    } catch (err) {
-      const errorMessage = 'Failed to delete FAQ';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Delete this FAQ?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteFAQ(faqId);
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+          setSuccess(true);
+          showToast('FAQ deleted successfully', 'success');
+        } catch (err) {
+          const errorMessage = 'Failed to delete FAQ';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        }
+      },
+    });
+  };
+
+  const isTemplateAlreadyAdded = (templateQuestion: string) => {
+    return faqs.some(faq => faq.question.trim().toLowerCase() === templateQuestion.trim().toLowerCase());
   };
 
   if (loading) {
     return (
-      <Box sx={{ maxWidth: 1000 }}>
+      <Box sx={{ maxWidth: 700 }}>
         <LoadingSpinner message="Loading FAQs..." />
       </Box>
     );
@@ -159,7 +212,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
 
 
   return (
-    <Box sx={{ maxWidth: 1000 }}>
+    <Box sx={{ maxWidth: 700 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
@@ -170,24 +223,33 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            alignSelf: 'flex-start',
-            '&:hover': {
-              bgcolor: '#C8365A',
-            },
-          }}
-        >
-          Add FAQ
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setTemplateDialogOpen(true)}
+            sx={{
+              bgcolor: '#DE3F5E',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: '#C8365A',
+              },
+            }}
+          >
+            Add from Template
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={handleAdd}
+            sx={SECONDARY_BUTTON_SX}
+          >
+            Add Custom FAQ
+          </Button>
+        </Stack>
 
         <Stack spacing={2}>
           {faqs.map((faq, index) => (
@@ -241,10 +303,61 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           )}
         </Stack>
 
+        {/* Template Selection Dialog */}
+        <Dialog
+          open={templateDialogOpen}
+          onClose={() => setTemplateDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '24px',
+              bgcolor: 'white',
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>Choose a Template</DialogTitle>
+          <DialogContent sx={{ bgcolor: 'white' }}>
+            <Stack spacing={1.5} sx={{ mt: 1 }}>
+              {FAQ_TEMPLATES.map((template) => {
+                const alreadyAdded = isTemplateAlreadyAdded(template.question);
+                return (
+                  <Paper
+                    key={template.question}
+                    sx={{
+                      p: 2,
+                      cursor: alreadyAdded ? 'default' : 'pointer',
+                      borderRadius: '12px',
+                      bgcolor: alreadyAdded ? '#f5f5f5' : 'white',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                      opacity: alreadyAdded ? 0.6 : 1,
+                      '&:hover': alreadyAdded ? {} : {
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      },
+                    }}
+                    onClick={() => !alreadyAdded && handleSelectTemplate(template)}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      {alreadyAdded && <Check sx={{ color: '#10B981', fontSize: 20 }} />}
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: alreadyAdded ? '#6a6a6a' : '#1a1a1a' }}>
+                        {template.question}
+                      </Typography>
+                    </Stack>
+                  </Paper>
+                );
+              })}
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
+            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Edit FAQ Dialog */}
         <Dialog
           open={editDialogOpen}
           onClose={() => setEditDialogOpen(false)}
-          maxWidth="md"
+          maxWidth="sm"
           fullWidth
           PaperProps={{
             sx: {
@@ -272,31 +385,57 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                 onChange={(e) => setCurrentFaq({ ...currentFaq, answer: e.target.value })}
                 sx={textFieldSx}
               />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>Optional Button</Typography>
-              <TextField
-                label="Button Text"
-                fullWidth
-                value={currentFaq?.button_text || ''}
-                onChange={(e) => setCurrentFaq({ ...currentFaq, button_text: e.target.value })}
-                placeholder="e.g., View Registry"
-                sx={textFieldSx}
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showLinkFields}
+                    onChange={(e) => {
+                      setShowLinkFields(e.target.checked);
+                      if (!e.target.checked) {
+                        setCurrentFaq({ ...currentFaq, button_text: '', button_link: '' });
+                      }
+                    }}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#DE3F5E',
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        bgcolor: '#DE3F5E',
+                      },
+                    }}
+                  />
+                }
+                label="Add a link?"
+                sx={{ '& .MuiFormControlLabel-label': { color: '#1a1a1a', fontWeight: 500 } }}
               />
-              <TextField
-                label="Button Link"
-                fullWidth
-                value={currentFaq?.button_link || ''}
-                onChange={(e) => setCurrentFaq({ ...currentFaq, button_link: e.target.value })}
-                placeholder="e.g., /registry"
-                sx={textFieldSx}
-              />
+              {showLinkFields && (
+                <>
+                  <TextField
+                    label="Button Text"
+                    fullWidth
+                    value={currentFaq?.button_text || ''}
+                    onChange={(e) => setCurrentFaq({ ...currentFaq, button_text: e.target.value })}
+                    placeholder="e.g., View Registry"
+                    sx={textFieldSx}
+                  />
+                  <TextField
+                    label="Button Link"
+                    fullWidth
+                    value={currentFaq?.button_link || ''}
+                    onChange={(e) => setCurrentFaq({ ...currentFaq, button_link: e.target.value })}
+                    placeholder="e.g., /registry"
+                    sx={textFieldSx}
+                  />
+                </>
+              )}
             </Stack>
           </DialogContent>
           <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
             <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
             <Button
               variant="contained"
-              startIcon={<Save />}
               onClick={handleSave}
+              disabled={saving}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
@@ -308,10 +447,17 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                 },
               }}
             >
-              Save
+              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>
+
+        <ConfirmDialog
+          open={confirmDialog.open}
+          message={confirmDialog.message}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        />
 
         {/* Toast Notification */}
         <Snackbar
@@ -329,7 +475,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           </Alert>
         </Snackbar>
       </Stack>
+      <ContinueButton weddingSlug={weddingSlug} currentSection="faq" weddingId={weddingId} />
     </Box>
   );
 }
-

@@ -29,6 +29,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import {
@@ -483,7 +484,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
                 <Button
                   variant="contained"
-                  startIcon={<Send />}
+                  startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <Send />}
                   onClick={handleSendInvite}
                   disabled={sending || !inviteEmail.trim()}
                   sx={{
@@ -727,7 +728,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                 },
               }}
             >
-              {deleting ? 'Removing...' : itemToDelete?.type === 'invite' ? 'Cancel Invite' : 'Remove'}
+              {deleting ? <CircularProgress size={20} color="inherit" /> : (itemToDelete?.type === 'invite' ? 'Cancel Invite' : 'Remove')}
             </Button>
           </DialogActions>
         </Dialog>

@@ -14,6 +14,9 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const timeLeft = useCountdown(targetDate);
 
+  // Hide countdown when date is TBD (epoch sentinel)
+  if (new Date(targetDate).getTime() === 0) return null;
+
   const timeUnits = [
     { label: 'Days', value: timeLeft.days },
     { label: 'Hours', value: timeLeft.hours },

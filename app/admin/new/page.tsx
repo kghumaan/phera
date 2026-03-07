@@ -36,7 +36,7 @@ export default function NewWeddingPage() {
 
       if (!user) {
         // Not authenticated, redirect to signup
-        router.push('/auth/signup');
+        router.push('/auth/login');
         return;
       }
 

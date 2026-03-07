@@ -77,7 +77,7 @@ export default function TransportationPage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundImage: 'url(/images/backgrounds/pearl.png)',
+          backgroundImage: 'url(/images/backgrounds/pearl.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           p: 4,
@@ -127,7 +127,7 @@ export default function TransportationPage() {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundImage: 'url(/images/backgrounds/pearl.png)',
+        backgroundImage: 'url(/images/backgrounds/pearl.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -239,6 +239,7 @@ export default function TransportationPage() {
                 weddingId={wedding.id}
                 guestId={guestId}
                 onClose={handleClose}
+                primaryColor={wedding?.primary_color || undefined}
               />
             )}
           </motion.div>

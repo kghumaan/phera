@@ -128,7 +128,19 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           ? new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString()
           : new Date(weddingDate).toISOString(),
         wedding_date_end: dateTbd ? null : (weddingEndDate ? new Date(weddingEndDate).toISOString() : null),
-        wedding_date_display: dateTbd ? 'TBD' : (weddingDate ? new Date(weddingDate).toLocaleDateString() : 'TBD'),
+        wedding_date_display: (() => {
+          if (dateTbd || !weddingDate) return 'TBD';
+          const start = new Date(weddingDate);
+          const end = weddingEndDate ? new Date(weddingEndDate) : null;
+          const fmtFull = (d: Date) => `${d.getDate()} ${d.toLocaleDateString('en-US', { month: 'long' }).toUpperCase()}, ${d.getFullYear()}`;
+          if (!end || start.getTime() === end.getTime()) return fmtFull(start);
+          const sy = start.getFullYear(), ey = end.getFullYear();
+          const sm = start.toLocaleDateString('en-US', { month: 'long' }).toUpperCase();
+          const em = end.toLocaleDateString('en-US', { month: 'long' }).toUpperCase();
+          if (sy !== ey) return `${fmtFull(start)} - ${fmtFull(end)}`;
+          if (sm !== em) return `${start.getDate()} ${sm} - ${end.getDate()} ${em}, ${sy}`;
+          return `${start.getDate()}-${end.getDate()} ${sm}, ${sy}`;
+        })(),
         venue_name: venueTbd || !venueName ? 'Venue Name' : venueName,
         venue_location: venueTbd || !venueName ? 'City, Country' : venueName,
         rsvp_deadline: '',

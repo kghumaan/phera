@@ -19,6 +19,7 @@ import {
   ListItemText,
   Chip,
   alpha,
+  Divider,
   FormControlLabel,
   Switch,
   Select,
@@ -26,6 +27,7 @@ import {
   FormControl,
   InputLabel,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use, useCallback } from 'react';
 import { Add, Delete, Edit, Check } from '@mui/icons-material';
@@ -43,6 +45,9 @@ import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
+import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
+import ContinueButton from '@/components/admin/ContinueButton';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -56,30 +61,7 @@ const sectionPaperSx = {
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
-const FREE_BACKGROUND_COUNT = 3;
-const FREE_COLOR_COUNT = 3;
-
-const COLOR_OPTIONS = [
-  { name: 'Black', value: '#141414' },
-  { name: 'Rose', value: '#DE3F5E' },
-  { name: 'Plum', value: '#59114D' },
-  { name: 'Purple', value: '#AC3FBA' },
-  { name: 'Ocean', value: '#004550' },
-  { name: 'Sky', value: '#6290C8' },
-  { name: 'Teal', value: '#489991' },
-  { name: 'Maroon', value: '#941C28' },
-  { name: 'Green', value: '#76B041' },
-  { name: 'Forest', value: '#59814B' },
-  { name: 'Orange', value: '#DF6507' },
-  { name: 'Amber', value: '#FA9A00' },
-];
-
-const FONT_COLOR_OPTIONS = [
-  { name: 'Black', value: '#000000' },
-  { name: 'Dark Gray', value: '#4a4a4a' },
-  { name: 'Medium Gray', value: '#6a6a6a' },
-  { name: 'White', value: '#FFFFFF' },
-];
+const FREE_BACKGROUND_COUNT = 4;
 
 function generatePinSummary(
   pin: { skip_rsvp: boolean; allows_plus_one: boolean; hidden_events: string[] },
@@ -122,6 +104,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [newPin, setNewPin] = useState<{ pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [proModalOpen, setProModalOpen] = useState(false);
+  const [proSelections, setProSelections] = useState<ProSelection[]>([]);
+  const { registerGuard, unregisterGuard } = useNavigationGuard();
   const [deletePinTarget, setDeletePinTarget] = useState<string | null>(null);
 
   // Lock screen design state
@@ -129,9 +114,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
   const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
-  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
-  const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
-  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
   const [visiblePinBgs, setVisiblePinBgs] = useState(8);
   const [initialLockScreenData, setInitialLockScreenData] = useState<any>(null);
   const [isLockScreenDirty, setIsLockScreenDirty] = useState(false);
@@ -144,14 +126,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     // Check if any selected options require pro
     if (!isPro) {
       const pinBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
-      const pinColorIndex = COLOR_OPTIONS.findIndex(c => c.value === pinEntryPrimaryColor);
 
-      const hasProSelection =
-        (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) ||
-        pinColorIndex >= FREE_COLOR_COUNT;
-
-      if (hasProSelection) {
-        setUpgradeModalOpen(true);
+      if (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) {
         return;
       }
     }
@@ -162,9 +138,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       pin_entry_text: pinEntryText,
       pin_entry_subtitle_text: pinEntrySubtitleText,
       pin_entry_background: pinBackgroundToUse,
-      pin_entry_primary_color: pinEntryPrimaryColor,
-      pin_entry_font_color: pinEntryFontColor,
-      pin_entry_button_font_color: pinEntryButtonFontColor,
     });
     if (!result) throw new Error('Save failed');
 
@@ -174,13 +147,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       pin_entry_text: pinEntryText,
       pin_entry_subtitle_text: pinEntrySubtitleText,
       pin_entry_background: pinBackgroundToUse,
-      pin_entry_primary_color: pinEntryPrimaryColor,
-      pin_entry_font_color: pinEntryFontColor,
-      pin_entry_button_font_color: pinEntryButtonFontColor,
     });
     setIsLockScreenDirty(false);
-  }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground,
-    pinEntryPrimaryColor, pinEntryFontColor, pinEntryButtonFontColor]);
+  }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground]);
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveLockScreenDesign, enabled: !!authUser });
 
@@ -191,9 +160,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         pin_entry_text: pinEntryText,
         pin_entry_subtitle_text: pinEntrySubtitleText,
         pin_entry_background: pinEntryBackground,
-        pin_entry_primary_color: pinEntryPrimaryColor,
-        pin_entry_font_color: pinEntryFontColor,
-        pin_entry_button_font_color: pinEntryButtonFontColor,
       };
       const dirty = JSON.stringify(currentData) !== JSON.stringify(initialLockScreenData);
       setIsLockScreenDirty(dirty);
@@ -205,9 +171,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     pinEntryText,
     pinEntrySubtitleText,
     pinEntryBackground,
-    pinEntryPrimaryColor,
-    pinEntryFontColor,
-    pinEntryButtonFontColor,
     initialLockScreenData,
     debouncedSave,
   ]);
@@ -226,9 +189,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           pin_entry_text: pinEntryText,
           pin_entry_subtitle_text: pinEntrySubtitleText,
           pin_entry_background: customPinEntryBackground || pinEntryBackground,
-          pin_entry_primary_color: pinEntryPrimaryColor,
-          pin_entry_font_color: pinEntryFontColor,
-          pin_entry_button_font_color: pinEntryButtonFontColor,
           previewMode: 'lock_screen',
         }
       };
@@ -244,10 +204,48 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     pinEntrySubtitleText,
     pinEntryBackground,
     customPinEntryBackground,
-    pinEntryPrimaryColor,
-    pinEntryFontColor,
-    pinEntryButtonFontColor,
   ]);
+
+  // Navigation guard: prompt on leave if pro selections exist
+  useEffect(() => {
+    if (isPro) return;
+
+    const getProSelections = () => {
+      const sels: ProSelection[] = [];
+      const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
+      if (bgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) {
+        sels.push({ category: 'Pin Entry Background', name: BACKGROUND_OPTIONS[bgIndex].name });
+      }
+      return sels;
+    };
+
+    registerGuard(() => {
+      const sels = getProSelections();
+      if (sels.length > 0) {
+        setProSelections(sels);
+        setProModalOpen(true);
+        return false;
+      }
+      return true;
+    });
+
+    return () => unregisterGuard();
+  }, [isPro, pinEntryBackground, customPinEntryBackground, registerGuard, unregisterGuard]);
+
+  // Beforeunload safety net
+  useEffect(() => {
+    if (isPro) return;
+
+    const handler = (e: BeforeUnloadEvent) => {
+      const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
+      if (bgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isPro, pinEntryBackground, customPinEntryBackground]);
 
   useEffect(() => {
     loadData();
@@ -272,17 +270,11 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
         setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS);
-        setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
-        setPinEntryFontColor(wedding.pin_entry_font_color || '#000000');
-        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
 
         setInitialLockScreenData({
           pin_entry_text: wedding.pin_entry_text || defaultText,
           pin_entry_subtitle_text: wedding.pin_entry_subtitle_text || defaultSubtitle,
           pin_entry_background: wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS,
-          pin_entry_primary_color: wedding.pin_entry_primary_color || '#141414',
-          pin_entry_font_color: wedding.pin_entry_font_color || '#000000',
-          pin_entry_button_font_color: wedding.pin_entry_button_font_color || '#FFFFFF',
         });
       }
     } catch (err) {
@@ -293,6 +285,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     }
   };
 
+  const [savingPin, setSavingPin] = useState(false);
+
   const handleAddPin = async () => {
     if (isViewOnly) return;
     if (!newPin.pin) {
@@ -300,6 +294,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       return;
     }
 
+    setSavingPin(true);
     try {
       const currentPins = settings?.pin_codes || [];
       let updatedPins;
@@ -335,6 +330,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     } catch (err) {
       console.error('Error saving PIN:', err);
       toast.error(editingPinIndex !== null ? 'Failed to update PIN' : 'Failed to add PIN');
+    } finally {
+      setSavingPin(false);
     }
   };
 
@@ -356,10 +353,13 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
     setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
   };
 
+  const [deletingPin, setDeletingPin] = useState(false);
+
   const handleDeletePin = async () => {
     if (isViewOnly) return;
     if (!deletePinTarget) return;
 
+    setDeletingPin(true);
     try {
       const currentPins = settings?.pin_codes || [];
       const updatedPins = currentPins.filter((p: any) => p.pin !== deletePinTarget);
@@ -373,6 +373,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       toast.success('PIN deleted successfully');
     } catch (err) {
       toast.error('Failed to delete PIN');
+    } finally {
+      setDeletingPin(false);
     }
   };
 
@@ -720,154 +722,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           )}
         </Paper>
 
-        {/* Colors */}
-        <Paper sx={sectionPaperSx}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
-            Colors
-          </Typography>
-
-          <Stack spacing={4}>
-            {/* Button Color */}
-            <Box>
-              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
-                Button Color
-              </Typography>
-
-              <Grid container spacing={2} mb={2}>
-                {COLOR_OPTIONS.map((color, index) => {
-                  const isProOption = index >= FREE_COLOR_COUNT;
-
-                  return (
-                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-${color.value}`}>
-                      <Box
-                        onClick={() => setPinEntryPrimaryColor(color.value)}
-                        sx={{
-                          width: '100%',
-                          aspectRatio: '1/1',
-                          backgroundColor: color.value,
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          border: 3,
-                          borderColor: pinEntryPrimaryColor === color.value ? '#000' : 'transparent',
-                          transition: 'all 0.2s',
-                          position: 'relative',
-                          '&:hover': {
-                            borderColor: '#666',
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      >
-                        {isProOption && !isPro && <ProBadge position="corner" />}
-                      </Box>
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                        {color.name}
-                      </Typography>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-
-              <TextField
-                label="Custom Hex"
-                value={pinEntryPrimaryColor}
-                onChange={(e) => setPinEntryPrimaryColor(e.target.value)}
-                placeholder="#141414"
-                sx={{ ...textFieldSx, maxWidth: 200 }}
-              />
-            </Box>
-
-            {/* Text Color */}
-            <Box>
-              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
-                Text Color
-              </Typography>
-
-              <Grid container spacing={2} mb={2}>
-                {FONT_COLOR_OPTIONS.map((color) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-txt-${color.value}`}>
-                    <Box
-                      onClick={() => setPinEntryFontColor(color.value)}
-                      sx={{
-                        width: '100%',
-                        aspectRatio: '1/1',
-                        backgroundColor: color.value,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: pinEntryFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: pinEntryPrimaryColor,
-                          transform: 'scale(1.05)',
-                        },
-                        ...(color.value === '#FFFFFF' && {
-                          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                        }),
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                      {color.name}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <TextField
-                label="Custom Hex"
-                value={pinEntryFontColor}
-                onChange={(e) => setPinEntryFontColor(e.target.value)}
-                placeholder="#000000"
-                sx={{ ...textFieldSx, maxWidth: 200 }}
-              />
-            </Box>
-
-            {/* Button Text Color */}
-            <Box>
-              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
-                Button Text Color
-              </Typography>
-
-              <Grid container spacing={2} mb={2}>
-                {FONT_COLOR_OPTIONS.map((color) => (
-                  <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`pin-btn-txt-${color.value}`}>
-                    <Box
-                      onClick={() => setPinEntryButtonFontColor(color.value)}
-                      sx={{
-                        width: '100%',
-                        aspectRatio: '1/1',
-                        backgroundColor: color.value,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: 3,
-                        borderColor: pinEntryButtonFontColor === color.value ? pinEntryPrimaryColor : 'transparent',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: pinEntryPrimaryColor,
-                          transform: 'scale(1.05)',
-                        },
-                        ...(color.value === '#FFFFFF' && {
-                          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                        }),
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
-                      {color.name}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <TextField
-                label="Custom Hex"
-                value={pinEntryButtonFontColor}
-                onChange={(e) => setPinEntryButtonFontColor(e.target.value)}
-                placeholder="#FFFFFF"
-                sx={{ ...textFieldSx, maxWidth: 200 }}
-              />
-            </Box>
-          </Stack>
-        </Paper>
-
         {/* PIN Dialog */}
         <Dialog
           open={pinDialogOpen}
@@ -886,98 +740,124 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           </DialogTitle>
           <DialogContent sx={{ bgcolor: 'white' }}>
             <Stack spacing={3} sx={{ mt: 2 }}>
-              <TextField
-                label="PIN Code"
-                fullWidth
-                value={newPin.pin}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                  setNewPin({ ...newPin, pin: val });
-                }}
-                placeholder="e.g., 1234"
-                required
-                helperText="4-digit PIN code"
-                disabled={editingPinIndex !== null}
-                inputProps={{ inputMode: 'numeric', maxLength: 4 }}
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Name"
-                fullWidth
-                value={newPin.name}
-                onChange={(e) => setNewPin({ ...newPin, name: e.target.value })}
-                placeholder="e.g., Smith Family, VIP Table"
-                helperText="Optional: Give this PIN a friendly name"
-                sx={textFieldSx}
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={newPin.skip_rsvp}
-                    onChange={(e) => setNewPin({ ...newPin, skip_rsvp: e.target.checked, allows_plus_one: e.target.checked ? false : newPin.allows_plus_one })}
-                    sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
-                  />
-                }
-                label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
-              />
-              {!newPin.skip_rsvp && (
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="PIN Code"
+                  value={newPin.pin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                    setNewPin({ ...newPin, pin: val });
+                  }}
+                  placeholder="e.g., 1234"
+                  required
+                  helperText="4-digit code"
+                  disabled={editingPinIndex !== null}
+                  inputProps={{ inputMode: 'numeric', maxLength: 4 }}
+                  sx={{ ...textFieldSx, minWidth: 130, flex: '0 0 auto' }}
+                />
+                <TextField
+                  label="Name"
+                  fullWidth
+                  value={newPin.name}
+                  onChange={(e) => setNewPin({ ...newPin, name: e.target.value })}
+                  placeholder="e.g., Smith Family, VIP Table"
+                  helperText="Optional: friendly name"
+                  sx={textFieldSx}
+                />
+              </Stack>
+              <Divider sx={{ my: 1 }}>
+                <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Set Rules
+                </Typography>
+              </Divider>
+              <Stack direction="row" spacing={2}>
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={newPin.allows_plus_one}
-                      onChange={(e) => setNewPin({ ...newPin, allows_plus_one: e.target.checked })}
-                      sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                      checked={newPin.skip_rsvp}
+                      onChange={(e) => setNewPin({ ...newPin, skip_rsvp: e.target.checked, allows_plus_one: e.target.checked ? false : newPin.allows_plus_one })}
+                      sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                     />
                   }
-                  label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Allows Plus One</Typography>}
+                  label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
                 />
-              )}
-              {events.length > 0 && (
-                <FormControl fullWidth>
-                  <InputLabel shrink sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Hide Events</InputLabel>
-                  <Select
-                    value=""
-                    onChange={(e) => {
-                      const val = e.target.value as string;
-                      if (val && !newPin.hidden_events.includes(val)) {
-                        setNewPin({ ...newPin, hidden_events: [...newPin.hidden_events, val] });
-                      }
-                    }}
-                    label="Hide Events"
-                    displayEmpty
-                    notched
-                    renderValue={() => <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
-                    sx={{
-                      borderRadius: '12px',
-                      bgcolor: 'white',
-                      color: '#1a1a1a',
-                      '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                      '&:hover fieldset': { borderColor: '#DE3F5E' },
-                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-                    }}
-                  >
-                    {events
-                      .filter(event => !newPin.hidden_events.includes(event.id))
-                      .map((event) => (
-                        <MenuItem key={event.id} value={event.id}>{event.name}</MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-              )}
-              {newPin.hidden_events.length > 0 && (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {newPin.hidden_events.map((eventId) => {
-                    const event = events.find(e => e.id === eventId);
-                    return event ? (
-                      <Chip
-                        key={eventId}
-                        label={event.name}
-                        onDelete={() => setNewPin({ ...newPin, hidden_events: newPin.hidden_events.filter(id => id !== eventId) })}
-                        sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#DE3F5E' } }}
+                {!newPin.skip_rsvp && (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newPin.allows_plus_one}
+                        onChange={(e) => setNewPin({ ...newPin, allows_plus_one: e.target.checked })}
+                        sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                       />
-                    ) : null;
-                  })}
-                </Box>
+                    }
+                    label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Plus One</Typography>}
+                  />
+                )}
+              </Stack>
+              {events.length > 0 && (
+                <>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newPin.hidden_events.length > 0}
+                        onChange={(e) => {
+                          if (!e.target.checked) {
+                            setNewPin({ ...newPin, hidden_events: [] });
+                          }
+                        }}
+                        sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                      />
+                    }
+                    label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Hide Events</Typography>}
+                  />
+                  {newPin.hidden_events.length > 0 && (
+                    <FormControl fullWidth>
+                      <InputLabel shrink sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Select events to hide</InputLabel>
+                      <Select
+                        value=""
+                        onChange={(e) => {
+                          const val = e.target.value as string;
+                          if (val && !newPin.hidden_events.includes(val)) {
+                            setNewPin({ ...newPin, hidden_events: [...newPin.hidden_events, val] });
+                          }
+                        }}
+                        label="Select events to hide"
+                        displayEmpty
+                        notched
+                        renderValue={() => <Typography sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
+                        sx={{
+                          borderRadius: '12px',
+                          bgcolor: 'white',
+                          color: '#1a1a1a',
+                          '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#DE3F5E' },
+                          '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                        }}
+                      >
+                        {events
+                          .filter(event => !newPin.hidden_events.includes(event.id))
+                          .map((event) => (
+                            <MenuItem key={event.id} value={event.id}>{event.name}</MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                  {newPin.hidden_events.length > 0 && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {newPin.hidden_events.map((eventId) => {
+                        const event = events.find(e => e.id === eventId);
+                        return event ? (
+                          <Chip
+                            key={eventId}
+                            label={event.name}
+                            onDelete={() => setNewPin({ ...newPin, hidden_events: newPin.hidden_events.filter(id => id !== eventId) })}
+                            sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#DE3F5E' } }}
+                          />
+                        ) : null;
+                      })}
+                    </Box>
+                  )}
+                </>
               )}
               <Box sx={{ p: 2, borderRadius: '12px', bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
                 <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.875rem' }}>
@@ -990,8 +870,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             <Button onClick={handleCloseDialog} sx={{ color: '#6a6a6a', fontSize: '1rem' }}>Cancel</Button>
             <Button
               variant="contained"
-              startIcon={editingPinIndex !== null ? <Edit /> : <Add />}
+              startIcon={savingPin ? <CircularProgress size={18} color="inherit" /> : (editingPinIndex !== null ? <Edit /> : <Add />)}
               onClick={handleAddPin}
+              disabled={savingPin}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
@@ -1037,6 +918,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             <Button
               variant="contained"
               onClick={handleDeletePin}
+              disabled={deletingPin}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
@@ -1046,10 +928,21 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 '&:hover': { bgcolor: '#C8365A' },
               }}
             >
-              Delete
+              {deletingPin ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Pro Selections Modal */}
+        <ProSelectionsModal
+          open={proModalOpen}
+          selections={proSelections}
+          onCancel={() => setProModalOpen(false)}
+          onUpgrade={() => {
+            setProModalOpen(false);
+            setUpgradeModalOpen(true);
+          }}
+        />
 
         {/* Upgrade Modal */}
         <UpgradeModal
@@ -1057,6 +950,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack>
+      <ContinueButton weddingSlug={weddingSlug} currentSection="pins" weddingId={weddingId} />
     </Box>
   );
 }

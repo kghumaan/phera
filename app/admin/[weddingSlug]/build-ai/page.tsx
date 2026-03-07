@@ -28,6 +28,7 @@ import ChatInput from '@/components/admin/build-ai/ChatInput';
 import { useBuildAI } from '@/lib/build-ai/useBuildAI';
 import { mockMessages } from '@/lib/build-ai/question-flow';
 import { Message } from '@/lib/build-ai/types';
+import ContinueButton from '@/components/admin/ContinueButton';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -285,6 +286,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
           disabled={isFormDisabled || isTyping}
         />
       </Box>
+      <ContinueButton weddingSlug={weddingSlug} currentSection="build-ai" />
     </Container>
   );
 }

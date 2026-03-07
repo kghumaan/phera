@@ -14,10 +14,9 @@ import {
   Paper,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, forwardRef } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { Edit, Cancel, LocationOnOutlined } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
 import { TablesUpdate } from '@/lib/supabase/types';
@@ -32,6 +31,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import ContinueButton from '@/components/admin/ContinueButton';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -41,6 +41,34 @@ const sectionPaperSx = {
   bgcolor: '#fafafa',
   boxShadow: 'none',
 };
+
+// Custom input for react-datepicker matching admin ENHANCED_TEXT_FIELD_SX style
+const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; placeholder?: string; label?: string; error?: boolean }>(
+  ({ value, onClick, placeholder, label, error }, ref) => (
+    <TextField
+      ref={ref as any}
+      value={value}
+      onClick={onClick}
+      placeholder={placeholder}
+      label={label}
+      fullWidth
+      error={error}
+      InputProps={{ readOnly: true }}
+      sx={{
+        ...textFieldSx,
+        '& .MuiOutlinedInput-root': {
+          ...(textFieldSx as any)['& .MuiOutlinedInput-root'],
+          cursor: 'pointer',
+          '& input': {
+            cursor: 'pointer',
+            ...((textFieldSx as any)['& .MuiOutlinedInput-root'] as any)?.['& input'],
+          },
+        },
+      }}
+    />
+  )
+);
+AdminDateInput.displayName = 'AdminDateInput';
 
 interface DetailsFormData {
   couple_name: string;
@@ -57,7 +85,6 @@ interface DetailsFormData {
   primary_color?: string;
   font_color?: string;
   button_font_color?: string;
-  show_venue_location: boolean;
   is_one_day?: boolean;
   welcome_text?: string;
 }
@@ -118,7 +145,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const [weddingDateStart, setWeddingDateStart] = useState<Date | null>(null);
   const [weddingDateEnd, setWeddingDateEnd] = useState<Date | null>(null);
   const [dateDisplayManuallyEdited, setDateDisplayManuallyEdited] = useState(false);
-  const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
 
   // Inline editing state
   const [editingCoupleName, setEditingCoupleName] = useState(false);
@@ -137,7 +163,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     rsvp_deadline: '',
     couple_image_url: null,
     frame_image_url: null,
-    show_venue_location: true,
     welcome_text: '',
   });
   const [initialFormData, setInitialFormData] = useState<DetailsFormData | null>(null);
@@ -158,7 +183,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         venue_name: formData.venue_name,
         venue_location: formData.venue_location,
         rsvp_deadline: formData.rsvp_deadline,
-        show_venue_location: formData.show_venue_location,
         welcome_text: formData.welcome_text || '',
       };
 
@@ -260,8 +284,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         let endDate: Date | null = null;
         try {
           if (wedding.wedding_date) {
-            startDate = parseISO(wedding.wedding_date);
-            if (isNaN(startDate.getTime())) startDate = null;
+            const parsed = parseISO(wedding.wedding_date);
+            // Treat Unix epoch (1970-01-01) as TBD sentinel — show empty date picker
+            if (!isNaN(parsed.getTime()) && parsed.getTime() !== 0) {
+              startDate = parsed;
+            }
           }
           if (wedding.wedding_date_end) {
             endDate = parseISO(wedding.wedding_date_end);
@@ -290,7 +317,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           rsvp_deadline: wedding.rsvp_deadline || '',
           couple_image_url: wedding.couple_image_url || null,
           frame_image_url: wedding.frame_image_url || null,
-          show_venue_location: wedding.show_venue_location ?? true,
           background_image: wedding.background_image || '',
           primary_color: wedding.primary_color || '#DE3F5E',
           font_color: wedding.font_color || '#1a1a1a',
@@ -361,13 +387,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const handleDateStartChange = (date: Date | null) => {
     setWeddingDateStart(date);
 
-    // If it's a one-day event, also update the end date
-    if (formData.is_one_day) {
-      setWeddingDateEnd(date);
-    }
-
     if (!dateDisplayManuallyEdited) {
-      const display = formatWeddingDateDisplay(date, formData.is_one_day ? date : weddingDateEnd);
+      const display = formatWeddingDateDisplay(date, weddingDateEnd);
       setFormData(prev => {
         const next = { ...prev, wedding_date_display: display };
         if (initialFormData) setIsDirty(JSON.stringify(next) !== JSON.stringify(initialFormData));
@@ -381,11 +402,6 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         delete next.wedding_date_start;
         return next;
       });
-    }
-
-    // Auto-open end date picker after selecting start date (unless one-day)
-    if (date && !formData.is_one_day) {
-      setTimeout(() => setEndDatePickerOpen(true), 300);
     }
 
     // Trigger auto-save on date change
@@ -433,7 +449,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               Wedding Details
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Basic information about your wedding - couple names, date, venue, and photos
+              Basic information about your wedding
             </Typography>
           </Box>
           <AutoSaveIndicator status={saveStatus} />
@@ -477,154 +493,35 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
           {/* Wedding Date */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
-              Wedding Dates *
-            </Typography>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <MobileDatePicker
-                  label="Wedding Start Date"
-                  value={weddingDateStart}
-                  onChange={(newValue) => handleDateStartChange(newValue as Date | null)}
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{
-                    textField: TextField,
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      required: true,
-                      error: !!fieldErrors.wedding_date_start,
-                      sx: textFieldSx,
-                    },
-                    actionBar: {
-                      actions: ['cancel', 'accept'],
-                      sx: {
-                        '& .MuiButton-root': {
-                          color: '#DE3F5E',
-                          fontWeight: 700,
-                        }
-                      }
-                    },
-                    calendarHeader: {
-                      sx: {
-                        '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                        '& .MuiSvgIcon-root': { color: '#000000' }
-                      }
-                    },
-                    day: {
-                      sx: {
-                        color: '#000000 !important',
-                        fontWeight: 500,
-                        '&.Mui-selected': {
-                          backgroundColor: '#DE3F5E !important',
-                          color: '#ffffff !important',
-                        },
-                        '&.Mui-selected:hover': {
-                          backgroundColor: '#DE3F5E !important',
-                          opacity: 0.9,
-                        },
-                        '&.MuiPickersDay-today': {
-                          borderColor: '#DE3F5E !important',
-                          color: '#DE3F5E',
-                        }
-                      }
-                    }
-                  }}
-                />
-              </Grid>
-              {!formData.is_one_day && (
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <MobileDatePicker
-                    label="Wedding End Date"
-                    value={weddingDateEnd}
-                    onChange={(newValue) => handleDateEndChange(newValue as Date | null)}
-                    open={endDatePickerOpen}
-                    onOpen={() => setEndDatePickerOpen(true)}
-                    onClose={() => setEndDatePickerOpen(false)}
-                    minDate={weddingDateStart || undefined}
-                    enableAccessibleFieldDOMStructure={false}
-                    slots={{
-                      textField: TextField,
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        // required: true, // Removed as end date is optional
-                        error: !!fieldErrors.wedding_date_end,
-                        placeholder: "e.g., 2026-01-06",
-                        sx: textFieldSx,
-                      },
-                      actionBar: {
-                        actions: ['cancel', 'accept'],
-                        sx: {
-                          '& .MuiButton-root': {
-                            color: '#DE3F5E',
-                            fontWeight: 700,
-                          }
-                        }
-                      },
-                      calendarHeader: {
-                        sx: {
-                          '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                          '& .MuiSvgIcon-root': { color: '#000000' }
-                        }
-                      },
-                      day: {
-                        sx: {
-                          color: '#000000 !important',
-                          fontWeight: 500,
-                          '&.Mui-selected': {
-                            backgroundColor: '#DE3F5E !important',
-                            color: '#ffffff !important',
-                          },
-                          '&.Mui-selected:hover': {
-                            backgroundColor: '#DE3F5E !important',
-                            opacity: 0.9,
-                          },
-                          '&.MuiPickersDay-today': {
-                            borderColor: '#DE3F5E !important',
-                            color: '#DE3F5E',
-                          }
-                        }
-                      }
-                    }}
-                  />
-                </Grid>
-              )}
-              <Grid size={{ xs: 12 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.is_one_day}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
-                        if (isChecked) {
-                          setWeddingDateEnd(weddingDateStart);
-                          if (!dateDisplayManuallyEdited) {
-                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
-                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
-                          }
-                        }
-                      }}
-                      sx={{
-                        color: '#DE3F5E',
-                        '&.Mui-checked': {
-                          color: '#DE3F5E',
-                        },
-                      }}
-                    />
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
+            Wedding Date *
+          </Typography>
+
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <DatePicker
+                selectsRange
+                startDate={weddingDateStart}
+                endDate={weddingDateEnd}
+                onChange={(dates) => {
+                  const [start, end] = dates as [Date | null, Date | null];
+                  if (start && !end && !weddingDateStart) {
+                    handleDateStartChange(start);
+                  } else if (start && end) {
+                    handleDateStartChange(start);
+                    handleDateEndChange(end);
+                  } else if (start && !end) {
+                    handleDateStartChange(start);
+                    setWeddingDateEnd(null);
                   }
-                  label="This is a one day wedding"
-                  sx={{ color: '#4a4a4a', mt: 0.5 }}
-                />
-              </Grid>
+                }}
+                customInput={<AdminDateInput label="Wedding Dates" error={!!fieldErrors.wedding_date_start} />}
+                dateFormat="MMM d, yyyy"
+                wrapperClassName="onboarding-datepicker-wrapper"
+              />
             </Grid>
-          </LocalizationProvider>
-          </Paper>
+          </Grid>
 
           {/* Date Display Preview and Edit */}
           {/* {weddingDateStart && (
@@ -729,24 +626,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   value={formData.venue_location}
                   onChange={(e) => handleChange('venue_location', e.target.value)}
                   placeholder="e.g., Bangkok, Thailand 🇹🇭"
-                  required
                   sx={textFieldSx}
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.show_venue_location}
-                      onChange={(e) => handleChange('show_venue_location', e.target.checked)}
-                      sx={{
-                        color: '#DE3F5E',
-                        '&.Mui-checked': {
-                          color: '#DE3F5E',
-                        },
-                      }}
-                    />
-                  }
-                  label="Display on website"
-                  sx={{ color: '#4a4a4a', mt: 1 }}
                 />
               </Grid>
             </Grid>
@@ -785,9 +665,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                     if (!e.target.checked) {
                       handleChange('rsvp_deadline', '');
                     } else {
-                      // Default to 1 month before wedding if possible
+                      // Default to wedding date if set, otherwise 3 months from now
                       const deadline = weddingDateStart ? new Date(weddingDateStart) : new Date();
-                      if (weddingDateStart) deadline.setMonth(deadline.getMonth() - 1);
+                      if (!weddingDateStart) deadline.setMonth(deadline.getMonth() + 3);
                       handleChange('rsvp_deadline', deadline.toISOString());
                     }
                   }}
@@ -804,66 +684,28 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
             />
 
             {!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' && (
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileDatePicker
-                  label="RSVP Deadline"
-                  value={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
-                  onChange={(newValue) => {
-                    if (newValue) {
-                      handleChange('rsvp_deadline', (newValue as Date).toISOString());
-                    }
-                  }}
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{
-                    textField: TextField,
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      sx: textFieldSx,
-                    },
-                    actionBar: {
-                      actions: ['cancel', 'accept'],
-                      sx: {
-                        '& .MuiButton-root': {
-                          color: '#DE3F5E',
-                          fontWeight: 700,
-                        }
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <DatePicker
+                    selected={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        handleChange('rsvp_deadline', (date as Date).toISOString());
                       }
-                    },
-                    calendarHeader: {
-                      sx: {
-                        '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                        '& .MuiSvgIcon-root': { color: '#000000' }
-                      }
-                    },
-                    day: {
-                      sx: {
-                        color: '#000000 !important',
-                        fontWeight: 500,
-                        '&.Mui-selected': {
-                          backgroundColor: '#DE3F5E !important',
-                          color: '#ffffff !important',
-                        },
-                        '&.Mui-selected:hover': {
-                          backgroundColor: '#DE3F5E !important',
-                          opacity: 0.9,
-                        },
-                        '&.MuiPickersDay-today': {
-                          borderColor: '#DE3F5E !important',
-                          color: '#DE3F5E',
-                        }
-                      }
-                    }
-                  }}
-                />
-              </LocalizationProvider>
+                    }}
+                    customInput={<AdminDateInput label="RSVP Deadline" />}
+                    dateFormat="MMM d, yyyy"
+                    wrapperClassName="onboarding-datepicker-wrapper"
+                  />
+                </Grid>
+              </Grid>
             )}
           </Stack>
           </Paper>
 
         </Stack>
       </Stack>
+      <ContinueButton weddingSlug={weddingSlug} currentSection="details" weddingId={weddingId} />
     </Box>
 
   );

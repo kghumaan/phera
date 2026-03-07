@@ -365,6 +365,47 @@ export async function verifyEmailOTP(email: string, token: string): Promise<Auth
   }
 }
 
+// Verify signup OTP (email confirmation after signUp)
+export async function verifySignupOTP(email: string, token: string): Promise<AuthResult> {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: token.trim(),
+      type: 'signup'
+    });
+
+    if (error) {
+      console.error('Signup OTP verification error:', error);
+      return {
+        success: false,
+        error: error.message === 'Invalid OTP' ? 'Invalid or expired code. Please try again.' : error.message
+      };
+    }
+
+    if (!data.user || !data.session) {
+      return {
+        success: false,
+        error: 'Verification failed. Please try again.'
+      };
+    }
+
+    return {
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email || '',
+        name: data.user.user_metadata?.full_name || data.user.email || '',
+      }
+    };
+  } catch (error) {
+    console.error('Verify signup OTP error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to verify code'
+    };
+  }
+}
+
 // Keep the old function for backward compatibility, but make it use OTP
 export async function sendMagicLink(email: string): Promise<AuthResult> {
   // Redirect to the new OTP function

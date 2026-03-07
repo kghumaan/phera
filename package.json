@@ -12,7 +12,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "setup-gif": "node scripts/download-wedding-gif.js",
-    "gif-help": "node scripts/download-wedding-gif.js --manual"
+    "gif-help": "node scripts/download-wedding-gif.js --manual",
+    "optimize-images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.3",
@@ -52,6 +53,7 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.2.1",
     "react-confetti": "^6.4.0",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.1",
     "react-hook-form": "^7.57.0",
     "react-intersection-observer": "^9.16.0",

@@ -21,6 +21,7 @@ import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowBack, CheckCircle, RadioButtonUnchecked, FlightTakeoff } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { 
@@ -65,7 +66,9 @@ export default function TravelDetailsPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse, isLoading: authLoading } = useAuth();
-  
+  const { wedding } = useWedding();
+  const primaryColor = wedding?.primary_color || '#DE3F5E';
+
   const [flightData, setFlightData] = useState<FlightFormData>(initialFlightData);
   const [checklistItems, setChecklistItems] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -220,7 +223,7 @@ export default function TravelDetailsPage() {
               variant="contained" 
               onClick={() => router.push(`/${weddingSlug}/rsvp`)}
               sx={{ 
-                bgcolor: '#DE3F5E',
+                bgcolor: primaryColor,
                 '&:hover': { bgcolor: '#C8365A' },
                 borderRadius: 2,
               }}
@@ -244,7 +247,7 @@ export default function TravelDetailsPage() {
             minHeight: '100vh',
           }}
         >
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
+          <CircularProgress sx={{ color: primaryColor }} />
         </Box>
       </OptimizedBackground>
     );
@@ -331,7 +334,7 @@ export default function TravelDetailsPage() {
               >
                 <Stack spacing={3}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <FlightTakeoff sx={{ color: '#DE3F5E' }} />
+                    <FlightTakeoff sx={{ color: primaryColor }} />
                     <Typography variant="h6" sx={{ fontWeight: 500, color: '#141414' }}>
                       Your Flight Details
                     </Typography>
@@ -505,7 +508,7 @@ export default function TravelDetailsPage() {
                 disabled={isSaving}
                 fullWidth
                 sx={{
-                  bgcolor: '#DE3F5E',
+                  bgcolor: primaryColor,
                   color: 'white',
                   py: 1.5,
                   borderRadius: 2,
@@ -565,7 +568,7 @@ export default function TravelDetailsPage() {
                           onClick={() => handleChecklistChange(item.key, !checklistItems[item.key])}
                         >
                           {checklistItems[item.key] ? (
-                            <CheckCircle sx={{ color: '#DE3F5E', mr: 1.5, mt: 0.25 }} />
+                            <CheckCircle sx={{ color: primaryColor, mr: 1.5, mt: 0.25 }} />
                           ) : (
                             <RadioButtonUnchecked sx={{ color: 'rgba(0,0,0,0.3)', mr: 1.5, mt: 0.25 }} />
                           )}
@@ -573,7 +576,7 @@ export default function TravelDetailsPage() {
                             <Typography 
                               sx={{ 
                                 fontWeight: checklistItems[item.key] ? 500 : 400,
-                                color: checklistItems[item.key] ? '#DE3F5E' : '#141414',
+                                color: checklistItems[item.key] ? primaryColor : '#141414',
                                 textDecoration: checklistItems[item.key] ? 'line-through' : 'none',
                               }}
                             >

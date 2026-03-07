@@ -50,7 +50,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState<string | null>(null);
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
-  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.png');
+  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.webp');
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000');
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
@@ -152,7 +152,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         setCoupleName(contextWedding.couple_name || '');
         setPinEntryText(contextWedding.pin_entry_text || '');
         setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text || '');
-        setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.webp');
         setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
         setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
@@ -184,7 +184,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
 
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
-        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.webp');
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(wedding.pin_entry_font_color || '#000');
         setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
@@ -224,7 +224,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
       setCoupleName(contextWedding.couple_name || '');
       setPinEntryText(contextWedding.pin_entry_text);
       setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text);
-      setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.png');
+      setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.webp');
       setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
       setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
       setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
@@ -529,13 +529,10 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           <Typography
             variant="h2"
             sx={{
-              // fontFamily: 'var(--font-instrument-serif), serif',
-              // fontWeight: 400,
               color: pinEntryFontColor,
-              // fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem', lg: '3.25rem', xl: '3.5rem' },
-              // lineHeight: 1.4,
+              fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem', lg: '3rem', xl: '3.25rem' },
+              lineHeight: 1.3,
               textAlign: 'center',
-              // fontStyle: 'italic',
             }}
           >
             {displayText}
@@ -595,13 +592,13 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                     fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
                     fontWeight: 700,
                     textAlign: 'center',
-                    border: error ? '1px solid #f44336' : '1px solid #D6D6D6',
+                    border: error ? `1px solid ${pinEntryPrimaryColor}` : '1px solid #D6D6D6',
                     boxShadow: 'none',
                     '&:hover': {
-                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
+                      border: error ? `1px solid ${pinEntryPrimaryColor}` : `1px solid ${pinEntryPrimaryColor}`,
                     },
                     '&.Mui-focused': {
-                      border: error ? '1px solid #f44336' : `1px solid ${pinEntryPrimaryColor}`,
+                      border: error ? `1px solid ${pinEntryPrimaryColor}` : `1px solid ${pinEntryPrimaryColor}`,
                       boxShadow: 'none',
                     },
                     transition: 'all 0.2s ease-in-out',
@@ -642,15 +639,15 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#f44336',
+                  color: pinEntryPrimaryColor,
                   fontWeight: 600,
                   fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                   textAlign: 'center',
-                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  backgroundColor: `${pinEntryPrimaryColor}15`,
                   px: { xs: 3, lg: 3.5, xl: 4 },
                   py: { xs: 1, lg: 1.25, xl: 1.5 },
                   borderRadius: '20px',
-                  border: '1px solid rgba(244, 67, 54, 0.2)',
+                  border: `1px solid ${pinEntryPrimaryColor}33`,
                 }}
               >
                 Invalid invitation code. Please try again.
@@ -672,28 +669,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             gap: '16px',
           }}
         >
-          {/* Continue Button */}
-          <Button
-            onClick={handleContinue}
-            disabled={!isPinComplete}
-            sx={{
-              backgroundColor: pinEntryPrimaryColor,
-              color: pinEntryButtonFontColor,
-              borderRadius: '16px',
-              px: '20px',
-              py: '14px',
-              fontSize: '1rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              width: '100%',
-              maxWidth: '354px',
-              '&:hover': { backgroundColor: pinEntryPrimaryColor, opacity: 0.9 },
-              '&.Mui-disabled': { bgcolor: 'rgba(0,0,0,0.12)', color: 'rgba(0,0,0,0.26)' },
-            }}
-          >
-            Continue
-          </Button>
-
           {/* Or Divider */}
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '354px' }}>
             <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />

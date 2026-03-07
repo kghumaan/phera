@@ -1,79 +1,75 @@
 /**
  * Centralized image constants for Phera wedding platform
- * 
- * ✅ OPTIMIZED: All images have been compressed and resized for optimal web performance
- * Background images: 6-7MB → 130-200KB (98% reduction!)
- * Couple photos: 1.1-1.3MB → 58-75KB (95% reduction!)
  */
 
-// Background Images - EXPANDED COLLECTION ✅
-export const BACKGROUNDS = {
-  // OPTIMIZED versions (USE THESE!)
-  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.jpg',
+import blurPlaceholders from '@/lib/generated/blur-placeholders.json';
 
+// Background Images
+export const BACKGROUNDS = {
+  BLUE_CLOUDS: '/images/backgrounds/blue-clouds.webp',
 
   // Premium Collection
-  PEARL: '/images/backgrounds/pearl.png',
-  JADE: '/images/backgrounds/jade.png',
-  ROSE_QUARTZ: '/images/backgrounds/rose-quartz.png',
-  LAVENDER: '/images/backgrounds/lavender.png',
-  SUNSET: '/images/backgrounds/sunset.png',
-  TROPICAL_SAGE: '/images/backgrounds/tropical-sage.png',
-  MARBLE_GOLD: '/images/backgrounds/marble-gold.png',
-  PRESSED_FLOWERS_SUBTLE: '/images/backgrounds/pressed-flowers-subtle.png',
-  PRESSED_FLOWERS_FADED: '/images/backgrounds/pressed-flowers-faded.png',
-  HANDMADE_PAPER_FLORAL: '/images/backgrounds/handmade-paper-floral.png',
-  AQUAMARINE: '/images/backgrounds/aquamarine.png',
-  SANDSTONE_BEIGE: '/images/backgrounds/sandstone-beige.png',
-  CITRINE_QUARTZ: '/images/backgrounds/citrine-quartz.png',
-  AVENTURINE_GREEN: '/images/backgrounds/aventurine-green.png',
-  PRESSED_FLOWERS_TEXTURED: '/images/backgrounds/pressed-flowers-textured.png',
-  LOTUS_PETALS: '/images/backgrounds/lotus-petals.png',
-  OCEAN_WAVES: '/images/backgrounds/ocean-waves.png',
-  AMETHYST_LAVENDER: '/images/backgrounds/amethyst-lavender.png',
-  MOONSTONE_SHIMMER: '/images/backgrounds/moonstone-shimmer.png',
-  SAGE_WATERCOLOR: '/images/backgrounds/sage-watercolor.png',
-  BAMBOO_SAGE: '/images/backgrounds/bamboo-sage.png',
-  WATERCOLOR_BLUE_SKY: '/images/backgrounds/watercolor-blue-sky.png',
-  PERIWINKLE_PINK_SUNSET: '/images/backgrounds/periwinkle-pink-sunset.png',
+  PEARL: '/images/backgrounds/pearl.webp',
+  JADE: '/images/backgrounds/jade.webp',
+  ROSE_QUARTZ: '/images/backgrounds/rose-quartz.webp',
+  LAVENDER: '/images/backgrounds/lavender.webp',
+  SUNSET: '/images/backgrounds/sunset.webp',
+  TROPICAL_SAGE: '/images/backgrounds/tropical-sage.webp',
+  MARBLE_GOLD: '/images/backgrounds/marble-gold.webp',
+  PRESSED_FLOWERS_SUBTLE: '/images/backgrounds/pressed-flowers-subtle.webp',
+  PRESSED_FLOWERS_FADED: '/images/backgrounds/pressed-flowers-faded.webp',
+  HANDMADE_PAPER_FLORAL: '/images/backgrounds/handmade-paper-floral.webp',
+  AQUAMARINE: '/images/backgrounds/aquamarine.webp',
+  SANDSTONE_BEIGE: '/images/backgrounds/sandstone-beige.webp',
+  CITRINE_QUARTZ: '/images/backgrounds/citrine-quartz.webp',
+  AVENTURINE_GREEN: '/images/backgrounds/aventurine-green.webp',
+  PRESSED_FLOWERS_TEXTURED: '/images/backgrounds/pressed-flowers-textured.webp',
+  LOTUS_PETALS: '/images/backgrounds/lotus-petals.webp',
+  OCEAN_WAVES: '/images/backgrounds/ocean-waves.webp',
+  AMETHYST_LAVENDER: '/images/backgrounds/amethyst-lavender.webp',
+  MOONSTONE_SHIMMER: '/images/backgrounds/moonstone-shimmer.webp',
+  SAGE_WATERCOLOR: '/images/backgrounds/sage-watercolor.webp',
+  BAMBOO_SAGE: '/images/backgrounds/bamboo-sage.webp',
+  WATERCOLOR_BLUE_SKY: '/images/backgrounds/watercolor-blue-sky.webp',
+  PERIWINKLE_PINK_SUNSET: '/images/backgrounds/periwinkle-pink-sunset.webp',
 
   // Pro Mesh Collection
-  PRO_MESH_1: '/images/backgrounds/pro-bg-mesh-1.jpg',
-  PRO_MESH_2: '/images/backgrounds/pro-bg-mesh-2.jpg',
-  PRO_MESH_3: '/images/backgrounds/pro-bg-mesh-3.jpg',
-  PRO_MESH_4: '/images/backgrounds/pro-bg-mesh-4.jpg',
-  PRO_MESH_5: '/images/backgrounds/pro-bg-mesh-5.jpg',
+  PRO_MESH_1: '/images/backgrounds/pro-bg-mesh-1.webp',
+  PRO_MESH_2: '/images/backgrounds/pro-bg-mesh-2.webp',
+  PRO_MESH_3: '/images/backgrounds/pro-bg-mesh-3.webp',
+  PRO_MESH_4: '/images/backgrounds/pro-bg-mesh-4.webp',
+  PRO_MESH_5: '/images/backgrounds/pro-bg-mesh-5.webp',
 
   // Collections
   PREMIUM_COLLECTION: [
-    '/images/backgrounds/tropical-sage.png',
-    '/images/backgrounds/marble-gold.png',
-    '/images/backgrounds/pressed-flowers-subtle.png',
-    '/images/backgrounds/pressed-flowers-faded.png',
-    '/images/backgrounds/handmade-paper-floral.png',
-    '/images/backgrounds/aquamarine.png',
-    '/images/backgrounds/sandstone-beige.png',
-    '/images/backgrounds/citrine-quartz.png',
-    '/images/backgrounds/aventurine-green.png',
-    '/images/backgrounds/pressed-flowers-textured.png',
-    '/images/backgrounds/lotus-petals.png',
-    '/images/backgrounds/rose-quartz.png',
-    '/images/backgrounds/ocean-waves.png',
-    '/images/backgrounds/jade.png',
-    '/images/backgrounds/amethyst-lavender.png',
-    '/images/backgrounds/lavender.png',
-    '/images/backgrounds/moonstone-shimmer.png',
-    '/images/backgrounds/pearl.png',
-    '/images/backgrounds/sunset.png',
-    '/images/backgrounds/sage-watercolor.png',
-    '/images/backgrounds/bamboo-sage.png',
-    '/images/backgrounds/watercolor-blue-sky.png',
-    '/images/backgrounds/periwinkle-pink-sunset.png',
-    '/images/backgrounds/pro-bg-mesh-1.jpg',
-    '/images/backgrounds/pro-bg-mesh-2.jpg',
-    '/images/backgrounds/pro-bg-mesh-3.jpg',
-    '/images/backgrounds/pro-bg-mesh-4.jpg',
-    '/images/backgrounds/pro-bg-mesh-5.jpg'
+    '/images/backgrounds/tropical-sage.webp',
+    '/images/backgrounds/marble-gold.webp',
+    '/images/backgrounds/pressed-flowers-subtle.webp',
+    '/images/backgrounds/pressed-flowers-faded.webp',
+    '/images/backgrounds/handmade-paper-floral.webp',
+    '/images/backgrounds/aquamarine.webp',
+    '/images/backgrounds/sandstone-beige.webp',
+    '/images/backgrounds/citrine-quartz.webp',
+    '/images/backgrounds/aventurine-green.webp',
+    '/images/backgrounds/pressed-flowers-textured.webp',
+    '/images/backgrounds/lotus-petals.webp',
+    '/images/backgrounds/rose-quartz.webp',
+    '/images/backgrounds/ocean-waves.webp',
+    '/images/backgrounds/jade.webp',
+    '/images/backgrounds/amethyst-lavender.webp',
+    '/images/backgrounds/lavender.webp',
+    '/images/backgrounds/moonstone-shimmer.webp',
+    '/images/backgrounds/pearl.webp',
+    '/images/backgrounds/sunset.webp',
+    '/images/backgrounds/sage-watercolor.webp',
+    '/images/backgrounds/bamboo-sage.webp',
+    '/images/backgrounds/watercolor-blue-sky.webp',
+    '/images/backgrounds/periwinkle-pink-sunset.webp',
+    '/images/backgrounds/pro-bg-mesh-1.webp',
+    '/images/backgrounds/pro-bg-mesh-2.webp',
+    '/images/backgrounds/pro-bg-mesh-3.webp',
+    '/images/backgrounds/pro-bg-mesh-4.webp',
+    '/images/backgrounds/pro-bg-mesh-5.webp'
   ],
 
   BLUE_VARIANTS: [
@@ -108,41 +104,41 @@ export const BACKGROUNDS = {
   ],
 } as const;
 
-// Background Options for UI
+// Background Options for UI (with thumbnail URLs for selectors)
 export const BACKGROUND_UI_OPTIONS = [
-  { name: 'Blue Clouds', url: BACKGROUNDS.BLUE_CLOUDS },
-  { name: 'Pearl', url: BACKGROUNDS.PEARL },
-  { name: 'Rose Quartz', url: BACKGROUNDS.ROSE_QUARTZ },
-  { name: 'Jade', url: BACKGROUNDS.JADE },
-  { name: 'Lavender', url: BACKGROUNDS.LAVENDER },
-  { name: 'Sunset', url: BACKGROUNDS.SUNSET },
+  { name: 'Blue Clouds', url: BACKGROUNDS.BLUE_CLOUDS, thumbUrl: '/images/backgrounds/thumbs/blue-clouds.thumb.webp' },
+  { name: 'Pearl', url: BACKGROUNDS.PEARL, thumbUrl: '/images/backgrounds/thumbs/pearl.thumb.webp' },
+  { name: 'Rose Quartz', url: BACKGROUNDS.ROSE_QUARTZ, thumbUrl: '/images/backgrounds/thumbs/rose-quartz.thumb.webp' },
+  { name: 'Jade', url: BACKGROUNDS.JADE, thumbUrl: '/images/backgrounds/thumbs/jade.thumb.webp' },
+  { name: 'Lavender', url: BACKGROUNDS.LAVENDER, thumbUrl: '/images/backgrounds/thumbs/lavender.thumb.webp' },
+  { name: 'Sunset', url: BACKGROUNDS.SUNSET, thumbUrl: '/images/backgrounds/thumbs/sunset.thumb.webp' },
 
-  { name: 'Tropical Sage', url: BACKGROUNDS.TROPICAL_SAGE },
-  { name: 'Marble Gold', url: BACKGROUNDS.MARBLE_GOLD },
-  { name: 'Ocean Waves', url: BACKGROUNDS.OCEAN_WAVES },
-  { name: 'Boutique Floral', url: BACKGROUNDS.PRESSED_FLOWERS_SUBTLE },
-  { name: 'Faded Flowers', url: BACKGROUNDS.PRESSED_FLOWERS_FADED },
-  { name: 'Handmade Floral', url: BACKGROUNDS.HANDMADE_PAPER_FLORAL },
-  { name: 'Aquamarine', url: BACKGROUNDS.AQUAMARINE },
-  { name: 'Sandstone', url: BACKGROUNDS.SANDSTONE_BEIGE },
-  { name: 'Citrine', url: BACKGROUNDS.CITRINE_QUARTZ },
-  { name: 'Aventurine', url: BACKGROUNDS.AVENTURINE_GREEN },
-  { name: 'Textured Floral', url: BACKGROUNDS.PRESSED_FLOWERS_TEXTURED },
-  { name: 'Lotus Petals', url: BACKGROUNDS.LOTUS_PETALS },
-  { name: 'Amethyst', url: BACKGROUNDS.AMETHYST_LAVENDER },
-  { name: 'Moonstone', url: BACKGROUNDS.MOONSTONE_SHIMMER },
-  { name: 'Sage Watercolor', url: BACKGROUNDS.SAGE_WATERCOLOR },
-  { name: 'Bamboo', url: BACKGROUNDS.BAMBOO_SAGE },
-  { name: 'Sky Watercolor', url: BACKGROUNDS.WATERCOLOR_BLUE_SKY },
-  { name: 'Periwinkle Sunset', url: BACKGROUNDS.PERIWINKLE_PINK_SUNSET },
-  { name: 'Misty Rose Mesh', url: BACKGROUNDS.PRO_MESH_1 },
-  { name: 'Golden Aura Mesh', url: BACKGROUNDS.PRO_MESH_2 },
-  { name: 'Azure Mist Mesh', url: BACKGROUNDS.PRO_MESH_3 },
-  { name: 'Midnight Silk Mesh', url: BACKGROUNDS.PRO_MESH_4 },
-  { name: 'Emerald Wash Mesh', url: BACKGROUNDS.PRO_MESH_5 },
+  { name: 'Tropical Sage', url: BACKGROUNDS.TROPICAL_SAGE, thumbUrl: '/images/backgrounds/thumbs/tropical-sage.thumb.webp' },
+  { name: 'Marble Gold', url: BACKGROUNDS.MARBLE_GOLD, thumbUrl: '/images/backgrounds/thumbs/marble-gold.thumb.webp' },
+  { name: 'Ocean Waves', url: BACKGROUNDS.OCEAN_WAVES, thumbUrl: '/images/backgrounds/thumbs/ocean-waves.thumb.webp' },
+  { name: 'Boutique Floral', url: BACKGROUNDS.PRESSED_FLOWERS_SUBTLE, thumbUrl: '/images/backgrounds/thumbs/pressed-flowers-subtle.thumb.webp' },
+  { name: 'Faded Flowers', url: BACKGROUNDS.PRESSED_FLOWERS_FADED, thumbUrl: '/images/backgrounds/thumbs/pressed-flowers-faded.thumb.webp' },
+  { name: 'Handmade Floral', url: BACKGROUNDS.HANDMADE_PAPER_FLORAL, thumbUrl: '/images/backgrounds/thumbs/handmade-paper-floral.thumb.webp' },
+  { name: 'Aquamarine', url: BACKGROUNDS.AQUAMARINE, thumbUrl: '/images/backgrounds/thumbs/aquamarine.thumb.webp' },
+  { name: 'Sandstone', url: BACKGROUNDS.SANDSTONE_BEIGE, thumbUrl: '/images/backgrounds/thumbs/sandstone-beige.thumb.webp' },
+  { name: 'Citrine', url: BACKGROUNDS.CITRINE_QUARTZ, thumbUrl: '/images/backgrounds/thumbs/citrine-quartz.thumb.webp' },
+  { name: 'Aventurine', url: BACKGROUNDS.AVENTURINE_GREEN, thumbUrl: '/images/backgrounds/thumbs/aventurine-green.thumb.webp' },
+  { name: 'Textured Floral', url: BACKGROUNDS.PRESSED_FLOWERS_TEXTURED, thumbUrl: '/images/backgrounds/thumbs/pressed-flowers-textured.thumb.webp' },
+  { name: 'Lotus Petals', url: BACKGROUNDS.LOTUS_PETALS, thumbUrl: '/images/backgrounds/thumbs/lotus-petals.thumb.webp' },
+  { name: 'Amethyst', url: BACKGROUNDS.AMETHYST_LAVENDER, thumbUrl: '/images/backgrounds/thumbs/amethyst-lavender.thumb.webp' },
+  { name: 'Moonstone', url: BACKGROUNDS.MOONSTONE_SHIMMER, thumbUrl: '/images/backgrounds/thumbs/moonstone-shimmer.thumb.webp' },
+  { name: 'Sage Watercolor', url: BACKGROUNDS.SAGE_WATERCOLOR, thumbUrl: '/images/backgrounds/thumbs/sage-watercolor.thumb.webp' },
+  { name: 'Bamboo', url: BACKGROUNDS.BAMBOO_SAGE, thumbUrl: '/images/backgrounds/thumbs/bamboo-sage.thumb.webp' },
+  { name: 'Sky Watercolor', url: BACKGROUNDS.WATERCOLOR_BLUE_SKY, thumbUrl: '/images/backgrounds/thumbs/watercolor-blue-sky.thumb.webp' },
+  { name: 'Periwinkle Sunset', url: BACKGROUNDS.PERIWINKLE_PINK_SUNSET, thumbUrl: '/images/backgrounds/thumbs/periwinkle-pink-sunset.thumb.webp' },
+  { name: 'Misty Rose Mesh', url: BACKGROUNDS.PRO_MESH_1, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-1.thumb.webp' },
+  { name: 'Golden Aura Mesh', url: BACKGROUNDS.PRO_MESH_2, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-2.thumb.webp' },
+  { name: 'Azure Mist Mesh', url: BACKGROUNDS.PRO_MESH_3, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-3.thumb.webp' },
+  { name: 'Midnight Silk Mesh', url: BACKGROUNDS.PRO_MESH_4, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-4.thumb.webp' },
+  { name: 'Emerald Wash Mesh', url: BACKGROUNDS.PRO_MESH_5, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-5.thumb.webp' },
 ] as const;
 
-// Frame Images - OPTIMIZED ✅
+// Frame Images
 export const FRAMES = {
   FRAME_1: '/images/frames/frame-1.png',
   FRAME_2: '/images/frames/frame-2.png',
@@ -157,6 +153,25 @@ export const FRAMES = {
   FRAME_11: '/images/frames/frame-11.png',
   FRAME_12: '/images/frames/frame-12.png',
 } as const;
+
+// Frame UI Options (with thumbnail URLs for selectors)
+export const FRAME_UI_OPTIONS = [
+  // Free frames (corner frames) — first row
+  { id: 'frame-1', url: '/images/frames/frame-1.png', thumbUrl: '/images/frames/thumbs/frame-1.thumb.webp', name: 'Frame 1' },
+  { id: 'frame-4', url: '/images/frames/frame-4.png', thumbUrl: '/images/frames/thumbs/frame-4.thumb.webp', name: 'Frame 4' },
+  { id: 'frame-9', url: '/images/frames/frame-9.png', thumbUrl: '/images/frames/thumbs/frame-9.thumb.webp', name: 'Frame 9' },
+  { id: 'frame-12', url: '/images/frames/frame-12.png', thumbUrl: '/images/frames/thumbs/frame-12.thumb.webp', name: 'Frame 12' },
+  // Pro frames
+  { id: 'frame-2', url: '/images/frames/frame-2.png', thumbUrl: '/images/frames/thumbs/frame-2.thumb.webp', name: 'Frame 2' },
+  { id: 'frame-3', url: '/images/frames/frame-3.png', thumbUrl: '/images/frames/thumbs/frame-3.thumb.webp', name: 'Frame 3' },
+  { id: 'frame-5', url: '/images/frames/frame-5.png', thumbUrl: '/images/frames/thumbs/frame-5.thumb.webp', name: 'Frame 5' },
+  { id: 'frame-6', url: '/images/frames/frame-6.png', thumbUrl: '/images/frames/thumbs/frame-6.thumb.webp', name: 'Frame 6' },
+  { id: 'frame-7', url: '/images/frames/frame-7.png', thumbUrl: '/images/frames/thumbs/frame-7.thumb.webp', name: 'Frame 7' },
+  { id: 'frame-8', url: '/images/frames/frame-8.png', thumbUrl: '/images/frames/thumbs/frame-8.thumb.webp', name: 'Frame 8' },
+  { id: 'frame-10', url: '/images/frames/frame-10.png', thumbUrl: '/images/frames/thumbs/frame-10.thumb.webp', name: 'Frame 10' },
+  { id: 'frame-11', url: '/images/frames/frame-11.png', thumbUrl: '/images/frames/thumbs/frame-11.thumb.webp', name: 'Frame 11' },
+] as const;
+
 // Frame Configurations - Calibrated for perfect fit
 export const FRAME_CONFIGS: Record<string, { top: string, left: string, width: string, height: string }> = {
   'frame-1': { top: '13.2%', left: '14.2%', width: '71.8%', height: '72.4%' },
@@ -184,11 +199,10 @@ export function getFrameConfig(frameUrl: string | null) {
   return FRAME_CONFIGS[frameId] || FRAME_CONFIGS['frame-1'];
 }
 
-// Couple Images - OPTIMIZED ✅
+// Couple Images
 export const COUPLE_IMAGES = {
-  // OPTIMIZED versions (USE THESE!) - 95% smaller!
-  COUPLE_1: '/images/couple/couple-1.jpg', // 1.3MB → 75KB
-  COUPLE_2: '/images/couple/couple-2.jpg', // 1.1MB → 58KB
+  COUPLE_1: '/images/couple/couple-1.jpg',
+  COUPLE_2: '/images/couple/couple-2.jpg',
 } as const;
 
 // Logo and Brand Assets
@@ -201,24 +215,20 @@ export const BRAND_ASSETS = {
 // Default combinations for common use cases
 export const DEFAULT_COMBINATIONS = {
   MAIN_BACKGROUND: {
-    // Using Rose Quartz background as the main default
     background: BACKGROUNDS.ROSE_QUARTZ,
   },
   GUEST_BACKGROUND: {
-    // Alternative background for variety
     background: BACKGROUNDS.JADE,
   },
 } as const;
 
 // Helper function to get optimized image path (all paths are now optimized!)
 export function getOptimizedImage(imagePath: string): string {
-  // All current paths are already optimized - just return as-is
   return imagePath;
 }
 
 // Helper to check if image is optimized (all current paths are optimized!)
 export function isOptimized(imagePath: string): boolean {
-  // All paths in BACKGROUNDS, FRAMES, COUPLE_IMAGES are now optimized
   return !imagePath.includes('/design-reference/');
 }
 
@@ -244,16 +254,11 @@ export function getThemeBackground(theme: 'romantic' | 'traditional' | 'modern' 
 }
 
 // APP-WIDE BACKGROUND CONFIGURATION
-// This will be the single source of truth for all background settings
-// In the future, this can be loaded from a database/config API
 export const APP_BACKGROUND_CONFIG = {
-  // Current default - can be changed here to affect entire app
   default: {
     background: BACKGROUNDS.BLUE_CLOUDS,
   },
 
-
-  // Alternative configurations for different contexts
   variants: {
     elegant: {
       background: BACKGROUNDS.PEARL,
@@ -270,4 +275,20 @@ export function getAppBackgroundConfig(variant: 'default' | 'elegant' | 'natural
     return APP_BACKGROUND_CONFIG.default;
   }
   return APP_BACKGROUND_CONFIG.variants[variant];
-} 
+}
+
+/**
+ * Get a color-accurate blur placeholder data URL for a background image.
+ * Falls back to a generic gray pixel if no placeholder exists.
+ */
+export function getBlurDataUrl(imagePath: string): string {
+  const placeholders = blurPlaceholders as Record<string, string>;
+  if (placeholders[imagePath]) return placeholders[imagePath];
+
+  // Try .webp version if .png was passed (for DB migration compatibility)
+  const webpPath = imagePath.replace(/\.(png|jpg|jpeg)$/, '.webp');
+  if (placeholders[webpPath]) return placeholders[webpPath];
+
+  // Fallback: generic gray 1x1 pixel
+  return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
+}

@@ -66,7 +66,7 @@ export default function ChatBackgroundPicker({ onSave, currentValue }: ChatBackg
             >
               <Box
                 component="img"
-                src={bg.url}
+                src={bg.thumbUrl}
                 alt={bg.name}
                 sx={{
                   width: '100%',

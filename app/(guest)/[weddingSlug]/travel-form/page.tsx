@@ -19,6 +19,7 @@ import {
 import { DirectionsBus, CheckCircle, WhatsApp, Add, Remove } from '@mui/icons-material';
 import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 import Link from 'next/link';
 
 interface TravelFormData {
@@ -40,6 +41,8 @@ const initialFormData: TravelFormData = {
 };
 
 export default function TravelFormPage() {
+  const { wedding } = useWedding();
+  const primaryColor = wedding?.primary_color || '#DE3F5E';
   const [formData, setFormData] = useState<TravelFormData>(initialFormData);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -224,7 +227,7 @@ export default function TravelFormPage() {
                   <DirectionsBus
                     sx={{
                       fontSize: { xs: 40, md: 50 },
-                      color: '#DE3F5E',
+                      color: primaryColor,
                       mb: 1,
                     }}
                   />
@@ -272,14 +275,14 @@ export default function TravelFormPage() {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: primaryColor,
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: primaryColor,
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -330,14 +333,14 @@ export default function TravelFormPage() {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: primaryColor,
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: primaryColor,
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -380,7 +383,7 @@ export default function TravelFormPage() {
                         borderRadius: '12px',
                         borderColor: '#999',
                         color: '#333',
-                        '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                        '&:hover': { borderColor: primaryColor, color: primaryColor }
                       }}
                       onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
                     >
@@ -394,7 +397,7 @@ export default function TravelFormPage() {
                           textAlign: 'center',
                           color: '#000000',
                           '& fieldset': { borderColor: '#999' },
-                          '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                          '&.Mui-focused fieldset': { borderColor: primaryColor },
                         },
                         '& input': { textAlign: 'center', color: '#000000' }
                       }}
@@ -422,7 +425,7 @@ export default function TravelFormPage() {
                         borderRadius: '12px',
                         borderColor: '#999',
                         color: '#333',
-                        '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                        '&:hover': { borderColor: primaryColor, color: primaryColor }
                       }}
                       onClick={() => handleInputChange('party_size', formData.party_size + 1)}
                     >
@@ -454,10 +457,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.bangkok_to_huahin
-                          ? '2px solid #DE3F5E'
+                          ? `2px solid ${primaryColor}`
                           : '1px solid #999999',
                         bgcolor: formData.bangkok_to_huahin
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(primaryColor, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -482,7 +485,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: primaryColor,
                               },
                               pointerEvents: 'none',
                             }}
@@ -534,10 +537,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.huahin_to_airport
-                          ? '2px solid #DE3F5E'
+                          ? `2px solid ${primaryColor}`
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_airport
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(primaryColor, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -562,7 +565,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: primaryColor,
                               },
                               pointerEvents: 'none',
                             }}
@@ -601,10 +604,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.huahin_to_sukhumvit
-                          ? '2px solid #DE3F5E'
+                          ? `2px solid ${primaryColor}`
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_sukhumvit
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(primaryColor, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -629,7 +632,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: primaryColor,
                               },
                               pointerEvents: 'none',
                             }}
@@ -786,7 +789,7 @@ export default function TravelFormPage() {
                   variant="contained"
                   disabled={loading}
                   sx={{
-                    bgcolor: '#DE3F5E',
+                    bgcolor: primaryColor,
                     color: 'white',
                     borderRadius: '16px',
                     py: 1.5,

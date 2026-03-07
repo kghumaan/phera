@@ -95,7 +95,7 @@ Expected counts:
 
 Once your account is created, you can also use the admin dashboard to manually add all the data through the UI:
 
-1. Sign up at `/auth/signup`
+1. Sign up at `/auth/login`
 2. Go to `/admin/onboarding/sim-kv/overview`
 3. Fill in each section
 

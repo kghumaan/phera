@@ -5,24 +5,24 @@ import { Box, Typography, alpha } from '@mui/material';
 import { ViewModule, ViewStream } from '@mui/icons-material';
 
 interface ChatLayoutPickerProps {
-  onSave: (layout: 'nested' | 'infinite_scroll') => void;
+  onSave: (layout: 'multi_page' | 'vertical_scroll') => void;
   currentValue?: string;
 }
 
 export default function ChatLayoutPicker({ onSave, currentValue }: ChatLayoutPickerProps) {
-  const [selected, setSelected] = useState<string>(currentValue || 'nested');
+  const [selected, setSelected] = useState<string>(currentValue || 'multi_page');
 
   const options = [
     {
-      value: 'nested' as const,
-      label: 'Nested',
+      value: 'multi_page' as const,
+      label: 'Multi-Page',
       subtitle: 'View Details',
       description: 'Guests tap into each section to see details. Clean and organized.',
       icon: ViewModule,
     },
     {
-      value: 'infinite_scroll' as const,
-      label: 'Infinite Scroll',
+      value: 'vertical_scroll' as const,
+      label: 'Vertical Scroll',
       subtitle: 'All Content',
       description: 'All content flows on one page. Guests scroll through everything.',
       icon: ViewStream,

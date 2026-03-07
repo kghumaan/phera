@@ -233,7 +233,7 @@ export default function DetailsPage() {
         bottom: 0,
         display: 'flex',
         flexDirection: 'column',
-        backgroundImage: 'url(/images/backgrounds/pearl.png)',
+        backgroundImage: 'url(/images/backgrounds/pearl.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

@@ -1,5 +1,5 @@
 import { supabase } from './client'
-import type { RSVPFormData, TablesInsert, TablesUpdate } from './types'
+import type { RSVPFormData, TablesInsert, TablesUpdate, RSVPCustomQuestionStep, CustomQuestion } from './types'
 import { generateGuestAvatar, generateFallbackColor } from '../utils/avatar-generator'
 
 // Generate a random color for avatar (fallback)
@@ -9,7 +9,7 @@ function generateAvatarColor(name: string): string {
 
 export async function getExistingRSVP(email: string, weddingId: string) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('guests')
       .select(`
         id,
@@ -32,13 +32,12 @@ export async function getExistingRSVP(email: string, weddingId: string) {
           song_request,
           special_message,
           maybe_comment,
-          arrival_option,
-          arrival_date
+          custom_answers
         )
       `)
       .eq('email', email.toLowerCase())
       .eq('wedding_id', weddingId)
-      .single()
+      .single() as any)
 
     if (error) {
       console.error('Error fetching existing RSVP:', error)
@@ -101,8 +100,7 @@ export async function getExistingRSVP(email: string, weddingId: string) {
       songRequest: rsvp.song_request || '',
       specialMessage: rsvp.special_message || '',
       maybeComment: rsvp.maybe_comment || '',
-      arrivalOption: (rsvp.arrival_option as 'known' | 'not_sure' | '') || '',
-      arrivalDate: rsvp.arrival_date || '',
+      custom_answers: (rsvp as any).custom_answers || undefined,
     }
 
     return { success: true, data: formData, guestId: guest.id }
@@ -241,9 +239,8 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       song_request: formData.songRequest || null,
       special_message: formData.specialMessage || null,
       maybe_comment: formData.maybeComment || null,
-      arrival_option: formData.arrivalOption || null,
-      arrival_date: formData.arrivalDate || null,
-    };
+      custom_answers: formData.custom_answers || null,
+    } as any;
 
     console.log('Inserting comprehensive RSVP record:', rsvpRecord);
 
@@ -485,4 +482,60 @@ export async function updateRSVP(rsvpId: string, updates: TablesUpdate<'rsvps'>)
 
   if (error) throw error
   return { success: true, data }
-} 
+}
+
+// ===== Custom RSVP Questions =====
+
+export async function getCustomQuestions(weddingId: string): Promise<RSVPCustomQuestionStep[]> {
+  const { data, error } = await (supabase as any)
+    .from('rsvp_custom_questions')
+    .select('*')
+    .eq('wedding_id', weddingId)
+    .order('insert_after')
+    .order('order_index')
+
+  if (error) throw error
+  return (data || []) as RSVPCustomQuestionStep[]
+}
+
+export async function upsertCustomQuestionStep(step: Omit<RSVPCustomQuestionStep, 'created_at' | 'updated_at'>) {
+  const { data, error } = await (supabase as any)
+    .from('rsvp_custom_questions')
+    .upsert({
+      id: step.id,
+      wedding_id: step.wedding_id,
+      step_title: step.step_title,
+      insert_after: step.insert_after,
+      order_index: step.order_index,
+      questions: step.questions,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as RSVPCustomQuestionStep
+}
+
+export async function deleteCustomQuestionStep(stepId: string) {
+  const { error } = await (supabase as any)
+    .from('rsvp_custom_questions')
+    .delete()
+    .eq('id', stepId)
+
+  if (error) throw error
+  return { success: true }
+}
+
+export async function reorderCustomQuestionSteps(steps: { id: string; order_index: number }[]) {
+  const promises = steps.map(s =>
+    (supabase as any)
+      .from('rsvp_custom_questions')
+      .update({ order_index: s.order_index, updated_at: new Date().toISOString() })
+      .eq('id', s.id)
+  )
+  const results = await Promise.all(promises)
+  const failed = results.find((r: any) => r.error)
+  if (failed?.error) throw failed.error
+  return { success: true }
+}

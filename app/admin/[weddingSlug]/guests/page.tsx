@@ -44,12 +44,14 @@ import {
   Download,
 } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
-import { getAllRSVPs, deleteRSVP } from '@/lib/supabase/rsvp-service';
+import { getAllRSVPs, deleteRSVP, getCustomQuestions } from '@/lib/supabase/rsvp-service';
+import { CustomQuestion, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 interface RSVPData {
   id: string;
@@ -63,6 +65,7 @@ interface RSVPData {
   song_request: string | null;
   special_message: string | null;
   maybe_comment: string | null;
+  custom_answers?: Record<string, any> | null;
   created_at: string;
   guest: {
     id: string;
@@ -85,6 +88,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   const [activeTab, setActiveTab] = useState(0);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+  const [allCustomQuestions, setAllCustomQuestions] = useState<CustomQuestion[]>([]);
 
   const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
 
@@ -101,7 +105,16 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         setWeddingStatus(wedding.status as 'draft' | 'live');
         // Use weddingSlug instead of wedding.id since RSVPs are stored with slug as wedding_id
         const rsvpData = await getAllRSVPs(weddingSlug);
-        setRsvps(rsvpData || []);
+        setRsvps((rsvpData || []) as RSVPData[]);
+
+        // Fetch custom questions for Extra Details tab
+        try {
+          const customSteps = await getCustomQuestions(weddingSlug);
+          const flatQuestions = customSteps.flatMap(s => s.questions);
+          setAllCustomQuestions(flatQuestions);
+        } catch (e) {
+          console.error('Error fetching custom questions:', e);
+        }
       } else {
         toast.error(`No wedding found with ID: ${weddingSlug}`);
         setError(`No wedding found with ID: ${weddingSlug}`);
@@ -127,18 +140,25 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
     });
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
   const handleDeleteClick = async (id: string) => {
     if (isViewOnly) return;
-    if (confirm('Are you sure you want to delete this RSVP?')) {
-      try {
-        await deleteRSVP(id);
-        setRsvps(prev => prev.filter(r => r.id !== id));
-        toast.success('RSVP deleted successfully');
-      } catch (err) {
-        console.error('Error deleting RSVP:', err);
-        toast.error('Failed to delete RSVP');
-      }
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this RSVP?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await deleteRSVP(id);
+          setRsvps(prev => prev.filter(r => r.id !== id));
+          toast.success('RSVP deleted successfully');
+        } catch (err) {
+          console.error('Error deleting RSVP:', err);
+          toast.error('Failed to delete RSVP');
+        }
+      },
+    });
   };
 
   const handleDownloadMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -150,23 +170,30 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   };
 
   const prepareRSVPDataForExport = (data: RSVPData[]) => {
-    return data.map(r => ({
-      'Guest Name': r.guest?.name || 'Unknown',
-      'Email': r.guest?.email || '',
-      'Phone': r.guest?.phone || '',
-      'Attending': r.attending,
-      'Party Size': r.guest_count,
-      'Plus One': r.plus_one ? 'Yes' : 'No',
-      'Plus One Name': r.plus_one_name || '',
-      'Plus One Email': r.plus_one_email || '',
-      'Side': r.guest?.wedding_side || '',
-      'Food Preferences': r.food_preference?.join(', ') || '',
-      'Dietary Restrictions': r.dietary_restrictions || '',
-      'Song Request': r.song_request || '',
-      'Special Message': r.special_message || '',
-      'Comment': r.maybe_comment || '',
-      'Responded At': new Date(r.created_at).toLocaleString(),
-    }));
+    return data.map(r => {
+      const base: Record<string, any> = {
+        'Guest Name': r.guest?.name || 'Unknown',
+        'Email': r.guest?.email || '',
+        'Phone': r.guest?.phone || '',
+        'Attending': r.attending,
+        'Party Size': r.guest_count,
+        'Plus One': r.plus_one ? 'Yes' : 'No',
+        'Plus One Name': r.plus_one_name || '',
+        'Plus One Email': r.plus_one_email || '',
+        'Side': r.guest?.wedding_side || '',
+        'Food Preferences': r.food_preference?.join(', ') || '',
+        'Dietary Restrictions': r.dietary_restrictions || '',
+        'Song Request': r.song_request || '',
+        'Special Message': r.special_message || '',
+        'Comment': r.maybe_comment || '',
+        'Responded At': new Date(r.created_at).toLocaleString(),
+      };
+      // Add custom question columns dynamically
+      allCustomQuestions.forEach(q => {
+        base[q.label] = r.custom_answers?.[q.id] || '';
+      });
+      return base;
+    });
   };
 
   const handleExportCSV = (filterType: 'all' | 'attending' | 'not_attending' | 'maybe') => {
@@ -282,6 +309,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
       case 4: return rsvps.filter(r => r.food_preference && r.food_preference.length > 0);
       case 5: return rsvps.filter(r => r.dietary_restrictions && r.dietary_restrictions.trim() !== '');
       case 6: return rsvps.filter(r => r.song_request && r.song_request.trim() !== '');
+      case 7: return rsvps.filter(r => r.custom_answers && Object.keys(r.custom_answers).length > 0);
       default: return rsvps;
     }
   };
@@ -591,6 +619,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             <Tab label="Food Preferences" />
             <Tab label="Dietary Restrictions" />
             <Tab label="Song Requests" />
+            {allCustomQuestions.length > 0 && <Tab label="Extra Details" />}
           </Tabs>
 
           {getFilteredRSVPs().length > 0 ? (
@@ -615,6 +644,9 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                     {activeTab === 6 && (
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Song Request</TableCell>
                     )}
+                    {activeTab === 7 && allCustomQuestions.map(q => (
+                      <TableCell key={q.id} sx={{ fontWeight: 600, color: '#1a1a1a' }}>{q.label}</TableCell>
+                    ))}
                     <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', width: 50 }}></TableCell>
                     <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', width: 50 }}></TableCell>
                   </TableRow>
@@ -740,10 +772,18 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                         {activeTab === 6 && (
                           <TableCell>
                             <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
-                              🎵 {rsvp.song_request}
+                              {rsvp.song_request}
                             </Typography>
                           </TableCell>
                         )}
+
+                        {activeTab === 7 && allCustomQuestions.map(q => (
+                          <TableCell key={q.id}>
+                            <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                              {rsvp.custom_answers?.[q.id] || '-'}
+                            </Typography>
+                          </TableCell>
+                        ))}
 
                         <TableCell>
                           <Tooltip title="Delete RSVP">
@@ -770,7 +810,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                       </TableRow>
                       {expandedRows.has(rsvp.id) && (
                         <TableRow>
-                          <TableCell colSpan={activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
+                          <TableCell colSpan={activeTab === 7 ? allCustomQuestions.length + 3 : activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
                             <Box sx={{ px: 2 }}>
                               <Box sx={{ display: 'flex', gap: 4, rowGap: 3, flexWrap: 'wrap' }}>
                                 {rsvp.food_preference && rsvp.food_preference.length > 0 && (
@@ -913,6 +953,30 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                     )}
                                   </Box>
                                 )}
+
+                                {rsvp.custom_answers && Object.keys(rsvp.custom_answers).length > 0 && (
+                                  <Box sx={{ minWidth: 200, width: '100%', mt: 1, pt: 1, borderTop: '1px solid #eee' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#DE3F5E', mb: 1, display: 'block' }}>
+                                      Custom Answers
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                      {allCustomQuestions.map(q => {
+                                        const answer = rsvp.custom_answers?.[q.id];
+                                        if (!answer) return null;
+                                        return (
+                                          <Box key={q.id} sx={{ minWidth: 150 }}>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                              {q.label}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                              {answer}
+                                            </Typography>
+                                          </Box>
+                                        );
+                                      })}
+                                    </Box>
+                                  </Box>
+                                )}
                               </Box>
                             </Box>
                           </TableCell>
@@ -943,6 +1007,13 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
           )}
         </Paper>
       </Stack>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
     </Box>
   );
 }

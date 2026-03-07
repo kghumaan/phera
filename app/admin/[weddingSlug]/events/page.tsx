@@ -26,6 +26,7 @@ import {
   FormControlLabel,
   FormLabel,
   Checkbox,
+  CircularProgress,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -53,6 +54,7 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -247,6 +249,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     toast.info('Slide reordered! Remember to save the event.');
   };
 
+  const [savingEvent, setSavingEvent] = useState(false);
+
   const handleSaveEvent = async () => {
     if (isViewOnly) return;
     if (!currentEvent) return;
@@ -265,6 +269,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
 
       setFieldErrors({});
+      setSavingEvent(true);
 
       if (!currentEvent.slug) {
         currentEvent.slug = (currentEvent.name || '').toLowerCase().replace(/\s+/g, '-');
@@ -289,27 +294,36 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     } catch (err) {
       console.error('Error saving event:', err);
       toast.error('Failed to save event');
+    } finally {
+      setSavingEvent(false);
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
   const handleDeleteEvent = async (eventId: string) => {
     if (isViewOnly) return;
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
-    try {
-      await weddingService.deleteEvent(eventId);
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      toast.success('Event deleted successfully');
-    } catch (err) {
-      console.error('Error deleting event:', err);
-      toast.error('Failed to delete event');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this event?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteEvent(eventId);
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+          toast.success('Event deleted successfully');
+        } catch (err) {
+          console.error('Error deleting event:', err);
+          toast.error('Failed to delete event');
+        }
+      },
+    });
   };
 
   const updateCurrentEvent = (field: string, value: any) => {
@@ -726,6 +740,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                   <Button
                     variant="contained"
                     onClick={handleSaveEvent}
+                    disabled={savingEvent}
                     sx={{
                       flex: 1,
                       bgcolor: '#DE3F5E',
@@ -737,7 +752,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                       '&:hover': { bgcolor: '#C8365A' },
                     }}
                   >
-                    Save Event
+                    {savingEvent ? <CircularProgress size={20} color="inherit" /> : 'Save Event'}
                   </Button>
                   <Button
                     variant="outlined"
@@ -791,10 +806,12 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
               {events.map((event) => (
                 <Paper
                   key={event.id}
+                  onClick={() => handleEdit(event)}
                   sx={{
                     borderRadius: '16px',
                     bgcolor: '#fff',
-                    boxShadow: 'none',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    cursor: 'pointer',
                     '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' },
                   }}
                 >
@@ -818,7 +835,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                       </Box>
                       <Stack direction="row" spacing={1}>
                         <IconButton
-                          onClick={() => handleEdit(event)}
+                          onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
                           size="small"
                           sx={{
                             color: '#000',
@@ -828,7 +845,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                           <Edit fontSize="small" />
                         </IconButton>
                         <IconButton
-                          onClick={() => handleDeleteEvent(event.id)}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id); }}
                           size="small"
                           sx={{
                             color: '#000',
@@ -1074,6 +1091,13 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
     </Box>
   );
 }

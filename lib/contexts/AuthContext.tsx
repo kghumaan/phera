@@ -13,7 +13,7 @@ function isPublicRoute(): boolean {
   if (typeof window === 'undefined') return false;
   const path = window.location.pathname;
   // Marketing/landing pages, auth pages don't need the initial auth check
-  const publicPaths = ['/', '/auth/signup', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
+  const publicPaths = ['/', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
   return publicPaths.some(p => path === p) || path.startsWith('/auth/') || path.startsWith('/blog/');
 }
 
@@ -649,29 +649,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const signOut = React.useCallback(async () => {
+    // Clear state immediately so the UI updates without waiting for the network call
+    setUser(null);
+    setHasRSVPed(false);
+    setRsvpResponse(null);
+    setIsAdmin(false);
+    setAdminWeddingSlug(null);
+    hasCheckedAdminRef.current = false;
+
+    // Clear guest authentication and pin verification for current wedding
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('phera_guest_auth');
+      if (currentWeddingSlug) {
+        localStorage.removeItem(`phera_pin_verified_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_pin_timestamp_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_allows_plus_one_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_bypass_rsvp_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_skip_rsvp_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_pin_type_${currentWeddingSlug}`);
+        localStorage.removeItem(`phera_hidden_events_${currentWeddingSlug}`);
+      }
+    }
+
+    // Fire Supabase sign-out (network call) — UI is already updated above
     try {
       await supabase.auth.signOut();
-      // Also clear guest authentication and pin verification for current wedding
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('phera_guest_auth');
-        // Clear per-wedding PIN verification if we know the current wedding
-        if (currentWeddingSlug) {
-          localStorage.removeItem(`phera_pin_verified_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_pin_timestamp_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_allows_plus_one_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_bypass_rsvp_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_skip_rsvp_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_pin_type_${currentWeddingSlug}`);
-          localStorage.removeItem(`phera_hidden_events_${currentWeddingSlug}`);
-        }
-      }
-      setUser(null);
-      setHasRSVPed(false);
-      setRsvpResponse(null);
-      // Reset admin status
-      setIsAdmin(false);
-      setAdminWeddingSlug(null);
-      hasCheckedAdminRef.current = false;
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -854,7 +856,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         console.log('Auth state changed:', event);
 
-        if (event === 'SIGNED_IN' && session?.user) {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          setIsLoading(true);
           checkAuthStatus();
           console.log('SIGNED_IN event triggered full auth check for:', session.user.email);
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {

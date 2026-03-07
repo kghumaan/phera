@@ -17,7 +17,7 @@ describe('Preview page logic', () => {
     // Replicate the rendering decision logic from PreviewContent
     function getRenderedComponents(previewView: PreviewView, websiteLayout: string, isMobile: boolean) {
       const showPinEntry = previewView === 'pin_entry';
-      const useInfiniteScroll = !isMobile && websiteLayout === 'infinite_scroll';
+      const useVerticalScroll = !isMobile && websiteLayout === 'vertical_scroll';
       const showViewDetails = previewView === 'rsvp_submitted';
       const showRSVPButton = previewView === 'no_rsvp';
       const showComments = previewView === 'rsvp_submitted';
@@ -25,7 +25,7 @@ describe('Preview page logic', () => {
 
       return {
         showPinEntry,
-        useInfiniteScroll: !showPinEntry && useInfiniteScroll,
+        useVerticalScroll: !showPinEntry && useVerticalScroll,
         showViewDetails,
         showRSVPButton,
         showComments,
@@ -34,14 +34,14 @@ describe('Preview page logic', () => {
     }
 
     it('should show pin entry and nothing else for pin_entry view', () => {
-      const result = getRenderedComponents('pin_entry', 'nested', false);
+      const result = getRenderedComponents('pin_entry', 'multi_page', false);
       expect(result.showPinEntry).toBe(true);
-      expect(result.useInfiniteScroll).toBe(false);
+      expect(result.useVerticalScroll).toBe(false);
       expect(result.showComments).toBe(false);
     });
 
     it('should show RSVP button and hide comments for no_rsvp view', () => {
-      const result = getRenderedComponents('no_rsvp', 'nested', false);
+      const result = getRenderedComponents('no_rsvp', 'multi_page', false);
       expect(result.showPinEntry).toBe(false);
       expect(result.showRSVPButton).toBe(true);
       expect(result.showViewDetails).toBe(false);
@@ -50,7 +50,7 @@ describe('Preview page logic', () => {
     });
 
     it('should show View Details and comments for rsvp_submitted view', () => {
-      const result = getRenderedComponents('rsvp_submitted', 'nested', false);
+      const result = getRenderedComponents('rsvp_submitted', 'multi_page', false);
       expect(result.showPinEntry).toBe(false);
       expect(result.showViewDetails).toBe(true);
       expect(result.showRSVPButton).toBe(false);
@@ -58,31 +58,31 @@ describe('Preview page logic', () => {
       expect(result.buttonText).toBe('View Details');
     });
 
-    it('should use infinite scroll on desktop when layout is infinite_scroll', () => {
-      const result = getRenderedComponents('rsvp_submitted', 'infinite_scroll', false);
-      expect(result.useInfiniteScroll).toBe(true);
+    it('should use vertical scroll on desktop when layout is vertical_scroll', () => {
+      const result = getRenderedComponents('rsvp_submitted', 'vertical_scroll', false);
+      expect(result.useVerticalScroll).toBe(true);
     });
 
-    it('should NOT use infinite scroll on mobile even with infinite_scroll layout', () => {
-      const result = getRenderedComponents('rsvp_submitted', 'infinite_scroll', true);
-      expect(result.useInfiniteScroll).toBe(false);
+    it('should NOT use vertical scroll on mobile even with vertical_scroll layout', () => {
+      const result = getRenderedComponents('rsvp_submitted', 'vertical_scroll', true);
+      expect(result.useVerticalScroll).toBe(false);
     });
 
-    it('should NOT use infinite scroll when layout is nested', () => {
-      const result = getRenderedComponents('rsvp_submitted', 'nested', false);
-      expect(result.useInfiniteScroll).toBe(false);
+    it('should NOT use vertical scroll when layout is multi_page', () => {
+      const result = getRenderedComponents('rsvp_submitted', 'multi_page', false);
+      expect(result.useVerticalScroll).toBe(false);
     });
 
-    it('should NOT use infinite scroll when showing pin entry', () => {
-      const result = getRenderedComponents('pin_entry', 'infinite_scroll', false);
-      expect(result.useInfiniteScroll).toBe(false);
+    it('should NOT use vertical scroll when showing pin entry', () => {
+      const result = getRenderedComponents('pin_entry', 'vertical_scroll', false);
+      expect(result.useVerticalScroll).toBe(false);
     });
   });
 
-  // ─── Infinite scroll props based on preview view ────────────────────
+  // ─── Vertical scroll props based on preview view ────────────────────
 
-  describe('infinite scroll props based on preview view', () => {
-    function getInfiniteScrollProps(previewView: PreviewView) {
+  describe('vertical scroll props based on preview view', () => {
+    function getVerticalScrollProps(previewView: PreviewView) {
       return {
         hasRSVPed: previewView === 'rsvp_submitted',
         user: previewView === 'no_rsvp' ? null : { id: 'preview-user' },
@@ -91,21 +91,21 @@ describe('Preview page logic', () => {
     }
 
     it('should pass hasRSVPed=true and user for rsvp_submitted', () => {
-      const props = getInfiniteScrollProps('rsvp_submitted');
+      const props = getVerticalScrollProps('rsvp_submitted');
       expect(props.hasRSVPed).toBe(true);
       expect(props.user).toEqual({ id: 'preview-user' });
     });
 
     it('should pass hasRSVPed=false and user=null for no_rsvp', () => {
-      const props = getInfiniteScrollProps('no_rsvp');
+      const props = getVerticalScrollProps('no_rsvp');
       expect(props.hasRSVPed).toBe(false);
       expect(props.user).toBeNull();
     });
 
     it('should always pass isBypassPin=true', () => {
-      expect(getInfiniteScrollProps('rsvp_submitted').isBypassPin).toBe(true);
-      expect(getInfiniteScrollProps('no_rsvp').isBypassPin).toBe(true);
-      expect(getInfiniteScrollProps('pin_entry').isBypassPin).toBe(true);
+      expect(getVerticalScrollProps('rsvp_submitted').isBypassPin).toBe(true);
+      expect(getVerticalScrollProps('no_rsvp').isBypassPin).toBe(true);
+      expect(getVerticalScrollProps('pin_entry').isBypassPin).toBe(true);
     });
   });
 

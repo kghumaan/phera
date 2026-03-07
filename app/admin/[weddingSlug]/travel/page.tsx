@@ -20,9 +20,10 @@ import {
   Card,
   CardContent,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, Save, ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { Add, Edit, Delete, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
@@ -30,6 +31,8 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ContinueButton from '@/components/admin/ContinueButton';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -105,6 +108,8 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     setEditDialogOpen(true);
   };
 
+  const [saving, setSaving] = useState(false);
+
   const handleSave = async () => {
     if (isViewOnly) return;
     if (!currentCard?.title || !currentCard?.image_url) {
@@ -114,6 +119,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       return;
     }
 
+    setSaving(true);
     try {
       const contentArray = currentCard.content
         .split('\n\n')
@@ -146,28 +152,38 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       const errorMessage = 'Failed to save travel card';
       setError(errorMessage);
       showToast(errorMessage, 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
   const handleDelete = async (cardId: string) => {
     if (isViewOnly) return;
-    if (!confirm('Delete this card?')) return;
-    try {
-      await weddingService.deleteTravelCard(cardId);
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      setSuccess(true);
-      showToast('Card deleted successfully', 'success');
-    } catch (err) {
-      const errorMessage = 'Failed to delete card';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Delete this card?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteTravelCard(cardId);
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+          setSuccess(true);
+          showToast('Card deleted successfully', 'success');
+        } catch (err) {
+          const errorMessage = 'Failed to delete card';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -412,8 +428,8 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
             <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
             <Button
               variant="contained"
-              startIcon={<Save />}
               onClick={handleSave}
+              disabled={saving}
               sx={{
                 bgcolor: '#DE3F5E',
                 color: 'white',
@@ -425,7 +441,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
                 },
               }}
             >
-              Save
+              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>
@@ -446,7 +462,13 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
           </Alert>
         </Snackbar>
       </Stack>
-
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
+      <ContinueButton weddingSlug={weddingSlug} currentSection="travel" weddingId={weddingId} />
     </Box >
   );
 }

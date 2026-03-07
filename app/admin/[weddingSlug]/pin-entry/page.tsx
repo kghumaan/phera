@@ -104,7 +104,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
-        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.png');
+        setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.webp');
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(wedding.pin_entry_font_color || '#000000');
         setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
@@ -227,7 +227,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                   sx={{
                     width: '100%',
                     height: 120,
-                    backgroundImage: `url(${bg.url})`,
+                    backgroundImage: `url(${bg.thumbUrl})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     borderRadius: 1,

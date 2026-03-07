@@ -139,7 +139,6 @@ Welcome Message: ${wedding.welcome_text || 'N/A'}`
           if (r.food_preference?.length) info += `, Food: ${r.food_preference.join(', ')}`;
           if (r.dietary_restrictions) info += `, Dietary: ${r.dietary_restrictions}`;
           if (r.song_request) info += `, Song request: ${r.song_request}`;
-          if (r.arrival_date) info += `, Arriving: ${r.arrival_date}`;
           return info;
         }).join('\n')
       : 'No RSVP on file.';

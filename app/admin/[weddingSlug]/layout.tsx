@@ -13,6 +13,7 @@ import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { AdminRoleProvider, AdminRole } from '@/lib/contexts/AdminRoleContext';
+import { NavigationGuardProvider } from '@/lib/contexts/NavigationGuardContext';
 import ViewerBanner from '@/components/admin/ViewerBanner';
 
 export default function OnboardingLayout({
@@ -149,6 +150,7 @@ export default function OnboardingLayout({
 
   return (
     <AdminRoleProvider role={adminRole}>
+    <NavigationGuardProvider>
       <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
         <AdminTopNav
           weddingSlug={weddingSlug}
@@ -275,6 +277,7 @@ export default function OnboardingLayout({
       </Backdrop>
 
       <ViewerBanner />
+    </NavigationGuardProvider>
     </AdminRoleProvider>
   );
 }

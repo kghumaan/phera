@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowBack, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 import { useState, useEffect } from 'react';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
@@ -23,7 +24,7 @@ import AppHeader from '@/components/shared/AppHeader';
 import Link from 'next/link';
 
 // Diamond indicators component
-const DiamondIndicators = ({ total, current }: { total: number; current: number }) => (
+const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -35,7 +36,7 @@ const DiamondIndicators = ({ total, current }: { total: number; current: number 
         }}
       >
         <svg width="12" height="12" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z" fill={index === current ? '#DE3F5E' : '#D7A393'}/>
+          <path fillRule="evenodd" clipRule="evenodd" d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z" fill={index === current ? activeColor : '#D7A393'}/>
         </svg>
       </Box>
     ))}
@@ -43,24 +44,26 @@ const DiamondIndicators = ({ total, current }: { total: number; current: number 
 );
 
 // Travel card component
-const TravelCard = ({ 
-  title, 
-  content, 
-  image, 
+const TravelCard = ({
+  title,
+  content,
+  image,
   isActive,
   buttonText,
   isDisabled,
   onButtonClick,
-  isWhatsAppButton
-}: { 
-  title: string; 
-  content: React.ReactNode[]; 
-  image?: string; 
+  isWhatsAppButton,
+  primaryColor = '#DE3F5E',
+}: {
+  title: string;
+  content: React.ReactNode[];
+  image?: string;
   isActive: boolean;
   buttonText?: string;
   isDisabled?: boolean;
   onButtonClick?: () => void;
   isWhatsAppButton?: boolean;
+  primaryColor?: string;
 }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
@@ -164,8 +167,8 @@ const TravelCard = ({
                     backgroundColor: isDisabled ? '#BCBCBC' : '#333',
                   },
                 } : {
-                  color: isDisabled ? '#BCBCBC' : '#DE3F5E',
-                  borderColor: isDisabled ? '#BCBCBC' : '#DE3F5E',
+                  color: isDisabled ? '#BCBCBC' : primaryColor,
+                  borderColor: isDisabled ? '#BCBCBC' : primaryColor,
                 })
               }}
             >
@@ -210,6 +213,8 @@ export default function TravelPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse } = useAuth();
+  const { wedding } = useWedding();
+  const primaryColor = wedding?.primary_color || '#DE3F5E';
 
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
@@ -237,7 +242,7 @@ export default function TravelPage() {
     {
       title: "Book additional nights at The Palayana 🏝️",
       content: [
-        <>Want to stay longer? Book additional nights as soon as possible since the hotel fills up fast! Use the link below or email <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=${encodeURIComponent('Phera Wedding - ' + weddingId + ' - Additional Nights')}&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>vidhi@thepalayana.com</a> and CC <a href={`mailto:booking@thepalayana.com?cc=vidhi@thepalayana.com&subject=${encodeURIComponent('Phera Wedding - ' + weddingId + ' - Additional Nights')}&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: '#DE3F5E', textDecoration: 'none'}}>booking@thepalayana.com</a> if you'd prefer to stay in the same room we assign to you for the 4th and 5th.</>
+        <>Want to stay longer? Book additional nights as soon as possible since the hotel fills up fast! Use the link below or email <a href={`mailto:vidhi@thepalayana.com?cc=booking@thepalayana.com&subject=${encodeURIComponent('Phera Wedding - ' + weddingId + ' - Additional Nights')}&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: primaryColor, textDecoration: 'none'}}>vidhi@thepalayana.com</a> and CC <a href={`mailto:booking@thepalayana.com?cc=vidhi@thepalayana.com&subject=${encodeURIComponent('Phera Wedding - ' + weddingId + ' - Additional Nights')}&body=Requesting%20additional%20nights%20for%20[dates].`} style={{color: primaryColor, textDecoration: 'none'}}>booking@thepalayana.com</a> if you'd prefer to stay in the same room we assign to you for the 4th and 5th.</>
       ],
       image: "/images/travel_stay/2.png",
       buttonText: "booking link",
@@ -524,6 +529,7 @@ export default function TravelPage() {
                     isDisabled={card.isDisabled}
                     onButtonClick={card.onButtonClick}
                     isWhatsAppButton={card.isWhatsAppButton}
+                    primaryColor={primaryColor}
                   />
                 ))}
               </Stack>
@@ -600,7 +606,7 @@ export default function TravelPage() {
               mt: 4,
             }}
           >
-            <DiamondIndicators total={travelData.length} current={currentSlide} />
+            <DiamondIndicators total={travelData.length} current={currentSlide} activeColor={primaryColor} />
           </Box>
         </Box>
       </Box>

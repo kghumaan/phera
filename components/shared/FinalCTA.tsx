@@ -46,7 +46,7 @@ export default function FinalCTA() {
                     >
                         <Button
                             component={Link}
-                            href="/auth/signup"
+                            href="/auth/login"
                             variant="contained"
                             size="large"
                             sx={{

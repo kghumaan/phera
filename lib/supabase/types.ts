@@ -35,6 +35,27 @@ export interface RSVPFormData {
   maybeComment: string;
   selectedGif?: GifData;
   whatsappOptIn?: boolean;
+  custom_answers?: Record<string, any>;
+}
+
+// Custom RSVP Question Types
+export interface CustomQuestion {
+  id: string;
+  label: string;
+  type: 'short_text' | 'long_text' | 'numeric' | 'dropdown' | 'date';
+  required: boolean;
+  options?: string[];
+}
+
+export interface RSVPCustomQuestionStep {
+  id: string;
+  wedding_id: string;
+  step_title: string;
+  insert_after: string;
+  order_index: number;
+  questions: CustomQuestion[];
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // Transportation Types
@@ -368,8 +389,6 @@ export type PheraDatabase = {
       }
       rsvps: {
         Row: {
-          arrival_date: string | null
-          arrival_option: string | null
           attending: string
           country_code: string | null
           created_at: string | null
@@ -390,8 +409,6 @@ export type PheraDatabase = {
           wedding_id: string
         }
         Insert: {
-          arrival_date?: string | null
-          arrival_option?: string | null
           attending: string
           country_code?: string | null
           created_at?: string | null
@@ -412,8 +429,6 @@ export type PheraDatabase = {
           wedding_id: string
         }
         Update: {
-          arrival_date?: string | null
-          arrival_option?: string | null
           attending?: string
           country_code?: string | null
           created_at?: string | null
@@ -1734,8 +1749,6 @@ export type PheraDatabase = {
     Views: {
       rsvps_complete: {
         Row: {
-          arrival_date: string | null
-          arrival_option: string | null
           attending: string | null
           created_at: string | null
           email: string | null

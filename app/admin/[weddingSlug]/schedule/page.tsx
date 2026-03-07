@@ -34,7 +34,6 @@ import {
   Add,
   Edit,
   Delete,
-  Save,
   DragIndicator,
   ArrowUpward,
   ArrowDownward,
@@ -72,6 +71,8 @@ import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { parseISO } from 'date-fns';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ContinueButton from '@/components/admin/ContinueButton';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -89,12 +90,12 @@ interface DayWithItems {
 }
 
 const BACKGROUND_OPTIONS = [
-  { label: 'None', value: null, color: '#DE3F5E' },
-  { label: 'Pearl White', value: 'pearl.png', color: '#B0BEC5' },
-  { label: 'Sunny Yellow', value: 'GradientYellow.png', color: '#FBC02D' },
-  { label: 'Crimson Red', value: 'GradientJaggo.png', color: '#C2185B' },
-  { label: 'Royal Purple', value: 'GradientReception.png', color: '#7B1FA2' },
-  { label: 'Pool Blue', value: 'GradientPoolParty.png', color: '#0288D1' },
+  { label: 'None', value: null, color: '#DE3F5E', thumbUrl: null },
+  { label: 'Pearl White', value: 'pearl.png', color: '#B0BEC5', thumbUrl: '/images/backgrounds/thumbs/pearl.thumb.webp' },
+  { label: 'Sunny Yellow', value: 'GradientYellow.png', color: '#FBC02D', thumbUrl: '/images/backgrounds/thumbs/GradientYellow.thumb.webp' },
+  { label: 'Crimson Red', value: 'GradientJaggo.png', color: '#C2185B', thumbUrl: '/images/backgrounds/thumbs/GradientJaggo.thumb.webp' },
+  { label: 'Royal Purple', value: 'GradientReception.png', color: '#7B1FA2', thumbUrl: '/images/backgrounds/thumbs/GradientReception.thumb.webp' },
+  { label: 'Pool Blue', value: 'GradientPoolParty.png', color: '#0288D1', thumbUrl: '/images/backgrounds/thumbs/GradientPoolParty.thumb.webp' },
 ];
 
 // Slide type options - includes legacy types for backwards compatibility
@@ -149,9 +150,19 @@ function SortableItem({ item, events, onEdit, onDelete }: {
         </Box>
 
         <Stack spacing={0.5} sx={{ minWidth: 80 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.05em' }}>
-            {item.time}
-          </Typography>
+          {item.time && item.time.includes('-') ? (
+            <Stack spacing={0}>
+              {item.time.split('-').map((part: string, i: number) => (
+                <Typography key={i} variant="caption" sx={{ fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.05em', lineHeight: 1.3 }}>
+                  {part.trim()}
+                </Typography>
+              ))}
+            </Stack>
+          ) : (
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.05em' }}>
+              {item.time}
+            </Typography>
+          )}
         </Stack>
 
         <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
@@ -455,6 +466,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     setEditDialogOpen(true);
   };
 
+  const [savingDay, setSavingDay] = useState(false);
+
   const handleSaveDay = async () => {
     if (isViewOnly) return;
     const newFieldErrors: Record<string, boolean> = {};
@@ -469,6 +482,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
 
     setDayFieldErrors({});
 
+    setSavingDay(true);
     try {
       if (currentDay.id) {
         await weddingService.updateSchedule(currentDay.id, currentDay);
@@ -488,26 +502,36 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     } catch (err) {
       console.error('Error saving day:', err);
       showToast('Failed to save day', 'error');
+    } finally {
+      setSavingDay(false);
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
   const handleDeleteDay = async (id: string) => {
     if (isViewOnly) return;
-    if (!confirm('Are you sure you want to delete this day and all its events?')) return;
-    try {
-      await weddingService.deleteSchedule(id);
-      showToast('Day deleted successfully!', 'success');
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-    } catch (err) {
-      console.error('Error deleting day:', err);
-      showToast('Failed to delete day', 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this day and all its events?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteSchedule(id);
+          showToast('Day deleted successfully!', 'success');
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+        } catch (err) {
+          console.error('Error deleting day:', err);
+          showToast('Failed to delete day', 'error');
+        }
+      },
+    });
   };
 
   const handleAddItem = (dayId: string) => {
@@ -532,6 +556,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     setItemDialogOpen(true);
   };
 
+  const [savingItem, setSavingItem] = useState(false);
+
   const handleSaveItem = async () => {
     if (isViewOnly) return;
     if (!currentItem) return;
@@ -553,6 +579,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       carousel_slides: currentSlides,
     };
 
+    setSavingItem(true);
     try {
       if (currentItem.id) {
         await weddingService.updateScheduleItem(currentItem.id, itemToSave);
@@ -575,26 +602,34 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     } catch (err) {
       console.error('Error saving event:', err);
       showToast('Failed to save event', 'error');
+    } finally {
+      setSavingItem(false);
     }
   };
 
   const handleDeleteItem = async (id: string) => {
     if (isViewOnly) return;
-    if (!confirm('Are you sure you want to delete this event?')) return;
-    try {
-      await weddingService.deleteScheduleItem(id);
-      showToast('Event deleted successfully!', 'success');
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-    } catch (err) {
-      console.error('Error deleting event:', err);
-      showToast('Failed to delete event', 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this event?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await weddingService.deleteScheduleItem(id);
+          showToast('Event deleted successfully!', 'success');
+          await loadData();
+          if (weddingId) {
+            await weddingService.markUnpublishedChanges(weddingId);
+            const channel = new BroadcastChannel('phera-design-sync');
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+            channel.close();
+          }
+        } catch (err) {
+          console.error('Error deleting event:', err);
+          showToast('Failed to delete event', 'error');
+        }
+      },
+    });
   };
 
   const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
@@ -732,7 +767,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                 <Typography variant="body2" sx={{ color: '#666', maxWidth: 500, mx: 'auto' }}>
                   {!weddingDate
                     ? "We don't know your wedding dates yet! Please set them in the Wedding Details section so we can organize your schedule."
-                    : "Your wedding dates are set! Use our template to get started with common wedding events, adjusted to your dates."
+                    : "Use our template to get started with common wedding events, adjusted to your dates."
                   }
                 </Typography>
               </Box>
@@ -1034,8 +1069,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
           <Button
             variant="contained"
-            startIcon={<Save />}
             onClick={handleSaveDay}
+            disabled={savingDay}
             sx={{
               bgcolor: '#DE3F5E',
               color: 'white',
@@ -1045,7 +1080,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            Save
+            {savingDay ? <CircularProgress size={20} color="inherit" /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1198,8 +1233,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                             width: 48, height: 48, borderRadius: '12px', cursor: 'pointer',
                             border: '2px solid', borderColor: isSelected ? '#DE3F5E' : 'transparent',
                             position: 'relative', overflow: 'hidden',
-                            ...(option.value ? {
-                              backgroundImage: `url(/images/backgrounds/${option.value})`,
+                            ...(option.thumbUrl ? {
+                              backgroundImage: `url(${option.thumbUrl})`,
                               backgroundSize: 'cover', backgroundPosition: 'center',
                             } : {
                               bgcolor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1539,7 +1574,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                         <Card sx={{
                           width: '100%', maxWidth: 280, height: 380,
                           borderRadius: '16px', overflow: 'hidden', position: 'relative',
-                          backgroundImage: currentItem?.gradient_background ? `url(/images/backgrounds/${currentItem.gradient_background})` : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                          backgroundImage: currentItem?.gradient_background ? `url(/images/backgrounds/${currentItem.gradient_background.replace(/\.(png|jpg|jpeg)$/, '.webp')})` : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
                           backgroundSize: 'cover', backgroundPosition: 'center',
                         }}>
                           <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', p: 3 }}>
@@ -1636,8 +1671,8 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           <Button onClick={() => setItemDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
           <Button
             variant="contained"
-            startIcon={<Save />}
             onClick={handleSaveItem}
+            disabled={savingItem}
             sx={{
               bgcolor: '#DE3F5E',
               color: 'white',
@@ -1648,7 +1683,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            Save Event
+            {savingItem ? <CircularProgress size={20} color="inherit" /> : 'Save Event'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1669,6 +1704,13 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           {snackbarMessage}
         </Alert>
       </Snackbar>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
+      <ContinueButton weddingSlug={weddingSlug} currentSection="schedule" weddingId={weddingId} />
     </Box>
   );
 }

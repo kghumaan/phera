@@ -66,6 +66,11 @@ const TOUR_STEPS: TourStep[] = [
     description: 'Organize your entire planning process with a Kanban board. Simply ramble with voice about what\'s on your mind and we\'ll keep track of everything — vendors, to-dos, deadlines, all of it.',
   },
   {
+    target: 'tour-coordinator',
+    title: 'Vendor Coordinator',
+    description: 'Manage all your wedding vendors in one place. Track conversations, get AI-powered insights and action items, and keep everything organized through WhatsApp integration.',
+  },
+  {
     target: 'tour-team',
     title: 'Team',
     description: 'Invite family members, your partner, or anyone else to help plan. Add them as admins so they can contribute, edit details, and manage things alongside you.',
@@ -476,7 +481,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center', mt: 2 }}>
                 <Button
                   component={Link}
-                  href="/auth/signup"
+                  href="/auth/login"
                   variant="contained"
                   size="large"
                   sx={{

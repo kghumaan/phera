@@ -3,13 +3,7 @@
 import { useState } from 'react';
 import { Box, Typography, Button, alpha } from '@mui/material';
 import { Check } from '@mui/icons-material';
-import { FRAMES } from '@/lib/constants/images';
-
-const FRAME_OPTIONS = Object.entries(FRAMES).map(([key, url], index) => ({
-  id: `frame-${index + 1}`,
-  url,
-  name: `Frame ${index + 1}`,
-}));
+import { FRAME_UI_OPTIONS } from '@/lib/constants/images';
 
 interface ChatFrameSelectionFormProps {
   onSave: (frameUrl: string | null) => void;
@@ -67,7 +61,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           </Typography>
         </Box>
 
-        {FRAME_OPTIONS.map((frame) => (
+        {FRAME_UI_OPTIONS.map((frame) => (
           <Box
             key={frame.id}
             onClick={() => setSelected(frame.url)}
@@ -85,7 +79,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           >
             <Box
               component="img"
-              src={frame.url}
+              src={frame.thumbUrl}
               alt={frame.name}
               sx={{ width: '100%', height: '100%', objectFit: 'contain', p: 0.75 }}
             />

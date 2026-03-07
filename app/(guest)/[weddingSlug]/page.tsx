@@ -25,7 +25,7 @@ import { useState, useEffect, useRef } from 'react';
 import { PlaceholderCouple } from '@/components/ui/PlaceholderCouple';
 import GuestList from '@/components/guest/GuestList';
 import PinEntry from '@/components/guest/PinEntry';
-import InfiniteScrollLayout from '@/components/guest/InfiniteScrollLayout';
+import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import LoginModal from '@/components/auth/LoginModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -36,6 +36,8 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
+
+const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -83,6 +85,9 @@ const useCountdown = (targetDate: string) => {
 const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   const timeLeft = useCountdown(targetDate);
   const theme = useTheme();
+
+  // Hide countdown when date is TBD (epoch sentinel)
+  if (new Date(targetDate).getTime() === 0) return null;
 
   const timeUnits = [
     { label: 'months', value: timeLeft.months },
@@ -203,7 +208,7 @@ const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, image
 
     const newInterval = setInterval(() => {
       advanceToNextImage(carouselImages.length);
-    }, 4000);
+    }, 3000);
 
     setIntervalId(newInterval);
   };
@@ -213,7 +218,7 @@ const CoupleImageCarousel = ({ size = 300, images = [] }: { size?: number, image
 
     const interval = setInterval(() => {
       advanceToNextImage(carouselImages.length);
-    }, 4000);
+    }, 3000);
 
     setIntervalId(interval);
     return () => clearInterval(interval);
@@ -280,9 +285,8 @@ export default function HomePage() {
     weddingDate: wedding?.wedding_date || WEDDING_CONFIG.weddingDate,
     venue: wedding?.venue_name || WEDDING_CONFIG.venue,
     venueLocation: wedding?.venue_location || '',
-    showVenueLocation: wedding?.show_venue_location !== false,
     flag: wedding?.venue_flag || WEDDING_CONFIG.venueFlag,
-    rsvpDeadline: wedding?.rsvp_deadline || WEDDING_CONFIG.rsvpDeadline,
+    rsvpDeadline: wedding?.rsvp_deadline,
     coupleImage: wedding?.couple_image_url || WEDDING_CONFIG.coupleImage,
     frameImage: wedding?.frame_image_url || WEDDING_CONFIG.frameImage,
     coupleImages: (Array.isArray(wedding?.couple_images) ? wedding.couple_images : []) as string[]
@@ -916,7 +920,7 @@ export default function HomePage() {
                         textDecoration: 'underline',
                       }}
                     >
-                      {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
+                      {coupleData.venue}{coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                     </Typography>
                     <Typography sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }}>
                       {coupleData.flag}
@@ -987,18 +991,20 @@ export default function HomePage() {
                     </Button>
                   </motion.div>
                   {/* RSVP Deadline */}
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: '#777',
-                      fontSize: '0.9rem',
-                      textAlign: 'center',
-                      lineHeight: 1.4,
-                      mt: 1.5
-                    }}
-                  >
-                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
-                  </Typography>
+                  {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#777',
+                        fontSize: '0.9rem',
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                        mt: 1.5
+                      }}
+                    >
+                      Please RSVP by {formatDeadline(coupleData.rsvpDeadline)}
+                    </Typography>
+                  )}
                 </Box>
               )}
 
@@ -1011,7 +1017,7 @@ export default function HomePage() {
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true, margin: '-100px' }}
                   >
-                    <GuestList weddingId={weddingId} />
+                    <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} />
                   </motion.div>
                 </Box>
               )}
@@ -1087,7 +1093,7 @@ export default function HomePage() {
                   zIndex: 1,
                 }}
               >
-                <CoupleImageCarousel size={500} />
+                <CoupleImageCarousel size={500} images={coupleData.coupleImages} />
               </Box>
             </Box>
           </motion.div>
@@ -1179,7 +1185,7 @@ export default function HomePage() {
 
       {/* Main Landing Section */}
       <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-        <Box sx={{ pt: 10, pb: 4 }}>
+        <Box sx={{ pt: 10, pb: 1 }}>
           {/* Couple Photo Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1294,7 +1300,7 @@ export default function HomePage() {
                       textDecoration: 'underline',
                     }}
                   >
-                    {coupleData.venue}{coupleData.showVenueLocation && coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
+                    {coupleData.venue}{coupleData.venueLocation ? `, ${coupleData.venueLocation}` : ''}
                   </Typography>
                   <Typography sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem' } }}>
                     {coupleData.flag}
@@ -1310,6 +1316,23 @@ export default function HomePage() {
               >
                 <CountdownTimer targetDate={coupleData.weddingDate} />
               </motion.div>
+
+              {/* Welcome Message */}
+              {wedding?.welcome_text && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: '#333',
+                    fontSize: { xs: '0.95rem', sm: '1rem' },
+                    lineHeight: 1.6,
+                    textAlign: 'center',
+                    maxWidth: 340,
+                    mt: { xs: 2, sm: 2 },
+                  }}
+                >
+                  {wedding.welcome_text}
+                </Typography>
+              )}
             </Stack>
           </motion.div>
         </Box>
@@ -1317,24 +1340,26 @@ export default function HomePage() {
 
       {/* Wedding Community Section - Only show if user has RSVP'd OR using bypass PIN */}
       {!isPageLoading && ((user && hasRSVPed) || isBypassPin) && (
-        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pb: 4 }}>
+        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2, pt: 1, pb: 4 }}>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true, margin: '-100px' }}
           >
-            <GuestList weddingId={weddingId} />
+            <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} />
           </motion.div>
         </Container>
       )}
     </>
   );
 
-  // Check if infinite scroll layout should be used (desktop only)
-  const useInfiniteScroll = !isMobile && wedding?.website_layout === 'infinite_scroll';
+  // Check if vertical scroll layout should be used (desktop only)
+  // Normalize legacy DB values: 'infinite_scroll' → 'vertical_scroll'
+  const normalizedLayout = (wedding?.website_layout === 'infinite_scroll' || wedding?.website_layout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
+  const useVerticalScroll = !isMobile && normalizedLayout === 'vertical_scroll';
 
-  // Render layout (Nested, Mobile, or Infinite Scroll)
+  // Render layout (Multi-Page, Mobile, or Vertical Scroll)
   const renderLayout = () => {
     const commonProps: LayoutProps = {
       isNavigating,
@@ -1354,7 +1379,7 @@ export default function HomePage() {
       isMobile
     };
 
-    if (useInfiniteScroll && wedding) {
+    if (useVerticalScroll && wedding) {
       return (
         <>
           <div
@@ -1370,7 +1395,7 @@ export default function HomePage() {
           >
             <AppHeader variant="transparent" />
           </div>
-          <InfiniteScrollLayout
+          <VerticalScrollLayout
             wedding={{
               id: wedding.id,
               couple_name: wedding.couple_name,
@@ -1378,7 +1403,6 @@ export default function HomePage() {
               wedding_date_display: wedding.wedding_date_display,
               venue_name: wedding.venue_name,
               venue_location: wedding.venue_location || '',
-              show_venue_location: wedding.show_venue_location,
               venue_flag: wedding.venue_flag || '',
               rsvp_deadline: wedding.rsvp_deadline,
               welcome_text: wedding.welcome_text || undefined,
@@ -1448,9 +1472,11 @@ export default function HomePage() {
                       RSVP
                     </Button>
                   </motion.div>
-                  <Typography variant="body2" color="#777">
-                    Let us know you&apos;re coming by {coupleData.rsvpDeadline}
-                  </Typography>
+                  {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
+                    <Typography variant="body2" color="#777">
+                      Please RSVP by {formatDeadline(coupleData.rsvpDeadline)}
+                    </Typography>
+                  )}
                 </>
               ) : (
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>

@@ -6,16 +6,12 @@ describe('AuthContext logic', () => {
   describe('isPublicRoute', () => {
     // Replicate the isPublicRoute function from AuthContext
     function isPublicRoute(pathname: string): boolean {
-      const publicPaths = ['/auth/signup', '/auth/login', '/auth/callback'];
+      const publicPaths = ['/auth/login', '/auth/callback'];
       return publicPaths.some(p => pathname === p) || pathname.startsWith('/auth/');
     }
 
     it('should NOT treat "/" as public (landing page should check auth)', () => {
       expect(isPublicRoute('/')).toBe(false);
-    });
-
-    it('should treat /auth/signup as public', () => {
-      expect(isPublicRoute('/auth/signup')).toBe(true);
     });
 
     it('should treat /auth/login as public', () => {

@@ -20,6 +20,7 @@ import {
   Card,
   CardContent,
   Avatar,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline } from '@mui/icons-material';
@@ -30,6 +31,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -179,26 +181,39 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel: string; onConfirm: () => void }>({ open: false, message: '', confirmLabel: 'Confirm', onConfirm: () => {} });
+
   const handleStatusUpdate = async (newStatus: 'draft' | 'live') => {
     if (isViewOnly || !weddingId) return;
 
+    const doUpdate = async () => {
+      try {
+        await weddingService.updateWedding(weddingId, { status: newStatus });
+        setWeddingStatus(newStatus);
+
+        const statusMessages = {
+          draft: 'Wedding set to draft mode',
+          live: '🎉 Wedding website is now live!'
+        };
+        toast.success(statusMessages[newStatus]);
+      } catch (error) {
+        console.error('Failed to update status:', error);
+        toast.error('Failed to update status. Please try again.');
+      }
+    };
+
     if (newStatus === 'live') {
-      const confirmed = window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.');
-      if (!confirmed) return;
-    }
-
-    try {
-      await weddingService.updateWedding(weddingId, { status: newStatus });
-      setWeddingStatus(newStatus);
-
-      const statusMessages = {
-        draft: 'Wedding set to draft mode',
-        live: '🎉 Wedding website is now live!'
-      };
-      toast.success(statusMessages[newStatus]);
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      toast.error('Failed to update status. Please try again.');
+      setConfirmDialog({
+        open: true,
+        message: 'Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.',
+        confirmLabel: 'Publish',
+        onConfirm: async () => {
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+          await doUpdate();
+        },
+      });
+    } else {
+      await doUpdate();
     }
   };
 
@@ -543,11 +558,20 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 },
               }}
             >
-              {savingSlug ? 'Updating...' : 'Update'}
+              {savingSlug ? <CircularProgress size={20} color="inherit" /> : 'Update'}
             </Button>
           </DialogActions>
         </Dialog>
       </Stack>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        confirmColor="#DE3F5E"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
     </Box>
   );
 }

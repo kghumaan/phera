@@ -14,6 +14,7 @@ const SECTION_MAP: Record<string, string> = {
     '/registry': 'Registry',
     '/shopping': 'Shopping Guide',
     '/pins': 'Pin Entry Screen',
+    '/rsvp-form': 'RSVP Form',
 };
 
 interface AdminPreviewPanelProps {
@@ -54,6 +55,9 @@ export default function AdminPreviewPanel({
     const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(externalHasChanges ?? true);
     const [lastPublishedAt, setLastPublishedAt] = useState(externalLastPublished ?? null);
 
+    // Published Modal State
+    const [showPublishedModal, setShowPublishedModal] = useState(false);
+
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [wedding, setWedding] = useState<Wedding | null>(null);
@@ -67,15 +71,18 @@ export default function AdminPreviewPanel({
     const sectionLabel = currentAdminPath ? SECTION_MAP[currentAdminPath] ?? null : null;
     const sectionSlug = sectionLabel && currentAdminPath ? currentAdminPath.replace('/', '') : null;
     const isPinsPage = sectionSlug === 'pins';
+    const isRsvpFormPage = sectionSlug === 'rsvp-form';
 
-    // Desktop: section navigation via NAVIGATE_TO_SECTION postMessage (InfiniteScrollLayout)
-    // Mobile: navigate iframe to section route (e.g. /preview/slug/faq) which renders the nested section page
+    // Desktop: section navigation via NAVIGATE_TO_SECTION postMessage (VerticalScrollLayout)
+    // Mobile: navigate iframe to section route (e.g. /preview/slug/faq) which renders the multi-page section page
     // Pins: always base URL (pin entry handled via SET_PREVIEW_MODE postMessage)
+    // RSVP Form: always shows the RSVP form preview route regardless of viewport
     const iframeSrc = useMemo(() => {
+        if (isRsvpFormPage) return `/preview/${weddingSlug}/rsvp-form`;
         if (isPinsPage) return `/preview/${weddingSlug}`;
         if (viewMode === 'mobile' && sectionSlug) return `/preview/${weddingSlug}/${sectionSlug}`;
         return `/preview/${weddingSlug}`;
-    }, [viewMode, sectionSlug, isPinsPage, weddingSlug]);
+    }, [viewMode, sectionSlug, isPinsPage, isRsvpFormPage, weddingSlug]);
 
     // View Site dropdown
     const [viewSiteAnchor, setViewSiteAnchor] = useState<null | HTMLElement>(null);
@@ -111,6 +118,7 @@ export default function AdminPreviewPanel({
                 setHasUnpublishedChanges(false);
                 setLastPublishedAt(new Date().toISOString());
                 onPublished?.();
+                setShowPublishedModal(true);
                 setTimeout(() => setPublishSuccess(false), 2500);
             }
         } catch (error) {
@@ -163,6 +171,8 @@ export default function AdminPreviewPanel({
         }, 2000);
     };
 
+    const liveUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://phera.io'}/${weddingSlug}`;
+
     const publicUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/${weddingSlug}`
         : `https://phera.app/${weddingSlug}`;
@@ -199,6 +209,27 @@ export default function AdminPreviewPanel({
                 );
             } catch (e) {}
         }
+    }, [sectionSlug, isPinsPage]);
+
+    // Re-send NAVIGATE_TO_SECTION after preview refreshes (e.g. first entry created makes section appear)
+    useEffect(() => {
+        const channel = new BroadcastChannel('phera-design-sync');
+        channel.onmessage = (event) => {
+            if (event.data?.type === 'PREVIEW_REFRESH' && sectionSlug && !isPinsPage) {
+                // Delay to allow preview to refetch data and re-render new sections
+                setTimeout(() => {
+                    if (iframeRefLine.current?.contentWindow) {
+                        try {
+                            iframeRefLine.current.contentWindow.postMessage(
+                                { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
+                                '*'
+                            );
+                        } catch (e) {}
+                    }
+                }, 1500);
+            }
+        };
+        return () => channel.close();
     }, [sectionSlug, isPinsPage]);
 
     // Send preview mode to iframe when pin page status changes
@@ -782,6 +813,84 @@ export default function AdminPreviewPanel({
                             </Box>
                         </Stack>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Published Modal */}
+            <Dialog
+                open={showPublishedModal}
+                onClose={() => setShowPublishedModal(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        p: 1,
+                        bgcolor: 'white',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <IconButton
+                        onClick={() => setShowPublishedModal(false)}
+                        sx={{ position: 'absolute', right: 16, top: 16, color: '#666' }}
+                    >
+                        <Close />
+                    </IconButton>
+
+                    <Stack spacing={3} sx={{ mt: 2, pb: 2, textAlign: 'center' }}>
+                        <Typography variant="h4" sx={{
+                            fontWeight: 700,
+                            color: '#1a1a1a',
+                            fontSize: { xs: '1.75rem', md: '2.5rem' }
+                        }}>
+                            Your website is published!
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                            Start sharing this with your friends and family — we&apos;ll collect your RSVPs.
+                        </Typography>
+                        <TextField
+                            fullWidth
+                            variant="outlined"
+                            value={liveUrl}
+                            InputProps={{
+                                readOnly: true,
+                                sx: {
+                                    borderRadius: '12px',
+                                    bgcolor: '#f8f9fa',
+                                    '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
+                                    color: '#666',
+                                }
+                            }}
+                        />
+                        <Stack direction="row" spacing={3} justifyContent="center">
+                            <Button
+                                startIcon={copiedStates['published-url'] ? <Check sx={{ fontSize: 18 }} /> : <ContentCopy sx={{ fontSize: 18 }} />}
+                                onClick={() => copyToClipboard(liveUrl, 'published-url')}
+                                sx={{
+                                    textTransform: 'none',
+                                    color: '#DE3F5E',
+                                    fontWeight: 600,
+                                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                }}
+                            >
+                                {copiedStates['published-url'] ? 'Copied!' : 'Copy Link'}
+                            </Button>
+                            <Button
+                                startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
+                                href={liveUrl}
+                                target="_blank"
+                                sx={{
+                                    textTransform: 'none',
+                                    color: '#DE3F5E',
+                                    fontWeight: 600,
+                                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                }}
+                            >
+                                Open in New Tab
+                            </Button>
+                        </Stack>
+                    </Stack>
                 </DialogContent>
             </Dialog>
         </Box>

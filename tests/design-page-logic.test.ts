@@ -19,7 +19,7 @@ describe('Design page logic', () => {
       pin_entry_button_font_color: '#FFFFFF',
       background_image: '/main-bg.jpg',
       primary_color: '#DE3F5E',
-      website_layout: 'nested',
+      website_layout: 'multi_page',
       frame_image_url: null,
       couple_images: [],
     };
@@ -53,7 +53,7 @@ describe('Design page logic', () => {
     });
 
     it('should detect dirty when website_layout changes', () => {
-      const changed = { ...baseData, website_layout: 'infinite_scroll' };
+      const changed = { ...baseData, website_layout: 'vertical_scroll' };
       expect(isDirty(changed, baseData)).toBe(true);
     });
 
@@ -181,6 +181,137 @@ describe('Design page logic', () => {
     });
   });
 
+  // ─── Multi-upload slot limiting ──────────────────────────────────────
+
+  describe('multi-upload slot limiting', () => {
+    // Replicate the upload logic: only upload up to (6 - currentCount) files
+    function computeUploadSlots(coupleImages: (string | null)[], selectedFileCount: number): number {
+      const currentCount = coupleImages.filter(img => img).length;
+      const slotsAvailable = 6 - currentCount;
+      return Math.min(selectedFileCount, slotsAvailable);
+    }
+
+    function addImages(coupleImages: (string | null)[], newUrls: string[]): (string | null)[] {
+      const result = [...coupleImages];
+      for (const url of newUrls) {
+        const nextEmptyIndex = result.findIndex(img => !img);
+        if (nextEmptyIndex !== -1) {
+          result[nextEmptyIndex] = url;
+        } else {
+          result.push(url);
+        }
+      }
+      return result.slice(0, 6);
+    }
+
+    it('should allow uploading up to 6 when empty', () => {
+      const images: (string | null)[] = [null, null, null, null, null, null];
+      expect(computeUploadSlots(images, 10)).toBe(6);
+    });
+
+    it('should limit uploads to remaining slots', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', 'c.jpg', 'd.jpg', null, null];
+      expect(computeUploadSlots(images, 5)).toBe(2);
+    });
+
+    it('should return 0 when already full', () => {
+      const images: (string | null)[] = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'];
+      expect(computeUploadSlots(images, 3)).toBe(0);
+    });
+
+    it('should add multiple images into empty slots', () => {
+      const images: (string | null)[] = ['a.jpg', null, null, null, null, null];
+      const result = addImages(images, ['b.jpg', 'c.jpg']);
+      expect(result[0]).toBe('a.jpg');
+      expect(result[1]).toBe('b.jpg');
+      expect(result[2]).toBe('c.jpg');
+      expect(result[3]).toBeNull();
+    });
+
+    it('should not exceed 6 images when adding many', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', 'c.jpg', 'd.jpg', null, null];
+      const result = addImages(images, ['e.jpg', 'f.jpg', 'g.jpg', 'h.jpg']);
+      expect(result).toHaveLength(6);
+      expect(result[4]).toBe('e.jpg');
+      expect(result[5]).toBe('f.jpg');
+    });
+
+    it('should fill sparse slots before appending', () => {
+      const images: (string | null)[] = ['a.jpg', null, 'c.jpg', null, null, null];
+      const result = addImages(images, ['x.jpg', 'y.jpg']);
+      expect(result[1]).toBe('x.jpg');
+      expect(result[3]).toBe('y.jpg');
+    });
+  });
+
+  // ─── Drag-to-reorder logic ──────────────────────────────────────────
+
+  describe('drag-to-reorder couple images', () => {
+    // Replicate the onDrop reorder logic from the design page
+    function reorderImages(coupleImages: (string | null)[], fromVisualIndex: number, toVisualIndex: number): (string | null)[] {
+      const active = coupleImages.filter((i): i is string => i !== null && i !== '');
+      const [moved] = active.splice(fromVisualIndex, 1);
+      active.splice(toVisualIndex, 0, moved);
+      const padded: (string | null)[] = [...active];
+      while (padded.length < 6) padded.push(null);
+      return padded;
+    }
+
+    it('should move first image to second position', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', 'c.jpg', null, null, null];
+      const result = reorderImages(images, 0, 1);
+      expect(result[0]).toBe('b.jpg');
+      expect(result[1]).toBe('a.jpg');
+      expect(result[2]).toBe('c.jpg');
+    });
+
+    it('should move last image to first (new Main)', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', 'c.jpg', null, null, null];
+      const result = reorderImages(images, 2, 0);
+      expect(result[0]).toBe('c.jpg');
+      expect(result[1]).toBe('a.jpg');
+      expect(result[2]).toBe('b.jpg');
+    });
+
+    it('should be a no-op when from === to', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', null, null, null, null];
+      const result = reorderImages(images, 0, 0);
+      expect(result[0]).toBe('a.jpg');
+      expect(result[1]).toBe('b.jpg');
+    });
+
+    it('should handle reorder with sparse arrays', () => {
+      const images: (string | null)[] = ['a.jpg', null, 'b.jpg', null, 'c.jpg', null];
+      // Visual indices are 0=a, 1=b, 2=c (nulls filtered out)
+      const result = reorderImages(images, 2, 0);
+      expect(result[0]).toBe('c.jpg');
+      expect(result[1]).toBe('a.jpg');
+      expect(result[2]).toBe('b.jpg');
+    });
+
+    it('should always pad result to 6 slots', () => {
+      const images: (string | null)[] = ['a.jpg', 'b.jpg', null, null, null, null];
+      const result = reorderImages(images, 0, 1);
+      expect(result).toHaveLength(6);
+      expect(result.slice(2).every(img => img === null)).toBe(true);
+    });
+
+    it('should handle single image (no actual reorder possible)', () => {
+      const images: (string | null)[] = ['a.jpg', null, null, null, null, null];
+      const result = reorderImages(images, 0, 0);
+      expect(result[0]).toBe('a.jpg');
+      expect(result).toHaveLength(6);
+    });
+
+    it('should handle full 6 images reorder', () => {
+      const images: (string | null)[] = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'];
+      const result = reorderImages(images, 5, 0);
+      expect(result[0]).toBe('6.jpg');
+      expect(result[1]).toBe('1.jpg');
+      expect(result[5]).toBe('5.jpg');
+    });
+  });
+
   // ─── initialDesignData shape ────────────────────────────────────────
 
   describe('initialDesignData construction', () => {
@@ -205,7 +336,7 @@ describe('Design page logic', () => {
         pin_entry_button_font_color: wedding.pin_entry_button_font_color || '#FFFFFF',
         background_image: wedding.background_image || DEFAULT_BG,
         primary_color: wedding.primary_color || '#DE3F5E',
-        website_layout: wedding.website_layout || 'nested',
+        website_layout: wedding.website_layout || 'multi_page',
         frame_image_url: wedding.frame_image_url || null,
         couple_images: loadedCoupleImages.filter(img => img),
       };
@@ -215,7 +346,7 @@ describe('Design page logic', () => {
       const result = buildInitialDesignData({});
       expect(result.pin_entry_text).toBe("You're invited!");
       expect(result.primary_color).toBe('#DE3F5E');
-      expect(result.website_layout).toBe('nested');
+      expect(result.website_layout).toBe('multi_page');
       expect(result.frame_image_url).toBeNull();
       expect(result.couple_images).toEqual([]);
     });
@@ -224,12 +355,12 @@ describe('Design page logic', () => {
       const result = buildInitialDesignData({
         pin_entry_text: 'Custom text',
         primary_color: '#FF0000',
-        website_layout: 'infinite_scroll',
+        website_layout: 'vertical_scroll',
         frame_image_url: '/frame.png',
       });
       expect(result.pin_entry_text).toBe('Custom text');
       expect(result.primary_color).toBe('#FF0000');
-      expect(result.website_layout).toBe('infinite_scroll');
+      expect(result.website_layout).toBe('vertical_scroll');
       expect(result.frame_image_url).toBe('/frame.png');
     });
 

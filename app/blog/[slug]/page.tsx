@@ -229,7 +229,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             >
               Phera is the wedding planning platform built for multi-day Indian celebrations.
             </Typography>
-            <Link href="/auth/signup" className="no-underline">
+            <Link href="/auth/login" className="no-underline">
               <Button
                 variant="contained"
                 sx={{

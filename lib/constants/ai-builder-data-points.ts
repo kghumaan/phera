@@ -41,7 +41,7 @@ export interface CoupleMedia {
 // ─── Look & Feel (Design) ─────────────────────────────────────────────────────
 
 export interface MainWebsiteDesign {
-  website_layout: 'nested' | 'infinite_scroll';
+  website_layout: 'multi_page' | 'vertical_scroll';
   welcome_text: string;        // Message displayed below couple names
   background_image: string;    // Main site background (preset or custom URL)
   primary_color: string;       // Theme/accent color (hex)
@@ -303,7 +303,7 @@ export const AI_QUESTION_FLOW: AIQuestion[] = [
     field: 'mainDesign.website_layout',
     type: 'select',
     required: true,
-    options: ['nested', 'infinite_scroll'],
+    options: ['multi_page', 'vertical_scroll'],
   },
   {
     id: 'welcome_text',
@@ -393,7 +393,7 @@ export const AI_QUESTION_FLOW: AIQuestion[] = [
 
 export const DEFAULT_WEDDING_DATA: Partial<CompleteWeddingData> = {
   mainDesign: {
-    website_layout: 'nested',
+    website_layout: 'multi_page',
     welcome_text: "",
     background_image: '/images/backgrounds/blue-clouds.jpg',
     primary_color: '#DE3F5E',

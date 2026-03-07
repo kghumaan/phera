@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/auth/signup', destination: '/auth/login', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
@@ -54,17 +59,16 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  // Suppresses Sentry build logs for cleaner output
-  silent: true,
+// Skip Sentry wrapper in dev to avoid ETIMEDOUT / middleware-manifest race conditions
+const isDev = process.env.NODE_ENV === 'development';
 
-  // Routes Sentry events through a Next.js rewrite so ad-blockers don't block them
-  tunnelRoute: "/monitoring",
-
-  // Automatically upload source maps when SENTRY_AUTH_TOKEN is set
-  // When the token is not set (e.g. local dev), this silently skips
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-});
+export default isDev
+  ? nextConfig
+  : withSentryConfig(nextConfig, {
+      silent: true,
+      tunnelRoute: "/monitoring",
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    });
 

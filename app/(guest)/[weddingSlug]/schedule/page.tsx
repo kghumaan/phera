@@ -231,20 +231,41 @@ const DayCard = ({ day, date, events, index, primaryColor }: {
                   </Typography>
                 )}
               </Box>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: primaryColor || '#DE3F5E',
-                  fontWeight: 600,
-                  // fontSize: '0.9rem',
-                  letterSpacing: '0.07em',
-                  textTransform: 'uppercase',
-                  textAlign: 'right',
-                  flexShrink: 0,
-                }}
-              >
-                {event.time}
-              </Typography>
+              {event.time && event.time.includes('-') ? (
+                <Stack spacing={0} sx={{ flexShrink: 0, textAlign: 'right' }}>
+                  {event.time.split('-').map((part: string, i: number) => (
+                    <Typography
+                      key={i}
+                      variant="body2"
+                      sx={{
+                        color: primaryColor || '#DE3F5E',
+                        fontWeight: 600,
+                        fontSize: '0.95rem',
+                        letterSpacing: '0.07em',
+                        textTransform: 'uppercase',
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {part.trim()}
+                    </Typography>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: primaryColor || '#DE3F5E',
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                    textAlign: 'right',
+                    flexShrink: 0,
+                  }}
+                >
+                  {event.time}
+                </Typography>
+              )}
             </Box>
             {/* Location */}
             {event.location && (

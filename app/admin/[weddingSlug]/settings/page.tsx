@@ -16,6 +16,7 @@ import {
   ListItemIcon,
   Divider,
   alpha,
+  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use, useCallback } from 'react';
 import { CheckCircle, Cancel, Launch, ContentCopy } from '@mui/icons-material';
@@ -27,6 +28,7 @@ import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -122,19 +124,15 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     }
   }, [whatsappLink, googleSheetsId, initialSettings, debouncedSave]);
 
-  const handleUpdateStatus = async (newStatus: 'draft' | 'live') => {
-    if (isViewOnly) return;
-    if (newStatus === 'live') {
-      if (!confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
-        return;
-      }
-    }
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void }>({ open: false, message: '', confirmLabel: 'Confirm', confirmColor: '#d32f2f', onConfirm: () => {} });
 
+  const doUpdateStatus = async (newStatus: 'draft' | 'live') => {
+    setUpdatingStatus(true);
     try {
       const result = await weddingService.updateWedding(weddingId!, { status: newStatus });
       if (!result) throw new Error('Failed to update status');
       setStatus(newStatus);
-      setSuccess(true);
       const statusMessages = {
         draft: 'Wedding set to draft mode',
         live: '🎉 Wedding website is now live!'
@@ -144,23 +142,53 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       const errorMessage = 'Failed to update status';
       setError(errorMessage);
       toast.error(errorMessage);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleUpdateStatus = async (newStatus: 'draft' | 'live') => {
+    if (isViewOnly) return;
+    if (newStatus === 'live') {
+      setConfirmDialog({
+        open: true,
+        message: 'Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.',
+        confirmLabel: 'Publish',
+        confirmColor: '#DE3F5E',
+        onConfirm: async () => {
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+          await doUpdateStatus('live');
+        },
+      });
+    } else {
+      await doUpdateStatus(newStatus);
     }
   };
 
   const handlePublishToggle = async () => {
     if (isViewOnly) return;
     if (status === 'live') {
-      // Deactivate
-      if (!confirm('Are you sure you want to deactivate your wedding website? It will no longer be accessible to guests.')) {
-        return;
-      }
-      await handleUpdateStatus('draft');
+      setConfirmDialog({
+        open: true,
+        message: 'Are you sure you want to deactivate your wedding website? It will no longer be accessible to guests.',
+        confirmLabel: 'Deactivate',
+        confirmColor: '#d32f2f',
+        onConfirm: async () => {
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+          await doUpdateStatus('draft');
+        },
+      });
     } else {
-      // Publish
-      if (!confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.')) {
-        return;
-      }
-      await handleUpdateStatus('live');
+      setConfirmDialog({
+        open: true,
+        message: 'Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.',
+        confirmLabel: 'Publish',
+        confirmColor: '#DE3F5E',
+        onConfirm: async () => {
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+          await doUpdateStatus('live');
+        },
+      });
     }
   };
 
@@ -256,6 +284,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
               <Button
                 variant="contained"
                 onClick={handlePublishToggle}
+                disabled={updatingStatus}
                 sx={{
                   bgcolor: status === 'live' ? '#6a6a6a' : '#DE3F5E',
                   color: 'white',
@@ -271,12 +300,13 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   },
                 }}
               >
-                {status === 'live' ? 'Deactivate Website' : 'Publish Website'}
+                {updatingStatus ? <CircularProgress size={20} color="inherit" /> : (status === 'live' ? 'Deactivate Website' : 'Publish Website')}
               </Button>
 
               <Button
                 variant="outlined"
                 onClick={() => handleUpdateStatus(status === 'live' ? 'draft' : 'live')}
+                disabled={updatingStatus}
                 sx={{
                   borderColor: '#6a6a6a',
                   color: '#6a6a6a',
@@ -512,6 +542,15 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
           </Stack>
         </Paper>
       </Stack>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        confirmColor={confirmDialog.confirmColor}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
     </Box>
   );
 }

@@ -1,6 +1,6 @@
 import { resend } from './resend';
 
-const ALERT_RECIPIENT = 'kv@phera.io';
+const ALERT_RECIPIENT = 'contact@phera.io';
 
 export interface ContactAlertData {
     name: string;

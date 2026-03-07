@@ -6,8 +6,8 @@ import { Check, ViewModule, ViewStream } from '@mui/icons-material';
 import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 
 const COLOR_OPTIONS = [
-  { name: 'Black', value: '#141414' },
   { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Black', value: '#141414' },
   { name: 'Plum', value: '#59114D' },
   { name: 'Purple', value: '#AC3FBA' },
   { name: 'Ocean', value: '#004550' },
@@ -76,7 +76,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
               boxShadow: selected === bg.url ? '0 0 0 2px rgba(222,63,94,0.3)' : 'none',
               transition: 'all 0.15s',
             }}>
-              <Box component="img" src={bg.url} alt={bg.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Box component="img" src={bg.thumbUrl} alt={bg.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </Box>
             <Typography sx={{
               fontSize: '0.6rem',
@@ -137,8 +137,8 @@ function ColorPicker({ selected, onSelect, label, options }: { selected: string;
 
 function LayoutPicker({ selected, onSelect }: { selected: string; onSelect: (layout: string) => void }) {
   const options = [
-    { value: 'nested', label: 'Nested', description: 'Guests tap into each section to see details.', icon: ViewModule },
-    { value: 'infinite_scroll', label: 'Infinite Scroll', description: 'All content flows on one page.', icon: ViewStream },
+    { value: 'multi_page', label: 'Multi-Page', description: 'Guests tap into each section to see details.', icon: ViewModule },
+    { value: 'vertical_scroll', label: 'Vertical Scroll', description: 'All content flows on one page.', icon: ViewStream },
   ];
 
   return (
@@ -189,7 +189,7 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
     primary_color: currentValues.primary_color || '#DE3F5E',
     font_color: currentValues.font_color || '#141414',
     button_font_color: currentValues.button_font_color || '#FFFFFF',
-    website_layout: currentValues.website_layout || 'nested',
+    website_layout: currentValues.website_layout || 'multi_page',
     lock_screen_background: currentValues.lock_screen_background || BACKGROUND_UI_OPTIONS[0].url,
     lock_screen_primary_color: currentValues.lock_screen_primary_color || '#DE3F5E',
     lock_screen_font_color: currentValues.lock_screen_font_color || '#141414',

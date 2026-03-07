@@ -60,7 +60,7 @@ function filterHiddenEvents<T extends { id: string }>(events: T[], slug: string)
   }
 }
 
-/** For InfiniteScrollLayout fix — filter schedule items by hidden linked_event_id */
+/** For VerticalScrollLayout fix — filter schedule items by hidden linked_event_id */
 function filterScheduleByHiddenEvents(
   schedule: { id: string; date: string; day_name: string; events: { id: string; name: string; linked_event_id?: string | null }[] }[],
   slug: string

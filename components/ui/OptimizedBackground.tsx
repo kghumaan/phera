@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { getAppBackgroundConfig } from '@/lib/constants/images';
+import { getAppBackgroundConfig, getBlurDataUrl } from '@/lib/constants/images';
 
 interface OptimizedBackgroundProps {
   src?: string;
@@ -55,7 +55,7 @@ export default function OptimizedBackground({
           sizes="100vw"
           className="object-cover object-center"
           placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          blurDataURL={getBlurDataUrl(backgroundSrc)}
         />
       </motion.div>
 

@@ -610,7 +610,7 @@ export default function HomePage() {
           sx: {
             mt: 1,
             minWidth: 150,
-            borderRadius: 2,
+            borderRadius: 1,
             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
           }
         }}
