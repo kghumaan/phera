@@ -375,7 +375,7 @@ export default function ReserveTransportation({
         }}
       >
         <CircularProgress sx={{ color: primaryColor }} />
-        <Typography sx={{ mt: 2, color: '#666' }}>Loading transportation options...</Typography>
+        <Typography variant="body2" sx={{ mt: 2, color: '#666' }}>Loading transportation options...</Typography>
       </Box>
     );
   }

@@ -31,7 +31,6 @@ export default function ImageUpload({
   onChange,
   path,
   label,
-  // label = 'Upload Image',
   helperText,
   aspectRatio = '16/9',
   maxWidth = 800,
@@ -108,7 +107,7 @@ export default function ImageUpload({
   return (
     <Stack spacing={2}>
       {label && (
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
           {label}
         </Typography>
       )}

@@ -35,7 +35,7 @@ export default function AppFooter() {
                     </Grid>
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
-                            variant="subtitle1"
+                            variant="subtitleCaps"
                             color="#1a1a1a"
                             sx={{ fontWeight: 'bold', mb: 2 }}
                         >
@@ -55,7 +55,7 @@ export default function AppFooter() {
                     </Grid>
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
-                            variant="subtitle1"
+                            variant="subtitleCaps"
                             color="#1a1a1a"
                             sx={{ fontWeight: 'bold', mb: 2 }}
                         >
@@ -81,7 +81,7 @@ export default function AppFooter() {
                     </Grid>
                     <Grid size={{ xs: 12, md: 4 } as any}>
                         <Typography
-                            variant="subtitle1"
+                            variant="subtitleCaps"
                             color="#1a1a1a"
                             sx={{ fontWeight: 'bold', mb: 2 }}
                         >

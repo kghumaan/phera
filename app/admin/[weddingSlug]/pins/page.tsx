@@ -583,7 +583,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                   >
                     <ListItemText
                       primary={
-                        <Typography sx={{ color: '#1a1a1a', fontSize: '1.2rem', fontWeight: 600 }}>
+                        <Typography variant="h6" sx={{ color: '#1a1a1a', fontSize: '1.2rem', fontWeight: 600 }}>
                           {pinData.pin}
                         </Typography>
                       }
@@ -729,7 +729,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Stack spacing={4}>
             {/* Button Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Color
               </Typography>
 
@@ -778,7 +778,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
             {/* Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Text Color
               </Typography>
 
@@ -823,7 +823,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
             {/* Button Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Text Color
               </Typography>
 
@@ -918,7 +918,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                     sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                   />
                 }
-                label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
+                label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
               />
               {!newPin.skip_rsvp && (
                 <FormControlLabel
@@ -929,7 +929,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                     />
                   }
-                  label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Allows Plus One</Typography>}
+                  label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Allows Plus One</Typography>}
                 />
               )}
               {events.length > 0 && (
@@ -946,7 +946,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                     label="Hide Events"
                     displayEmpty
                     notched
-                    renderValue={() => <Typography sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
+                    renderValue={() => <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
                     sx={{
                       borderRadius: '12px',
                       bgcolor: 'white',

@@ -646,7 +646,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   1
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
                     Save the Coordinator Number
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, lineHeight: 1.6 }}>
@@ -668,7 +668,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         }}
                       >
                         <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a', letterSpacing: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
                           {coordinatorPhone}
                         </Typography>
                       </Paper>
@@ -727,7 +727,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   2
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
                     Add to a Vendor Group Chat
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
@@ -777,7 +777,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   3
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
                     Or Import Existing Chats
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, lineHeight: 1.6 }}>

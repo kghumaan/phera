@@ -247,7 +247,7 @@ function DigitalTimePicker({
           </Select>
         </FormControl>
 
-        <Typography sx={{ fontWeight: 600, color: '#999' }}>:</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#999' }}>:</Typography>
 
         <FormControl size="small" sx={{ width: 80 }}>
           <Select
@@ -819,7 +819,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
             </Typography>
           </DialogTitle>
           <DialogContent>
-            <Typography sx={{ color: '#666', textAlign: 'center', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: '#666', textAlign: 'center', mb: 2 }}>
               Your wedding schedule has been prepopulated from our template.
               This is just a starting point — feel free to edit times, locations, and details to make it your own!
             </Typography>
@@ -853,7 +853,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
               '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }
             }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
@@ -1111,7 +1111,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               <Box sx={{ bgcolor: '#fafafa', p: 2, borderRadius: '12px', border: '1px solid #eee' }}>
                 <Stack direction="row" alignItems="center" spacing={1} mb={2}>
                   <AccessTime sx={{ color: '#DE3F5E', fontSize: 20 }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Time</Typography>
+                  <Typography variant="subtitle2">Time</Typography>
                 </Stack>
                 <Stack spacing={3}>
                   <DigitalTimePicker label="Start Time" value={startTime} onChange={setStartTime} />
@@ -1186,7 +1186,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               <Box sx={{ width: 350, flexShrink: 0 }}>
                 {/* Background Theme */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>Background Theme</Typography>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Background Theme</Typography>
                   <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     {BACKGROUND_OPTIONS.map((option) => {
                       const isSelected = currentItem?.gradient_background === option.value;
@@ -1223,7 +1223,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                 {/* Slides List */}
                 <Box>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Event Slides</Typography>
+                    <Typography variant="subtitle2">Event Slides</Typography>
                     <Button
                       size="small"
                       startIcon={<Add />}
@@ -1289,7 +1289,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               <Box sx={{ flex: 1, bgcolor: '#f5f5f5', borderRadius: '16px', p: 3, display: 'flex', flexDirection: 'column' }}>
                 {selectedSlideIndex !== null && currentSlides[selectedSlideIndex] ? (
                   <>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>Edit Slide {selectedSlideIndex + 1}</Typography>
+                    <Typography variant="subtitle2" sx={{ mb: 2 }}>Edit Slide {selectedSlideIndex + 1}</Typography>
 
                     <Stack spacing={2} sx={{ flex: 1 }}>
                       {/* Slide Type Selector */}
@@ -1428,7 +1428,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                             {slide.type === 'outfit_ideas' && (
                               <>
                                 <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Women&apos;s Outfit Ideas</Typography>
+                                  <Typography variant="subtitle2" sx={{ mb: 1, color: '#1a1a1a' }}>Women&apos;s Outfit Ideas</Typography>
                                   <TextField
                                     fullWidth
                                     size="small"
@@ -1443,7 +1443,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   />
                                 </Box>
                                 <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '8px' }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>Men&apos;s Outfit Ideas</Typography>
+                                  <Typography variant="subtitle2" sx={{ mb: 1, color: '#1a1a1a' }}>Men&apos;s Outfit Ideas</Typography>
                                   <TextField
                                     fullWidth
                                     size="small"
@@ -1535,7 +1535,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                     {currentSlides.length > 0 ? (
                       <>
                         {/* Carousel Preview */}
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#666' }}>Carousel Preview</Typography>
+                        <Typography variant="subtitle2" sx={{ mb: 2, color: '#666' }}>Carousel Preview</Typography>
                         <Card sx={{
                           width: '100%', maxWidth: 280, height: 380,
                           borderRadius: '16px', overflow: 'hidden', position: 'relative',
@@ -1546,7 +1546,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                             {currentSlides[previewSlideIndex]?.type === 'three_lines' && (
                               <>
                                 {currentSlides[previewSlideIndex].top_label && (
-                                  <Typography sx={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 1 }}>
+                                  <Typography variant="caption" sx={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 1 }}>
                                     {currentSlides[previewSlideIndex].top_label}
                                   </Typography>
                                 )}
@@ -1556,7 +1556,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                                   </Typography>
                                 )}
                                 {currentSlides[previewSlideIndex].body_text && (
-                                  <Typography sx={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>
+                                  <Typography variant="body2" sx={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>
                                     {currentSlides[previewSlideIndex].body_text}
                                   </Typography>
                                 )}
@@ -1565,19 +1565,19 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                             {currentSlides[previewSlideIndex]?.type === 'two_sections' && (
                               <Stack spacing={2} sx={{ width: '100%' }}>
                                 <Box>
-                                  <Typography sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
+                                  <Typography variant="caption" sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
                                     {currentSlides[previewSlideIndex].section1_header || 'WOMEN'}
                                   </Typography>
                                   {(currentSlides[previewSlideIndex].section1_items || []).slice(0, 3).map((item, i) => (
-                                    <Typography key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
+                                    <Typography variant="body2" key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
                                   ))}
                                 </Box>
                                 <Box>
-                                  <Typography sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
+                                  <Typography variant="caption" sx={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#666', mb: 0.5 }}>
                                     {currentSlides[previewSlideIndex].section2_header || 'MEN'}
                                   </Typography>
                                   {(currentSlides[previewSlideIndex].section2_items || []).slice(0, 3).map((item, i) => (
-                                    <Typography key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
+                                    <Typography variant="body2" key={i} sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#333' }}>{item}</Typography>
                                   ))}
                                 </Box>
                               </Stack>

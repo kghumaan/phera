@@ -484,8 +484,7 @@ export default function GuestList({
           boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <Typography sx={{
-          fontWeight: 400,
+        <Typography variant="body1" sx={{
           fontSize: '16px',
           lineHeight: '1.5em',
           color: '#858585'
@@ -708,7 +707,7 @@ export default function GuestList({
       <Stack spacing={0}>
         {comments.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography sx={{
+            <Typography variant="body1" sx={{
               color: '#858585',
               fontSize: '16px',
               lineHeight: '1.5em',
@@ -716,7 +715,7 @@ export default function GuestList({
             }}>
               No comments yet! 💬
             </Typography>
-            <Typography sx={{
+            <Typography variant="body2" sx={{
               color: '#BCBCBC',
               fontSize: '14px',
               lineHeight: '1.5em'
@@ -775,8 +774,8 @@ export default function GuestList({
                         {/* Comment Header */}
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                           <Typography
+                            variant="subtitle1"
                             sx={{
-                              fontWeight: 600,
                               fontSize: '16px',
                               lineHeight: '1.5em',
                               color: '#141414',
@@ -785,8 +784,8 @@ export default function GuestList({
                             {comment.guest?.name || 'Unknown Guest'}
                           </Typography>
                           <Typography
+                            variant="caption"
                             sx={{
-                              fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
                               color: '#858585',
@@ -825,8 +824,8 @@ export default function GuestList({
                         {/* Comment Content */}
                         {comment.message && (
                           <Typography
+                            variant="body1"
                             sx={{
-                              fontWeight: 400,
                               fontSize: '16px',
                               lineHeight: '1.5em',
                               color: '#141414',
@@ -935,8 +934,7 @@ export default function GuestList({
   const renderGuestTab = () => (
     <Stack spacing={0}>
       {filteredGuests.length === 0 ? (
-        <Typography sx={{
-          fontWeight: 400,
+        <Typography variant="body1" sx={{
           fontSize: '16px',
           lineHeight: '1.5em',
           color: '#858585',
@@ -987,8 +985,7 @@ export default function GuestList({
                 </Avatar>
 
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{
-                    fontWeight: 600,
+                  <Typography variant="subtitle1" sx={{
                     fontSize: '16px',
                     lineHeight: '1.5em',
                     color: '#141414'
@@ -996,8 +993,7 @@ export default function GuestList({
                     {guest.name}
                   </Typography>
                   {guest.guestCount > 1 && (
-                    <Typography sx={{
-                      fontWeight: 400,
+                    <Typography variant="caption" sx={{
                       fontSize: '14px',
                       lineHeight: '1.5em',
                       color: '#858585'
@@ -1090,6 +1086,7 @@ export default function GuestList({
               }}
             >
               <Typography
+                variant="body1"
                 sx={{
                   fontWeight: index === activeTab ? 600 : 400,
                   fontSize: '16px',

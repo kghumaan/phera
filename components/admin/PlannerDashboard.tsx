@@ -237,7 +237,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
               borderColor: alpha('#000', 0.08),
             }}
           >
-            <Typography variant="h6" sx={{ color: '#666', mb: 2, fontWeight: 500 }}>
+            <Typography variant="h6" sx={{ color: '#666', mb: 2 }}>
               No weddings yet
             </Typography>
             <Button

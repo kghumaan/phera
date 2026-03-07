@@ -367,7 +367,7 @@ export default function TravelFormPage() {
 
                 {/* Party Size */}
                 <Box>
-                  <Typography gutterBottom sx={{ color: '#666' }}>
+                  <Typography variant="body2" gutterBottom sx={{ color: '#666' }}>
                     Party Size
                   </Typography>
                   <Stack direction="row" alignItems="center" spacing={2}>
@@ -437,9 +437,8 @@ export default function TravelFormPage() {
                 {/* Bus Options */}
                 <Box>
                   <Typography
-                    variant="subtitle1"
+                    variant="subtitleCaps"
                     sx={{
-                      fontWeight: 600,
                       mb: 2,
                       color: '#000000',
                       fontSize: { xs: '1.05rem', md: '1.15rem' },
@@ -687,7 +686,6 @@ export default function TravelFormPage() {
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        fontWeight: 600,
                         color: '#000000',
                         fontSize: { xs: '0.95rem', md: '1.05rem' },
                       }}

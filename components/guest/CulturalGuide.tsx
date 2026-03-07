@@ -431,7 +431,7 @@ export default function CulturalGuide() {
                     {currentCeremony.dressCode.description}
                   </Typography>
                   
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Typography variant="subtitleCaps" gutterBottom>
                     Recommended Colors:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
@@ -440,7 +440,7 @@ export default function CulturalGuide() {
                     ))}
                   </Box>
 
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Typography variant="subtitleCaps" gutterBottom>
                     Outfit Examples:
                   </Typography>
                   <List dense>
@@ -506,7 +506,7 @@ export default function CulturalGuide() {
                     {currentCeremony.participation.tips.map((tip, index) => (
                       <ListItem key={index}>
                         <ListItemIcon>
-                          <Typography sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
+                          <Typography variant="body1" sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
                             ✨
                           </Typography>
                         </ListItemIcon>
@@ -536,7 +536,7 @@ export default function CulturalGuide() {
                       {currentCeremony.gifts.suggestions.map((gift, index) => (
                         <ListItem key={index}>
                           <ListItemIcon>
-                            <Typography sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
+                            <Typography variant="body1" sx={{ color: currentCeremony.color, fontSize: '1.2rem' }}>
                               💝
                             </Typography>
                           </ListItemIcon>

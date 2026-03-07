@@ -195,7 +195,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
               '&:hover': {
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               }
@@ -232,9 +232,9 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               textAlign: 'center',
               borderRadius: '16px',
               bgcolor: 'white',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
             }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 No FAQs yet. Add your first question.
               </Typography>
             </Paper>

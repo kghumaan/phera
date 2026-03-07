@@ -86,7 +86,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
   if (members.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography sx={{ color: '#888', fontSize: '0.85rem' }}>
+        <Typography variant="body2" sx={{ color: '#888', fontSize: '0.85rem' }}>
           No members found for this conversation.
         </Typography>
       </Box>
@@ -155,7 +155,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 )}
               </Typography>
               {member.name && (
-                <Typography sx={{ fontSize: '0.75rem', color: '#6a6a6a' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#6a6a6a' }}>
                   {member.phone}
                 </Typography>
               )}

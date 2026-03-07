@@ -11,6 +11,7 @@ import {
   Chip,
   FormControlLabel,
   Checkbox,
+  Paper,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -34,6 +35,12 @@ import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constant
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+const sectionPaperSx = {
+  p: 3,
+  borderRadius: '16px',
+  bgcolor: '#fafafa',
+  boxShadow: 'none',
+};
 
 interface DetailsFormData {
   couple_name: string;
@@ -436,76 +443,46 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         {/* Form Content */}
         <Stack spacing={3}>
           {/* Couple Names */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
-            Couple Information *
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Your First Name"
-                fullWidth
-                value={formData.partner1_name}
-                onChange={(e) => handleChange('partner1_name', e.target.value)}
-                placeholder="e.g., Simran"
-                required
-                error={fieldErrors.partner1_name}
-                // helperText="No spaces allowed. This is used for your wedding title."
-                sx={textFieldSx}
-              />
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              Couple Information *
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Your First Name"
+                  fullWidth
+                  value={formData.partner1_name}
+                  onChange={(e) => handleChange('partner1_name', e.target.value)}
+                  placeholder="e.g., Simran"
+                  required
+                  error={fieldErrors.partner1_name}
+                  sx={textFieldSx}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Your Partner's First Name"
+                  fullWidth
+                  value={formData.partner2_name}
+                  onChange={(e) => handleChange('partner2_name', e.target.value)}
+                  placeholder="e.g., Karanvir"
+                  required
+                  error={fieldErrors.partner2_name}
+                  sx={textFieldSx}
+                />
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Your Partner's First Name"
-                fullWidth
-                value={formData.partner2_name}
-                onChange={(e) => handleChange('partner2_name', e.target.value)}
-                placeholder="e.g., Karanvir"
-                required
-                error={fieldErrors.partner2_name}
-                // helperText="No spaces allowed. This is used for your wedding title."
-                sx={textFieldSx}
-              />
-            </Grid>
-          </Grid>
+          </Paper>
 
 
           {/* Wedding Date */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            Wedding Date *
-          </Typography>
-
-
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              Wedding Dates *
+            </Typography>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.is_one_day}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
-                        if (isChecked) {
-                          setWeddingDateEnd(weddingDateStart);
-                          if (!dateDisplayManuallyEdited) {
-                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
-                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
-                          }
-                        }
-                      }}
-                      sx={{
-                        color: '#DE3F5E',
-                        '&.Mui-checked': {
-                          color: '#DE3F5E',
-                        },
-                      }}
-                    />
-                  }
-                  label="This is a one day wedding"
-                  sx={{ color: '#4a4a4a', mb: 2 }}
-                />
-              </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <MobileDatePicker
                   label="Wedding Start Date"
@@ -617,8 +594,37 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   />
                 </Grid>
               )}
+              <Grid size={{ xs: 12 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.is_one_day}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        setFormData(prev => ({ ...prev, is_one_day: isChecked }));
+                        if (isChecked) {
+                          setWeddingDateEnd(weddingDateStart);
+                          if (!dateDisplayManuallyEdited) {
+                            const display = formatWeddingDateDisplay(weddingDateStart, weddingDateStart);
+                            setFormData(prev => ({ ...prev, wedding_date_display: display, is_one_day: isChecked }));
+                          }
+                        }
+                      }}
+                      sx={{
+                        color: '#DE3F5E',
+                        '&.Mui-checked': {
+                          color: '#DE3F5E',
+                        },
+                      }}
+                    />
+                  }
+                  label="This is a one day wedding"
+                  sx={{ color: '#4a4a4a', mt: 0.5 }}
+                />
+              </Grid>
             </Grid>
           </LocalizationProvider>
+          </Paper>
 
           {/* Date Display Preview and Edit */}
           {/* {weddingDateStart && (
@@ -699,57 +705,58 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           )} */}
 
           {/* Venue */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            Venue Information *
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Venue Name"
-                fullWidth
-                value={formData.venue_name}
-                onChange={(e) => handleChange('venue_name', e.target.value)}
-                placeholder="e.g., Sheraton"
-                required
-                error={fieldErrors.venue_name}
-                sx={textFieldSx}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="City/Country"
-                fullWidth
-                value={formData.venue_location}
-                onChange={(e) => handleChange('venue_location', e.target.value)}
-                placeholder="e.g., Bangkok, Thailand 🇹🇭"
-                required
-                sx={textFieldSx}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.show_venue_location}
-                    onChange={(e) => handleChange('show_venue_location', e.target.checked)}
-                    sx={{
-                      color: '#DE3F5E',
-                      '&.Mui-checked': {
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              Venue Information *
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Venue Name"
+                  fullWidth
+                  value={formData.venue_name}
+                  onChange={(e) => handleChange('venue_name', e.target.value)}
+                  placeholder="e.g., Sheraton"
+                  required
+                  error={fieldErrors.venue_name}
+                  sx={textFieldSx}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="City/Country"
+                  fullWidth
+                  value={formData.venue_location}
+                  onChange={(e) => handleChange('venue_location', e.target.value)}
+                  placeholder="e.g., Bangkok, Thailand 🇹🇭"
+                  required
+                  sx={textFieldSx}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.show_venue_location}
+                      onChange={(e) => handleChange('show_venue_location', e.target.checked)}
+                      sx={{
                         color: '#DE3F5E',
-                      },
-                    }}
-                  />
-                }
-                label="Display on website"
-                sx={{ color: '#4a4a4a', mt: 1 }}
-              />
+                        '&.Mui-checked': {
+                          color: '#DE3F5E',
+                        },
+                      }}
+                    />
+                  }
+                  label="Display on website"
+                  sx={{ color: '#4a4a4a', mt: 1 }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          </Paper>
 
           {/* Welcome Message Section */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            Welcome Message
-          </Typography>
-          <Box>
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              Welcome Message
+            </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
               A short note for your guests that appears on your home page.
             </Typography>
@@ -762,13 +769,13 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               placeholder="e.g. Can't wait to celebrate with you all! ❤️"
               sx={textFieldSx}
             />
-          </Box>
+          </Paper>
 
           {/* RSVP Deadline */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            RSVP Information
-          </Typography>
-
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              RSVP Information
+            </Typography>
           <Stack spacing={2}>
             <FormControlLabel
               control={
@@ -853,7 +860,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               </LocalizationProvider>
             )}
           </Stack>
-
+          </Paper>
 
         </Stack>
       </Stack>

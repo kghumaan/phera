@@ -234,7 +234,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                     p: 3,
                     borderRadius: '16px',
                     bgcolor: '#fafafa',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    boxShadow: 'none',
                   }}>
                     <Stack direction="row" alignItems="center" spacing={1.5}>
                       <Typography variant="h4">{item.emoji}</Typography>
@@ -341,7 +341,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               p: 3,
               borderRadius: '16px',
               bgcolor: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
               '&:hover': {
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               }
@@ -385,9 +385,9 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               textAlign: 'center',
               borderRadius: '16px',
               bgcolor: 'white',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              boxShadow: 'none',
             }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                 No registry links yet. Add your first registry link to get started.
               </Typography>
             </Paper>

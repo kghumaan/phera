@@ -31,7 +31,7 @@ const sectionPaperSx = {
   p: 3,
   borderRadius: '16px',
   bgcolor: '#fafafa',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+  boxShadow: 'none',
 };
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
@@ -273,7 +273,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           <Stack spacing={4}>
             {/* Button Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Color
               </Typography>
 
@@ -315,7 +315,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
             {/* Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Text Color
               </Typography>
 
@@ -360,7 +360,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
 
             {/* Button Text Color */}
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+              <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                 Button Text Color
               </Typography>
 
@@ -505,7 +505,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
                   lineHeight: 1.4,
                   maxWidth: 300,
                   mx: 'auto',
-                  fontWeight: 400,
                   textAlign: 'center',
                 }}
               >
