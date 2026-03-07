@@ -585,7 +585,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
                   Couple Photos (up to 6)
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
                   Add multiple photos of the couple. Drag to re-order — the first photo is used as the main image.
                 </Typography>
 

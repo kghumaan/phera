@@ -779,7 +779,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                     />
                   }
-                  label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
+                  label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>}
                 />
                 {!newPin.skip_rsvp && (
                   <FormControlLabel
@@ -790,7 +790,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                       />
                     }
-                    label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Plus One</Typography>}
+                    label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Plus One</Typography>}
                   />
                 )}
               </Stack>
@@ -808,7 +808,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         sx={{ '& .MuiSwitch-switchBase': { color: '#bbb' }, '& .MuiSwitch-track': { bgcolor: '#ddd' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                       />
                     }
-                    label={<Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Hide Events</Typography>}
+                    label={<Typography variant="body2" sx={{ fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a' }}>Hide Events</Typography>}
                   />
                   {newPin.hidden_events.length > 0 && (
                     <FormControl fullWidth>
@@ -824,7 +824,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         label="Select events to hide"
                         displayEmpty
                         notched
-                        renderValue={() => <Typography sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
+                        renderValue={() => <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Select an event to hide</Typography>}
                         sx={{
                           borderRadius: '12px',
                           bgcolor: 'white',

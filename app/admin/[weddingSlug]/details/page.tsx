@@ -493,35 +493,35 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
 
           {/* Wedding Date */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2, color: '#1a1a1a', fontSize: '1rem' }}>
-            Wedding Date *
-          </Typography>
-
-
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <DatePicker
-                selectsRange
-                startDate={weddingDateStart}
-                endDate={weddingDateEnd}
-                onChange={(dates) => {
-                  const [start, end] = dates as [Date | null, Date | null];
-                  if (start && !end && !weddingDateStart) {
-                    handleDateStartChange(start);
-                  } else if (start && end) {
-                    handleDateStartChange(start);
-                    handleDateEndChange(end);
-                  } else if (start && !end) {
-                    handleDateStartChange(start);
-                    setWeddingDateEnd(null);
-                  }
-                }}
-                customInput={<AdminDateInput label="Wedding Dates" error={!!fieldErrors.wedding_date_start} />}
-                dateFormat="MMM d, yyyy"
-                wrapperClassName="onboarding-datepicker-wrapper"
-              />
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+              Wedding Dates *
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <DatePicker
+                  selectsRange
+                  startDate={weddingDateStart}
+                  endDate={weddingDateEnd}
+                  onChange={(dates) => {
+                    const [start, end] = dates as [Date | null, Date | null];
+                    if (start && !end && !weddingDateStart) {
+                      handleDateStartChange(start);
+                    } else if (start && end) {
+                      handleDateStartChange(start);
+                      handleDateEndChange(end);
+                    } else if (start && !end) {
+                      handleDateStartChange(start);
+                      setWeddingDateEnd(null);
+                    }
+                  }}
+                  customInput={<AdminDateInput label="Wedding Dates" error={!!fieldErrors.wedding_date_start} />}
+                  dateFormat="MMM d, yyyy"
+                  wrapperClassName="onboarding-datepicker-wrapper"
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          </Paper>
 
           {/* Date Display Preview and Edit */}
           {/* {weddingDateStart && (
