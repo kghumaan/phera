@@ -1110,20 +1110,17 @@ export class WeddingService {
 
   async prepopulateScheduleFromTemplate(weddingId: string, weddingDateStart: Date, weddingDateEnd: Date | null): Promise<boolean> {
     try {
-      console.log('🎯 Prepopulating schedule from simran-karanvir template...');
-
-
-      // Get wedding info for simran-karanvir (our template wedding)
+      const templateSlug = process.env.TEMPLATE_WEDDING_SLUG || 'simran-karanvir';
+      console.log(`Prepopulating schedule from ${templateSlug} template...`);
 
       const { data: templateWedding, error: weddingError } = await this.supabase
         .from('weddings')
         .select('id')
-        .eq('slug', 'simran-karanvir')
+        .eq('slug', templateSlug)
         .single();
 
-
       if (weddingError || !templateWedding) {
-        console.error('Template wedding simran-karanvir not found');
+        console.error(`Template wedding ${templateSlug} not found`);
 
         return false;
       }

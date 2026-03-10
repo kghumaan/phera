@@ -1,26 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { whapiClient } from '@/lib/vendors/whapi-client';
-
-async function getAuthenticatedClient() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
-          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {}
-        },
-      },
-    }
-  );
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { supabase: null, user: null };
-  return { supabase, user };
-}
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 /**
  * GET /api/vendors/conversations/[conversationId]/members
@@ -46,6 +27,14 @@ export async function GET(
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
+    // Verify wedding access via conversation
+    if (members && members.length > 0 && members[0].wedding_id) {
+      const hasAccess = await verifyWeddingAccess(supabase, user.id, members[0].wedding_id);
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     // If no members, try to populate from Whapi + messages
     if (!members || members.length === 0) {
       const { data: convo } = await supabase
@@ -55,6 +44,11 @@ export async function GET(
         .single();
 
       if (convo) {
+        const hasAccess = await verifyWeddingAccess(supabase, user.id, convo.wedding_id);
+        if (!hasAccess) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const whatsappId = convo.whatsapp_group_id || convo.whatsapp_chat_id;
         const senderMap = new Map<string, string>();
 

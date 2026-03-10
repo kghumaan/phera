@@ -56,6 +56,10 @@ public/logo-white.png
 .gemini/
 .claude/
 
+# supabase
+supabase/.temp/
+supabase/schema_dump.sql
+
 # Image originals (backed up by optimize-images script)
 public/images/backgrounds/_originals/
 public/images/frames/_originals/

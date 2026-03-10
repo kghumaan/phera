@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 // Custom hook to get the current wedding ID from the URL
-export function useWeddingId(fallbackId: string = 'simran-karanvir'): string {
+export function useWeddingId(fallbackId: string = ''): string {
 
   const [weddingId, setWeddingId] = useState<string>(fallbackId);
 

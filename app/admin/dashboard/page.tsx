@@ -32,11 +32,13 @@ import PendingIcon from '@mui/icons-material/Pending';
 import Link from 'next/link';
 import WhatsAppAnalytics from '@/components/admin/WhatsAppAnalytics';
 import BroadcastForm from '@/components/admin/BroadcastForm';
+import { useWeddingId } from '@/lib/hooks/use-wedding-id';
 
 export default function AdminDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [broadcastDialogOpen, setBroadcastDialogOpen] = useState(false);
+  const weddingId = useWeddingId();
 
   // Mock data - replace with real data from Google Sheets API
   const dashboardData = {
@@ -330,7 +332,7 @@ export default function AdminDashboard() {
               Send Broadcast
             </Button>
           </Box>
-          <WhatsAppAnalytics weddingId="simran-karanvir"
+          <WhatsAppAnalytics weddingId={weddingId}
           />
         </motion.div>
 
@@ -338,7 +340,7 @@ export default function AdminDashboard() {
         <BroadcastForm
           open={broadcastDialogOpen}
           onClose={() => setBroadcastDialogOpen(false)}
-          weddingId="simran-karanvir"
+          weddingId={weddingId}
 
         />
 

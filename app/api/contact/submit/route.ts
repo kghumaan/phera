@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendContactAlert } from '@/lib/email/alerts';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 export async function POST(req: NextRequest) {
+    const rateLimited = checkRateLimit(req, { maxRequests: 10, windowMs: 60_000, keyPrefix: 'contact' });
+    if (rateLimited) return rateLimited;
+
     try {
         const data = await req.json();
         const { name, email, phone, message } = data;

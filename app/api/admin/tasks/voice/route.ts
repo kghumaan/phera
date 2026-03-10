@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
+    const { supabase, user } = await getAuthenticatedClient();
+    if (!supabase || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File | null;
 

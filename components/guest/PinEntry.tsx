@@ -25,27 +25,15 @@ interface PinEntryProps {
   isPreview?: boolean;
 }
 
-interface PinCode {
-  pin: string;
-  type: string;
-  allows_plus_one: boolean;
-  skip_rsvp?: boolean;
-  hidden_events?: string[];
-}
-
-interface WeddingSettings {
-  pin_codes: PinCode[];
-}
-
-
 
 const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [weddingSettings, setWeddingSettings] = useState<WeddingSettings | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [showPreviewToast, setShowPreviewToast] = useState(false);
+  const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState<string | null>(null);
@@ -111,6 +99,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
     newPin[index] = digit;
     setPin(newPin);
     setError(false);
+    setRateLimitMessage(null);
 
     // Auto-focus next input if we just typed a digit
     if (digit && index < 3) {
@@ -188,26 +177,6 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
         setPinEntryFontColor(wedding.pin_entry_font_color || '#000');
         setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
-
-        // Now fetch the wedding settings for PIN codes
-        const { data: settings, error: settingsError } = await supabase
-          .from('wedding_settings')
-          .select('pin_codes')
-          .eq('wedding_id', wedding.id)
-          .maybeSingle();
-
-        if (settingsError) {
-          console.error('Error fetching wedding settings:', settingsError);
-          setIsLoadingSettings(false);
-          return;
-        }
-
-        // If no settings exist yet, use empty pin_codes (admin hasn't configured PINs)
-        if (settings && settings.pin_codes) {
-          setWeddingSettings({ pin_codes: settings.pin_codes as unknown as PinCode[] });
-        } else {
-          setWeddingSettings({ pin_codes: [] });
-        }
       } catch (error) {
         console.error('Unexpected error fetching settings:', error);
       } finally {
@@ -238,27 +207,43 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
     }
 
     const enteredPin = pin.join('');
+    if (enteredPin.length !== 4 || isVerifying) return;
 
-    if (!weddingSettings || !weddingSettings.pin_codes) {
-      setError(true);
-      return;
-    }
+    setIsVerifying(true);
+    setError(false);
+    setRateLimitMessage(null);
 
-    // Check if entered PIN matches any valid PIN for this wedding
-    const matchedPin = weddingSettings.pin_codes.find(
-      (pinConfig) => pinConfig.pin === enteredPin
-    );
+    try {
+      const res = await fetch('/api/pin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weddingSlug, pin: enteredPin }),
+      });
 
-    if (matchedPin) {
-      // Set pin verification flag and store settings
+      const data = await res.json();
+
+      if (res.status === 429) {
+        setRateLimitMessage(data.error || 'Too many attempts. Please wait and try again.');
+        setPin(['', '', '', '']);
+        inputRefs[0].current?.focus();
+        return;
+      }
+
+      if (!res.ok || !data.valid) {
+        setError(true);
+        setPin(['', '', '', '']);
+        inputRefs[0].current?.focus();
+        return;
+      }
+
+      // PIN is valid — store settings in localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem(`phera_pin_verified_${weddingSlug}`, 'true');
         localStorage.setItem(`phera_pin_timestamp_${weddingSlug}`, Date.now().toString());
-        localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, matchedPin.allows_plus_one ? 'true' : 'false');
-        localStorage.setItem(`phera_pin_type_${weddingSlug}`, matchedPin.type);
+        localStorage.setItem(`phera_allows_plus_one_${weddingSlug}`, data.allows_plus_one ? 'true' : 'false');
+        localStorage.setItem(`phera_pin_type_${weddingSlug}`, data.type);
 
-        // Store skip_rsvp flag if present
-        if (matchedPin.skip_rsvp) {
+        if (data.skip_rsvp) {
           localStorage.setItem(`phera_skip_rsvp_${weddingSlug}`, 'true');
           localStorage.setItem(`phera_bypass_rsvp_${weddingSlug}`, 'true');
         } else {
@@ -266,29 +251,27 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           localStorage.removeItem(`phera_bypass_rsvp_${weddingSlug}`);
         }
 
-        // Store hidden_events for event filtering
-        if (matchedPin.hidden_events && matchedPin.hidden_events.length > 0) {
-          localStorage.setItem(`phera_hidden_events_${weddingSlug}`, JSON.stringify(matchedPin.hidden_events));
+        if (data.hidden_events && data.hidden_events.length > 0) {
+          localStorage.setItem(`phera_hidden_events_${weddingSlug}`, JSON.stringify(data.hidden_events));
         } else {
           localStorage.removeItem(`phera_hidden_events_${weddingSlug}`);
         }
 
-        // Persist pin verification to DB if user is authenticated
-        storePinAccessToDB(matchedPin.type, matchedPin.allows_plus_one);
-
-        // Call the callback to notify parent component
+        storePinAccessToDB(data.type, data.allows_plus_one);
         onPinVerified();
       }
-    } else {
+    } catch (err) {
+      console.error('PIN verify error:', err);
       setError(true);
-      // Clear pin after error
       setPin(['', '', '', '']);
       inputRefs[0].current?.focus();
+    } finally {
+      setIsVerifying(false);
     }
   };
 
   const isPinComplete = pin.every(digit => digit !== '');
-  const isReady = isPreview || (!isLoadingSettings && weddingSettings !== null);
+  const isReady = isPreview || !isLoadingSettings;
 
   // Auto-submit when all digits are entered
   useEffect(() => {
@@ -358,17 +341,21 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           }
         }
 
-        // Check URL parameters for auth bypass
+        // Check magic_link URL parameter — requires valid Supabase session
         const urlParams = new URLSearchParams(window.location.search);
-        const authSuccess = urlParams.get('auth_success');
-        const restorePin = urlParams.get('restore_pin');
         const magicLink = urlParams.get('magic_link');
-        const bypassPin = urlParams.get('bypass_pin');
 
-        if (authSuccess === 'true' || restorePin === 'true' || magicLink === 'true' || bypassPin === 'true') {
-          console.log('Auth URL parameter detected, bypassing PIN entry...');
-          triggerBypass();
-          return;
+        if (magicLink === 'true') {
+          try {
+            const { data: { user: mlUser } } = await supabase.auth.getUser();
+            if (mlUser) {
+              console.log('Magic link with valid session, bypassing PIN entry...');
+              triggerBypass();
+              return;
+            }
+          } catch (err) {
+            console.error('Magic link session check failed:', err);
+          }
         }
 
         // Check DB for existing pin_access (for authenticated users)
@@ -629,7 +616,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           </Stack>
 
           {/* Error Message */}
-          {error && (
+          {error && !rateLimitMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -651,6 +638,33 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                 }}
               >
                 Invalid invitation code. Please try again.
+              </Typography>
+            </motion.div>
+          )}
+
+          {/* Rate Limit Message */}
+          {rateLimitMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ marginTop: '16px' }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#e65100',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
+                  textAlign: 'center',
+                  backgroundColor: '#fff3e0',
+                  px: { xs: 3, lg: 3.5, xl: 4 },
+                  py: { xs: 1, lg: 1.25, xl: 1.5 },
+                  borderRadius: '20px',
+                  border: '1px solid #ffcc80',
+                }}
+              >
+                {rateLimitMessage}
               </Typography>
             </motion.div>
           )}
@@ -712,7 +726,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         open={loginDialogOpen}
         onClose={() => setLoginDialogOpen(false)}
         onSuccess={handleLoginSuccess}
-        redirectTo={`/${weddingSlug}?bypass_pin=true`}
+        redirectTo={`/${weddingSlug}?magic_link=true`}
       />
 
       <Snackbar

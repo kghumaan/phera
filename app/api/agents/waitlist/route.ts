@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,6 +14,9 @@ function getSupabaseClient() {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimited = checkRateLimit(request, { maxRequests: 10, windowMs: 60_000, keyPrefix: 'waitlist' });
+  if (rateLimited) return rateLimited;
+
   try {
     const supabase = getSupabaseClient();
     const body = await request.json();

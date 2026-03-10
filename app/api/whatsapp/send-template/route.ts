@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { formatParametersForAPI, validateTemplateParams } from '@/lib/whatsapp/templates';
 import { checkOptInStatus, getOptInPhone } from '@/lib/whatsapp/opt-ins';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 export async function POST(request: NextRequest) {
   try {
+    const { supabase, user } = await getAuthenticatedClient();
+    if (!supabase || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { guestId, weddingId, templateName, parameters } = await request.json();
 
     // Validate required fields
@@ -14,6 +20,11 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields: guestId, weddingId, templateName, parameters' },
         { status: 400 }
       );
+    }
+
+    const hasAccess = await verifyWeddingAccess(supabase, user.id, weddingId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Check if guest is opted in

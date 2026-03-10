@@ -14,6 +14,16 @@ const supabase = createClient(
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify webhook secret if configured
+    const webhookSecret = process.env.VENDOR_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const tokenParam = request.nextUrl.searchParams.get('token');
+      const headerSecret = request.headers.get('x-webhook-secret');
+      if (tokenParam !== webhookSecret && headerSecret !== webhookSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const payload = await request.json();
     console.log('📨 Vendor webhook received:', JSON.stringify(payload).slice(0, 500));
 

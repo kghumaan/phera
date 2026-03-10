@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
 import { WhatsAppClient } from '@/lib/whatsapp/client';
 import { formatParametersForAPI } from '@/lib/whatsapp/templates';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 export async function POST(request: NextRequest) {
   try {
+    const { supabase, user } = await getAuthenticatedClient();
+    if (!supabase || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { weddingId, templateName, parameters, filters } = await request.json();
 
     if (!weddingId || !templateName) {
@@ -12,6 +18,11 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields: weddingId, templateName' },
         { status: 400 }
       );
+    }
+
+    const hasAccess = await verifyWeddingAccess(supabase, user.id, weddingId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Get template from database
@@ -127,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize WhatsApp client
     const whatsappClient = new WhatsAppClient();
-    const formattedParams = formatParametersForAPI(parameters);
+    const formattedParams = formatParametersForAPI(parameters, templateName);
 
     // Send messages to all recipients
     let successfulSends = 0;
@@ -187,7 +198,7 @@ export async function POST(request: NextRequest) {
         successful_sends: successfulSends,
         failed_sends: failedSends,
         sent_at: new Date().toISOString(),
-        status: failedSends === 0 ? 'completed' : 'completed',
+        status: failedSends === 0 ? 'completed' : (successfulSends === 0 ? 'failed' : 'partial'),
       })
       .eq('id', broadcast.id);
 

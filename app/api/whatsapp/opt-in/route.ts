@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle opt-in
+    // Handle opt-in (guests call this unauthenticated during RSVP)
     if (action === 'opt-in') {
       if (!phoneNumber) {
         return NextResponse.json(

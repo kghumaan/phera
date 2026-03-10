@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendFeatureRequestAlert } from '@/lib/email/alerts';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 export async function POST(req: NextRequest) {
+    const rateLimited = checkRateLimit(req, { maxRequests: 10, windowMs: 60_000, keyPrefix: 'feature-request' });
+    if (rateLimited) return rateLimited;
+
     try {
         const data = await req.json();
         const { userId, weddingId, content, userEmail } = data;

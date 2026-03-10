@@ -1,25 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-
-async function getAuthenticatedClient() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
-          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {}
-        },
-      },
-    }
-  );
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { supabase: null, user: null };
-  return { supabase, user };
-}
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 /**
  * GET /api/vendors/insights?weddingId=xxx
@@ -38,6 +19,11 @@ export async function GET(request: NextRequest) {
 
     if (!weddingId) {
       return NextResponse.json({ error: 'Missing weddingId' }, { status: 400 });
+    }
+
+    const hasAccess = await verifyWeddingAccess(supabase, user.id, weddingId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     let query = supabase
@@ -77,6 +63,19 @@ export async function PATCH(request: NextRequest) {
 
     if (!insightId) {
       return NextResponse.json({ error: 'Missing insightId' }, { status: 400 });
+    }
+
+    // Look up insight to verify wedding access
+    const { data: existingInsight } = await supabase
+      .from('vendor_insights')
+      .select('wedding_id')
+      .eq('id', insightId)
+      .single();
+    if (existingInsight) {
+      const hasAccess = await verifyWeddingAccess(supabase, user.id, existingInsight.wedding_id);
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
 
     const updates: Record<string, any> = { updated_at: new Date().toISOString() };

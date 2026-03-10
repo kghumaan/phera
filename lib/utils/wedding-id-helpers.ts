@@ -17,8 +17,7 @@ export function getCurrentWeddingId(): string {
       }
     }
   }
-  // Default to simran-karanvir if no wedding ID is found in path
-  return 'simran-karanvir';
+  return '';
 }
 
 
@@ -58,5 +57,5 @@ export function isOnWeddingRoute(): boolean {
 
 // Get the fallback wedding ID (for backward compatibility)
 export function getFallbackWeddingId(): string {
-  return 'simran-karanvir';
+  return '';
 }
