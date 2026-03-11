@@ -50,6 +50,12 @@ import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { InfoOutlined } from '@mui/icons-material';
+
+const BETA_ACCESS_EMAILS = [
+  'kv.s.ghumaan@gmail.com',
+  'savani.simran@google.com',
+];
 
 interface Vendor {
   id: string;
@@ -146,6 +152,12 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Beta access check
+  const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+
+  // Early access request state
+  const [betaRequestStatus, setBetaRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
+
   // Testing toggle
   const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com' || user?.email === 'demo@phera.io';
   const [forceOnboarding, setForceOnboarding] = useState(false);
@@ -196,6 +208,57 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     };
     fetchCoordinatorInfo();
   }, [isPro]);
+
+  // Check for existing beta request
+  useEffect(() => {
+    if (isPro && !isBetaUser && user?.email) {
+      const checkExistingRequest = async () => {
+        const hasRequestedLocal = localStorage.getItem(`phera_coordinator_requested_${user.email.toLowerCase()}`);
+        if (hasRequestedLocal === 'true') {
+          setBetaRequestStatus('success');
+          return;
+        }
+        setBetaRequestStatus('checking');
+        try {
+          const { data, error } = await (supabase as any)
+            .from('contact_submissions')
+            .select('id')
+            .eq('email', user.email.toLowerCase())
+            .eq('message', 'Phera Coordinator: Early Preview Setup Request')
+            .limit(1);
+          if (error) { setBetaRequestStatus('idle'); return; }
+          if (data && data.length > 0) {
+            setBetaRequestStatus('success');
+            localStorage.setItem(`phera_coordinator_requested_${user.email.toLowerCase()}`, 'true');
+          } else {
+            setBetaRequestStatus('idle');
+          }
+        } catch {
+          setBetaRequestStatus('idle');
+        }
+      };
+      checkExistingRequest();
+    }
+  }, [isPro, isBetaUser, user?.email]);
+
+  const handleRequestBetaAccess = async () => {
+    if (isViewOnly || !user?.email) return;
+    setBetaRequestStatus('submitting');
+    try {
+      const { error } = await (supabase as any)
+        .from('contact_submissions')
+        .insert([{
+          name: user.name || 'Admin',
+          email: user.email.toLowerCase(),
+          message: 'Phera Coordinator: Early Preview Setup Request'
+        }]);
+      if (error) throw error;
+      localStorage.setItem(`phera_coordinator_requested_${user.email.toLowerCase()}`, 'true');
+      setBetaRequestStatus('success');
+    } catch {
+      setBetaRequestStatus('error');
+    }
+  };
 
   // Delete vendor
   const handleDeleteVendor = async () => {
@@ -575,6 +638,117 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         </Stack>
 
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
+      </Box>
+    );
+  }
+
+  // ─── STATE A.5: Pro user, NOT in beta ────────────────────────────────
+  if (isPro && !isBetaUser) {
+    return (
+      <Box sx={{ maxWidth: 1000 }}>
+        <Stack spacing={4}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Coordinator
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              Track vendor conversations, get AI-powered insights, and keep everything organized
+            </Typography>
+          </Box>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 4, md: 8 },
+              borderRadius: '32px',
+              bgcolor: 'white',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '20px',
+                bgcolor: '#DE3F5E10',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 3,
+              }}
+            >
+              <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+            </Box>
+
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+              Early Preview Mode
+            </Typography>
+
+            <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
+              Phera Coordinator is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your vendors.
+            </Typography>
+
+            {betaRequestStatus === 'checking' ? (
+              <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+            ) : betaRequestStatus === 'success' ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 3,
+                  bgcolor: '#F1F8E9',
+                  borderRadius: '16px',
+                  border: '1px solid #C5E1A5',
+                }}
+              >
+                <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
+                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600 }}>
+                  We've received your request! Someone from our team will be in touch shortly to get you set up.
+                </Typography>
+              </Box>
+            ) : (
+              <Stack spacing={2} alignItems="center">
+                <Button
+                  variant="contained"
+                  disabled={betaRequestStatus === 'submitting'}
+                  onClick={handleRequestBetaAccess}
+                  sx={{
+                    bgcolor: '#DE3F5E',
+                    color: 'white',
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: '14px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
+                    '&:hover': { bgcolor: '#c73552' },
+                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' }
+                  }}
+                >
+                  {betaRequestStatus === 'submitting' ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Request Early Access'
+                  )}
+                </Button>
+                {betaRequestStatus === 'error' && (
+                  <Typography variant="caption" sx={{ color: '#d32f2f' }}>
+                    Something went wrong. Please try again or contact support.
+                  </Typography>
+                )}
+              </Stack>
+            )}
+          </Paper>
+        </Stack>
       </Box>
     );
   }
