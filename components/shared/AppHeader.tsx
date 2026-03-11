@@ -63,9 +63,10 @@ export default function AppHeader({
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const scrollingUp = currentScrollY < lastScrollY;
+      const inHeroSection = currentScrollY < window.innerHeight;
       if (currentScrollY < 80) {
         setShowScrolledNav(false);
-      } else if (scrollingUp) {
+      } else if (scrollingUp && inHeroSection) {
         setShowScrolledNav(true);
       } else {
         setShowScrolledNav(false);
