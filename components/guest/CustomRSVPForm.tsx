@@ -53,6 +53,7 @@ import GifPicker from '@/components/ui/GifPicker';
 import { GifData, RSVPFormData, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
+import { useWedding } from '@/lib/contexts/WeddingContext';
 
 
 const initialFormData: RSVPFormData = {
@@ -162,6 +163,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, refreshAuth, checkRSVPStatus } = useAuth();
+  const { wedding } = useWedding();
   const [formData, setFormData] = useState<RSVPFormData>(initialFormData);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -210,22 +212,23 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   }, [weddingId]);
 
   // Steps definition - includes Phera Concierge as final step for attending guests
-  const steps = allowsPlusOne ? [
+  const hiddenSteps = wedding?.hidden_rsvp_steps || [];
+  const steps = (allowsPlusOne ? [
     'Basic Information',
     'Account Creation',
-    'Attendance Details',
+    'RSVP',
     'Plus One Details',
-    'Event Preferences',
-    'Personal Details',
-    'Fun & Messages',
+    'Dietary Restrictions',
+    'Team Bride/Groom',
+    'Music Request & Comment',
   ] : [
     'Basic Information',
     'Account Creation',
-    'Attendance Details',
-    'Event Preferences',
-    'Personal Details',
-    'Fun & Messages',
-  ];
+    'RSVP',
+    'Dietary Restrictions',
+    'Team Bride/Groom',
+    'Music Request & Comment',
+  ]).filter(s => !hiddenSteps.includes(s));
 
   // Merge fixed steps with custom question steps
   const mergedSteps: (string | RSVPCustomQuestionStep)[] = (() => {
@@ -335,7 +338,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
 
       // Find the Account Creation step index and Attendance Details index
       const accountStepIndex = steps.indexOf('Account Creation');
-      const attendanceStepIndex = steps.indexOf('Attendance Details');
+      const attendanceStepIndex = steps.indexOf('RSVP');
 
       // Restore form state from localStorage if returning from OAuth
       if (typeof window !== 'undefined') {
@@ -369,6 +372,24 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       }
     }
   }, [user]);
+
+  // Listen for admin panel step navigation messages
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NAVIGATE_TO_RSVP_STEP' && event.data.stepName) {
+        // Match by name: fixed steps match by string name, custom steps match by step_title or id
+        const targetName = event.data.stepName;
+        const targetId = event.data.stepId;
+        const idx = mergedSteps.findIndex(s => {
+          if (typeof s === 'string') return s === targetName;
+          return s.id === targetId || s.step_title === targetName;
+        });
+        if (idx !== -1) setCurrentStep(idx);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [mergedSteps]);
 
   const handleInputChange = (field: keyof RSVPFormData, value: any) => {
     setFormData(prev => ({
@@ -584,7 +605,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
         }
         break;
 
-      case 'Attendance Details':
+      case 'RSVP':
         if (!formData.attending) newErrors.attending = 'Please select attendance';
         break;
 
@@ -608,19 +629,19 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
         }
         break;
 
-      case 'Event Preferences':
+      case 'Dietary Restrictions':
         if (formData.attending === 'yes' && formData.foodPreference.length === 0) {
           newErrors.foodPreference = 'Please select at least one food preference';
         }
         break;
 
-      case 'Personal Details':
+      case 'Team Bride/Groom':
         if (!formData.weddingSide) {
           newErrors.weddingSide = 'Please select which side of the wedding';
         }
         break;
 
-      case 'Fun & Messages':
+      case 'Music Request & Comment':
         // No required fields in this step - both song request and special message are optional
         break;
     }
@@ -650,7 +671,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       // If the user just completed Basic Info and is already authenticated,
       // skip the Account Creation step entirely
       if (currentStepName === 'Basic Information' && isAuthenticated) {
-        const attendanceStepIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'Attendance Details');
+        const attendanceStepIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'RSVP');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentStep(attendanceStepIndex);
         return;
@@ -667,9 +688,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       }, 100);
 
       // If plus-ones are allowed and user is not attending yes, skip the plus-one section
-      if (currentStepName === 'Attendance Details' && allowsPlusOne && formData.attending !== 'yes') {
+      if (currentStepName === 'RSVP' && allowsPlusOne && formData.attending !== 'yes') {
         // Find the index of Event Preferences and go there
-        const eventPrefsIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'Event Preferences');
+        const eventPrefsIndex = mergedSteps.findIndex(s => typeof s === 'string' && s === 'Dietary Restrictions');
         setCurrentStep(eventPrefsIndex);
       } else {
         setCurrentStep(prev => Math.min(prev + 1, mergedSteps.length - 1));
@@ -1739,7 +1760,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Stack>
         );
 
-      case 'Attendance Details':
+      case 'RSVP':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2397,7 +2418,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Stack>
         );
 
-      case 'Event Preferences':
+      case 'Dietary Restrictions':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2549,7 +2570,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Stack>
         );
 
-      case 'Personal Details':
+      case 'Team Bride/Groom':
         return (
           <Stack spacing={4}>
             <Box sx={{ textAlign: 'left', mb: 3 }}>
@@ -2651,7 +2672,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Stack>
         );
 
-      case 'Fun & Messages':
+      case 'Music Request & Comment':
         return (
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -2987,7 +3008,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             </IconButton>
           )}
 
-          {(currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'Attendance Details' && formData.attending === 'no')) ? (
+          {(currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'RSVP' && formData.attending === 'no')) ? (
             <Button
               onClick={handleSubmit}
               variant="contained"

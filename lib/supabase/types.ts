@@ -51,6 +51,7 @@ export interface RSVPCustomQuestionStep {
   id: string;
   wedding_id: string;
   step_title: string;
+  description?: string | null;
   insert_after: string;
   order_index: number;
   questions: CustomQuestion[];
@@ -1438,6 +1439,7 @@ export type PheraDatabase = {
           published_snapshot: Json | null
           has_unpublished_changes: boolean | null
           last_published_at: string | null
+          hidden_rsvp_steps: string[] | null
         }
         Insert: {
           background_image?: string | null
@@ -1475,6 +1477,7 @@ export type PheraDatabase = {
           published_snapshot?: Json | null
           has_unpublished_changes?: boolean | null
           last_published_at?: string | null
+          hidden_rsvp_steps?: string[] | null
         }
         Update: {
           background_image?: string | null
@@ -1512,6 +1515,7 @@ export type PheraDatabase = {
           published_snapshot?: Json | null
           has_unpublished_changes?: boolean | null
           last_published_at?: string | null
+          hidden_rsvp_steps?: string[] | null
         }
         Relationships: []
       }

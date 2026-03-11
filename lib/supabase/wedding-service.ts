@@ -1537,6 +1537,14 @@ export class WeddingService {
       return { total: 0, yes: 0, no: 0, maybe: 0, plusOnes: 0 };
     }
   }
+  async updateHiddenRsvpSteps(weddingSlug: string, hiddenSteps: string[]) {
+    const { error } = await supabase
+      .from('weddings')
+      .update({ hidden_rsvp_steps: hiddenSteps })
+      .eq('slug', weddingSlug);
+
+    if (error) throw error;
+  }
 }
 
 // Export a singleton instance

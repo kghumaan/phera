@@ -22,14 +22,17 @@ import {
   CircularProgress,
   alpha,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Add,
   Edit,
   Delete,
   DragIndicator,
   Lock,
-  QuestionAnswer,
+  CalendarToday,
+  AddCircleOutline,
+  Close,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -68,19 +71,24 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 const FIXED_STEPS = [
   'Basic Information',
   'Account Creation',
-  'Attendance Details',
+  'RSVP',
   'Plus One Details',
-  'Event Preferences',
-  'Personal Details',
-  'Fun & Messages',
+  'Dietary Restrictions',
+  'Team Bride/Groom',
+  'Music Request & Comment',
 ];
 
-const INSERT_AFTER_OPTIONS = [
-  'Attendance Details',
-  'Plus One Details',
-  'Event Preferences',
-  'Personal Details',
-];
+const OPTIONAL_FIXED_STEPS = new Set(['Team Bride/Groom', 'Music Request & Comment']);
+
+const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
+  'Basic Information': 'Collects guest name, email, and phone number',
+  'Account Creation': 'Lets guests create a password for their account',
+  'RSVP': 'Guest confirms attendance: attending, not attending, or maybe',
+  'Plus One Details': 'Collects plus-one name, email, and phone if allowed by PIN',
+  'Dietary Restrictions': 'Food preferences and dietary restriction details',
+  'Team Bride/Groom': 'Guest picks whose side they\'re celebrating',
+  'Music Request & Comment': 'Song request and a personal message to the couple',
+};
 
 const QUESTION_TYPES = [
   { value: 'short_text', label: 'Short Text' },
@@ -90,11 +98,33 @@ const QUESTION_TYPES = [
   { value: 'date', label: 'Date' },
 ];
 
-function SortableStepItem({ step, onEdit, onDelete }: {
-  step: RSVPCustomQuestionStep;
-  onEdit: () => void;
-  onDelete: () => void;
+type MergedItem =
+  | { type: 'fixed'; id: string; name: string }
+  | { type: 'custom'; id: string; step: RSVPCustomQuestionStep };
+
+// Unified sortable item that renders both fixed and custom steps
+function SortableStepRow({
+  item,
+  onEdit,
+  onDelete,
+  onClick,
+  isSelected,
+  isDeleting,
+  onPinNavigate,
+}: {
+  item: MergedItem;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onClick: () => void;
+  isSelected: boolean;
+  isDeleting?: boolean;
+  onPinNavigate?: () => void;
 }) {
+  const isCustom = item.type === 'custom';
+  const isOptionalFixed = !isCustom && OPTIONAL_FIXED_STEPS.has(item.name);
+  const description = !isCustom ? FIXED_STEP_DESCRIPTIONS[item.name] : undefined;
+  const isPlusOne = !isCustom && item.name === 'Plus One Details';
+
   const {
     attributes,
     listeners,
@@ -102,7 +132,10 @@ function SortableStepItem({ step, onEdit, onDelete }: {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: step.id });
+  } = useSortable({
+    id: item.id,
+    disabled: !isCustom, // Only custom steps are draggable
+  });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -115,81 +148,195 @@ function SortableStepItem({ step, onEdit, onDelete }: {
     <Box
       ref={setNodeRef}
       style={style}
+      onClick={onClick}
       sx={{
         bgcolor: 'white',
         borderRadius: '12px',
         p: 2,
-        border: '1px solid #eee',
+        border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
         boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : 'none',
-        '&:hover': { borderColor: '#ddd' },
+        cursor: 'pointer',
+        '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
       }}
     >
       <Stack direction="row" alignItems="center" spacing={2}>
-        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#999', display: 'flex' }}>
-          <DragIndicator />
-        </Box>
+        {isCustom ? (
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#999', display: 'flex' }}>
+            <DragIndicator />
+          </Box>
+        ) : !isOptionalFixed ? (
+          <Lock sx={{ color: '#DE3F5E', fontSize: 20, opacity: 0.6 }} />
+        ) : null}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-              {step.step_title}
+            <Typography variant="body2" sx={{ fontWeight: isCustom ? 600 : 500, color: '#1a1a1a' }}>
+              {isCustom ? item.step.step_title : item.name}
             </Typography>
-            <Chip
-              label={`${step.questions.length} question${step.questions.length !== 1 ? 's' : ''}`}
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: '0.7rem',
-                bgcolor: alpha('#DE3F5E', 0.1),
-                color: '#DE3F5E',
-                fontWeight: 600,
-              }}
-            />
+            {isCustom && (
+              <Chip
+                label={`${item.step.questions.length} question${item.step.questions.length !== 1 ? 's' : ''}`}
+                size="small"
+                sx={{
+                  height: 22,
+                  fontSize: '0.7rem',
+                  bgcolor: alpha('#DE3F5E', 0.1),
+                  color: '#DE3F5E',
+                  fontWeight: 600,
+                }}
+              />
+            )}
           </Stack>
-          <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-            After: {step.insert_after}
-          </Typography>
+          {/* Subtext description for fixed steps when selected */}
+          {!isCustom && isSelected && description && (
+            <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+              {description}
+            </Typography>
+          )}
         </Box>
 
-        <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-          <IconButton
-            size="medium"
-            onClick={onEdit}
-            sx={{ color: '#000', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+        {/* Plus One Details: PIN settings note */}
+        {isPlusOne && onPinNavigate && (
+          <Typography
+            component="span"
+            onClick={e => { e.stopPropagation(); onPinNavigate(); }}
+            variant="caption"
+            sx={{
+              color: '#DE3F5E',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
           >
-            <Edit fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="medium"
-            onClick={onDelete}
-            sx={{ color: '#000', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)', color: '#d32f2f' } }}
-          >
-            <Delete fontSize="small" />
-          </IconButton>
-        </Stack>
+            Shown based on PIN settings
+          </Typography>
+        )}
+
+        {/* Custom step actions */}
+        {isCustom && (
+          <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+            <IconButton
+              size="medium"
+              onClick={onEdit}
+              sx={{ color: '#4a4a4a', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="medium"
+              onClick={onDelete}
+              disabled={isDeleting}
+              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+            >
+              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+            </IconButton>
+          </Stack>
+        )}
+
+        {/* Optional fixed step delete */}
+        {isOptionalFixed && (
+          <Box sx={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+            <IconButton
+              size="medium"
+              onClick={onDelete}
+              disabled={isDeleting}
+              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+            >
+              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+            </IconButton>
+          </Box>
+        )}
       </Stack>
     </Box>
   );
 }
 
-function FixedStepRow({ name }: { name: string }) {
-  return (
-    <Box
-      sx={{
-        bgcolor: '#f5f5f5',
-        borderRadius: '12px',
-        p: 2,
-        border: '1px solid #eee',
-      }}
-    >
-      <Stack direction="row" alignItems="center" spacing={2}>
-        <Lock sx={{ color: '#bbb', fontSize: 20 }} />
-        <Typography variant="body2" sx={{ fontWeight: 500, color: '#6a6a6a' }}>
-          {name}
-        </Typography>
-      </Stack>
-    </Box>
-  );
+// Consistent disabled field preview styling
+const PREVIEW_FIELD_SX = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    bgcolor: '#f0f0f0',
+    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
+  },
+  '& .Mui-disabled': {
+    WebkitTextFillColor: '#888',
+  },
+};
+
+const PREVIEW_SELECT_SX = {
+  borderRadius: '12px',
+  bgcolor: '#f0f0f0',
+  '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
+  '& .Mui-disabled': { WebkitTextFillColor: '#888' },
+};
+
+// Field preview for each question type (disabled inputs)
+function FieldPreview({ type, options }: { type: CustomQuestion['type']; options?: string[] }) {
+  switch (type) {
+    case 'short_text':
+      return (
+        <TextField
+          disabled
+          placeholder="Short answer text"
+          size="small"
+          fullWidth
+          sx={{ ...PREVIEW_FIELD_SX, maxWidth: 360 }}
+        />
+      );
+    case 'long_text':
+      return (
+        <TextField
+          disabled
+          placeholder="Long answer text"
+          size="small"
+          fullWidth
+          multiline
+          rows={2}
+          sx={PREVIEW_FIELD_SX}
+        />
+      );
+    case 'numeric':
+      return (
+        <TextField
+          disabled
+          placeholder="Number"
+          size="small"
+          type="number"
+          sx={{ ...PREVIEW_FIELD_SX, maxWidth: 200 }}
+        />
+      );
+    case 'dropdown':
+      return (
+        <Select
+          disabled
+          displayEmpty
+          value=""
+          size="small"
+          sx={{ ...PREVIEW_SELECT_SX, maxWidth: 280 }}
+          renderValue={() => <Typography sx={{ color: '#888', fontSize: '0.875rem' }}>Select an option</Typography>}
+        >
+          {(options || []).map((opt, i) => (
+            <MenuItem key={i} value={opt}>{opt}</MenuItem>
+          ))}
+        </Select>
+      );
+    case 'date':
+      return (
+        <TextField
+          disabled
+          placeholder="Month, day, year"
+          size="small"
+          InputProps={{
+            endAdornment: <CalendarToday sx={{ color: '#888', fontSize: 18 }} />,
+          }}
+          sx={{ ...PREVIEW_FIELD_SX, maxWidth: 240 }}
+        />
+      );
+    default:
+      return null;
+  }
 }
 
 const emptyQuestion = (): CustomQuestion => ({
@@ -203,22 +350,30 @@ const emptyQuestion = (): CustomQuestion => ({
 export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [customSteps, setCustomSteps] = useState<RSVPCustomQuestionStep[]>([]);
   const [saving, setSaving] = useState(false);
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
+  const [hiddenFixedSteps, setHiddenFixedSteps] = useState<Set<string>>(new Set());
+  const [deletingStepId, setDeletingStepId] = useState<string | null>(null);
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<RSVPCustomQuestionStep | null>(null);
   const [dialogTitle, setDialogTitle] = useState('');
-  const [dialogInsertAfter, setDialogInsertAfter] = useState('Attendance Details');
+  const [dialogDescription, setDialogDescription] = useState('');
   const [dialogQuestions, setDialogQuestions] = useState<CustomQuestion[]>([emptyQuestion()]);
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState<number | null>(0);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
 
   // Confirm dialog
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel?: string; onConfirm: () => void }>({
     open: false, message: '', onConfirm: () => {},
   });
+  const [navigatingToPin, setNavigatingToPin] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -236,6 +391,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         setWeddingId(wedding.id);
         const steps = await getCustomQuestions(weddingSlug);
         setCustomSteps(steps);
+        setHiddenFixedSteps(new Set(wedding.hidden_rsvp_steps || []));
       }
     } catch (err) {
       console.error('Error loading RSVP form config:', err);
@@ -245,42 +401,63 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  // Build merged step list for display
-  const mergedSteps = (() => {
-    const result: ({ type: 'fixed'; name: string } | { type: 'custom'; step: RSVPCustomQuestionStep })[] = [];
+  // Build merged step list with stable IDs for both fixed and custom
+  const mergedSteps: MergedItem[] = (() => {
+    const result: MergedItem[] = [];
     for (const fixedStep of FIXED_STEPS) {
-      result.push({ type: 'fixed', name: fixedStep });
+      if (hiddenFixedSteps.has(fixedStep)) continue;
+      result.push({ type: 'fixed', id: `fixed-${fixedStep}`, name: fixedStep });
       const stepsAfter = customSteps
         .filter(s => s.insert_after === fixedStep)
         .sort((a, b) => a.order_index - b.order_index);
-      stepsAfter.forEach(s => result.push({ type: 'custom', step: s }));
+      stepsAfter.forEach(s => result.push({ type: 'custom', id: s.id, step: s }));
     }
-    // Orphans
+    // Orphans (insert_after doesn't match any fixed step)
     const fixedSet = new Set(FIXED_STEPS);
     const orphans = customSteps.filter(s => !fixedSet.has(s.insert_after));
-    orphans.forEach(s => result.push({ type: 'custom', step: s }));
+    orphans.forEach(s => result.push({ type: 'custom', id: s.id, step: s }));
     return result;
   })();
+
+  const handleStepClick = useCallback((item: MergedItem) => {
+    setSelectedStepId(item.id);
+    const stepName = item.type === 'fixed' ? item.name : item.step.step_title;
+    const stepId = item.type === 'custom' ? item.step.id : undefined;
+    // Find the preview iframe and send name + id so the form can resolve its own index
+    const iframe = document.querySelector('iframe') as HTMLIFrameElement | null;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage(
+        { type: 'NAVIGATE_TO_RSVP_STEP', stepName, stepId },
+        '*'
+      );
+    }
+  }, []);
 
   const handleOpenAdd = () => {
     setEditingStep(null);
     setDialogTitle('');
-    setDialogInsertAfter('Attendance Details');
+    setDialogDescription('');
     setDialogQuestions([emptyQuestion()]);
+    setActiveQuestionIndex(0);
+    setEditingTitle(false);
+    setEditingDescription(false);
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (step: RSVPCustomQuestionStep) => {
     setEditingStep(step);
     setDialogTitle(step.step_title);
-    setDialogInsertAfter(step.insert_after);
+    setDialogDescription(step.description || '');
     setDialogQuestions(step.questions.length > 0 ? [...step.questions] : [emptyQuestion()]);
+    setActiveQuestionIndex(null);
+    setEditingTitle(false);
+    setEditingDescription(false);
     setDialogOpen(true);
   };
 
   const handleSaveStep = async () => {
     if (!dialogTitle.trim()) {
-      toast.error('Step title is required');
+      toast.error('Title is required');
       return;
     }
     const validQuestions = dialogQuestions.filter(q => q.label.trim());
@@ -291,16 +468,15 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
 
     setSaving(true);
     try {
-      const samePositionSteps = customSteps.filter(s =>
-        s.insert_after === dialogInsertAfter && (!editingStep || s.id !== editingStep.id)
-      );
-      const orderIndex = editingStep ? editingStep.order_index : samePositionSteps.length;
+      const insertAfter = editingStep?.insert_after || FIXED_STEPS[FIXED_STEPS.length - 1];
+      const orderIndex = editingStep ? editingStep.order_index : customSteps.length;
 
       const stepData = {
         id: editingStep?.id || crypto.randomUUID(),
         wedding_id: weddingSlug,
         step_title: dialogTitle.trim(),
-        insert_after: dialogInsertAfter,
+        description: dialogDescription.trim() || null,
+        insert_after: insertAfter,
         order_index: orderIndex,
         questions: validQuestions,
       };
@@ -323,14 +499,86 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       message: `Delete "${step.step_title}"? Existing guest answers for this step will be kept but hidden.`,
       onConfirm: async () => {
         setConfirmDialog(prev => ({ ...prev, open: false }));
+        setDeletingStepId(step.id);
         try {
           await deleteCustomQuestionStep(step.id);
-          setCustomSteps(prev => prev.filter(s => s.id !== step.id));
+          const updatedCustomSteps = customSteps.filter(s => s.id !== step.id);
+          setCustomSteps(updatedCustomSteps);
           toast.success('Step deleted');
+
+          // Refresh preview: navigate to first remaining step
+          const updatedMerged: MergedItem[] = [];
+          for (const fixedStep of FIXED_STEPS) {
+            if (hiddenFixedSteps.has(fixedStep)) continue;
+            updatedMerged.push({ type: 'fixed', id: `fixed-${fixedStep}`, name: fixedStep });
+          }
+          const firstStep = updatedMerged[0];
+          if (firstStep) {
+            setSelectedStepId(firstStep.id);
+            const iframe = document.querySelector('iframe') as HTMLIFrameElement | null;
+            if (iframe?.contentWindow) {
+              iframe.contentWindow.postMessage(
+                { type: 'NAVIGATE_TO_RSVP_STEP', stepName: firstStep.type === 'fixed' ? firstStep.name : '' },
+                '*'
+              );
+            }
+          }
         } catch (err) {
           console.error('Error deleting step:', err);
           toast.error('Failed to delete step');
+        } finally {
+          setDeletingStepId(null);
         }
+      },
+    });
+  };
+
+  const handleDeleteFixedStep = (stepName: string) => {
+    setConfirmDialog({
+      open: true,
+      message: `Hide "${stepName}"? This step won't appear in the guest RSVP form.`,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setDeletingStepId(`fixed-${stepName}`);
+        try {
+          const newHidden = new Set(hiddenFixedSteps);
+          newHidden.add(stepName);
+          await weddingService.updateHiddenRsvpSteps(weddingSlug, Array.from(newHidden));
+          setHiddenFixedSteps(newHidden);
+          toast.success('Step hidden');
+
+          // Refresh preview: navigate to first remaining step
+          const remainingFixed = FIXED_STEPS.filter(s => !newHidden.has(s));
+          if (remainingFixed.length > 0) {
+            const firstId = `fixed-${remainingFixed[0]}`;
+            setSelectedStepId(firstId);
+            const iframe = document.querySelector('iframe') as HTMLIFrameElement | null;
+            if (iframe?.contentWindow) {
+              iframe.contentWindow.postMessage(
+                { type: 'NAVIGATE_TO_RSVP_STEP', stepName: remainingFixed[0] },
+                '*'
+              );
+            }
+          }
+        } catch (err) {
+          console.error('Error hiding step:', err);
+          toast.error('Failed to hide step');
+        } finally {
+          setDeletingStepId(null);
+        }
+      },
+    });
+  };
+
+  const handlePinNavigate = () => {
+    setConfirmDialog({
+      open: true,
+      message: 'Go to Pin Management?',
+      confirmLabel: 'Go to Pin Management',
+      onConfirm: () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        setNavigatingToPin(true);
+        router.push(`/admin/${weddingSlug}/pins`);
       },
     });
   };
@@ -339,29 +587,52 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const customOnly = customSteps;
-    const oldIndex = customOnly.findIndex(s => s.id === active.id);
-    const newIndex = customOnly.findIndex(s => s.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
+    // Only custom items can be dragged
+    const draggedId = active.id as string;
+    if (draggedId.startsWith('fixed-')) return;
 
-    const reordered = arrayMove(customOnly, oldIndex, newIndex);
-    // Re-index within same insert_after groups
-    const grouped: Record<string, RSVPCustomQuestionStep[]> = {};
-    reordered.forEach(s => {
-      if (!grouped[s.insert_after]) grouped[s.insert_after] = [];
-      grouped[s.insert_after].push(s);
-    });
-    const updates: { id: string; order_index: number }[] = [];
-    Object.values(grouped).forEach(group => {
-      group.forEach((s, i) => {
-        s.order_index = i;
-        updates.push({ id: s.id, order_index: i });
-      });
-    });
+    // Find positions in the merged list
+    const oldMergedIndex = mergedSteps.findIndex(m => m.id === draggedId);
+    const newMergedIndex = mergedSteps.findIndex(m => m.id === over.id);
+    if (oldMergedIndex === -1 || newMergedIndex === -1) return;
 
-    setCustomSteps(reordered);
+    // Compute new merged order
+    const reorderedMerged = arrayMove(mergedSteps, oldMergedIndex, newMergedIndex);
+
+    // Derive insert_after and order_index for each custom step from the new merged order
+    let lastFixedStep = FIXED_STEPS[FIXED_STEPS.length - 1]; // fallback
+    const updates: { id: string; insert_after: string; order_index: number }[] = [];
+    const counterByFixed: Record<string, number> = {};
+
+    for (const item of reorderedMerged) {
+      if (item.type === 'fixed') {
+        lastFixedStep = item.name;
+      } else {
+        const insertAfter = lastFixedStep;
+        const idx = counterByFixed[insertAfter] ?? 0;
+        counterByFixed[insertAfter] = idx + 1;
+        updates.push({ id: item.id, insert_after: insertAfter, order_index: idx });
+      }
+    }
+
+    // Optimistic update: rebuild customSteps from updates
+    const updatedCustomSteps = updates.map(u => {
+      const existing = customSteps.find(s => s.id === u.id)!;
+      return { ...existing, insert_after: u.insert_after, order_index: u.order_index };
+    });
+    setCustomSteps(updatedCustomSteps);
+
     try {
-      await reorderCustomQuestionSteps(updates);
+      // Persist each custom step's new insert_after + order_index
+      await Promise.all(
+        updates.map(u =>
+          upsertCustomQuestionStep({
+            ...customSteps.find(s => s.id === u.id)!,
+            insert_after: u.insert_after,
+            order_index: u.order_index,
+          })
+        )
+      );
     } catch (err) {
       console.error('Error reordering:', err);
       toast.error('Failed to reorder steps');
@@ -425,7 +696,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
             RSVP Form
           </Typography>
           <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-            Customize the steps in your guest RSVP flow. Fixed steps are locked; add custom steps to collect additional info.
+            Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it.
           </Typography>
         </Box>
 
@@ -434,22 +705,27 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           <Stack spacing={1.5}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
-                items={customSteps.map(s => s.id)}
+                items={mergedSteps.map(m => m.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {mergedSteps.map((item, index) => {
-                  if (item.type === 'fixed') {
-                    return <FixedStepRow key={`fixed-${item.name}`} name={item.name} />;
-                  }
-                  return (
-                    <SortableStepItem
-                      key={item.step.id}
-                      step={item.step}
-                      onEdit={() => handleOpenEdit(item.step)}
-                      onDelete={() => handleDeleteStep(item.step)}
-                    />
-                  );
-                })}
+                {mergedSteps.map((item) => (
+                  <SortableStepRow
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedStepId === item.id}
+                    onClick={() => handleStepClick(item)}
+                    onEdit={item.type === 'custom' ? () => handleOpenEdit(item.step) : undefined}
+                    onDelete={
+                      item.type === 'custom'
+                        ? () => handleDeleteStep(item.step)
+                        : item.type === 'fixed' && OPTIONAL_FIXED_STEPS.has(item.name)
+                          ? () => handleDeleteFixedStep(item.name)
+                          : undefined
+                    }
+                    isDeleting={deletingStepId === item.id}
+                    onPinNavigate={item.type === 'fixed' && item.name === 'Plus One Details' ? handlePinNavigate : undefined}
+                  />
+                ))}
               </SortableContext>
             </DndContext>
           </Stack>
@@ -458,6 +734,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
             <Button
               startIcon={<Add />}
               onClick={handleOpenAdd}
+              disabled={saving || !!deletingStepId}
               sx={{
                 mt: 2,
                 color: '#DE3F5E',
@@ -478,158 +755,305 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         />
       </Stack>
 
-      {/* Add/Edit Dialog */}
+      {/* Add/Edit Dialog — Google Forms style */}
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px' } }}
+        PaperProps={{ sx: { borderRadius: '16px', bgcolor: '#F8F8F8' } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-          {editingStep ? 'Edit Custom Step' : 'Add Custom Step'}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            <TextField
-              label="Step Title"
-              value={dialogTitle}
-              onChange={e => setDialogTitle(e.target.value)}
-              fullWidth
-              placeholder="e.g. Travel Preferences"
-              sx={textFieldSx}
-            />
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Insert After</InputLabel>
-              <Select
-                value={dialogInsertAfter}
-                onChange={e => setDialogInsertAfter(e.target.value)}
-                label="Insert After"
-                sx={{
-                  borderRadius: '12px',
-                  bgcolor: 'white',
-                  '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                  '&:hover fieldset': { borderColor: '#DE3F5E' },
-                  '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-                }}
-              >
-                {INSERT_AFTER_OPTIONS.map(opt => (
-                  <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Questions */}
-            {dialogQuestions.map((q, qIndex) => (
-              <Paper key={q.id} sx={{ p: 2, borderRadius: '12px', border: '1px solid #eee' }}>
-                <Stack spacing={2}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                      Question {qIndex + 1}
-                    </Typography>
-                    {dialogQuestions.length > 1 && (
-                      <IconButton
-                        size="small"
-                        onClick={() => setDialogQuestions(prev => prev.filter((_, i) => i !== qIndex))}
-                        sx={{ color: '#999', '&:hover': { color: '#d32f2f' } }}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    )}
-                  </Stack>
-
-                  <TextField
-                    label="Question Label"
-                    value={q.label}
-                    onChange={e => handleQuestionChange(qIndex, 'label', e.target.value)}
-                    fullWidth
-                    placeholder="e.g. What hotel are you staying at?"
-                    sx={textFieldSx}
-                  />
-
-                  <FormControl fullWidth>
-                    <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Answer Type</InputLabel>
-                    <Select
-                      value={q.type}
-                      onChange={e => handleQuestionChange(qIndex, 'type', e.target.value)}
-                      label="Answer Type"
+        <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#F8F8F8' }}>
+          <Stack spacing={2.5}>
+            {/* Title Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '12px',
+                border: '1px solid rgba(0,0,0,0.07)',
+                borderTop: '4px solid #DE3F5E',
+                bgcolor: 'white',
+              }}
+            >
+              <Stack spacing={2}>
+                {/* Title field */}
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
+                    Title <span style={{ color: '#DE3F5E' }}>*</span>
+                  </Typography>
+                  {editingTitle ? (
+                    <TextField
+                      autoFocus
+                      variant="standard"
+                      value={dialogTitle}
+                      onChange={e => setDialogTitle(e.target.value)}
+                      onBlur={() => setEditingTitle(false)}
+                      placeholder="Untitled form"
+                      InputProps={{
+                        disableUnderline: false,
+                        sx: {
+                          fontSize: '1.5rem',
+                          fontWeight: 600,
+                          color: '#1a1a1a',
+                          '&:before': { borderColor: 'rgba(0,0,0,0.12)' },
+                          '&:after': { borderColor: '#DE3F5E' },
+                        },
+                      }}
+                      fullWidth
+                    />
+                  ) : (
+                    <Typography
+                      onClick={() => setEditingTitle(true)}
                       sx={{
-                        borderRadius: '12px',
-                        bgcolor: 'white',
-                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                        '&:hover fieldset': { borderColor: '#DE3F5E' },
-                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        color: dialogTitle ? '#1a1a1a' : '#999',
+                        cursor: 'text',
+                        borderBottom: '1px solid transparent',
+                        pb: 0.5,
+                        '&:hover': { borderBottomColor: 'rgba(0,0,0,0.12)' },
                       }}
                     >
-                      {QUESTION_TYPES.map(t => (
-                        <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={q.required}
-                        onChange={e => handleQuestionChange(qIndex, 'required', e.target.checked)}
-                        sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
-                      />
-                    }
-                    label={<Typography variant="body2" sx={{ color: '#4a4a4a' }}>Required</Typography>}
-                  />
-
-                  {q.type === 'dropdown' && (
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a', mb: 1, display: 'block' }}>
-                        Dropdown Options
-                      </Typography>
-                      <Stack spacing={1}>
-                        {(q.options || []).map((opt, optIndex) => (
-                          <Stack key={optIndex} direction="row" spacing={1} alignItems="center">
-                            <TextField
-                              value={opt}
-                              onChange={e => handleOptionChange(qIndex, optIndex, e.target.value)}
-                              size="small"
-                              fullWidth
-                              placeholder={`Option ${optIndex + 1}`}
-                              sx={textFieldSx}
-                            />
-                            <IconButton
-                              size="small"
-                              onClick={() => handleRemoveOption(qIndex, optIndex)}
-                              sx={{ color: '#999', '&:hover': { color: '#d32f2f' } }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        ))}
-                        <Button
-                          size="small"
-                          onClick={() => handleAddOption(qIndex)}
-                          sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start' }}
-                        >
-                          + Add Option
-                        </Button>
-                      </Stack>
-                    </Box>
+                      {dialogTitle || 'Untitled form'}
+                    </Typography>
                   )}
-                </Stack>
-              </Paper>
-            ))}
+                </Box>
 
-            {dialogQuestions.length < 2 && (
-              <Button
-                startIcon={<Add />}
-                onClick={() => setDialogQuestions(prev => [...prev, emptyQuestion()])}
-                sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start' }}
-              >
-                Add Another Question
-              </Button>
+                {/* Description field */}
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
+                    Description
+                  </Typography>
+                  {editingDescription ? (
+                    <TextField
+                      autoFocus
+                      variant="standard"
+                      value={dialogDescription}
+                      onChange={e => setDialogDescription(e.target.value)}
+                      onBlur={() => setEditingDescription(false)}
+                      placeholder="Form description"
+                      InputProps={{
+                        disableUnderline: false,
+                        sx: {
+                          fontSize: '0.875rem',
+                          color: '#4a4a4a',
+                          '&:before': { borderColor: 'rgba(0,0,0,0.12)' },
+                          '&:after': { borderColor: '#DE3F5E' },
+                        },
+                      }}
+                      fullWidth
+                      multiline
+                    />
+                  ) : (
+                    <Typography
+                      onClick={() => setEditingDescription(true)}
+                      sx={{
+                        fontSize: '0.875rem',
+                        color: dialogDescription ? '#4a4a4a' : '#999',
+                        cursor: 'text',
+                        borderBottom: '1px solid transparent',
+                        pb: 0.25,
+                        '&:hover': { borderBottomColor: 'rgba(0,0,0,0.12)' },
+                      }}
+                    >
+                      {dialogDescription || 'Form description'}
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+            </Paper>
+
+            {/* Question Cards */}
+            {dialogQuestions.map((q, qIndex) => {
+              const isActive = activeQuestionIndex === qIndex;
+
+              return (
+                <Paper
+                  key={q.id}
+                  elevation={0}
+                  onClick={() => setActiveQuestionIndex(qIndex)}
+                  sx={{
+                    p: isActive ? 3 : 2.5,
+                    borderRadius: '12px',
+                    border: '1px solid rgba(0,0,0,0.07)',
+                    borderLeft: isActive ? '4px solid #DE3F5E' : '1px solid rgba(0,0,0,0.07)',
+                    bgcolor: 'white',
+                    cursor: isActive ? 'default' : 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': isActive ? {} : { borderColor: 'rgba(0,0,0,0.15)' },
+                  }}
+                >
+                  {isActive ? (
+                    /* ===== ACTIVE CARD ===== */
+                    <Stack spacing={2.5}>
+                      {/* Row 1: Label + Type */}
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
+                            Label <span style={{ color: '#DE3F5E' }}>*</span>
+                          </Typography>
+                          <TextField
+                            value={q.label}
+                            onChange={e => handleQuestionChange(qIndex, 'label', e.target.value)}
+                            fullWidth
+                            placeholder="Question"
+                            sx={{
+                              ...textFieldSx,
+                              mt: 0,
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 180 }}>
+                          <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
+                            Type <span style={{ color: '#DE3F5E' }}>*</span>
+                          </Typography>
+                          <FormControl fullWidth>
+                            <Select
+                              value={q.type}
+                              onChange={e => handleQuestionChange(qIndex, 'type', e.target.value)}
+                              size="small"
+                              sx={{
+                                borderRadius: '12px',
+                                bgcolor: 'white',
+                                '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+                                '&:hover fieldset': { borderColor: '#DE3F5E' },
+                                '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                                '& .MuiSelect-select': { py: 1.5 },
+                              }}
+                            >
+                              {QUESTION_TYPES.map(t => (
+                                <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      </Stack>
+
+                      {/* Row 2: Field Preview */}
+                      <Box sx={{ pl: 0.5 }}>
+                        <FieldPreview type={q.type} options={q.options} />
+                      </Box>
+
+                      {/* Row 3: Dropdown options editor */}
+                      {q.type === 'dropdown' && (
+                        <Box sx={{ pl: 0.5 }}>
+                          <Stack spacing={1}>
+                            {(q.options || []).map((opt, optIndex) => (
+                              <Stack key={optIndex} direction="row" spacing={1} alignItems="center">
+                                <Box sx={{
+                                  width: 20, height: 20, borderRadius: '50%',
+                                  border: '2px solid #ccc', flexShrink: 0,
+                                }} />
+                                <TextField
+                                  value={opt}
+                                  onChange={e => handleOptionChange(qIndex, optIndex, e.target.value)}
+                                  size="small"
+                                  fullWidth
+                                  variant="standard"
+                                  placeholder={`Option ${optIndex + 1}`}
+                                  InputProps={{
+                                    sx: { fontSize: '0.875rem', color: '#1a1a1a' },
+                                  }}
+                                />
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRemoveOption(qIndex, optIndex)}
+                                  sx={{ color: '#999', '&:hover': { color: '#d32f2f' } }}
+                                >
+                                  <Close fontSize="small" />
+                                </IconButton>
+                              </Stack>
+                            ))}
+                            <Button
+                              size="small"
+                              onClick={() => handleAddOption(qIndex)}
+                              sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start', ml: 3.5 }}
+                            >
+                              + Add option
+                            </Button>
+                          </Stack>
+                        </Box>
+                      )}
+
+                      {/* Bottom row: Delete + Required */}
+                      <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.08)', pt: 1.5, mt: 0.5 }}>
+                        <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={1}>
+                          {dialogQuestions.length > 1 && (
+                            <>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDialogQuestions(prev => prev.filter((_, i) => i !== qIndex));
+                                  setActiveQuestionIndex(null);
+                                }}
+                                sx={{ color: '#6a6a6a', '&:hover': { color: '#d32f2f' } }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                              <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.12)', mx: 1 }} />
+                            </>
+                          )}
+                          <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8125rem' }}>
+                            Required
+                          </Typography>
+                          <Switch
+                            checked={q.required}
+                            onChange={e => handleQuestionChange(qIndex, 'required', e.target.checked)}
+                            size="small"
+                            sx={{
+                              '& .MuiSwitch-switchBase': { color: '#999' },
+                              '& .MuiSwitch-track': { bgcolor: '#ccc', opacity: 1 },
+                              '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E', opacity: 0.5 },
+                            }}
+                          />
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  ) : (
+                    /* ===== INACTIVE CARD ===== */
+                    <Stack spacing={1.5}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {q.label || 'Untitled question'}
+                      </Typography>
+                      <FieldPreview type={q.type} options={q.options} />
+                    </Stack>
+                  )}
+                </Paper>
+              );
+            })}
+
+            {/* Add Question Button */}
+            {dialogQuestions.length < 3 ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <IconButton
+                  onClick={() => {
+                    const newQ = emptyQuestion();
+                    setDialogQuestions(prev => [...prev, newQ]);
+                    setActiveQuestionIndex(dialogQuestions.length);
+                  }}
+                  sx={{
+                    bgcolor: 'white',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    borderRadius: '50%',
+                    width: 48,
+                    height: 48,
+                    '&:hover': { bgcolor: alpha('#DE3F5E', 0.04), borderColor: '#DE3F5E' },
+                  }}
+                >
+                  <AddCircleOutline sx={{ color: '#DE3F5E', fontSize: 28 }} />
+                </IconButton>
+              </Box>
+            ) : (
+              <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic', textAlign: 'center' }}>
+                Each step supports up to 3 questions. To add more, create another step.
+              </Typography>
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3, bgcolor: '#F8F8F8' }}>
           <Button
             onClick={() => setDialogOpen(false)}
             sx={{ color: '#6a6a6a', textTransform: 'none', fontWeight: 600, borderRadius: '12px' }}
@@ -657,8 +1081,11 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       <ConfirmDialog
         open={confirmDialog.open}
         message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel || 'Delete'}
+        confirmColor={confirmDialog.confirmLabel ? '#DE3F5E' : '#d32f2f'}
+        isLoading={navigatingToPin}
         onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setNavigatingToPin(false); }}
       />
     </Box>
   );
