@@ -263,6 +263,11 @@ const PREVIEW_FIELD_SX = {
   '& .Mui-disabled': {
     WebkitTextFillColor: '#888',
   },
+  '& .MuiOutlinedInput-input::placeholder': {
+    color: '#888',
+    WebkitTextFillColor: '#888',
+    opacity: 1,
+  },
 };
 
 const PREVIEW_SELECT_SX = {
@@ -485,6 +490,11 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       await loadData();
       setDialogOpen(false);
       toast.success(editingStep ? 'Step updated' : 'Step added');
+
+      // Notify preview to re-fetch custom questions
+      const channel = new BroadcastChannel('phera-design-sync');
+      channel.postMessage({ type: 'RSVP_CUSTOM_QUESTIONS_UPDATED' });
+      channel.close();
     } catch (err) {
       console.error('Error saving step:', err);
       toast.error('Failed to save step');
@@ -505,6 +515,11 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           const updatedCustomSteps = customSteps.filter(s => s.id !== step.id);
           setCustomSteps(updatedCustomSteps);
           toast.success('Step deleted');
+
+          // Notify preview to re-fetch custom questions
+          const channel = new BroadcastChannel('phera-design-sync');
+          channel.postMessage({ type: 'RSVP_CUSTOM_QUESTIONS_UPDATED' });
+          channel.close();
 
           // Refresh preview: navigate to first remaining step
           const updatedMerged: MergedItem[] = [];
@@ -891,13 +906,13 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Label <span style={{ color: '#DE3F5E' }}>*</span>
+                            Question <span style={{ color: '#DE3F5E' }}>*</span>
                           </Typography>
                           <TextField
                             value={q.label}
                             onChange={e => handleQuestionChange(qIndex, 'label', e.target.value)}
                             fullWidth
-                            placeholder="Question"
+                            placeholder="e.g. What's your favorite song?"
                             sx={{
                               ...textFieldSx,
                               mt: 0,
@@ -1073,7 +1088,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : editingStep ? 'Update' : 'Add Step'}
+            {saving ? <CircularProgress size={20} sx={{ color: '#DE3F5E' }} /> : editingStep ? 'Update' : 'Add Step'}
           </Button>
         </DialogActions>
       </Dialog>

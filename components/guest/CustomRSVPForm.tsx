@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -199,17 +199,29 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   }, [allowsPlusOne]);
 
   // Fetch custom question steps
+  const fetchCustomQuestions = useCallback(async () => {
+    try {
+      const steps = await getCustomQuestions(weddingId);
+      setCustomQuestionSteps(steps);
+    } catch (err) {
+      console.error('Error fetching custom questions:', err);
+    }
+  }, [weddingId]);
+
   useEffect(() => {
-    const fetchCustomQuestions = async () => {
-      try {
-        const steps = await getCustomQuestions(weddingId);
-        setCustomQuestionSteps(steps);
-      } catch (err) {
-        console.error('Error fetching custom questions:', err);
+    fetchCustomQuestions();
+  }, [fetchCustomQuestions]);
+
+  // Listen for admin updates to custom questions
+  useEffect(() => {
+    const channel = new BroadcastChannel('phera-design-sync');
+    channel.onmessage = (event) => {
+      if (event.data?.type === 'RSVP_CUSTOM_QUESTIONS_UPDATED') {
+        fetchCustomQuestions();
       }
     };
-    fetchCustomQuestions();
-  }, [weddingId]);
+    return () => channel.close();
+  }, [fetchCustomQuestions]);
 
   // Steps definition - includes Phera Concierge as final step for attending guests
   const hiddenSteps = wedding?.hidden_rsvp_steps || [];
@@ -1122,18 +1134,32 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   const renderCustomStep = (step: RSVPCustomQuestionStep) => {
     return (
       <Stack spacing={2}>
-        <Typography
-          variant="h4"
-          sx={{
-            color: '#000',
-            fontWeight: 400,
-            lineHeight: 1.3,
-            mb: 2,
-            fontSize: { xs: '1.75rem', md: '2.25rem' },
-          }}
-        >
-          {step.step_title}
-        </Typography>
+        <Box sx={{ mb: 1 }}>
+          <Typography
+            variant="h4"
+            sx={{
+              color: '#000',
+              fontWeight: 400,
+              lineHeight: 1.3,
+              fontSize: { xs: '1.75rem', md: '2.25rem' },
+            }}
+          >
+            {step.step_title}
+          </Typography>
+          {step.description && (
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#474747',
+                lineHeight: 1.5,
+                fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                mt: 1.5,
+              }}
+            >
+              {step.description}
+            </Typography>
+          )}
+        </Box>
 
         {step.questions.map(q => {
           const value = formData.custom_answers?.[q.id] || '';
