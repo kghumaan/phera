@@ -21,9 +21,26 @@ interface FeatureRequestModalProps {
     open: boolean;
     onClose: () => void;
     weddingId?: string;
+    variant?: 'feature' | 'custom';
 }
 
-export default function FeatureRequestModal({ open, onClose, weddingId }: FeatureRequestModalProps) {
+const COPY = {
+    feature: {
+        title: "Want a feature you don't see?",
+        description: "We're a new product that's always looking for feedback! Feel free to request anything that you would like to see, and we'll get back to you ASAP!",
+        placeholder: "Tell us what you're thinking...",
+        success: "We've received your request and will look into it ASAP.",
+    },
+    custom: {
+        title: 'Want something custom?',
+        description: "Are there elements in your wedding branding that you want to include? Anything custom we can help with? Reach out to us and we'll happily add it for you.",
+        placeholder: 'Tell us about your custom request...',
+        success: "We're excited to make something special for you. We'll be in touch soon!",
+    },
+};
+
+export default function FeatureRequestModal({ open, onClose, weddingId, variant = 'feature' }: FeatureRequestModalProps) {
+    const copy = COPY[variant];
     const { user } = useAuth();
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +124,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId }: Featur
                                         fontSize: { xs: '1.75rem', md: '2.25rem' }
                                     }}
                                 >
-                                    Want a feature you don't see?
+                                    {copy.title}
                                 </Typography>
                                 <Typography
                                     sx={{
@@ -118,7 +135,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId }: Featur
                                         mx: 'auto'
                                     }}
                                 >
-                                    We're a new product that's always looking for feedback! Feel free to request anything that you would like to see, and we'll get back to you ASAP!
+                                    {copy.description}
                                 </Typography>
                             </Box>
 
@@ -126,7 +143,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId }: Featur
                                 fullWidth
                                 multiline
                                 rows={4}
-                                placeholder="Tell us what you're thinking..."
+                                placeholder={copy.placeholder}
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 disabled={isSubmitting}
@@ -188,7 +205,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId }: Featur
                                     Thank you!
                                 </Typography>
                                 <Typography sx={{ color: '#666' }}>
-                                    We've received your request and will look into it ASAP.
+                                    {copy.success}
                                 </Typography>
                             </Box>
                             <Button

@@ -37,6 +37,8 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
 import ContinueButton from '@/components/admin/ContinueButton';
+import FeatureRequestModal from '@/components/admin/FeatureRequestModal';
+import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -86,6 +88,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [proModalOpen, setProModalOpen] = useState(false);
   const [proSelections, setProSelections] = useState<ProSelection[]>([]);
   const { registerGuard, unregisterGuard } = useNavigationGuard();
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   // Main site customization state
   const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
@@ -337,7 +340,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Look & Feel
@@ -346,7 +349,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
               Customize the colors, backgrounds, and overall design of your wedding website
             </Typography>
           </Box>
-          <AutoSaveIndicator status={saveStatus} />
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexShrink: 0 }}>
+            <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+              Want something custom?
+            </Button>
+            <AutoSaveIndicator status={saveStatus} />
+          </Box>
         </Box>
 
         <Stack spacing={3}>
@@ -865,7 +873,15 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack >
-      <ContinueButton weddingSlug={weddingSlug} currentSection="design" weddingId={weddingId} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
+        <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+          Want something custom?
+        </Button>
+        <Box sx={{ '& > .MuiBox-root': { mt: 0, mb: 0 } }}>
+          <ContinueButton weddingSlug={weddingSlug} currentSection="design" weddingId={weddingId} />
+        </Box>
+      </Box>
+      <FeatureRequestModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} variant="custom" weddingId={weddingId || undefined} />
     </Box>
   );
 }
