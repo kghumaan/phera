@@ -150,6 +150,18 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveDesign, enabled: !!authUser });
 
+  // Check if current selections include pro items (basic user)
+  const hasProSelection = !isPro && (() => {
+    const mainBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === mainBackground);
+    const mainColorIndex = COLOR_OPTIONS.findIndex(c => c.value === mainPrimaryColor);
+    const frameIndex = FRAME_UI_OPTIONS.findIndex(f => f.url === frameImageUrl);
+    return (
+      (mainBgIndex >= FREE_BACKGROUND_COUNT && !customMainBackground) ||
+      mainColorIndex >= FREE_COLOR_COUNT ||
+      frameIndex >= FREE_FRAME_COUNT
+    );
+  })();
+
   // Track dirty state and trigger auto-save
   useEffect(() => {
     if (initialDesignData) {
@@ -162,7 +174,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       };
       const dirty = JSON.stringify(currentData) !== JSON.stringify(initialDesignData);
       setIsDirty(dirty);
-      if (dirty) {
+      // Don't auto-save when a basic user has pro selections — let them preview
+      // and prompt on navigation instead
+      if (dirty && !hasProSelection) {
         debouncedSave();
       }
     }
@@ -174,6 +188,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     coupleImages,
     initialDesignData,
     debouncedSave,
+    hasProSelection,
   ]);
 
 
