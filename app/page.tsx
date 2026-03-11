@@ -122,6 +122,16 @@ const features = [
     frameType: 'desktop' as const,
     isPro: true,
   },
+  {
+    id: 'vendor-coordinator',
+    title: 'Vendor Coordinator',
+    problem: 'Messaging 10 vendors across WhatsApp, email, and calls... I can\'t remember who said what!',
+    solution: 'Import vendor chats, get AI-powered summaries and action items, and keep every conversation organized in one place.',
+    featureImage: '/images/feature_images/coordinator1.png',
+    featureImage2: '/images/feature_images/coordinator2.png',
+    frameType: 'desktop-stacked' as const,
+    isPro: true,
+  },
 ];
 
 const pricingTiers = [
@@ -151,6 +161,7 @@ const pricingTiers = [
       'Build website with AI',
       'Voice-to-task manager',
       'WhatsApp Concierge Agent',
+      'Vendor Coordinator',
       'Travel & shuttle coordination',
       'Registry integration',
       'Premium themes & backgrounds',
@@ -207,8 +218,9 @@ interface FeatureItem {
   problem: string;
   solution: string;
   featureImage?: string;
+  featureImage2?: string;
   customComponent?: React.ReactNode;
-  frameType?: 'desktop' | 'mobile' | 'none';
+  frameType?: 'desktop' | 'desktop-stacked' | 'mobile' | 'none';
   isPro?: boolean;
 }
 
@@ -522,6 +534,103 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     </Box>
                   )}
 
+                  {item.featureImage && item.featureImage2 && item.frameType === 'desktop-stacked' && (
+                    /* Stacked Browser Frames — coordinator1 base (normal pos), coordinator2 overlay (down-right) */
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: 'calc(100% + 8vw)',
+                        minWidth: { md: '700px', lg: '900px' },
+                      }}
+                    >
+                      {/* Base frame (coordinator1) — exact same position as regular desktop frames */}
+                      <Box
+                        sx={{
+                          borderRadius: '12px 0 0 12px',
+                          overflow: 'hidden',
+                          boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
+                          bgcolor: 'white',
+                          border: '1px solid',
+                          borderColor: alpha('#000', 0.08),
+                          borderRight: 'none',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            height: { md: 36, lg: 42 },
+                            bgcolor: '#f1f1f1',
+                            borderBottom: '1px solid',
+                            borderColor: alpha('#000', 0.08),
+                            display: 'flex',
+                            alignItems: 'center',
+                            px: 2,
+                            gap: 1,
+                          }}
+                        >
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                        </Box>
+                        <Box sx={{ width: '100%', lineHeight: 0 }}>
+                          <Image
+                            src={item.featureImage!}
+                            alt={`${item.title} - overview`}
+                            width={2694}
+                            height={1302}
+                            quality={85}
+                            sizes="(max-width: 768px) 100vw, 60vw"
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                          />
+                        </Box>
+                      </Box>
+                      {/* Overlay frame (coordinator2) — offset down and to the right */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: { md: '40%', lg: '40%' },
+                          left: { md: '35%', lg: '35%' },
+                          width: '100%',
+                          borderRadius: '12px 0 0 12px',
+                          overflow: 'hidden',
+                          boxShadow: '-15px 35px 90px rgba(0,0,0,0.22), -8px 15px 40px rgba(0,0,0,0.14)',
+                          bgcolor: 'white',
+                          border: '1px solid',
+                          borderColor: alpha('#000', 0.08),
+                          borderRight: 'none',
+                          zIndex: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            height: { md: 36, lg: 42 },
+                            bgcolor: '#f1f1f1',
+                            borderBottom: '1px solid',
+                            borderColor: alpha('#000', 0.08),
+                            display: 'flex',
+                            alignItems: 'center',
+                            px: 2,
+                            gap: 1,
+                          }}
+                        >
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                        </Box>
+                        <Box sx={{ width: '100%', lineHeight: 0 }}>
+                          <Image
+                            src={item.featureImage2!}
+                            alt={`${item.title} - detail`}
+                            width={2694}
+                            height={1302}
+                            quality={85}
+                            sizes="(max-width: 768px) 100vw, 60vw"
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                          />
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
+
                   {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
                     /* Mobile Phone Frame — more compact, positioned toward right */
                     <Box
@@ -620,11 +729,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 }}
               >
                 {/* Feature Image */}
-                {item.featureImage && item.frameType === 'desktop' && (
+                {item.featureImage && (item.frameType === 'desktop' || item.frameType === 'desktop-stacked') && (
                   <Box
                     onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
                     sx={{
-                      borderRadius: '10px',
+                      mx: -1.5, // Slight margin on each side
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                       bgcolor: 'white',
