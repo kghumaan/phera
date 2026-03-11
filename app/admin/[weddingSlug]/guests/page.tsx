@@ -336,7 +336,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
               Guest Responses
@@ -345,49 +345,14 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               Track RSVPs, dietary restrictions, and guest preferences
             </Typography>
           </Box>
-          <Box>
+          <Box sx={{ flexShrink: 0 }}>
             <Button
               variant="outlined"
+              startIcon={<Download />}
               onClick={handleDownloadMenuOpen}
-              sx={{
-                ...SECONDARY_BUTTON_SX,
-                position: 'fixed',
-                top: { xs: 16, md: 24 },
-                right: { xs: 360, md: 408 }, // Positioned to the left of Preview button with equal spacing
-                zIndex: 1000,
-                border: '2px solid black',
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: { xs: '50%', md: '28px' },
-                minWidth: { xs: 64, md: 'auto' },
-                width: { xs: 64, md: 'auto' },
-                height: { xs: 64, md: 56 },
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                px: { xs: 0, md: 4 },
-                fontSize: { xs: '1.1rem', md: '1.1rem' },
-                '&:hover': {
-                  ...SECONDARY_BUTTON_SX['&:hover'],
-                  border: '2px solid black',
-                  transform: 'scale(1.05)',
-                },
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                animation: 'fadeIn 0.5s ease-out',
-                '@keyframes fadeIn': {
-                  '0%': { opacity: 0, transform: 'translateY(-10px)' },
-                  '100%': { opacity: 1, transform: 'translateY(0)' },
-                },
-              }}
+              sx={SECONDARY_BUTTON_SX}
             >
-              <Download sx={{
-                fontSize: { xs: 28, md: 28 },
-                mr: { xs: 0, md: 1.5 }
-              }} />
-              <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-                Export Data
-              </Box>
+              Export Data
             </Button>
             <Menu
               anchorEl={downloadMenuAnchor}
