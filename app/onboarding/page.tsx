@@ -701,24 +701,6 @@ export default function OnboardingPage() {
           transition: 'max-width 0.5s ease-in-out'
         }}>
 
-          {/* Progress Indicator */}
-          {!checkoutClientSecret && (
-            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 6 }}>
-              {[1, 2].map(s => (
-                <Box
-                  key={s}
-                  sx={{
-                    width: { xs: 30, md: 40 },
-                    height: 4,
-                    borderRadius: 2,
-                    bgcolor: step >= s ? '#DE3F5E' : alpha('#DE3F5E', 0.1),
-                    transition: 'background-color 0.3s ease',
-                  }}
-                />
-              ))}
-            </Stack>
-          )}
-
           <AnimatePresence mode="wait">
             <motion.div
               key={checkoutClientSecret ? 'payment' : step}
@@ -895,7 +877,7 @@ export default function OnboardingPage() {
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
@@ -1216,6 +1198,24 @@ export default function OnboardingPage() {
               </Paper>
             </motion.div>
           </AnimatePresence>
+
+          {/* Progress Dots */}
+          {!checkoutClientSecret && (
+            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
+              {[1, 2].map(s => (
+                <Box
+                  key={s}
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: step >= s ? '#DE3F5E' : alpha('#DE3F5E', 0.15),
+                    transition: 'background-color 0.3s ease',
+                  }}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
       </Container>
     </OptimizedBackground>

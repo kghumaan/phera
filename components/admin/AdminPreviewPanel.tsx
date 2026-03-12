@@ -279,7 +279,18 @@ export default function AdminPreviewPanel({
         return frameWidth / (16 / 10);
     }, [containerWidth]);
 
-    const mobileHeight = Math.min(containerHeight * 0.92, 850);
+    // iPhone aspect ratio (roughly 9:19.5) — fit within available space
+    const MOBILE_ASPECT = 19.5 / 9;
+    const mobileWidth = useMemo(() => {
+        if (!containerHeight || !containerWidth) return 375;
+        const maxH = containerHeight * 0.92;
+        const maxW = containerWidth * 0.85;
+        // Width from fitting height
+        const wFromH = maxH / MOBILE_ASPECT;
+        // Use the smaller of the two to ensure it fits
+        return Math.min(wFromH, maxW, 375);
+    }, [containerHeight, containerWidth]);
+    const mobileHeight = mobileWidth * MOBILE_ASPECT;
 
     return (
         <Box
@@ -428,7 +439,7 @@ export default function AdminPreviewPanel({
             >
                 <motion.div
                     animate={{
-                        width: viewMode === 'desktop' ? '94%' : 375,
+                        width: viewMode === 'desktop' ? '94%' : mobileWidth,
                         height: viewMode === 'desktop' ? desktopHeight : mobileHeight,
                         borderRadius: viewMode === 'desktop' ? '12px' : '40px',
                     }}
@@ -533,7 +544,7 @@ export default function AdminPreviewPanel({
                 {/* View Site and Share Buttons */}
                 <motion.div
                     animate={{
-                        width: viewMode === 'desktop' ? '92%' : 340,
+                        width: viewMode === 'desktop' ? '92%' : Math.min(mobileWidth - 10, 340),
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{

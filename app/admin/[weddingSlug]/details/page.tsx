@@ -300,6 +300,17 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         setWeddingDateStart(startDate);
         setWeddingDateEnd(endDate);
 
+        // Regenerate date display if end date exists but display doesn't reflect it
+        let dateDisplay = wedding.wedding_date_display || '';
+        if (startDate && endDate) {
+          const regenerated = formatWeddingDateDisplay(startDate, endDate);
+          if (regenerated && regenerated !== dateDisplay) {
+            dateDisplay = regenerated;
+            // Persist corrected display to DB so preview picks it up immediately
+            weddingService.updateWedding(wedding.id, { wedding_date_display: regenerated });
+          }
+        }
+
         // Generate couple name from bride/groom names
         const autoCoupleName = generateCoupleName(
           wedding.partner1_name || '',
@@ -310,7 +321,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           couple_name: autoCoupleName,
           partner1_name: wedding.partner1_name || '',
           partner2_name: wedding.partner2_name || '',
-          wedding_date_display: wedding.wedding_date_display || '',
+          wedding_date_display: dateDisplay,
           venue_name: wedding.venue_name || '',
           venue_location: wedding.venue_location || '',
           venue_flag: wedding.venue_flag || null,
