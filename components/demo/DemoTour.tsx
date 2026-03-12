@@ -32,12 +32,6 @@ const TOUR_STEPS: TourStep[] = [
     expandGroup: 'website',
   },
   {
-    target: 'tour-build-ai',
-    title: 'Build with AI',
-    description: 'Don\'t want to fill out forms? Use our AI chat interface instead. Answer a few simple questions one by one and your entire wedding website builds itself.',
-    expandGroup: 'website',
-  },
-  {
     target: 'tour-preview',
     title: 'Live Preview',
     description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views at the top to see exactly how your guests will experience it.',

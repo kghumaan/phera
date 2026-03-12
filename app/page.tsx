@@ -158,7 +158,6 @@ const pricingTiers = [
     description: 'Advanced features for destination weddings',
     features: [
       'Everything in Basic, plus:',
-      'Build website with AI',
       'Voice-to-task manager',
       'WhatsApp Concierge Agent',
       'Vendor Coordinator',

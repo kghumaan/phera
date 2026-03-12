@@ -67,7 +67,6 @@ export const groups: SidebarGroup[] = [
     label: 'Wedding Website',
     icon: <Language />,
     items: [
-      { id: 'build-ai', label: 'Build with AI', path: '/build-ai', isPro: true },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
