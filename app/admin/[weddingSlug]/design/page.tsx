@@ -385,7 +385,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             <RadioGroup
               value={websiteLayout}
               onChange={(e) => setWebsiteLayout(e.target.value as 'multi_page' | 'vertical_scroll')}
-              sx={{ flexDirection: 'row', gap: 1.5 }}
+              sx={{ width: '100%' }}
             >
               <Grid container spacing={1.5}>
                 <Grid size={{ xs: 6 }}>
@@ -398,6 +398,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': { borderColor: '#DE3F5E' },
                     }}
                     onClick={() => setWebsiteLayout('multi_page')}
@@ -415,10 +417,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                               Guests tap &apos;View Details&apos; to see event info
                             </Typography>
                           </Box>
-                          <ViewAgenda sx={{ fontSize: 22, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
+                          <ViewAgenda sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
                         </Box>
                       }
-                      sx={{ alignItems: 'center', m: 0, gap: 0.5 }}
+                      sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
                     />
                   </Paper>
                 </Grid>
@@ -433,6 +435,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': { borderColor: '#DE3F5E' },
                     }}
                     onClick={() => setWebsiteLayout('vertical_scroll')}
@@ -450,10 +454,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                               All details shown as you scroll down
                             </Typography>
                           </Box>
-                          <UnfoldMore sx={{ fontSize: 22, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
+                          <UnfoldMore sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
                         </Box>
                       }
-                      sx={{ alignItems: 'center', m: 0, gap: 0.5 }}
+                      sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
                     />
                   </Paper>
                 </Grid>
