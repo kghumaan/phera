@@ -66,7 +66,7 @@ export default function FullScreenFormContainer({
           justifyContent: isMobile ? 'flex-start' : 'center',
           alignItems: 'center',
           height: isMobile ? '100%' : 'auto',
-          pt: 0,
+          pt: { xs: 1.5, sm: 2 },
           pb: { xs: 2, sm: 3, md: 0 },
           px: { xs: 2, sm: 3, md: 0 },
           overflow: 'hidden',

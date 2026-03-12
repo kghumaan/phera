@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
 } from '@mui/material';
 import React, { useState, use, useEffect, useCallback, useRef } from 'react';
 import {
@@ -49,6 +50,7 @@ import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
 import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import MembersTab from '@/components/admin/coordinator/MembersTab';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { isDemoUser, DEMO_VENDOR_DETAILS, DEMO_MEMBERS, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 
 interface Message {
   id: string;
@@ -139,6 +141,7 @@ export default function VendorDetailPage({
   const { weddingSlug, vendorId } = use(params);
   const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
+  const isDemo = isDemoUser(user?.email);
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -193,11 +196,29 @@ export default function VendorDetailPage({
   }, [user, vendorId]);
 
   useEffect(() => {
+    if (isDemo) {
+      const demoVendor = DEMO_VENDOR_DETAILS[vendorId];
+      if (demoVendor) {
+        setVendor(demoVendor as any);
+        setEditForm({
+          name: demoVendor.name || '',
+          category: demoVendor.category || '',
+          phone: demoVendor.phone || '',
+          email: demoVendor.email || '',
+          status: demoVendor.status || 'active',
+          notes: demoVendor.notes || '',
+        });
+      }
+      setWeddingId('demo-wedding');
+      setLoading(false);
+      return;
+    }
     loadVendor();
-  }, [loadVendor]);
+  }, [loadVendor, isDemo, vendorId]);
 
   // Get wedding ID
   useEffect(() => {
+    if (isDemo) return;
     const fetchWeddingId = async () => {
       const { data } = await (supabase as any)
         .from('weddings')
@@ -207,7 +228,7 @@ export default function VendorDetailPage({
       if (data) setWeddingId(data.id);
     };
     fetchWeddingId();
-  }, [weddingSlug]);
+  }, [weddingSlug, isDemo]);
 
   // All messages across conversations, sorted by timestamp
   const allMessages = (vendor?.vendor_conversations || [])
@@ -267,6 +288,19 @@ export default function VendorDetailPage({
 
   const handleToggleInsight = async (insightId: string, currentCompleted: boolean) => {
     if (isViewOnly) return;
+    // Demo: local-only toggle, no API call
+    if (isDemo) {
+      setVendor((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          vendor_insights: prev.vendor_insights.map((i) =>
+            i.id === insightId ? { ...i, is_completed: !currentCompleted } : i
+          ),
+        };
+      });
+      return;
+    }
     try {
       await fetch('/api/vendors/insights', {
         method: 'PATCH',
@@ -449,32 +483,58 @@ export default function VendorDetailPage({
                         color: STATUS_COLORS[vendor.status] || '#9E9E9E',
                       }}
                     />
-                    {!vendor.name.toLowerCase().includes('unknown') && (
+                    {!vendor.name.toLowerCase().includes('unknown') && !isDemo && (
                       <IconButton size="small" onClick={() => setEditing(true)} sx={{ ml: 0.5 }}>
                         <Edit sx={{ fontSize: 14 }} />
                       </IconButton>
+                    )}
+                    {isDemo && (
+                      <Tooltip title={DEMO_BUTTON_TOOLTIPS.editVendor}>
+                        <IconButton size="small" sx={{ ml: 0.5, color: '#9E9E9E' }}>
+                          <Edit sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
                     )}
                   </Stack>
                 </Box>
               )}
             </Box>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Button
-                size="small"
-                startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
-                onClick={handleReanalyze}
-                disabled={reanalyzing}
-                sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
-              >
-                Refresh
-              </Button>
-              <IconButton
-                size="small"
-                onClick={() => setDeleteConfirmOpen(true)}
-                sx={{ color: '#DE3F5E', '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
-              >
-                <Delete sx={{ fontSize: 18 }} />
-              </IconButton>
+              {isDemo ? (
+                <>
+                  <Tooltip title={DEMO_BUTTON_TOOLTIPS.refreshInsights}>
+                    <span>
+                      <Button size="small" startIcon={<Refresh />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}>
+                        Refresh
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={DEMO_BUTTON_TOOLTIPS.deleteVendorDetail}>
+                    <IconButton size="small" sx={{ color: '#9E9E9E' }}>
+                      <Delete sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="small"
+                    startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
+                    onClick={handleReanalyze}
+                    disabled={reanalyzing}
+                    sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+                  >
+                    Refresh
+                  </Button>
+                  <IconButton
+                    size="small"
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    sx={{ color: '#DE3F5E', '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
+                  >
+                    <Delete sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </>
+              )}
             </Stack>
           </Stack>
 
@@ -719,10 +779,47 @@ export default function VendorDetailPage({
           )}
 
           {/* Tab 2: Members */}
-          {activeTab === 2 && conversationId && weddingId && (
+          {activeTab === 2 && isDemo && (
+            <Paper elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}>
+              <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>
+                  Members ({DEMO_MEMBERS[vendorId]?.length || 0})
+                </Typography>
+              </Box>
+              <Stack sx={{ p: 1.5 }} spacing={1}>
+                {(DEMO_MEMBERS[vendorId] || []).map((member) => (
+                  <Stack key={member.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 0.5 }}>
+                    <Box sx={{
+                      width: 32, height: 32, borderRadius: '50%',
+                      bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.12) : member.role === 'admin' ? alpha('#DE3F5E', 0.12) : alpha('#2196F3', 0.12),
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.75rem', fontWeight: 700,
+                      color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? '#DE3F5E' : '#2196F3',
+                    }}>
+                      {member.name.charAt(0).toUpperCase()}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1a1a1a' }}>{member.name}</Typography>
+                      {member.phone && <Typography sx={{ fontSize: '0.7rem', color: '#6a6a6a' }}>{member.phone}</Typography>}
+                    </Box>
+                    <Chip
+                      label={member.role}
+                      size="small"
+                      sx={{
+                        fontSize: '0.68rem', height: 20, borderRadius: '4px', textTransform: 'capitalize',
+                        bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.1) : member.role === 'admin' ? alpha('#DE3F5E', 0.1) : alpha('#2196F3', 0.1),
+                        color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? '#DE3F5E' : '#2196F3',
+                      }}
+                    />
+                  </Stack>
+                ))}
+              </Stack>
+            </Paper>
+          )}
+          {activeTab === 2 && !isDemo && conversationId && weddingId && (
             <MembersTab conversationId={conversationId} weddingId={weddingId} />
           )}
-          {activeTab === 2 && !conversationId && (
+          {activeTab === 2 && !isDemo && !conversationId && (
             <Box sx={{ py: 4, textAlign: 'center' }}>
               <Typography sx={{ color: '#888', fontSize: '0.85rem' }}>
                 No conversation linked to this vendor yet.
@@ -732,8 +829,8 @@ export default function VendorDetailPage({
         </Box>
       </Box>
 
-      {/* Ask Phera Panel */}
-      {weddingId && (
+      {/* Ask Phera Panel — hidden for demo */}
+      {weddingId && !isDemo && (
         <AskPheraPanel
           weddingId={weddingId}
           open={askPheraOpen}
@@ -742,8 +839,8 @@ export default function VendorDetailPage({
         />
       )}
 
-      {/* Ask Phera FAB */}
-      {weddingId && (
+      {/* Ask Phera FAB — hidden for demo */}
+      {weddingId && !isDemo && (
         <AskPheraFab
           onClick={() => setAskPheraOpen(true)}
           visible={!askPheraOpen}

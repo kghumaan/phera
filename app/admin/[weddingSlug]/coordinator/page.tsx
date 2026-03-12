@@ -51,6 +51,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { InfoOutlined } from '@mui/icons-material';
+import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 
 const BETA_ACCESS_EMAILS = [
   'kv.s.ghumaan@gmail.com',
@@ -154,12 +155,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Beta access check
   const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+  const isDemo = isDemoUser(user?.email);
 
   // Early access request state
   const [betaRequestStatus, setBetaRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
 
   // Testing toggle
-  const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com' || user?.email === 'demo@phera.io';
+  const isSuperAdmin = isBetaUser;
   const [forceOnboarding, setForceOnboarding] = useState(false);
 
   // Load wedding ID and vendors
@@ -187,13 +189,20 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   }, [user, weddingSlug]);
 
   useEffect(() => {
+    if (isDemo) {
+      setVendors(DEMO_VENDORS as any);
+      setPhoneConfigured(true);
+      setCoordinatorPhone(DEMO_COORDINATOR_PHONE);
+      setLoading(false);
+      return;
+    }
     if (isPro) loadData();
     else setLoading(false);
-  }, [isPro, loadData]);
+  }, [isPro, loadData, isDemo]);
 
   // Fetch coordinator phone info (Pro users only)
   useEffect(() => {
-    if (!isPro) return;
+    if (!isPro || isDemo) return;
     const fetchCoordinatorInfo = async () => {
       try {
         const res = await fetch('/api/vendors/coordinator-info');
@@ -211,6 +220,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Check for existing beta request
   useEffect(() => {
+    if (isDemo) return;
     if (isPro && !isBetaUser && user?.email) {
       const checkExistingRequest = async () => {
         const hasRequestedLocal = localStorage.getItem(`phera_coordinator_requested_${user.email.toLowerCase()}`);
@@ -643,7 +653,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   }
 
   // ─── STATE A.5: Pro user, NOT in beta ────────────────────────────────
-  if (isPro && !isBetaUser) {
+  if (isPro && !isBetaUser && !isDemo) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
@@ -1026,18 +1036,18 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   Coordinator
                 </Typography>
                 {phoneConfigured && (
-                  <Tooltip title="Add this number to vendor conversations. Click to copy.">
+                  <Tooltip title={isDemo ? DEMO_COORDINATOR_TOOLTIP : "Add this number to vendor conversations. Click to copy."} placement="right" arrow>
                     <Chip
                       icon={<PhoneAndroid sx={{ fontSize: '14px !important' }} />}
                       label={coordinatorPhone}
                       size="small"
-                      onClick={handleCopyPhone}
+                      onClick={isDemo ? undefined : handleCopyPhone}
                       sx={{
                         bgcolor: alpha('#DE3F5E', 0.08),
                         color: '#DE3F5E',
                         fontWeight: 600,
                         fontSize: '0.75rem',
-                        cursor: 'pointer',
+                        cursor: isDemo ? 'default' : 'pointer',
                         '& .MuiChip-icon': { color: '#DE3F5E' },
                         '&:hover': { bgcolor: alpha('#DE3F5E', 0.14) },
                       }}
@@ -1046,34 +1056,61 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 )}
               </Box>
               <Stack direction="row" spacing={1}>
-
-                <Button
-                  size="small"
-                  startIcon={discoveringGroups ? <CircularProgress size={14} /> : <Sync />}
-                  onClick={handleDiscoverGroups}
-                  disabled={discoveringGroups}
-                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
-                >
-                  {discoveringGroups ? 'Discovering...' : 'Connect new Chat'}
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={importing ? <CircularProgress size={14} /> : <Upload />}
-                  onClick={() => setImportDialogOpen(true)}
-                  disabled={importing}
-                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
-                >
-                  Upload Chat Manually
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
-                  onClick={handleSyncAll}
-                  disabled={syncingAll}
-                  sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
-                >
-                  {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
-                </Button>
+                {isDemo ? (
+                  <>
+                    <Tooltip title={DEMO_BUTTON_TOOLTIPS.connectChat}>
+                      <span>
+                        <Button size="small" startIcon={<Sync />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                          Connect new Chat
+                        </Button>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title={DEMO_BUTTON_TOOLTIPS.uploadChat}>
+                      <span>
+                        <Button size="small" startIcon={<Upload />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                          Upload Chat Manually
+                        </Button>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title={DEMO_BUTTON_TOOLTIPS.refreshAll}>
+                      <span>
+                        <Button size="small" startIcon={<CloudSync />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                          Refresh all Chats
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      size="small"
+                      startIcon={discoveringGroups ? <CircularProgress size={14} /> : <Sync />}
+                      onClick={handleDiscoverGroups}
+                      disabled={discoveringGroups}
+                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                    >
+                      {discoveringGroups ? 'Discovering...' : 'Connect new Chat'}
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={importing ? <CircularProgress size={14} /> : <Upload />}
+                      onClick={() => setImportDialogOpen(true)}
+                      disabled={importing}
+                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                    >
+                      Upload Chat Manually
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
+                      onClick={handleSyncAll}
+                      disabled={syncingAll}
+                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                    >
+                      {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
+                    </Button>
+                  </>
+                )}
               </Stack>
             </Box>
 
@@ -1124,13 +1161,25 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                           {vendor.name}
                         </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(vendor.id); }}
-                          sx={{ ml: 0.5, color: '#DE3F5E', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
-                        >
-                          <Delete sx={{ fontSize: 18 }} />
-                        </IconButton>
+                        {isDemo ? (
+                          <Tooltip title={DEMO_BUTTON_TOOLTIPS.deleteVendor}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => e.stopPropagation()}
+                              sx={{ ml: 0.5, color: '#9E9E9E', p: 0.5 }}
+                            >
+                              <InfoOutlined sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <IconButton
+                            size="small"
+                            onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(vendor.id); }}
+                            sx={{ ml: 0.5, color: '#DE3F5E', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
+                          >
+                            <Delete sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        )}
                       </Box>
 
                       {/* Summary snippet */}
@@ -1266,8 +1315,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         </Box>
       </Box>
 
-      {/* Ask Phera Panel */}
-      {weddingId && (
+      {/* Ask Phera Panel — hidden for demo (requires live API) */}
+      {weddingId && !isDemo && (
         <AskPheraPanel
           weddingId={weddingId}
           open={askPheraOpen}
@@ -1275,8 +1324,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         />
       )}
 
-      {/* Ask Phera FAB — shown when panel is closed */}
-      {weddingId && (
+      {/* Ask Phera FAB — hidden for demo */}
+      {weddingId && !isDemo && (
         <AskPheraFab
           onClick={() => setAskPheraOpen(true)}
           visible={!askPheraOpen}

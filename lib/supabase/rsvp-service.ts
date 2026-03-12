@@ -505,6 +505,7 @@ export async function upsertCustomQuestionStep(step: Omit<RSVPCustomQuestionStep
       id: step.id,
       wedding_id: step.wedding_id,
       step_title: step.step_title,
+      description: step.description || null,
       insert_after: step.insert_after,
       order_index: step.order_index,
       questions: step.questions,

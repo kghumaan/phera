@@ -292,7 +292,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           }
           if (wedding.wedding_date_end) {
             endDate = parseISO(wedding.wedding_date_end);
-            if (isNaN(endDate.getTime())) endDate = null;
+            if (isNaN(endDate.getTime()) || endDate.getTime() === 0) endDate = null;
           }
         } catch (err) {
           console.error('Error parsing dates:', err);
@@ -687,7 +687,13 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <DatePicker
-                    selected={formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' ? parseISO(formData.rsvp_deadline) : null}
+                    selected={(() => {
+                      if (!formData.rsvp_deadline || formData.rsvp_deadline === 'TBD') return null;
+                      try {
+                        const d = parseISO(formData.rsvp_deadline);
+                        return isNaN(d.getTime()) ? null : d;
+                      } catch { return null; }
+                    })()}
                     onChange={(date) => {
                       if (date) {
                         handleChange('rsvp_deadline', (date as Date).toISOString());
