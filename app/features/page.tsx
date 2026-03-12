@@ -25,6 +25,7 @@ import {
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -52,7 +53,6 @@ import {
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
-import LoginModal from '@/components/auth/LoginModal';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
@@ -871,9 +871,9 @@ export default function FeaturesPage() {
   ];
 
   const { user } = useAuth();
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [pendingProAction, setPendingProAction] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
@@ -884,6 +884,15 @@ export default function FeaturesPage() {
 
   const roadmapRef = useRef<HTMLDivElement>(null);
 
+  // Auto-open UpgradeModal when redirected back with tier param
+  useEffect(() => {
+    const tier = searchParams.get('tier');
+    if (tier === 'pro' && user) {
+      setUpgradeModalOpen(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams, user]);
+
   const handleProAction = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -892,8 +901,7 @@ export default function FeaturesPage() {
     if (user) {
       setUpgradeModalOpen(true);
     } else {
-      setPendingProAction(true);
-      setLoginDialogOpen(true);
+      router.push('/auth/login?redirect=/features?tier=pro');
     }
   };
 
@@ -937,21 +945,6 @@ export default function FeaturesPage() {
         {/* --- FOOTER --- */}
         <AppFooter />
       </Box >
-
-      <LoginModal
-        open={loginDialogOpen}
-        onClose={() => {
-          setLoginDialogOpen(false);
-          setPendingProAction(false);
-        }}
-        onSuccess={() => {
-          console.log('Login successful');
-          if (pendingProAction) {
-            setUpgradeModalOpen(true);
-            setPendingProAction(false);
-          }
-        }}
-      />
 
       <UpgradeModal
         open={upgradeModalOpen}

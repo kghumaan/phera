@@ -20,9 +20,11 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
+  tier?: 'pro' | 'planner';
+  returnPath?: string;
 }
 
-export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }: UpgradeModalProps) {
   const { user } = useAuth();
   const params = useParams();
   const weddingSlug = params?.weddingSlug as string | undefined;
@@ -44,6 +46,8 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
           userId: user.id,
           email: user.email,
           weddingSlug: weddingSlug || '',
+          tier,
+          returnPath,
         }),
       });
 
@@ -55,7 +59,7 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.email, weddingSlug]);
+  }, [user?.id, user?.email, weddingSlug, tier, returnPath]);
 
   useEffect(() => {
     if (open && !clientSecret) {
@@ -120,10 +124,12 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
             variant="h5"
             sx={{ fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}
           >
-            Upgrade to Pro
+            {tier === 'planner' ? 'Start as a Planner' : 'Upgrade to Pro'}
           </Typography>
           <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Unlock Travel Coordination, Phera Concierge, and all premium themes.
+            {tier === 'planner'
+              ? 'Manage unlimited weddings with all Pro features included.'
+              : 'Unlock Travel Coordination, Phera Concierge, and all premium themes.'}
           </Typography>
         </Box>
 

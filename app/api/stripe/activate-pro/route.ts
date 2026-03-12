@@ -30,19 +30,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No user ID in session metadata' }, { status: 400 });
     }
 
+    const tier = session.metadata?.tier || 'pro';
+
+    const upsertData: Record<string, string> = {
+      user_id: userId,
+      subscription_tier: tier,
+      updated_at: new Date().toISOString(),
+    };
+    if (tier === 'planner') {
+      upsertData.account_type = 'planner';
+    }
+
     const { error } = await supabase
       .from('user_settings')
-      .upsert(
-        { user_id: userId, subscription_tier: 'pro', updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' }
-      );
+      .upsert(upsertData, { onConflict: 'user_id' });
 
     if (error) {
       console.error('Error upgrading user:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, tier });
   } catch (err) {
     console.error('Error in activate-pro:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

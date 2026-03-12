@@ -207,7 +207,7 @@ export default function AdminPreviewPanel({
                     { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
                     '*'
                 );
-            } catch (e) {}
+            } catch (e) { }
         }
     }, [sectionSlug, isPinsPage]);
 
@@ -224,7 +224,7 @@ export default function AdminPreviewPanel({
                                 { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
                                 '*'
                             );
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 }, 1500);
             }
@@ -635,7 +635,7 @@ export default function AdminPreviewPanel({
                         fontSize: '0.75rem',
                     }}
                 >
-                    This preview gives you a general idea of your site. To see the exact version your guests will see, click &quot;View Site&quot; above.
+                    To see the exact version your guests will see, click &quot;View Site&quot;.
                 </Typography>
             </Box>
 

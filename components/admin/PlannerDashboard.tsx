@@ -18,14 +18,16 @@ import {
   alpha,
   TextField,
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Add, AutoAwesome } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { AccessTime, LocationOn } from '@mui/icons-material';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
+import { usePlan } from '@/lib/contexts/PlanContext';
 import AdminTopNav from './AdminTopNav';
+import UpgradeModal from './UpgradeModal';
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -65,10 +67,12 @@ interface PlannerDashboardProps {
 
 export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
   const router = useRouter();
+  const { isPlanner } = usePlan();
   const [weddings, setWeddings] = useState<Wedding[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   // Create wedding form state
   const [partner1Name, setPartner1Name] = useState('');
@@ -231,6 +235,64 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Button>
           )}
         </Stack>
+
+        {/* Planner Subscription Prompt */}
+        {!isPlanner && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: '16px',
+              bgcolor: 'white',
+              border: '1px solid',
+              borderColor: alpha('#DE3F5E', 0.2),
+              background: `linear-gradient(135deg, white 0%, ${alpha('#DE3F5E', 0.03)} 100%)`,
+            }}
+          >
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={2}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  bgcolor: alpha('#DE3F5E', 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <AutoAwesome sx={{ fontSize: 24, color: '#DE3F5E' }} />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
+                  Activate your Planner subscription
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  Get unlimited client weddings with all Pro features included — $249/year.
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  borderRadius: '24px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  px: 3,
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: '#C8365A' },
+                }}
+              >
+                Subscribe Now
+              </Button>
+            </Stack>
+          </Paper>
+        )}
 
         {/* Wedding List */}
         {loading ? (
@@ -501,6 +563,12 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        tier="planner"
+      />
     </Box>
   );
 }

@@ -6,28 +6,47 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID!;
+const PLANNER_PRICE_ID = process.env.STRIPE_PLANNER_PRICE_ID!;
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, weddingSlug } = await request.json();
+    const { userId, email, weddingSlug, tier = 'pro', returnPath } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    const isPlanner = tier === 'planner';
+    const priceId = isPlanner ? PLANNER_PRICE_ID : PRO_PRICE_ID;
+
+    if (!priceId) {
+      return NextResponse.json({ error: `Price ID not configured for ${tier} tier` }, { status: 500 });
+    }
+
+    // Build return URL
+    let returnUrl: string;
+    if (weddingSlug) {
+      returnUrl = `${request.nextUrl.origin}/admin/${weddingSlug}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`;
+    } else if (returnPath) {
+      returnUrl = `${request.nextUrl.origin}/upgrade-success?session_id={CHECKOUT_SESSION_ID}&return_path=${encodeURIComponent(returnPath)}`;
+    } else {
+      returnUrl = `${request.nextUrl.origin}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`;
     }
 
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
       line_items: [
         {
-          price: PRO_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'payment',
-      return_url: `${request.nextUrl.origin}/admin/${weddingSlug}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
+      mode: isPlanner ? 'subscription' : 'payment',
+      return_url: returnUrl,
       metadata: {
         userId,
         weddingSlug: weddingSlug || '',
+        tier,
       },
       customer_email: email || undefined,
     });

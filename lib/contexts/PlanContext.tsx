@@ -4,12 +4,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
 
-export type PlanType = 'basic' | 'pro';
+export type PlanType = 'basic' | 'pro' | 'planner';
 
 interface PlanContextType {
   plan: PlanType;
   isLoading: boolean;
   isPro: boolean;
+  isPlanner: boolean;
   togglePlan: () => Promise<void>;
   setPlan: (plan: PlanType) => Promise<void>;
 }
@@ -98,7 +99,8 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       value={{
         plan,
         isLoading,
-        isPro: plan === 'pro',
+        isPro: plan === 'pro' || plan === 'planner',
+        isPlanner: plan === 'planner',
         togglePlan,
         setPlan,
       }}
