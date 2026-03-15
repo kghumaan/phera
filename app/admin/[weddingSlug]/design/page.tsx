@@ -31,7 +31,6 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
-import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
@@ -265,7 +264,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         updates: {
           background_image: customMainBackground || mainBackground,
           primary_color: mainPrimaryColor,
-          previewMode: 'main',
           website_layout: websiteLayout,
           frame_image_url: frameImageUrl,
           couple_images: coupleImages.filter(img => img),
@@ -368,7 +366,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
               Want something custom?
             </Button>
-            <AutoSaveIndicator status={saveStatus} />
           </Box>
         </Box>
 

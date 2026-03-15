@@ -103,7 +103,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
       {/* Metrics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Total Opt-ins */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -125,7 +125,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
         </Grid>
 
         {/* Messages Sent */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -147,7 +147,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
         </Grid>
 
         {/* Delivery Rate */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -167,7 +167,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
         </Grid>
 
         {/* Read Rate */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>

@@ -14,8 +14,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
 
-// Diamond indicators component
-const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
+// Diamond indicators component — exported for reuse in admin preview
+export const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -40,8 +40,8 @@ const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total:
   </Stack>
 );
 
-// Slide content renderer
-const SlideContent = ({
+// Slide content renderer — exported for reuse in admin preview
+export const SlideContent = ({
   slide,
   textColor,
   gradientBackground,

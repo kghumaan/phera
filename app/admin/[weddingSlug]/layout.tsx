@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { AdminRoleProvider, AdminRole } from '@/lib/contexts/AdminRoleContext';
 import { NavigationGuardProvider } from '@/lib/contexts/NavigationGuardContext';
+import { AutoSaveProvider } from '@/lib/contexts/AutoSaveContext';
 import ViewerBanner from '@/components/admin/ViewerBanner';
 
 export default function OnboardingLayout({
@@ -150,6 +151,7 @@ export default function OnboardingLayout({
 
   return (
     <AdminRoleProvider role={adminRole}>
+    <AutoSaveProvider>
     <NavigationGuardProvider>
       <OptimizedBackground useAppDefault={true} className="h-screen overflow-hidden">
         <AdminTopNav
@@ -248,6 +250,7 @@ export default function OnboardingLayout({
                     hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
                     lastPublishedAt={wedding?.last_published_at ?? null}
                     currentAdminPath={currentAdminPath}
+                    websiteLayout={wedding?.website_layout}
                     onPublished={() => {
                       if (wedding) {
                         setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
@@ -278,6 +281,7 @@ export default function OnboardingLayout({
 
       <ViewerBanner />
     </NavigationGuardProvider>
+    </AutoSaveProvider>
     </AdminRoleProvider>
   );
 }

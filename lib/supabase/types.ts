@@ -88,9 +88,9 @@ export interface TransportationVehicle {
   capacity: number;
   departure_datetime: string;
   pickup_location: string | null;
-  pickup_location_coordinates: Coordinates | null;
+  pickup_location_coordinates: Json | null;
   dropoff_location: string | null;
-  dropoff_location_coordinates: Coordinates | null;
+  dropoff_location_coordinates: Json | null;
   order_index: number | null;
   is_full: boolean | null;
   created_at: string | null;
@@ -103,7 +103,7 @@ export interface TransportationPickupLocation {
   direction: TransportationDirection;
   name: string;
   address: string | null;
-  coordinates: Coordinates | null;
+  coordinates: Json | null;
   order_index: number | null;
   created_at: string | null;
 }
@@ -146,9 +146,9 @@ export interface TransportationReservation {
     id: string;
     name: string;
     email: string;
-  };
-  vehicle?: TransportationVehicle;
-  pickup_location?: TransportationPickupLocation;
+  } | null;
+  vehicle?: TransportationVehicle | null;
+  pickup_location?: TransportationPickupLocation | null;
 }
 
 export interface TransportationGroup {
@@ -162,8 +162,8 @@ export interface TransportationGroup {
   is_finalized: boolean | null;
   created_at: string | null;
   // Joined data
-  vehicle_type?: TransportationVehicleType;
-  pickup_location?: TransportationPickupLocation;
+  vehicle_type?: TransportationVehicleType | null;
+  pickup_location?: TransportationPickupLocation | null;
   reservations?: TransportationReservation[];
 }
 
@@ -463,6 +463,7 @@ export type PheraDatabase = {
         Row: {
           created_at: string | null
           description: string | null
+          dress_code: string | null
           gradient_background: string | null
           id: string
           icon: string | null
@@ -478,6 +479,7 @@ export type PheraDatabase = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          dress_code?: string | null
           gradient_background?: string | null
           id?: string
           icon?: string | null
@@ -493,6 +495,7 @@ export type PheraDatabase = {
         Update: {
           created_at?: string | null
           description?: string | null
+          dress_code?: string | null
           gradient_background?: string | null
           id?: string
           icon?: string | null
@@ -1799,6 +1802,8 @@ export type PheraDatabase = {
   }
 }
 
+export type Database = PheraDatabase;
+
 type DatabaseWithoutInternals = Omit<PheraDatabase, "__InternalSupabase">
 type PublicSchema = DatabaseWithoutInternals["public"]
 
@@ -1902,3 +1907,21 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+export type GuestFlight = Tables<'guest_flights'> & {
+  guest?: { id: string; name: string; email: string; phone: string | null } | null;
+};
+export type GuestChecklistItem = Tables<'guest_checklist_items'>;
+
+export interface FlightFormData {
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureDate: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalTime: string;
+  shuttlePreferenceTime: string;
+  shuttlePreferenceNote: string;
+}

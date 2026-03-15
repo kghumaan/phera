@@ -1130,7 +1130,7 @@ export default function HomePage() {
                     },
                   }}
                 >
-                  View Details
+                  {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
                 </Button>
               </motion.div>
             </Box>
@@ -1487,7 +1487,7 @@ export default function HomePage() {
                     disabled={isNavigating}
                     sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '16px' }}
                   >
-                    View Details
+                    {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
                   </Button>
                 </motion.div>
               )}

@@ -25,7 +25,6 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { toast } from 'sonner';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
-import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
@@ -455,8 +454,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   }
                 }}
               />
-
-              <AutoSaveIndicator status={saveStatus} />
             </Stack>
           </Stack>
         </Paper>

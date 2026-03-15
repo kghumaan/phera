@@ -180,9 +180,17 @@ export default function DetailsPage() {
     }
   }, [weddingId, events, contextFaqs, contextSchedule, contextTravelCards, contextRegistry]);
 
+  // Detect if running inside a preview iframe and adjust base path accordingly
+  const getBasePath = () => {
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/preview/')) {
+      return `/preview/${weddingSlug}`;
+    }
+    return `/${weddingSlug}`;
+  };
+
   const handleBack = () => {
     setIsNavigating(true);
-    router.push(`/${weddingSlug}`);
+    router.push(getBasePath());
   };
 
   const handleMenuItemClick = (item: string) => {
@@ -192,30 +200,32 @@ export default function DetailsPage() {
     // Show loading state
     setIsNavigating(true);
 
+    const basePath = getBasePath();
+
     switch (item) {
       case 'Travel & Stay':
-        router.push(`/${weddingSlug}/travel`);
+        router.push(`${basePath}/travel`);
         break;
       case 'Events & Dress code':
-        router.push(`/${weddingSlug}/events`);
+        router.push(`${basePath}/events`);
         break;
       case 'Q & A':
-        router.push(`/${weddingSlug}/faq`);
+        router.push(`${basePath}/faq`);
         break;
       case 'Schedule & Events':
-        router.push(`/${weddingSlug}/schedule`);
+        router.push(`${basePath}/schedule`);
         break;
       case 'Registry':
-        router.push(`/${weddingSlug}/registry`);
+        router.push(`${basePath}/registry`);
         break;
       case 'Travel Details':
-        router.push(`/${weddingSlug}/travel-details`);
+        router.push(`${basePath}/travel-details`);
         break;
       case 'Change RSVP':
-        router.push(`/${weddingSlug}/rsvp`);
+        router.push(`${basePath}/rsvp`);
         break;
       case 'Reserve Transportation':
-        router.push(`/${weddingSlug}/transportation`);
+        router.push(`${basePath}/transportation`);
         break;
       default:
         setIsNavigating(false);

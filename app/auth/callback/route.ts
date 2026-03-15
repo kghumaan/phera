@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { PheraDatabase as Database } from '@/lib/supabase/types';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 
 // Helper function to process pending wedding invites for a user
-async function processPendingInvites(supabase: ReturnType<typeof createServerClient<Database, 'public'>>, userId: string, userEmail: string): Promise<number> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function processPendingInvites(supabase: any, userId: string, userEmail: string): Promise<number> {
   try {
     // Find all pending invites for this email
     const { data: invites, error: fetchError } = await supabase
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       console.log('[Callback] Received code, exchanging for session...');
       const cookieStore = await cookies();
 
-      const supabase = createServerClient<Database, 'public'>(
+      const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {

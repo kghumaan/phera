@@ -42,6 +42,7 @@ import {
   TransportationVehicle,
   TransportationPickupLocation,
   Coordinates,
+  Json,
 } from '@/lib/supabase/types';
 import {
   getVehicles,
@@ -233,7 +234,7 @@ export default function TransportationSetupWizard({
               capacity: vehicle.capacity,
               departure_datetime: vehicle.departure_datetime.toISOString(),
               pickup_location: vehicle.pickup_location,
-              pickup_location_coordinates: vehicle.pickup_location_coordinates || undefined,
+              pickup_location_coordinates: (vehicle.pickup_location_coordinates as unknown as Json) || undefined,
             });
           } else {
             // Create new vehicle
@@ -243,7 +244,7 @@ export default function TransportationSetupWizard({
               capacity: vehicle.capacity,
               departure_datetime: vehicle.departure_datetime.toISOString(),
               pickup_location: vehicle.pickup_location,
-              pickup_location_coordinates: vehicle.pickup_location_coordinates || undefined,
+              pickup_location_coordinates: (vehicle.pickup_location_coordinates as unknown as Json) || undefined,
             });
           }
         }
@@ -255,7 +256,7 @@ export default function TransportationSetupWizard({
             await updatePickupLocation(location.id, {
               name: location.name,
               address: location.address,
-              coordinates: location.coordinates || undefined,
+              coordinates: (location.coordinates as unknown as Json) || undefined,
             });
           } else if (location.coordinates) {
             // Create new pickup location
@@ -263,7 +264,7 @@ export default function TransportationSetupWizard({
               direction,
               name: location.name,
               address: location.address,
-              coordinates: location.coordinates,
+              coordinates: location.coordinates as unknown as Json,
             });
           }
         }

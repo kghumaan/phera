@@ -4,12 +4,13 @@ export interface AuthResult {
   success: boolean
   user?: {
     id: string
+    guestId?: string | null
     email: string
     name: string
     phone?: string
-    avatar_style?: string
-    avatar_seed?: string
-    avatar_svg?: string
+    avatar_style?: string | null
+    avatar_seed?: string | null
+    avatar_svg?: string | null
   }
   error?: string
 }

@@ -258,7 +258,7 @@ export default function GuestEventsPage() {
                                 gap: 1,
                               }}
                             >
-                              {event.dress_code_emoji} <span style={{ fontWeight: 500 }}>{event.dress_code}</span>
+                              {event.dress_code_icon} <span style={{ fontWeight: 500 }}>{event.dress_code}</span>
                             </Typography>
                             {/* Date/Time */}
                             <Typography

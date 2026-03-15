@@ -1504,7 +1504,7 @@ export default function VerticalScrollLayout({
                 <Box
                   sx={{
                     position: 'absolute',
-                    ...getFrameConfig(wedding.frame_image_url),
+                    ...getFrameConfig(wedding.frame_image_url ?? null),
                     overflow: 'hidden',
                     zIndex: 1,
                   }}

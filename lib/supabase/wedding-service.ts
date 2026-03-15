@@ -2,9 +2,7 @@ import { supabase, TypedSupabaseClient } from './client';
 import { Tables, TablesInsert, TablesUpdate } from './types';
 
 // Types for wedding data
-export type Wedding = Tables<'weddings'> & {
-  previewMode?: 'main' | 'lock_screen';
-};
+export type Wedding = Tables<'weddings'>;
 
 export type CarouselSlide = {
   type: 'dress_code' | 'image' | 'outfit_ideas' | 'ritual' | 'two_sections' | 'three_lines';
@@ -1228,12 +1226,11 @@ export class WeddingService {
 
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayName = dayNames[adjustedDate.getDay()];
-        const dateStr = adjustedDate.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        });
+        // Store as ISO date string (yyyy-MM-dd) for consistent formatting
+        const yyyy = adjustedDate.getFullYear();
+        const mm = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(adjustedDate.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
 
         const newDay: TablesInsert<'wedding_schedule'> = {
           wedding_id: weddingId,

@@ -46,6 +46,8 @@ import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
 import UpgradeModal from './UpgradeModal';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import AutoSaveIndicator from './AutoSaveIndicator';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -59,6 +61,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const { user, signOut } = useAuth();
     const { plan, isPro, togglePlan } = usePlan();
     const { isViewOnly } = useAdminRole();
+    const { status: autoSaveStatus } = useAutoSaveStatus();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
@@ -147,8 +150,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </Box>
                 </Box>
 
-                {/* Right: Feature Request Button & User Avatar */}
+                {/* Right: Auto-save indicator, Feature Request Button & User Avatar */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Auto-save indicator */}
+                    <AutoSaveIndicator status={autoSaveStatus} />
+
                     {/* Feature Request Button */}
                     {!isMobile && (
                         <Button

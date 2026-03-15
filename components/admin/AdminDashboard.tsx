@@ -99,7 +99,7 @@ const AdminDashboard = () => {
       } else {
         // Regular table export
         const { data: tableData, error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .select('*');
 
         if (error) throw error;
@@ -287,14 +287,14 @@ const AdminDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid spacing={3} sx={{ mb: 4 }}>
               {[
                 { label: 'Total Guests', value: stats.guests, color: '#2196F3', icon: <PeopleIcon /> },
                 { label: 'RSVPs Received', value: stats.rsvps, color: '#4CAF50', icon: <EventIcon /> },
                 { label: 'Comments Posted', value: stats.comments, color: '#FF5722', icon: <ChatIcon /> },
                 { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: '#25D366', icon: <WhatsAppIcon /> },
               ].map((stat, index) => (
-                <Grid item xs={12} sm={6} md={3} key={stat.label}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.label}>
                   <Card
                     sx={{
                       height: '100%',
@@ -352,9 +352,9 @@ const AdminDashboard = () => {
               Data Export Options
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid spacing={3}>
               {exportOptions.map((option, index) => (
-                <Grid item xs={12} md={6} key={option.key}>
+                <Grid size={{ xs: 12, md: 6 }} key={option.key}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

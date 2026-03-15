@@ -298,16 +298,6 @@ function PreviewContent() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Watch wedding.previewMode as fallback for real-time lock screen updates
-  useEffect(() => {
-    if (!isInIframe) return;
-    if (wedding?.previewMode === 'lock_screen') {
-      setPreviewView('pin_entry');
-    } else if (wedding?.previewMode === 'main') {
-      setPreviewView('rsvp_submitted');
-    }
-  }, [wedding?.previewMode, isInIframe]);
-
   // Read ?view= query param for standalone "View Site" link
   useEffect(() => {
     const viewParam = searchParams.get('view');

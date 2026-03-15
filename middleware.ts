@@ -104,13 +104,13 @@ export async function middleware(request: NextRequest) {
 
         const wedding = weddingData as any;
 
-        if (wedding && wedding.created_by !== user.id) {
+        if (wedding && user && wedding.created_by !== user.id) {
           // Check if user is an admin
           const { data: adminData } = await supabase
             .from('wedding_admins')
             .select('id')
             .eq('wedding_id', wedding.id)
-            .eq('user_id', user.id)
+            .eq('user_id', user!.id)
             .single();
 
           if (!adminData) {

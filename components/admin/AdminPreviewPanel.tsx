@@ -25,6 +25,7 @@ interface AdminPreviewPanelProps {
     lastPublishedAt?: string | null;
     onPublished?: () => void;
     currentAdminPath?: string | null;
+    websiteLayout?: string | null;
 }
 
 interface PinCode {
@@ -40,6 +41,7 @@ export default function AdminPreviewPanel({
     lastPublishedAt: externalLastPublished,
     onPublished,
     currentAdminPath,
+    websiteLayout,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -73,16 +75,22 @@ export default function AdminPreviewPanel({
     const isPinsPage = sectionSlug === 'pins';
     const isRsvpFormPage = sectionSlug === 'rsvp-form';
 
-    // Desktop: section navigation via NAVIGATE_TO_SECTION postMessage (VerticalScrollLayout)
-    // Mobile: navigate iframe to section route (e.g. /preview/slug/faq) which renders the multi-page section page
+    // Determine if desktop should use vertical scroll (postMessage) or multi-page (URL navigation)
+    const isDesktopVerticalScroll = websiteLayout === 'vertical_scroll' || websiteLayout === 'infinite_scroll';
+
+    // Desktop Vertical Scroll: section navigation via NAVIGATE_TO_SECTION postMessage (VerticalScrollLayout)
+    // Desktop Multi-Page / Mobile: navigate iframe to section route (e.g. /preview/slug/faq)
     // Pins: always base URL (pin entry handled via SET_PREVIEW_MODE postMessage)
     // RSVP Form: always shows the RSVP form preview route regardless of viewport
     const iframeSrc = useMemo(() => {
         if (isRsvpFormPage) return `/preview/${weddingSlug}/rsvp-form`;
         if (isPinsPage) return `/preview/${weddingSlug}`;
-        if (viewMode === 'mobile' && sectionSlug) return `/preview/${weddingSlug}/${sectionSlug}`;
+        // For mobile or desktop multi-page, navigate to section URL directly
+        if (sectionSlug && (viewMode === 'mobile' || !isDesktopVerticalScroll)) {
+            return `/preview/${weddingSlug}/${sectionSlug}`;
+        }
         return `/preview/${weddingSlug}`;
-    }, [viewMode, sectionSlug, isPinsPage, isRsvpFormPage, weddingSlug]);
+    }, [viewMode, sectionSlug, isPinsPage, isRsvpFormPage, weddingSlug, isDesktopVerticalScroll]);
 
     // View Site dropdown
     const [viewSiteAnchor, setViewSiteAnchor] = useState<null | HTMLElement>(null);
@@ -199,9 +207,9 @@ export default function AdminPreviewPanel({
         }
     }, [viewMode]);
 
-    // Send postMessage to iframe when section changes (for smooth in-page navigation)
+    // Send postMessage to iframe when section changes (only for vertical scroll layout — multi-page uses URL navigation)
     useEffect(() => {
-        if (sectionSlug && !isPinsPage && iframeRefLine.current?.contentWindow) {
+        if (sectionSlug && !isPinsPage && isDesktopVerticalScroll && viewMode === 'desktop' && iframeRefLine.current?.contentWindow) {
             try {
                 iframeRefLine.current.contentWindow.postMessage(
                     { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
@@ -209,13 +217,13 @@ export default function AdminPreviewPanel({
                 );
             } catch (e) { }
         }
-    }, [sectionSlug, isPinsPage]);
+    }, [sectionSlug, isPinsPage, isDesktopVerticalScroll, viewMode]);
 
-    // Re-send NAVIGATE_TO_SECTION after preview refreshes (e.g. first entry created makes section appear)
+    // Re-send NAVIGATE_TO_SECTION after preview refreshes (only for vertical scroll layout)
     useEffect(() => {
         const channel = new BroadcastChannel('phera-design-sync');
         channel.onmessage = (event) => {
-            if (event.data?.type === 'PREVIEW_REFRESH' && sectionSlug && !isPinsPage) {
+            if (event.data?.type === 'PREVIEW_REFRESH' && sectionSlug && !isPinsPage && isDesktopVerticalScroll && viewMode === 'desktop') {
                 // Delay to allow preview to refetch data and re-render new sections
                 setTimeout(() => {
                     if (iframeRefLine.current?.contentWindow) {
@@ -230,7 +238,7 @@ export default function AdminPreviewPanel({
             }
         };
         return () => channel.close();
-    }, [sectionSlug, isPinsPage]);
+    }, [sectionSlug, isPinsPage, isDesktopVerticalScroll, viewMode]);
 
     // Send preview mode to iframe when pin page status changes
     const handleIframeLoad = useCallback(() => {
@@ -280,15 +288,15 @@ export default function AdminPreviewPanel({
     }, [containerWidth]);
 
     // iPhone aspect ratio (roughly 9:19.5) — fit within available space
-    const MOBILE_ASPECT = 19.5 / 9;
+    const MOBILE_ASPECT = 19.5 / 12;
     const mobileWidth = useMemo(() => {
-        if (!containerHeight || !containerWidth) return 375;
+        if (!containerHeight || !containerWidth) return 420;
         const maxH = containerHeight * 0.92;
         const maxW = containerWidth * 0.85;
         // Width from fitting height
         const wFromH = maxH / MOBILE_ASPECT;
-        // Use the smaller of the two to ensure it fits
-        return Math.min(wFromH, maxW, 375);
+        // Use the smaller of the two to ensure it fits, but don't go below 340
+        return Math.max(Math.min(wFromH, maxW, 420), 360);
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
 
@@ -429,6 +437,7 @@ export default function AdminPreviewPanel({
                 ref={containerRef}
                 sx={{
                     flex: 1,
+                    minHeight: 0,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -447,7 +456,7 @@ export default function AdminPreviewPanel({
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-80px' : '-35px',
+                        marginTop: viewMode === 'desktop' ? '-80px' : '-15px',
                         backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
@@ -541,102 +550,99 @@ export default function AdminPreviewPanel({
                     )}
                 </motion.div>
 
-                {/* View Site and Share Buttons */}
-                <motion.div
-                    animate={{
-                        width: viewMode === 'desktop' ? '92%' : Math.min(mobileWidth - 10, 340),
-                    }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    style={{
-                        position: 'absolute',
-                        bottom: viewMode === 'mobile' ? '-10px' : '40px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        pointerEvents: 'none',
-                        zIndex: 5,
-                    }}
-                >
-                    <Button
-                        variant="text"
-                        onClick={(e) => {
-                            if (sectionLabel) {
-                                setViewSiteAnchor(e.currentTarget);
-                            } else {
-                                window.open(previewUrl, '_blank');
-                            }
-                        }}
-                        startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
-                        sx={{
-                            color: '#1a1a1a',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            pointerEvents: 'auto',
-                            bgcolor: 'rgba(255, 255, 255, 0.85)',
-                            backdropFilter: 'blur(8px)',
-                            px: 2,
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' }
-                        }}
-                    >
-                        View Site
-                    </Button>
-                    <Menu
-                        anchorEl={viewSiteAnchor}
-                        open={Boolean(viewSiteAnchor)}
-                        onClose={() => setViewSiteAnchor(null)}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-                        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                        slotProps={{ paper: { sx: { borderRadius: '12px', mt: -1 } } }}
-                    >
-                        <MenuItem onClick={() => {
-                            const url = sectionSlug === 'pins'
-                                ? `${previewUrl}?view=pin_entry`
-                                : `${previewUrl}/${sectionSlug}`;
-                            window.open(url, '_blank');
-                            setViewSiteAnchor(null);
-                        }}>
-                            {sectionLabel}
-                        </MenuItem>
-                        <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
-                            Home
-                        </MenuItem>
-                    </Menu>
-                    <Button
-                        variant="text"
-                        onClick={handleShareClick}
-                        startIcon={<IosShare sx={{ fontSize: 20 }} />}
-                        sx={{
-                            color: '#1a1a1a',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            pointerEvents: 'auto',
-                            bgcolor: 'rgba(255, 255, 255, 0.85)',
-                            backdropFilter: 'blur(8px)',
-                            px: 2,
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' }
-                        }}
-                    >
-                        Share
-                    </Button>
-                </motion.div>
             </Box>
 
-            {/* Preview Note */}
-            <Box sx={{ py: 1.5, px: 2, textAlign: 'center' }}>
+            {/* Bottom Bar: View Site, hint text, Share */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    py: 1.5,
+                    px: 2,
+                    gap: 1,
+                    flexShrink: 0,
+                }}
+            >
+                <Button
+                    variant="text"
+                    onClick={(e) => {
+                        if (sectionLabel) {
+                            setViewSiteAnchor(e.currentTarget);
+                        } else {
+                            window.open(previewUrl, '_blank');
+                        }
+                    }}
+                    startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
+                    sx={{
+                        color: '#1a1a1a',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        bgcolor: 'rgba(255, 255, 255, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        px: 2,
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                    }}
+                >
+                    View Site
+                </Button>
+                <Menu
+                    anchorEl={viewSiteAnchor}
+                    open={Boolean(viewSiteAnchor)}
+                    onClose={() => setViewSiteAnchor(null)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                    slotProps={{ paper: { sx: { borderRadius: '12px', mt: -1 } } }}
+                >
+                    <MenuItem onClick={() => {
+                        const url = sectionSlug === 'pins'
+                            ? `${previewUrl}?view=pin_entry`
+                            : `${previewUrl}/${sectionSlug}`;
+                        window.open(url, '_blank');
+                        setViewSiteAnchor(null);
+                    }}>
+                        {sectionLabel}
+                    </MenuItem>
+                    <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
+                        Home
+                    </MenuItem>
+                </Menu>
                 <Typography
                     variant="caption"
                     sx={{
                         color: '#9a9a9a',
                         fontSize: '0.75rem',
+                        textAlign: 'center',
+                        flexShrink: 1,
+                        minWidth: 0,
                     }}
                 >
                     To see the exact version your guests will see, click &quot;View Site&quot;.
                 </Typography>
+                <Button
+                    variant="text"
+                    onClick={handleShareClick}
+                    startIcon={<IosShare sx={{ fontSize: 20 }} />}
+                    sx={{
+                        color: '#1a1a1a',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        bgcolor: 'rgba(255, 255, 255, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        px: 2,
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                    }}
+                >
+                    Share
+                </Button>
             </Box>
 
             {/* Share Modal */}

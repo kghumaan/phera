@@ -7,6 +7,7 @@ import {
   Typography,
   Stack,
   IconButton,
+  CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -117,6 +118,9 @@ function PreviewDetailsContent() {
   const { wedding, isLoading, error } = useWedding();
   const router = useRouter();
 
+  // Navigation loading state
+  const [isNavigating, setIsNavigating] = useState(false);
+
   // State for section data availability
   const [hasTravelData, setHasTravelData] = useState(false);
   const [hasFAQData, setHasFAQData] = useState(false);
@@ -181,12 +185,35 @@ function PreviewDetailsContent() {
   }
 
   const handleBack = () => {
-    router.push(`/preview/${wedding.slug}`);
+    setIsNavigating(true);
+    router.back();
   };
 
   const handleMenuItemClick = (item: string) => {
-    // In preview mode, just show an alert that these would navigate in the real site
-    alert(`In the live wedding website, this would navigate to: ${item}`);
+    if (!wedding?.slug) return;
+
+    setIsNavigating(true);
+
+    switch (item) {
+      case 'Travel & Stay':
+        router.push(`/preview/${wedding.slug}/travel`);
+        break;
+      case 'Schedule & Events':
+        router.push(`/preview/${wedding.slug}/schedule`);
+        break;
+      case 'Q & A':
+        router.push(`/preview/${wedding.slug}/faq`);
+        break;
+      case 'Registry':
+        router.push(`/preview/${wedding.slug}/registry`);
+        break;
+      case 'Change RSVP':
+        router.push(`/preview/${wedding.slug}/rsvp`);
+        break;
+      default:
+        setIsNavigating(false);
+        console.log(`Navigate to ${item}`);
+    }
   };
 
   return (
@@ -206,6 +233,26 @@ function PreviewDetailsContent() {
         overflow: 'hidden',
       }}
     >
+      {/* Navigation Loading Overlay */}
+      {isNavigating && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <CircularProgress size={40} sx={{ color: '#000' }} />
+        </Box>
+      )}
+
       {/* Header with back button */}
       <Box
         sx={{

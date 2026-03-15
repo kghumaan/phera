@@ -7,13 +7,13 @@ import { supabase } from '../supabase/client';
 
 export interface WhatsAppOptIn {
   id: string;
-  guest_id: string;
+  guest_id: string | null;
   wedding_id: string;
   phone_number: string;
-  opt_in_method: 'rsvp_form' | 'manual' | 'api';
-  opted_in_at: string;
-  opted_out_at?: string;
-  created_at: string;
+  opt_in_method: string | null;
+  opted_in: boolean | null;
+  opted_in_at: string | null;
+  opted_out_at: string | null;
 }
 
 /**

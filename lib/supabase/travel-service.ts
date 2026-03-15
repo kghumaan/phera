@@ -376,7 +376,7 @@ export async function getAllGuestChecklists(weddingId: string): Promise<{
       const completedItems = guestChecklist.filter(c => c.completed).map(c => c.item_key)
 
       return {
-        guestId: rsvp.guest_id,
+        guestId: rsvp.guest_id || '',
         guestName: guest?.name || 'Unknown',
         guestEmail: guest?.email || '',
         completedItems,

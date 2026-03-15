@@ -10,6 +10,7 @@ import {
   TransportationMode,
   TransportationDirection,
   Coordinates,
+  Json,
 } from './types';
 
 // ============================================
@@ -106,9 +107,9 @@ export async function createVehicle(
     capacity: number;
     departure_datetime: string;
     pickup_location?: string;
-    pickup_location_coordinates?: Coordinates;
+    pickup_location_coordinates?: Json;
     dropoff_location?: string;
-    dropoff_location_coordinates?: Coordinates;
+    dropoff_location_coordinates?: Json;
     order_index?: number;
   }
 ): Promise<TransportationVehicle | null> {
@@ -223,7 +224,7 @@ export async function createPickupLocation(
     direction: TransportationDirection;
     name: string;
     address?: string;
-    coordinates?: Coordinates;
+    coordinates?: Json;
     order_index?: number;
   }
 ): Promise<TransportationPickupLocation | null> {

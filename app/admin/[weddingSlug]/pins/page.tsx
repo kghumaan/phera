@@ -41,7 +41,6 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
-import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
@@ -189,7 +188,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           pin_entry_text: pinEntryText,
           pin_entry_subtitle_text: pinEntrySubtitleText,
           pin_entry_background: customPinEntryBackground || pinEntryBackground,
-          previewMode: 'lock_screen',
         }
       };
 
@@ -399,7 +397,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               Create and manage unique PIN codes for your guests to access the wedding website
             </Typography>
           </Box>
-          <AutoSaveIndicator status={saveStatus} />
         </Box>
 
         {/* PIN Management Section */}

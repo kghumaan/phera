@@ -89,7 +89,7 @@ export default function TravelDetailsPage() {
         const flight = await getGuestFlight(user.id, weddingSlug);
         if (flight) {
           // Parse datetime strings back to date and time
-          const parseDT = (dt?: string) => {
+          const parseDT = (dt?: string | null) => {
             if (!dt) return { date: '', time: '' };
             try {
               const d = new Date(dt);
@@ -123,7 +123,7 @@ export default function TravelDetailsPage() {
         const checklist = await getGuestChecklist(user.id, weddingSlug);
         const checklistMap: Record<string, boolean> = {};
         checklist.forEach(item => {
-          checklistMap[item.item_key] = item.completed;
+          checklistMap[item.item_key] = item.completed ?? false;
         });
         setChecklistItems(checklistMap);
       } catch (error) {

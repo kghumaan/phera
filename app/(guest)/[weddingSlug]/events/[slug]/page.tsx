@@ -514,7 +514,7 @@ export default function EventDetailPage() {
                   slide={slide}
                   isActive={index === currentSlide}
                   index={index}
-                  textColor={event.text_color}
+                  textColor={event.text_color || '#FFFFFF'}
                   gradientBackground={event.gradient_background}
                 />
               </Box>

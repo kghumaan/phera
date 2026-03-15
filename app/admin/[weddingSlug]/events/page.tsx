@@ -1062,8 +1062,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Slide Image</Typography>
                 <ImageUpload
                   value={currentSlide?.src || ''}
-                  onChange={(url) => setCurrentSlide({ ...currentSlide, src: url })}
-                  path={getWeddingImagePath(weddingId!, 'slides')}
+                  onChange={(url) => setCurrentSlide({ ...currentSlide, src: url ?? undefined })}
+                  path={getWeddingImagePath(weddingId!, 'carousel')}
                   label="Slide Image"
                   aspectRatio="3/4"
                 />

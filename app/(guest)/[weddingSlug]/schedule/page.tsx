@@ -1,9 +1,19 @@
 'use client';
 
-import { Box, Container, Typography, Stack, IconButton, useTheme, useMediaQuery } from '@mui/material';
-import { motion } from 'framer-motion';
+import {
+  Box,
+  Container,
+  Typography,
+  Stack,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+} from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowBack, CalendarTodayOutlined, AccessTimeOutlined, LocationOnOutlined } from '@mui/icons-material';
+import { ArrowBack, ChevronLeft, ChevronRight, LocationOnOutlined } from '@mui/icons-material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import AppHeader from '@/components/shared/AppHeader';
@@ -11,298 +21,498 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { format, parseISO } from 'date-fns';
+import { ScheduleItem, WeddingEvent } from '@/lib/supabase/wedding-service';
+import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailCarousel';
 
-
-// Wedding schedule data from Figma design
-const weddingSchedule: {
-  day: string;
-  date: string;
-  events: {
-    time: string;
-    name: string;
-
-    description: string;
-    location: string;
-  }[];
-}[] = [
-    {
-      day: 'Sunday',
-      date: 'Sunday - January 4, 2025',
-      events: [
-        {
-          time: '11 AM',
-          name: 'Guest Arrival',
-          description: 'Check in and dive straight into the festive fun (come dressed in your shades of yellow!)',
-          location: 'The Palayana'
-        },
-        {
-          time: '12 PM',
-          name: 'Welcome Lunch',
-          description: 'Bright beachfront buffet in your sunny yellows—get ready to mingle and reunite.',
-          location: 'Lawn'
-        },
-        {
-          time: '1:30 PM',
-          name: 'Haldi Ceremony',
-          description: 'Splash into the turmeric celebration—feel the buzz as we kick off the good vibes.',
-          location: 'Lawn'
-        },
-        {
-          time: '12 - 5 PM',
-          name: 'Mehendi Station',
-          description: 'Stop by for live henna artistry—watch your hands transform into incredible works of art.',
-          location: 'Thaipas'
-        },
-        {
-          time: '3:30 PM',
-          name: 'KV\'s Baarat (Grooms Side)',
-          description: 'Drums, music, and procession—join the vibrant celebration as we parade through the streets.',
-          location: 'Resort Entrance'
-        },
-        {
-          time: '5 PM',
-          name: 'Varmala & Vows',
-          description: 'Exchange garlands and vows under a sunset sky—an intimate, colorful moment you won\'t want to miss.',
-          location: 'Lawn'
-        },
-        {
-          time: '6:30 - 10 PM',
-          name: 'Dinner & Jaggo',
-          description: 'Eat, dance, repeat—savor the feast then let loose to pounding dhol beats.',
-          location: 'Lawn'
-        }
-      ]
-    },
-    {
-      day: 'Monday',
-      date: 'Monday - January 5, 2025',
-      events: [
-        {
-          time: '6:30 - 9:30 AM',
-          name: 'Breakfast',
-          description: '',
-          location: 'Basil Restaurant'
-        },
-        {
-          time: '9:30 AM',
-          name: 'Anand Karaj (Wedding Ceremony)',
-          description: '',
-          location: 'Satnam House (transportation provided)'
-        },
-        {
-          time: '12:30 PM',
-          name: 'Lunch',
-          description: '',
-          location: 'Lawn'
-        },
-        {
-          time: '2 PM',
-          name: 'Pool Party',
-          description: '',
-          location: 'Poolside & Beach'
-        },
-        {
-          time: '7:30 PM',
-          name: 'Sangeet & Reception',
-          description: '',
-          location: 'Ballroom'
-        },
-        {
-          time: '12 - Late',
-          name: 'Afterparty',
-          description: '',
-          location: 'Ballroom'
-        }
-      ]
-    },
-    {
-      day: 'Tuesday',
-      date: 'Tuesday - January 6, 2025',
-      events: [
-        {
-          time: '6:30 - 11 AM',
-          name: 'Breakfast',
-          description: '',
-          location: 'Basil Restaurant'
-        },
-        {
-          time: '12 PM',
-          name: 'Checkout',
-          description: '',
-          location: 'Hotel Lobby'
-        }
-      ]
+// Format ISO date to display format
+function formatScheduleDate(dateStr: string): string {
+  try {
+    let parsed = parseISO(dateStr);
+    if (isNaN(parsed.getTime())) {
+      // Legacy format: "Monday - January 5, 2025"
+      const cleaned = dateStr.replace(/\s*-\s*/, ', ');
+      parsed = new Date(cleaned);
     }
-  ];
+    if (!isNaN(parsed.getTime())) {
+      return format(parsed, 'EEEE - MMMM d, yyyy');
+    }
+  } catch { /* fallback */ }
+  return dateStr;
+}
 
-// Day card component with improved layout
-const DayCard = ({ day, date, events, index, primaryColor }: {
-  day: string;
-  date: string;
-  events: any[];
-  index: number;
+function getBarColor(gradientBackground: string | null | undefined): string {
+  if (gradientBackground && gradientBackground.startsWith('#')) return gradientBackground;
+  return '#DE3F5E';
+}
+
+// Major event card with color bar (matches admin MajorEventCard style)
+const MajorEventRow = ({
+  event,
+  primaryColor,
+  onMoreDetails,
+}: {
+  event: ScheduleItem;
   primaryColor?: string;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-  >
+  onMoreDetails?: () => void;
+}) => {
+  const barColor = getBarColor(event.gradient_background);
+
+  return (
     <Box
       sx={{
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '16px',
-        p: 3,
-        mb: 2,
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        gap: 2,
+        alignItems: 'stretch',
       }}
     >
-      {/* Day and Date Header */}
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography
-          variant="h5"
-          sx={{
-            // fontWeight: 600,
-            color: '#141414',
-            mb: 0,
-          }}
-        >
-          {date}
-        </Typography>
-        {/* <Typography
-          variant="body2"
-          sx={{
-            color: '#666',
-            fontWeight: 500,
-            fontSize: 16,
-            letterSpacing: 0.5,
-          }}
-        >
-          {date}
-        </Typography> */}
-      </Box>
+      {/* Color bar */}
+      <Box sx={{ width: 8, bgcolor: barColor, borderRadius: '4px', flexShrink: 0, alignSelf: 'stretch' }} />
 
-      {/* Events */}
-      <Stack spacing={3}>
-        {events.map((event, eventIndex) => (
-          <Box
-            key={eventIndex}
+      {/* Content */}
+      <Box sx={{ flex: 1, minWidth: 0, py: 0.5 }}>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            color: '#141414',
+            fontSize: '1.1rem',
+            mb: 0.5,
+          }}
+        >
+          {event.name}
+        </Typography>
+        {event.description && (
+          <Typography
             sx={{
-              pb: eventIndex < events.length - 1 ? 3 : 0,
-              borderBottom: eventIndex < events.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+              color: '#858585',
+              fontSize: '0.95rem',
+              lineHeight: 1.5,
+              mb: 1.5,
             }}
           >
-            {/* Event Title and Time Row */}
-            <Box
+            {event.description}
+          </Typography>
+        )}
+        <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: event.linked_event_id ? 1.5 : 0 }}>
+          {event.time && (
+            <Typography sx={{ color: primaryColor || '#DE3F5E', fontSize: '0.875rem', fontWeight: 600 }}>
+              {'⏰  '}{event.time}
+            </Typography>
+          )}
+          {event.location && (
+            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+              {'📍 '}{event.location}
+            </Typography>
+          )}
+          {event.dress_code && (
+            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+              {'👗 '}{event.dress_code}
+            </Typography>
+          )}
+        </Stack>
+        {event.linked_event_id && onMoreDetails && (
+          <Box
+            onClick={onMoreDetails}
+            sx={{ cursor: 'pointer', display: 'inline-block' }}
+          >
+            <Typography sx={{ color: '#DE3F5E', fontSize: '0.875rem' }}>
+              <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More details</Box>
+              {' >'}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+};
+
+// Minor event row (simpler, no color bar)
+const MinorEventRow = ({
+  event,
+  primaryColor,
+}: {
+  event: ScheduleItem;
+  primaryColor?: string;
+}) => (
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 2,
+    }}
+  >
+    <Box>
+      <Typography
+        variant="h6"
+        sx={{
+          color: '#141414',
+          lineHeight: 1.5,
+        }}
+      >
+        {event.name}
+      </Typography>
+      {event.location && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+          <LocationOnOutlined sx={{ fontSize: 16, color: '#858585' }} />
+          <Typography variant="body2" sx={{ color: '#858585' }}>
+            {event.location}
+          </Typography>
+        </Box>
+      )}
+    </Box>
+    {event.time && (
+      event.time.includes('-') ? (
+        <Stack spacing={0} sx={{ flexShrink: 0, textAlign: 'right' }}>
+          {event.time.split('-').map((part: string, i: number) => (
+            <Typography
+              key={i}
+              variant="body2"
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 1,
-                gap: 2,
+                color: primaryColor || '#DE3F5E',
+                fontWeight: 600,
+                letterSpacing: '0.07em',
+                textTransform: 'uppercase',
+                lineHeight: 1.3,
               }}
             >
-              <Box>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    // fontWeight: 600,
-                    color: '#141414',
-                    // fontSize: '1rem',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {event.name}
-                </Typography>
-                {event.dressCode && (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#858585',
-                      fontSize: '0.85rem',
-                      fontWeight: 400,
-                      display: 'block',
-                      mt: 0.2,
-                    }}
-                  >
-                    {event.dressCode}
-                  </Typography>
+              {part.trim()}
+            </Typography>
+          ))}
+        </Stack>
+      ) : (
+        <Typography
+          variant="body2"
+          sx={{
+            color: primaryColor || '#DE3F5E',
+            fontWeight: 600,
+            letterSpacing: '0.07em',
+            textTransform: 'uppercase',
+            textAlign: 'right',
+            flexShrink: 0,
+          }}
+        >
+          {event.time}
+        </Typography>
+      )
+    )}
+  </Box>
+);
+
+// Day card component
+const DayCard = ({
+  date,
+  events,
+  index,
+  primaryColor,
+  weddingEvents,
+  onMoreDetails,
+}: {
+  date: string;
+  events: ScheduleItem[];
+  index: number;
+  primaryColor?: string;
+  weddingEvents: WeddingEvent[];
+  onMoreDetails: (event: WeddingEvent) => void;
+}) => {
+  const formattedDate = formatScheduleDate(date);
+
+  const handleMoreDetails = (item: ScheduleItem) => {
+    if (!item.linked_event_id) return;
+    const linkedEvent = weddingEvents.find(e => e.id === item.linked_event_id);
+    if (linkedEvent && linkedEvent.carousel_slides?.length > 0) {
+      onMoreDetails(linkedEvent);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+    >
+      <Box
+        sx={{
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          p: 3,
+          mb: 2,
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        {/* Date Header */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              color: '#141414',
+              mb: 0,
+            }}
+          >
+            {formattedDate}
+          </Typography>
+        </Box>
+
+        {/* Events */}
+        {events.length === 0 ? (
+          <Typography
+            sx={{
+              color: '#999',
+              fontStyle: 'italic',
+              fontSize: '1rem',
+              textAlign: 'center',
+              py: 2,
+            }}
+          >
+            Stay Tuned...
+          </Typography>
+        ) : (
+          <Stack spacing={3}>
+            {events.map((event, eventIndex) => (
+              <Box
+                key={event.id || eventIndex}
+                sx={{
+                  pb: eventIndex < events.length - 1 ? 3 : 0,
+                  borderBottom: eventIndex < events.length - 1 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none',
+                }}
+              >
+                {event.is_major_event ? (
+                  <MajorEventRow
+                    event={event}
+                    primaryColor={primaryColor}
+                    onMoreDetails={() => handleMoreDetails(event)}
+                  />
+                ) : (
+                  <MinorEventRow event={event} primaryColor={primaryColor} />
                 )}
               </Box>
-              {event.time && event.time.includes('-') ? (
-                <Stack spacing={0} sx={{ flexShrink: 0, textAlign: 'right' }}>
-                  {event.time.split('-').map((part: string, i: number) => (
-                    <Typography
-                      key={i}
-                      variant="body2"
-                      sx={{
-                        color: primaryColor || '#DE3F5E',
-                        fontWeight: 600,
-                        letterSpacing: '0.07em',
-                        textTransform: 'uppercase',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {part.trim()}
-                    </Typography>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: primaryColor || '#DE3F5E',
-                    fontWeight: 600,
-                    letterSpacing: '0.07em',
-                    textTransform: 'uppercase',
-                    textAlign: 'right',
-                    flexShrink: 0,
-                  }}
-                >
-                  {event.time}
-                </Typography>
-              )}
-            </Box>
-            {/* Location */}
-            {event.location && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LocationOnOutlined
-                  sx={{ fontSize: 16, color: '#858585' }}
-                />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: '#858585',
-                    // fontSize: '1rem',
-                    // fontWeight: 400,
-                  }}
-                >
-                  {event.location}
-                </Typography>
-              </Box>
-            )}
+            ))}
+          </Stack>
+        )}
+      </Box>
+    </motion.div>
+  );
+};
+
+// Full-screen carousel overlay for "More Details"
+const CarouselOverlay = ({
+  event,
+  primaryColor,
+  onClose,
+}: {
+  event: WeddingEvent;
+  primaryColor?: string;
+  onClose: () => void;
+}) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = event.carousel_slides || [];
+  const totalSlides = slides.length;
+  const textColor = event.text_color || '#FFFFFF';
+  const gradientBackground = event.gradient_background || null;
+
+  if (slides.length === 0) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Background */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: gradientBackground
+              ? `url(/images/backgrounds/${gradientBackground})`
+              : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: gradientBackground ? undefined : '#1a1a1a',
+          }}
+        />
+        {/* Overlay for readability */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          }}
+        />
+
+        {/* Back button */}
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            color: '#000',
+            zIndex: 20,
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)' },
+          }}
+        >
+          <ArrowBack />
+        </IconButton>
+
+        {/* Event name header */}
+        <Typography
+          variant="h6"
+          sx={{
+            position: 'relative',
+            zIndex: 10,
+            fontSize: 14,
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: '#fff',
+            mb: 3,
+            textAlign: 'center',
+          }}
+        >
+          {event.name}
+        </Typography>
+
+        {/* Carousel card */}
+        <Card
+          sx={{
+            position: 'relative',
+            zIndex: 10,
+            width: '90%',
+            maxWidth: 380,
+            height: '65vh',
+            maxHeight: 650,
+            backgroundColor: 'transparent',
+            borderRadius: '24px',
+            boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundImage: gradientBackground
+              ? `url(/images/backgrounds/${gradientBackground})`
+              : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          <CardContent
+            sx={{
+              p: slides[currentSlide]?.type === 'image' ? 0 : { xs: 3, md: 4 },
+              '&:last-child': { pb: slides[currentSlide]?.type === 'image' ? 0 : undefined },
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center',
+              position: 'relative',
+              zIndex: 1,
+              height: '100%',
+            }}
+          >
+            <SlideContent
+              slide={slides[currentSlide]}
+              textColor={textColor}
+              gradientBackground={gradientBackground}
+              isGradientSlide={currentSlide % 2 === 0}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Navigation arrows */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 10,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 3,
+            mt: 3,
+          }}
+        >
+          <IconButton
+            onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+            disabled={currentSlide === 0}
+            sx={{
+              width: 48,
+              height: 48,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              color: '#000',
+              '&:hover': { backgroundColor: '#fff' },
+              '&:disabled': {
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'rgba(0, 0, 0, 0.3)',
+              },
+            }}
+          >
+            <ChevronLeft sx={{ fontSize: 28 }} />
+          </IconButton>
+
+          <IconButton
+            onClick={() => setCurrentSlide(Math.min(totalSlides - 1, currentSlide + 1))}
+            disabled={currentSlide === totalSlides - 1}
+            sx={{
+              width: 48,
+              height: 48,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              color: '#000',
+              '&:hover': { backgroundColor: '#fff' },
+              '&:disabled': {
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'rgba(0, 0, 0, 0.3)',
+              },
+            }}
+          >
+            <ChevronRight sx={{ fontSize: 28 }} />
+          </IconButton>
+        </Box>
+
+        {/* Diamond indicators */}
+        {totalSlides > 1 && (
+          <Box sx={{ position: 'relative', zIndex: 10, mt: 3 }}>
+            <DiamondIndicators total={totalSlides} current={currentSlide} activeColor={primaryColor} />
           </Box>
-        ))}
-      </Stack>
-    </Box>
-  </motion.div>
-);
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 export default function SchedulePage() {
   const params = useParams();
-  const weddingId = params.weddingSlug as string;
+  const weddingSlug = params.weddingSlug as string;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse } = useAuth();
-  const { wedding } = useWedding();
+  const { wedding, schedule, events } = useWedding();
 
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
+
+  const primaryColor = wedding?.primary_color || undefined;
 
   return (
     <OptimizedBackground
@@ -324,7 +534,7 @@ export default function SchedulePage() {
           <AppHeader
             variant="transparent"
             showBackButton={true}
-            backHref={`/${weddingId}/details`}
+            backHref={`/${weddingSlug}/details`}
           />
         </Box>
       )}
@@ -422,18 +632,18 @@ export default function SchedulePage() {
         >
           {/* Schedule Cards */}
           <Box>
-            {weddingSchedule.map((dayData, index) => (
+            {schedule.map((day, index) => (
               <DayCard
-                key={index}
-                day={dayData.day}
-                date={dayData.date}
-                events={dayData.events}
+                key={day.id}
+                date={day.date}
+                events={day.events}
                 index={index}
-                primaryColor={wedding?.primary_color || undefined}
+                primaryColor={primaryColor}
+                weddingEvents={events}
+                onMoreDetails={(event) => setSelectedEvent(event)}
               />
             ))}
           </Box>
-
         </motion.div>
       </Container>
 
@@ -442,6 +652,15 @@ export default function SchedulePage() {
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />
+
+      {/* Carousel Overlay */}
+      {selectedEvent && (
+        <CarouselOverlay
+          event={selectedEvent}
+          primaryColor={primaryColor}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </OptimizedBackground>
   );
-} 
+}

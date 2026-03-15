@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -11,12 +12,20 @@ interface UseAutoSaveOptions {
 }
 
 export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAutoSaveOptions) {
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [saveStatus, setSaveStatusLocal] = useState<SaveStatus>('idle');
+  const { setStatus: setGlobalStatus } = useAutoSaveStatus();
+
+  // Sync local status to both local state and global context
+  const setSaveStatus = useCallback((s: SaveStatus) => {
+    setSaveStatusLocal(s);
+    setGlobalStatus(s);
+  }, [setGlobalStatus]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const savedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   const onSaveRef = useRef(onSave);
   const isSavingRef = useRef(false);
+  const pendingSaveRef = useRef(false);
 
   // Always keep the ref up to date with the latest onSave
   onSaveRef.current = onSave;
@@ -36,8 +45,11 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
   const debouncedSave = useCallback(() => {
     // Don't save if disabled (e.g., auth not ready)
     if (!enabledRef.current) return;
-    // Don't reset timer if a save is already in flight
-    if (isSavingRef.current) return;
+    // If a save is in flight, mark as pending so we re-save after completion
+    if (isSavingRef.current) {
+      pendingSaveRef.current = true;
+      return;
+    }
 
     if (timerRef.current) clearTimeout(timerRef.current);
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
@@ -45,6 +57,7 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
     timerRef.current = setTimeout(async () => {
       if (!isMountedRef.current || isSavingRef.current) return;
       isSavingRef.current = true;
+      pendingSaveRef.current = false;
       setSaveStatus('saving');
 
       try {
@@ -53,9 +66,12 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
         setSaveStatus('saved');
 
         // Send broadcast messages for preview refresh
+        // Skip PREVIEW_REFRESH if another save is pending (avoids stale DB data flash)
         try {
           const channel = new BroadcastChannel('phera-design-sync');
-          channel.postMessage({ type: 'PREVIEW_REFRESH' });
+          if (!pendingSaveRef.current) {
+            channel.postMessage({ type: 'PREVIEW_REFRESH' });
+          }
           channel.postMessage({ type: 'CHANGES_SAVED' });
           channel.close();
         } catch {
@@ -75,9 +91,14 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
         }
       } finally {
         isSavingRef.current = false;
+        // If changes were made during the save, trigger another save cycle
+        if (pendingSaveRef.current && isMountedRef.current) {
+          pendingSaveRef.current = false;
+          debouncedSave();
+        }
       }
     }, debounceMs);
-  }, [debounceMs]); // Stable! No longer depends on onSave
+  }, [debounceMs, setSaveStatus]); // Stable! No longer depends on onSave
 
   return { saveStatus, debouncedSave };
 }

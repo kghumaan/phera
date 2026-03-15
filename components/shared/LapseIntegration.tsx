@@ -11,7 +11,6 @@ import {
   Grid,
   useTheme,
   Chip,
-  QRCode,
   Avatar,
   List,
   ListItem,
@@ -89,8 +88,8 @@ export default function LapseIntegration() {
       </Box>
 
       {/* Overview */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4}>
+      <Grid spacing={3} sx={{ mb: 4 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
             <CardContent sx={{ textAlign: 'center', p: 3 }}>
               <Avatar sx={{ bgcolor: theme.palette.primary.main + '20', color: theme.palette.primary.main, mx: 'auto', mb: 2, width: 56, height: 56 }}>
@@ -106,7 +105,7 @@ export default function LapseIntegration() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
             <CardContent sx={{ textAlign: 'center', p: 3 }}>
               <Avatar sx={{ bgcolor: theme.palette.success.main + '20', color: theme.palette.success.main, mx: 'auto', mb: 2, width: 56, height: 56 }}>
@@ -122,7 +121,7 @@ export default function LapseIntegration() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
             <CardContent sx={{ textAlign: 'center', p: 3 }}>
               <Avatar sx={{ bgcolor: theme.palette.warning.main + '20', color: theme.palette.warning.main, mx: 'auto', mb: 2, width: 56, height: 56 }}>
@@ -140,9 +139,9 @@ export default function LapseIntegration() {
       </Grid>
 
       {/* Event Albums */}
-      <Grid container spacing={3}>
+      <Grid spacing={3}>
         {lapseEvents.map((event, index) => (
-          <Grid item xs={12} md={6} lg={4} key={event.id}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={event.id}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

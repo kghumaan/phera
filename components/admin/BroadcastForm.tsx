@@ -33,7 +33,7 @@ interface Template {
   name: string;
   content: string;
   parameters: any;
-  status: string;
+  status: string | null;
 }
 
 export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFormProps) {

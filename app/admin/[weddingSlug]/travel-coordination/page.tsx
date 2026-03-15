@@ -249,14 +249,14 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
 
             {/* Mock stats */}
             <Box sx={{ pointerEvents: 'none', userSelect: 'none' }}>
-              <Grid container spacing={3} sx={{ mb: 3 }}>
+              <Grid spacing={3} sx={{ mb: 3 }}>
                 {[
                   { icon: <FlightTakeoff />, color: '#DE3F5E', value: 8, label: 'Flights Entered' },
                   { icon: <DirectionsBus />, color: '#4CAF50', value: 12, label: 'Shuttle Requests' },
                   { icon: <People />, color: '#2196F3', value: 6, label: 'Guests with Checklists' },
                   { icon: <CheckCircle />, color: '#FF9800', value: '72%', label: 'Avg Checklist Done' },
                 ].map((stat, i) => (
-                  <Grid item xs={12} sm={6} md={3} key={i}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
                     <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -342,8 +342,8 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
         </Box>
 
         {/* Stats Cards */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid spacing={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -359,7 +359,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -375,7 +375,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -391,7 +391,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'white' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -463,10 +463,10 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                         <TableRow key={flight.id} hover>
                           <TableCell>
                             <Typography sx={{ fontWeight: 500, color: '#1a1a1a' }}>
-                              {(flight.guest as any)?.name || 'Unknown'}
+                              {flight.guest?.name || 'Unknown'}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
-                              {(flight.guest as any)?.email || ''}
+                              {flight.guest?.email || ''}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -490,7 +490,7 @@ export default function TravelCoordinationPage({ params }: { params: Promise<{ w
                             )}
                           </TableCell>
                           <TableCell>
-                            <Typography sx={{ color: '#1a1a1a' }}>{formatDateTime(flight.arrival_datetime)}</Typography>
+                            <Typography sx={{ color: '#1a1a1a' }}>{formatDateTime(flight.arrival_datetime ?? undefined)}</Typography>
                           </TableCell>
                           <TableCell>
                             {flight.shuttle_preference_time ? (

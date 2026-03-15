@@ -25,7 +25,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
-import AutoSaveIndicator from '@/components/admin/AutoSaveIndicator';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 
@@ -463,9 +462,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               Basic information about your wedding
             </Typography>
           </Box>
-          <AutoSaveIndicator status={saveStatus} />
         </Box>
-
 
         {/* Form Content */}
         <Stack spacing={3}>
@@ -705,9 +702,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         return isNaN(d.getTime()) ? null : d;
                       } catch { return null; }
                     })()}
-                    onChange={(date) => {
+                    onChange={(date: Date | null) => {
                       if (date) {
-                        handleChange('rsvp_deadline', (date as Date).toISOString());
+                        handleChange('rsvp_deadline', date.toISOString());
                       }
                     }}
                     customInput={<AdminDateInput label="RSVP Deadline" />}

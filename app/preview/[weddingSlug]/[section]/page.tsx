@@ -148,7 +148,11 @@ function SectionPreviewContent({ section }: { section: string }) {
     );
   }
 
-  if (isMobile) {
+  // Determine layout mode: multi-page renders standalone section components,
+  // vertical scroll renders the full VerticalScrollLayout and scrolls to section
+  const isVerticalScroll = !isMobile && (wedding.website_layout === 'infinite_scroll' || wedding.website_layout === 'vertical_scroll');
+
+  if (!isVerticalScroll) {
     const SectionComponent: Record<string, React.ComponentType> = {
       faq: FAQPage,
       schedule: SchedulePage,
@@ -157,7 +161,7 @@ function SectionPreviewContent({ section }: { section: string }) {
       shopping: WhereToShopPage,
     };
     const Component = SectionComponent[section];
-    if (Component) return <Box sx={{ pt: 2 }}><Component /></Box>;
+    if (Component) return <Box sx={{ pt: isMobile ? 2 : 0 }}><Component /></Box>;
   }
 
   const ViewSwitcher = isInIframe ? null : (

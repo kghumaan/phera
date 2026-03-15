@@ -304,7 +304,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
           direction={wizardStep === 'setup-arrival' ? 'arrival' : 'departure'}
           onComplete={wizardStep === 'setup-arrival' ? handleArrivalComplete : handleDepartureComplete}
           onRestart={handleRestartSetup}
-          showRestart={settings.setup_complete}
+          showRestart={settings.setup_complete ?? false}
           onBack={() => {
             if (wizardStep === 'setup-arrival') {
               // If editing an already complete setup, go back to dashboard
