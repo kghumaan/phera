@@ -301,10 +301,12 @@ const CarouselOverlay = ({
   event,
   primaryColor,
   onClose,
+  weddingBackground,
 }: {
   event: WeddingEvent;
   primaryColor?: string;
   onClose: () => void;
+  weddingBackground?: string;
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = event.carousel_slides || [];
@@ -334,28 +336,19 @@ const CarouselOverlay = ({
           justifyContent: 'center',
         }}
       >
-        {/* Background */}
+        {/* Background — uses the wedding's main background */}
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: gradientBackground
-              ? `url(/images/backgrounds/${gradientBackground})`
+            backgroundImage: weddingBackground
+              ? `url(${weddingBackground})`
               : 'none',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundColor: gradientBackground ? undefined : '#1a1a1a',
+            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
           }}
         />
-        {/* Overlay for readability */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          }}
-        />
-
         {/* Back button */}
         <IconButton
           onClick={onClose}
@@ -659,6 +652,7 @@ export default function SchedulePage() {
           event={selectedEvent}
           primaryColor={primaryColor}
           onClose={() => setSelectedEvent(null)}
+          weddingBackground={wedding?.background_image || undefined}
         />
       )}
     </OptimizedBackground>

@@ -46,6 +46,7 @@ interface WeddingData {
   primary_color?: string;
   couple_images?: string[];
   frame_image_url?: string | null;
+  background_image?: string | null;
 }
 
 interface VerticalScrollLayoutProps {
@@ -1468,6 +1469,7 @@ export default function VerticalScrollLayout({
             gradientBackground={selectedEvent.gradient_background || null}
             onClose={handleCloseEventCarousel}
             primaryColor={primaryColor}
+            weddingBackground={wedding.background_image || undefined}
           />
         ) : (
           <Box

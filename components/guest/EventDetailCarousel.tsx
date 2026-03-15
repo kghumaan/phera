@@ -79,7 +79,7 @@ export const SlideContent = ({
     const section2Items = slide.section2_items || slide.men || [];
 
     return (
-      <Stack spacing={4} alignItems="center" sx={{ position: 'relative', zIndex: 2, py: 4 }}>
+      <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ position: 'relative', zIndex: 2, py: 4, height: '100%' }}>
         {/* Section 1 */}
         {section1Items.length > 0 && (
           <Box sx={{ textAlign: 'center', width: '100%' }}>
@@ -286,6 +286,7 @@ interface EventDetailCarouselProps {
   gradientBackground: string | null;
   onClose: () => void;
   primaryColor?: string;
+  weddingBackground?: string;
 }
 
 export default function EventDetailCarousel({
@@ -295,6 +296,7 @@ export default function EventDetailCarousel({
   gradientBackground,
   onClose,
   primaryColor,
+  weddingBackground,
 }: EventDetailCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = slides.length;
@@ -341,6 +343,18 @@ export default function EventDetailCarousel({
           zIndex: 10,
         }}
       >
+        {/* Background layer — uses the wedding's main background */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: weddingBackground ? `url(${weddingBackground})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
+          }}
+        />
+
         {/* Close Button */}
         <IconButton
           onClick={onClose}

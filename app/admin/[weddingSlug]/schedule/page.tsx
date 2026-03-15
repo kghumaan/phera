@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Typography, Stack, Button, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Stack, Button } from '@mui/material';
 import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -8,6 +8,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { weddingService, ScheduleItem } from '@/lib/supabase/wedding-service';
 import { parseISO, eachDayOfInterval, format } from 'date-fns';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
@@ -37,6 +38,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const { weddingSlug } = use(params);
   const router = useRouter();
   const { isViewOnly } = useAdminRole();
+  const { setStatus: setGlobalSaveStatus } = useAutoSaveStatus();
 
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -53,16 +55,13 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({
     open: false, message: '', onConfirm: () => {},
   });
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
   const [moreDetailsItem, setMoreDetailsItem] = useState<ScheduleItem | null>(null);
 
-  const showToast = useCallback((message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
+  const showStatus = useCallback((status: 'saving' | 'saved' | 'error') => {
+    setGlobalSaveStatus(status);
+    if (status === 'saved') setTimeout(() => setGlobalSaveStatus('idle'), 2000);
+    if (status === 'error') setTimeout(() => setGlobalSaveStatus('idle'), 3000);
+  }, [setGlobalSaveStatus]);
 
   const syncPreview = useCallback(async (wId: string) => {
     await weddingService.markUnpublishedChanges(wId);
@@ -101,6 +100,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     try {
       const endDate = dateEnd || dateStart;
       const allDates = eachDayOfInterval({ start: dateStart, end: endDate });
+
+      // If we already have at least as many days as the date range, skip
+      if (existingDays.length >= allDates.length) return false;
+
       const existingDateSet = new Set(existingDays.map(d => normalizeDateStr(d.date)));
       let created = false;
 
@@ -169,11 +172,11 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       setScheduleData(sorted);
     } catch (err) {
       console.error('Error loading schedule:', err);
-      showToast('Failed to load schedule', 'error');
+      showStatus('error');
     } finally {
       setLoading(false);
     }
-  }, [weddingSlug, ensureDaysExist, showToast]);
+  }, [weddingSlug, ensureDaysExist, showStatus]);
 
   useEffect(() => {
     loadData();
@@ -187,14 +190,12 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const handleSaveItem = async (dayId: string, formData: any) => {
     if (isViewOnly || !weddingId) return;
 
+    showStatus('saving');
     try {
       if (formData.id) {
-        // Update existing
         const { id, ...updates } = formData;
         await weddingService.updateScheduleItem(id, updates);
-        showToast('Event updated!', 'success');
       } else {
-        // Create new
         const day = scheduleData.find(d => d.id === dayId);
         const orderIndex = day ? day.events.length : 0;
         await weddingService.createScheduleItem({
@@ -203,14 +204,14 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           order_index: orderIndex,
           time: formData.time || '',
         });
-        showToast('Event added!', 'success');
       }
       setActiveForm(null);
       await loadData();
       await syncPreview(weddingId);
+      showStatus('saved');
     } catch (err) {
       console.error('Error saving event:', err);
-      showToast('Failed to save event', 'error');
+      showStatus('error');
     }
   };
 
@@ -232,14 +233,15 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       message: 'Are you sure you want to delete this event?',
       onConfirm: async () => {
         setConfirmDialog(prev => ({ ...prev, open: false }));
+        showStatus('saving');
         try {
           await weddingService.deleteScheduleItem(id);
-          showToast('Event deleted!', 'success');
           await loadData();
           if (weddingId) await syncPreview(weddingId);
+          showStatus('saved');
         } catch (err) {
           console.error('Error deleting event:', err);
-          showToast('Failed to delete event', 'error');
+          showStatus('error');
         }
       },
     });
@@ -256,9 +258,9 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       // New item from inline form — auto-save then open modal
       const { dayId, formData } = itemOrNew as { dayId: string; formData: any };
       if (!formData || !formData.name) {
-        showToast('Event name is required', 'info');
         return;
       }
+      showStatus('saving');
       try {
         const day = scheduleData.find(d => d.id === dayId);
         const orderIndex = day ? day.events.length : 0;
@@ -273,13 +275,13 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         await loadData();
         setMoreDetailsItem(created as unknown as ScheduleItem);
         await syncPreview(weddingId);
-        showToast('Event saved! Add carousel details.', 'success');
+        showStatus('saved');
       } catch (err) {
         console.error('Error auto-saving event:', err);
-        showToast('Failed to save event', 'error');
+        showStatus('error');
       }
     }
-  }, [isViewOnly, weddingId, showToast, scheduleData, loadData, syncPreview]);
+  }, [isViewOnly, weddingId, showStatus, scheduleData, loadData, syncPreview]);
 
   const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
     if (isViewOnly) return;
@@ -305,7 +307,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       if (weddingId) await syncPreview(weddingId);
     } catch (err) {
       console.error('Error reordering:', err);
-      showToast('Failed to save new order', 'error');
+      showStatus('error');
       await loadData();
     }
   };
@@ -393,30 +395,13 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               onEditItem={handleEditItem}
               onDeleteItem={handleDeleteItem}
               onDragEnd={handleDragEnd}
-              onToast={(msg) => showToast(msg, 'info')}
+              onToast={() => {}}
               onMoreDetails={handleMoreDetails}
               isViewOnly={isViewOnly}
             />
           ))}
         </Stack>
       </Stack>
-
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ borderRadius: '12px', fontWeight: 600 }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       <ConfirmDialog
         open={confirmDialog.open}
@@ -435,7 +420,6 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           onSaved={async () => {
             await loadData();
             if (weddingId) await syncPreview(weddingId);
-            showToast('Carousel details saved!', 'success');
           }}
         />
       )}

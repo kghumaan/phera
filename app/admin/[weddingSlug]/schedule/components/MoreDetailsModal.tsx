@@ -13,6 +13,7 @@ import {
   CardContent,
   CircularProgress,
 } from '@mui/material';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import {
   Close,
   Add,
@@ -91,6 +92,177 @@ const SLIDE_TYPE_OPTIONS: { type: SlideType; label: string; icon: React.ReactNod
   { type: 'two_sections', label: 'Outfit List', icon: <Checkroom sx={{ fontSize: 20 }} /> },
 ];
 
+// Event-specific default content for the "More Details" carousel
+interface EventDefaults {
+  dressCodeHeading: string;
+  dressCodeBody: string;
+  womenOutfits: string[];
+  menOutfits: string[];
+  whatIsHeading: string;
+  whatIsBody: string;
+  collageWomen: string;
+  collageMen: string;
+  collageCelebration: string;
+}
+
+function getEventDefaults(eventName: string): EventDefaults {
+  const lower = eventName.toLowerCase().trim();
+
+  if (lower.includes('sangeet') || lower.includes('reception')) {
+    return {
+      dressCodeHeading: 'Cocktail Glam',
+      dressCodeBody: 'Dress to impress—think sharp suits, elegant gowns, or chic lehengas and sherwanis in jewel tones and standout embellishments.',
+      womenOutfits: ['Evening Gowns', 'Embellished Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
+      menOutfits: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets', ''],
+      whatIsHeading: 'What is a Sangeet?',
+      whatIsBody: 'Evening kicks off with a high-energy Sangeet of choreographed dances, then flows into a formal Reception of dinner, toasts, and first dances—a perfect blend of party and polish.',
+      collageWomen: '/images/collage/Dress Codes-9-Reception Women.png',
+      collageMen: '/images/collage/Dress Codes-10-Reception Men.png',
+      collageCelebration: '/images/collage/Dress Codes-17-Reception 1.png',
+    };
+  }
+
+  if (lower.includes('mehendi') || lower.includes('mehndi')) {
+    return {
+      dressCodeHeading: 'Vibrant & Festive',
+      dressCodeBody: 'Think bright colors, floral prints, and comfortable elegance—perfect for a relaxed afternoon of henna, music, and celebration.',
+      womenOutfits: ['Floral Anarkalis', 'Printed Sharara Sets', 'Bandhani Sarees', 'Mirror-work Lehengas'],
+      menOutfits: ['Linen Kurta Pajamas', 'Printed Nehru Jackets', 'Embroidered Bundis', ''],
+      whatIsHeading: 'What is a Mehndi?',
+      whatIsBody: 'The Mehndi ceremony is a colorful pre-wedding celebration where intricate henna designs are applied to the bride\'s hands and feet, accompanied by music, dancing, and joyful festivities.',
+      collageWomen: '/images/collage/Dress Codes-16-Mehendi 1.png',
+      collageMen: '/images/collage/Dress Codes-11 1.png',
+      collageCelebration: '/images/collage/Dress Codes-12 1.png',
+    };
+  }
+
+  if (lower.includes('haldi')) {
+    return {
+      dressCodeHeading: 'Yellow & Bright',
+      dressCodeBody: 'Embrace shades of yellow, marigold, and sunshine—expect turmeric splashes, so wear something you don\'t mind getting colorful!',
+      womenOutfits: ['Yellow Sarees', 'Floral Kurta Sets', 'Cotton Anarkalis', 'Bandhani Dupattas'],
+      menOutfits: ['Yellow Kurtas', 'White Linen Sets', 'Printed Nehru Jackets', ''],
+      whatIsHeading: 'What is a Haldi?',
+      whatIsBody: 'The Haldi ceremony is a joyful pre-wedding ritual where turmeric paste is applied to the bride and groom for blessings of prosperity and radiance—expect laughter, music, and a lot of yellow!',
+      collageWomen: '/images/collage/Dress Codes-3-Haldi Women.png',
+      collageMen: '/images/collage/Dress Codes-4-Haldi Men.png',
+      collageCelebration: '/images/collage/Dress Codes-14-Haldi 1.png',
+    };
+  }
+
+  if (lower.includes('jaggo')) {
+    return {
+      dressCodeHeading: 'Party Ready',
+      dressCodeBody: 'Bring your energy and your best party look—bold colors, statement pieces, and dancing shoes are a must for this late-night celebration.',
+      womenOutfits: ['Sequin Sarees', 'Party Lehengas', 'Indo-Western Gowns', 'Embellished Sharara Sets'],
+      menOutfits: ['Velvet Sherwanis', 'Tuxedo Suits', 'Statement Kurtas', ''],
+      whatIsHeading: 'What is a Jaggo?',
+      whatIsBody: 'The Jaggo is a lively nighttime procession full of music, dancing, and decorated pots—a high-energy celebration that lights up the streets before the wedding day.',
+      collageWomen: '/images/collage/Dress Codes-1-Jaggo Women.png',
+      collageMen: '/images/collage/Dress Codes-2-Jaggo Men.png',
+      collageCelebration: '/images/collage/Dress Codes-13-Jaggo (1) 1.png',
+    };
+  }
+
+  if (lower.includes('anand karaj') || lower.includes('wedding') || lower.includes('ceremony') || lower.includes('vivah') || lower.includes('shaadi')) {
+    return {
+      dressCodeHeading: 'Traditional Elegance',
+      dressCodeBody: 'This is the main event—dress in your finest traditional attire. Rich fabrics, intricate embroidery, and timeless silhouettes set the tone.',
+      womenOutfits: ['Heavy Sarees', 'Bridal Lehengas', 'Silk Anarkalis', 'Designer Sharara Sets'],
+      menOutfits: ['Classic Sherwanis', 'Bandhgala Suits', 'Silk Kurta Sets', ''],
+      whatIsHeading: 'What is the Ceremony?',
+      whatIsBody: 'The wedding ceremony is the sacred heart of the celebration—where vows are exchanged, traditions are honored, and two families come together in love and commitment.',
+      collageWomen: '/images/collage/Dress Codes-5-Anand Karaj Women.png',
+      collageMen: '/images/collage/Dress Codes-6-Anand Karaj Men.png',
+      collageCelebration: '/images/collage/Dress Codes-15-Varmala 1.png',
+    };
+  }
+
+  if (lower.includes('pool') || lower.includes('beach')) {
+    return {
+      dressCodeHeading: 'Resort Chic',
+      dressCodeBody: 'Keep it fun, fresh, and sun-ready—think resort wear, tropical prints, and effortlessly cool vibes by the water.',
+      womenOutfits: ['Maxi Dresses', 'Sarong Sets', 'Tropical Print Kaftans', 'Linen Co-ord Sets'],
+      menOutfits: ['Linen Shirts & Shorts', 'Printed Camp Collar Shirts', 'Resort Kurtas', ''],
+      whatIsHeading: 'What is a Pool Party?',
+      whatIsBody: 'A fun, relaxed pre-wedding celebration by the pool—enjoy cocktails, music, and sunshine with the wedding party before the big day festivities begin.',
+      collageWomen: '/images/collage/Dress Codes-7-Pool Party Women.png',
+      collageMen: '/images/collage/Dress Codes-8-Pool Party Men.png',
+      collageCelebration: '/images/collage/Dress Codes-18-Pool Party 1.png',
+    };
+  }
+
+  if (lower.includes('choora') || lower.includes('chura') || lower.includes('chuda')) {
+    return {
+      dressCodeHeading: 'Elegant & Intimate',
+      dressCodeBody: 'A close-knit ceremony calls for graceful traditional wear—think soft colors, delicate embroidery, and understated elegance.',
+      womenOutfits: ['Pastel Sarees', 'Embroidered Suits', 'Silk Anarkalis', 'Phulkari Dupattas'],
+      menOutfits: ['Silk Kurta Pajamas', 'Pastel Nehru Jackets', 'Embroidered Bundis', ''],
+      whatIsHeading: 'What is a Choora?',
+      whatIsBody: 'The Choora ceremony is a beautiful tradition where the bride\'s maternal uncle presents her with a set of red and white bangles, symbolizing good luck and new beginnings.',
+      collageWomen: '/images/collage/Dress Codes-5-Anand Karaj Women.png',
+      collageMen: '/images/collage/Dress Codes-6-Anand Karaj Men.png',
+      collageCelebration: '/images/collage/Dress Codes-11 1.png',
+    };
+  }
+
+  if (lower.includes('baraat')) {
+    return {
+      dressCodeHeading: 'Bold & Celebratory',
+      dressCodeBody: 'Join the groom\'s grand procession in style—think vibrant colors, festive energy, and outfits made for dancing in the streets.',
+      womenOutfits: ['Bright Lehengas', 'Festive Sarees', 'Embellished Sharara Sets', 'Statement Anarkalis'],
+      menOutfits: ['Bold Sherwanis', 'Jodhpuri Suits', 'Embroidered Kurtas', ''],
+      whatIsHeading: 'What is a Baraat?',
+      whatIsBody: 'The Baraat is the groom\'s wedding procession—a high-energy parade with music, dancing, and celebration as the groom makes his grand entrance to the ceremony venue.',
+      collageWomen: '/images/collage/Dress Codes-9-Reception Women.png',
+      collageMen: '/images/collage/Dress Codes-10-Reception Men.png',
+      collageCelebration: '/images/collage/Dress Codes-15-Varmala 1.png',
+    };
+  }
+
+  // Generic fallback for any other event
+  return {
+    dressCodeHeading: 'Dress Code',
+    dressCodeBody: 'Use this space to communicate anything you want about this event to your guests.',
+    womenOutfits: ['Evening Gowns', 'Embellished Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
+    menOutfits: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets', ''],
+    whatIsHeading: `About ${eventName}`,
+    whatIsBody: 'Use this space to share details about this event—what to expect, the vibe, and anything your guests should know.',
+    collageWomen: '/images/collage/Dress Codes-9-Reception Women.png',
+    collageMen: '/images/collage/Dress Codes-10-Reception Men.png',
+    collageCelebration: '/images/collage/Dress Codes-17-Reception 1.png',
+  };
+}
+
+function buildDefaultSlides(eventName: string): CarouselSlide[] {
+  const defaults = getEventDefaults(eventName);
+
+  return [
+    {
+      type: 'three_lines',
+      top_label: eventName.toUpperCase(),
+      main_heading: defaults.dressCodeHeading,
+      body_text: defaults.dressCodeBody,
+    },
+    { type: 'image', src: defaults.collageWomen },
+    {
+      type: 'two_sections',
+      section1_header: 'Women',
+      section1_items: defaults.womenOutfits,
+      section2_header: 'Men',
+      section2_items: defaults.menOutfits,
+    },
+    { type: 'image', src: defaults.collageMen },
+    {
+      type: 'three_lines',
+      top_label: 'The Celebration',
+      main_heading: defaults.whatIsHeading,
+      body_text: defaults.whatIsBody,
+    },
+    { type: 'image', src: defaults.collageCelebration },
+  ];
+}
+
 // Backgrounds that need dark text because they are light/pale
 const LIGHT_BACKGROUNDS = new Set([
   'GradientYellow.webp',
@@ -122,7 +294,7 @@ function makeEmptySlide(type: SlideType): CarouselSlide {
       return {
         type: 'two_sections',
         section1_header: 'Women',
-        section1_items: ['Evening Gowns', 'Embroidered Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
+        section1_items: ['Evening Gowns', 'Embellished Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
         section2_header: 'Men',
         section2_items: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets', ''],
       };
@@ -179,6 +351,7 @@ export default function MoreDetailsModal({
   onSaved,
   weddingBackground,
 }: MoreDetailsModalProps) {
+  const { setStatus: setGlobalSaveStatus } = useAutoSaveStatus();
   // activeTab: 'look-feel' or slide index (0, 1, 2, ...)
   const [activeTab, setActiveTab] = useState<'look-feel' | number>('look-feel');
   const [gradientBackground, setGradientBackground] = useState<string>('GradientReception.webp');
@@ -198,30 +371,7 @@ export default function MoreDetailsModal({
       try {
         let eventId = scheduleItem.linked_event_id;
 
-        const defaultSlides: CarouselSlide[] = [
-          {
-            type: 'three_lines',
-            top_label: scheduleItem.name.toUpperCase(),
-            main_heading: 'Cocktail Glam',
-            body_text: 'Dress to impress—think sharp suits, elegant gowns, or chic lehengas and sherwanis in jewel tones and standout embellishments.',
-          },
-          { type: 'image', src: '' },
-          {
-            type: 'two_sections',
-            section1_header: 'Women',
-            section1_items: ['Evening Gowns', 'Embroidered Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
-            section2_header: 'Men',
-            section2_items: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets', ''],
-          },
-          { type: 'image', src: '' },
-          {
-            type: 'three_lines',
-            top_label: '',
-            main_heading: '',
-            body_text: '',
-          },
-          { type: 'image', src: '' },
-        ];
+        const defaultSlides = buildDefaultSlides(scheduleItem.name);
 
         if (eventId) {
           // Load existing event
@@ -276,19 +426,24 @@ export default function MoreDetailsModal({
   const handleSave = useCallback(async () => {
     if (!linkedEventId) return;
     setSaving(true);
+    setGlobalSaveStatus('saving');
     try {
       await weddingService.updateEvent(linkedEventId, {
         carousel_slides: slides as any,
         gradient_background: gradientBackground,
       });
+      setGlobalSaveStatus('saved');
+      setTimeout(() => setGlobalSaveStatus('idle'), 2000);
       onSaved();
       onClose();
     } catch (err) {
       console.error('Error saving carousel:', err);
+      setGlobalSaveStatus('error');
+      setTimeout(() => setGlobalSaveStatus('idle'), 3000);
     } finally {
       setSaving(false);
     }
-  }, [linkedEventId, slides, gradientBackground, onSaved, onClose]);
+  }, [linkedEventId, slides, gradientBackground, onSaved, onClose, setGlobalSaveStatus]);
 
   const addSlide = (type?: SlideType) => {
     const newSlide = type ? makeEmptySlide(type) : makeEmptySlide('three_lines');
@@ -325,7 +480,7 @@ export default function MoreDetailsModal({
   const textColor = getTextColor(gradientBackground);
   const isImageSlide = slides[previewSlideIndex]?.type === 'image';
 
-  // Preview area background
+  // Preview area background — uses the wedding's main background
   const previewBgUrl = weddingBackground || '/images/backgrounds/blue-clouds.webp';
 
   return (
@@ -466,7 +621,7 @@ export default function MoreDetailsModal({
               ) : null}
             </Box>
 
-            {/* Right panel — live preview */}
+            {/* Right panel — live preview (uses wedding's main background) */}
             <Box sx={{
               flex: '0 0 auto',
               display: 'flex',
