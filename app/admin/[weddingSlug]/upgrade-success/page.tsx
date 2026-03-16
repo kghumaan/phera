@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ErrorOutline } from '@mui/icons-material';
 
 export default function UpgradeSuccessPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+  return (
+    <Suspense>
+      <UpgradeSuccessContent params={params} />
+    </Suspense>
+  );
+}
+
+function UpgradeSuccessContent({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useRef } from 'react';
+import { use, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Visibility, Lock, PersonOff, HowToReg } from '@mui/icons-material';
@@ -1129,7 +1129,9 @@ export default function PreviewPage({ params }: { params: Promise<{ weddingSlug:
 
   return (
     <WeddingProvider weddingSlug={weddingSlug} mode="preview">
-      <PreviewContent />
+      <Suspense>
+        <PreviewContent />
+      </Suspense>
     </WeddingProvider>
   );
 }

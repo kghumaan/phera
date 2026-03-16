@@ -23,7 +23,7 @@ import {
   Avatar,
   Dialog,
 } from '@mui/material';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -853,6 +853,14 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function PricingPage() {
+  return (
+    <Suspense>
+      <PricingPageContent />
+    </Suspense>
+  );
+}
+
+function PricingPageContent() {
   const conciergeMessages: Message[] = [
     {
       type: 'guest',

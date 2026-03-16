@@ -7,7 +7,7 @@ import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import DemoTour from '@/components/demo/DemoTour';
 import { usePlan } from '@/lib/contexts/PlanContext';
-import { use, useState, useEffect, useMemo } from 'react';
+import { use, useState, useEffect, useMemo, Suspense } from 'react';
 import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigation';
 import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
@@ -18,6 +18,22 @@ import { AutoSaveProvider } from '@/lib/contexts/AutoSaveContext';
 import ViewerBanner from '@/components/admin/ViewerBanner';
 
 export default function OnboardingLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ weddingSlug: string }>;
+}) {
+  return (
+    <Suspense>
+      <OnboardingLayoutContent params={params}>
+        {children}
+      </OnboardingLayoutContent>
+    </Suspense>
+  );
+}
+
+function OnboardingLayoutContent({
   children,
   params,
 }: {

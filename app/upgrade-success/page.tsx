@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ErrorOutline } from '@mui/icons-material';
 
 export default function UpgradeSuccessPage() {
+  return (
+    <Suspense>
+      <UpgradeSuccessContent />
+    </Suspense>
+  );
+}
+
+function UpgradeSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('session_id');
