@@ -15,7 +15,7 @@ interface TourStep {
   navigateTo?: string;
   expandGroup?: string; // group id (e.g. 'website', 'guest-responses')
   sidebarCutout?: boolean; // cut out entire sidebar instead of single element
-  tooltipPosition?: 'right' | 'below-target';
+  tooltipPosition?: 'right' | 'below-target' | 'left-of-target';
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -35,7 +35,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-preview',
     title: 'Live Preview',
     description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views at the top to see exactly how your guests will experience it.',
-    tooltipPosition: 'below-target',
+    tooltipPosition: 'left-of-target',
   },
   {
     target: 'tour-pins',
@@ -284,6 +284,15 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       return {
         top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 280),
         left: targetRect.left + (targetRect.width / 2) - (TOOLTIP_WIDTH / 2),
+        width: TOOLTIP_WIDTH,
+      };
+    }
+
+    // Left of target (e.g. preview panel)
+    if (step.tooltipPosition === 'left-of-target') {
+      return {
+        top: Math.max(targetRect.top + (targetRect.height / 2) - 140, 80),
+        left: targetRect.left - TOOLTIP_WIDTH - 16,
         width: TOOLTIP_WIDTH,
       };
     }
