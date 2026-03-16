@@ -35,8 +35,10 @@ export default function InlineMinorForm({ onSave, onCancel, initialData }: Inlin
   const [time, setTime] = useState(initialData?.time || '');
   const [location, setLocation] = useState(initialData?.location || '');
 
+  const canSubmit = !!name.trim() && !!time.trim();
+
   const handleSubmit = () => {
-    if (!name.trim()) return;
+    if (!canSubmit) return;
     onSave({ name: name.trim(), time: time.trim(), location: location.trim() });
   };
 
@@ -82,9 +84,9 @@ export default function InlineMinorForm({ onSave, onCancel, initialData }: Inlin
       </Stack>
       <IconButton
         onClick={handleSubmit}
-        disabled={!name.trim()}
+        disabled={!canSubmit}
         sx={{
-          color: name.trim() ? '#DE3F5E' : '#ccc',
+          color: canSubmit ? '#DE3F5E' : '#ccc',
           flexShrink: 0,
         }}
       >

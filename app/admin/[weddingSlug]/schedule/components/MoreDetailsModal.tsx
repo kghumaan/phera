@@ -263,26 +263,6 @@ function buildDefaultSlides(eventName: string): CarouselSlide[] {
   ];
 }
 
-// Backgrounds that need dark text because they are light/pale
-const LIGHT_BACKGROUNDS = new Set([
-  'GradientYellow.webp',
-  'pearl.webp',
-  'GradientCottonCandy.webp',
-  'marble-gold.webp',
-  'sandstone-beige.webp',
-  'citrine-quartz.webp',
-  'pressed-flowers-faded.webp',
-  'handmade-paper-floral.webp',
-  'pressed-flowers-subtle.webp',
-  'pressed-flowers-textured.webp',
-  'watercolor-blue-sky.webp',
-  'periwinkle-pink-sunset.webp',
-  'moonstone-shimmer.webp',
-]);
-
-function getTextColor(bg: string): string {
-  return LIGHT_BACKGROUNDS.has(bg) ? '#1a1a1a' : '#FFFFFF';
-}
 
 function makeEmptySlide(type: SlideType): CarouselSlide {
   switch (type) {
@@ -477,7 +457,7 @@ export default function MoreDetailsModal({
   const selectedSlideIndex = typeof activeTab === 'number' ? activeTab : null;
   const selectedSlide = selectedSlideIndex !== null ? slides[selectedSlideIndex] || null : null;
 
-  const textColor = getTextColor(gradientBackground);
+  const textColor = '#FFFFFF';
   const isImageSlide = slides[previewSlideIndex]?.type === 'image';
 
   // Preview area background — uses the wedding's main background

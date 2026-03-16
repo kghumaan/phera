@@ -69,8 +69,10 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
       : COLOR_PALETTE[0]
   );
 
+  const canSubmit = !!name.trim() && !!time.trim();
+
   const handleSubmit = () => {
-    if (!name.trim()) return;
+    if (!canSubmit) return;
     onSave({
       name: name.trim(),
       time: time.trim(),
@@ -191,7 +193,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
           <Stack direction="row" spacing={1.5}>
             <Button
               variant="outlined"
-              disabled={!name.trim()}
+              disabled={!canSubmit}
               onClick={handleSubmit}
               sx={{
                 borderColor: '#DE3F5E',
@@ -209,11 +211,9 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
             </Button>
             <Button
               variant="contained"
+              disabled={!canSubmit}
               onClick={() => {
-                if (!name.trim()) {
-                  onToast?.('Event name is required');
-                  return;
-                }
+                if (!canSubmit) return;
                 if (onMoreDetails) {
                   onMoreDetails({
                     name: name.trim(),
