@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Stack, Popover, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 
-// Generate time slots in 15-min intervals, starting at 8 AM
+// Generate time slots in 15-min intervals, starting at 6 AM
 function generateTimeSlots(): string[] {
   const slots: string[] = [];
   for (let i = 0; i < 24 * 4; i++) {
-    // Start at 8 AM (hour 8), wrap around after 24h
-    const totalMinutes = ((8 * 60) + i * 15) % (24 * 60);
+    // Start at 6 AM (hour 6), wrap around after 24h
+    const totalMinutes = ((6 * 60) + i * 15) % (24 * 60);
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
     const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;

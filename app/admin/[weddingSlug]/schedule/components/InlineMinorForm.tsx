@@ -10,6 +10,8 @@ const fieldSx = {
     borderRadius: '8px',
     bgcolor: 'white',
     height: 48,
+    display: 'flex',
+    alignItems: 'center',
     '& fieldset': { borderColor: '#BCBCBC' },
     '&:hover fieldset': { borderColor: '#999' },
     '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
