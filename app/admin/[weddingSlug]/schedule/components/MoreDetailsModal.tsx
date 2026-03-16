@@ -335,6 +335,7 @@ export default function MoreDetailsModal({
   // activeTab: 'look-feel' or slide index (0, 1, 2, ...)
   const [activeTab, setActiveTab] = useState<'look-feel' | number>('look-feel');
   const [gradientBackground, setGradientBackground] = useState<string>('GradientReception.webp');
+  const [fontColor, setFontColor] = useState<string>('#FFFFFF');
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
   const [linkedEventId, setLinkedEventId] = useState<string | null>(null);
@@ -362,6 +363,7 @@ export default function MoreDetailsModal({
             const bg = event.gradient_background;
             const isValidBg = bg && !bg.startsWith('#') && bg.endsWith('.webp');
             setGradientBackground(isValidBg ? bg : 'GradientReception.webp');
+            setFontColor(event.text_color || '#FFFFFF');
             const existingSlides = event.carousel_slides || [];
             setSlides(existingSlides.length > 0 ? existingSlides : defaultSlides);
             setLinkedEventId(event.id);
@@ -418,6 +420,7 @@ export default function MoreDetailsModal({
       await weddingService.updateEvent(linkedEventId, {
         carousel_slides: slides as any,
         gradient_background: gradientBackground,
+        text_color: fontColor,
       });
       setGlobalSaveStatus('saved');
       setTimeout(() => setGlobalSaveStatus('idle'), 2000);
@@ -430,7 +433,7 @@ export default function MoreDetailsModal({
     } finally {
       setSaving(false);
     }
-  }, [linkedEventId, slides, gradientBackground, onSaved, onClose, setGlobalSaveStatus]);
+  }, [linkedEventId, slides, gradientBackground, fontColor, onSaved, onClose, setGlobalSaveStatus]);
 
   const addSlide = (type?: SlideType) => {
     const newSlide = type ? makeEmptySlide(type) : makeEmptySlide('three_lines');
@@ -464,7 +467,7 @@ export default function MoreDetailsModal({
   const selectedSlideIndex = typeof activeTab === 'number' ? activeTab : null;
   const selectedSlide = selectedSlideIndex !== null ? slides[selectedSlideIndex] || null : null;
 
-  const textColor = '#FFFFFF';
+  const textColor = fontColor;
   const isImageSlide = slides[previewSlideIndex]?.type === 'image';
 
   // Preview area background — uses the wedding's main background
@@ -579,6 +582,8 @@ export default function MoreDetailsModal({
                 <BackgroundPicker
                   selected={gradientBackground}
                   onSelect={setGradientBackground}
+                  fontColor={fontColor}
+                  onFontColorChange={setFontColor}
                   onStartEditing={() => {
                     if (slides.length > 0) {
                       setActiveTab(0);
@@ -764,11 +769,15 @@ function TabItem({
 function BackgroundPicker({
   selected,
   onSelect,
+  fontColor,
+  onFontColorChange,
   onStartEditing,
   hasSlides,
 }: {
   selected: string;
   onSelect: (bg: string) => void;
+  fontColor: string;
+  onFontColorChange: (color: string) => void;
   onStartEditing: () => void;
   hasSlides: boolean;
 }) {
@@ -822,6 +831,35 @@ function BackgroundPicker({
             ));
           })()}
         </Box>
+      </Stack>
+
+      {/* Font Color */}
+      <Stack sx={{ gap: '16px' }}>
+        <Typography sx={subtitleCapsSx}>
+          Font Color
+        </Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {['#FFFFFF', '#F5F5F5', '#E8D5B7', '#D4AF37', '#1a1a1a', '#4a4a4a', '#6a6a6a'].map((c) => (
+            <Box
+              key={c}
+              onClick={() => onFontColorChange(c)}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: '4px',
+                bgcolor: c,
+                cursor: 'pointer',
+                border: fontColor === c
+                  ? '2px solid #DE3F5E'
+                  : c === '#FFFFFF' || c === '#F5F5F5'
+                    ? '2px solid #ddd'
+                    : '2px solid transparent',
+                transition: 'border-color 0.15s',
+                '&:hover': { opacity: 0.85 },
+              }}
+            />
+          ))}
+        </Stack>
       </Stack>
 
       {hasSlides && (

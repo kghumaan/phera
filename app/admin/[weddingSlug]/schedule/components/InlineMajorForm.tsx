@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Box, TextField, Stack, Button, InputAdornment, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import TimePicker from './TimePicker';
@@ -69,6 +69,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
       ? initialData.gradient_background
       : COLOR_PALETTE[0]
   );
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = !!name.trim() && !!time.trim();
 
@@ -181,21 +182,30 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 }}
               />
             ))}
-            {/* Custom color "+" button */}
+            {/* Custom color picker */}
             <Box
+              onClick={() => colorInputRef.current?.click()}
               sx={{
                 width: 24,
                 height: 24,
                 borderRadius: '4px',
-                border: '1px solid #dbdbdb',
+                border: !COLOR_PALETTE.includes(color) ? '2px solid #DE3F5E' : '1px solid #dbdbdb',
+                bgcolor: !COLOR_PALETTE.includes(color) ? color : undefined,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                '&:hover': { borderColor: '#999' },
+                '&:hover': { borderColor: !COLOR_PALETTE.includes(color) ? '#DE3F5E' : '#999' },
               }}
             >
-              <Add sx={{ fontSize: 16, color: '#999' }} />
+              {COLOR_PALETTE.includes(color) && <Add sx={{ fontSize: 16, color: '#999' }} />}
+              <input
+                ref={colorInputRef}
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+              />
             </Box>
           </Stack>
 
