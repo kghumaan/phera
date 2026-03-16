@@ -30,7 +30,7 @@ const fieldSx = {
   '& .MuiInputBase-input': {
     color: '#1a1a1a',
     fontSize: '1rem',
-    py: '12px',
+    padding: '12.5px 14px',
   },
 };
 
