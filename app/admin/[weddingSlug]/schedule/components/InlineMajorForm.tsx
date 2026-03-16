@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, TextField, Stack, Button, InputAdornment } from '@mui/material';
+import { Box, TextField, Stack, Button, InputAdornment, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import TimePicker from './TimePicker';
 
@@ -49,6 +49,7 @@ interface InlineMajorFormProps {
   onCancel: () => void;
   onToast?: (message: string) => void;
   onMoreDetails?: (formData: { name: string; time: string; location: string; description: string; dress_code: string; gradient_background: string }) => void;
+  isSaving?: boolean;
   initialData?: {
     name?: string;
     time?: string;
@@ -59,7 +60,7 @@ interface InlineMajorFormProps {
   };
 }
 
-export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetails, initialData }: InlineMajorFormProps) {
+export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetails, isSaving, initialData }: InlineMajorFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [time, setTime] = useState(initialData?.time || '');
   const [location, setLocation] = useState(initialData?.location || '');
@@ -95,7 +96,16 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
       display: 'flex',
       alignItems: 'stretch',
       overflow: 'hidden',
+      position: 'relative',
+      opacity: isSaving ? 0.6 : 1,
+      pointerEvents: isSaving ? 'none' : 'auto',
+      transition: 'opacity 0.15s',
     }}>
+      {isSaving && (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+        </Box>
+      )}
       {/* Color bar on the left */}
       <Box sx={{ width: 8, bgcolor: color, borderRadius: '4px', flexShrink: 0, mr: 2 }} />
 

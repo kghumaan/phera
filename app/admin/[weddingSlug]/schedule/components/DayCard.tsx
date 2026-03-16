@@ -32,6 +32,7 @@ interface DayCardProps {
   date: string; // ISO date string
   events: ScheduleItem[];
   activeForm: ActiveForm | null;
+  savingForm?: boolean;
   onSetActiveForm: (form: ActiveForm | null) => void;
   onSaveItem: (dayId: string, data: any) => void;
   onEditItem: (item: ScheduleItem) => void;
@@ -47,6 +48,7 @@ export default function DayCard({
   date,
   events,
   activeForm,
+  savingForm,
   onSetActiveForm,
   onSaveItem,
   onEditItem,
@@ -82,6 +84,7 @@ export default function DayCard({
 
   const isEditingItem = activeForm?.dayId === dayId && activeForm.editingItemId;
   const isAddingNew = activeForm?.dayId === dayId && !activeForm.editingItemId;
+  const isSavingThisDay = !!(savingForm && activeForm?.dayId === dayId);
 
   return (
     <Box sx={{ bgcolor: '#FAFAFA', borderRadius: '16px', p: 2.5 }}>
@@ -130,6 +133,7 @@ export default function DayCard({
                           onCancel={() => onSetActiveForm(null)}
                           onToast={onToast}
                           onMoreDetails={() => onMoreDetails?.(item)}
+                          isSaving={isSavingThisDay}
                         />
                       );
                     }
@@ -143,6 +147,7 @@ export default function DayCard({
                         }}
                         onSave={(data) => onSaveItem(dayId, { ...data, id: item.id })}
                         onCancel={() => onSetActiveForm(null)}
+                        isSaving={isSavingThisDay}
                       />
                     );
                   }
@@ -168,6 +173,7 @@ export default function DayCard({
           <InlineMinorForm
             onSave={(data) => onSaveItem(dayId, data)}
             onCancel={() => onSetActiveForm(null)}
+            isSaving={isSavingThisDay}
           />
         )}
         {isAddingNew && activeForm?.type === 'major' && (
@@ -176,6 +182,7 @@ export default function DayCard({
             onCancel={() => onSetActiveForm(null)}
             onToast={onToast}
             onMoreDetails={(formData) => onMoreDetails?.({ dayId, formData })}
+            isSaving={isSavingThisDay}
           />
         )}
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, TextField, Stack, IconButton, InputAdornment } from '@mui/material';
+import { Box, TextField, Stack, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { CheckCircle } from '@mui/icons-material';
 import TimePicker from './TimePicker';
 
@@ -30,9 +30,10 @@ interface InlineMinorFormProps {
   onSave: (data: { name: string; time: string; location: string }) => void;
   onCancel: () => void;
   initialData?: { name?: string; time?: string; location?: string };
+  isSaving?: boolean;
 }
 
-export default function InlineMinorForm({ onSave, onCancel, initialData }: InlineMinorFormProps) {
+export default function InlineMinorForm({ onSave, onCancel, initialData, isSaving }: InlineMinorFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [time, setTime] = useState(initialData?.time || '');
   const [location, setLocation] = useState(initialData?.location || '');
@@ -53,7 +54,16 @@ export default function InlineMinorForm({ onSave, onCancel, initialData }: Inlin
       display: 'flex',
       gap: 2,
       alignItems: 'center',
+      position: 'relative',
+      opacity: isSaving ? 0.6 : 1,
+      pointerEvents: isSaving ? 'none' : 'auto',
+      transition: 'opacity 0.15s',
     }}>
+      {isSaving && (
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+        </Box>
+      )}
       <Stack spacing={2} sx={{ flex: 1 }}>
         <TextField
           label="Event name *"

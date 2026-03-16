@@ -52,6 +52,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     return localStorage.getItem(EXAMPLES_DISMISSED_KEY) !== 'true';
   });
   const [activeForm, setActiveForm] = useState<ActiveForm | null>(null);
+  const [savingForm, setSavingForm] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({
     open: false, message: '', onConfirm: () => {},
   });
@@ -190,6 +191,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const handleSaveItem = async (dayId: string, formData: any) => {
     if (isViewOnly || !weddingId) return;
 
+    setSavingForm(true);
     showStatus('saving');
     try {
       if (formData.id) {
@@ -205,13 +207,15 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           time: formData.time || '',
         });
       }
-      setActiveForm(null);
       await loadData();
       await syncPreview(weddingId);
+      setActiveForm(null);
       showStatus('saved');
     } catch (err) {
       console.error('Error saving event:', err);
       showStatus('error');
+    } finally {
+      setSavingForm(false);
     }
   };
 
@@ -390,6 +394,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
               date={day.date}
               events={day.events}
               activeForm={activeForm}
+              savingForm={savingForm}
               onSetActiveForm={setActiveForm}
               onSaveItem={handleSaveItem}
               onEditItem={handleEditItem}
