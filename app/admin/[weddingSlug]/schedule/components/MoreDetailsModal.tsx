@@ -368,10 +368,12 @@ export default function MoreDetailsModal({
           }
         } else {
           // Auto-create a wedding_event for this schedule item
-          const slug = scheduleItem.name
+          // Append schedule item ID suffix to ensure slug uniqueness
+          const baseSlug = scheduleItem.name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+          const slug = `${baseSlug}-${scheduleItem.id.slice(-6)}`;
 
           // Schedule item's gradient_background is a hex color for the event card accent,
           // not a background image filename — always default to the first background preset
