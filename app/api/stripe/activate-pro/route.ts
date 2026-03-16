@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { autoGenerateForUser } from '@/lib/concierge/generate-knowledge';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -49,6 +50,11 @@ export async function POST(request: NextRequest) {
       console.error('Error upgrading user:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Fire-and-forget: auto-generate KB if wedding has location data
+    autoGenerateForUser(userId, supabase).catch(err =>
+      console.error('Auto KB generation failed:', err)
+    );
 
     return NextResponse.json({ success: true, tier });
   } catch (err) {

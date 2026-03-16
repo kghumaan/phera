@@ -26,8 +26,8 @@ interface FeatureRequestModalProps {
 
 const COPY = {
     feature: {
-        title: "Want a feature you don't see?",
-        description: "We're a new product that's always looking for feedback! Feel free to request anything that you would like to see, and we'll get back to you ASAP!",
+        title: "Want to request a feature?",
+        description: "We're always looking for feedback! Feel free to request anything that you would like to see, and we'll get back to you ASAP!",
         placeholder: "Tell us what you're thinking...",
         success: "We've received your request and will look into it ASAP.",
     },

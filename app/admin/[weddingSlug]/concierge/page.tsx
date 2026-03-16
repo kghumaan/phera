@@ -3,7 +3,6 @@
 import {
   Box,
   Button,
-  Container,
   Typography,
   Stack,
   Paper,
@@ -11,6 +10,9 @@ import {
   Chip,
   Switch,
   Divider,
+  Tabs,
+  Tab,
+  CircularProgress,
 } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
 import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined } from '@mui/icons-material';
@@ -18,8 +20,15 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
-import { CircularProgress } from '@mui/material';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import ConciergeDashboard from '@/components/admin/concierge/ConciergeDashboard';
+import ConciergeConversations from '@/components/admin/concierge/ConciergeConversations';
+import ConciergeKnowledgeBase from '@/components/admin/concierge/ConciergeKnowledgeBase';
+
+const BETA_ACCESS_EMAILS = [
+  'kv.s.ghumaan@gmail.com',
+  'savani.simran@google.com',
+];
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -52,11 +61,31 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const { isViewOnly } = useAdminRole();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [requestStatus, setRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
+  const [activeTab, setActiveTab] = useState(0);
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
 
+  const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+
+  // Load wedding ID
   useEffect(() => {
-    if (isPro && user?.email) {
+    if (isPro && isBetaUser) {
+      const loadWeddingId = async () => {
+        const { data: wedding } = await (supabase as any)
+          .from('weddings')
+          .select('id')
+          .eq('slug', weddingSlug)
+          .single();
+        if (wedding) setWeddingId(wedding.id);
+      };
+      loadWeddingId();
+    }
+  }, [isPro, isBetaUser, weddingSlug]);
+
+  // Early access request check (for non-beta Pro users)
+  useEffect(() => {
+    if (isPro && !isBetaUser && user?.email) {
       const checkExistingRequest = async () => {
-        // Check local storage first for immediate feedback
         const hasRequestedLocal = localStorage.getItem(`phera_concierge_requested_${user.email.toLowerCase()}`);
         if (hasRequestedLocal === 'true') {
           setRequestStatus('success');
@@ -65,7 +94,6 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
 
         setRequestStatus('checking');
         try {
-          console.log('Checking existing concierge request for:', user.email.toLowerCase());
           const { data, error } = await (supabase as any)
             .from('contact_submissions')
             .select('id')
@@ -74,29 +102,24 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             .limit(1);
 
           if (error) {
-            console.error('Database error checking request:', error);
             setRequestStatus('idle');
             return;
           }
 
           if (data && data.length > 0) {
-            console.log('Found existing request in database');
             setRequestStatus('success');
-            // Cache in local storage
             localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
           } else {
-            console.log('No existing request found in database');
             setRequestStatus('idle');
           }
-        } catch (err) {
-          console.error('Error checking existing request:', err);
+        } catch {
           setRequestStatus('idle');
         }
       };
 
       checkExistingRequest();
     }
-  }, [isPro, user?.email]);
+  }, [isPro, isBetaUser, user?.email]);
 
   const handleRequestSetup = async () => {
     if (isViewOnly) return;
@@ -113,15 +136,87 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
 
       if (error) throw error;
 
-      // Cache success in local storage immediately
       localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
       setRequestStatus('success');
-    } catch (err) {
-      console.error('Error submitting setup request:', err);
+    } catch {
       setRequestStatus('error');
     }
   };
 
+  const handleViewConversation = (guestId: string) => {
+    setSelectedGuestId(guestId);
+    setActiveTab(1);
+  };
+
+  // ─── State C: Beta user with Pro → Full tabbed dashboard ───
+  if (isPro && isBetaUser) {
+    return (
+      <Box sx={{ maxWidth: 1000 }}>
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              Phera Concierge
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              24/7 WhatsApp concierge for your guests — powered by your wedding details
+            </Typography>
+          </Box>
+
+          <Tabs
+            value={activeTab}
+            onChange={(_, val) => {
+              setActiveTab(val);
+              if (val !== 1) setSelectedGuestId(null);
+            }}
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                color: '#6a6a6a',
+                minHeight: 42,
+                '&.Mui-selected': { color: '#DE3F5E' },
+              },
+              '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+            }}
+          >
+            <Tab label="Dashboard" />
+            <Tab label="Conversations" />
+            <Tab label="Knowledge Base" />
+          </Tabs>
+
+          {weddingId ? (
+            <>
+              {activeTab === 0 && (
+                <ConciergeDashboard
+                  weddingId={weddingId}
+                  onViewConversation={handleViewConversation}
+                />
+              )}
+              {activeTab === 1 && (
+                <ConciergeConversations
+                  weddingId={weddingId}
+                  initialGuestId={selectedGuestId}
+                />
+              )}
+              {activeTab === 2 && (
+                <ConciergeKnowledgeBase
+                  weddingId={weddingId}
+                  isViewOnly={isViewOnly}
+                />
+              )}
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+              <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+            </Box>
+          )}
+        </Stack>
+      </Box>
+    );
+  }
+
+  // ─── State B: Pro but NOT beta → Early Preview request ───
   if (isPro) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
@@ -232,6 +327,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     );
   }
 
+  // ─── State A: Free user → Blurred mock + upgrade CTA ───
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3}>

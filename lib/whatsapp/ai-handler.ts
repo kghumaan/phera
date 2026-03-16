@@ -32,6 +32,7 @@ export async function generateAIResponse(params: {
       registryResult,
       shopsResult,
       settingsResult,
+      knowledgeResult,
     ] = await Promise.all([
       supabase.from('weddings').select('*').eq('id', weddingId).single(),
       supabase.from('wedding_events').select('*').eq('wedding_id', weddingId).order('order_index'),
@@ -50,6 +51,12 @@ export async function generateAIResponse(params: {
       supabase.from('wedding_registry').select('*').eq('wedding_id', weddingId).order('order_index'),
       supabase.from('wedding_shops').select('*').eq('wedding_id', weddingId).order('order_index'),
       supabase.from('wedding_settings').select('*').eq('wedding_id', weddingId).single(),
+      (supabase as any)
+        .from('concierge_knowledge_base')
+        .select('title, content, category')
+        .eq('wedding_id', weddingId)
+        .eq('is_active', true)
+        .order('order_index'),
     ]);
 
     const wedding = weddingResult.data as any;
@@ -63,6 +70,7 @@ export async function generateAIResponse(params: {
     const registry = (registryResult.data as any[]) || [];
     const shops = (shopsResult.data as any[]) || [];
     const settings = settingsResult.data as any;
+    const knowledgeEntries = (knowledgeResult.data as any[]) || [];
 
     // Build context sections
     const weddingInfo = wedding
@@ -153,6 +161,10 @@ Welcome Message: ${wedding.welcome_text || 'N/A'}`
 
     const whatsappGroupLink = settings?.whatsapp_group_link || '';
 
+    const knowledgeInfo = knowledgeEntries.length
+      ? knowledgeEntries.map((k: any) => `- **${k.title}** (${k.category}): ${k.content}`).join('\n')
+      : '';
+
     const coupleName = wedding?.couple_name || 'the couple';
     const siteUrl = `https://phera.io/${weddingSlug}`;
 
@@ -184,6 +196,7 @@ ${faqInfo}
 ${registryInfo ? `\n## Gift Registry\n${registryInfo}` : ''}
 ${shopsInfo ? `\n## Where to Shop\n${shopsInfo}` : ''}
 ${whatsappGroupLink ? `\n## WhatsApp Group\nGuest group chat link: ${whatsappGroupLink}` : ''}
+${knowledgeInfo ? `\n## Local Tips & Recommendations\n${knowledgeInfo}` : ''}
 
 ## Wedding Website
 ${siteUrl}
