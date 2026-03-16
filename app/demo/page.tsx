@@ -7,6 +7,40 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 
 const DEMO_EMAIL = 'demo@phera.io';
 const PRE_DEMO_SESSION_KEY = 'phera_pre_demo_session';
+const DEMO_SLUG_KEY = 'demo-wedding-slug';
+
+async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: (e: string) => void) {
+  // Check sessionStorage for an existing clone
+  const existingSlug = sessionStorage.getItem(DEMO_SLUG_KEY);
+  if (existingSlug) {
+    // Verify it still exists
+    const { data } = await supabase
+      .from('weddings')
+      .select('id')
+      .eq('slug', existingSlug)
+      .single();
+
+    if (data) {
+      router.replace(`/admin/${existingSlug}/overview?tour=true`);
+      return;
+    }
+    // Stale — remove and clone fresh
+    sessionStorage.removeItem(DEMO_SLUG_KEY);
+  }
+
+  // Clone template
+  const res = await fetch('/api/demo/clone', { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    console.error('Clone error:', body);
+    setError('Unable to load demo. Please try again.');
+    return;
+  }
+
+  const { slug } = await res.json();
+  sessionStorage.setItem(DEMO_SLUG_KEY, slug);
+  router.replace(`/admin/${slug}/overview?tour=true`);
+}
 
 export default function DemoPage() {
   const router = useRouter();
@@ -21,9 +55,9 @@ export default function DemoPage() {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Already the demo user — just redirect
+          // Already the demo user — clone and redirect
           if (session.user.email === DEMO_EMAIL) {
-            router.replace('/admin/demo/overview?tour=true');
+            await cloneAndRedirect(router, setError);
             return;
           }
 
@@ -55,8 +89,8 @@ export default function DemoPage() {
           return;
         }
 
-        // Redirect to demo dashboard with tour
-        router.replace('/admin/demo/overview?tour=true');
+        // Clone template and redirect to cloned wedding
+        await cloneAndRedirect(router, setError);
       } catch (err) {
         console.error('Demo error:', err);
         setError('Something went wrong. Please try again.');

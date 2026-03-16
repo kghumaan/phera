@@ -60,7 +60,7 @@ export default function OnboardingLayout({
       // If not, redirect to /demo to trigger auto-login.
       // Check Supabase session directly to avoid race condition where
       // AuthContext hasn't received the onAuthStateChange event yet.
-      if (weddingSlug === 'demo' && !authUser) {
+      if (weddingSlug.startsWith('demo') && !authUser) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           router.replace('/demo');
