@@ -148,6 +148,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
               bgcolor: 'white',
               borderRadius: '10px',
               fontSize: '0.85rem',
+              '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
             },
           }}
         />
@@ -157,12 +158,16 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
           onChange={(_, val) => val && setTimeFilter(val)}
           size="small"
           sx={{
+            gap: 1,
+            '& .MuiToggleButtonGroup-grouped': {
+              border: '1px solid rgba(0,0,0,0.15) !important',
+              '&:not(:first-of-type)': { ml: 0 },
+            },
             '& .MuiToggleButton-root': {
               textTransform: 'none',
               fontSize: '0.8rem',
               px: 2,
               borderRadius: '10px !important',
-              border: '1px solid rgba(0,0,0,0.12) !important',
               color: '#6a6a6a',
               '&.Mui-selected': {
                 bgcolor: '#DE3F5E10',

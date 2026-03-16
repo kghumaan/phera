@@ -17,10 +17,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  IconButton,
+  Tooltip,
+  alpha,
 } from '@mui/material';
-import { Add, AutoAwesome } from '@mui/icons-material';
-import { useState, useEffect, useCallback } from 'react';
+import { Add, AutoAwesome, Mic, Stop, Close, UploadFile } from '@mui/icons-material';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ConciergeKnowledgeEntry from './ConciergeKnowledgeEntry';
+import VoiceWaveform from '@/components/admin/VoiceWaveform';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -34,6 +38,19 @@ const CATEGORIES = [
   { value: 'shopping', label: 'Shopping' },
   { value: 'cultural_etiquette', label: 'Cultural & Etiquette' },
   { value: 'other', label: 'Other' },
+];
+
+const SUPPORTED_DOC_TYPES = [
+  '.txt', '.csv', '.md',
+  '.pdf',
+  '.doc', '.docx',
+  '.rtf',
+];
+const SUPPORTED_DOC_MIMES = [
+  'text/plain', 'text/csv', 'text/markdown',
+  'application/pdf',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/rtf',
 ];
 
 interface KnowledgeEntry {
@@ -65,6 +82,20 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
   const [venueLocation, setVenueLocation] = useState<string | null>(null);
   const [venueLoaded, setVenueLoaded] = useState(false);
 
+  // Voice recording state
+  const [voiceState, setVoiceState] = useState<'idle' | 'recording' | 'transcribing'>('idle');
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [voiceElapsed, setVoiceElapsed] = useState(0);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // File upload state
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const hasAutoEntries = entries.some((e) => e.source === 'auto_generated');
 
   const loadEntries = useCallback(async () => {
@@ -79,7 +110,6 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
     }
   }, [weddingId]);
 
-  // Load venue location to determine if we can generate
   useEffect(() => {
     const loadVenue = async () => {
       try {
@@ -103,6 +133,140 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
     loadEntries();
   }, [loadEntries]);
 
+  // ─── Voice recording ───────────────────────────────────────────
+
+  const startRecording = useCallback(async () => {
+    setVoiceError(null);
+    setVoiceElapsed(0);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setActiveStream(stream);
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        setActiveStream(null);
+
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        if (blob.size > 25 * 1024 * 1024) {
+          setVoiceError('Recording too long — please keep it under 2-3 minutes.');
+          setVoiceState('idle');
+          return;
+        }
+
+        setVoiceState('transcribing');
+        try {
+          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+          const formData = new FormData();
+          formData.append('audio', blob, `voice-note.${ext}`);
+
+          const res = await fetch('/api/concierge/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `Server error (${res.status})`);
+          }
+
+          const data = await res.json();
+          if (data.transcript) {
+            setNewContent((prev) => prev ? `${prev}\n\n${data.transcript}` : data.transcript);
+          }
+        } catch (err) {
+          console.error('Transcription error:', err);
+          setVoiceError(err instanceof Error ? err.message : 'Transcription failed. Please try again.');
+        } finally {
+          setVoiceState('idle');
+        }
+      };
+
+      mediaRecorder.start(1000);
+      setVoiceState('recording');
+      timerRef.current = setInterval(() => setVoiceElapsed((prev) => prev + 1), 1000);
+    } catch (err) {
+      console.error('Microphone access error:', err);
+      if (err instanceof DOMException && err.name === 'NotAllowedError') {
+        setVoiceError('Microphone access denied. Please allow microphone access in your browser settings.');
+      } else {
+        setVoiceError('Could not access microphone. Please check your device settings.');
+      }
+      setVoiceState('idle');
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // ─── File upload ───────────────────────────────────────────────
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+
+    if (!SUPPORTED_DOC_MIMES.includes(file.type) && !file.name.match(/\.(txt|csv|md|rtf)$/i)) {
+      setVoiceError(`Unsupported file type. Supported: ${SUPPORTED_DOC_TYPES.join(', ')}`);
+      return;
+    }
+
+    setUploading(true);
+    setVoiceError(null);
+
+    try {
+      // For plain text files, read directly
+      if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|md|rtf)$/i)) {
+        const text = await file.text();
+        if (text.trim()) {
+          setNewContent((prev) => prev ? `${prev}\n\n${text.trim()}` : text.trim());
+        } else {
+          setVoiceError('The file appears to be empty.');
+        }
+      } else {
+        // For PDF/DOC/DOCX, we'd need server-side parsing
+        // For now, use a simple approach: try to read as text, or show error
+        setVoiceError('PDF and Word document parsing coming soon. For now, please use .txt, .csv, or .md files, or paste the content directly.');
+      }
+    } catch (err) {
+      console.error('File upload error:', err);
+      setVoiceError('Could not read the file. Please try a different format.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // ─── CRUD handlers ─────────────────────────────────────────────
+
   const handleGenerate = async () => {
     setGenerating(true);
     setGenerateError(null);
@@ -122,7 +286,6 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         }
         return;
       }
-      // Reload all entries (includes both manual + new auto-generated)
       await loadEntries();
     } catch (err) {
       console.error('Error generating knowledge:', err);
@@ -202,145 +365,237 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
     <Stack spacing={2}>
       {/* Description */}
       <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.6 }}>
-        Add local knowledge that your concierge can share with guests — restaurant recommendations, things to do, hotel tips, and more. These are included automatically in the bot's context.
+        Your concierge AI already knows how to answer most questions using your wedding details. Add specific information here that you want to prioritize — local recommendations, insider tips, or anything unique your guests should know. This knowledge will be used first when answering guest questions.
       </Typography>
 
-      {/* Generate City Guide section */}
-      {!isViewOnly && venueLoaded && (
-        <Box>
-          {generating ? (
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: 1,
-                border: '1px solid #DE3F5E20',
-                bgcolor: '#DE3F5E04',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-              }}
-            >
-              <CircularProgress size={22} sx={{ color: '#DE3F5E' }} />
-              <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500 }}>
-                Generating city guide for {venueLocation}...
-              </Typography>
-            </Paper>
-          ) : !venueLocation ? (
-            <Typography variant="body2" sx={{ color: '#9a9a9a', fontStyle: 'italic' }}>
-              Add your venue location in the Details tab to auto-generate a city guide for your guests.
-            </Typography>
-          ) : hasAutoEntries ? (
-            <Button
-              size="small"
-              startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
-              onClick={() => setConfirmRegenerate(true)}
-              sx={{
-                textTransform: 'none',
-                color: '#6a6a6a',
-                fontWeight: 500,
-                fontSize: '0.8rem',
-                '&:hover': { color: '#DE3F5E', bgcolor: '#DE3F5E08' },
-              }}
-            >
-              Regenerate City Guide
-            </Button>
-          ) : (
-            <Button
-              startIcon={<AutoAwesome />}
-              onClick={handleGenerate}
-              sx={{
-                textTransform: 'none',
-                color: 'white',
-                bgcolor: '#DE3F5E',
-                fontWeight: 600,
-                borderRadius: '12px',
-                px: 2.5,
-                py: 1,
-                '&:hover': { bgcolor: '#c73552' },
-              }}
-            >
-              Generate City Guide
-            </Button>
-          )}
-          {generateError && (
-            <Typography variant="body2" sx={{ color: '#d32f2f', mt: 1, fontSize: '0.8rem' }}>
-              {generateError}
-            </Typography>
-          )}
-        </Box>
-      )}
-
-      {/* Add button */}
+      {/* Action buttons row + Add form */}
       {!isViewOnly && (
         <Box>
           {!showAddForm ? (
-            <Button
-              startIcon={<Add />}
-              onClick={() => setShowAddForm(true)}
-              sx={{
-                textTransform: 'none',
-                color: '#DE3F5E',
-                fontWeight: 600,
-                borderRadius: '12px',
-                border: '1px dashed #DE3F5E40',
-                px: 2.5,
-                py: 1,
-                '&:hover': { bgcolor: '#DE3F5E08', borderColor: '#DE3F5E' },
-              }}
-            >
-              Add Entry
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+              <Button
+                startIcon={<Add />}
+                onClick={() => setShowAddForm(true)}
+                sx={{
+                  textTransform: 'none',
+                  color: '#DE3F5E',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  border: '1px dashed #DE3F5E40',
+                  px: 2.5,
+                  py: 1,
+                  '&:hover': { bgcolor: '#DE3F5E08', borderColor: '#DE3F5E' },
+                }}
+              >
+                Add Knowledge
+              </Button>
+              {venueLoaded && venueLocation && !hasAutoEntries && (
+                <Button
+                  startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  sx={{
+                    textTransform: 'none',
+                    color: 'white',
+                    bgcolor: '#DE3F5E',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    px: 2.5,
+                    py: 1,
+                    '&:hover': { bgcolor: '#c73552' },
+                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' },
+                  }}
+                >
+                  {generating ? 'Generating...' : 'Generate with AI'}
+                </Button>
+              )}
+              {venueLoaded && venueLocation && hasAutoEntries && (
+                <Button
+                  size="small"
+                  startIcon={generating ? <CircularProgress size={14} sx={{ color: '#6a6a6a' }} /> : <AutoAwesome sx={{ fontSize: 16 }} />}
+                  onClick={() => setConfirmRegenerate(true)}
+                  disabled={generating}
+                  sx={{
+                    textTransform: 'none',
+                    color: '#6a6a6a',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
+                    '&:hover': { color: '#DE3F5E', bgcolor: '#DE3F5E08' },
+                  }}
+                >
+                  {generating ? 'Regenerating...' : 'Regenerate with AI'}
+                </Button>
+              )}
+            </Box>
           ) : (
             <Paper
               elevation={0}
               sx={{
                 p: 2.5,
                 borderRadius: 1,
-                border: '1px solid #DE3F5E40',
+                border: '1px solid rgba(0,0,0,0.15)',
                 bgcolor: 'white',
               }}
             >
               <Stack spacing={2}>
-                <TextField
-                  label="Title"
-                  placeholder="e.g., Restaurant Recommendations"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  size="small"
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px' },
-                    '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-                  }}
-                />
-                <TextField
-                  label="Content"
-                  placeholder="e.g., For Indian food, try Bombay Palace on 5th St..."
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  size="small"
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px' },
-                    '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-                  }}
-                />
-                <FormControl size="small" sx={{ maxWidth: 200 }}>
-                  <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
-                  <Select
-                    value={newCategory}
-                    label="Category"
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a' }}
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <TextField
+                    label="Title"
+                    placeholder="e.g., Restaurant Recommendations"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    size="small"
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
+                      '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+                    }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0 }}>
+                    <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
+                    <Select
+                      value={newCategory}
+                      label="Category"
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                    >
+                      {CATEGORIES.map((cat) => (
+                        <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Content field with voice + upload controls */}
+                <Box>
+                  <TextField
+                    label="Content"
+                    placeholder="Type, speak, or upload a document..."
+                    value={newContent}
+                    onChange={(e) => setNewContent(e.target.value)}
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    sx={{
+                      '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
+                      '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+                    }}
+                  />
+                  {/* Voice + Upload toolbar below content */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    {voiceState === 'idle' && (
+                      <>
+                        <Tooltip title="Speak to add content">
+                          <IconButton
+                            size="small"
+                            onClick={startRecording}
+                            sx={{
+                              color: '#6a6a6a',
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              borderRadius: '8px',
+                              '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
+                            }}
+                          >
+                            <Mic sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={`Upload a document (${SUPPORTED_DOC_TYPES.join(', ')})`}>
+                          <IconButton
+                            size="small"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            sx={{
+                              color: '#6a6a6a',
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              borderRadius: '8px',
+                              '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
+                            }}
+                          >
+                            {uploading ? <CircularProgress size={18} /> : <UploadFile sx={{ fontSize: 18 }} />}
+                          </IconButton>
+                        </Tooltip>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          hidden
+                          accept={SUPPORTED_DOC_TYPES.join(',')}
+                          onChange={handleFileUpload}
+                        />
+                        <Typography variant="caption" sx={{ color: '#9a9a9a', ml: 0.5 }}>
+                          Speak or upload a file to add content
+                        </Typography>
+                      </>
+                    )}
+
+                    {voiceState === 'recording' && (
+                      <>
+                        <Box
+                          sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            bgcolor: '#DE3F5E',
+                            flexShrink: 0,
+                            animation: 'pulse 1.2s ease-in-out infinite',
+                            '@keyframes pulse': {
+                              '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                              '50%': { opacity: 0.5, transform: 'scale(1.3)' },
+                            },
+                          }}
+                        />
+                        {activeStream && (
+                          <Box sx={{ width: 120 }}>
+                            <VoiceWaveform stream={activeStream} isActive={voiceState === 'recording'} barCount={30} />
+                          </Box>
+                        )}
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
+                          {formatTime(voiceElapsed)}
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<Stop sx={{ fontSize: 16 }} />}
+                          onClick={stopRecording}
+                          sx={{
+                            bgcolor: '#DE3F5E',
+                            color: 'white',
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            py: 0.5,
+                            px: 1.5,
+                            minWidth: 'auto',
+                            '&:hover': { bgcolor: '#c73552' },
+                          }}
+                        >
+                          Stop
+                        </Button>
+                      </>
+                    )}
+
+                    {voiceState === 'transcribing' && (
+                      <>
+                        <CircularProgress size={16} sx={{ color: '#DE3F5E' }} />
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 500, color: '#6a6a6a' }}>
+                          Transcribing...
+                        </Typography>
+                      </>
+                    )}
+                  </Box>
+
+                  {/* Voice/upload error */}
+                  {voiceError && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#d32f2f' }}>{voiceError}</Typography>
+                      <IconButton size="small" onClick={() => setVoiceError(null)} sx={{ color: '#999', p: 0.25 }}>
+                        <Close sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Box>
+
                 <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                   <Button
                     size="small"
@@ -349,6 +604,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                       setNewTitle('');
                       setNewContent('');
                       setNewCategory('other');
+                      setVoiceError(null);
                     }}
                     sx={{ textTransform: 'none', color: '#6a6a6a', borderRadius: '10px' }}
                   >
@@ -375,6 +631,37 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         </Box>
       )}
 
+      {/* Generation status messages */}
+      {!isViewOnly && venueLoaded && generating && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 1,
+            border: '1px solid #DE3F5E20',
+            bgcolor: '#DE3F5E04',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <CircularProgress size={22} sx={{ color: '#DE3F5E' }} />
+          <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500 }}>
+            Generating city guide for {venueLocation}...
+          </Typography>
+        </Paper>
+      )}
+      {!isViewOnly && venueLoaded && !generating && !venueLocation && (
+        <Typography variant="body2" sx={{ color: '#9a9a9a', fontStyle: 'italic' }}>
+          Add your venue location in the Details tab to auto-generate a city guide for your guests.
+        </Typography>
+      )}
+      {generateError && (
+        <Typography variant="body2" sx={{ color: '#d32f2f', fontSize: '0.8rem' }}>
+          {generateError}
+        </Typography>
+      )}
+
       {/* Entries List */}
       {entries.length === 0 && !showAddForm ? (
         <Paper
@@ -388,7 +675,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
           }}
         >
           <Typography variant="body2" sx={{ color: '#9a9a9a', mb: 1 }}>
-            No knowledge base entries yet.
+            No knowledge bank entries yet.
           </Typography>
           <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
             Add restaurant recommendations, local tips, and more to help your concierge answer guest questions.
@@ -415,7 +702,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-          Regenerate City Guide?
+          Regenerate with AI?
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ color: '#4a4a4a' }}>
@@ -432,6 +719,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
           <Button
             onClick={handleGenerate}
             variant="contained"
+            disabled={generating}
             sx={{
               textTransform: 'none',
               bgcolor: '#DE3F5E',
@@ -439,7 +727,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
               '&:hover': { bgcolor: '#c73552' },
             }}
           >
-            Regenerate
+            {generating ? <CircularProgress size={20} color="inherit" /> : 'Regenerate'}
           </Button>
         </DialogActions>
       </Dialog>

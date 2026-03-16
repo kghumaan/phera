@@ -11,6 +11,10 @@ vi.mock('@mui/material', async () => {
 
 const mockSupabaseSingle = vi.fn();
 
+vi.mock('@/components/admin/VoiceWaveform', () => ({
+  default: () => <div data-testid="voice-waveform" />,
+}));
+
 vi.mock('@/lib/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -77,7 +81,7 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('No knowledge base entries yet.')).toBeTruthy();
+        expect(screen.getByText('No knowledge bank entries yet.')).toBeTruthy();
       });
     });
   });
@@ -87,17 +91,17 @@ describe('ConciergeKnowledgeBase', () => {
   // ══════════════════════════════════════════════════════════════════
 
   describe('generate city guide', () => {
-    it('should show "Generate City Guide" button when no auto entries exist and venue is set', async () => {
+    it('should show "Generate with AI" button when no auto entries exist and venue is set', async () => {
       mockFetchEntries([]);
 
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Generate City Guide')).toBeTruthy();
+        expect(screen.getByText('Generate with AI')).toBeTruthy();
       });
     });
 
-    it('should show "Regenerate City Guide" when auto entries already exist', async () => {
+    it('should show "Regenerate with AI" when auto entries already exist', async () => {
       mockFetchEntries([
         { id: '1', title: 'Dining', content: 'Food...', category: 'dining', is_active: true, order_index: 0, source: 'auto_generated' },
       ]);
@@ -105,7 +109,7 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Regenerate City Guide')).toBeTruthy();
+        expect(screen.getByText('Regenerate with AI')).toBeTruthy();
       });
     });
 
@@ -130,10 +134,10 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" isViewOnly />);
 
       await waitFor(() => {
-        expect(screen.getByText('No knowledge base entries yet.')).toBeTruthy();
+        expect(screen.getByText('No knowledge bank entries yet.')).toBeTruthy();
       });
 
-      expect(screen.queryByText('Generate City Guide')).toBeNull();
+      expect(screen.queryByText('Generate with AI')).toBeNull();
     });
 
     it('should show regeneration confirmation dialog when clicking Regenerate', async () => {
@@ -144,23 +148,23 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Regenerate City Guide')).toBeTruthy();
+        expect(screen.getByText('Regenerate with AI')).toBeTruthy();
       });
 
-      fireEvent.click(screen.getByText('Regenerate City Guide'));
+      fireEvent.click(screen.getByText('Regenerate with AI'));
 
-      expect(screen.getByText('Regenerate City Guide?')).toBeTruthy();
+      expect(screen.getByText('Regenerate with AI?')).toBeTruthy();
       expect(screen.getByText(/replace all AI-generated entries/)).toBeTruthy();
       expect(screen.getByText(/Manual entries won't be affected/)).toBeTruthy();
     });
 
-    it('should call generate API when Generate City Guide is clicked', async () => {
+    it('should call generate API when Generate with AI is clicked', async () => {
       mockFetchEntries([]);
 
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Generate City Guide')).toBeTruthy();
+        expect(screen.getByText('Generate with AI')).toBeTruthy();
       });
 
       // Mock generate endpoint + reload
@@ -173,7 +177,7 @@ describe('ConciergeKnowledgeBase', () => {
         json: () => Promise.resolve({ entries: [{ id: '1', title: 'Test', content: 'C', category: 'dining', is_active: true, order_index: 0, source: 'auto_generated' }] }),
       });
 
-      fireEvent.click(screen.getByText('Generate City Guide'));
+      fireEvent.click(screen.getByText('Generate with AI'));
 
       await waitFor(() => {
         // Should have called generate endpoint
@@ -190,16 +194,16 @@ describe('ConciergeKnowledgeBase', () => {
   // ══════════════════════════════════════════════════════════════════
 
   describe('add entry form', () => {
-    it('should show add form when "Add Entry" is clicked', async () => {
+    it('should show add form when "Add Knowledge" is clicked', async () => {
       mockFetchEntries([]);
 
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Add Entry')).toBeTruthy();
+        expect(screen.getByText('Add Knowledge')).toBeTruthy();
       });
 
-      fireEvent.click(screen.getByText('Add Entry'));
+      fireEvent.click(screen.getByText('Add Knowledge'));
 
       expect(screen.getByLabelText('Title')).toBeTruthy();
       expect(screen.getByLabelText('Content')).toBeTruthy();
@@ -211,10 +215,10 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Add Entry')).toBeTruthy();
+        expect(screen.getByText('Add Knowledge')).toBeTruthy();
       });
 
-      fireEvent.click(screen.getByText('Add Entry'));
+      fireEvent.click(screen.getByText('Add Knowledge'));
       expect(screen.getByLabelText('Title')).toBeTruthy();
 
       fireEvent.click(screen.getByText('Cancel'));
@@ -230,25 +234,25 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText('Add Entry')).toBeTruthy();
+        expect(screen.getByText('Add Knowledge')).toBeTruthy();
       });
 
-      fireEvent.click(screen.getByText('Add Entry'));
+      fireEvent.click(screen.getByText('Add Knowledge'));
 
       const addButton = screen.getByRole('button', { name: 'Add' });
       expect(addButton).toBeDisabled();
     });
 
-    it('should not show Add Entry button in view-only mode', async () => {
+    it('should not show Add Knowledge button in view-only mode', async () => {
       mockFetchEntries([]);
 
       render(<ConciergeKnowledgeBase weddingId="w-123" isViewOnly />);
 
       await waitFor(() => {
-        expect(screen.getByText('No knowledge base entries yet.')).toBeTruthy();
+        expect(screen.getByText('No knowledge bank entries yet.')).toBeTruthy();
       });
 
-      expect(screen.queryByText('Add Entry')).toBeNull();
+      expect(screen.queryByText('Add Knowledge')).toBeNull();
     });
   });
 
@@ -317,7 +321,7 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Add local knowledge that your concierge/)).toBeTruthy();
+        expect(screen.getByText(/concierge AI already knows/)).toBeTruthy();
       });
     });
   });

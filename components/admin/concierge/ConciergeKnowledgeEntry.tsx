@@ -14,6 +14,7 @@ import {
   InputLabel,
   Button,
   Stack,
+  CircularProgress,
 } from '@mui/material';
 import { Edit, Delete, AutoAwesome } from '@mui/icons-material';
 import { useState } from 'react';
@@ -58,8 +59,8 @@ interface KnowledgeEntry {
 
 interface ConciergeKnowledgeEntryProps {
   entry: KnowledgeEntry;
-  onUpdate: (id: string, data: Partial<KnowledgeEntry>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (id: string, data: Partial<KnowledgeEntry>) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
   isViewOnly?: boolean;
 }
 
@@ -68,14 +69,21 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
   const [editTitle, setEditTitle] = useState(entry.title);
   const [editContent, setEditContent] = useState(entry.content);
   const [editCategory, setEditCategory] = useState(entry.category);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleSave = () => {
-    onUpdate(entry.id, {
-      title: editTitle,
-      content: editContent,
-      category: editCategory,
-    });
-    setEditing(false);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onUpdate(entry.id, {
+        title: editTitle,
+        content: editContent,
+        category: editCategory,
+      });
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -96,22 +104,37 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         sx={{
           p: 2.5,
           borderRadius: 1,
-          border: '1px solid #DE3F5E40',
+          border: '1px solid rgba(0,0,0,0.15)',
           bgcolor: 'white',
         }}
       >
         <Stack spacing={2}>
-          <TextField
-            label="Title"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            size="small"
-            fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px' },
-              '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-            }}
-          />
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <TextField
+              label="Title"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              size="small"
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
+                '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+              }}
+            />
+            <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0 }}>
+              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
+              <Select
+                value={editCategory}
+                label="Category"
+                onChange={(e) => setEditCategory(e.target.value)}
+                sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+              >
+                {CATEGORIES.map((cat) => (
+                  <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           <TextField
             label="Content"
             value={editContent}
@@ -121,23 +144,10 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             multiline
             minRows={3}
             sx={{
-              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px' },
+              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
               '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
             }}
           />
-          <FormControl size="small" sx={{ maxWidth: 200 }}>
-            <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
-            <Select
-              value={editCategory}
-              label="Category"
-              onChange={(e) => setEditCategory(e.target.value)}
-              sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a' }}
-            >
-              {CATEGORIES.map((cat) => (
-                <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             <Button
               size="small"
@@ -150,7 +160,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               size="small"
               variant="contained"
               onClick={handleSave}
-              disabled={!editTitle.trim() || !editContent.trim()}
+              disabled={!editTitle.trim() || !editContent.trim() || saving}
               sx={{
                 textTransform: 'none',
                 bgcolor: '#DE3F5E',
@@ -158,7 +168,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
                 '&:hover': { bgcolor: '#c73552' },
               }}
             >
-              Save
+              {saving ? <CircularProgress size={18} color="inherit" /> : 'Save'}
             </Button>
           </Box>
         </Stack>
@@ -237,8 +247,15 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             <IconButton size="small" onClick={() => setEditing(true)}>
               <Edit sx={{ fontSize: 18, color: '#6a6a6a' }} />
             </IconButton>
-            <IconButton size="small" onClick={() => onDelete(entry.id)}>
-              <Delete sx={{ fontSize: 18, color: '#6a6a6a' }} />
+            <IconButton
+              size="small"
+              disabled={deleting}
+              onClick={async () => {
+                setDeleting(true);
+                try { await onDelete(entry.id); } finally { setDeleting(false); }
+              }}
+            >
+              {deleting ? <CircularProgress size={18} sx={{ color: '#6a6a6a' }} /> : <Delete sx={{ fontSize: 18, color: '#6a6a6a' }} />}
             </IconButton>
           </Box>
         )}

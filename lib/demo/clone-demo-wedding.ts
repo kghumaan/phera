@@ -149,6 +149,57 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     }
   }
 
+  // Clone guests (need ID mapping for whatsapp_chat_history)
+  const guestIdMapping: Record<string, string> = {};
+  const { data: templateGuests } = await (supabase as any)
+    .from('guests')
+    .select('*')
+    .eq('wedding_id', template.id);
+
+  if (templateGuests?.length) {
+    const guestsToInsert = templateGuests.map(({ id, wedding_id, created_at, ...rest }: any) => ({
+      ...rest,
+      wedding_id: newWeddingId,
+    }));
+
+    const { data: newGuests } = await (supabase as any)
+      .from('guests')
+      .insert(guestsToInsert)
+      .select('id, name');
+
+    if (newGuests) {
+      // Map by name (unique per wedding) since order may differ
+      const templateByName = new Map(templateGuests.map((g: any) => [g.name, g.id]));
+      for (const ng of newGuests) {
+        const oldId = templateByName.get(ng.name);
+        if (oldId) guestIdMapping[oldId] = ng.id;
+      }
+    }
+  }
+
+  // Clone whatsapp_chat_history (remap guest_id)
+  if (Object.keys(guestIdMapping).length > 0) {
+    const { data: templateChat } = await (supabase as any)
+      .from('whatsapp_chat_history')
+      .select('*')
+      .eq('wedding_id', template.id)
+      .order('created_at', { ascending: true });
+
+    if (templateChat?.length) {
+      const chatToInsert = templateChat
+        .filter((msg: any) => !msg.guest_id || guestIdMapping[msg.guest_id])
+        .map(({ id, wedding_id, created_at, ...rest }: any) => ({
+          ...rest,
+          wedding_id: newWeddingId,
+          guest_id: rest.guest_id ? guestIdMapping[rest.guest_id] : null,
+        }));
+
+      if (chatToInsert.length) {
+        await (supabase as any).from('whatsapp_chat_history').insert(chatToInsert);
+      }
+    }
+  }
+
   // Clone simple child tables in parallel (no ID remapping needed)
   const simpleClones = [
     cloneSimpleTable(supabase, 'wedding_faqs', template.id, newWeddingId),
@@ -156,6 +207,7 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     cloneSimpleTable(supabase, 'wedding_registry', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_shops', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_settings', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'concierge_knowledge_base', template.id, newWeddingId),
   ];
 
   // Create wedding_admins entry (demo user as owner)
@@ -221,6 +273,9 @@ export async function cleanupExpiredDemoWeddings(userId: string) {
     'wedding_shops',
     'wedding_settings',
     'wedding_admins',
+    'whatsapp_chat_history',
+    'guests',
+    'concierge_knowledge_base',
   ];
 
   // schedule_items needs special handling — delete by schedule_id

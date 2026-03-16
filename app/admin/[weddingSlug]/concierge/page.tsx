@@ -182,7 +182,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
           >
             <Tab label="Dashboard" />
             <Tab label="Conversations" />
-            <Tab label="Knowledge Base" />
+            <Tab label="Knowledge Bank" />
           </Tabs>
 
           {weddingId ? (
