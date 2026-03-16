@@ -358,7 +358,10 @@ export default function MoreDetailsModal({
           const events = await weddingService.getWeddingEvents(weddingId);
           const event = events.find((e) => e.id === eventId);
           if (event) {
-            setGradientBackground(event.gradient_background || 'GradientReception.webp');
+            // Only use gradient_background if it's a valid filename (not a hex color)
+            const bg = event.gradient_background;
+            const isValidBg = bg && !bg.startsWith('#') && bg.endsWith('.webp');
+            setGradientBackground(isValidBg ? bg : 'GradientReception.webp');
             const existingSlides = event.carousel_slides || [];
             setSlides(existingSlides.length > 0 ? existingSlides : defaultSlides);
             setLinkedEventId(event.id);
@@ -370,14 +373,16 @@ export default function MoreDetailsModal({
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
 
+          // Schedule item's gradient_background is a hex color for the event card accent,
+          // not a background image filename — always default to the first background preset
           const newEvent = await weddingService.createEvent({
             wedding_id: weddingId,
             name: scheduleItem.name,
             slug: slug,
             time: scheduleItem.time || '',
-            date: '', // schedule items don't have their own date
+            date: '',
             dress_code: scheduleItem.dress_code || '',
-            gradient_background: scheduleItem.gradient_background || 'GradientReception.webp',
+            gradient_background: 'GradientReception.webp',
             order_index: 0,
           });
 

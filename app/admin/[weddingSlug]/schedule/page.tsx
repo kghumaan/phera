@@ -264,6 +264,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       if (!formData || !formData.name) {
         return;
       }
+      setSavingForm(true);
       showStatus('saving');
       try {
         const day = scheduleData.find(d => d.id === dayId);
@@ -275,14 +276,16 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
           order_index: orderIndex,
           time: formData.time || '',
         });
-        setActiveForm(null);
         await loadData();
+        setActiveForm(null);
         setMoreDetailsItem(created as unknown as ScheduleItem);
         await syncPreview(weddingId);
         showStatus('saved');
       } catch (err) {
         console.error('Error auto-saving event:', err);
         showStatus('error');
+      } finally {
+        setSavingForm(false);
       }
     }
   }, [isViewOnly, weddingId, showStatus, scheduleData, loadData, syncPreview]);
