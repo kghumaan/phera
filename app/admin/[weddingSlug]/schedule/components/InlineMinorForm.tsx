@@ -9,9 +9,6 @@ const fieldSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '8px',
     bgcolor: 'white',
-    height: 48,
-    display: 'flex',
-    alignItems: 'center',
     '& fieldset': { borderColor: '#BCBCBC' },
     '&:hover fieldset': { borderColor: '#999' },
     '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
@@ -23,6 +20,7 @@ const fieldSx = {
   '& .MuiInputBase-input': {
     color: '#1a1a1a',
     fontSize: '1rem',
+    py: '12px',
   },
 };
 
