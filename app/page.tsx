@@ -1230,7 +1230,7 @@ export default function LandingPage() {
                       },
                     }}
                   >
-                    See How It Works
+                    View Demo
                   </Button>
                 </Stack>
               </Stack>
