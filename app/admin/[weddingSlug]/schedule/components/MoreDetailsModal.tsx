@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dialog,
   Box,
@@ -869,6 +869,25 @@ function SlideEditor({
   saving: boolean;
   weddingId: string;
 }) {
+  // Cache slide data per type so switching layouts doesn't erase content
+  const typeCache = useRef<Record<string, CarouselSlide>>({});
+
+  // Keep the cache updated with the current slide's data
+  useEffect(() => {
+    if (slide.type) {
+      typeCache.current[slide.type] = { ...slide };
+    }
+  }, [slide]);
+
+  const handleSwitchType = (newType: SlideType) => {
+    if (newType === slide.type) return;
+    // Save current slide data before switching
+    typeCache.current[slide.type] = { ...slide };
+    // Restore cached data for the target type, or create empty
+    const cached = typeCache.current[newType];
+    onUpdateSlide(slideIndex, cached || { ...makeEmptySlide(newType) });
+  };
+
   return (
     <Stack sx={{ gap: '32px' }}>
       {/* Layout picker pills */}
@@ -880,7 +899,7 @@ function SlideEditor({
           {SLIDE_TYPE_OPTIONS.map((opt) => (
             <Box
               key={opt.type}
-              onClick={() => onUpdateSlide(slideIndex, { ...makeEmptySlide(opt.type) })}
+              onClick={() => handleSwitchType(opt.type)}
               sx={{
                 px: 2,
                 py: 1,
