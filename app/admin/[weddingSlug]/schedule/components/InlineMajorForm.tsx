@@ -26,6 +26,10 @@ const fieldSx = {
   '& .MuiInputLabel-root': {
     color: '#524344',
     fontSize: '0.875rem',
+    transform: 'translate(14px, 12.5px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+    },
   },
   '& .MuiInputBase-input': {
     color: '#1a1a1a',

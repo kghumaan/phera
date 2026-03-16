@@ -98,7 +98,7 @@ export function WeddingProvider({ children, weddingSlug, mode = 'preview' }: Wed
         setEvents(snapshot.events || []);
         setSettings(snapshot.settings || null);
         setFaqs(snapshot.faqs || []);
-        setSchedule(snapshot.schedule || []);
+        setSchedule([...(snapshot.schedule || [])].sort((a: any, b: any) => (a.date ?? '').localeCompare(b.date ?? '')));
         setTravelCards(snapshot.travelCards || []);
         setRegistry(snapshot.registry || []);
         setShops(snapshot.shops || []);

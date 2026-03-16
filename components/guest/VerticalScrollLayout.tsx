@@ -25,6 +25,18 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
+
+function parseScheduleDate(dateStr: string): Date {
+  try {
+    let parsed = parseISO(dateStr);
+    if (isNaN(parsed.getTime())) {
+      const cleaned = dateStr.replace(/\s*-\s*/, ', ');
+      parsed = new Date(cleaned);
+    }
+    if (!isNaN(parsed.getTime())) return parsed;
+  } catch { /* fallback */ }
+  return new Date(0);
+}
 import { weddingService, WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
 import { getTransportationSettings } from '@/lib/supabase/transportation-service';
 import GuestList from '@/components/guest/GuestList';
@@ -857,7 +869,7 @@ export default function VerticalScrollLayout({
                       </Typography>
 
                       <Stack spacing={5}>
-                        {schedule.map((day) => (
+                        {[...schedule].sort((a, b) => parseScheduleDate(a.date).getTime() - parseScheduleDate(b.date).getTime()).map((day) => (
                           <Box key={day.id}>
                             <Typography
                               variant="h6"
@@ -867,7 +879,7 @@ export default function VerticalScrollLayout({
                                 textAlign: 'left',
                               }}
                             >
-                              {day.date}
+                              {(() => { const p = parseScheduleDate(day.date); return p.getTime() !== 0 ? format(p, 'EEEE - MMMM d, yyyy') : day.date; })()}
                             </Typography>
 
                             <Box sx={{ position: 'relative', pl: 7 }}>

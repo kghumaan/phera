@@ -2782,7 +2782,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     >
                       Share your excitement
                     </Typography>
-                    <StreamlineIcon name="megaphone" size={24} />
+                    <StreamlineIcon name="celebration" size={24} />
                   </Stack>
 
                   <Typography

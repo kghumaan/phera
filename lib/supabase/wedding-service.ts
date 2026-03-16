@@ -351,6 +351,12 @@ export class WeddingService {
       return [];
     }
 
+    // Sort days chronologically by date (handles both ISO and legacy "Day - Month D, YYYY" formats)
+    schedules.sort((a, b) => {
+      const parse = (d: string) => { try { const p = new Date(d.replace(/\s*-\s*/, ', ')); return isNaN(p.getTime()) ? 0 : p.getTime(); } catch { return 0; } };
+      return parse(a.date) - parse(b.date);
+    });
+
     const scheduleIds = schedules.map(s => s.id);
     const { data: items, error: itemsError } = await this.supabase
       .from('schedule_items')

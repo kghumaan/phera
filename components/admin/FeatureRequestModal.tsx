@@ -34,7 +34,7 @@ const COPY = {
     custom: {
         title: 'Want something custom?',
         description: "Are there elements in your wedding branding that you want to include? Anything custom we can help with? Reach out to us and we'll happily add it for you.",
-        placeholder: 'Tell us about your custom request...',
+        placeholder: 'Any requests?',
         success: "We're excited to make something special for you. We'll be in touch soon!",
     },
 };
@@ -156,6 +156,10 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                         '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
                                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.12)' },
                                         '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                    },
+                                    '& ::placeholder': {
+                                        color: '#666',
+                                        opacity: 1,
                                     }
                                 }}
                             />

@@ -25,19 +25,25 @@ import { format, parseISO } from 'date-fns';
 import { ScheduleItem, WeddingEvent } from '@/lib/supabase/wedding-service';
 import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailCarousel';
 
-// Format ISO date to display format
-function formatScheduleDate(dateStr: string): string {
+// Parse a date string in either ISO (yyyy-MM-dd) or legacy ("Monday - December 14, 2026") format
+function parseScheduleDate(dateStr: string): Date {
   try {
     let parsed = parseISO(dateStr);
     if (isNaN(parsed.getTime())) {
-      // Legacy format: "Monday - January 5, 2025"
       const cleaned = dateStr.replace(/\s*-\s*/, ', ');
       parsed = new Date(cleaned);
     }
-    if (!isNaN(parsed.getTime())) {
-      return format(parsed, 'EEEE - MMMM d, yyyy');
-    }
+    if (!isNaN(parsed.getTime())) return parsed;
   } catch { /* fallback */ }
+  return new Date(0);
+}
+
+// Format ISO date to display format
+function formatScheduleDate(dateStr: string): string {
+  const parsed = parseScheduleDate(dateStr);
+  if (parsed.getTime() !== 0) {
+    return format(parsed, 'EEEE - MMMM d, yyyy');
+  }
   return dateStr;
 }
 
@@ -625,7 +631,7 @@ export default function SchedulePage() {
         >
           {/* Schedule Cards */}
           <Box>
-            {schedule.map((day, index) => (
+            {[...schedule].sort((a, b) => parseScheduleDate(a.date).getTime() - parseScheduleDate(b.date).getTime()).map((day, index) => (
               <DayCard
                 key={day.id}
                 date={day.date}

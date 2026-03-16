@@ -288,7 +288,7 @@ export default function AdminPreviewPanel({
     }, [containerWidth]);
 
     // iPhone aspect ratio (roughly 9:19.5) — fit within available space
-    const MOBILE_ASPECT = 19.5 / 12;
+    const MOBILE_ASPECT = 19.5 / 11;
     const mobileWidth = useMemo(() => {
         if (!containerHeight || !containerWidth) return 420;
         const maxH = containerHeight * 0.92;
