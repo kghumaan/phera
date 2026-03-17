@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, Stack, IconButton } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, Image as ImageIcon } from '@mui/icons-material';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
@@ -24,20 +24,34 @@ export default function TravelHeaderImage({
   if (!imageUrl) {
     return (
       <Box sx={{
-        borderRadius: '12px',
-        border: '1px dashed #BCBCBC',
-        bgcolor: '#EBEBEB',
+        borderRadius: '16px',
+        bgcolor: 'white',
+        border: '1px solid rgba(0,0,0,0.07)',
         overflow: 'hidden',
       }}>
-        <ImageUpload
-          label="Header Image"
-          value={null}
-          onChange={(url) => onChange(url || null)}
-          path={getWeddingImagePath(weddingId, 'travel')}
-          aspectRatio="16/9"
-          maxWidth={800}
-          helperText="This image appears at the top of the Travel & Stay section for your guests"
-        />
+        <Box sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+            <Box sx={{ color: '#6a6a6a', mt: 0.3 }}>
+              <ImageIcon fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3, mb: 0.5 }}>
+                Header Image
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 1.5 }}>
+                This image appears at the top of the Travel &amp; Stay section for your guests
+              </Typography>
+              <ImageUpload
+                label=""
+                value={null}
+                onChange={(url) => onChange(url || null)}
+                path={getWeddingImagePath(weddingId, 'travel')}
+                aspectRatio="16/9"
+                maxWidth={800}
+              />
+            </Box>
+          </Stack>
+        </Box>
       </Box>
     );
   }
@@ -47,7 +61,9 @@ export default function TravelHeaderImage({
     <Box
       sx={{
         position: 'relative',
-        borderRadius: '12px',
+        borderRadius: '16px',
+        bgcolor: 'white',
+        border: '1px solid rgba(0,0,0,0.07)',
         overflow: 'hidden',
         '&:hover .header-actions': { opacity: 1 },
       }}
