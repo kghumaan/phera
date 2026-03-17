@@ -84,7 +84,7 @@ export default function AdminPreviewPanel({
     // RSVP Form: always shows the RSVP form preview route regardless of viewport
     const iframeSrc = useMemo(() => {
         if (isRsvpFormPage) return `/preview/${weddingSlug}/rsvp-form`;
-        if (isPinsPage) return `/preview/${weddingSlug}`;
+        if (isPinsPage) return `/preview/${weddingSlug}?view=pin_entry`;
         // For mobile or desktop multi-page, navigate to section URL directly
         if (sectionSlug && (viewMode === 'mobile' || !isDesktopVerticalScroll)) {
             return `/preview/${weddingSlug}/${sectionSlug}`;

@@ -21,7 +21,7 @@ export async function POST() {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || user.email !== 'demo@phera.io') {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

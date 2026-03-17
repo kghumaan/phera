@@ -200,7 +200,7 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
 /**
  * Get wedding image path
  */
-export function getWeddingImagePath(weddingId: string, category: 'couple' | 'events' | 'carousel' | 'backgrounds' | 'outfits'): string {
+export function getWeddingImagePath(weddingId: string, category: 'couple' | 'events' | 'carousel' | 'backgrounds' | 'outfits' | 'travel'): string {
   return `${weddingId}/${category}`;
 }
 

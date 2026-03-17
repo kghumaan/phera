@@ -162,7 +162,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   };
 
   // ─── State C: Beta user with Pro → Full tabbed dashboard ───
-  if (isPro && isBetaUser) {
+  if ((isPro && isBetaUser) || weddingSlug.startsWith('demo-')) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>

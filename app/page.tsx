@@ -1207,6 +1207,7 @@ function LandingPageContent() {
                     sx={{
                       bgcolor: '#DE3F5E',
                       color: 'white',
+                      minWidth: { xs: 220, md: 280 },
                       px: { xs: 4, md: 6 },
                       py: { xs: 1.2, md: 2 },
                       borderRadius: '32px',
@@ -1226,6 +1227,7 @@ function LandingPageContent() {
                     sx={{
                       borderColor: '#DE3F5E',
                       color: '#DE3F5E',
+                      minWidth: { xs: 220, md: 280 },
                       px: { xs: 4, md: 6 },
                       py: { xs: 1.2, md: 2 },
                       borderRadius: '32px',

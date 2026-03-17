@@ -25,6 +25,8 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
+import TravelSectionsDisplay, { TravelSectionData } from './TravelSectionsDisplay';
+import TravelDetailPanel from './TravelDetailPanel';
 
 function parseScheduleDate(dateStr: string): Date {
   try {
@@ -220,6 +222,11 @@ export default function VerticalScrollLayout({
   const [shops, setShops] = useState<ShopItem[]>([]);
   const [weddingEvents, setWeddingEvents] = useState<WeddingEvent[]>([]);
 
+  // Travel sections (new system)
+  const [travelSections, setTravelSections] = useState<TravelSectionData[]>([]);
+  const [detailPanelSection, setDetailPanelSection] = useState<TravelSectionData | null>(null);
+  const [detailPanelOpen, setDetailPanelOpen] = useState(false);
+
   // Event detail carousel state
   const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
   const [showEventCarousel, setShowEventCarousel] = useState(false);
@@ -247,8 +254,9 @@ export default function VerticalScrollLayout({
       if (!wedding.id) return;
 
       try {
-        const [scheduleData, travelData, faqData, registryData, shopData, eventsData] = await Promise.all([
+        const [scheduleData, travelSectionsData, travelData, faqData, registryData, shopData, eventsData] = await Promise.all([
           weddingService.getWeddingSchedule(wedding.id),
+          weddingService.getTravelSections(wedding.id),
           weddingService.getTravelCards(wedding.id),
           weddingService.getFAQs(wedding.id),
           weddingService.getRegistry(wedding.id),
@@ -301,7 +309,11 @@ export default function VerticalScrollLayout({
           setHasSchedule(true);
         }
 
-        if (travelData && travelData.length > 0) {
+        // Prefer new travel_sections, fall back to legacy travel_cards
+        if (travelSectionsData && travelSectionsData.length > 0) {
+          setTravelSections(travelSectionsData as TravelSectionData[]);
+          setHasTravel(true);
+        } else if (travelData && travelData.length > 0) {
           setTravelCards(travelData as TravelCard[]);
           setHasTravel(true);
         }
@@ -1087,71 +1099,81 @@ export default function VerticalScrollLayout({
                         Travel & Stay
                       </Typography>
 
-                      <Stack spacing={3}>
-                        {travelCards.map((card) => (
-                          <Paper
-                            key={card.id}
-                            elevation={0}
-                            sx={{
-                              backgroundColor: 'rgba(254, 249, 242, 0.8)',
-                              borderRadius: 2, // 16px
-                              overflow: 'hidden',
-                              border: '1px solid rgba(0,0,0,0.08)',
-                            }}
-                          >
-                            {card.image_url && (
-                              <Box sx={{ position: 'relative', width: '100%', height: 280 }}>
-                                <Image
-                                  src={card.image_url}
-                                  alt={card.title}
-                                  fill
-                                  priority
-                                  style={{ objectFit: 'cover' }}
-                                />
-                              </Box>
-                            )}
-                            <Box sx={{ p: 3 }}>
-                              <Typography
-                                variant="h5"
-                                sx={{
-                                  fontWeight: 600,
-                                  color: '#141414',
-                                  mb: 1.5,
-                                  // fontSize: { md: '0.88rem', lg: '1rem' },
-                                }}
-                              >
-                                {card.title}
-                              </Typography>
-                              <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: '#333' }}>
-                                {renderTravelContent(card.content)}
-                              </Box>
-                              {card.button_text && card.button_action && (
-                                <Button
-                                  onClick={() => window.open(card.button_action!, '_blank')}
-                                  variant="contained"
+                      {travelSections.length > 0 ? (
+                        <TravelSectionsDisplay
+                          sections={travelSections}
+                          primaryColor={primaryColor}
+                          onViewDetails={(section) => {
+                            setDetailPanelSection(section);
+                            setDetailPanelOpen(true);
+                          }}
+                        />
+                      ) : (
+                        <Stack spacing={3}>
+                          {travelCards.map((card) => (
+                            <Paper
+                              key={card.id}
+                              elevation={0}
+                              sx={{
+                                backgroundColor: 'rgba(254, 249, 242, 0.8)',
+                                borderRadius: 2,
+                                overflow: 'hidden',
+                                border: '1px solid rgba(0,0,0,0.08)',
+                              }}
+                            >
+                              {card.image_url && (
+                                <Box sx={{ position: 'relative', width: '100%', height: 280 }}>
+                                  <Image
+                                    src={card.image_url}
+                                    alt={card.title}
+                                    fill
+                                    priority
+                                    style={{ objectFit: 'cover' }}
+                                  />
+                                </Box>
+                              )}
+                              <Box sx={{ p: 3 }}>
+                                <Typography
+                                  variant="h5"
                                   sx={{
-                                    mt: 2,
-                                    bgcolor: primaryColor,
-                                    color: 'white',
-                                    textTransform: 'none',
-                                    borderRadius: '32px',
-                                    px: 3,
-                                    py: 0.75,
                                     fontWeight: 600,
-                                    fontSize: '0.9rem',
-                                    '&:hover': {
-                                      bgcolor: primaryColor,
-                                      opacity: 0.9,
-                                    },
+                                    color: '#141414',
+                                    mb: 1.5,
                                   }}
                                 >
-                                  {card.button_text}
-                                </Button>
-                              )}
-                            </Box>
-                          </Paper>
-                        ))}
-                      </Stack>
+                                  {card.title}
+                                </Typography>
+                                <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: '#333' }}>
+                                  {renderTravelContent(card.content)}
+                                </Box>
+                                {card.button_text && card.button_action && (
+                                  <Button
+                                    onClick={() => window.open(card.button_action!, '_blank')}
+                                    variant="contained"
+                                    sx={{
+                                      mt: 2,
+                                      bgcolor: primaryColor,
+                                      color: 'white',
+                                      textTransform: 'none',
+                                      borderRadius: '32px',
+                                      px: 3,
+                                      py: 0.75,
+                                      fontWeight: 600,
+                                      fontSize: '0.9rem',
+                                      '&:hover': {
+                                        bgcolor: primaryColor,
+                                        opacity: 0.9,
+                                      },
+                                    }}
+                                  >
+                                    {card.button_text}
+                                  </Button>
+                                )}
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Stack>
+                      )}
                     </motion.div>
                   </Box>
                 )}
@@ -1699,6 +1721,17 @@ export default function VerticalScrollLayout({
           </>
         )}
       </AnimatePresence>
+
+      {/* Travel Detail Panel */}
+      <TravelDetailPanel
+        section={detailPanelSection}
+        open={detailPanelOpen}
+        onClose={() => {
+          setDetailPanelOpen(false);
+          setDetailPanelSection(null);
+        }}
+        primaryColor={primaryColor}
+      />
     </Box>
   );
 }

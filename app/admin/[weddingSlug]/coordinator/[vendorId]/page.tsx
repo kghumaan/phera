@@ -141,7 +141,7 @@ export default function VendorDetailPage({
   const { weddingSlug, vendorId } = use(params);
   const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
-  const isDemo = isDemoUser(user?.email);
+  const isDemo = isDemoUser();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

@@ -155,7 +155,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   // Beta access check
   const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
-  const isDemo = isDemoUser(user?.email);
+  const isDemo = isDemoUser();
 
   // Early access request state
   const [betaRequestStatus, setBetaRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
@@ -1036,23 +1036,35 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   Coordinator
                 </Typography>
                 {phoneConfigured && (
-                  <Tooltip title={isDemo ? DEMO_COORDINATOR_TOOLTIP : "Add this number to vendor conversations. Click to copy."} placement="right" arrow>
-                    <Chip
-                      icon={<PhoneAndroid sx={{ fontSize: '14px !important' }} />}
-                      label={coordinatorPhone}
-                      size="small"
-                      onClick={isDemo ? undefined : handleCopyPhone}
+                  <>
+                    <Paper
+                      elevation={0}
                       sx={{
-                        bgcolor: alpha('#DE3F5E', 0.08),
-                        color: '#DE3F5E',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        cursor: isDemo ? 'default' : 'pointer',
-                        '& .MuiChip-icon': { color: '#DE3F5E' },
-                        '&:hover': { bgcolor: alpha('#DE3F5E', 0.14) },
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 2,
+                        py: 0.75,
+                        bgcolor: '#F8F8F8',
+                        borderRadius: 1,
+                        border: '1px solid rgba(0,0,0,0.07)',
                       }}
-                    />
-                  </Tooltip>
+                    >
+                      <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                      <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
+                        {coordinatorPhone}
+                      </Typography>
+                    </Paper>
+                    <Tooltip title={isDemo ? DEMO_COORDINATOR_TOOLTIP : (phoneCopied ? 'Copied!' : 'Copy coordinator number')} arrow>
+                      <IconButton
+                        size="small"
+                        onClick={isDemo ? undefined : handleCopyPhone}
+                        sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
+                      >
+                        {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 )}
               </Box>
               <Stack direction="row" spacing={1}>

@@ -5,8 +5,9 @@ export const DEMO_COORDINATOR_PHONE = '+1 (555) 012-3456';
 export const DEMO_COORDINATOR_TOOLTIP =
   'This is a sample number. In your account, this would be the number you add to vendor WhatsApp groups so Phera can track your conversations.';
 
-export function isDemoUser(email?: string | null): boolean {
-  return email === 'demo@phera.io';
+export function isDemoUser(): boolean {
+  if (typeof window === 'undefined') return false;
+  return sessionStorage.getItem('phera_demo_mode') === 'true';
 }
 
 // ─── Dashboard mock vendors (matches Vendor interface from coordinator page) ──

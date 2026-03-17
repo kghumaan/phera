@@ -784,46 +784,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isRefreshing, checkAuthStatus, currentWeddingSlug]);
 
-  // Auto-logout demo user if they leave admin routes
-  useEffect(() => {
-    const isDemoUser = user?.email === 'demo@phera.io';
-    const isAdminRoute = pathname.startsWith('/admin');
-    const isDemoEntryPoint = pathname === '/demo' || pathname.startsWith('/admin/demo');
-
-    if (isDemoUser && !isAdminRoute && !isDemoEntryPoint) {
-      console.log('[AuthContext] Demo user leaving admin area, restoring previous session...');
-
-      const restoreOrSignOut = async () => {
-        try {
-          const saved = sessionStorage.getItem('phera_pre_demo_session');
-          if (saved) {
-            const { access_token, refresh_token } = JSON.parse(saved);
-            sessionStorage.removeItem('phera_pre_demo_session');
-
-            // Sign out the demo user first
-            await supabase.auth.signOut();
-
-            // Restore the previous user's session
-            const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-            if (error) {
-              console.error('[AuthContext] Failed to restore previous session:', error);
-            } else {
-              console.log('[AuthContext] Previous session restored successfully');
-            }
-          } else {
-            // No previous session to restore — just sign out
-            signOut();
-          }
-        } catch (err) {
-          console.error('[AuthContext] Error restoring session:', err);
-          signOut();
-        }
-      };
-
-      restoreOrSignOut();
-    }
-  }, [pathname, user?.email, signOut]);
-
   useEffect(() => {
     let mounted = true;
 

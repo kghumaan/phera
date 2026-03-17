@@ -161,8 +161,8 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
     );
   }
 
-  // Non-Pro users see locked preview
-  if (!isPro) {
+  // Non-Pro users see locked preview (unless it's a demo wedding)
+  if (!isPro && !weddingSlug.startsWith('demo-')) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>

@@ -2,473 +2,459 @@
 
 import {
   Box,
-  Container,
   Typography,
-  Button,
   Stack,
-  Paper,
-  IconButton,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  FormControlLabel,
-  Checkbox,
   Snackbar,
-  Card,
-  CardContent,
-  Grid,
-  CircularProgress,
+  Alert,
+  Skeleton,
+  Fade,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { weddingService } from '@/lib/supabase/wedding-service';
-import ImageUpload from '@/components/admin/ImageUpload';
-import { getWeddingImagePath } from '@/lib/utils/image-upload';
+import { AutoAwesome } from '@mui/icons-material';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { weddingService, TravelSection } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
-
-// Use the enhanced TextField styling
-const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+import SortableTravelWrapper from './components/SortableTravelWrapper';
+import TravelDetailEditor from './components/TravelDetailEditor';
+import TravelHeaderImage from './components/TravelHeaderImage';
+import AddSectionMenu from './components/AddSectionMenu';
+import { DEFAULT_SECTIONS, TRAVEL_TYPE_LABELS } from './components/travel-utils';
 
 export default function TravelPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [cards, setCards] = useState<any[]>([]);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentCard, setCurrentCard] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [sections, setSections] = useState<TravelSection[]>([]);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const creatingDefaults = useRef(false);
+
+  // Setup notification (shown next to Add Section for 5s)
+  const [showSetupNotice, setShowSetupNotice] = useState(false);
+
+  // Inline editing state (replaces dialog)
+  const [activeForm, setActiveForm] = useState<{ editingSectionId: string } | null>(null);
+  const [savingForm, setSavingForm] = useState(false);
+
+  // Detail editor state (Tiptap modal — only modal remaining)
+  const [detailSection, setDetailSection] = useState<TravelSection | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, message: '', onConfirm: () => {} });
+
+  // Toast
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
-  const [previewSlide, setPreviewSlide] = useState(0);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('success');
 
-  useEffect(() => {
-    loadData();
-  }, [weddingSlug]);
+  // Header image — stored on the first 'travel'-type section
+  const travelSection = sections.find(s => s.type === 'travel');
+  const headerImageUrl = travelSection?.image_url || null;
 
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
+  const handleHeaderImageChange = async (url: string | null) => {
+    if (!travelSection || !weddingId) return;
+    const result = await weddingService.updateTravelSection(travelSection.id, { image_url: url });
+    if (result) {
+      setSections(prev => prev.map(s => s.id === travelSection.id ? result : s));
+      await syncPreview(weddingId);
+    }
+  };
+
+  const showToast = (message: string, severity: 'error' | 'success' = 'success') => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
   };
 
+  const syncPreview = useCallback(async (wId: string) => {
+    await weddingService.markUnpublishedChanges(wId);
+    const channel = new BroadcastChannel('phera-design-sync');
+    channel.postMessage({ type: 'PREVIEW_REFRESH' });
+    channel.close();
+  }, []);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Load data
+  useEffect(() => {
+    loadData();
+  }, [weddingSlug]);
+
   const loadData = async () => {
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-      if (wedding) {
-        setWeddingId(wedding.id);
-        const data = await weddingService.getTravelCards(wedding.id);
-        setCards(data);
+      if (!wedding) return;
+      setWeddingId(wedding.id);
+
+      const data = await weddingService.getTravelSections(wedding.id);
+
+      if (data.length === 0) {
+        // First visit — create default sections (guard against double-call)
+        if (creatingDefaults.current) return;
+        creatingDefaults.current = true;
+        await createDefaultSections(wedding.id);
+      } else {
+        setSections(data);
       }
     } catch (err) {
-      console.error('Error loading travel cards:', err);
-      const errorMessage = 'Failed to load travel cards';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      console.error('Error loading travel sections:', err);
+      showToast('Failed to load travel sections', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAdd = () => {
-    if (isViewOnly) return;
-    setCurrentCard({
-      wedding_id: weddingId,
-      title: '',
-      content: [],
-      image_url: '',
-      button_text: '',
-      button_action: '',
-      is_whatsapp_button: false,
-      is_disabled: false,
-      order_index: cards.length,
-    });
-    setEditDialogOpen(true);
-  };
-
-  const handleEdit = (card: any) => {
-    // Handle content items that are objects like {p: "text"} or plain strings
-    const contentStr = Array.isArray(card.content)
-      ? card.content.map((item: any) => typeof item === 'string' ? item : (item?.p ?? '')).join('\n\n')
-      : card.content;
-    setCurrentCard({
-      ...card,
-      content: contentStr,
-    });
-    setEditDialogOpen(true);
-  };
-
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (isViewOnly) return;
-    if (!currentCard?.title || !currentCard?.image_url) {
-      const errorMessage = 'Please fill in title and image';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-      return;
-    }
-
-    setSaving(true);
+  const createDefaultSections = async (wId: string) => {
     try {
-      const contentArray = currentCard.content
-        .split('\n\n')
-        .filter((p: string) => p.trim());
-
-      const saveData = {
-        ...currentCard,
-        content: contentArray,
-      };
-
-      if (currentCard.id) {
-        await weddingService.updateTravelCard(currentCard.id, saveData);
-      } else {
-        await weddingService.createTravelCard(saveData);
+      const created: TravelSection[] = [];
+      for (const def of DEFAULT_SECTIONS) {
+        const result = await weddingService.createTravelSection({
+          wedding_id: wId,
+          type: def.type,
+          title: def.title,
+          subtitle: def.subtitle,
+          icon: def.icon,
+          order_index: def.order_index,
+          content: null,
+          image_url: null,
+          more_details: null,
+          address: null,
+          phone: null,
+          price_level: null,
+          visible: true,
+          source: 'manual',
+        });
+        if (result) created.push(result);
       }
-      await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
+      setSections(created);
+
+      // Show the setup notice for 5 seconds
+      setShowSetupNotice(true);
+      setTimeout(() => setShowSetupNotice(false), 5000);
+
+      // Trigger AI generation for Travel and Flight content + city image
+      setAiGenerating(true);
+      try {
+        const res = await fetch('/api/travel/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weddingId: wId }),
+        });
+
+        if (res.ok) {
+          const { content } = await res.json();
+          const travelSection = created.find(s => s.type === 'travel');
+          const flightSection = created.find(s => s.type === 'flight');
+
+          if (travelSection) {
+            const travelUpdates: Record<string, any> = { source: 'ai_generated' };
+            if (content.travel_intro) travelUpdates.content = content.travel_intro;
+            if (content.image_url) travelUpdates.image_url = content.image_url;
+            await weddingService.updateTravelSection(travelSection.id, travelUpdates);
+          }
+          if (flightSection && content.flight_info) {
+            await weddingService.updateTravelSection(flightSection.id, {
+              content: content.flight_info,
+              source: 'ai_generated',
+            });
+          }
+
+          // Reload to get updated data
+          const refreshed = await weddingService.getTravelSections(wId);
+          setSections(refreshed);
+        }
+      } catch (aiErr) {
+        console.error('AI generation failed:', aiErr);
+      } finally {
+        setAiGenerating(false);
       }
-      setEditDialogOpen(false);
-      setCurrentCard(null);
-      setSuccess(true);
-      showToast('Changes saved!', 'success');
-      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Error saving travel card:', err);
-      const errorMessage = 'Failed to save travel card';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setSaving(false);
+      console.error('Error creating default sections:', err);
+      showToast('Failed to create default sections', 'error');
     }
   };
 
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  // Save section edits (inline form)
+  const handleSaveSection = async (sectionId: string, updates: Partial<TravelSection>) => {
+    if (!weddingId) return;
+    setSavingForm(true);
+    try {
+      const result = await weddingService.updateTravelSection(sectionId, updates);
+      if (result) {
+        setSections(prev => prev.map(s => s.id === sectionId ? result : s));
+        await syncPreview(weddingId);
+        showToast('Section saved');
+        setActiveForm(null);
+      } else {
+        showToast('Failed to save section', 'error');
+      }
+    } finally {
+      setSavingForm(false);
+    }
+  };
 
-  const handleDelete = async (cardId: string) => {
+  // Save more_details
+  const handleSaveDetails = async (html: string) => {
+    if (!detailSection || !weddingId) return;
+    const result = await weddingService.updateTravelSection(detailSection.id, { more_details: html });
+    if (result) {
+      setSections(prev => prev.map(s => s.id === detailSection.id ? result : s));
+      await syncPreview(weddingId);
+      showToast('Details saved');
+    } else {
+      showToast('Failed to save details', 'error');
+    }
+  };
+
+  // Add new section — create in DB, then open inline
+  const handleAddSection = async (type: string) => {
+    if (isViewOnly || !weddingId) return;
+    const result = await weddingService.createTravelSection({
+      wedding_id: weddingId,
+      type: type as TravelSection['type'],
+      title: TRAVEL_TYPE_LABELS[type] || type,
+      subtitle: null,
+      icon: null,
+      order_index: sections.length,
+      content: null,
+      image_url: null,
+      more_details: null,
+      address: null,
+      phone: null,
+      price_level: null,
+      visible: true,
+      source: 'manual',
+    });
+    if (result) {
+      setSections(prev => [...prev, result]);
+      await syncPreview(weddingId);
+      showToast('Section added');
+      setActiveForm({ editingSectionId: result.id });
+    }
+  };
+
+  // Delete section
+  const handleDelete = (sectionId: string) => {
     if (isViewOnly) return;
     setConfirmDialog({
       open: true,
-      message: 'Delete this card?',
+      message: 'Delete this section? This cannot be undone.',
       onConfirm: async () => {
         setConfirmDialog(prev => ({ ...prev, open: false }));
-        try {
-          await weddingService.deleteTravelCard(cardId);
-          await loadData();
-          if (weddingId) {
-            await weddingService.markUnpublishedChanges(weddingId);
-            const channel = new BroadcastChannel('phera-design-sync');
-            channel.postMessage({ type: 'PREVIEW_REFRESH' });
-            channel.close();
-          }
-          setSuccess(true);
-          showToast('Card deleted successfully', 'success');
-        } catch (err) {
-          const errorMessage = 'Failed to delete card';
-          setError(errorMessage);
-          showToast(errorMessage, 'error');
+        const success = await weddingService.deleteTravelSection(sectionId);
+        if (success) {
+          setSections(prev => prev.filter(s => s.id !== sectionId));
+          if (activeForm?.editingSectionId === sectionId) setActiveForm(null);
+          if (weddingId) await syncPreview(weddingId);
+          showToast('Section deleted');
+        } else {
+          showToast('Failed to delete section', 'error');
         }
       },
     });
   };
 
+  // Drag and drop reorder
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !weddingId) return;
+
+    const oldIndex = sections.findIndex(s => s.id === active.id);
+    const newIndex = sections.findIndex(s => s.id === over.id);
+    const reordered = arrayMove(sections, oldIndex, newIndex);
+
+    setSections(reordered);
+
+    const items = reordered.map((s, i) => ({ id: s.id, order_index: i }));
+    const success = await weddingService.reorderTravelSections(items);
+    if (success) {
+      await syncPreview(weddingId);
+    } else {
+      const refreshed = await weddingService.getTravelSections(weddingId);
+      setSections(refreshed);
+      showToast('Failed to reorder', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
-        <LoadingSpinner message="Loading travel cards..." />
+        <LoadingSpinner message="Loading travel sections..." />
       </Box>
     );
   }
-
-
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Travel & Stay Information
+            Travel & Stay
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Create carousel cards with travel and accommodation details
+            Add travel information, flight details, accommodation, and hotel recommendations for your guests
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            alignSelf: 'flex-start',
-            '&:hover': {
-              bgcolor: '#C8365A',
-            },
-          }}
-        >
-          Add Card
-        </Button>
-
-        <Stack spacing={2}>
-          {cards.map((card) => (
-            <Paper key={card.id} sx={{
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                <Box sx={{ flex: 1, mr: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                    {card.title}
-                  </Typography>
-                  {card.image_url && (
-                    <Box
-                      component="img"
-                      src={card.image_url}
-                      alt={card.title}
-                      sx={{ width: 200, height: 120, objectFit: 'cover', borderRadius: 1, mb: 1 }}
-                    />
-                  )}
-                  {card.content && Array.isArray(card.content) && card.content.length > 0 ? (
-                    <Stack spacing={0.5} sx={{ mb: 1 }}>
-                      {card.content.slice(0, 2).map((paragraph: any, index: number) => {
-                        // Handle both plain strings and objects like {p: "text"}
-                        const text = typeof paragraph === 'string' ? paragraph : (paragraph?.p ?? '');
-                        return (
-                          <Typography
-                            key={index}
-                            variant="body2"
-                            sx={{
-                              color: '#6a6a6a',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {text}
-                          </Typography>
-                        );
-                      })}
-                      {card.content.length > 2 && (
-                        <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic' }}>
-                          +{card.content.length - 2} more paragraph{card.content.length - 2 > 1 ? 's' : ''}
-                        </Typography>
-                      )}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                      No content yet
-                    </Typography>
-                  )}
-                  {card.button_text && (
-                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#DE3F5E' }}>
-                      Button: {card.button_text}
-                    </Typography>
-                  )}
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <IconButton size="small" onClick={() => handleEdit(card)} color="error">
-                    <Edit />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDelete(card.id)} color="error">
-                    <Delete />
-                  </IconButton>
-                </Stack>
-              </Stack>
-            </Paper>
-          ))}
-
-          {cards.length === 0 && (
-            <Paper sx={{
-              p: 4,
-              textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
-              boxShadow: 'none',
-            }}>
-              <Typography sx={{ color: '#6a6a6a' }}>
-                No travel cards yet. Add your first card.
-              </Typography>
-            </Paper>
-          )}
-        </Stack>
-
-        <Dialog
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-            }
-          }}
-        >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentCard?.id ? 'Edit Card' : 'New Card'}</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
-            <Stack spacing={3} sx={{ mt: 2 }}>
-              <TextField
-                label="Card Title *"
-                fullWidth
-                value={currentCard?.title || ''}
-                onChange={(e) => setCurrentCard({ ...currentCard, title: e.target.value })}
-                sx={textFieldSx}
-              />
-
-              <TextField
-                label="Content *"
-                fullWidth
-                multiline
-                rows={6}
-                value={currentCard?.content || ''}
-                onChange={(e) => setCurrentCard({ ...currentCard, content: e.target.value })}
-                helperText="Separate paragraphs with double line breaks"
-                sx={textFieldSx}
-              />
-
-              {weddingId && (
-                <ImageUpload
-                  label="Card Image *"
-                  value={currentCard?.image_url}
-                  onChange={(url) => setCurrentCard({ ...currentCard, image_url: url })}
-                  path={getWeddingImagePath(weddingId, 'carousel')}
-                  aspectRatio="16/9"
-                  maxWidth={600}
-                />
-              )}
-
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>Optional Button</Typography>
-
-              <TextField
-                label="Button Text"
-                fullWidth
-                value={currentCard?.button_text || ''}
-                onChange={(e) => setCurrentCard({ ...currentCard, button_text: e.target.value })}
-                sx={textFieldSx}
-              />
-
-              <TextField
-                label="Button Action (URL or route)"
-                fullWidth
-                value={currentCard?.button_action || ''}
-                onChange={(e) => setCurrentCard({ ...currentCard, button_action: e.target.value })}
-                helperText="e.g., /events or https://booking.com"
-                sx={textFieldSx}
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={currentCard?.is_whatsapp_button || false}
-                    onChange={(e) => setCurrentCard({ ...currentCard, is_whatsapp_button: e.target.checked })}
-                    sx={{
-                      color: '#6a6a6a',
-                      '&.Mui-checked': {
-                        color: '#DE3F5E',
-                      },
-                    }}
-                  />
-                }
-                label="WhatsApp Button"
-                sx={{
-                  '& .MuiFormControlLabel-label': {
-                    color: '#1a1a1a',
-                  },
-                }}
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={currentCard?.is_disabled || false}
-                    onChange={(e) => setCurrentCard({ ...currentCard, is_disabled: e.target.checked })}
-                    sx={{
-                      color: '#6a6a6a',
-                      '&.Mui-checked': {
-                        color: '#DE3F5E',
-                      },
-                    }}
-                  />
-                }
-                label="Disable Button"
-                sx={{
-                  '& .MuiFormControlLabel-label': {
-                    color: '#1a1a1a',
-                  },
-                }}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={saving}
+        {showSetupNotice && (
+          <Fade in={showSetupNotice} timeout={400}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={0.75}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
+                bgcolor: 'rgba(222, 63, 94, 0.06)',
+                color: '#DE3F5E',
+                px: 2,
+                py: 1,
                 borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#C8365A',
-                },
+                fontSize: '0.85rem',
+                fontWeight: 500,
               }}
             >
-              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+              <AutoAwesome sx={{ fontSize: 16 }} />
+              <Typography variant="body2" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                We&apos;ve generated some default sections for you — feel free to update or delete as you wish!
+              </Typography>
+            </Stack>
+          </Fade>
+        )}
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        {/* Header image */}
+        {weddingId && travelSection && (
+          <TravelHeaderImage
+            imageUrl={headerImageUrl}
+            weddingId={weddingId}
+            onChange={handleHeaderImageChange}
+            isViewOnly={isViewOnly}
+          />
+        )}
+
+        {/* AI generation shimmer */}
+        {aiGenerating && (
+          <Stack spacing={1.5}>
+            <Skeleton variant="rounded" height={20} width={180} sx={{ borderRadius: '8px' }} />
+            <Skeleton variant="rounded" height={60} sx={{ borderRadius: '12px' }} />
+            <Skeleton variant="rounded" height={60} sx={{ borderRadius: '12px' }} />
+          </Stack>
+        )}
+
+        {/* Sortable sections list */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
+          <SortableContext
+            items={sections.map(s => s.id)}
+            strategy={verticalListSortingStrategy}
           >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
+            <Stack spacing={1.5}>
+              {sections.map((section) => (
+                <SortableTravelWrapper
+                  key={section.id}
+                  section={section}
+                  onEdit={() => setActiveForm({ editingSectionId: section.id })}
+                  onDelete={() => handleDelete(section.id)}
+                  onEditDetails={() => {
+                    setDetailSection(section);
+                    setDetailDialogOpen(true);
+                  }}
+                  isViewOnly={isViewOnly}
+                  isEditing={activeForm?.editingSectionId === section.id}
+                  editFormProps={weddingId ? {
+                    onSave: (updates) => handleSaveSection(section.id, updates),
+                    onCancel: () => setActiveForm(null),
+                    onMoreDetails: () => {
+                      setDetailSection(section);
+                      setDetailDialogOpen(true);
+                    },
+                    isSaving: savingForm,
+                  } : undefined}
+                />
+              ))}
+            </Stack>
+          </SortableContext>
+        </DndContext>
+
+        {sections.length === 0 && !aiGenerating && (
+          <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'white', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <Typography sx={{ color: '#6a6a6a' }}>
+              No travel sections yet. Click &ldquo;Add Section&rdquo; to get started.
+            </Typography>
+          </Box>
+        )}
+
+        {/* Add Section — dashed button at the bottom */}
+        {!isViewOnly && (
+          <AddSectionMenu onAdd={handleAddSection} />
+        )}
       </Stack>
+
+      {/* Detail editor dialog (Tiptap — only modal remaining) */}
+      {detailSection && (
+        <TravelDetailEditor
+          open={detailDialogOpen}
+          initialContent={detailSection.more_details || ''}
+          onClose={() => {
+            setDetailDialogOpen(false);
+            setDetailSection(null);
+          }}
+          onSave={handleSaveDetails}
+        />
+      )}
+
       <ConfirmDialog
         open={confirmDialog.open}
         message={confirmDialog.message}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
       <ContinueButton weddingSlug={weddingSlug} currentSection="travel" weddingId={weddingId} />
-    </Box >
+    </Box>
   );
 }

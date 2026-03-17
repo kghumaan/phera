@@ -24,7 +24,6 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Tooltip,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -40,6 +39,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { isDemoUser } from '@/lib/demo/coordinator-mock-data';
 import { toast } from 'sonner';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
@@ -77,9 +77,19 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         setAnchorEl(null);
     };
 
+    const isDemo = isDemoUser();
+
     const handleSignOut = async () => {
         handleMenuClose();
         await signOut();
+        router.push('/');
+    };
+
+    const handleExitDemo = () => {
+        handleMenuClose();
+        sessionStorage.removeItem('phera_demo_mode');
+        sessionStorage.removeItem('demo-wedding-slug');
+        sessionStorage.removeItem('demo-tour-step');
         router.push('/');
     };
 
@@ -316,10 +326,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 )}
                             </Avatar>
                             <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
-                                {wedding?.couple_name || 'Your Wedding'}
+                                {isDemo ? 'Simran & Karanvir' : (wedding?.couple_name || 'Your Wedding')}
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
-                                {user?.email}
+                                {isDemo ? 'Demo Mode' : user?.email}
                             </Typography>
 
                             {/* Plan Display */}
@@ -431,43 +441,49 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
-                        {(() => {
-                            const isDemoUser = user?.email === 'demo@phera.io';
-                            return (
-                                <Tooltip
-                                    title={isDemoUser ? "You're viewing the demo — sign out is disabled" : ''}
-                                    placement="left"
-                                    arrow
-                                >
-                                    <span>
-                                        <ListItemButton
-                                            onClick={handleSignOut}
-                                            disabled={isDemoUser}
-                                            sx={{
-                                                borderRadius: '12px',
-                                                py: 1.2,
-                                                mx: 0.5,
-                                                color: isDemoUser ? '#aaa' : '#DE3F5E',
-                                                '&:hover': {
-                                                    bgcolor: isDemoUser ? 'transparent' : alpha('#DE3F5E', 0.05),
-                                                },
-                                                '&.Mui-disabled': {
-                                                    opacity: 0.5,
-                                                },
-                                            }}
-                                        >
-                                            <ListItemIcon sx={{ minWidth: 40 }}>
-                                                <Logout sx={{ color: isDemoUser ? '#aaa' : '#DE3F5E', fontSize: 22 }} />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary="Sign Out"
-                                                primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
-                                            />
-                                        </ListItemButton>
-                                    </span>
-                                </Tooltip>
-                            );
-                        })()}
+                        {isDemo ? (
+                            <ListItemButton
+                                onClick={handleExitDemo}
+                                sx={{
+                                    borderRadius: '12px',
+                                    py: 1.2,
+                                    mx: 0.5,
+                                    color: '#DE3F5E',
+                                    '&:hover': {
+                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                    },
+                                }}
+                            >
+                                <ListItemIcon sx={{ minWidth: 40 }}>
+                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Exit Demo"
+                                    primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
+                                />
+                            </ListItemButton>
+                        ) : (
+                            <ListItemButton
+                                onClick={handleSignOut}
+                                sx={{
+                                    borderRadius: '12px',
+                                    py: 1.2,
+                                    mx: 0.5,
+                                    color: '#DE3F5E',
+                                    '&:hover': {
+                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                    },
+                                }}
+                            >
+                                <ListItemIcon sx={{ minWidth: 40 }}>
+                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Sign Out"
+                                    primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
+                                />
+                            </ListItemButton>
+                        )}
                     </Menu>
                 </Box>
             </Toolbar>
@@ -509,6 +525,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     <Button
                         onClick={() => {
                             setHomeModalOpen(false);
+                            if (isDemo) {
+                                sessionStorage.removeItem('phera_demo_mode');
+                                sessionStorage.removeItem('demo-wedding-slug');
+                                sessionStorage.removeItem('demo-tour-step');
+                            }
                             router.push('/');
                         }}
                         variant="contained"

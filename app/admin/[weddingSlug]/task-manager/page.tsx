@@ -582,7 +582,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
 
   // ── Non-pro teaser ──────────────────────────────────────────────────────────
 
-  if (!isPro) {
+  if (!isPro && !weddingSlug.startsWith('demo-')) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>

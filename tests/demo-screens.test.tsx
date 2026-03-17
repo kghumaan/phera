@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   isDemoUser,
   DEMO_VENDORS,
@@ -53,20 +53,22 @@ global.fetch = mockFetch;
 // ═══════════════════════════════════════════════════════════════════
 
 describe('Demo user identification', () => {
-  it('should identify demo@phera.io as demo user', () => {
-    expect(isDemoUser('demo@phera.io')).toBe(true);
+  afterEach(() => {
+    sessionStorage.removeItem('phera_demo_mode');
   });
 
-  it('should not identify other emails as demo user', () => {
-    expect(isDemoUser('kv.s.ghumaan@gmail.com')).toBe(false);
-    expect(isDemoUser('test@example.com')).toBe(false);
-    expect(isDemoUser('Demo@phera.io')).toBe(false); // case-sensitive
+  it('should identify demo mode when sessionStorage flag is set', () => {
+    sessionStorage.setItem('phera_demo_mode', 'true');
+    expect(isDemoUser()).toBe(true);
   });
 
-  it('should handle null/undefined email', () => {
-    expect(isDemoUser(null)).toBe(false);
-    expect(isDemoUser(undefined)).toBe(false);
-    expect(isDemoUser('')).toBe(false);
+  it('should not identify demo mode when flag is absent', () => {
+    expect(isDemoUser()).toBe(false);
+  });
+
+  it('should not identify demo mode when flag is not "true"', () => {
+    sessionStorage.setItem('phera_demo_mode', 'false');
+    expect(isDemoUser()).toBe(false);
   });
 });
 
@@ -376,12 +378,14 @@ describe('Demo dashboard flow', () => {
     const email = 'demo@phera.io';
     const isPro = true;
     const isBetaUser = BETA_ACCESS_EMAILS.includes(email.toLowerCase());
-    const isDemo = isDemoUser(email);
+    sessionStorage.setItem('phera_demo_mode', 'true');
+    const isDemo = isDemoUser();
 
     // Without demo check, this user hits State A.5 (beta gate)
     expect(isPro && !isBetaUser).toBe(true);
     // With demo check, they bypass it
     expect(isPro && !isBetaUser && !isDemo).toBe(false);
+    sessionStorage.removeItem('phera_demo_mode');
   });
 
   it('demo user should load mock vendors without API calls', () => {

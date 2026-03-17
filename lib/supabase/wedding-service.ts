@@ -34,6 +34,29 @@ export type ScheduleItem = Tables<'schedule_items'>;
 
 export type WeddingTravelCard = Tables<'wedding_travel_cards'>;
 
+export interface TravelSection {
+  id: string;
+  wedding_id: string;
+  type: 'travel' | 'flight' | 'travel_note' | 'accommodation' | 'hotel';
+  title: string | null;
+  subtitle: string | null;
+  content: string | null;
+  image_url: string | null;
+  icon: string | null;
+  order_index: number;
+  more_details: string | null;
+  address: string | null;
+  phone: string | null;
+  price_level: number | null;
+  visible: boolean;
+  source: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TravelSectionInsert = Omit<TravelSection, 'id' | 'created_at' | 'updated_at'>;
+export type TravelSectionUpdate = Partial<Omit<TravelSection, 'id' | 'created_at' | 'updated_at'>>;
+
 export type WeddingFAQ = Tables<'wedding_faqs'>;
 
 export type WeddingRegistry = Tables<'wedding_registry'>;
@@ -146,7 +169,8 @@ export class WeddingService {
       return [];
     }
 
-    return (data || []) as Wedding[];
+    // Filter out demo clones (demo- prefixed slugs) so they don't pollute the user's dashboard
+    return ((data || []) as Wedding[]).filter(w => !w.slug.startsWith('demo-'));
   }
 
   async createWedding(wedding: TablesInsert<'weddings'>): Promise<Wedding | null> {
@@ -490,7 +514,8 @@ export class WeddingService {
     }
   }
 
-  // Travel Cards
+  // Travel Cards (legacy — use TravelSections instead)
+  /** @deprecated Use getTravelSections instead */
   async getTravelCards(weddingId: string): Promise<WeddingTravelCard[]> {
     const { data, error } = await this.supabase
       .from('wedding_travel_cards')
@@ -549,6 +574,84 @@ export class WeddingService {
     }
 
     return true;
+  }
+
+  // Travel Sections (new structured travel system)
+  async getTravelSections(weddingId: string): Promise<TravelSection[]> {
+    const { data, error } = await this.supabase
+      .from('travel_sections' as any)
+      .select('*')
+      .eq('wedding_id', weddingId)
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching travel sections:', error);
+      return [];
+    }
+
+    return (data || []) as unknown as TravelSection[];
+  }
+
+  async createTravelSection(section: TravelSectionInsert): Promise<TravelSection | null> {
+    const { data, error } = await this.supabase
+      .from('travel_sections' as any)
+      .insert([section])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating travel section:', error);
+      return null;
+    }
+
+    return data as unknown as TravelSection;
+  }
+
+  async updateTravelSection(id: string, updates: TravelSectionUpdate): Promise<TravelSection | null> {
+    const { data, error } = await this.supabase
+      .from('travel_sections' as any)
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating travel section:', error);
+      return null;
+    }
+
+    return data as unknown as TravelSection;
+  }
+
+  async deleteTravelSection(id: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('travel_sections' as any)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting travel section:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async reorderTravelSections(items: { id: string; order_index: number }[]): Promise<boolean> {
+    try {
+      await Promise.all(
+        items.map(item =>
+          this.supabase
+            .from('travel_sections' as any)
+            .update({ order_index: item.order_index })
+            .eq('id', item.id)
+        )
+      );
+      return true;
+    } catch (error) {
+      console.error('Error reordering travel sections:', error);
+      return false;
+    }
   }
 
   // FAQs

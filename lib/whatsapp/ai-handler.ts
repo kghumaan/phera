@@ -26,6 +26,7 @@ export async function generateAIResponse(params: {
       scheduleResult,
       scheduleItemsResult,
       travelResult,
+      travelSectionsResult,
       faqsResult,
       rsvpResult,
       chatResult,
@@ -39,6 +40,7 @@ export async function generateAIResponse(params: {
       supabase.from('wedding_schedule').select('*').eq('wedding_id', weddingId).order('order_index'),
       supabase.from('schedule_items').select('*').order('order_index'),
       supabase.from('wedding_travel_cards').select('*').eq('wedding_id', weddingId).order('order_index'),
+      (supabase as any).from('travel_sections').select('*').eq('wedding_id', weddingId).order('order_index'),
       supabase.from('wedding_faqs').select('*').eq('wedding_id', weddingId).order('order_index'),
       supabase.from('rsvps').select('*').eq('guest_id', guestId),
       (supabase as any)
@@ -64,6 +66,7 @@ export async function generateAIResponse(params: {
     const schedules = (scheduleResult.data as any[]) || [];
     const allScheduleItems = (scheduleItemsResult.data as any[]) || [];
     const travelCards = (travelResult.data as any[]) || [];
+    const travelSectionsRaw = (travelSectionsResult.data as any[]) || [];
     const faqs = (faqsResult.data as any[]) || [];
     const rsvps = (rsvpResult.data as any[]) || [];
     const chatHistory = (chatResult.data as any[]) || [];
@@ -113,22 +116,32 @@ Welcome Message: ${wedding.welcome_text || 'N/A'}`
         }).join('\n\n')
       : 'No schedule available.';
 
-    // Parse travel card content (content is JSON)
-    const travelInfo = travelCards.length
-      ? travelCards.map((t: any) => {
-          let info = `- *${t.title}*: `;
-          if (typeof t.content === 'string') {
-            info += t.content;
-          } else if (t.content && typeof t.content === 'object') {
-            // JSON content — extract text fields
-            info += JSON.stringify(t.content);
-          }
-          if (t.button_text && t.button_action) {
-            info += ` [${t.button_text}: ${t.button_action}]`;
-          }
-          return info;
-        }).join('\n')
-      : 'No travel information available.';
+    // Parse travel info — prefer travel_sections, fall back to legacy travel_cards
+    let travelInfo: string;
+    if (travelSectionsRaw.length > 0) {
+      travelInfo = travelSectionsRaw.map((t: any) => {
+        let info = `- *${t.title || t.subtitle || t.type}*: `;
+        if (t.content) info += t.content;
+        if (t.address) info += ` | Address: ${t.address}`;
+        if (t.phone) info += ` | Phone: ${t.phone}`;
+        return info;
+      }).join('\n');
+    } else if (travelCards.length) {
+      travelInfo = travelCards.map((t: any) => {
+        let info = `- *${t.title}*: `;
+        if (typeof t.content === 'string') {
+          info += t.content;
+        } else if (t.content && typeof t.content === 'object') {
+          info += JSON.stringify(t.content);
+        }
+        if (t.button_text && t.button_action) {
+          info += ` [${t.button_text}: ${t.button_action}]`;
+        }
+        return info;
+      }).join('\n');
+    } else {
+      travelInfo = 'No travel information available.';
+    }
 
     const faqInfo = faqs.length
       ? faqs.map((f: any) => {

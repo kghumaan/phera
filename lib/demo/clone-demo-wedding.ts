@@ -135,11 +135,11 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
         .filter(item => scheduleIdMapping[item.schedule_id!])
         .map((item) => {
           const { id, schedule_id, created_at, ...rest } = item as any;
-          const eventId = (item as any).event_id;
+          const eventId = (item as any).linked_event_id;
           return {
             ...rest,
             schedule_id: scheduleIdMapping[schedule_id!],
-            event_id: eventId ? (eventIdMapping[eventId] || null) : null,
+            linked_event_id: eventId ? (eventIdMapping[eventId] || null) : null,
           };
         });
 
@@ -154,12 +154,12 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   const { data: templateGuests } = await (supabase as any)
     .from('guests')
     .select('*')
-    .eq('wedding_id', template.id);
+    .eq('wedding_id', TEMPLATE_SLUG);
 
   if (templateGuests?.length) {
-    const guestsToInsert = templateGuests.map(({ id, wedding_id, created_at, ...rest }: any) => ({
+    const guestsToInsert = templateGuests.map(({ id, wedding_id, created_at, initials, ...rest }: any) => ({
       ...rest,
-      wedding_id: newWeddingId,
+      wedding_id: newSlug,
     }));
 
     const { data: newGuests } = await (supabase as any)
@@ -172,7 +172,7 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
       const templateByName = new Map(templateGuests.map((g: any) => [g.name, g.id]));
       for (const ng of newGuests) {
         const oldId = templateByName.get(ng.name);
-        if (oldId) guestIdMapping[oldId] = ng.id;
+        if (oldId) guestIdMapping[oldId as string] = ng.id;
       }
     }
   }
@@ -198,17 +198,48 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
         await (supabase as any).from('whatsapp_chat_history').insert(chatToInsert);
       }
     }
+
+    // Clone RSVPs (remap guest_id, use 'general' event_id)
+    const { data: templateRsvps } = await (supabase as any)
+      .from('rsvps')
+      .select('*')
+      .eq('wedding_id', TEMPLATE_SLUG);
+
+    if (templateRsvps?.length) {
+      const rsvpsToInsert = templateRsvps
+        .filter((rsvp: any) => guestIdMapping[rsvp.guest_id])
+        .map(({ id, wedding_id, created_at, ...rest }: any) => ({
+          ...rest,
+          wedding_id: newSlug,
+          guest_id: guestIdMapping[rest.guest_id],
+          event_id: 'general',
+        }));
+
+      if (rsvpsToInsert.length) {
+        await (supabase as any).from('rsvps').insert(rsvpsToInsert);
+      }
+    }
   }
 
   // Clone simple child tables in parallel (no ID remapping needed)
   const simpleClones = [
     cloneSimpleTable(supabase, 'wedding_faqs', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_travel_cards', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'travel_sections' as any, template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_registry', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_shops', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_settings', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'concierge_knowledge_base', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'transportation_settings', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'transportation_vehicle_types', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'wedding_tasks', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'guest_flights', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'travel_bus_signups', template.id, newWeddingId),
+    cloneSimpleTable(supabase, 'vendors', template.id, newWeddingId),
   ];
+
+  // Clone transportation data with ID remapping
+  await cloneTransportationData(supabase, template.id, newWeddingId, guestIdMapping);
 
   // Create wedding_admins entry (demo user as owner)
   const adminInsert = supabase.from('wedding_admins').insert({
@@ -261,21 +292,35 @@ export async function cleanupExpiredDemoWeddings(userId: string) {
   if (!expired?.length) return;
 
   const weddingIds = expired.map(w => w.id);
+  const weddingSlugs = expired.map(w => w.slug);
 
-  // Delete child tables explicitly (no guaranteed CASCADE)
-  const childTables = [
+  // Tables that use slug as wedding_id (TEXT columns)
+  const slugTables = ['guests', 'rsvps'];
+
+  // Tables that use UUID as wedding_id
+  const uuidChildTables = [
     'schedule_items',
     'wedding_schedule',
     'wedding_events',
     'wedding_faqs',
     'wedding_travel_cards',
+    'travel_sections',
     'wedding_registry',
     'wedding_shops',
     'wedding_settings',
     'wedding_admins',
     'whatsapp_chat_history',
-    'guests',
     'concierge_knowledge_base',
+    'transportation_settings',
+    'transportation_vehicles',
+    'transportation_pickup_locations',
+    'transportation_time_ranges',
+    'transportation_vehicle_types',
+    'transportation_reservations',
+    'transportation_groups',
+    'guest_flights',
+    'travel_bus_signups',
+    'vendors',
   ];
 
   // schedule_items needs special handling — delete by schedule_id
@@ -291,8 +336,16 @@ export async function cleanupExpiredDemoWeddings(userId: string) {
       .in('schedule_id', schedules.map(s => s.id));
   }
 
-  // Delete other child tables
-  for (const table of childTables.filter(t => t !== 'schedule_items')) {
+  // Delete slug-based tables (guests, rsvps)
+  for (const table of slugTables) {
+    await supabase
+      .from(table as any)
+      .delete()
+      .in('wedding_id', weddingSlugs);
+  }
+
+  // Delete UUID-based child tables
+  for (const table of uuidChildTables.filter(t => t !== 'schedule_items')) {
     await supabase
       .from(table as any)
       .delete()
@@ -305,3 +358,101 @@ export async function cleanupExpiredDemoWeddings(userId: string) {
     .delete()
     .in('id', weddingIds);
 }
+
+async function cloneTransportationData(
+  supabase: ReturnType<typeof getServiceClient>,
+  templateId: string,
+  newId: string,
+  guestIdMapping: Record<string, string>
+) {
+  // 1. Clone vehicles
+  const vMap: Record<string, string> = {};
+  const { data: vhs } = await supabase.from('transportation_vehicles').select('*').eq('wedding_id', templateId);
+  if (vhs?.length) {
+    const { data: newVhs } = await supabase.from('transportation_vehicles')
+      .insert(vhs.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => ({ ...rest, wedding_id: newId })))
+      .select('id, vehicle_name');
+    if (newVhs) {
+      for (const oldV of vhs) {
+        const matching = newVhs.find((v: any) => v.vehicle_name === oldV.vehicle_name);
+        if (matching) vMap[oldV.id] = matching.id;
+      }
+    }
+  }
+
+  // 1.5. Clone vehicle types
+  const vtMap: Record<string, string> = {};
+  const { data: vts } = await supabase.from('transportation_vehicle_types').select('*').eq('wedding_id', templateId);
+  if (vts?.length) {
+    const { data: newVts } = await supabase.from('transportation_vehicle_types')
+      .insert(vts.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => ({ ...rest, wedding_id: newId })))
+      .select('id, name');
+    if (newVts) {
+      for (const old of vts) {
+        const matching = newVts.find((v: any) => v.name === old.name);
+        if (matching) vtMap[old.id] = matching.id;
+      }
+    }
+  }
+
+  // 2. Clone pickup locations
+  const pMap: Record<string, string> = {};
+  const { data: pls } = await supabase.from('transportation_pickup_locations').select('*').eq('wedding_id', templateId);
+  if (pls?.length) {
+    const { data: newPls } = await supabase.from('transportation_pickup_locations')
+      .insert(pls.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => ({ ...rest, wedding_id: newId })))
+      .select('id, name');
+    if (newPls) {
+      for (const oldP of pls) {
+        const matching = newPls.find((p: any) => p.name === oldP.name);
+        if (matching) pMap[oldP.id] = matching.id;
+      }
+    }
+  }
+
+  // 3. Clone time ranges
+  const trMap: Record<string, string> = {};
+  const { data: trs } = await supabase.from('transportation_time_ranges').select('*').eq('wedding_id', templateId);
+  if (trs?.length) {
+    const { data: newTrs } = await supabase.from('transportation_time_ranges')
+      .insert(trs.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => ({ ...rest, wedding_id: newId })))
+      .select('id, start_datetime');
+    if (newTrs) {
+      for (const old of trs) {
+        const matching = newTrs.find((p: any) => p.start_datetime === old.start_datetime);
+        if (matching) trMap[old.id] = matching.id;
+      }
+    }
+  }
+
+  // 4. Clone groups
+  const { data: grps } = await supabase.from('transportation_groups').select('*').eq('wedding_id', templateId);
+  if (grps?.length) {
+    await supabase.from('transportation_groups').insert(grps.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => {
+      return { 
+        ...rest, 
+        wedding_id: newId,
+        pickup_location_id: pMap[rest.pickup_location_id] || rest.pickup_location_id,
+        vehicle_type_id: rest.vehicle_type_id ? vtMap[rest.vehicle_type_id] || rest.vehicle_type_id : null
+      };
+    }));
+  }
+
+  // 5. Clone reservations
+  const { data: resvs } = await supabase.from('transportation_reservations').select('*').eq('wedding_id', templateId);
+  if (resvs?.length) {
+    const toInsert = resvs.filter((r: any) => !r.guest_id || guestIdMapping[r.guest_id]).map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => {
+      return {
+        ...rest,
+        wedding_id: newId,
+        vehicle_id: rest.vehicle_id ? vMap[rest.vehicle_id] : null,
+        pickup_location_id: rest.pickup_location_id ? pMap[rest.pickup_location_id] : null,
+        guest_id: rest.guest_id ? guestIdMapping[rest.guest_id] : null,
+      };
+    });
+    if (toInsert.length) {
+      await supabase.from('transportation_reservations').insert(toInsert);
+    }
+  }
+}
+

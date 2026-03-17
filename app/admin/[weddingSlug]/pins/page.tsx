@@ -467,6 +467,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 {settings.pin_codes.map((pinData: any, index: number) => (
                   <ListItem
                     key={index}
+                    onClick={() => handleEditPin(pinData, index)}
                     sx={{
                       bgcolor: '#f8f8f8',
                       borderRadius: '12px',
@@ -475,6 +476,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       px: 3,
                       border: '2px solid',
                       borderColor: 'rgba(0,0,0,0.07)',
+                      cursor: 'pointer',
                       '&:last-child': { mb: 0 },
                       '&:hover': {
                         borderColor: 'rgba(0,0,0,0.15)',
@@ -553,20 +555,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                         </Stack>
                         <IconButton
                           edge="end"
-                          onClick={() => handleEditPin(pinData, index)}
-                          sx={{
-                            color: '#DE3F5E',
-                            ml: 1,
-                            '&:hover': {
-                              bgcolor: alpha('#DE3F5E', 0.1),
-                            },
-                          }}
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton
-                          edge="end"
-                          onClick={() => setDeletePinTarget(pinData.pin)}
+                          onClick={(e) => { e.stopPropagation(); setDeletePinTarget(pinData.pin); }}
                           sx={{
                             color: '#DE3F5E',
                             ml: 1,

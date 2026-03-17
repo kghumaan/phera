@@ -93,7 +93,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
-  const [websiteLayout, setWebsiteLayout] = useState<'multi_page' | 'vertical_scroll'>('multi_page');
+  const [websiteLayout, setWebsiteLayout] = useState<'multi_page' | 'vertical_scroll'>('vertical_scroll');
   const [frameImageUrl, setFrameImageUrl] = useState<string | null>(null);
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
@@ -391,43 +391,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                       p: 1.5,
                       borderRadius: '10px',
                       bgcolor: '#ffffff',
-                      border: websiteLayout === 'multi_page' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&:hover': { borderColor: '#DE3F5E' },
-                    }}
-                    onClick={() => setWebsiteLayout('multi_page')}
-                  >
-                    <FormControlLabel
-                      value="multi_page"
-                      control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
-                      label={
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                              Multi-Page
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
-                              Guests tap &apos;View Details&apos; to see event info
-                            </Typography>
-                          </Box>
-                          <ViewAgenda sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
-                        </Box>
-                      }
-                      sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
-                    />
-                  </Paper>
-                </Grid>
-
-                <Grid size={{ xs: 6 }}>
-                  <Paper
-                    sx={{
-                      p: 1.5,
-                      borderRadius: '10px',
-                      bgcolor: '#ffffff',
                       border: websiteLayout === 'vertical_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
@@ -452,6 +415,43 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                             </Typography>
                           </Box>
                           <UnfoldMore sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
+                        </Box>
+                      }
+                      sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
+                    />
+                  </Paper>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Paper
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '10px',
+                      bgcolor: '#ffffff',
+                      border: websiteLayout === 'multi_page' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover': { borderColor: '#DE3F5E' },
+                    }}
+                    onClick={() => setWebsiteLayout('multi_page')}
+                  >
+                    <FormControlLabel
+                      value="multi_page"
+                      control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
+                      label={
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                              Multi-Page
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
+                              Guests tap &apos;View Details&apos; to see event info
+                            </Typography>
+                          </Box>
+                          <ViewAgenda sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
                         </Box>
                       }
                       sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}

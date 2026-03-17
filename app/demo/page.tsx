@@ -6,8 +6,8 @@ import { supabase } from '@/lib/supabase/client';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 const DEMO_EMAIL = 'demo@phera.io';
-const PRE_DEMO_SESSION_KEY = 'phera_pre_demo_session';
 const DEMO_SLUG_KEY = 'demo-wedding-slug';
+const DEMO_MODE_KEY = 'phera_demo_mode';
 
 async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: (e: string) => void) {
   // Check sessionStorage for an existing clone
@@ -55,23 +55,14 @@ export default function DemoPage() {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Already the demo user — clone and redirect
-          if (session.user.email === DEMO_EMAIL) {
-            await cloneAndRedirect(router, setError);
-            return;
-          }
-
-          // Signed in as a different user — save their session so we can restore it later
-          sessionStorage.setItem(PRE_DEMO_SESSION_KEY, JSON.stringify({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          }));
-
-          // Sign out the current user before signing in as demo
-          await supabase.auth.signOut();
+          // User is already logged in — keep their session, no auth switch needed.
+          // This avoids NavigatorLockAcquireTimeoutError from competing signOut/signIn calls.
+          sessionStorage.setItem(DEMO_MODE_KEY, 'true');
+          await cloneAndRedirect(router, setError);
+          return;
         }
 
-        // Sign in as demo user
+        // Not logged in — sign in as demo@phera.io (no lock contention since no existing session)
         const demoPassword = process.env.NEXT_PUBLIC_DEMO_USER_PASSWORD;
         if (!demoPassword) {
           setError('Demo is not configured. Please contact support.');
@@ -89,7 +80,7 @@ export default function DemoPage() {
           return;
         }
 
-        // Clone template and redirect to cloned wedding
+        sessionStorage.setItem(DEMO_MODE_KEY, 'true');
         await cloneAndRedirect(router, setError);
       } catch (err) {
         console.error('Demo error:', err);

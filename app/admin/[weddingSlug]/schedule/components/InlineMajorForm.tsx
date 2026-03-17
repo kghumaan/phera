@@ -260,6 +260,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 fontSize: '1rem',
                 px: 2, py: 0.75,
                 '&:hover': { bgcolor: '#C8365A' },
+                '&:disabled': { bgcolor: '#f0c0ca', color: 'white' },
               }}
             >
               Add More Details
