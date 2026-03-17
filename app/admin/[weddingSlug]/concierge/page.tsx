@@ -13,9 +13,11 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
-import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined } from '@mui/icons-material';
+import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined, PhoneAndroid, ContentCopy } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
@@ -64,6 +66,17 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const [activeTab, setActiveTab] = useState(0);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+  const [phoneCopied, setPhoneCopied] = useState(false);
+
+  const conciergePhone = '+1 (555) 839-7813';
+
+  const handleCopyPhone = async () => {
+    try {
+      await navigator.clipboard.writeText(conciergePhone);
+      setPhoneCopied(true);
+      setTimeout(() => setPhoneCopied(false), 2000);
+    } catch {}
+  };
 
   const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
 
@@ -154,9 +167,38 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Phera Concierge
-            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                Phera Concierge
+              </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 0.75,
+                  bgcolor: '#F8F8F8',
+                  borderRadius: 1,
+                  border: '1px solid rgba(0,0,0,0.07)',
+                }}
+              >
+                <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
+                  {conciergePhone}
+                </Typography>
+              </Paper>
+              <Tooltip title={phoneCopied ? 'Copied!' : 'Copy Concierge number — this is our business number that guests can contact'} arrow>
+                <IconButton
+                  size="small"
+                  onClick={handleCopyPhone}
+                  sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
+                >
+                  {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
               24/7 WhatsApp concierge for your guests — powered by your wedding details
             </Typography>
