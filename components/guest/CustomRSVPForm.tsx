@@ -839,12 +839,12 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   color: '#000000',
-                  flex: isMobile ? 1 : 'none',
+                  flex: 'none',
                   display: 'flex',
                   flexDirection: 'column',
-                  mt: isMobile ? 6 : 0,
+                  mt: 0,
                   minHeight: isMobile ? '180px' : { md: 600, lg: 650 },
-                  maxHeight: isMobile ? 'calc(100svh - 160px)' : { md: '80vh', lg: '85vh' },
+                  maxHeight: isMobile ? 'calc(85svh)' : { md: '80vh', lg: '85vh' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -1141,7 +1141,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               color: '#000',
               fontWeight: 400,
               lineHeight: 1.3,
-              fontSize: { xs: '1.75rem', md: '2.25rem' },
             }}
           >
             {step.step_title}
@@ -1340,7 +1339,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
-                fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
               Let's make this celebration official! ✨
@@ -1576,7 +1574,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
-                fontSize: { xs: '1.75rem', md: '2.25rem' },
               }}
             >
               Create Your Login 🔐
@@ -2932,7 +2929,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       <FullScreenFormContainer
         title="RSVP"
         onClose={handleClose}
-        paperHeight="85vh" // Set to 85% of viewport height as per user request
       >
         {/* Progress Bar */}
         <Box sx={{ mb: { xs: 1.5, sm: 2, md: 3 } }}>
