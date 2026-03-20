@@ -355,8 +355,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -369,8 +370,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -387,8 +389,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -401,8 +404,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -421,8 +425,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -436,8 +441,9 @@ export default function TravelDetailsPage() {
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
                         '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                        '& .MuiOutlinedInput-root': { 
+                        '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                         },
                       }}
                     />
@@ -475,8 +481,9 @@ export default function TravelDetailsPage() {
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
                       '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                      '& .MuiOutlinedInput-root': { 
+                      '& .MuiOutlinedInput-root': {
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                        '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                       },
                       '& .MuiFormHelperText-root': { color: '#666' },
                     }}
@@ -493,8 +500,9 @@ export default function TravelDetailsPage() {
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
                       '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
-                      '& .MuiOutlinedInput-root': { 
+                      '& .MuiOutlinedInput-root': {
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                        '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                       },
                     }}
                   />

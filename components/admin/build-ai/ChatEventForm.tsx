@@ -59,6 +59,7 @@ function DigitalTimePicker({
                         sx={{
                             bgcolor: '#f5f5f5',
                             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                            '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                             borderRadius: '8px',
                             fontWeight: 600,
                             fontSize: '1.1rem',
@@ -81,6 +82,7 @@ function DigitalTimePicker({
                         sx={{
                             bgcolor: '#f5f5f5',
                             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+                            '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                             borderRadius: '8px',
                             fontWeight: 600,
                             fontSize: '1.1rem'
@@ -191,6 +193,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                 WebkitTextFillColor: '#1a1a1a !important',
             },
             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+            '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
             '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
         },
     };

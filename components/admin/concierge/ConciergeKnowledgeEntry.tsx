@@ -109,7 +109,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         }}
       >
         <Stack spacing={2}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               label="Title"
               value={editTitle}
@@ -117,17 +117,17 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               size="small"
               fullWidth
               sx={{
-                '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
+                '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', height: 40, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } },
                 '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
               }}
             />
-            <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0 }}>
-              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
+            <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0, '& .MuiOutlinedInput-root': { height: 40 } }}>
+              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Category</InputLabel>
               <Select
                 value={editCategory}
                 label="Category"
                 onChange={(e) => setEditCategory(e.target.value)}
-                sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } }}
               >
                 {CATEGORIES.map((cat) => (
                   <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
@@ -144,7 +144,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             multiline
             minRows={3}
             sx={{
-              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
+              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } },
               '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
             }}
           />

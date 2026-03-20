@@ -397,6 +397,7 @@ export default function TravelFormPage() {
                           textAlign: 'center',
                           color: '#000000',
                           '& fieldset': { borderColor: '#999' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                           '&.Mui-focused fieldset': { borderColor: primaryColor },
                         },
                         '& input': { textAlign: 'center', color: '#000000' }

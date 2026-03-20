@@ -262,6 +262,7 @@ const PREVIEW_FIELD_SX = {
     borderRadius: '12px',
     bgcolor: '#f0f0f0',
     '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
+    '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   },
   '& .Mui-disabled': {
     WebkitTextFillColor: '#888',
@@ -277,6 +278,7 @@ const PREVIEW_SELECT_SX = {
   borderRadius: '12px',
   bgcolor: '#f0f0f0',
   '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
+  '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   '& .Mui-disabled': { WebkitTextFillColor: '#888' },
 };
 

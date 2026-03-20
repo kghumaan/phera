@@ -120,6 +120,7 @@ function TagSelector({
             '& .MuiOutlinedInput-root': {
               borderRadius: '6px', bgcolor: 'white', height: 30,
               '& fieldset': { borderColor: '#ddd' },
+              '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
               '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
             },
             '& .MuiInputBase-input': { fontSize: '0.75rem', py: 0.5, px: 1 },

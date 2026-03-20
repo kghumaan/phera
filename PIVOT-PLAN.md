@@ -27,7 +27,7 @@ The pivot: **stop selling the tool, start selling the work.** Couples don't want
 
 ### The Competitive Gap
 
-We researched the full landscape. Joy has "Smart RSVP." The Knot has vendor matching. Zola has AI task-splitting. WeddingWire has vendor chatbots. **None of them are doing the guest logistics work.** They're all tool-sellers. Nobody is operating as a proactive guest coordination service with WhatsApp-native communication for culturally complex, multi-day weddings.
+We researched the full landscape extensively (7 research papers covering WhatsApp API constraints, pricing, competitors, destination logistics, template design, NRI market, and unofficial API feasibility). Joy has "Smart RSVP." The Knot has vendor matching. Zola has AI task-splitting. WeddingWire has vendor chatbots. Wedflow does WhatsApp logistics but only B2B (sells to planners). Jubilyn does WhatsApp invitations but is RSVP-only. ZeroPaper sends from personal accounts but violates Meta ToS (10M accounts banned/month in India). **None of them are doing the guest logistics work as a B2C WhatsApp-native service.** Nobody uses WhatsApp Flows for in-chat RSVP. Nobody addresses non-Indian guests attending Indian weddings. Nobody charges for outcomes.
 
 This gap is our opportunity.
 
@@ -84,10 +84,26 @@ The product is sprawling — 15 admin sections, 3 pricing tiers, features rangin
 
 ## 3. Where We're Going
 
+### Target Market: NRI-First
+
+Research revealed a critical strategic insight: **NRI (Non-Resident Indian) couples are the primary market, not domestic Indian couples.**
+
+The numbers: 40,000-55,000 NRI weddings happen in India annually. Less than 1% of total volume, but 3-5% of total spend — a $4-6 billion segment. NRI wedding budgets average $60,000-$200,000 (US Indian Americans: $225,000-$285,000). At $349-$599, Phera is 0.1-0.6% of their budget — less than a single shuttle bus rental.
+
+Why NRIs first:
+- **Higher willingness to pay.** They earn in USD/GBP/AED, are conditioned to paying for SaaS, and won't flinch at $349-$599. Domestic Indian couples are more price-sensitive.
+- **More pain.** NRI couples are 8-12 timezones away from India-side logistics. They can't just call the vendor or visit the venue. Every 15-minute decision becomes a 3-day timezone delay.
+- **More non-Indian guests.** NRIs have college friends, work colleagues, and partners from the US/UK who've never been to India. These "reverse destination" guests need cultural bridging that no platform provides — visa guides, ceremony explanations, dress code help, SIM card setup. This is Phera's most defensible feature.
+- **Planner referral channel.** 40-60% of NRI weddings use planners (vs 20-30% domestic). Planners are the #1 go-to-market — they want to offload guest logistics. Partner with 15-20 NRI-specialist planners who handle 20-50 weddings/year each.
+
+Key NRI source markets (by priority): US (highest value, $225K-$285K avg), UK, Canada, UAE (high volume but more price-sensitive), Australia, Singapore.
+
+Domestic Indian couples are the secondary market at ₹9,999-₹17,999. We serve everyone, but we lead with NRIs.
+
 ### The New Positioning
 
 **Old:** "Destination Wedding, Minus the Chaos" — *Here are tools to plan your wedding yourself.*
-**New:** "Your Wedding Operations Team" — *We coordinate your guests so you focus on the celebration.*
+**New:** "Your Wedding Operations Team" — *We coordinate your guests so you can focus on the celebration.*
 
 One-sentence pitch: *"Indian weddings are beautiful chaos — 300+ guests, 3-5 days of events, people flying in from everywhere. Phera handles the guest logistics so you can focus on the celebration."*
 
@@ -118,7 +134,10 @@ We track every guest's travel plans, optimize shuttle routes and timing, send re
 **Outcome 3: "Guests are supported 24/7"**
 Our WhatsApp Concierge answers guest questions instantly — schedule, venue, dress code, local recommendations — in their language, on their schedule.
 
-**Outcome 4: "The couple sees everything, manages nothing"**
+**Outcome 4: "Your friends from abroad? We've got them."** *(NEW — Most Defensible Feature)*
+Non-Indian guests attending an Indian wedding in India get a WhatsApp-delivered cultural guide: visa info, what to wear to each event (and what NOT to wear), ceremony explanations, airport-to-venue coordination, SIM card setup, food tips, and the reassurance that Indian families will be incredibly welcoming. No competitor addresses this. This is the feature NRI couples will share on Instagram.
+
+**Outcome 5: "The couple sees everything, manages nothing"**
 A real-time operations dashboard shows guest response rates, travel status, shuttle capacity, and flags anything that needs attention. The couple has visibility without doing the work. And when something changes — a guest cancels, a time shifts — the couple just messages Phera on WhatsApp and we handle the update.
 
 ### What We're NOT Selling (Yet)
@@ -219,19 +238,35 @@ Make it clear we don't take the fun away — couples choose their level of hands
 **Footer About Copy:**
 "Phera was built by a couple who spent more time coordinating guests than enjoying their own wedding. We built the operations team we wish we'd had."
 
-### 4.2 Pricing — Restructure
+### 4.2 Pricing — Multi-Currency, Per-Wedding
 
-**Remove the Free tier.** Everything is a paid service.
+**Remove the Free tier.** Everything is a paid service. Multi-currency pricing from day one.
 
-**New pricing model:**
+**NRI Pricing (USD — primary market):**
 
-| Tier | Price | For | What's Included |
-|------|-------|-----|-----------------|
-| **Phera** | $149-299/wedding (TBD based on validation) | Couples | Guest logistics coordination via WhatsApp, proactive outreach (save-the-dates, RSVP requests, travel collection, reminders), 24/7 WhatsApp Concierge for guests, WhatsApp command channel for the couple, custom wedding website (DIY or AI-assisted), transportation/shuttle optimization, real-time operations dashboard, human escalation support |
-| **Phera + Expert** | TBD (premium add-on) | Couples wanting guidance | Everything in Phera + 1-on-1 session with Phera team member for website design and wedding setup |
-| **Phera for Planners** | TBD (bulk/annual) | Professional planners | Everything in Phera for unlimited client weddings, multi-wedding operations dashboard, client handoff and collaboration, priority support, planner branding |
+| Tier | Price | Guest Count | What's Included |
+|------|-------|-------------|-----------------|
+| **Phera Base** | $349/wedding | Up to 200 guests | Guest logistics via WhatsApp, proactive outreach, WhatsApp Flows RSVP, 24/7 Concierge, custom wedding website, transportation optimization, Control Tower dashboard |
+| **Phera Premium** | $599/wedding | Up to 400 guests | Everything in Base + reverse-destination cultural guides for international guests, WhatsApp concierge during wedding weekend, priority escalation support |
+| **Phera Grand** | $799-$999/wedding | 400+ guests | Everything in Premium + dedicated coordination support |
 
-Per-wedding pricing aligns with the "selling work" model.
+**Domestic India Pricing (INR — secondary market):**
+
+| Tier | Price | Guest Count |
+|------|-------|-------------|
+| **Phera Base** | ₹9,999/wedding | Up to 200 guests |
+| **Phera Premium** | ₹17,999/wedding | Up to 400 guests |
+| **Phera Grand** | ₹29,999/wedding | 400+ guests |
+
+**Planner Pricing:**
+
+| Tier | Price | What's Included |
+|------|-------|-----------------|
+| **Phera for Planners** | TBD (bulk/annual) | Unlimited client weddings, multi-wedding Control Tower, client handoff, white-label option, planner branding, priority support |
+
+Per-wedding pricing aligns with the "selling work" model. At $349-$599, Phera costs less than a single shuttle bus rental ($1K-$5K), less than welcome bags ($1.5K-$5K), and a fraction of day-of coordination ($2.5K-$4.5K). WhatsApp messaging costs per wedding: ~$25 for the full 8-message sequence — negligible.
+
+**For first 5-10 weddings:** Run at introductory/free pricing to validate. Track hours per wedding meticulously.
 
 ### 4.3 Onboarding Flow
 
@@ -351,10 +386,14 @@ The same WhatsApp business number serves two audiences with different behaviors:
 
 **How WhatsApp outreach works:**
 - We have a WhatsApp Business account with **2,000 business-initiated conversations per rolling 24 hours** (confirmed via Meta email, January 2026)
-- Initial outreach to guests = **Marketing template** (Meta classifies any first-touch as marketing, regardless of content). Cost: ~$0.02/message in India, ~$0.035 in US. For 300 guests: $6-10 total.
-- Once a guest replies, a **24-hour service window** opens — free-form AI conversation, no templates needed, no cost
-- Follow-up messages after guest interaction = **Utility templates** (RSVP confirmations, shuttle assignments, schedule reminders). Free within service windows.
-- Total WhatsApp cost per wedding: ~$15-30 even with multiple outreach rounds
+- **Hybrid send model:** Couple sends the initial save-the-date from their personal WhatsApp (via wa.me deep links we generate — high trust, personal touch). All subsequent automated coordination comes from the Phera business number, branded as "Priya & Rahul Wedding" with the couple's photo.
+- Initial outreach = **Marketing template** (Meta classifies any first-touch as marketing). Cost: ~₹0.86/message. For 300 guests: ~₹260 total.
+- **Reply-first design:** Templates prompt a reply (e.g., "Reply 💍 to confirm!") which opens a **FREE 24-hour service window** for follow-up conversation. This transforms the cost model.
+- **WhatsApp Flows** for RSVP: Multi-screen native forms inside WhatsApp. Guest taps "RSVP Now" → fills out attendance, events, dietary, plus-ones — all without leaving WhatsApp. No competitor uses this. Zero friction.
+- Follow-up messages = **Utility templates** (₹0.14/message, exempt from frequency caps, 95-99% delivery).
+- Total WhatsApp cost per wedding: ~₹2,070 for full 8-message sequence to 300 guests (~$25). Negligible.
+- **Unofficial API / QR Linking: We will NOT build this.** ZeroPaper sends from personal accounts but violates Meta ToS. 10M Indian accounts banned/month, 2.6% appeal rate. DPDPA penalties up to ₹250 crore. No path to legitimacy. We build exclusively on the official Business API.
+- **Template language: NO Hinglish.** Meta rejects mixed-language templates. We submit separate pure English and pure Hindi versions. Hinglish is fine within free 24hr service windows after a guest replies.
 
 **Template library needed (submit to Meta for approval):**
 
@@ -448,11 +487,14 @@ Extend the existing Build with AI wizard with voice input:
 | Cross-vertical expansion (corporate events, film, etc.) | Distraction pre-PMF. File the idea, revisit in 12+ months. |
 | Vendor procurement engine | Phase 2-3 at earliest. Skip until guest logistics is validated. |
 | Voice AI calling agents | Expensive, complex. Use human phone calls for the 3-5% of unresponsive guests. Automate later. |
-| Multi-language AI support | Important but not MVP. Note which languages are needed during first 5-10 weddings, then build. |
+| Multi-language AI support | Important but not MVP. Note which languages are needed during first 5-10 weddings, then build. Hindi templates are built from day 1 though. |
 | New infrastructure (Inngest, Helicone, Amadeus, Railway) | Use existing stack (Supabase, Vercel Cron, WhatsApp API). Add tools when specific pain points demand them. |
 | Full landing page redesign | Messaging-first rewrite now. Full visual redesign (Gen Z / Partiful aesthetic) after service model is validated. |
 | Day-of coordinator marketplace | Interesting but Phase 3+. Start with informal referrals. |
 | Google Contacts integration | Phase 2. Start with spreadsheet, manual add, and smart paste. |
+| **Unofficial WhatsApp API / QR linking** | **Explicitly rejected.** Violates Meta ToS. 10M accounts banned/month in India, 2.6% appeal rate. WhatsApp v. NSO Group ruling creates CFAA precedent. DPDPA penalties up to ₹250 crore. ZeroPaper uses this — their business has no path to legitimacy. Build exclusively on official Business API. |
+| **Hinglish templates** | **Meta will reject them.** Mixed-language templates violate Meta's template policy. Submit separate pure English + pure Hindi versions. Hinglish is fine within free 24hr service windows. |
+| INR-only pricing | NRIs are the primary market. Multi-currency from day one: $USD + ₹INR. |
 
 ---
 
@@ -565,18 +607,27 @@ Based on learnings from Phase 2:
 - [x] Don't remove the fun parts of wedding planning — automate the tedious parts
 - [x] Save-the-dates and RSVP request outreach are features we offer
 - [x] "And much more" section on landing page for additional features
+- [x] **NRI couples are the primary market** — lead with US Indian Americans, then UK/Canada/UAE. Domestic India is secondary.
+- [x] **Multi-currency pricing:** $349/$599 USD (NRI) + ₹9,999/₹17,999 INR (domestic)
+- [x] **No unofficial WhatsApp API / QR linking** — build exclusively on official Business API. ZeroPaper's approach violates ToS, 10M bans/month, no path to legitimacy.
+- [x] **WhatsApp Flows for RSVP** — native multi-screen forms inside WhatsApp. No competitor uses this. Major differentiator.
+- [x] **Hybrid outreach model** — couple sends first save-the-date personally (wa.me deep links), all automation via Business API with wedding-branded profile ("Priya & Rahul Wedding")
+- [x] **No Hinglish in templates** — Meta rejects mixed-language. Submit separate pure English + pure Hindi versions.
+- [x] **Reply-first template design** — prompt replies to open free 24hr service windows, transforming cost model
+- [x] **Reverse-destination guest experience** = most defensible feature. Cultural guides, visa help, dress code for non-Indian guests.
+- [x] **Planner referrals** = #1 go-to-market channel. Partner with 15-20 NRI-specialist planners.
 
 ## 9. Open Questions
 
-- [ ] Exact per-wedding pricing (validate during customer discovery)
-- [ ] Guest count tiers for pricing? (e.g., <100 guests, 100-300, 300+)
-- [ ] Which cities/destinations to deeply understand first?
 - [ ] Planner tier pricing model (per-wedding bulk discount vs. annual subscription)
-- [ ] How to handle weddings where couple wants logistics service but already has a planner?
+- [ ] How to handle weddings where couple wants logistics service but already has a planner? (Likely: Phera handles guest logistics, planner handles vendor/design)
 - [ ] What's the right SLA for guest response times via Concierge?
 - [ ] When to hire first ops person to handle concurrent weddings?
 - [ ] Expert-guided tier pricing and who staffs it initially?
 - [ ] Should save-the-dates be an upsell or included in base price?
+- [ ] How to provision per-wedding WhatsApp phone numbers at scale? (Meta Embedded Signup for dedicated numbers vs. shared number with context switching)
+- [ ] Which 15-20 NRI-specialist planners to approach first for referral partnerships?
+- [ ] SEO strategy for "NRI wedding planning" content — who owns this?
 
 ---
 
@@ -590,4 +641,4 @@ And the design test: **"Would a Gen Z couple planning their dream Indian wedding
 
 ---
 
-*Document reflects strategic discussions as of March 20, 2026. Phase 0 (customer discovery) and Phase 1 (build) are running in parallel.*
+*Document reflects strategic discussions as of March 20, 2026, informed by 7 research papers: (1) How wedding planners coordinate 200+ guests, (2) WhatsApp Business API constraints, (3) Pricing & unit economics, (4) Competitive landscape, (5) Destination-specific logistics, (6) WhatsApp template design best practices, (7) NRI wedding market analysis, (8) WhatsApp unofficial API / QR linking feasibility. Phase 0 (customer discovery) and Phase 1 (build) are running in parallel.*

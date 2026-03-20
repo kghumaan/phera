@@ -1372,7 +1372,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               />
             </Button>
             {vendors.length > 0 && (
-              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a', '&.Mui-focused': { color: '#DE3F5E' } } }}>
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a', '&.Mui-focused': { color: '#DE3F5E' } } }}>
                 <InputLabel>Link to vendor (optional)</InputLabel>
                 <Select
                   value={importVendorId}

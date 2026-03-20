@@ -82,6 +82,7 @@ export default function ChatDateForm({
                                             WebkitTextFillColor: '#000000 !important',
                                         },
                                         '& fieldset': { borderColor: 'rgba(0,0,0,0.3) !important' },
+                                        '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4) !important' },
                                     },
                                     '& .MuiInputLabel-root': {
                                         ...ENHANCED_TEXT_FIELD_SX['& .MuiInputLabel-root'],

@@ -1471,6 +1471,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       bgcolor: 'white',
                       color: value ? '#000' : '#999',
                       '& fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)' },
+                      '&:hover fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0,0,0,0.5)' },
                     }}
                   >
                     <MenuItem value="" disabled>
