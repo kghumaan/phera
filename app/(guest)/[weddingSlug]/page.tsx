@@ -817,11 +817,10 @@ export default function HomePage() {
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <Box>
                   <Typography
-                    variant="body2"
+                    variant="subtitleCaps"
                     sx={{
                       color: '#000',
                       fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
-                      fontWeight: 600,
                     }}
                   >
                     {coupleData.date}
@@ -1408,6 +1407,7 @@ export default function HomePage() {
               welcome_text: wedding.welcome_text || undefined,
               primary_color: wedding.primary_color || undefined,
               couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
+              registry_description: (wedding as any).registry_description || undefined,
               frame_image_url: wedding.frame_image_url,
             }}
             weddingSlug={weddingSlug}

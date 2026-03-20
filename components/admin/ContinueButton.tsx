@@ -4,8 +4,8 @@ import { Box, Button, CircularProgress, Dialog, DialogContent, TextField, IconBu
 import { ArrowForward, Publish, ContentCopy, Check, Close, OpenInNew } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { PRIMARY_BUTTON_SX } from '@/lib/constants/button-styles';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { groups } from '@/components/admin/OnboardingSidebar';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
@@ -21,6 +21,7 @@ interface ContinueButtonProps {
 export default function ContinueButton({ weddingSlug, currentSection, weddingId }: ContinueButtonProps) {
   const router = useRouter();
   const { checkGuard } = useNavigationGuard();
+  const { showStatus } = useAutoSaveStatus();
   const [publishing, setPublishing] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [showPublishedModal, setShowPublishedModal] = useState(false);
@@ -42,10 +43,10 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
         setShowPublishedModal(true);
         window.postMessage({ type: 'CHANGES_SAVED' }, '*');
       } else {
-        toast.error('Failed to publish. Please try again.');
+        showStatus('error', 'Failed to publish. Please try again.');
       }
     } catch {
-      toast.error('Failed to publish. Please try again.');
+      showStatus('error', 'Failed to publish. Please try again.');
     } finally {
       setPublishing(false);
     }

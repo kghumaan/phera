@@ -33,6 +33,8 @@ import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProBadge from './ProBadge';
+import { CheckCircle } from '@mui/icons-material';
+import { supabase } from '@/lib/supabase/client';
 
 interface SidebarItem {
   id: string;
@@ -89,12 +91,12 @@ export const groups: SidebarGroup[] = [
   },
   {
     id: 'concierge',
-    label: 'Concierge',
+    label: 'Guest Concierge',
     icon: <WhatsApp />,
     standalone: true,
     isPro: true,
     items: [
-      { id: 'concierge', label: 'Concierge', path: '/concierge', isPro: true }
+      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true }
     ]
   },
   {
@@ -109,21 +111,21 @@ export const groups: SidebarGroup[] = [
   },
   {
     id: 'coordinator',
-    label: 'Coordinator',
+    label: 'Vendor Management',
     icon: <SupportAgent />,
     standalone: true,
     isPro: true,
     items: [
-      { id: 'coordinator', label: 'Coordinator', path: '/coordinator', isPro: true }
+      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true }
     ]
   },
   {
     id: 'team',
-    label: 'Team',
+    label: 'Collaborators',
     icon: <Groups />,
     standalone: true,
     items: [
-      { id: 'team', label: 'Team', path: '/team' }
+      { id: 'team', label: 'Collaborators', path: '/team' }
     ]
   },
 ];
@@ -161,6 +163,38 @@ export default function OnboardingSidebar({
   const { isPro } = usePlan();
   const { checkGuard } = useNavigationGuard();
   const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
+  const [sectionComplete, setSectionComplete] = useState<Record<string, boolean>>({});
+
+  // Check which sections have content
+  useEffect(() => {
+    if (!wedding?.id) return;
+    const wId = wedding.id;
+    const slug = wedding.slug;
+
+    // Check wedding-level fields (only for Wedding Website sections)
+    const completion: Record<string, boolean> = {
+      details: !!(wedding.couple_name && wedding.venue_name && wedding.wedding_date),
+      design: !!(wedding.primary_color || wedding.background_image),
+      'rsvp-form': true, // Always complete — has default steps
+    };
+
+    // Check child tables for content (only Wedding Website sections)
+    const checks = [
+      { key: 'schedule', query: supabase.from('wedding_schedule').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'travel', query: supabase.from('travel_sections' as any).select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'faq', query: supabase.from('wedding_faqs').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'registry', query: supabase.from('wedding_registry').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'shopping', query: supabase.from('wedding_shops').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'pins', query: (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug) },
+    ];
+
+    Promise.all(checks.map(c => c.query)).then(results => {
+      results.forEach((res: any, i) => {
+        completion[checks[i].key] = (res.count ?? 0) > 0;
+      });
+      setSectionComplete(completion);
+    });
+  }, [wedding?.id, wedding?.slug, wedding?.couple_name, wedding?.venue_name, wedding?.wedding_date, wedding?.primary_color, wedding?.background_image]);
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -480,6 +514,9 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
+                          {group.id === 'website' && sectionComplete[item.id] && (
+                            <CheckCircle sx={{ fontSize: 14, color: '#DE3F5E', ml: 0.5, flexShrink: 0 }} />
+                          )}
                           {item.isPro && !isPro && <ProBadge size="small" />}
                         </ListItemButton>
                       </Box>

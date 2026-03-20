@@ -19,7 +19,6 @@ export const BACKGROUNDS = {
   PRESSED_FLOWERS_SUBTLE: '/images/backgrounds/pressed-flowers-subtle.webp',
   PRESSED_FLOWERS_FADED: '/images/backgrounds/pressed-flowers-faded.webp',
   HANDMADE_PAPER_FLORAL: '/images/backgrounds/handmade-paper-floral.webp',
-  AQUAMARINE: '/images/backgrounds/aquamarine.webp',
   SANDSTONE_BEIGE: '/images/backgrounds/sandstone-beige.webp',
   CITRINE_QUARTZ: '/images/backgrounds/citrine-quartz.webp',
   AVENTURINE_GREEN: '/images/backgrounds/aventurine-green.webp',
@@ -32,6 +31,13 @@ export const BACKGROUNDS = {
   BAMBOO_SAGE: '/images/backgrounds/bamboo-sage.webp',
   WATERCOLOR_BLUE_SKY: '/images/backgrounds/watercolor-blue-sky.webp',
   PERIWINKLE_PINK_SUNSET: '/images/backgrounds/periwinkle-pink-sunset.webp',
+
+  // Fabric Textures
+  PAISLEY_CREAM: '/images/backgrounds/paisley-cream.webp',
+  ROYAL_PURPLE: '/images/backgrounds/royal-purple.webp',
+  IVORY_LINEN: '/images/backgrounds/ivory-linen.webp',
+  BURGUNDY_SILK: '/images/backgrounds/burgundy-silk.webp',
+  PAISLEY_BLUE: '/images/backgrounds/paisley-blue.webp',
 
   // Pro Mesh Collection
   PRO_MESH_1: '/images/backgrounds/pro-bg-mesh-1.webp',
@@ -47,7 +53,6 @@ export const BACKGROUNDS = {
     '/images/backgrounds/pressed-flowers-subtle.webp',
     '/images/backgrounds/pressed-flowers-faded.webp',
     '/images/backgrounds/handmade-paper-floral.webp',
-    '/images/backgrounds/aquamarine.webp',
     '/images/backgrounds/sandstone-beige.webp',
     '/images/backgrounds/citrine-quartz.webp',
     '/images/backgrounds/aventurine-green.webp',
@@ -119,7 +124,6 @@ export const BACKGROUND_UI_OPTIONS = [
   { name: 'Boutique Floral', url: BACKGROUNDS.PRESSED_FLOWERS_SUBTLE, thumbUrl: '/images/backgrounds/thumbs/pressed-flowers-subtle.thumb.webp' },
   { name: 'Faded Flowers', url: BACKGROUNDS.PRESSED_FLOWERS_FADED, thumbUrl: '/images/backgrounds/thumbs/pressed-flowers-faded.thumb.webp' },
   { name: 'Handmade Floral', url: BACKGROUNDS.HANDMADE_PAPER_FLORAL, thumbUrl: '/images/backgrounds/thumbs/handmade-paper-floral.thumb.webp' },
-  { name: 'Aquamarine', url: BACKGROUNDS.AQUAMARINE, thumbUrl: '/images/backgrounds/thumbs/aquamarine.thumb.webp' },
   { name: 'Sandstone', url: BACKGROUNDS.SANDSTONE_BEIGE, thumbUrl: '/images/backgrounds/thumbs/sandstone-beige.thumb.webp' },
   { name: 'Citrine', url: BACKGROUNDS.CITRINE_QUARTZ, thumbUrl: '/images/backgrounds/thumbs/citrine-quartz.thumb.webp' },
   { name: 'Aventurine', url: BACKGROUNDS.AVENTURINE_GREEN, thumbUrl: '/images/backgrounds/thumbs/aventurine-green.thumb.webp' },
@@ -136,6 +140,11 @@ export const BACKGROUND_UI_OPTIONS = [
   { name: 'Azure Mist Mesh', url: BACKGROUNDS.PRO_MESH_3, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-3.thumb.webp' },
   { name: 'Midnight Silk Mesh', url: BACKGROUNDS.PRO_MESH_4, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-4.thumb.webp' },
   { name: 'Emerald Wash Mesh', url: BACKGROUNDS.PRO_MESH_5, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-5.thumb.webp' },
+  { name: 'Paisley Cream', url: BACKGROUNDS.PAISLEY_CREAM, thumbUrl: '/images/backgrounds/thumbs/paisley-cream.thumb.webp' },
+  { name: 'Royal Purple', url: BACKGROUNDS.ROYAL_PURPLE, thumbUrl: '/images/backgrounds/thumbs/royal-purple.thumb.webp' },
+  { name: 'Ivory Linen', url: BACKGROUNDS.IVORY_LINEN, thumbUrl: '/images/backgrounds/thumbs/ivory-linen.thumb.webp' },
+  { name: 'Burgundy Silk', url: BACKGROUNDS.BURGUNDY_SILK, thumbUrl: '/images/backgrounds/thumbs/burgundy-silk.thumb.webp' },
+  { name: 'Paisley Blue', url: BACKGROUNDS.PAISLEY_BLUE, thumbUrl: '/images/backgrounds/thumbs/paisley-blue.thumb.webp' },
 ] as const;
 
 // Frame Images

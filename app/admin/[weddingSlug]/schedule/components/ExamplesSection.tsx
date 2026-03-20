@@ -2,6 +2,7 @@
 
 import { Box, Typography, Stack, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 
 interface ExamplesSectionProps {
   onDismiss: () => void;
@@ -37,12 +38,18 @@ export default function ExamplesSection({ onDismiss }: ExamplesSectionProps) {
             </Typography>
           </Typography>
           <Stack direction="row" spacing={2}>
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'⏰  12 PM - 3 PM'}
-            </Typography>
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'📍 Location'}
-            </Typography>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                12 PM - 3 PM
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                Location
+              </Typography>
+            </Stack>
           </Stack>
         </Box>
 
@@ -66,15 +73,24 @@ export default function ExamplesSection({ onDismiss }: ExamplesSectionProps) {
               Description of the event goes here lore ipsum dolor sit amet consecitur.
             </Typography>
             <Stack direction="row" spacing={2} sx={{ mb: 1.5 }}>
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                {'⏰  12 PM - 3 PM'}
-              </Typography>
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                {'📍 Location'}
-              </Typography>
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                {'👗 Dress Code'}
-              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  12 PM - 3 PM
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  Location
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  Dress Code
+                </Typography>
+              </Stack>
             </Stack>
             <Typography sx={{ color: '#DE3F5E', fontSize: '0.875rem' }}>
               <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More details</Box>

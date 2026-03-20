@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Stack, Popover, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 
 // Generate time slots in 15-min intervals, starting at 6 AM
 function generateTimeSlots(): string[] {
@@ -116,7 +117,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
           flex: 1,
         }}
       >
-        <Typography sx={{ fontSize: '0.875rem', color: '#bcbcbc', flexShrink: 0 }}>{'⏰'}</Typography>
+        <StreamlineIcon name="clock" size={16} color="#bcbcbc" />
 
         {/* Start time chip */}
         <Typography

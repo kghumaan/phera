@@ -83,7 +83,7 @@ async function main() {
       dress_code_description: 'Bright, festive yellows! Think sunshine and turmeric.',
       date: 'January 4',
       time: '3:00 PM',
-      gradient_background: 'GradientYellow.png',
+      gradient_background: 'GradientYellow.webp',
       text_color: '#000000',
       ritual_name: 'Mehendi',
       ritual_description: 'Live henna artists weave intricate patterns on your hands and feet—an ancient symbol of luck, love, and festive camaraderie.',

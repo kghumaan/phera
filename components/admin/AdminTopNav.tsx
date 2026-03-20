@@ -40,7 +40,6 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser } from '@/lib/demo/coordinator-mock-data';
-import { toast } from 'sonner';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
@@ -61,7 +60,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const { user, signOut } = useAuth();
     const { plan, isPro, togglePlan } = usePlan();
     const { isViewOnly } = useAdminRole();
-    const { status: autoSaveStatus } = useAutoSaveStatus();
+    const { status: autoSaveStatus, message: autoSaveMessage, showStatus } = useAutoSaveStatus();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
@@ -100,11 +99,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
         const success = await weddingService.clearWeddingContent(wedding.id);
         if (success) {
-            toast.success('Test data cleared successfully');
+            showStatus('saved', 'Test data cleared successfully');
             // Hard refresh to clear state
             window.location.reload();
         } else {
-            toast.error('Failed to clear test data');
+            showStatus('error', 'Failed to clear test data');
         }
     };
 
@@ -163,7 +162,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 {/* Right: Auto-save indicator, Feature Request Button & User Avatar */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {/* Auto-save indicator */}
-                    <AutoSaveIndicator status={autoSaveStatus} />
+                    <AutoSaveIndicator status={autoSaveStatus} message={autoSaveMessage} />
 
                     {/* Feature Request Button */}
                     {!isMobile && (
@@ -373,6 +372,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         onChange={togglePlan}
                                         size="small"
                                         sx={{
+                                            '& .MuiSwitch-switchBase': { color: '#999' },
+                                            '& .MuiSwitch-track': { bgcolor: '#bbb' },
                                             '& .MuiSwitch-switchBase.Mui-checked': {
                                                 color: '#DE3F5E',
                                             },

@@ -4,8 +4,6 @@ import {
   Box,
   Typography,
   Stack,
-  Snackbar,
-  Alert,
   Skeleton,
   Fade,
 } from '@mui/material';
@@ -37,10 +35,12 @@ import TravelDetailEditor from './components/TravelDetailEditor';
 import TravelHeaderImage from './components/TravelHeaderImage';
 import AddSectionMenu from './components/AddSectionMenu';
 import { DEFAULT_SECTIONS, TRAVEL_TYPE_LABELS } from './components/travel-utils';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 export default function TravelPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
 
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -66,11 +66,6 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     onConfirm: () => void;
   }>({ open: false, message: '', onConfirm: () => {} });
 
-  // Toast
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('success');
-
   // Header image — stored on the first 'travel'-type section
   const travelSection = sections.find(s => s.type === 'travel');
   const headerImageUrl = travelSection?.image_url || null;
@@ -82,12 +77,6 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       setSections(prev => prev.map(s => s.id === travelSection.id ? result : s));
       await syncPreview(weddingId);
     }
-  };
-
-  const showToast = (message: string, severity: 'error' | 'success' = 'success') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
   };
 
   const syncPreview = useCallback(async (wId: string) => {
@@ -126,7 +115,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       }
     } catch (err) {
       console.error('Error loading travel sections:', err);
-      showToast('Failed to load travel sections', 'error');
+      showStatus('error', 'Failed to load travel sections');
     } finally {
       setLoading(false);
     }
@@ -198,7 +187,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       }
     } catch (err) {
       console.error('Error creating default sections:', err);
-      showToast('Failed to create default sections', 'error');
+      showStatus('error', 'Failed to create default sections');
     }
   };
 
@@ -211,10 +200,10 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
       if (result) {
         setSections(prev => prev.map(s => s.id === sectionId ? result : s));
         await syncPreview(weddingId);
-        showToast('Section saved');
+        showStatus('saved', 'Section saved');
         setActiveForm(null);
       } else {
-        showToast('Failed to save section', 'error');
+        showStatus('error', 'Failed to save section');
       }
     } finally {
       setSavingForm(false);
@@ -228,9 +217,9 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     if (result) {
       setSections(prev => prev.map(s => s.id === detailSection.id ? result : s));
       await syncPreview(weddingId);
-      showToast('Details saved');
+      showStatus('saved', 'Details saved');
     } else {
-      showToast('Failed to save details', 'error');
+      showStatus('error', 'Failed to save details');
     }
   };
 
@@ -256,7 +245,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     if (result) {
       setSections(prev => [...prev, result]);
       await syncPreview(weddingId);
-      showToast('Section added');
+      showStatus('saved', 'Section added');
       setActiveForm({ editingSectionId: result.id });
     }
   };
@@ -274,9 +263,9 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
           setSections(prev => prev.filter(s => s.id !== sectionId));
           if (activeForm?.editingSectionId === sectionId) setActiveForm(null);
           if (weddingId) await syncPreview(weddingId);
-          showToast('Section deleted');
+          showStatus('saved', 'Section deleted');
         } else {
-          showToast('Failed to delete section', 'error');
+          showStatus('error', 'Failed to delete section');
         }
       },
     });
@@ -300,7 +289,7 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     } else {
       const refreshed = await weddingService.getTravelSections(weddingId);
       setSections(refreshed);
-      showToast('Failed to reorder', 'error');
+      showStatus('error', 'Failed to reorder');
     }
   };
 
@@ -438,21 +427,6 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       <ContinueButton weddingSlug={weddingSlug} currentSection="travel" weddingId={weddingId} />
     </Box>

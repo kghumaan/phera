@@ -2,35 +2,55 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
   Paper,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  Snackbar,
-  Grid,
   CircularProgress,
+  ClickAwayListener,
 } from '@mui/material';
-import React, { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, ChevronRight, CardGiftcard, LockOutlined } from '@mui/icons-material';
+import React, { useState, useEffect, use, useRef, useCallback } from 'react';
+import { Delete, CardGiftcard, LockOutlined } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
-const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+const inlineFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    bgcolor: 'white',
+    '& fieldset': { borderColor: '#BCBCBC' },
+    '&:hover fieldset': { borderColor: '#999' },
+    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#524344',
+    fontSize: '0.875rem',
+    '&.Mui-focused': { color: '#DE3F5E' },
+  },
+  '& .MuiInputBase-input': {
+    color: '#1a1a1a',
+    fontSize: '1rem',
+  },
+};
+
+interface RegistryDraft {
+  id?: string;
+  wedding_id: string | null;
+  fund_name: string;
+  emoji: string;
+  external_url: string;
+  order_index: number;
+}
 
 export default function RegistryPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -40,110 +60,126 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [registry, setRegistry] = useState<any[]>([]);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+  const { showStatus } = useAutoSaveStatus();
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<RegistryDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [registryDescription, setRegistryDescription] = useState('');
+  const descriptionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
       if (wedding) {
         setWeddingId(wedding.id);
+        setRegistryDescription((wedding as any).registry_description || '');
         const data = await weddingService.getRegistry(wedding.id);
         setRegistry(data);
       }
     } catch (err) {
       console.error('Error loading registry:', err);
-      const errorMessage = 'Failed to load registry';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAdd = () => {
+  const syncPreview = useCallback(async () => {
+    if (!weddingId) return;
+    await weddingService.markUnpublishedChanges(weddingId);
+    const channel = new BroadcastChannel('phera-design-sync');
+    channel.postMessage({ type: 'PREVIEW_REFRESH' });
+    channel.close();
+  }, [weddingId]);
+
+  // Auto-save registry description with debounce
+  const saveDescription = useCallback(async (text: string) => {
+    if (!weddingId || isViewOnly) return;
+    try {
+      await weddingService.updateWedding(weddingId, { registry_description: text } as any);
+      await syncPreview();
+      showStatus('saved');
+    } catch {
+      showStatus('error');
+    }
+  }, [weddingId, isViewOnly, syncPreview, showStatus]);
+
+  const handleDescriptionChange = (text: string) => {
+    setRegistryDescription(text);
+    if (descriptionTimerRef.current) clearTimeout(descriptionTimerRef.current);
+    descriptionTimerRef.current = setTimeout(() => saveDescription(text), 1000);
+  };
+
+  const startEditing = (item: any) => {
     if (isViewOnly) return;
-    setCurrentItem({
+    setEditingId(item.id);
+    setDraft({
+      id: item.id,
+      wedding_id: item.wedding_id,
+      fund_name: item.fund_name,
+      emoji: item.emoji || '',
+      external_url: item.external_url || '',
+      order_index: item.order_index,
+    });
+  };
+
+  const startNew = () => {
+    if (isViewOnly) return;
+    setEditingId('__new__');
+    setDraft({
       wedding_id: weddingId,
       fund_name: '',
-      emoji: '💝',
+      emoji: '',
       external_url: '',
       order_index: registry.length,
     });
-    setEditDialogOpen(true);
   };
 
-  const handleEdit = (item: any) => {
-    setCurrentItem(item);
-    setEditDialogOpen(true);
+  const cancelEditing = () => {
+    if (saving) return;
+    setEditingId(null);
+    setDraft(null);
   };
-
-  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (isViewOnly) return;
-    if (!currentItem?.fund_name || !currentItem?.emoji || !currentItem?.external_url) {
-      const errorMessage = 'Please fill in all required fields (name, emoji, and URL)';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+    if (isViewOnly || !draft) return;
+    if (!draft.fund_name.trim() || !draft.external_url.trim()) {
+      showStatus('error', 'Please fill in all required fields (name and URL)');
       return;
     }
 
-    // Basic URL validation
     try {
-      new URL(currentItem.external_url);
+      new URL(draft.external_url);
     } catch {
-      const errorMessage = 'Please enter a valid URL (e.g., https://www.zola.com/registry/yourname)';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error', 'Please enter a valid URL (e.g., https://www.zola.com/registry/yourname)');
       return;
     }
 
     setSaving(true);
     try {
-      if (currentItem.id) {
-        await weddingService.updateRegistryItem(currentItem.id, currentItem);
+      if (draft.id) {
+        await weddingService.updateRegistryItem(draft.id, draft);
       } else {
-        await weddingService.createRegistryItem(currentItem);
+        await weddingService.createRegistryItem(draft);
       }
       await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      setEditDialogOpen(false);
-      setCurrentItem(null);
-      setSuccess(true);
-      showToast('Registry link saved!', 'success');
-      setTimeout(() => setSuccess(false), 3000);
+      await syncPreview();
+      setEditingId(null);
+      setDraft(null);
+      showStatus('saved');
     } catch (err) {
       console.error('Error saving registry item:', err);
-      const errorMessage = 'Failed to save registry link';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error');
     } finally {
       setSaving(false);
     }
   };
-
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
 
   const handleDelete = async (itemId: string) => {
     if (isViewOnly) return;
@@ -154,19 +190,12 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
         setConfirmDialog(prev => ({ ...prev, open: false }));
         try {
           await weddingService.deleteRegistryItem(itemId);
+          if (editingId === itemId) { setEditingId(null); setDraft(null); }
           await loadData();
-          if (weddingId) {
-            await weddingService.markUnpublishedChanges(weddingId);
-            const channel = new BroadcastChannel('phera-design-sync');
-            channel.postMessage({ type: 'PREVIEW_REFRESH' });
-            channel.close();
-          }
-          setSuccess(true);
-          showToast('Registry link deleted successfully', 'success');
+          await syncPreview();
+          showStatus('saved');
         } catch (err) {
-          const errorMessage = 'Failed to delete registry link';
-          setError(errorMessage);
-          showToast(errorMessage, 'error');
+          showStatus('error');
         }
       },
     });
@@ -180,12 +209,11 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     );
   }
 
-  // Pro gate - show upgrade UI for non-Pro users
+  // Pro gate
   if (!isPro) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
-          {/* Header row */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
@@ -216,12 +244,11 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
             </Button>
           </Box>
 
-          {/* Description */}
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
               Stop juggling multiple registry platforms. <strong>Registry Integration</strong> lets you add payment links from Stripe, Zola, Amazon, or any other registry — all displayed beautifully on your wedding website.
             </Typography>
-            <Stack spacing={0.6} sx={{ pl: 0 }}>
+            <Stack spacing={0.6}>
               {([
                 <><strong>Link to any registry</strong> — Stripe payment links, Zola, Amazon, Honeyfund, and more</>,
                 <><strong>Cash fund support</strong> for honeymoon contributions or home down payments</>,
@@ -236,89 +263,44 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
             </Stack>
           </Box>
 
-          {/* Blurred mock view */}
           <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
-            {/* Mock UI */}
             <Box sx={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
               <Stack spacing={2}>
                 {[
-                  { emoji: '💝', name: 'Honeymoon Fund', url: 'https://stripe.com/pay/honeymoon-fund' },
-                  { emoji: '🏠', name: 'New Home Contribution', url: 'https://zola.com/registry/couple-name' },
-                  { emoji: '✈️', name: 'Adventure Fund', url: 'https://honeyfund.com/couple' },
+                  { name: 'Honeymoon Fund', url: 'https://stripe.com/pay/honeymoon-fund' },
+                  { name: 'New Home Contribution', url: 'https://zola.com/registry/couple-name' },
+                  { name: 'Adventure Fund', url: 'https://honeyfund.com/couple' },
                 ].map((item, idx) => (
-                  <Paper key={idx} sx={{
-                    p: 3,
-                    borderRadius: '16px',
-                    bgcolor: '#fafafa',
-                    boxShadow: 'none',
-                  }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Typography variant="h4">{item.emoji}</Typography>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{item.name}</Typography>
-                        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{item.url}</Typography>
-                      </Box>
-                    </Stack>
+                  <Paper key={idx} sx={{ p: 3, borderRadius: '16px', bgcolor: '#fafafa', boxShadow: 'none' }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{item.name}</Typography>
+                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{item.url}</Typography>
+                    </Box>
                   </Paper>
                 ))}
               </Stack>
             </Box>
-
-            {/* Lock overlay */}
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 2,
-                bgcolor: 'rgba(255,255,255,0.55)',
-                backdropFilter: 'blur(2px)',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  bgcolor: 'white',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)' }}>
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
               <Button
                 variant="contained"
                 startIcon={<CardGiftcard />}
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  px: 3.5,
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  fontSize: '0.95rem',
-                  boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
+                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
               >
                 Unlock Registry Integration
               </Button>
             </Box>
           </Box>
         </Stack>
-
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
       </Box>
     );
   }
+
+  const isAddingNew = editingId === '__new__';
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
@@ -332,175 +314,196 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            alignSelf: 'flex-start',
-            '&:hover': {
-              bgcolor: '#C8365A',
-            },
-          }}
-        >
-          Add Registry Link
-        </Button>
+        <TextField
+          label="Registry Description"
+          fullWidth
+          multiline
+          minRows={2}
+          maxRows={4}
+          value={registryDescription}
+          onChange={(e) => handleDescriptionChange(e.target.value)}
+          placeholder="e.g., Your presence is enough of a present to us! But for those of you who are stubborn, we've put together a wish-list to help you out."
+          helperText="This text appears above your registry links on the wedding website"
+          disabled={isViewOnly}
+          sx={inlineFieldSx}
+        />
 
         <Stack spacing={2}>
           {registry.map((item) => (
-            <Paper key={item.id} sx={{
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                <Box sx={{ flex: 1 }}>
-                  {/* First Row: Emoji and Name */}
-                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: item.external_url ? 1 : 0 }}>
-                    <Typography variant="h4">
-                      {item.emoji}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            editingId === item.id ? (
+              <InlineRegistryForm
+                key={item.id}
+                draft={draft!}
+                setDraft={setDraft}
+                onSave={handleSave}
+                onCancel={cancelEditing}
+                onDelete={() => handleDelete(item.id)}
+                saving={saving}
+              />
+            ) : (
+              <Paper
+                key={item.id}
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  bgcolor: 'white',
+                  border: '1px solid #EEE',
+                  boxShadow: 'none',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: '#ddd', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
+                }}
+                onClick={() => startEditing(item)}
+              >
+                <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem', mb: item.external_url ? 0.5 : 0 }}>
                       {item.fund_name}
                     </Typography>
-                  </Stack>
-                  {/* Second Row: Link */}
-                  {item.external_url && (
-                    <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all', pl: 0 }}>
-                      {item.external_url}
-                    </Typography>
+                    {item.external_url && (
+                      <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all' }}>
+                        {item.external_url}
+                      </Typography>
+                    )}
+                  </Box>
+                  {!isViewOnly && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                      sx={{ color: '#1a1a1a', flexShrink: 0 }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
                   )}
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <IconButton
-                    onClick={() => handleEdit(item)}
-                    sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(222, 63, 94, 0.08)' } }}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(item.id)} color="error">
-                    <Delete />
-                  </IconButton>
                 </Stack>
-              </Stack>
-            </Paper>
+              </Paper>
+            )
           ))}
 
-          {registry.length === 0 && (
-            <Paper sx={{
-              p: 4,
-              textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
-              boxShadow: 'none',
-            }}>
+          {isAddingNew && draft && (
+            <InlineRegistryForm
+              draft={draft}
+              setDraft={setDraft}
+              onSave={handleSave}
+              onCancel={cancelEditing}
+              saving={saving}
+              isNew
+            />
+          )}
+
+          {registry.length === 0 && !isAddingNew && (
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white', boxShadow: 'none' }}>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                No registry links yet. Add your first registry link to get started.
+                No registry links yet. Add your first registry link below.
               </Typography>
             </Paper>
+          )}
+
+          {!isViewOnly && !isAddingNew && (
+            <Box
+              onClick={startNew}
+              sx={{
+                bgcolor: '#EBEBEB',
+                border: '1px dashed #BCBCBC',
+                borderRadius: '8px',
+                px: 2, py: 1.5,
+                cursor: 'pointer',
+                textAlign: 'center',
+                '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+              }}
+            >
+              <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+                Add Registry Link
+              </Typography>
+              <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                Stripe, Zola, Amazon, Honeyfund, etc.
+              </Typography>
+            </Box>
           )}
         </Stack>
       </Stack>
 
-
-      {/* Edit Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            bgcolor: 'white',
-          }
-        }}
-      >
-        <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
-          {currentItem?.id ? 'Edit Registry Link' : 'New Registry Link'}
-        </DialogTitle>
-        <DialogContent sx={{ bgcolor: 'white' }}>
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            <TextField
-              label="Registry Name *"
-              fullWidth
-              value={currentItem?.fund_name || ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, fund_name: e.target.value })}
-              placeholder="e.g., Zola Registry, Amazon Registry"
-              sx={textFieldSx}
-            />
-            <TextField
-              label="Icon/Emoji *"
-              fullWidth
-              value={currentItem?.emoji || ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, emoji: e.target.value })}
-              placeholder="e.g., 🎁 🏠 ✈️"
-              sx={textFieldSx}
-            />
-            <TextField
-              label="External URL *"
-              fullWidth
-              value={currentItem?.external_url || ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, external_url: e.target.value })}
-              placeholder="https://www.zola.com/registry/yourname"
-              helperText="Full URL to your registry site"
-              sx={textFieldSx}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={saving}
-            sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                bgcolor: '#C8365A',
-              },
-            }}
-          >
-            {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Toast Notification */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-      <ConfirmDialog
-        open={confirmDialog.open}
-        message={confirmDialog.message}
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-      />
+      <ConfirmDialog open={confirmDialog.open} message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))} />
       <ContinueButton weddingSlug={weddingSlug} currentSection="registry" weddingId={weddingId} />
     </Box>
+  );
+}
+
+// ── Inline Registry Form ─────────────────────────────────────────────────────
+
+const inFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    bgcolor: 'white',
+    '& fieldset': { borderColor: '#BCBCBC' },
+    '&:hover fieldset': { borderColor: '#999' },
+    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+  },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
+  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+};
+
+interface InlineRegistryFormProps {
+  draft: RegistryDraft;
+  setDraft: (d: RegistryDraft | null) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+  saving: boolean;
+  isNew?: boolean;
+}
+
+function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, saving, isNew }: InlineRegistryFormProps) {
+  const canSave = !!draft.fund_name.trim() && !!draft.external_url.trim();
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+  };
+
+  return (
+    <ClickAwayListener onClickAway={onCancel}>
+      <Paper sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'white', border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+        <Stack spacing={2}>
+          <TextField
+            label="Registry Name"
+            size="small"
+            fullWidth
+            value={draft.fund_name}
+            onChange={(e) => setDraft({ ...draft, fund_name: e.target.value })}
+            autoFocus
+            onKeyDown={handleKeyDown}
+            placeholder="e.g., Zola Registry"
+            sx={inFieldSx}
+          />
+          <TextField
+            label="External URL"
+            size="small"
+            fullWidth
+            value={draft.external_url}
+            onChange={(e) => setDraft({ ...draft, external_url: e.target.value })}
+            onKeyDown={handleKeyDown}
+            placeholder="https://www.zola.com/registry/yourname"
+            sx={inFieldSx}
+          />
+          <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
+            {!isNew && onDelete && (
+              <IconButton size="small" onClick={onDelete} sx={{ color: '#1a1a1a' }}>
+                <Delete fontSize="small" />
+              </IconButton>
+            )}
+            <Button
+              variant="contained"
+              onClick={onSave}
+              disabled={!canSave || saving}
+              sx={{
+                bgcolor: '#DE3F5E', color: 'white', borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, minWidth: 80,
+                '&:hover': { bgcolor: '#C8365A' }, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+              }}
+            >
+              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
+    </ClickAwayListener>
   );
 }

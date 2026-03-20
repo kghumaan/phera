@@ -7,9 +7,10 @@ import { SaveStatus } from '@/lib/hooks/useAutoSave';
 
 interface AutoSaveIndicatorProps {
   status: SaveStatus;
+  message?: string | null;
 }
 
-export default function AutoSaveIndicator({ status }: AutoSaveIndicatorProps) {
+export default function AutoSaveIndicator({ status, message }: AutoSaveIndicatorProps) {
   if (status === 'idle') return null;
 
   return (
@@ -40,7 +41,7 @@ export default function AutoSaveIndicator({ status }: AutoSaveIndicatorProps) {
                 />
               </motion.div>
               <Typography variant="caption" sx={{ color: '#999', fontSize: '0.8rem' }}>
-                Saving...
+                {message || 'Saving...'}
               </Typography>
             </>
           )}
@@ -48,7 +49,7 @@ export default function AutoSaveIndicator({ status }: AutoSaveIndicatorProps) {
             <>
               <Check sx={{ fontSize: 16, color: '#10B981' }} />
               <Typography variant="caption" sx={{ color: '#10B981', fontSize: '0.8rem', fontWeight: 500 }}>
-                Saved
+                {message || 'Saved'}
               </Typography>
             </>
           )}
@@ -56,7 +57,7 @@ export default function AutoSaveIndicator({ status }: AutoSaveIndicatorProps) {
             <>
               <ErrorOutline sx={{ fontSize: 16, color: '#EF4444' }} />
               <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '0.8rem' }}>
-                Error saving
+                {message || 'Error saving'}
               </Typography>
             </>
           )}

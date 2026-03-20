@@ -44,7 +44,7 @@ export default function GuestEventsPage() {
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   return (
     <OptimizedBackground
-      src="/images/backgrounds/aquarium.png"
+      src="/images/backgrounds/aquarium.webp"
       className="min-h-screen"
     >
       {/* Desktop Header - AppHeader with consistent styling */}

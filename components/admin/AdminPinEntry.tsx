@@ -126,7 +126,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/blue-clouds.jpg"
+      src="/images/backgrounds/blue-clouds.webp"
       className="min-h-screen flex flex-col"
     >
       {/* Desktop Alert */}

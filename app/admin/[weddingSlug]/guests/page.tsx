@@ -49,8 +49,8 @@ import { CustomQuestion, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
-import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 interface RSVPData {
@@ -81,6 +81,7 @@ interface RSVPData {
 export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -116,12 +117,12 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
           console.error('Error fetching custom questions:', e);
         }
       } else {
-        toast.error(`No wedding found with ID: ${weddingSlug}`);
+        showStatus('error', `No wedding found with ID: ${weddingSlug}`);
         setError(`No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('Error loading data:', err);
-      toast.error(`Failed to load data: ${(err as Error).message || 'Unknown error'}`);
+      showStatus('error', `Failed to load data: ${(err as Error).message || 'Unknown error'}`);
       setError(`Failed to load data: ${(err as Error).message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -152,10 +153,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         try {
           await deleteRSVP(id);
           setRsvps(prev => prev.filter(r => r.id !== id));
-          toast.success('RSVP deleted successfully');
+          showStatus('saved', 'RSVP deleted successfully');
         } catch (err) {
           console.error('Error deleting RSVP:', err);
-          toast.error('Failed to delete RSVP');
+          showStatus('error', 'Failed to delete RSVP');
         }
       },
     });
@@ -316,7 +317,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   if (loading) {
     return (
-      <Box sx={{ maxWidth: 1000 }}>
+      <Box sx={{ width: '100%' }}>
         <LoadingSpinner message="Loading guest responses..." />
       </Box>
     );
@@ -324,7 +325,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   if (error) {
     return (
-      <Box sx={{ maxWidth: 1000 }}>
+      <Box sx={{ width: '100%' }}>
         <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: alpha('#EF4444', 0.1), textAlign: 'center' }}>
           <Typography color="error">{error}</Typography>
         </Paper>
@@ -333,7 +334,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   }
 
   return (
-    <Box sx={{ maxWidth: 1000 }}>
+    <Box sx={{ width: '100%' }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

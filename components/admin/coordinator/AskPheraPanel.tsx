@@ -18,9 +18,10 @@ interface AskPheraPanelProps {
   open: boolean;
   onClose: () => void;
   conversationId?: string;
+  disabled?: boolean;
 }
 
-export default function AskPheraPanel({ weddingId, open, onClose, conversationId }: AskPheraPanelProps) {
+export default function AskPheraPanel({ weddingId, open, onClose, conversationId, disabled }: AskPheraPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -126,8 +127,26 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         </IconButton>
       </Box>
 
+      {/* Disabled overlay for demo */}
+      {disabled && (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 3, textAlign: 'center', gap: 2 }}>
+          <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: alpha('#DE3F5E', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AutoAwesome sx={{ fontSize: 24, color: '#DE3F5E' }} />
+          </Box>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#1a1a1a' }}>
+            AI Vendor Assistant
+          </Typography>
+          <Typography sx={{ fontSize: '0.82rem', color: '#6a6a6a', lineHeight: 1.6 }}>
+            Ask questions about your vendor conversations, get quote comparisons, and receive suggestions — all powered by your actual vendor data.
+          </Typography>
+          <Typography sx={{ fontSize: '0.75rem', color: '#999', mt: 1 }}>
+            Disabled in demo mode
+          </Typography>
+        </Box>
+      )}
+
       {/* Chat area */}
-      <Box
+      {!disabled && (<><Box
         ref={scrollRef}
         sx={{
           flex: 1,
@@ -200,7 +219,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         placeholder="Ask about your vendors..."
         compact
         noBorder
-      />
+      /></>)}
     </Box>
   );
 }

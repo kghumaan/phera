@@ -9,8 +9,6 @@ import {
   Paper,
   Grid,
   TextField,
-  Snackbar,
-  Alert,
   Divider,
   FormControlLabel,
   RadioGroup,
@@ -33,6 +31,7 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
 import ContinueButton from '@/components/admin/ContinueButton';
@@ -80,9 +79,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
+  const { showStatus } = useAutoSaveStatus();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [proModalOpen, setProModalOpen] = useState(false);
   const [proSelections, setProSelections] = useState<ProSelection[]>([]);
@@ -289,12 +286,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     loadData();
   }, [weddingSlug]);
 
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
   const loadData = async () => {
     try {
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
@@ -335,7 +326,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       console.error('Error loading design settings:', err);
       const errorMessage = 'Failed to load design settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -855,22 +846,6 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             </Stack>
           </Paper>
         </Stack>
-
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
 
         {/* Pro Selections Modal */}
         <ProSelectionsModal

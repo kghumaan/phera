@@ -19,8 +19,10 @@ import {
   DialogActions,
   IconButton,
   Tooltip,
+  Chip,
   alpha,
 } from '@mui/material';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { Add, AutoAwesome, Mic, Stop, Close, UploadFile } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ConciergeKnowledgeEntry from './ConciergeKnowledgeEntry';
@@ -94,6 +96,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
 
   // File upload state
   const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasAutoEntries = entries.some((e) => e.source === 'auto_generated');
@@ -244,22 +247,21 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
     setVoiceError(null);
 
     try {
-      // For plain text files, read directly
+      // Show filename immediately
+      setUploadedFileName(file.name);
+
+      // For plain text files, read in background and append to content
       if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|md|rtf)$/i)) {
         const text = await file.text();
         if (text.trim()) {
           setNewContent((prev) => prev ? `${prev}\n\n${text.trim()}` : text.trim());
-        } else {
-          setVoiceError('The file appears to be empty.');
         }
-      } else {
-        // For PDF/DOC/DOCX, we'd need server-side parsing
-        // For now, use a simple approach: try to read as text, or show error
-        setVoiceError('PDF and Word document parsing coming soon. For now, please use .txt, .csv, or .md files, or paste the content directly.');
       }
+      // For PDF/DOC/DOCX — just show file attached, don't try to parse
     } catch (err) {
       console.error('File upload error:', err);
       setVoiceError('Could not read the file. Please try a different format.');
+      setUploadedFileName(null);
     } finally {
       setUploading(false);
     }
@@ -444,20 +446,27 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     placeholder="e.g., Restaurant Recommendations"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    size="small"
                     fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                      '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-                    }}
+                    sx={ENHANCED_TEXT_FIELD_SX}
                   />
-                  <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0 }}>
-                    <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Category</InputLabel>
+                  <FormControl sx={{ minWidth: 160, flexShrink: 0, mt: 1 }}>
+                    <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Category</InputLabel>
                     <Select
                       value={newCategory}
                       label="Category"
                       onChange={(e) => setNewCategory(e.target.value)}
-                      sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                      sx={{
+                        bgcolor: 'white',
+                        borderRadius: '12px',
+                        color: '#1a1a1a',
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                        '& .MuiSelect-select': {
+                          py: { xs: 1.5, md: 1.75, lg: 2 },
+                          fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
+                        },
+                      }}
                     >
                       {CATEGORIES.map((cat) => (
                         <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
@@ -473,46 +482,44 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     placeholder="Type, speak, or upload a document..."
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
-                    size="small"
                     fullWidth
                     multiline
                     minRows={3}
-                    sx={{
-                      '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                      '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-                    }}
+                    sx={ENHANCED_TEXT_FIELD_SX}
                   />
                   {/* Voice + Upload toolbar below content */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1.5 }}>
                     {voiceState === 'idle' && (
                       <>
                         <Tooltip title="Speak to add content">
                           <IconButton
-                            size="small"
                             onClick={startRecording}
                             sx={{
                               color: '#6a6a6a',
-                              border: '1px solid rgba(0,0,0,0.12)',
-                              borderRadius: '8px',
+                              border: '1px solid rgba(0,0,0,0.15)',
+                              borderRadius: '12px',
+                              width: 48,
+                              height: 48,
                               '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
                             }}
                           >
-                            <Mic sx={{ fontSize: 18 }} />
+                            <Mic sx={{ fontSize: 28 }} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title={`Upload a document (${SUPPORTED_DOC_TYPES.join(', ')})`}>
                           <IconButton
-                            size="small"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
                             sx={{
                               color: '#6a6a6a',
-                              border: '1px solid rgba(0,0,0,0.12)',
-                              borderRadius: '8px',
+                              border: '1px solid rgba(0,0,0,0.15)',
+                              borderRadius: '12px',
+                              width: 48,
+                              height: 48,
                               '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
                             }}
                           >
-                            {uploading ? <CircularProgress size={18} /> : <UploadFile sx={{ fontSize: 18 }} />}
+                            {uploading ? <CircularProgress size={24} /> : <UploadFile sx={{ fontSize: 28 }} />}
                           </IconButton>
                         </Tooltip>
                         <input
@@ -522,9 +529,19 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                           accept={SUPPORTED_DOC_TYPES.join(',')}
                           onChange={handleFileUpload}
                         />
-                        <Typography variant="caption" sx={{ color: '#9a9a9a', ml: 0.5 }}>
-                          Speak or upload a file to add content
-                        </Typography>
+                        {uploadedFileName && (
+                          <Chip
+                            label={uploadedFileName}
+                            size="small"
+                            onDelete={() => setUploadedFileName(null)}
+                            sx={{ bgcolor: '#F8F8F8', color: '#4a4a4a', fontWeight: 500 }}
+                          />
+                        )}
+                        {!uploadedFileName && (
+                          <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
+                            Speak or upload a file
+                          </Typography>
+                        )}
                       </>
                     )}
 
@@ -683,7 +700,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         </Paper>
       ) : (
         <Stack spacing={1.5}>
-          {entries.map((entry) => (
+          {[...entries].reverse().map((entry) => (
             <ConciergeKnowledgeEntry
               key={entry.id}
               entry={entry}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Stack, Chip, CircularProgress, alpha } from '@mui/material';
 import { AdminPanelSettings, Person, Storefront } from '@mui/icons-material';
-import { toast } from 'sonner';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 interface Member {
   id: string;
@@ -28,6 +28,7 @@ interface MembersTabProps {
 }
 
 export default function MembersTab({ conversationId, weddingId }: MembersTabProps) {
+  const { showStatus } = useAutoSaveStatus();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +72,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
       setMembers((prev) =>
         prev.map((m) => (m.id === member.id ? { ...m, role: member.role } : m))
       );
-      toast.error('Failed to update role');
+      showStatus('error', 'Failed to update role');
     }
   };
 

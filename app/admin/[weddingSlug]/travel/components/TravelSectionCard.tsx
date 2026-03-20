@@ -49,7 +49,7 @@ export default function TravelSectionCard({
               sx={{
                 cursor: 'grab',
                 color: '#ccc',
-                mt: 0.5,
+                display: 'flex',
                 '&:hover': { color: '#999' },
               }}
             >
@@ -58,7 +58,7 @@ export default function TravelSectionCard({
           )}
 
           {/* Icon */}
-          <Box sx={{ color: '#6a6a6a', mt: 0.3 }}>
+          <Box sx={{ color: '#6a6a6a', display: 'flex' }}>
             {IconComponent && <IconComponent fontSize="small" />}
           </Box>
 
@@ -118,18 +118,16 @@ export default function TravelSectionCard({
 
           {/* Actions */}
           {!isViewOnly && (
-            <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-                sx={{ color: '#6a6a6a' }}
-              >
-                <Delete fontSize="small" />
-              </IconButton>
-            </Stack>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              sx={{ color: '#6a6a6a', p: 0, flexShrink: 0 }}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
           )}
         </Stack>
       </Box>

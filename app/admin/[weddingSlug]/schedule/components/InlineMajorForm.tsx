@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Box, TextField, Stack, Button, InputAdornment, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
 
 const COLOR_PALETTE = [
@@ -149,7 +150,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             InputProps={{
-              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}>{'📍'}</InputAdornment>,
+              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}><StreamlineIcon name="map-pin" size={16} color="#6a6a6a" /></InputAdornment>,
             }}
             sx={{ ...fieldSx, flex: 1 }}
           />
@@ -159,7 +160,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
             value={dressCode}
             onChange={(e) => setDressCode(e.target.value)}
             InputProps={{
-              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}>{'👗'}</InputAdornment>,
+              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}><StreamlineIcon name="hanger" size={16} color="#6a6a6a" /></InputAdornment>,
             }}
             sx={{ ...fieldSx, flex: 1 }}
           />

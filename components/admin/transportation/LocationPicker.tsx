@@ -29,6 +29,7 @@ interface LocationPickerProps {
     coordinates: Coordinates;
   } | null) => void;
   placeholder?: string;
+  label?: string;
   disabled?: boolean;
   proximity?: Coordinates;
 }
@@ -67,6 +68,7 @@ export default function LocationPicker({
   value,
   onChange,
   placeholder = 'Search for a location...',
+  label,
   disabled = false,
   proximity,
 }: LocationPickerProps) {
@@ -291,14 +293,14 @@ export default function LocationPicker({
         <TextField
           fullWidth
           autoFocus={showSuggestions && !!value}
-          size="small"
           value={query}
           onChange={handleInputChange}
           onFocus={handleFocus}
-          placeholder={placeholder}
+          label={label}
+          placeholder={label ? undefined : placeholder}
           disabled={disabled}
           InputProps={{
-            startAdornment: <Search sx={{ color: '#1a1a1a', mr: 1, fontSize: 20 }} />,
+            startAdornment: <Search sx={{ color: '#6a6a6a', mr: 1, fontSize: 20 }} />,
             endAdornment: loading ? (
               <CircularProgress size={20} sx={{ color: '#DE3F5E' }} />
             ) : null,
@@ -306,23 +308,27 @@ export default function LocationPicker({
           sx={{
             '& .MuiOutlinedInput-root': {
               bgcolor: 'white',
-              borderRadius: 1,
+              borderRadius: '12px',
               '& .MuiInputBase-input': {
                 color: '#1a1a1a',
-                fontWeight: 500,
-                '&::placeholder': {
-                  color: '#6a6a6a',
-                  opacity: 1,
-                },
+                py: { xs: 1.5, md: 1.75, lg: 2 },
               },
               '& fieldset': {
-                borderColor: '#797979',
+                borderColor: 'rgba(0, 0, 0, 0.23)',
               },
               '&:hover fieldset': {
                 borderColor: '#DE3F5E',
               },
               '&.Mui-focused fieldset': {
                 borderColor: '#DE3F5E',
+                borderWidth: '2px',
+              },
+            },
+            '& .MuiInputLabel-root': {
+              color: '#4a4a4a',
+              fontWeight: 500,
+              '&.Mui-focused': {
+                color: '#DE3F5E',
               },
             },
           }}

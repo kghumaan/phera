@@ -16,7 +16,7 @@ import {
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { Edit, Delete, AutoAwesome } from '@mui/icons-material';
+import { Delete, AutoAwesome } from '@mui/icons-material';
 import { useState } from 'react';
 
 const CATEGORIES = [
@@ -118,7 +118,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               fullWidth
               sx={{
                 '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-                '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+                '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
               }}
             />
             <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0 }}>
@@ -145,7 +145,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             minRows={3}
             sx={{
               '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } },
-              '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+              '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
             }}
           />
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
@@ -186,9 +186,12 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         bgcolor: entry.is_active ? 'white' : '#FAFAFA',
         opacity: entry.is_active ? 1 : 0.65,
         transition: 'opacity 0.2s',
+        cursor: !isViewOnly ? 'pointer' : 'default',
+        '&:hover': !isViewOnly ? { borderColor: '#ddd' } : {},
       }}
+      onClick={() => !isViewOnly && setEditing(true)}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, cursor: !isViewOnly ? 'pointer' : 'default' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75, flexWrap: 'wrap' }}>
             <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
@@ -234,23 +237,23 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
           </Typography>
         </Box>
         {!isViewOnly && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
             <Switch
               size="small"
               checked={entry.is_active}
               onChange={(e) => onUpdate(entry.id, { is_active: e.target.checked })}
               sx={{
-                '& .MuiSwitch-thumb': { bgcolor: entry.is_active ? '#DE3F5E' : '#ccc' },
-                '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E50' },
+                '& .MuiSwitch-switchBase': { color: '#999' },
+                '& .MuiSwitch-track': { bgcolor: '#bbb' },
+                '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
+                '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
               }}
             />
-            <IconButton size="small" onClick={() => setEditing(true)}>
-              <Edit sx={{ fontSize: 18, color: '#6a6a6a' }} />
-            </IconButton>
             <IconButton
               size="small"
               disabled={deleting}
-              onClick={async () => {
+              onClick={async (e) => {
+                e.stopPropagation();
                 setDeleting(true);
                 try { await onDelete(entry.id); } finally { setDeleting(false); }
               }}

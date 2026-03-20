@@ -41,15 +41,17 @@ import {
   ExpandMore,
   ExpandLess,
   Delete,
+  ViewKanban,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import MembersTab from '@/components/admin/coordinator/MembersTab';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser, DEMO_VENDOR_DETAILS, DEMO_MEMBERS, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 
 interface Message {
@@ -141,6 +143,7 @@ export default function VendorDetailPage({
   const { weddingSlug, vendorId } = use(params);
   const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const isDemo = isDemoUser();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -170,6 +173,35 @@ export default function VendorDetailPage({
 
   // Wedding ID for Ask Phera
   const [weddingId, setWeddingId] = useState<string | null>(null);
+
+  // Track which action items have been imported to task manager
+  const [importedItems, setImportedItems] = useState<Set<string>>(new Set());
+  const [importingItem, setImportingItem] = useState<string | null>(null);
+
+  const handleImportToTaskManager = useCallback(async (item: Insight) => {
+    if (!weddingId || isDemo) return;
+    setImportingItem(item.id);
+    try {
+      const task = await weddingService.createTask({
+        wedding_id: weddingId,
+        title: item.content,
+        description: item.due_date ? `Due: ${new Date(item.due_date).toLocaleDateString()}` : undefined,
+        column: 'todo',
+        tags: vendor?.name ? [vendor.name] : undefined,
+        order_index: 0,
+      });
+      if (task) {
+        setImportedItems(prev => new Set(prev).add(item.id));
+        showStatus('saved', 'Added to Task Manager');
+      } else {
+        showStatus('error', 'Failed to import');
+      }
+    } catch {
+      showStatus('error', 'Failed to import');
+    } finally {
+      setImportingItem(null);
+    }
+  }, [weddingId, vendor, isDemo, showStatus]);
 
   const loadVendor = useCallback(async () => {
     if (!user) return;
@@ -256,13 +288,13 @@ export default function VendorDetailPage({
         method: 'POST',
       });
       if (res.ok) {
-        toast.success('Analysis updated');
+        showStatus('saved', 'Analysis updated');
         loadVendor();
       } else {
-        toast.error('Analysis failed');
+        showStatus('error', 'Analysis failed');
       }
     } catch {
-      toast.error('Analysis failed');
+      showStatus('error', 'Analysis failed');
     } finally {
       setReanalyzing(false);
     }
@@ -273,13 +305,13 @@ export default function VendorDetailPage({
     try {
       const res = await fetch(`/api/vendors/${vendorId}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success('Vendor removed');
+        showStatus('saved', 'Vendor removed');
         router.push(`/admin/${weddingSlug}/coordinator`);
       } else {
-        toast.error('Failed to delete vendor');
+        showStatus('error', 'Failed to delete vendor');
       }
     } catch {
-      toast.error('Failed to delete vendor');
+      showStatus('error', 'Failed to delete vendor');
     } finally {
       setDeleting(false);
       setDeleteConfirmOpen(false);
@@ -318,7 +350,7 @@ export default function VendorDetailPage({
         };
       });
     } catch {
-      toast.error('Failed to update');
+      showStatus('error', 'Failed to update');
     }
   };
 
@@ -332,14 +364,14 @@ export default function VendorDetailPage({
         body: JSON.stringify(editForm),
       });
       if (res.ok) {
-        toast.success('Vendor updated');
+        showStatus('saved', 'Vendor updated');
         setEditing(false);
         loadVendor();
       } else {
-        toast.error('Failed to save');
+        showStatus('error', 'Failed to save');
       }
     } catch {
-      toast.error('Failed to save');
+      showStatus('error', 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -447,21 +479,15 @@ export default function VendorDetailPage({
                 </Stack>
               ) : (
                 <Box
-                  onClick={vendor.name.toLowerCase().includes('unknown') ? () => setEditing(true) : undefined}
-                  sx={vendor.name.toLowerCase().includes('unknown') ? { cursor: 'pointer' } : undefined}
+                  onClick={() => !isDemo && setEditing(true)}
+                  sx={{ cursor: isDemo ? 'default' : 'pointer' }}
                 >
                   <Typography sx={{
                     fontSize: '1.05rem',
                     fontWeight: 600,
-                    color: vendor.name.toLowerCase().includes('unknown') ? '#9a9a9a' : '#1a1a1a',
-                    fontStyle: vendor.name.toLowerCase().includes('unknown') ? 'italic' : 'normal',
+                    color: '#1a1a1a',
                   }}>
                     {vendor.name}
-                    {vendor.name.toLowerCase().includes('unknown') && (
-                      <Typography component="span" sx={{ fontSize: '0.75rem', color: '#bbb', ml: 1, fontStyle: 'italic' }}>
-                        (click to rename)
-                      </Typography>
-                    )}
                   </Typography>
                   <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5 }}>
                     {vendor.category && (
@@ -483,18 +509,6 @@ export default function VendorDetailPage({
                         color: STATUS_COLORS[vendor.status] || '#9E9E9E',
                       }}
                     />
-                    {!vendor.name.toLowerCase().includes('unknown') && !isDemo && (
-                      <IconButton size="small" onClick={() => setEditing(true)} sx={{ ml: 0.5 }}>
-                        <Edit sx={{ fontSize: 14 }} />
-                      </IconButton>
-                    )}
-                    {isDemo && (
-                      <Tooltip title={DEMO_BUTTON_TOOLTIPS.editVendor}>
-                        <IconButton size="small" sx={{ ml: 0.5, color: '#9E9E9E' }}>
-                          <Edit sx={{ fontSize: 14 }} />
-                        </IconButton>
-                      </Tooltip>
-                    )}
                   </Stack>
                 </Box>
               )}
@@ -563,34 +577,43 @@ export default function VendorDetailPage({
 
           {/* Tab 0: Summary & Action Items */}
           {activeTab === 0 && (
-            <Stack spacing={2}>
-              {/* Summary */}
-              {summaries.length > 0 && (
-                <Paper
-                  elevation={0}
-                  sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
-                >
-                  <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
-                    <Stack direction="row" alignItems="center" spacing={0.75}>
-                      <Box sx={{ color: '#6a6a6a' }}>{INSIGHT_ICONS.summary}</Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Overview</Typography>
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+              {/* Left: Overview + Price Quotes */}
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {summaries.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#1a1a1a', mb: 1 }}>Overview</Typography>
+                    <Stack spacing={1}>
+                      {summaries.map((item) => (
+                        <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#4a4a4a' }}>
+                          {item.content}
+                        </Typography>
+                      ))}
                     </Stack>
                   </Box>
-                  <Stack sx={{ p: 1.5 }} spacing={1}>
-                    {summaries.map((item) => (
-                      <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#1a1a1a' }}>
-                        {item.content}
-                      </Typography>
-                    ))}
-                  </Stack>
-                </Paper>
-              )}
+                )}
 
-              {/* Action Items */}
+                {priceQuotes.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#1a1a1a', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {INSIGHT_ICONS.price_quote} Price Quotes
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {priceQuotes.map((item) => (
+                        <Typography key={item.id} sx={{ fontSize: '0.82rem', lineHeight: 1.5, color: '#4a4a4a' }}>
+                          {item.content}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Right: Action Items */}
               {actionItems.length > 0 && (
                 <Paper
                   elevation={0}
-                  sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
+                  sx={{ flex: '0 0 320px', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
                 >
                   <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
@@ -625,16 +648,38 @@ export default function VendorDetailPage({
                           }}
                         />
                         <Box sx={{ flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontSize: '0.78rem',
-                              lineHeight: 1.5,
-                              textDecoration: item.is_completed ? 'line-through' : 'none',
-                              color: item.is_completed ? '#aaa' : '#1a1a1a',
-                            }}
-                          >
-                            {item.content}
-                          </Typography>
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Typography
+                              sx={{
+                                fontSize: '0.78rem',
+                                lineHeight: 1.5,
+                                textDecoration: item.is_completed ? 'line-through' : 'none',
+                                color: item.is_completed ? '#aaa' : '#1a1a1a',
+                                flex: 1,
+                              }}
+                            >
+                              {item.content}
+                            </Typography>
+                            {importedItems.has(item.id) ? (
+                              <Chip
+                                icon={<ViewKanban sx={{ fontSize: 12 }} />}
+                                label="In Tasks"
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600, bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50', '& .MuiChip-icon': { color: '#4CAF50' } }}
+                              />
+                            ) : (
+                              <Tooltip title="Import to Task Manager">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => { e.stopPropagation(); handleImportToTaskManager(item); }}
+                                  disabled={importingItem === item.id}
+                                  sx={{ p: 0.25, color: '#999', '&:hover': { color: '#DE3F5E' } }}
+                                >
+                                  {importingItem === item.id ? <CircularProgress size={14} /> : <ViewKanban sx={{ fontSize: 14 }} />}
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Stack>
                           {item.due_date && (
                             <Typography sx={{ fontSize: '0.7rem', color: '#F44336' }}>
                               Due: {new Date(item.due_date).toLocaleDateString()}
@@ -646,30 +691,12 @@ export default function VendorDetailPage({
                   </Stack>
                 </Paper>
               )}
+            </Box>
+          )}
 
-              {/* Collapsible: Decisions */}
-              {decisions.length > 0 && (
-                <CollapsibleInsightSection
-                  title="Decisions"
-                  icon={INSIGHT_ICONS.decision}
-                  color={INSIGHT_COLORS.decision}
-                  items={decisions}
-                  open={decisionsOpen}
-                  onToggle={() => setDecisionsOpen((p) => !p)}
-                />
-              )}
-
-              {/* Collapsible: Price Quotes */}
-              {priceQuotes.length > 0 && (
-                <CollapsibleInsightSection
-                  title="Price Quotes"
-                  icon={INSIGHT_ICONS.price_quote}
-                  color={INSIGHT_COLORS.price_quote}
-                  items={priceQuotes}
-                  open={priceQuotesOpen}
-                  onToggle={() => setPriceQuotesOpen((p) => !p)}
-                />
-              )}
+          {/* Remaining sections under the flex layout */}
+          {activeTab === 0 && (
+            <Stack spacing={2} sx={{ mt: 2 }}>
 
               {/* Collapsible: Deadlines */}
               {deadlines.length > 0 && (

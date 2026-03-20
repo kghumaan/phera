@@ -10,8 +10,6 @@ import {
   Grid,
   TextField,
   Fade,
-  Snackbar,
-  Alert,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Save, Check } from '@mui/icons-material';
@@ -22,6 +20,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -68,14 +67,12 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('error');
+  const { showStatus } = useAutoSaveStatus();
 
   // Pin entry customization state
   const [pinEntryText, setPinEntryText] = useState('');
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState('');
-  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/blue-clouds.jpg');
+  const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/blue-clouds.webp');
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
   const [pinEntryFontColor, setPinEntryFontColor] = useState('#000000');
@@ -84,12 +81,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -113,7 +104,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
       console.error('Error loading pin entry settings:', err);
       const errorMessage = 'Failed to load pin entry settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -146,7 +137,7 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
       console.error('Error saving pin entry settings:', err);
       const errorMessage = 'Failed to save pin entry settings';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -619,21 +610,6 @@ export default function PinEntryCustomizationPage({ params }: { params: Promise<
           </Fade>
         </Box>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </Stack>
     </Container>
   );

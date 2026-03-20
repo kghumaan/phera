@@ -149,6 +149,10 @@ describe('auth-service', () => {
       // Mock the guests query chain
       const guestQueryBuilder = {
         select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        upsert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+        delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: {
@@ -178,7 +182,7 @@ describe('auth-service', () => {
         error: null,
       });
 
-      const guestQueryBuilder = {
+      const guestQueryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
@@ -200,14 +204,14 @@ describe('auth-service', () => {
       });
 
       // First call (guests) returns nothing
-      const guestQueryBuilder = {
+      const guestQueryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
       };
 
       // Second call (rsvps) returns plus-one data
-      const rsvpQueryBuilder = {
+      const rsvpQueryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
@@ -241,7 +245,7 @@ describe('auth-service', () => {
     });
 
     it('should query guests table with weddingSlug', async () => {
-      const queryBuilder = {
+      const queryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
@@ -258,7 +262,7 @@ describe('auth-service', () => {
     });
 
     it('should NOT use hardcoded wedding ID', async () => {
-      const queryBuilder = {
+      const queryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
@@ -273,12 +277,12 @@ describe('auth-service', () => {
     });
 
     it('should check plus-one email if main guest not found', async () => {
-      const guestQueryBuilder = {
+      const guestQueryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
       };
-      const rsvpQueryBuilder = {
+      const rsvpQueryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
@@ -303,7 +307,7 @@ describe('auth-service', () => {
     });
 
     it('should return exists:false when email not found anywhere', async () => {
-      const queryBuilder = {
+      const queryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
@@ -315,7 +319,7 @@ describe('auth-service', () => {
     });
 
     it('should normalize email to lowercase', async () => {
-      const queryBuilder = {
+      const queryBuilder: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({

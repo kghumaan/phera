@@ -19,7 +19,7 @@ import {
   AccessTime,
   ExpandMore,
   KeyboardArrowDown,
-  ViewSidebar,
+  Menu as MenuIcon,
   Close,
 } from '@mui/icons-material';
 import { useState, useEffect, useRef } from 'react';
@@ -61,6 +61,7 @@ interface WeddingData {
   couple_images?: string[];
   frame_image_url?: string | null;
   background_image?: string | null;
+  registry_description?: string | null;
 }
 
 interface VerticalScrollLayoutProps {
@@ -82,6 +83,7 @@ interface ScheduleItem {
   icon?: string | null;
   description?: string | null;
   location?: string | null;
+  dress_code?: string | null;
   gradient_background?: string | null;
   is_major_event?: boolean | null;
   linked_event_id?: string | null;
@@ -300,6 +302,7 @@ export default function VerticalScrollLayout({
                 icon: event.icon,
                 description: event.description,
                 location: event.location,
+                dress_code: (event as any).dress_code,
                 gradient_background: event.gradient_background,
                 is_major_event: event.is_major_event,
                 linked_event_id: (event as any).linked_event_id,
@@ -645,11 +648,10 @@ export default function VerticalScrollLayout({
               {/* Date and Action Icons */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <Typography
-                  variant="h6"
+                  variant="subtitleCaps"
                   sx={{
                     color: '#000',
-                    // fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
-                    // fontWeight: 600,
+                    fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                   }}
                 >
                   {coupleData.date}
@@ -884,9 +886,10 @@ export default function VerticalScrollLayout({
                         {[...schedule].sort((a, b) => parseScheduleDate(a.date).getTime() - parseScheduleDate(b.date).getTime()).map((day) => (
                           <Box key={day.id}>
                             <Typography
-                              variant="h6"
+                              variant="subtitleCaps"
                               sx={{
                                 color: '#000',
+                                fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                                 mb: 3,
                                 textAlign: 'left',
                               }}
@@ -935,8 +938,8 @@ export default function VerticalScrollLayout({
                                           flex: 1,
                                           p: isMajor ? 3 : 0,
                                           mb: isMajor ? 2 : 0,
-                                          backgroundColor: isMajor ? 'rgba(254, 249, 242, 0.95)' : 'transparent',
-                                          backgroundImage: bgUrl ? `linear-gradient(rgba(254, 249, 242, 0.65), rgba(254, 249, 242, 0.65)), url(${bgUrl})` : 'none',
+                                          backgroundColor: isMajor ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+                                          backgroundImage: bgUrl ? `linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url(${bgUrl})` : 'none',
                                           backgroundSize: 'cover',
                                           backgroundPosition: 'center',
                                           borderRadius: isMajor ? '16px' : 0,
@@ -949,35 +952,42 @@ export default function VerticalScrollLayout({
                                         }}
                                       >
                                         <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                          {/* Title */}
                                           <Typography
                                             variant={isMajor ? "h6" : "body1"}
                                             sx={{
-                                              // fontWeight: isMajor ? 600 : 500,
                                               color: '#141414',
-                                              // fontSize: isMajor ? undefined : '0.95rem',
-                                              mb: 0.5,
                                               lineHeight: 1.1,
+                                              mb: 0.5,
                                             }}
                                           >
                                             {event.name}
                                           </Typography>
 
-                                          {event.time && (
+                                          {/* Minor events: time + location under title */}
+                                          {!isMajor && event.time && (
                                             <Typography
                                               variant="body3"
                                               sx={{
-                                                color: isMajor ? '#000' : '#888',
-                                                fontSize: isMajor ? '1rem' : '0.85rem',
-                                                fontWeight: isMajor ? 600 : 400,
+                                                color: '#141414',
+                                                fontWeight: 500,
                                                 mb: 0.5,
                                                 display: 'block',
-                                                letterSpacing: isMajor ? '0.5px' : 'normal',
                                               }}
                                             >
                                               {event.time}
                                             </Typography>
                                           )}
+                                          {!isMajor && event.location && (
+                                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
+                                              <StreamlineIcon name="map-pin" size={13} color="#888" />
+                                              <Typography variant="body3" sx={{ color: '#888', display: 'block' }}>
+                                                {event.location}
+                                              </Typography>
+                                            </Stack>
+                                          )}
 
+                                          {/* Major events: description */}
                                           {isMajor && event.description && (
                                             <Typography
                                               variant="body3"
@@ -988,84 +998,83 @@ export default function VerticalScrollLayout({
                                                 mb: 2,
                                                 display: 'block',
                                                 maxWidth: '95%',
-                                                // fontSize: '0.95rem',
                                               }}
                                             >
                                               {event.description}
                                             </Typography>
                                           )}
 
-                                          {/* Location and Learn More row */}
-                                          {isMajor && (
-                                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
-                                              {/* Location */}
-                                              {event.location ? (
-                                                <Stack direction="row" spacing={0.75} alignItems="center">
-                                                  <LocationOnOutlined sx={{ fontSize: 18, color: '#111' }} />
-                                                   <Typography
-                                                    variant="body2"
-                                                    sx={{
-                                                      color: '#111',
-                                                      // fontSize: '0.9rem',
-                                                      // fontWeight: 500,
-                                                    }}
-                                                  >
+                                          {/* Major events: Time row */}
+                                          {isMajor && event.time && (
+                                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
+                                              <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+                                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                                {event.time}
+                                              </Typography>
+                                            </Stack>
+                                          )}
+
+                                          {/* Major events: Location + Dress Code row */}
+                                          {isMajor && (event.location || event.dress_code) && (
+                                            <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center" sx={{ mb: 1.5 }}>
+                                              {event.location && (
+                                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                                  <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                                                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
                                                     {event.location}
                                                   </Typography>
                                                 </Stack>
-                                              ) : (
-                                                <Box />
                                               )}
-
-                                              {/* Learn More Link */}
-                                              {(() => {
-                                                const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
-                                                const hasSlides = linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0;
-                                                if (!hasSlides) return null;
-                                                return (
-                                                  <Box
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleLearnMoreClick(event);
-                                                    }}
-                                                    sx={{
-                                                      display: 'flex',
-                                                      alignItems: 'center',
-                                                      gap: 0.5,
-                                                      cursor: 'pointer',
-                                                      '&:hover': {
-                                                        '& .learn-more-text': {
-                                                          textDecoration: 'underline',
-                                                        },
-                                                      },
-                                                    }}
-                                                  >
-                                                     <Typography
-                                                      className="learn-more-text"
-                                                      variant="body3"
-                                                      sx={{
-                                                        color: primaryColor,
-                                                        // fontSize: '0.9rem',
-                                                        // fontWeight: 500,
-                                                      }}
-                                                    >
-                                                      Learn More
-                                                    </Typography>
-                                                     <Typography
-                                                      variant="body3"
-                                                      sx={{
-                                                        color: primaryColor,
-                                                        // fontSize: '0.9rem',
-                                                        // fontWeight: 500,
-                                                      }}
-                                                    >
-                                                      →
-                                                    </Typography>
-                                                  </Box>
-                                                );
-                                              })()}
+                                              {event.dress_code && (
+                                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                                  <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                                                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                                    {event.dress_code}
+                                                  </Typography>
+                                                </Stack>
+                                              )}
                                             </Stack>
                                           )}
+
+                                          {/* Major events: More Details */}
+                                          {isMajor && (() => {
+                                            const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
+                                            const hasSlides = linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0;
+                                            if (!hasSlides) return null;
+                                            return (
+                                              <Box
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleLearnMoreClick(event);
+                                                }}
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 0.5,
+                                                  cursor: 'pointer',
+                                                  '&:hover': {
+                                                    '& .learn-more-text': {
+                                                      textDecoration: 'underline',
+                                                    },
+                                                  },
+                                                }}
+                                              >
+                                                <Typography
+                                                  className="learn-more-text"
+                                                  variant="body3"
+                                                  sx={{ color: primaryColor }}
+                                                >
+                                                  More Details
+                                                </Typography>
+                                                <Typography
+                                                  variant="body3"
+                                                  sx={{ color: primaryColor }}
+                                                >
+                                                  →
+                                                </Typography>
+                                              </Box>
+                                            );
+                                          })()}
                                         </Box>
                                       </Paper>
                                     </Box>
@@ -1282,7 +1291,7 @@ export default function VerticalScrollLayout({
                           mb: 3,
                         }}
                       >
-                        Your presence is enough of a present to us! But for those of you who are stubborn, we&apos;ve put together a wish-list to help you out.
+                        {wedding.registry_description || 'Your presence is enough of a present to us! But for those of you who are stubborn, we\'ve put together a wish-list to help you out.'}
                       </Typography>
 
                       <Stack spacing={1.5}>
@@ -1573,19 +1582,19 @@ export default function VerticalScrollLayout({
 
       </Box>
 
-      {/* Floating Menu Button */}
+      {/* Fixed Menu Button — top right, always visible regardless of scroll */}
       <Box
         onClick={() => setNavOpen(true)}
         sx={{
           position: 'fixed',
-          left: 24,
-          bottom: 24,
+          right: 24,
+          top: 18,
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
-          px: 2.5,
-          py: 1.75,
+          gap: 0.75,
+          px: 2,
+          py: 1,
           borderRadius: '100px',
           backgroundColor: '#1a1a1a',
           color: 'white',
@@ -1598,8 +1607,8 @@ export default function VerticalScrollLayout({
           },
         }}
       >
-        <ViewSidebar sx={{ fontSize: 24, color: 'white' }} />
-        <Typography variant="subtitleCaps" sx={{ fontSize: '1rem', color: 'white', letterSpacing: '0.03em' }}>
+        <MenuIcon sx={{ fontSize: 20, color: 'white' }} />
+        <Typography variant="subtitleCaps" sx={{ fontSize: '0.8rem', color: 'white', letterSpacing: '0.03em' }}>
           Menu
         </Typography>
       </Box>
@@ -1623,15 +1632,15 @@ export default function VerticalScrollLayout({
               }}
             />
 
-            {/* Sidebar Panel */}
+            {/* Sidebar Panel — slides from right */}
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
+              exit={{ x: '100%' }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
               style={{
                 position: 'fixed',
-                left: 0,
+                right: 0,
                 top: 0,
                 bottom: 0,
                 width: 280,
@@ -1644,8 +1653,8 @@ export default function VerticalScrollLayout({
                 backgroundPosition: 'center',
               }}
             >
-              {/* Close Button */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+              {/* Close Button — left side since panel is on right */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start', p: 2 }}>
                 <IconButton
                   onClick={() => setNavOpen(false)}
                   sx={{

@@ -63,7 +63,7 @@ describe('wedding-service', () => {
             expect(result).toBe(true);
             // Should have called from('schedule_items') once per item
             expect(mockSupabase.from).toHaveBeenCalledTimes(3);
-            for (const call of mockSupabase.from.mock.calls) {
+            for (const call of mockSupabase.from.mock.calls as any[]) {
                 expect(call[0]).toBe('schedule_items');
             }
         });
@@ -254,7 +254,7 @@ describe('wedding-service', () => {
             const scheduleBuilder = mockSupabase._makeBuilder([{ id: 'sched-1' }]);
             const deleteBuilder = mockSupabase._makeBuilder();
 
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_schedule') {
                     // Return schedule builder first (for select), then delete builder
                     return scheduleBuilder;

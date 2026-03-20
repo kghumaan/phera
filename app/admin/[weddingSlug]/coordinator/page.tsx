@@ -48,8 +48,8 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import AskPheraPanel from '@/components/admin/coordinator/AskPheraPanel';
 import AskPheraFab from '@/components/admin/coordinator/AskPheraFab';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { InfoOutlined } from '@mui/icons-material';
 import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 
@@ -109,6 +109,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const { isPro } = usePlan();
   const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const router = useRouter();
 
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -278,12 +279,12 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       const res = await fetch(`/api/vendors/${deleteConfirmId}`, { method: 'DELETE' });
       if (res.ok) {
         setVendors((prev) => prev.filter((v) => v.id !== deleteConfirmId));
-        toast.success('Vendor removed');
+        showStatus('saved', 'Vendor removed');
       } else {
-        toast.error('Failed to delete vendor');
+        showStatus('error', 'Failed to delete vendor');
       }
     } catch {
-      toast.error('Failed to delete vendor');
+      showStatus('error', 'Failed to delete vendor');
     } finally {
       setDeleting(false);
       setDeleteConfirmId(null);
@@ -295,10 +296,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     try {
       await navigator.clipboard.writeText(coordinatorPhone);
       setPhoneCopied(true);
-      toast.success('Number copied');
+      showStatus('saved', 'Number copied');
       setTimeout(() => setPhoneCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy');
+      showStatus('error', 'Failed to copy');
     }
   };
 
@@ -321,7 +322,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
       if (res.ok) {
         const data = await res.json();
-        toast.success(`Imported ${data.message_count} messages`);
+        showStatus('saved', `Imported ${data.message_count} messages`);
         setImportDialogOpen(false);
         setImportFile(null);
         setImportVendorId('');
@@ -329,11 +330,11 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       } else {
         const err = await res.json();
         console.error('Import failed:', err);
-        toast.error(err.error || 'Import failed');
+        showStatus('error', err.error || 'Import failed');
       }
     } catch (err) {
       console.error('Import chat error:', err);
-      toast.error('Import failed');
+      showStatus('error', 'Import failed');
     } finally {
       setImporting(false);
       importGuardRef.current = false;
@@ -360,12 +361,12 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         setDiscoveredDirectChats(data.directChats || []);
       } else {
         console.error('Failed to discover chats:', data);
-        toast.error(data.error || 'Failed to discover chats');
+        showStatus('error', data.error || 'Failed to discover chats');
         setSyncDialogOpen(false);
       }
     } catch (err) {
       console.error('Discover chats error:', err);
-      toast.error('Failed to discover chats');
+      showStatus('error', 'Failed to discover chats');
       setSyncDialogOpen(false);
     } finally {
       setDiscoveringGroups(false);
@@ -390,9 +391,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       const data = await res.json();
       if (res.ok) {
         if (data.errors?.length) {
-          toast.error(data.message || `Sync issues: ${data.errors.map((e: any) => e.error).join('; ')}`);
+          showStatus('error', data.message || `Sync issues: ${data.errors.map((e: any) => e.error).join('; ')}`);
         } else {
-          toast.success(data.message || 'Sync complete');
+          showStatus('saved', data.message || 'Sync complete');
         }
         if (data.synced > 0) {
           await loadData();
@@ -401,10 +402,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           return;
         }
       } else {
-        toast.error(data.error || 'Sync failed');
+        showStatus('error', data.error || 'Sync failed');
       }
     } catch {
-      toast.error('Sync failed');
+      showStatus('error', 'Sync failed');
     }
     setSyncing(false);
   };
@@ -432,18 +433,18 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       if (res.ok) {
         if (data.errors?.length) {
           console.error('Sync-all partial errors:', data.errors);
-          toast.error(`Sync finished with errors: ${data.errors.join('; ')}`);
+          showStatus('error', `Sync finished with errors: ${data.errors.join('; ')}`);
         } else {
-          toast.success(data.message || 'Sync complete');
+          showStatus('saved', data.message || 'Sync complete');
         }
         await loadData();
       } else {
         console.error('Sync-all failed:', data);
-        toast.error(data.error || 'Sync failed');
+        showStatus('error', data.error || 'Sync failed');
       }
     } catch (err) {
       console.error('Sync-all error:', err);
-      toast.error('Sync failed');
+      showStatus('error', 'Sync failed');
     } finally {
       setSyncingAll(false);
       setSyncAllLabel('');
@@ -470,10 +471,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Coordinator
+                Vendor Management
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Track vendor conversations, get AI-powered insights, and keep everything organized
+                Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
               </Typography>
             </Box>
             <Button
@@ -640,7 +641,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   '&:hover': { bgcolor: '#c73552' },
                 }}
               >
-                Unlock Coordinator
+                Unlock Vendor Management
               </Button>
             </Box>
 
@@ -662,7 +663,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               Coordinator
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Track vendor conversations, get AI-powered insights, and keep everything organized
+              Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
             </Typography>
           </Box>
 
@@ -782,10 +783,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Coordinator
+                Vendor Management
               </Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Track vendor conversations and get AI-powered insights
+                Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
               </Typography>
             </Box>
           </Box>
@@ -1007,6 +1008,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               onChange={() => setForceOnboarding((p) => !p)}
               size="small"
               sx={{
+                '& .MuiSwitch-switchBase': { color: '#999' },
+                '& .MuiSwitch-track': { bgcolor: '#bbb' },
                 '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
               }}
@@ -1173,25 +1176,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                           {vendor.name}
                         </Typography>
-                        {isDemo ? (
-                          <Tooltip title={DEMO_BUTTON_TOOLTIPS.deleteVendor}>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => e.stopPropagation()}
-                              sx={{ ml: 0.5, color: '#9E9E9E', p: 0.5 }}
-                            >
-                              <InfoOutlined sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          </Tooltip>
-                        ) : (
-                          <IconButton
-                            size="small"
-                            onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(vendor.id); }}
-                            sx={{ ml: 0.5, color: '#DE3F5E', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
-                          >
-                            <Delete sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        )}
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); if (!isDemo) setDeleteConfirmId(vendor.id); }}
+                          sx={{ ml: 0.5, color: '#6a6a6a', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E' } }}
+                        >
+                          <Delete sx={{ fontSize: 18 }} />
+                        </IconButton>
                       </Box>
 
                       {/* Summary snippet */}
@@ -1275,6 +1266,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 onChange={() => setForceOnboarding((p) => !p)}
                 size="small"
                 sx={{
+                  '& .MuiSwitch-switchBase': { color: '#999' },
+                  '& .MuiSwitch-track': { bgcolor: '#bbb' },
                   '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
                   '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
                 }}
@@ -1327,17 +1320,18 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         </Box>
       </Box>
 
-      {/* Ask Phera Panel — hidden for demo (requires live API) */}
-      {weddingId && !isDemo && (
+      {/* Ask Phera Panel */}
+      {weddingId && (
         <AskPheraPanel
           weddingId={weddingId}
           open={askPheraOpen}
           onClose={() => setAskPheraOpen(false)}
+          disabled={isDemo}
         />
       )}
 
-      {/* Ask Phera FAB — hidden for demo */}
-      {weddingId && !isDemo && (
+      {/* Ask Phera FAB */}
+      {weddingId && (
         <AskPheraFab
           onClick={() => setAskPheraOpen(true)}
           visible={!askPheraOpen}
@@ -1378,7 +1372,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               />
             </Button>
             {vendors.length > 0 && (
-              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a' } }}>
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a', '&.Mui-focused': { color: '#DE3F5E' } } }}>
                 <InputLabel>Link to vendor (optional)</InputLabel>
                 <Select
                   value={importVendorId}

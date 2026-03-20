@@ -395,13 +395,13 @@ export const DEFAULT_WEDDING_DATA: Partial<CompleteWeddingData> = {
   mainDesign: {
     website_layout: 'multi_page',
     welcome_text: "",
-    background_image: '/images/backgrounds/blue-clouds.jpg',
+    background_image: '/images/backgrounds/blue-clouds.webp',
     primary_color: '#DE3F5E',
   },
   lockScreenDesign: {
     pin_entry_text: "You're invited!",
     pin_entry_subtitle_text: 'Enter your invitation code to see all the details and RSVP for our celebration',
-    pin_entry_background: '/images/backgrounds/blue-clouds.jpg',
+    pin_entry_background: '/images/backgrounds/blue-clouds.webp',
     pin_entry_primary_color: '#141414',
     pin_entry_font_color: '#000000',
     pin_entry_button_font_color: '#FFFFFF',
@@ -439,9 +439,9 @@ export const COLOR_OPTIONS = [
 // ─── Background Options ───────────────────────────────────────────────────────
 
 export const BACKGROUND_OPTIONS = [
-  { name: 'Pearl White', value: 'pearl.png' },
-  { name: 'Sunny Yellow', value: 'GradientYellow.png' },
-  { name: 'Crimson Red', value: 'GradientJaggo.png' },
-  { name: 'Royal Purple', value: 'GradientReception.png' },
-  { name: 'Pool Blue', value: 'GradientPoolParty.png' },
+  { name: 'Pearl White', value: 'pearl.webp' },
+  { name: 'Sunny Yellow', value: 'GradientYellow.webp' },
+  { name: 'Crimson Red', value: 'GradientJaggo.webp' },
+  { name: 'Royal Purple', value: 'GradientReception.webp' },
+  { name: 'Pool Blue', value: 'GradientPoolParty.webp' },
 ];

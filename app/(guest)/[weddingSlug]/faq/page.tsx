@@ -11,12 +11,13 @@ import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useWedding } from '@/lib/contexts/WeddingContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { weddingService, WeddingFAQ } from '@/lib/supabase/wedding-service';
 
 export default function FAQPage() {
   const params = useParams();
-  const weddingId = params.weddingSlug as string;
+  const weddingSlug = params.weddingSlug as string;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -24,51 +25,22 @@ export default function FAQPage() {
   const { user, hasRSVPed, rsvpResponse } = useAuth();
   const { wedding } = useWedding();
 
-  // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [faqs, setFaqs] = useState<WeddingFAQ[]>([]);
 
-  // FAQ data with dynamic wedding ID references
-  const faqData = [
-    {
-      question: "Can I bring a plus-one?",
-      answer: "Plus-ones are only available if you were given that option during RSVP. The hotel has limited capacity, so we've had to be very selective with plus-ones. If you have questions about bringing someone, reach out to us directly!",
-    },
-    {
-      question: "Do I need a visa for Thailand?",
-      answer: "It depends on your passport! Many countries get visa-free entry for 30 days (including US and Indian citizens). Check with the Thai embassy or consulate for your specific requirements.",
-    },
-    {
-      question: "What if I need to change my RSVP?",
-      answer: "Just log back into the website with your email and tap on your RSVP status to change it, or message us directly.",
-    },
-    {
-      question: "What would you like as wedding gifts?",
-      answer: "Your presence is the greatest present! If you'd like to give something, we have a honeymoon fund and new home fund you can contribute to (link below). We're not doing physical gifts since we're all traveling.",
-      button: { text: "Registry", link: `/${weddingId}/registry` },
-    },
-    {
-      question: "Where can I shop for Indian outfits?",
-      answer: "Check our dress code page for our favorite stores and online retailers! Many brands ship internationally. Can't find something? Just reach out - we're happy to help!",
-      button: { text: "events & Dress code", link: `/${weddingId}/events` },
-    },
-    {
-      question: "Can I arrive earlier or leave later?",
-      answer: "Absolutely! We're covering Jan 4-5 nights, but you can extend your stay. Book additional nights ASAP as the hotel fills up quickly during this time. Use the link below or email vidhi@thepalayana.com and CC booking@thepalayana.com if you'd prefer to stay in the same room we assign to you for the 4th and 5th.",
-      button: { text: "Booking Link", link: "https://bit.ly/45TiuuI" },
-    },
-    {
-      question: "How much spending money should I bring?",
-      answer: "For tips, local shopping, and any extra resort services (spa, room service), $200-300 equivalent should be plenty for the weekend.",
-    }
-  ];
+  useEffect(() => {
+    if (!wedding?.id) return;
+    weddingService.getFAQs(wedding.id).then(setFaqs);
+  }, [wedding?.id]);
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/lavender.png"
+      src={wedding?.background_image || undefined}
+      useAppDefault={!wedding?.background_image}
       className="min-h-screen"
     >
-      {/* Desktop Header - AppHeader with consistent styling */}
+      {/* Desktop Header */}
       {!isMobile && (
         <Box
           sx={{
@@ -83,7 +55,7 @@ export default function FAQPage() {
           <AppHeader
             variant="transparent"
             showBackButton={true}
-            backHref={`/${weddingId}/details`}
+            backHref={`/${weddingSlug}/details`}
           />
         </Box>
       )}
@@ -136,7 +108,6 @@ export default function FAQPage() {
                 Q + A
               </Typography>
 
-              {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
               {shouldShowWhatsApp ? (
                 <IconButton
                   onClick={() => setWhatsAppModalOpen(true)}
@@ -157,7 +128,7 @@ export default function FAQPage() {
                   </svg>
                 </IconButton>
               ) : (
-                <Box sx={{ width: 32, height: 32 }} /> // Spacer when WhatsApp button is hidden
+                <Box sx={{ width: 32, height: 32 }} />
               )}
             </Stack>
           </Container>
@@ -179,11 +150,10 @@ export default function FAQPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* FAQ Accordions */}
           <Box>
-            {faqData.map((faq, index) => (
+            {faqs.map((faq, index) => (
               <motion.div
-                key={index}
+                key={faq.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -200,7 +170,7 @@ export default function FAQPage() {
                       display: 'none',
                     },
                     '&.Mui-expanded': {
-                      margin: 0, // Prevent MUI from adding extra margins
+                      margin: 0,
                     },
                   }}
                 >
@@ -234,10 +204,10 @@ export default function FAQPage() {
                     >
                       {faq.answer}
                     </Typography>
-                    {faq.button && (
+                    {faq.button_text && faq.button_link && (
                       <Button
                         variant="outlined"
-                        href={faq.button.link}
+                        href={faq.button_link}
                         fullWidth={true}
                         sx={{
                           mt: 2,
@@ -251,22 +221,29 @@ export default function FAQPage() {
                           py: 1.5,
                         }}
                       >
-                        {faq.button.text}
+                        {faq.button_text}
                       </Button>
                     )}
                   </AccordionDetails>
                 </Accordion>
               </motion.div>
             ))}
+
+            {faqs.length === 0 && (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="body1" sx={{ color: '#666' }}>
+                  No FAQs available yet.
+                </Typography>
+              </Box>
+            )}
           </Box>
         </motion.div>
       </Container>
 
-      {/* WhatsApp Channel Modal */}
       <WhatsAppChannelModal
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />
     </OptimizedBackground>
   );
-} 
+}

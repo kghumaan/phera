@@ -150,7 +150,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         rsvp_deadline: '',
         status: 'draft',
         created_by: userId,
-        background_image: '/images/backgrounds/blue-clouds.jpg',
+        background_image: '/images/backgrounds/blue-clouds.webp',
         primary_color: '#DE3F5E',
         couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
         couple_image_url: '/images/couple/placeholder1.png',

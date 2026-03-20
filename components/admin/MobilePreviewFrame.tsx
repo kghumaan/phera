@@ -15,7 +15,7 @@ interface MobilePreviewFrameProps {
  */
 export default function MobilePreviewFrame({
   title,
-  backgroundImage = '/images/backgrounds/lavender.png',
+  backgroundImage = '/images/backgrounds/lavender.webp',
   children,
   overlay,
   onBackClick

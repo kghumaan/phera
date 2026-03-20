@@ -4,13 +4,13 @@ import React, { useState, use, useCallback, useEffect } from 'react';
 import {
   Box,
   Button,
-  Container,
   Typography,
   Stack,
   Paper,
   IconButton,
   TextField,
   alpha,
+  ClickAwayListener,
 } from '@mui/material';
 import {
   ViewKanban,
@@ -22,6 +22,7 @@ import {
   LocalOfferOutlined,
 } from '@mui/icons-material';
 import { Chip } from '@mui/material';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import {
   DndContext,
   DragOverlay,
@@ -48,15 +49,9 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import VoiceRecorder from '@/components/admin/VoiceRecorder';
 import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
-import { toast } from 'sonner';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-// Types are moved to wedding-service.ts
-
-// ─── Default tasks ────────────────────────────────────────────────────────────
-
-const defaultTasks: Task[] = [];
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
   { id: 'todo', label: 'To Do', color: '#5C6BC0', bg: '#EEF0FC' },
@@ -64,9 +59,105 @@ const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
   { id: 'done', label: 'Done', color: '#2E7D32', bg: '#E8F5E9' },
 ];
 
+// ─── Tag Input ────────────────────────────────────────────────────────────────
+
+function TagSelector({
+  availableTags,
+  selectedTags,
+  onToggle,
+  onAddCustom,
+}: {
+  availableTags: string[];
+  selectedTags: string[];
+  onToggle: (tag: string) => void;
+  onAddCustom: (tag: string) => void;
+}) {
+  const [customTag, setCustomTag] = useState('');
+
+  const handleAddCustom = () => {
+    const tag = customTag.trim();
+    if (!tag) return;
+    onAddCustom(tag);
+    setCustomTag('');
+  };
+
+  return (
+    <Box>
+      <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <LocalOfferOutlined sx={{ fontSize: 10 }} /> Tags
+      </Typography>
+      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ gap: 0.5, mb: 1 }}>
+        {availableTags.map(tag => {
+          const isSelected = selectedTags.includes(tag);
+          return (
+            <Chip
+              key={tag}
+              label={tag}
+              size="small"
+              onClick={() => onToggle(tag)}
+              sx={{
+                height: 28,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                bgcolor: isSelected ? alpha('#DE3F5E', 0.1) : 'rgba(0,0,0,0.03)',
+                color: isSelected ? '#DE3F5E' : '#666',
+                border: `1px solid ${isSelected ? alpha('#DE3F5E', 0.2) : 'transparent'}`,
+                '&:hover': { bgcolor: isSelected ? alpha('#DE3F5E', 0.15) : 'rgba(0,0,0,0.06)' },
+              }}
+            />
+          );
+        })}
+      </Stack>
+      <Stack direction="row" spacing={0.5} alignItems="center">
+        <TextField
+          size="small"
+          placeholder="Add custom tag..."
+          value={customTag}
+          onChange={e => setCustomTag(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
+          sx={{
+            flex: 1,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '6px', bgcolor: 'white', height: 30,
+              '& fieldset': { borderColor: '#ddd' },
+              '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+            },
+            '& .MuiInputBase-input': { fontSize: '0.75rem', py: 0.5, px: 1 },
+          }}
+        />
+        <IconButton size="small" onClick={handleAddCustom} disabled={!customTag.trim()} sx={{ color: '#DE3F5E', p: 0.25 }}>
+          <Add sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Stack>
+    </Box>
+  );
+}
+
 // ─── Task Card ────────────────────────────────────────────────────────────────
 
-function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => void }) {
+function TaskCard({
+  task,
+  onDelete,
+  onEdit,
+  isEditing,
+  editDraft,
+  onEditChange,
+  onEditSave,
+  onEditCancel,
+  availableTags,
+  onAddCustomTag,
+}: {
+  task: Task;
+  onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
+  isEditing: boolean;
+  editDraft: { title: string; description: string; tags: string[] } | null;
+  onEditChange: (field: string, value: any) => void;
+  onEditSave: () => void;
+  onEditCancel: () => void;
+  availableTags: string[];
+  onAddCustomTag: (tag: string) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -74,7 +165,76 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: task.id, disabled: isEditing });
+
+  if (isEditing && editDraft) {
+    return (
+      <ClickAwayListener onClickAway={onEditCancel}>
+        <Paper
+          ref={setNodeRef}
+          elevation={0}
+          sx={{
+            p: 1.5, mb: 1, borderRadius: '8px',
+            border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white',
+          }}
+        >
+          <Stack spacing={1}>
+            <TextField
+              autoFocus
+              fullWidth
+              size="small"
+              label="Title"
+              value={editDraft.title}
+              onChange={e => onEditChange('title', e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') onEditCancel(); }}
+              sx={ENHANCED_TEXT_FIELD_SX}
+            />
+            <TextField
+              fullWidth
+              size="small"
+              label="Description"
+              value={editDraft.description}
+              onChange={e => onEditChange('description', e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') onEditCancel(); }}
+              sx={ENHANCED_TEXT_FIELD_SX}
+            />
+            <TagSelector
+              availableTags={availableTags}
+              selectedTags={editDraft.tags}
+              onToggle={tag => {
+                const next = editDraft.tags.includes(tag)
+                  ? editDraft.tags.filter(t => t !== tag)
+                  : [...editDraft.tags, tag];
+                onEditChange('tags', next);
+              }}
+              onAddCustom={tag => {
+                onAddCustomTag(tag);
+                if (!editDraft.tags.includes(tag)) onEditChange('tags', [...editDraft.tags, tag]);
+              }}
+            />
+            <Stack direction="row" justifyContent="flex-end" spacing={1}>
+              <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: '#6a6a6a' }}>
+                <Close sx={{ fontSize: 16 }} />
+              </IconButton>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={onEditSave}
+                disabled={!editDraft.title.trim()}
+                sx={{
+                  bgcolor: '#DE3F5E', color: 'white', textTransform: 'none',
+                  fontSize: '0.8rem', py: 0.5, px: 2, borderRadius: '8px',
+                  '&:hover': { bgcolor: '#C8365A' },
+                }}
+              >
+                Save
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      </ClickAwayListener>
+    );
+  }
 
   return (
     <Paper
@@ -82,31 +242,26 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
       elevation={0}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       sx={{
-        p: 1.5,
-        mb: 1,
-        borderRadius: '8px',
+        p: 1.5, mb: 1, borderRadius: '8px',
         border: '1px solid rgba(0,0,0,0.07)',
         bgcolor: isDragging ? 'rgba(0,0,0,0.03)' : 'white',
         opacity: isDragging ? 0.4 : 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0.5,
-        cursor: 'grab',
-        '&:active': { cursor: 'grabbing' },
+        display: 'flex', flexDirection: 'column', gap: 0.5,
+        cursor: 'pointer',
         '&:hover .task-actions': { opacity: 1 },
+        '&:hover': { borderColor: '#ddd' },
       }}
+      onClick={() => onEdit(task.id)}
     >
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
-        {/* Drag handle */}
         <Box
           {...attributes}
           {...listeners}
-          sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, '&:hover': { color: '#999' } }}
+          onClick={e => e.stopPropagation()}
+          sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, cursor: 'grab', '&:hover': { color: '#999' } }}
         >
           <DragIndicator sx={{ fontSize: 16 }} />
         </Box>
-
-        {/* Content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
             {task.title}
@@ -117,34 +272,27 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
             </Typography>
           )}
         </Box>
-
-        {/* Delete */}
         <IconButton
           className="task-actions"
           size="small"
-          onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+          onClick={e => { e.stopPropagation(); onDelete(task.id); }}
           sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: '#bbb', '&:hover': { color: '#DE3F5E' } }}
         >
           <Close sx={{ fontSize: 14 }} />
         </IconButton>
       </Box>
-
-      {/* Tags */}
       {task.tags && task.tags.length > 0 && (
         <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
-          {task.tags.map((tag) => (
+          {task.tags.map(tag => (
             <Chip
               key={tag}
               label={tag}
               size="small"
               sx={{
-                height: 24,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                bgcolor: alpha('#DE3F5E', 0.08),
-                color: '#DE3F5E',
+                height: 24, fontSize: '0.75rem', fontWeight: 600,
+                bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E',
                 border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
-                '& .MuiChip-label': { px: 1.2 }
+                '& .MuiChip-label': { px: 1.2 },
               }}
             />
           ))}
@@ -154,55 +302,28 @@ function TaskCard({ task, onDelete }: { task: Task; onDelete: (id: string) => vo
   );
 }
 
-// Static (non-draggable) version for drag overlay
+// Static version for drag overlay
 function TaskCardStatic({ task }: { task: Task }) {
   return (
     <Paper
       elevation={3}
       sx={{
-        p: 1.5,
-        borderRadius: '8px',
-        border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0.5,
-        cursor: 'grabbing',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+        p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.07)',
+        bgcolor: 'white', display: 'flex', flexDirection: 'column', gap: 0.5,
+        cursor: 'grabbing', boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
       }}
     >
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
-        <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}>
-          <DragIndicator sx={{ fontSize: 16 }} />
-        </Box>
+        <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}><DragIndicator sx={{ fontSize: 16 }} /></Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
-            {task.title}
-          </Typography>
-          {task.description && (
-            <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
-              {task.description}
-            </Typography>
-          )}
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
+          {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
         </Box>
       </Box>
       {task.tags && task.tags.length > 0 && (
         <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
-          {task.tags.map((tag) => (
-            <Chip
-              key={tag}
-              label={tag}
-              size="small"
-              sx={{
-                height: 24,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                bgcolor: alpha('#DE3F5E', 0.08),
-                color: '#DE3F5E',
-                border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
-                '& .MuiChip-label': { px: 1.2 }
-              }}
-            />
+          {task.tags.map(tag => (
+            <Chip key={tag} label={tag} size="small" sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E', border: `1px solid ${alpha('#DE3F5E', 0.1)}`, '& .MuiChip-label': { px: 1.2 } }} />
           ))}
         </Stack>
       )}
@@ -213,17 +334,20 @@ function TaskCardStatic({ task }: { task: Task }) {
 // ─── Kanban Column ────────────────────────────────────────────────────────────
 
 function KanbanColumn({
-  col,
-  tasks,
-  onDelete,
-  onAdd,
-  availableTags,
+  col, tasks, onDelete, onAdd, onEdit, editingId, editDraft, onEditChange, onEditSave, onEditCancel, availableTags, onAddCustomTag,
 }: {
   col: typeof COLUMNS[number];
   tasks: Task[];
   onDelete: (id: string) => void;
   onAdd: (column: Column, title: string, description?: string, tags?: string[]) => void;
+  onEdit: (id: string) => void;
+  editingId: string | null;
+  editDraft: { title: string; description: string; tags: string[] } | null;
+  onEditChange: (field: string, value: any) => void;
+  onEditSave: () => void;
+  onEditCancel: () => void;
   availableTags: string[];
+  onAddCustomTag: (tag: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.id });
   const [adding, setAdding] = useState(false);
@@ -241,137 +365,57 @@ function KanbanColumn({
   };
 
   return (
-    <Box
-      sx={{
-        flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-        bgcolor: '#F8F8F8',
-        border: '1px solid rgba(0,0,0,0.07)',
-        borderRadius: '12px',
-        p: 2,
-      }}
-    >
+    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: '#F8F8F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px', p: 2 }}>
       {/* Column header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-        <Box
-          sx={{
-            width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0,
-          }}
-        />
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          {col.label}
-        </Typography>
-        <Box
-          sx={{
-            ml: 0.5, px: 1, borderRadius: '20px', bgcolor: col.bg,
-            fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6,
-          }}
-        >
-          {tasks.length}
-        </Box>
+        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
+        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+        <Box sx={{ ml: 0.5, px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
       </Box>
 
       {/* Tasks drop zone */}
-      <Box
-        ref={setNodeRef}
-        sx={{
-          flex: 1,
-          minHeight: 80,
-          bgcolor: isOver ? alpha(col.color, 0.06) : 'transparent',
-          borderRadius: 2,
-          transition: 'background 0.15s',
-        }}
-      >
+      <Box ref={setNodeRef} sx={{ flex: 1, minHeight: 80, bgcolor: isOver ? alpha(col.color, 0.06) : 'transparent', borderRadius: 2, transition: 'background 0.15s' }}>
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
-            <TaskCard key={task.id} task={task} onDelete={onDelete} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              isEditing={editingId === task.id}
+              editDraft={editingId === task.id ? editDraft : null}
+              onEditChange={onEditChange}
+              onEditSave={onEditSave}
+              onEditCancel={onEditCancel}
+              availableTags={availableTags}
+              onAddCustomTag={onAddCustomTag}
+            />
           ))}
         </SortableContext>
 
         {/* Add task UI */}
         {adding ? (
-          <Paper
-            elevation={0}
-            sx={{ p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}
-          >
-            <TextField
-              autoFocus
-              fullWidth
-              placeholder="Task title"
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAdding(false); }}
-              variant="standard"
-              InputProps={{ disableUnderline: true }}
-              sx={{ mb: 1, '& input': { fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a' } }}
-            />
-            <TextField
-              fullWidth
-              placeholder="Description (optional)"
-              value={newDesc}
-              onChange={e => setNewDesc(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }}
-              variant="standard"
-              InputProps={{ disableUnderline: true }}
-              sx={{ mb: 1.5, '& input': { fontSize: '0.775rem', color: '#7a7a7a' } }}
-            />
-
-            {/* Tag Selection */}
+          <Paper elevation={0} sx={{ p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}>
+            <TextField autoFocus fullWidth label="Task title" value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAdding(false); }} sx={{ ...ENHANCED_TEXT_FIELD_SX, mb: 1 }} />
+            <TextField fullWidth label="Description (optional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} sx={{ ...ENHANCED_TEXT_FIELD_SX, mb: 1.5 }} />
             <Box sx={{ mb: 2 }}>
-              <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LocalOfferOutlined sx={{ fontSize: 10 }} /> Tags
-              </Typography>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ gap: 0.5 }}>
-                {availableTags.map(tag => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      size="small"
-                      onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                      sx={{
-                        height: 28,
-                        fontSize: '0.8rem',
-                        cursor: 'pointer',
-                        bgcolor: isSelected ? alpha('#DE3F5E', 0.1) : 'rgba(0,0,0,0.03)',
-                        color: isSelected ? '#DE3F5E' : '#666',
-                        border: `1px solid ${isSelected ? alpha('#DE3F5E', 0.2) : 'transparent'}`,
-                        '&:hover': { bgcolor: isSelected ? alpha('#DE3F5E', 0.15) : 'rgba(0,0,0,0.06)' },
-                      }}
-                    />
-                  );
-                })}
-              </Stack>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={handleAdd}
-                disabled={!newTitle.trim()}
-                sx={{
-                  bgcolor: col.color, color: 'white', textTransform: 'none',
-                  fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px',
-                  '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' },
+              <TagSelector
+                availableTags={availableTags}
+                selectedTags={selectedTags}
+                onToggle={tag => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
+                onAddCustom={tag => {
+                  onAddCustomTag(tag);
+                  if (!selectedTags.includes(tag)) setSelectedTags(prev => [...prev, tag]);
                 }}
-              >
-                Add
-              </Button>
-              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}>
-                <Close sx={{ fontSize: 16 }} />
-              </IconButton>
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: 'white', textTransform: 'none', fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px', '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</Button>
+              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}><Close sx={{ fontSize: 16 }} /></IconButton>
             </Box>
           </Paper>
         ) : (
-          <Box
-            onClick={() => setAdding(true)}
-            sx={{
-              display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75,
-              borderRadius: '8px', cursor: 'pointer', color: '#9a9a9a',
-              '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' },
-            }}
-          >
+          <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: '8px', cursor: 'pointer', color: '#9a9a9a', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' } }}>
             <Add sx={{ fontSize: 16 }} />
             <Typography sx={{ fontSize: '0.8rem' }}>Add a task</Typography>
           </Box>
@@ -381,7 +425,7 @@ function KanbanColumn({
   );
 }
 
-// ─── Mock board (non-pro, static blurred) ─────────────────────────────────────
+// ─── Mock board (non-pro) ─────────────────────────────────────────────────────
 
 const mockTasks: Task[] = [
   { id: 'm1', wedding_id: '', title: 'Confirm venue final headcount', column: 'todo', order_index: 0, created_at: '' },
@@ -402,19 +446,13 @@ function MockBoard() {
           <Box key={col.id} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {col.label}
-              </Typography>
-              <Box sx={{ px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>
-                {tasks.length}
-              </Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+              <Box sx={{ px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
             </Box>
             {tasks.map(task => (
               <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white' }}>
                 <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
-                {task.description && (
-                  <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>
-                )}
+                {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
               </Paper>
             ))}
           </Box>
@@ -430,12 +468,17 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>(['Vendors', 'Guests', 'RSVPs']);
   const [loading, setLoading] = useState(true);
+
+  // Inline edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<{ title: string; description: string; tags: string[] } | null>(null);
 
   useEffect(() => {
     const initPage = async () => {
@@ -444,25 +487,31 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
         const wedding = await weddingService.getWeddingBySlug(weddingSlug);
         if (wedding) {
           setWeddingId(wedding.id);
-
-          // Fetch tasks
           const fetchedTasks = await weddingService.getTasks(wedding.id);
           setTasks(fetchedTasks);
-
-          // Fetch events for tags
           const events = await weddingService.getWeddingEvents(wedding.id);
           const eventNames = events.map(e => e.name);
           setAvailableTags(prev => Array.from(new Set([...prev, ...eventNames])));
         }
       } catch (err) {
         console.error('Error initializing task manager:', err);
-        toast.error('Failed to load tasks');
+        showStatus('error', 'Failed to load tasks');
       } finally {
         setLoading(false);
       }
     };
     initPage();
   }, [weddingSlug]);
+
+  // Collect all unique tags from tasks + defaults
+  const allTags = Array.from(new Set([
+    ...availableTags,
+    ...tasks.flatMap(t => t.tags || []),
+  ]));
+
+  const handleAddCustomTag = useCallback((tag: string) => {
+    setAvailableTags(prev => Array.from(new Set([...prev, tag])));
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -471,20 +520,15 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
 
   const activeTask = tasks.find(t => t.id === activeId) ?? null;
 
-  const handleDragStart = ({ active }: DragStartEvent) => {
-    setActiveId(active.id as string);
-  };
+  const handleDragStart = ({ active }: DragStartEvent) => { setActiveId(active.id as string); };
 
   const handleDragOver = ({ active, over }: DragOverEvent) => {
     if (!over) return;
-    const activeTask = tasks.find(t => t.id === active.id);
-    if (!activeTask) return;
-
-    // Determine target column — over could be a column id or a task id
+    const aTask = tasks.find(t => t.id === active.id);
+    if (!aTask) return;
     const overTask = tasks.find(t => t.id === over.id);
     const targetColumn = overTask ? overTask.column : (over.id as Column);
-
-    if (activeTask.column !== targetColumn) {
+    if (aTask.column !== targetColumn) {
       setTasks(prev => prev.map(t => t.id === active.id ? { ...t, column: targetColumn } : t));
     }
   };
@@ -493,32 +537,18 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     if (isViewOnly) return;
     setActiveId(null);
     if (!over) return;
-
-    const activeTask = tasks.find(t => t.id === active.id);
-    if (!activeTask) return;
-
-    // Determine target column
+    const aTask = tasks.find(t => t.id === active.id);
+    if (!aTask) return;
     const overTask = tasks.find(t => t.id === over.id);
     const targetColumn = overTask ? overTask.column : (over.id as Column);
-
-    // Sync column change to DB
-    if (activeTask.column !== targetColumn) {
-      weddingService.updateTask(activeTask.id, { column: targetColumn });
-    }
-
-    // Handle reordering within the same column
-    if (active.id !== over.id && overTask && activeTask.column === overTask.column) {
+    if (aTask.column !== targetColumn) weddingService.updateTask(aTask.id, { column: targetColumn });
+    if (active.id !== over.id && overTask && aTask.column === overTask.column) {
       setTasks(prev => {
         const oldIdx = prev.findIndex(t => t.id === active.id);
         const newIdx = prev.findIndex(t => t.id === over.id);
         const newTasks = arrayMove(prev, oldIdx, newIdx);
-
-        // Sync all indices for this column to DB
-        const sameColTasks = newTasks.filter(t => t.column === targetColumn);
-        Promise.all(sameColTasks.map((t, idx) =>
-          weddingService.updateTask(t.id, { order_index: idx })
-        ));
-
+        const sameCol = newTasks.filter(t => t.column === targetColumn);
+        Promise.all(sameCol.map((t, idx) => weddingService.updateTask(t.id, { order_index: idx })));
         return newTasks;
       });
     }
@@ -526,95 +556,90 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
 
   const handleDelete = useCallback(async (id: string) => {
     if (isViewOnly) return;
+    if (editingId === id) { setEditingId(null); setEditDraft(null); }
     const success = await weddingService.deleteTask(id);
     if (success) {
       setTasks(prev => prev.filter(t => t.id !== id));
-      toast.success('Task deleted');
+      showStatus('saved', 'Task deleted');
     } else {
-      toast.error('Failed to delete task');
+      showStatus('error', 'Failed to delete task');
     }
-  }, []);
+  }, [editingId]);
 
   const handleAdd = useCallback(async (column: Column, title: string, description?: string, tags?: string[]) => {
-    if (isViewOnly) return;
-    if (!weddingId) return;
-
+    if (isViewOnly || !weddingId) return;
     const newTask = await weddingService.createTask({
-      wedding_id: weddingId,
-      title,
-      description,
-      column,
-      tags,
-      order_index: tasks.filter(t => t.column === column).length
+      wedding_id: weddingId, title, description, column, tags,
+      order_index: tasks.filter(t => t.column === column).length,
     });
-
-    if (newTask) {
-      setTasks(prev => [...prev, newTask]);
-      toast.success('Task added');
-    } else {
-      toast.error('Failed to add task');
-    }
+    if (newTask) { setTasks(prev => [...prev, newTask]); showStatus('saved', 'Task added'); }
+    else showStatus('error', 'Failed to add task');
   }, [weddingId, tasks]);
 
   const handleVoiceTasks = useCallback(async (extractedTasks: { title: string; description: string; tag: string }[]) => {
-    if (isViewOnly) return;
-    if (!weddingId) return;
-
+    if (isViewOnly || !weddingId) return;
     const promises = extractedTasks.map((t, i) => weddingService.createTask({
-      wedding_id: weddingId,
-      title: t.title,
-      description: t.description || undefined,
-      column: 'todo' as Column,
-      tags: t.tag ? [t.tag] : undefined,
-      order_index: tasks.filter(t => t.column === 'todo').length + i
+      wedding_id: weddingId, title: t.title, description: t.description || undefined,
+      column: 'todo' as Column, tags: t.tag ? [t.tag] : undefined,
+      order_index: tasks.filter(t => t.column === 'todo').length + i,
     }));
-
     const results = await Promise.all(promises);
-    const createdTasks = results.filter((t): t is Task => t !== null);
-
-    if (createdTasks.length > 0) {
-      setTasks(prev => [...prev, ...createdTasks]);
-      toast.success(`Created ${createdTasks.length} tasks`);
-    } else {
-      toast.error('Failed to create tasks from voice');
-    }
+    const created = results.filter((t): t is Task => t !== null);
+    if (created.length > 0) {
+      setTasks(prev => [...prev, ...created]);
+      // Add any new tags from voice
+      const voiceTags = extractedTasks.map(t => t.tag).filter(Boolean);
+      if (voiceTags.length > 0) setAvailableTags(prev => Array.from(new Set([...prev, ...voiceTags])));
+      showStatus('saved', `Created ${created.length} tasks`);
+    } else showStatus('error', 'Failed to create tasks from voice');
   }, [weddingId, tasks]);
 
-  // ── Non-pro teaser ──────────────────────────────────────────────────────────
+  // Inline edit handlers
+  const handleStartEdit = useCallback((id: string) => {
+    if (isViewOnly) return;
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    setEditingId(id);
+    setEditDraft({ title: task.title, description: task.description || '', tags: task.tags || [] });
+  }, [tasks, isViewOnly]);
 
+  const handleEditChange = useCallback((field: string, value: any) => {
+    setEditDraft(prev => prev ? { ...prev, [field]: value } : null);
+  }, []);
+
+  const handleEditSave = useCallback(async () => {
+    if (!editingId || !editDraft || !editDraft.title.trim()) return;
+    await weddingService.updateTask(editingId, {
+      title: editDraft.title.trim(),
+      description: editDraft.description.trim() || undefined,
+      tags: editDraft.tags.length > 0 ? editDraft.tags : undefined,
+    });
+    setTasks(prev => prev.map(t => t.id === editingId ? { ...t, title: editDraft.title.trim(), description: editDraft.description.trim() || undefined, tags: editDraft.tags.length > 0 ? editDraft.tags : undefined } : t));
+    setEditingId(null);
+    setEditDraft(null);
+    showStatus('saved');
+  }, [editingId, editDraft]);
+
+  const handleEditCancel = useCallback(() => {
+    setEditingId(null);
+    setEditDraft(null);
+  }, []);
+
+  // ── Non-pro teaser ──────────────────────────────────────────────────────────
   if (!isPro && !weddingSlug.startsWith('demo-')) {
     return (
-      <Box sx={{ maxWidth: 1000 }}>
+      <Box>
         <Stack spacing={3}>
-
-          {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Task Manager
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Voice-to-tasks — speak your to-do list, we turn it into an organised board
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Task Manager</Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Voice-to-tasks — speak your to-do list, we turn it into an organised board</Typography>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<Mic />}
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25,
-                borderRadius: '12px', fontWeight: 600, textTransform: 'none',
-                fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' },
-              }}
-            >
-              Upgrade to Pro
-            </Button>
+            <Button variant="contained" startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}>Upgrade to Pro</Button>
           </Box>
-
-          {/* Description */}
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
-              Planning a wedding means a thousand things to track — and you shouldn't have to type them all out. <strong>Just speak.</strong> Ramble through everything that's on your mind, and Phera will transcribe it, extract every action item, and drop them into your board automatically. Your only job is to actually do the things.
+              Planning a wedding means a thousand things to track — and you shouldn&apos;t have to type them all out. <strong>Just speak.</strong> Ramble through everything that&apos;s on your mind, and Phera will transcribe it, extract every action item, and drop them into your board automatically.
             </Typography>
             <Stack spacing={0.6}>
               {([
@@ -630,46 +655,15 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               ))}
             </Stack>
           </Box>
-
-          {/* Blurred mock board */}
           <Box sx={{ position: 'relative', borderRadius: '12px', overflow: 'hidden' }}>
-            <Box sx={{ filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
-              <MockBoard />
-            </Box>
-
-            {/* Lock overlay */}
-            <Box
-              sx={{
-                position: 'absolute', inset: 0, display: 'flex',
-                flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 56, height: 56, borderRadius: '50%', bgcolor: 'white',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
+            <Box sx={{ filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}><MockBoard /></Box>
+            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)' }}>
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
-              <Button
-                variant="contained"
-                startIcon={<ViewKanban />}
-                onClick={() => setUpgradeModalOpen(true)}
-                sx={{
-                  bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5,
-                  borderRadius: '12px', fontWeight: 600, textTransform: 'none',
-                  fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
-              >
-                Unlock Task Manager
-              </Button>
+              <Button variant="contained" startIcon={<ViewKanban />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}>Unlock Task Manager</Button>
             </Box>
           </Box>
-
         </Stack>
         <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
       </Box>
@@ -677,32 +671,18 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   }
 
   // ── Pro view — full kanban ──────────────────────────────────────────────────
-
   return (
-    <Box sx={{ maxWidth: 1000 }}>
+    <Box>
       <Stack spacing={3}>
-
-        {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Task Manager
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Voice-to-tasks — speak your to-do list, we handle the rest
-            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Task Manager</Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Voice-to-tasks — speak your to-do list, we handle the rest</Typography>
           </Box>
           <VoiceRecorder onTasksExtracted={handleVoiceTasks} />
         </Box>
 
-        {/* Kanban board */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
           <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
             {COLUMNS.map(col => (
               <KanbanColumn
@@ -711,16 +691,19 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
                 tasks={tasks.filter(t => t.column === col.id)}
                 onDelete={handleDelete}
                 onAdd={handleAdd}
-                availableTags={availableTags}
+                onEdit={handleStartEdit}
+                editingId={editingId}
+                editDraft={editDraft}
+                onEditChange={handleEditChange}
+                onEditSave={handleEditSave}
+                onEditCancel={handleEditCancel}
+                availableTags={allTags}
+                onAddCustomTag={handleAddCustomTag}
               />
             ))}
           </Box>
-
-          <DragOverlay>
-            {activeTask ? <TaskCardStatic task={activeTask} /> : null}
-          </DragOverlay>
+          <DragOverlay>{activeTask ? <TaskCardStatic task={activeTask} /> : null}</DragOverlay>
         </DndContext>
-
       </Stack>
     </Box>
   );

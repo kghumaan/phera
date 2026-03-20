@@ -1476,7 +1476,7 @@ function LandingPageContent() {
                       '&:hover': { bgcolor: '#128C7E' },
                     }}
                   >
-                    Get Phera Concierge
+                    Get Guest Concierge
                   </Button>
                 </motion.div>
               </Grid>

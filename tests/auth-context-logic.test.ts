@@ -133,7 +133,7 @@ describe('AuthContext logic', () => {
     });
 
     it('should fall back to user_settings avatar when no guest record', () => {
-      const guestData = null;
+      const guestData = null as any;
       const userSettingsAvatar = {
         avatar_style: 'shapes',
         avatar_seed: 'settings-seed',
@@ -149,8 +149,8 @@ describe('AuthContext logic', () => {
     });
 
     it('should fall back to generated color when neither has avatar', () => {
-      const guestData = null;
-      const userSettingsAvatar = null;
+      const guestData = null as any;
+      const userSettingsAvatar = null as any;
       const displayName = 'Admin User';
 
       function generateAvatarColor(name: string): string {

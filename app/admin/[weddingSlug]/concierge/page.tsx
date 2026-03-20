@@ -111,7 +111,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             .from('contact_submissions')
             .select('id')
             .eq('email', user.email.toLowerCase())
-            .eq('message', 'Phera Concierge: Early Preview Setup Request')
+            .eq('message', 'Guest Concierge: Early Preview Setup Request')
             .limit(1);
 
           if (error) {
@@ -144,7 +144,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .insert([{
           name: user.name || 'Admin',
           email: user.email.toLowerCase(),
-          message: 'Phera Concierge: Early Preview Setup Request'
+          message: 'Guest Concierge: Early Preview Setup Request'
         }]);
 
       if (error) throw error;
@@ -168,9 +168,21 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         <Stack spacing={3}>
           <Box>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                Phera Concierge
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+                Guest Concierge
               </Typography>
+              <Chip
+                icon={<Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#4CAF50', ml: 1 }} />}
+                label="Concierge Active"
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(76, 175, 80, 0.1)',
+                  color: '#4CAF50',
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                }}
+              />
               <Paper
                 elevation={0}
                 sx={{
@@ -222,29 +234,22 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
             }}
           >
-            <Tab label="Dashboard" />
-            <Tab label="Conversations" />
             <Tab label="Knowledge Bank" />
+            <Tab label="Conversations" />
           </Tabs>
 
           {weddingId ? (
             <>
               {activeTab === 0 && (
-                <ConciergeDashboard
+                <ConciergeKnowledgeBase
                   weddingId={weddingId}
-                  onViewConversation={handleViewConversation}
+                  isViewOnly={isViewOnly}
                 />
               )}
               {activeTab === 1 && (
                 <ConciergeConversations
                   weddingId={weddingId}
                   initialGuestId={selectedGuestId}
-                />
-              )}
-              {activeTab === 2 && (
-                <ConciergeKnowledgeBase
-                  weddingId={weddingId}
-                  isViewOnly={isViewOnly}
                 />
               )}
             </>
@@ -265,7 +270,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         <Stack spacing={4}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Phera Concierge
+              Guest Concierge
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
               24/7 WhatsApp concierge for your guests — powered by your wedding details
@@ -307,7 +312,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             </Typography>
 
             <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
-              Phera Concierge is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your guests.
+              Guest Concierge is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your guests.
             </Typography>
 
             {requestStatus === 'checking' ? (
@@ -378,7 +383,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Phera Concierge
+              Guest Concierge
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
               24/7 WhatsApp concierge for your guests — powered by your wedding details
@@ -408,7 +413,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
           <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
-            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Phera Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
+            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
           </Typography>
           <Stack spacing={0.6} sx={{ pl: 0 }}>
             {([
@@ -499,7 +504,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                         <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: '#1a1a1a' }}>{n.label}</Typography>
                         <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', mt: 0.25 }}>{n.desc}</Typography>
                       </Box>
-                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-thumb': { bgcolor: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E50' } }} />
+                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }} />
                     </Box>
                   ))}
                 </Stack>
@@ -553,7 +558,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                 '&:hover': { bgcolor: '#c73552' },
               }}
             >
-              Unlock Phera Concierge
+              Unlock Guest Concierge
             </Button>
           </Box>
 

@@ -118,6 +118,19 @@ function PreviewDetailsContent() {
   const { wedding, isLoading, error } = useWedding();
   const router = useRouter();
 
+  // When inside an iframe, trap back-navigation so history.back() can't escape
+  // and navigate the parent admin page
+  useEffect(() => {
+    if (window.self !== window.top) {
+      window.history.replaceState({ preview: true }, '', window.location.href);
+      const handlePopState = () => {
+        window.history.pushState({ preview: true }, '', window.location.href);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, []);
+
   // Navigation loading state
   const [isNavigating, setIsNavigating] = useState(false);
 

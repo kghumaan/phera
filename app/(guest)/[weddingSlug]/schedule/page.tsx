@@ -13,7 +13,8 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowBack, ChevronLeft, ChevronRight, LocationOnOutlined } from '@mui/icons-material';
+import { ArrowBack, ChevronLeft, ChevronRight } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import AppHeader from '@/components/shared/AppHeader';
@@ -52,6 +53,14 @@ function getBarColor(gradientBackground: string | null | undefined): string {
   return '#DE3F5E';
 }
 
+const timeTypographySx = {
+  color: '#141414',
+  fontWeight: 600,
+  letterSpacing: '0.07em',
+  textTransform: 'uppercase' as const,
+  fontVariantNumeric: 'tabular-nums',
+};
+
 // Major event card with color bar (matches admin MajorEventCard style)
 const MajorEventRow = ({
   event,
@@ -77,52 +86,79 @@ const MajorEventRow = ({
 
       {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0, py: 0.5 }}>
-        <Typography
-          sx={{
-            fontWeight: 600,
-            color: '#141414',
-            fontSize: '1.1rem',
-            mb: 0.5,
-          }}
-        >
-          {event.name}
-        </Typography>
+        {/* Title + Time row */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              color: '#141414',
+              fontSize: '1.1rem',
+              lineHeight: 1.3,
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            {event.name}
+          </Typography>
+          {event.time && (
+            <Box sx={{ flexShrink: 0, textAlign: 'right', ml: 2, minWidth: 90 }}>
+              {event.time.includes('-') ? (
+                event.time.split('-').map((part: string, i: number) => (
+                  <Typography key={i} variant="body2" sx={{ ...timeTypographySx, lineHeight: 1.3 }}>
+                    {part.trim()}
+                  </Typography>
+                ))
+              ) : (
+                <Typography variant="body2" sx={{ ...timeTypographySx, lineHeight: 1.3 }}>
+                  {event.time}
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Box>
+
         {event.description && (
           <Typography
             sx={{
               color: '#858585',
               fontSize: '0.95rem',
               lineHeight: 1.5,
-              mb: 1.5,
+              mb: 1,
             }}
           >
             {event.description}
           </Typography>
         )}
-        <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: event.linked_event_id ? 1.5 : 0 }}>
-          {event.time && (
-            <Typography sx={{ color: primaryColor || '#DE3F5E', fontSize: '0.875rem', fontWeight: 600 }}>
-              {'⏰  '}{event.time}
-            </Typography>
-          )}
-          {event.location && (
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'📍 '}{event.location}
-            </Typography>
-          )}
-          {event.dress_code && (
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'👗 '}{event.dress_code}
-            </Typography>
-          )}
-        </Stack>
+
+        {/* Location + Dress Code row */}
+        {(event.location || event.dress_code) && (
+          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: event.linked_event_id ? 1.5 : 0 }}>
+            {event.location && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  {event.location}
+                </Typography>
+              </Stack>
+            )}
+            {event.dress_code && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  {event.dress_code}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        )}
+
         {event.linked_event_id && onMoreDetails && (
           <Box
             onClick={onMoreDetails}
             sx={{ cursor: 'pointer', display: 'inline-block' }}
           >
             <Typography sx={{ color: '#DE3F5E', fontSize: '0.875rem' }}>
-              <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More details</Box>
+              <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More Details</Box>
               {' >'}
             </Typography>
           </Box>
@@ -144,7 +180,7 @@ const MinorEventRow = ({
     sx={{
       display: 'flex',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'baseline',
       gap: 2,
     }}
   >
@@ -153,54 +189,34 @@ const MinorEventRow = ({
         variant="h6"
         sx={{
           color: '#141414',
-          lineHeight: 1.5,
+          lineHeight: 1.3,
         }}
       >
         {event.name}
       </Typography>
       {event.location && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-          <LocationOnOutlined sx={{ fontSize: 16, color: '#858585' }} />
+        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+          <StreamlineIcon name="map-pin" size={14} color="#858585" />
           <Typography variant="body2" sx={{ color: '#858585' }}>
             {event.location}
           </Typography>
-        </Box>
+        </Stack>
       )}
     </Box>
     {event.time && (
-      event.time.includes('-') ? (
-        <Stack spacing={0} sx={{ flexShrink: 0, textAlign: 'right' }}>
-          {event.time.split('-').map((part: string, i: number) => (
-            <Typography
-              key={i}
-              variant="body2"
-              sx={{
-                color: primaryColor || '#DE3F5E',
-                fontWeight: 600,
-                letterSpacing: '0.07em',
-                textTransform: 'uppercase',
-                lineHeight: 1.3,
-              }}
-            >
+      <Box sx={{ flexShrink: 0, textAlign: 'right', minWidth: 90 }}>
+        {event.time.includes('-') ? (
+          event.time.split('-').map((part: string, i: number) => (
+            <Typography key={i} variant="body2" sx={{ ...timeTypographySx, lineHeight: 1.3 }}>
               {part.trim()}
             </Typography>
-          ))}
-        </Stack>
-      ) : (
-        <Typography
-          variant="body2"
-          sx={{
-            color: primaryColor || '#DE3F5E',
-            fontWeight: 600,
-            letterSpacing: '0.07em',
-            textTransform: 'uppercase',
-            textAlign: 'right',
-            flexShrink: 0,
-          }}
-        >
-          {event.time}
-        </Typography>
-      )
+          ))
+        ) : (
+          <Typography variant="body2" sx={timeTypographySx}>
+            {event.time}
+          </Typography>
+        )}
+      </Box>
     )}
   </Box>
 );
@@ -251,9 +267,10 @@ const DayCard = ({
         {/* Date Header */}
         <Box sx={{ mb: 3 }}>
           <Typography
-            variant="h5"
+            variant="subtitleCaps"
             sx={{
               color: '#141414',
+              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
               mb: 0,
             }}
           >
@@ -515,7 +532,7 @@ export default function SchedulePage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/jade.png"
+      src="/images/backgrounds/jade.webp"
       className="min-h-screen"
     >
       {/* Desktop Header - AppHeader with consistent styling */}

@@ -20,6 +20,9 @@ const fieldSx = {
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -9px) scale(0.75)',
     },
+    '&.Mui-focused': {
+      color: '#DE3F5E',
+    },
   },
   '& .MuiInputBase-input': {
     color: '#1a1a1a',
@@ -108,6 +111,8 @@ export default function InlineTravelForm({
                 onChange={(e) => setVisible(e.target.checked)}
                 size="small"
                 sx={{
+                  '& .MuiSwitch-switchBase': { color: '#999' },
+                  '& .MuiSwitch-track': { bgcolor: '#bbb' },
                   '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
                   '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
                 }}

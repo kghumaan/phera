@@ -131,6 +131,9 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
 
   return (
     <Stack spacing={2}>
+      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+        See what your guests have been asking about and how the concierge has been helping them.
+      </Typography>
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
@@ -149,6 +152,8 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
               borderRadius: '10px',
               fontSize: '0.85rem',
               '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
+              '&:hover fieldset': { borderColor: '#DE3F5E' },
+              '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
             },
           }}
         />
@@ -234,7 +239,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                     <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>
                       {conv.guestName}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', flexShrink: 0, ml: 1 }}>
+                    <Typography variant="body4" sx={{ color: '#9a9a9a', flexShrink: 0, ml: 1 }}>
                       {formatTimeAgo(conv.lastMessageAt)}
                     </Typography>
                   </Box>

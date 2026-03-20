@@ -57,7 +57,7 @@ describe('transportation-service', () => {
             expect(result).toBe(true);
             // Should have called from('transportation_vehicles') once per ID
             expect(mockSupabase.from).toHaveBeenCalledTimes(3);
-            for (const call of mockSupabase.from.mock.calls) {
+            for (const call of mockSupabase.from.mock.calls as any[]) {
                 expect(call[0]).toBe('transportation_vehicles');
             }
         });

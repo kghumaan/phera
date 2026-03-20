@@ -48,8 +48,8 @@ import { EVENT_TEMPLATES, EventTemplate } from '@/components/admin/EventTemplate
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH, SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
-import { toast } from 'sonner';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
@@ -60,11 +60,21 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 // Available gradient backgrounds
 const GRADIENT_BACKGROUNDS = [
-  { value: 'GradientYellow.png', label: 'Yellow (Haldi)' },
-  { value: 'GradientJaggo.png', label: 'Jaggo' },
-  { value: 'GradientCottonCandy.png', label: 'Cotton Candy (Anand Karaj)' },
-  { value: 'GradientPoolParty.png', label: 'Pool Party' },
-  { value: 'GradientReception.png', label: 'Reception' },
+  { value: 'pro-bg-mesh-2.webp', label: 'Golden Aura' },
+  { value: 'paisley-cream.webp', label: 'Paisley Cream' },
+  { value: 'royal-purple.webp', label: 'Royal Purple' },
+  { value: 'ivory-linen.webp', label: 'Ivory Linen' },
+  { value: 'burgundy-silk.webp', label: 'Burgundy Silk' },
+  { value: 'paisley-blue.webp', label: 'Paisley Blue' },
+  { value: 'GradientReception.webp', label: 'Reception' },
+  { value: 'GradientYellow.webp', label: 'Yellow (Haldi)' },
+  { value: 'GradientPoolParty.webp', label: 'Pool Party' },
+  { value: 'GradientJaggo.webp', label: 'Jaggo' },
+  { value: 'GradientCottonCandy.webp', label: 'Cotton Candy' },
+  { value: 'aquarium.webp', label: 'Aquarium' },
+  { value: 'rose-quartz.webp', label: 'Rose Quartz' },
+  { value: 'marble-gold.webp', label: 'Marble Gold' },
+  { value: 'pearl.webp', label: 'Pearl' },
 ];
 
 // Slide type options
@@ -78,6 +88,7 @@ import { AVAILABLE_ICONS } from '@/lib/constants/icons';
 
 export default function EventsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [weddingDates, setWeddingDates] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
@@ -116,7 +127,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
     } catch (err) {
       console.error('Error loading events:', err);
-      toast.error('Failed to load events');
+      showStatus('error', 'Failed to load events');
     } finally {
       setLoading(false);
     }
@@ -133,7 +144,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       outfit_ideas_men: template.outfit_ideas_men,
       carousel_slides: template.carousel_slides || [],
       text_color: '#FFFFFF',
-      gradient_background: template.gradient_background?.replace('/images/backgrounds/', '') || 'GradientYellow.png',
+      gradient_background: template.gradient_background?.replace('/images/backgrounds/', '') || 'pro-bg-mesh-2.webp',
       outfit_example_url: null,
       dress_code_icon: template.dress_code_icon,
     });
@@ -159,8 +170,8 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       ritual_name: '',
       ritual_description: '',
       carousel_slides: [],
-      gradient_background: 'GradientYellow.png',
-      text_color: '#141414',
+      gradient_background: 'pro-bg-mesh-2.webp',
+      text_color: '#FFFFFF',
       order_index: events.length,
       is_template: false,
       outfit_example_url: null,
@@ -225,7 +236,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     setSlideDialogOpen(false);
     setCurrentSlide(null);
     setCurrentSlideIndex(-1);
-    toast.info('Slide saved! Remember to save the event.');
+    showStatus('saved', 'Slide saved! Remember to save the event.');
   };
 
   const handleDeleteSlide = (index: number) => {
@@ -234,7 +245,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     const slides = [...((currentEvent.carousel_slides as CarouselSlide[]) || [])];
     slides.splice(index, 1);
     setCurrentEvent({ ...currentEvent, carousel_slides: slides });
-    toast.info('Slide deleted! Remember to save the event.');
+    showStatus('saved', 'Slide deleted! Remember to save the event.');
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
@@ -246,7 +257,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
     [slides[index], slides[newIndex]] = [slides[newIndex], slides[index]];
     setCurrentEvent({ ...currentEvent, carousel_slides: slides });
-    toast.info('Slide reordered! Remember to save the event.');
+    showStatus('saved', 'Slide reordered! Remember to save the event.');
   };
 
   const [savingEvent, setSavingEvent] = useState(false);
@@ -264,7 +275,7 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
 
       if (Object.keys(newFieldErrors).length > 0) {
         setFieldErrors(newFieldErrors);
-        toast.error('Please fill in required fields');
+        showStatus('error', 'Please fill in required fields');
         return;
       }
 
@@ -290,10 +301,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
       }
       setIsEditing(false);
       setCurrentEvent(null);
-      toast.success('Event saved successfully!');
+      showStatus('saved', 'Event saved successfully!');
     } catch (err) {
       console.error('Error saving event:', err);
-      toast.error('Failed to save event');
+      showStatus('error', 'Failed to save event');
     } finally {
       setSavingEvent(false);
     }
@@ -317,10 +328,10 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
             channel.postMessage({ type: 'PREVIEW_REFRESH' });
             channel.close();
           }
-          toast.success('Event deleted successfully');
+          showStatus('saved', 'Event deleted successfully');
         } catch (err) {
           console.error('Error deleting event:', err);
-          toast.error('Failed to delete event');
+          showStatus('error', 'Failed to delete event');
         }
       },
     });

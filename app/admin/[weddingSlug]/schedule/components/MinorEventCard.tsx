@@ -2,6 +2,7 @@
 
 import { Box, Typography, Stack, IconButton } from '@mui/material';
 import { Delete, DragIndicator } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ScheduleItem } from '@/lib/supabase/wedding-service';
 
 interface MinorEventCardProps {
@@ -34,14 +35,20 @@ export default function MinorEventCard({ item, onEdit, onDelete, dragHandleProps
         </Typography>
         <Stack direction="row" spacing={2}>
           {item.time && (
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'⏰  '}{item.time}
-            </Typography>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                {item.time}
+              </Typography>
+            </Stack>
           )}
           {item.location && (
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-              {'📍 '}{item.location}
-            </Typography>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                {item.location}
+              </Typography>
+            </Stack>
           )}
         </Stack>
       </Box>

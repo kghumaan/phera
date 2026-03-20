@@ -1643,6 +1643,15 @@ export class WeddingService {
       return { total: 0, yes: 0, no: 0, maybe: 0, plusOnes: 0 };
     }
   }
+  async updateRsvpConfirmationMessages(weddingSlug: string, messages: Record<string, { heading: string; body: string }>) {
+    const { error } = await supabase
+      .from('weddings')
+      .update({ rsvp_confirmation_messages: messages } as any)
+      .eq('slug', weddingSlug);
+
+    if (error) throw error;
+  }
+
   async updateHiddenRsvpSteps(weddingSlug: string, hiddenSteps: string[]) {
     const { error } = await supabase
       .from('weddings')

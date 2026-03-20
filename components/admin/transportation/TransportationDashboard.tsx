@@ -21,6 +21,7 @@ import {
   DialogActions,
   TextField,
 } from '@mui/material';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import {
   DirectionsBus,
   FlightLand,
@@ -681,19 +682,12 @@ function VehicleColumn({
                 >
                   <TextField
                     fullWidth
-                    placeholder="Guest Name"
+                    label="Guest Name"
                     size="small"
                     value={manualName}
                     onChange={(e) => setManualName(e.target.value)}
                     autoFocus
-                    sx={{
-                      mb: 1,
-                      borderRadius: 1,
-                      '& .MuiInputBase-root': { fontSize: '0.875rem' },
-                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1a1a1a' },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000' },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' }
-                    }}
+                    sx={{ ...ENHANCED_TEXT_FIELD_SX, mb: 1, mt: 0 }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TextField
@@ -702,15 +696,7 @@ function VehicleColumn({
                       label="Count"
                       value={manualPartySize}
                       onChange={(e) => setManualPartySize(Math.max(1, parseInt(e.target.value) || 1))}
-                      sx={{
-                        width: 80,
-                        '& .MuiInputBase-root': { fontSize: '0.875rem' },
-                        '& .MuiInputLabel-root': { color: '#000' },
-                        '& .MuiInputLabel-root.Mui-focused': { color: '#DE3F5E' },
-                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1a1a1a' },
-                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000' },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' }
-                      }}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, width: 80, mt: 0 }}
                     />
                     <Box sx={{ flex: 1 }} />
                     <Button

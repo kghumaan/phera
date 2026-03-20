@@ -21,6 +21,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import {
   Add,
   Delete,
@@ -321,12 +322,10 @@ export default function TransportationSetupWizard({
               /> */}
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-              {isArrival ? 'Arrival Transportation' : 'Departure Transportation'}
+              {isArrival ? 'Add your pickup vehicles' : 'Add your departure vehicles'}
             </Typography>
             <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              {isArrival
-                ? 'Set up how guests will get TO your wedding'
-                : 'Set up how guests will leave FROM your wedding'}
+              Enter the shuttles or buses you've arranged. Guests will be able to reserve spots on these vehicles.
             </Typography>
           </Box>
 
@@ -462,24 +461,7 @@ function PrescheduledSetup({
   const capacityOptions = Array.from({ length: 37 }, (_, i) => i + 4); // 4 to 40
 
   return (
-    <Stack spacing={2}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          border: '1px solid #797979ff',
-          borderRadius: 2,
-          bgcolor: 'white',
-          maxWidth: 1000,
-        }}
-      >
-        <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 2 }}>
-          Add your {direction === 'arrival' ? 'pickup' : 'departure'} vehicles
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
-          Enter the shuttles or buses you've arranged. Guests will be able to reserve spots on these vehicles.
-        </Typography>
-
+    <Stack spacing={2} sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           {vehicles.map((vehicle, index) => (
             <Paper
@@ -514,65 +496,45 @@ function PrescheduledSetup({
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="caption" sx={{ color: '#1a1a1a', mb: 0.5, display: 'block', fontWeight: 600 }}>
-                      Vehicle Name (optional)
-                    </Typography>
                     <TextField
+                      label="Vehicle Name (optional)"
                       value={vehicle.vehicle_name}
                       onChange={(e) => onVehicleChange(index, 'vehicle_name', e.target.value)}
                       placeholder="e.g., Family Bus, Party Shuttle"
-                      size="small"
                       fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: '#797979' },
-                          '&:hover fieldset': { borderColor: '#DE3F5E' },
-                          '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                          '& .MuiInputBase-input': { color: '#1a1a1a', fontWeight: 500 },
-                        },
-                      }}
+                      sx={ENHANCED_TEXT_FIELD_SX}
                     />
                   </Box>
                   <Box sx={{ minWidth: 120 }}>
-                    <Typography variant="caption" sx={{ color: '#1a1a1a', mb: 0.5, display: 'block', fontWeight: 600 }}>
-                      Capacity
-                    </Typography>
-                    <Select
-                      value={vehicle.capacity}
-                      onChange={(e) => onVehicleChange(index, 'capacity', e.target.value as number)}
-                      size="small"
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#797979',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#DE3F5E',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#DE3F5E',
-                        },
-                        '& .MuiSelect-select': {
-                          color: '#1a1a1a',
-                          fontWeight: 500,
-                        },
-                      }}
-                    >
-                      {capacityOptions.map((cap) => (
-                        <MenuItem key={cap} value={cap}>
-                          {cap} seats
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    <FormControl fullWidth sx={{ mt: 1 }}>
+                      <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Capacity</InputLabel>
+                      <Select
+                        value={vehicle.capacity}
+                        onChange={(e) => onVehicleChange(index, 'capacity', e.target.value as number)}
+                        label="Capacity"
+                        sx={{
+                          borderRadius: '12px',
+                          bgcolor: 'white',
+                          '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#DE3F5E' },
+                          '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                          '& .MuiSelect-select': { py: 1.75 },
+                        }}
+                      >
+                        {capacityOptions.map((cap) => (
+                          <MenuItem key={cap} value={cap}>
+                            {cap} seats
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
                 </Box>
 
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: 'flex-start' }}>
                   <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="caption" sx={{ color: '#1a1a1a', mb: 0.5, display: 'block', fontWeight: 600 }}>
-                      {direction === 'arrival' ? 'Pickup Time' : 'Departure Time'}
-                    </Typography>
                     <DateTimePicker
+                      label={direction === 'arrival' ? 'Pickup Time' : 'Departure Time'}
                       value={vehicle.departure_datetime}
                       onChange={(date) => onVehicleChange(index, 'departure_datetime', date)}
                       enableAccessibleFieldDOMStructure={false}
@@ -581,40 +543,15 @@ function PrescheduledSetup({
                       }}
                       slotProps={{
                         textField: {
-                          size: 'small',
                           fullWidth: true,
-                          sx: {
-                            '& .MuiOutlinedInput-root': {
-                              '& fieldset': { borderColor: '#797979' },
-                              '&:hover fieldset': { borderColor: '#DE3F5E' },
-                              '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                              '& .MuiInputBase-input': {
-                                color: '#1a1a1a !important',
-                                WebkitTextFillColor: '#1a1a1a !important',
-                                fontWeight: 500,
-                                '&::placeholder': {
-                                  color: '#6a6a6a !important',
-                                  WebkitTextFillColor: '#6a6a6a !important',
-                                  opacity: 1,
-                                }
-                              },
-                              '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-                                color: '#1a1a1a !important',
-                              },
-                              '& .MuiIconButton-root': {
-                                color: '#1a1a1a !important',
-                              },
-                            },
-                          },
+                          sx: ENHANCED_TEXT_FIELD_SX,
                         },
                       }}
                     />
                   </Box>
-                  <Box sx={{ flex: 2, minWidth: 300 }}>
-                    <Typography variant="caption" sx={{ color: '#1a1a1a', mb: 0.5, display: 'block', fontWeight: 600 }}>
-                      {direction === 'arrival' ? 'Pickup Location' : 'Departure Location'}
-                    </Typography>
+                  <Box sx={{ flex: 2, minWidth: 300, mt: 1 }}>
                     <LocationPicker
+                      label={direction === 'arrival' ? 'Pickup Location' : 'Departure Location'}
                       value={
                         vehicle.pickup_location_coordinates
                           ? {
@@ -628,11 +565,6 @@ function PrescheduledSetup({
                         onVehicleChange(index, 'pickup_location', location?.name || '');
                         onVehicleChange(index, 'pickup_location_coordinates', location?.coordinates || null);
                       }}
-                      placeholder={
-                        direction === 'arrival'
-                          ? 'Search for pickup location'
-                          : 'Search for departure location'
-                      }
                     />
                   </Box>
                 </Stack>
@@ -654,7 +586,6 @@ function PrescheduledSetup({
         >
           Add another vehicle
         </Button>
-      </Paper>
     </Stack>
   );
 }
@@ -719,9 +650,6 @@ function FlexibleSetup({
   return (
     <Stack spacing={3}
       sx={{
-        border: '1px solid #797979ff',
-        borderRadius: 2,
-        p: 1,
         maxWidth: 1000,
       }}
     >
@@ -829,31 +757,7 @@ function FlexibleSetup({
             slotProps={{
               textField: {
                 size: 'small',
-                sx: {
-                  minWidth: 200,
-                  '& .MuiInputLabel-root': { color: '#1a1a1a', fontWeight: 500 },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#797979' },
-                    '&:hover fieldset': { borderColor: '#DE3F5E' },
-                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                    '& .MuiInputBase-input': {
-                      color: '#1a1a1a !important',
-                      WebkitTextFillColor: '#1a1a1a !important',
-                      fontWeight: 500,
-                      '&::placeholder': {
-                        color: '#6a6a6a !important',
-                        WebkitTextFillColor: '#6a6a6a !important',
-                        opacity: 1,
-                      }
-                    },
-                    '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-                      color: '#1a1a1a !important',
-                    },
-                    '& .MuiIconButton-root': {
-                      color: '#1a1a1a !important',
-                    },
-                  },
-                },
+                sx: { ...ENHANCED_TEXT_FIELD_SX, minWidth: 200 },
               },
             }}
           />
@@ -869,31 +773,7 @@ function FlexibleSetup({
             slotProps={{
               textField: {
                 size: 'small',
-                sx: {
-                  minWidth: 200,
-                  '& .MuiInputLabel-root': { color: '#1a1a1a', fontWeight: 500 },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#797979' },
-                    '&:hover fieldset': { borderColor: '#DE3F5E' },
-                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                    '& .MuiInputBase-input': {
-                      color: '#1a1a1a !important',
-                      WebkitTextFillColor: '#1a1a1a !important',
-                      fontWeight: 500,
-                      '&::placeholder': {
-                        color: '#6a6a6a !important',
-                        WebkitTextFillColor: '#6a6a6a !important',
-                        opacity: 1,
-                      }
-                    },
-                    '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-                      color: '#1a1a1a !important',
-                    },
-                    '& .MuiIconButton-root': {
-                      color: '#1a1a1a !important',
-                    },
-                  },
-                },
+                sx: { ...ENHANCED_TEXT_FIELD_SX, minWidth: 200 },
               },
             }}
           />

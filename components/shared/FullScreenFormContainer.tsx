@@ -64,6 +64,7 @@ export default function FullScreenFormContainer({
           alignItems: 'center',
           width: '100%',
           height: 56,
+          mt: 1.5,
           px: { xs: 2, sm: 3 },
           flexShrink: 0,
         }}>

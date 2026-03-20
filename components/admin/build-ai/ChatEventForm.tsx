@@ -327,7 +327,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         <Switch
                             checked={formData.is_major_event}
                             onChange={(e) => setFormData({ ...formData, is_major_event: e.target.checked })}
-                            sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                            sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                         />
                     }
                     label={

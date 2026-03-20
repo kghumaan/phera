@@ -31,7 +31,7 @@ export default function WhereToShopPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/aquarium.png"
+      src="/images/backgrounds/aquarium.webp"
       className="min-h-screen"
     >
       {/* Desktop Header - AppHeader with consistent styling */}

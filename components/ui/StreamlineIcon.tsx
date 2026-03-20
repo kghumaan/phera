@@ -37,7 +37,8 @@ export type StreamlineIconName =
     | 'calendar-check'
     | 'calendar'
     | 'plane'
-    | 'store';
+    | 'store'
+    | 'hanger';
 
 interface StreamlineIconProps extends BoxProps {
     name: StreamlineIconName;
@@ -94,16 +95,10 @@ const ICON_PATHS: Record<StreamlineIconName, React.ReactNode> = {
         </g>
     ),
     'clock': (
-        <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7v5l3 3" />
-        </g>
+        <path fill="currentColor" fillRule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm11-5a1 1 0 1 0-2 0v3.764a3 3 0 0 0 1.658 2.683l2.895 1.447a1 1 0 1 0 .894-1.788l-2.894-1.448A1 1 0 0 1 13 10.764V7z" clipRule="evenodd" />
     ),
     'dress': (
-        <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 3h8l2 5-2 13H6L4 8l4-5z" />
-            <path d="M8 8s2 2 4 2 4-2 4-2" />
-        </g>
+        <path fill="currentColor" d="M10 2a1 1 0 0 0-.8.4L7 5.5 5.2 8.8A1 1 0 0 0 6 10h2l-2.8 9.2A1 1 0 0 0 6.1 21h11.8a1 1 0 0 0 .9-1.8L16 10h2a1 1 0 0 0 .8-1.2L16.8 5.5 15 2.6a1 1 0 0 0-.8-.6h-1.7a.5.5 0 0 0-.5.5V4a1 1 0 1 1-2 0V2.5a.5.5 0 0 0-.5-.5H10z" />
     ),
     'banknote': (
         <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -192,10 +187,7 @@ const ICON_PATHS: Record<StreamlineIconName, React.ReactNode> = {
         </g>
     ),
     'map-pin': (
-        <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-        </g>
+        <path fill="currentColor" fillRule="evenodd" d="M12 2C7.582 2 4 5.582 4 10c0 5.25 7.105 11.285 7.41 11.544a1 1 0 0 0 1.18 0C12.895 21.285 20 15.25 20 10c0-4.418-3.582-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" clipRule="evenodd" />
     ),
     'palm-tree': (
         <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -262,6 +254,9 @@ const ICON_PATHS: Record<StreamlineIconName, React.ReactNode> = {
             <path d="M2 12h20" />
             <path d="M13 2 9 12l4 10 3-10-3-10z" />
         </g>
+    ),
+    'hanger': (
+        <path fill="currentColor" fillRule="evenodd" clipRule="evenodd" d="M11.6599 5.75C10.8238 5.75 10.2859 6.34219 10.2859 6.90909C10.2859 7.3233 9.95012 7.65909 9.5359 7.65909C9.12169 7.65909 8.7859 7.3233 8.7859 6.90909C8.7859 5.36727 10.1499 4.25 11.6599 4.25C13.1699 4.25 14.5339 5.36727 14.5339 6.90909C14.5339 7.58928 14.2867 8.22354 13.8447 8.7044C13.7047 8.85669 13.5498 9.00942 13.4087 9.14851C13.3836 9.17327 13.3589 9.1976 13.3349 9.22141C13.1678 9.38672 13.0204 9.53616 12.8942 9.68456C12.8069 9.78721 12.7398 9.87796 12.6892 9.95888C13.2576 10.0668 13.8097 10.2856 14.3038 10.6187L21.7363 15.629C22.6859 16.2692 22.9431 17.3256 22.6127 18.2165C22.2877 19.0928 21.4221 19.75 20.2975 19.75H3.70256C2.58989 19.75 1.72803 19.1049 1.39591 18.2392C1.0583 17.3591 1.29682 16.3086 2.22382 15.6566L9.31952 10.6653C9.85599 10.2879 10.4658 10.0483 11.0933 9.94251C11.1987 9.43649 11.4862 9.02479 11.7515 8.71278C11.9234 8.51074 12.1114 8.32181 12.2799 8.15509C12.3076 8.12767 12.3347 8.10096 12.3612 8.07485C12.503 7.93486 12.6275 7.81207 12.7404 7.68925C12.9225 7.49112 13.0339 7.22136 13.0339 6.90909C13.0339 6.34219 12.496 5.75 11.6599 5.75ZM13.4653 11.8624C12.9827 11.5371 12.3996 11.373 11.8102 11.3799C11.2258 11.3866 10.6528 11.5614 10.1825 11.8922L3.08683 16.8834C2.74174 17.1262 2.69621 17.4407 2.79641 17.7019C2.90209 17.9775 3.19989 18.25 3.70256 18.25H20.2975C20.8059 18.25 21.1032 17.9729 21.2063 17.6949C21.304 17.4314 21.2546 17.1133 20.8978 16.8728L13.4653 11.8624Z" />
     ),
     'store': (
         <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

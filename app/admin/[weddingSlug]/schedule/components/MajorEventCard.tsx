@@ -2,6 +2,7 @@
 
 import { Box, Typography, Stack, IconButton } from '@mui/material';
 import { Delete, DragIndicator } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ScheduleItem } from '@/lib/supabase/wedding-service';
 
 interface MajorEventCardProps {
@@ -54,30 +55,30 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
           )}
           <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 1.5 }}>
             {item.time && (
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                {'⏰  '}{item.time}
-              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  {item.time}
+                </Typography>
+              </Stack>
             )}
             {item.location && (
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                {'📍 '}{item.location}
-              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  {item.location}
+                </Typography>
+              </Stack>
             )}
             {item.dress_code && (
-              <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                {'👗 '}{item.dress_code}
-              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  {item.dress_code}
+                </Typography>
+              </Stack>
             )}
           </Stack>
-          <Box
-            onClick={(e) => { e.stopPropagation(); onMoreDetails?.(); }}
-            sx={{ display: 'inline-block', cursor: 'pointer' }}
-          >
-            <Typography sx={{ color: '#DE3F5E', fontSize: '0.875rem' }}>
-              <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More details</Box>
-              {' >'}
-            </Typography>
-          </Box>
         </Box>
       </Box>
 

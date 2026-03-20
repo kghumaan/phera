@@ -129,7 +129,18 @@ function SectionPreviewContent({ section }: { section: string }) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
-    setIsInIframe(window.self !== window.top);
+    const inIframe = window.self !== window.top;
+    setIsInIframe(inIframe);
+    // When inside an iframe, trap back-navigation so history.back() in guest
+    // components (e.g. back buttons) can't escape and navigate the parent admin page
+    if (inIframe) {
+      window.history.replaceState({ preview: true }, '', window.location.href);
+      const handlePopState = () => {
+        window.history.pushState({ preview: true }, '', window.location.href);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
   }, []);
 
   if (isLoading) {
@@ -279,9 +290,11 @@ function SectionPreviewContent({ section }: { section: string }) {
           wedding_date: wedding.wedding_date,
           wedding_date_display: wedding.wedding_date_display,
           venue_name: wedding.venue_name,
+          venue_location: wedding.venue_location || '',
           venue_flag: wedding.venue_flag || '',
           rsvp_deadline: wedding.rsvp_deadline,
           welcome_text: wedding.welcome_text || undefined,
+          registry_description: (wedding as any).registry_description || undefined,
           primary_color: wedding.primary_color || undefined,
           couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
         }}

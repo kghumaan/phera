@@ -45,6 +45,11 @@ export const ENHANCED_TEXT_FIELD_SX = {
     fontSize: { xs: '0.95rem', md: '1rem', lg: '1.05rem' },
     fontWeight: 500,
     lineHeight: 1.5,
+    // Center label vertically within the custom input padding
+    transform: 'translate(14px, 14px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+    },
     '&.Mui-disabled': {
       color: '#6a6a6a',
     },
@@ -137,6 +142,52 @@ export const PRIMARY_BUTTON_SX = {
     bgcolor: '#C8365A',
   },
 };
+
+/**
+ * Guest-facing TextField styling for RSVP and other guest forms.
+ * Uses floating labels (placeholder becomes label on focus/fill).
+ * Accepts an optional themeColor for the focus color.
+ */
+export const guestTextFieldSx = (themeColor = '#DE3F5E') => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: { xs: '8px', md: '10px' },
+    backgroundColor: 'white',
+    fontSize: { xs: '1rem', md: '1.125rem' },
+    '& fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: themeColor,
+      borderWidth: '2px',
+    },
+    '& input': {
+      color: '#000',
+      py: { xs: 1.5, md: 1.75 },
+    },
+    '& textarea': {
+      color: '#000',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#888888',
+    fontSize: { xs: '1rem', md: '1.125rem' },
+    // Center the label vertically when not shrunk (no value, not focused)
+    transform: 'translate(14px, 12px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+      fontSize: '1rem',
+    },
+    '&.Mui-focused': {
+      color: themeColor,
+    },
+  },
+  '& .MuiFormHelperText-root': {
+    fontSize: '0.75rem',
+  },
+});
 
 /**
  * Secondary button styling

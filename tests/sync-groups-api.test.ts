@@ -320,7 +320,7 @@ describe('sync-groups API logic', () => {
     });
 
     it('should return only directChats when type=direct', () => {
-      const type = 'direct';
+      const type: string = 'direct';
       const groups = [{ id: 'g1@g.us', name: 'Group' }];
       const directChats = [{ id: 'd1@s.whatsapp.net', name: 'Direct' }];
 

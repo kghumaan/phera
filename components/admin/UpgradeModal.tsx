@@ -129,7 +129,7 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
           <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
             {tier === 'planner'
               ? 'Manage unlimited weddings with all Pro features included.'
-              : 'Unlock Travel Coordination, Phera Concierge, and all premium themes.'}
+              : 'Unlock Travel Coordination, Guest Concierge, and all premium themes.'}
           </Typography>
         </Box>
 

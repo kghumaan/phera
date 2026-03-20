@@ -261,7 +261,7 @@ async function seedWedding(userId) {
       status: 'live',
       couple_image_url: '/images/couple/couple-1.jpg',
       frame_image_url: '/images/frames/frame-27.png',
-      background_image: '/images/backgrounds/pearl.png',
+      background_image: '/images/backgrounds/pearl.webp',
       primary_color: '#DE3F5E',
       created_by: userId
     })
@@ -282,7 +282,7 @@ async function seedWedding(userId) {
   'sim-kv', 'Simran & Karanvir', 'Simran', 'Karanvir', '2026-01-04T00:00:00+00:00',
   '4-6 JANUARY, 2026', 'The Palayana', 'Hua Hin, Thailand', '🇹🇭',
   'August 16, 2025', 'live', '/images/couple/couple-1.jpg',
-  '/images/frames/frame-27.png', '/images/backgrounds/pearl.png', '#DE3F5E',
+  '/images/frames/frame-27.png', '/images/backgrounds/pearl.webp', '#DE3F5E',
   '${userId}'
 );`);
       console.log('─'.repeat(70));

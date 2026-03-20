@@ -356,7 +356,7 @@ export default function EventDetailPage() {
   if (loading && !event) {
     return (
       <OptimizedBackground
-        src="/images/backgrounds/aquarium.png"
+        src="/images/backgrounds/aquarium.webp"
         alt="Background"
         priority={true}
       >
@@ -370,7 +370,7 @@ export default function EventDetailPage() {
   if (error || !event) {
     return (
       <OptimizedBackground
-        src="/images/backgrounds/aquarium.png"
+        src="/images/backgrounds/aquarium.webp"
         alt="Background"
         priority={true}
       >
@@ -393,7 +393,7 @@ export default function EventDetailPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/aquarium.png"
+      src="/images/backgrounds/aquarium.webp"
       alt="Aquarium Background"
       priority={true}
     >

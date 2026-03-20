@@ -119,13 +119,11 @@ function TextSection({
 
       {section.title && section.visible !== false && (
         <Typography
-          variant="h6"
+          variant="subtitleCaps"
           sx={{
-            fontWeight: 600,
             color: '#141414',
             mb: 1,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
+            fontSize: { xs: '0.9rem', sm: '0.95rem' },
           }}
         >
           {section.title}

@@ -240,7 +240,7 @@ export default function AdminPreviewPanel({
         return () => channel.close();
     }, [sectionSlug, isPinsPage, isDesktopVerticalScroll, viewMode]);
 
-    // Send preview mode to iframe when pin page status changes
+    // Send preview mode and section navigation to iframe after it loads
     const handleIframeLoad = useCallback(() => {
         if (iframeRefLine.current?.contentWindow) {
             const mode = isPinsPage ? 'pin_entry' : 'rsvp_submitted';
@@ -248,8 +248,18 @@ export default function AdminPreviewPanel({
                 { type: 'SET_PREVIEW_MODE', mode },
                 '*'
             );
+            // For desktop vertical scroll, also navigate to the active section after load
+            if (sectionSlug && !isPinsPage && !isRsvpFormPage && isDesktopVerticalScroll && viewMode === 'desktop') {
+                // Delay to let VerticalScrollLayout mount, fetch data, and render sections
+                setTimeout(() => {
+                    iframeRefLine.current?.contentWindow?.postMessage(
+                        { type: 'NAVIGATE_TO_SECTION', section: sectionSlug },
+                        '*'
+                    );
+                }, 1200);
+            }
         }
-    }, [isPinsPage]);
+    }, [isPinsPage, isRsvpFormPage, sectionSlug, isDesktopVerticalScroll, viewMode]);
 
     useEffect(() => {
         if (iframeRefLine.current?.contentWindow) {
@@ -796,6 +806,8 @@ export default function AdminPreviewPanel({
                                         checked={isPublished}
                                         onChange={(e) => setIsPublished(e.target.checked)}
                                         sx={{
+                                            '& .MuiSwitch-switchBase': { color: '#999' },
+                                            '& .MuiSwitch-track': { bgcolor: '#bbb' },
                                             '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
                                             '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
                                         }}

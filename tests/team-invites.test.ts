@@ -67,7 +67,7 @@ describe('team-invites', () => {
             const invite = { id: 'inv-1', wedding_id: 'w-1', email: 'user@test.com', role: 'viewer' };
             let callCount = 0;
 
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_invites') {
                     const builder = mockSupabase._makeBuilder([invite]);
                     builder.then = vi.fn((resolve: any) => resolve({ data: [invite], error: null }));
@@ -92,7 +92,7 @@ describe('team-invites', () => {
         it('should skip processing if user is already an admin', async () => {
             const invite = { id: 'inv-1', wedding_id: 'w-1', email: 'user@test.com', role: 'admin' };
 
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_invites') {
                     const builder = mockSupabase._makeBuilder([invite]);
                     builder.then = vi.fn((resolve: any) => resolve({ data: [invite], error: null }));
@@ -110,7 +110,7 @@ describe('team-invites', () => {
         });
 
         it('should return 0 when there are no pending invites', async () => {
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_invites') {
                     const builder = mockSupabase._makeBuilder([]);
                     builder.then = vi.fn((resolve: any) => resolve({ data: [], error: null }));
@@ -129,7 +129,7 @@ describe('team-invites', () => {
                 { id: 'inv-2', wedding_id: 'w-2', email: 'user@test.com', role: 'viewer' },
             ];
 
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_invites') {
                     // select returns array via thenable
                     const builder = mockSupabase._makeBuilder(invites);
@@ -153,7 +153,7 @@ describe('team-invites', () => {
         });
 
         it('should return 0 on fetch error', async () => {
-            mockSupabase.from.mockImplementation((table: string) => {
+            (mockSupabase.from as any).mockImplementation((table: string) => {
                 if (table === 'wedding_invites') {
                     const builder = mockSupabase._makeBuilder(null, { message: 'DB error' });
                     builder.then = vi.fn((resolve: any) => resolve({ data: null, error: { message: 'DB error' } }));

@@ -92,7 +92,8 @@ select:-webkit-autofill:active {
 }
 
 /* react-datepicker onboarding overrides */
-.onboarding-datepicker-wrapper {
+.onboarding-datepicker-wrapper,
+.guest-datepicker-wrapper {
   width: 100%;
 }
 

@@ -29,8 +29,8 @@ import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
-import { toast } from 'sonner';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 // Use enhanced TextField styling
@@ -55,6 +55,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const { weddingSlug } = use(params);
   const router = useRouter();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -120,13 +121,13 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         }
       } else {
         setError(`No wedding found with ID: ${weddingSlug}`);
-        toast.error(`No wedding found with ID: ${weddingSlug}`);
+        showStatus('error', `No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('Error loading wedding:', err);
       const errorMessage = `Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`;
       setError(errorMessage);
-      toast.error(errorMessage);
+      showStatus('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setUrlCopied(true);
-    toast.success('URL copied to clipboard!');
+    showStatus('saved', 'URL copied to clipboard!');
     setTimeout(() => setUrlCopied(false), 2000);
   };
 
@@ -155,27 +156,27 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
       const cleanSlug = generateSlug(customSlug);
 
       if (cleanSlug === weddingSlug) {
-        toast.info('This is already your current wedding ID.');
+        showStatus('saved', 'This is already your current wedding ID.');
         setSavingSlug(false);
         return;
       }
 
       const isAvailable = await weddingService.checkSlugAvailability(cleanSlug);
       if (!isAvailable) {
-        toast.error('This wedding ID is already taken. Please choose another.');
+        showStatus('error', 'This wedding ID is already taken. Please choose another.');
         setSavingSlug(false);
         return;
       }
 
       await weddingService.updateWedding(weddingId, { slug: cleanSlug });
 
-      toast.success('Wedding URL updated successfully!');
+      showStatus('saved', 'Wedding URL updated successfully!');
       setTimeout(() => {
         router.push(`/admin/${cleanSlug}/overview`);
       }, 1000);
     } catch (error) {
       console.error('Failed to update slug:', error);
-      toast.error('Failed to update wedding ID. Please try again.');
+      showStatus('error', 'Failed to update wedding ID. Please try again.');
     } finally {
       setSavingSlug(false);
     }
@@ -195,10 +196,10 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           draft: 'Wedding set to draft mode',
           live: '🎉 Wedding website is now live!'
         };
-        toast.success(statusMessages[newStatus]);
+        showStatus('saved', statusMessages[newStatus]);
       } catch (error) {
         console.error('Failed to update status:', error);
-        toast.error('Failed to update status. Please try again.');
+        showStatus('error', 'Failed to update status. Please try again.');
       }
     };
 
@@ -245,9 +246,6 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             borderRadius: '16px',
             bgcolor: '#fafafa',
             boxShadow: 'none',
-            '&:hover': {
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            }
           }}>
             <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a' }}>
               Wedding Summary

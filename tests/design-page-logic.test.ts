@@ -318,7 +318,7 @@ describe('Design page logic', () => {
     function buildInitialDesignData(wedding: any) {
       const defaultText = "You're invited!";
       const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
-      const DEFAULT_BG = '/images/backgrounds/blue-clouds.jpg';
+      const DEFAULT_BG = '/images/backgrounds/blue-clouds.webp';
 
       const loadedCoupleImages: (string | null)[] = Array(6).fill(null);
       if (wedding.couple_images && Array.isArray(wedding.couple_images)) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -34,7 +34,6 @@ import {
   CircularProgress,
   alpha,
 } from '@mui/material';
-import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FavoriteOutlined,
@@ -54,6 +53,9 @@ import { GifData, RSVPFormData, RSVPCustomQuestionStep } from '@/lib/supabase/ty
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import { guestTextFieldSx } from '@/lib/constants/form-styles';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 
 const initialFormData: RSVPFormData = {
@@ -94,10 +96,86 @@ const weddingSideOptions = [
   { value: 'both', label: "I can't pick!" },
 ];
 
+// E.164 max is 15 digits total (including country code). Longest national number is ~12 digits.
+const PHONE_MAX_LENGTH = 15;
+
+// Custom date input for react-datepicker styled to match guest form fields
+const GuestDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; label?: string; error?: boolean; helperText?: string; themeColor?: string }>(
+  ({ value, onClick, label, error, helperText, themeColor = '#DE3F5E' }, ref) => (
+    <TextField
+      ref={ref as any}
+      value={value}
+      onClick={onClick}
+      label={label}
+      error={error}
+      helperText={helperText}
+      fullWidth
+      InputProps={{ readOnly: true }}
+      sx={{
+        ...guestTextFieldSx(themeColor),
+        '& .MuiOutlinedInput-root': {
+          ...guestTextFieldSx(themeColor)['& .MuiOutlinedInput-root'],
+          cursor: 'pointer',
+          '& input': {
+            cursor: 'pointer',
+            color: value ? '#000' : '#888',
+          },
+        },
+      }}
+    />
+  )
+);
+GuestDateInput.displayName = 'GuestDateInput';
+
 const countryCodes = [
-  // North America
+  // North America & Caribbean
   { code: '+1', country: 'US/CA', flag: '🇺🇸' },
+  { code: '+1242', country: 'Bahamas', flag: '🇧🇸' },
+  { code: '+1246', country: 'Barbados', flag: '🇧🇧' },
+  { code: '+1264', country: 'Anguilla', flag: '🇦🇮' },
+  { code: '+1268', country: 'Antigua', flag: '🇦🇬' },
+  { code: '+1284', country: 'British VI', flag: '🇻🇬' },
+  { code: '+1340', country: 'US VI', flag: '🇻🇮' },
+  { code: '+1345', country: 'Cayman Is.', flag: '🇰🇾' },
+  { code: '+1441', country: 'Bermuda', flag: '🇧🇲' },
+  { code: '+1473', country: 'Grenada', flag: '🇬🇩' },
+  { code: '+1649', country: 'Turks & Caicos', flag: '🇹🇨' },
+  { code: '+1664', country: 'Montserrat', flag: '🇲🇸' },
+  { code: '+1670', country: 'N. Mariana Is.', flag: '🇲🇵' },
+  { code: '+1671', country: 'Guam', flag: '🇬🇺' },
+  { code: '+1684', country: 'American Samoa', flag: '🇦🇸' },
+  { code: '+1721', country: 'Sint Maarten', flag: '🇸🇽' },
+  { code: '+1758', country: 'St. Lucia', flag: '🇱🇨' },
+  { code: '+1767', country: 'Dominica', flag: '🇩🇲' },
+  { code: '+1784', country: 'St. Vincent', flag: '🇻🇨' },
+  { code: '+1787', country: 'Puerto Rico', flag: '🇵🇷' },
+  { code: '+1809', country: 'Dominican Rep.', flag: '🇩🇴' },
+  { code: '+1868', country: 'Trinidad', flag: '🇹🇹' },
+  { code: '+1869', country: 'St. Kitts', flag: '🇰🇳' },
+  { code: '+1876', country: 'Jamaica', flag: '🇯🇲' },
   { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  // Central America
+  { code: '+501', country: 'Belize', flag: '🇧🇿' },
+  { code: '+502', country: 'Guatemala', flag: '🇬🇹' },
+  { code: '+503', country: 'El Salvador', flag: '🇸🇻' },
+  { code: '+504', country: 'Honduras', flag: '🇭🇳' },
+  { code: '+505', country: 'Nicaragua', flag: '🇳🇮' },
+  { code: '+506', country: 'Costa Rica', flag: '🇨🇷' },
+  { code: '+507', country: 'Panama', flag: '🇵🇦' },
+  // South America
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+56', country: 'Chile', flag: '🇨🇱' },
+  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+58', country: 'Venezuela', flag: '🇻🇪' },
+  { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+  { code: '+592', country: 'Guyana', flag: '🇬🇾' },
+  { code: '+593', country: 'Ecuador', flag: '🇪🇨' },
+  { code: '+594', country: 'French Guiana', flag: '🇬🇫' },
+  { code: '+595', country: 'Paraguay', flag: '🇵🇾' },
+  { code: '+597', country: 'Suriname', flag: '🇸🇷' },
+  { code: '+598', country: 'Uruguay', flag: '🇺🇾' },
+  { code: '+51', country: 'Peru', flag: '🇵🇪' },
   // Europe
   { code: '+44', country: 'UK', flag: '🇬🇧' },
   { code: '+49', country: 'Germany', flag: '🇩🇪' },
@@ -116,11 +194,40 @@ const countryCodes = [
   { code: '+48', country: 'Poland', flag: '🇵🇱' },
   { code: '+353', country: 'Ireland', flag: '🇮🇪' },
   { code: '+30', country: 'Greece', flag: '🇬🇷' },
-  { code: '+420', country: 'Czech Republic', flag: '🇨🇿' },
+  { code: '+420', country: 'Czech Rep.', flag: '🇨🇿' },
   { code: '+36', country: 'Hungary', flag: '🇭🇺' },
   { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  { code: '+40', country: 'Romania', flag: '🇷🇴' },
+  { code: '+380', country: 'Ukraine', flag: '🇺🇦' },
+  { code: '+370', country: 'Lithuania', flag: '🇱🇹' },
+  { code: '+371', country: 'Latvia', flag: '🇱🇻' },
+  { code: '+372', country: 'Estonia', flag: '🇪🇪' },
+  { code: '+385', country: 'Croatia', flag: '🇭🇷' },
+  { code: '+386', country: 'Slovenia', flag: '🇸🇮' },
+  { code: '+381', country: 'Serbia', flag: '🇷🇸' },
+  { code: '+387', country: 'Bosnia', flag: '🇧🇦' },
+  { code: '+389', country: 'N. Macedonia', flag: '🇲🇰' },
+  { code: '+355', country: 'Albania', flag: '🇦🇱' },
+  { code: '+359', country: 'Bulgaria', flag: '🇧🇬' },
+  { code: '+356', country: 'Malta', flag: '🇲🇹' },
+  { code: '+357', country: 'Cyprus', flag: '🇨🇾' },
+  { code: '+354', country: 'Iceland', flag: '🇮🇸' },
+  { code: '+352', country: 'Luxembourg', flag: '🇱🇺' },
+  { code: '+373', country: 'Moldova', flag: '🇲🇩' },
+  { code: '+374', country: 'Armenia', flag: '🇦🇲' },
+  { code: '+375', country: 'Belarus', flag: '🇧🇾' },
+  { code: '+376', country: 'Andorra', flag: '🇦🇩' },
+  { code: '+377', country: 'Monaco', flag: '🇲🇨' },
+  { code: '+378', country: 'San Marino', flag: '🇸🇲' },
+  { code: '+382', country: 'Montenegro', flag: '🇲🇪' },
+  { code: '+383', country: 'Kosovo', flag: '🇽🇰' },
+  { code: '+995', country: 'Georgia', flag: '🇬🇪' },
   // Asia Pacific
   { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+92', country: 'Pakistan', flag: '🇵🇰' },
+  { code: '+93', country: 'Afghanistan', flag: '🇦🇫' },
+  { code: '+94', country: 'Sri Lanka', flag: '🇱🇰' },
+  { code: '+95', country: 'Myanmar', flag: '🇲🇲' },
   { code: '+66', country: 'Thailand', flag: '🇹🇭' },
   { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
   { code: '+65', country: 'Singapore', flag: '🇸🇬' },
@@ -131,32 +238,105 @@ const countryCodes = [
   { code: '+82', country: 'South Korea', flag: '🇰🇷' },
   { code: '+86', country: 'China', flag: '🇨🇳' },
   { code: '+852', country: 'Hong Kong', flag: '🇭🇰' },
+  { code: '+853', country: 'Macau', flag: '🇲🇴' },
   { code: '+886', country: 'Taiwan', flag: '🇹🇼' },
+  { code: '+880', country: 'Bangladesh', flag: '🇧🇩' },
+  { code: '+855', country: 'Cambodia', flag: '🇰🇭' },
+  { code: '+856', country: 'Laos', flag: '🇱🇦' },
+  { code: '+976', country: 'Mongolia', flag: '🇲🇳' },
+  { code: '+977', country: 'Nepal', flag: '🇳🇵' },
+  { code: '+975', country: 'Bhutan', flag: '🇧🇹' },
+  { code: '+960', country: 'Maldives', flag: '🇲🇻' },
   { code: '+61', country: 'Australia', flag: '🇦🇺' },
   { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
+  { code: '+679', country: 'Fiji', flag: '🇫🇯' },
+  { code: '+675', country: 'Papua New Guinea', flag: '🇵🇬' },
+  { code: '+670', country: 'Timor-Leste', flag: '🇹🇱' },
+  { code: '+673', country: 'Brunei', flag: '🇧🇳' },
   // Middle East
   { code: '+971', country: 'UAE', flag: '🇦🇪' },
   { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
   { code: '+972', country: 'Israel', flag: '🇮🇱' },
   { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+  { code: '+961', country: 'Lebanon', flag: '🇱🇧' },
+  { code: '+962', country: 'Jordan', flag: '🇯🇴' },
+  { code: '+963', country: 'Syria', flag: '🇸🇾' },
+  { code: '+964', country: 'Iraq', flag: '🇮🇶' },
+  { code: '+965', country: 'Kuwait', flag: '🇰🇼' },
+  { code: '+968', country: 'Oman', flag: '🇴🇲' },
+  { code: '+970', country: 'Palestine', flag: '🇵🇸' },
+  { code: '+973', country: 'Bahrain', flag: '🇧🇭' },
+  { code: '+974', country: 'Qatar', flag: '🇶🇦' },
+  { code: '+98', country: 'Iran', flag: '🇮🇷' },
+  { code: '+994', country: 'Azerbaijan', flag: '🇦🇿' },
+  { code: '+996', country: 'Kyrgyzstan', flag: '🇰🇬' },
+  { code: '+998', country: 'Uzbekistan', flag: '🇺🇿' },
+  { code: '+993', country: 'Turkmenistan', flag: '🇹🇲' },
+  { code: '+992', country: 'Tajikistan', flag: '🇹🇯' },
   // Africa
+  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
   { code: '+27', country: 'South Africa', flag: '🇿🇦' },
   { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
   { code: '+254', country: 'Kenya', flag: '🇰🇪' },
-  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
-  // South America
-  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
-  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
-  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
-  { code: '+56', country: 'Chile', flag: '🇨🇱' },
+  { code: '+255', country: 'Tanzania', flag: '🇹🇿' },
+  { code: '+256', country: 'Uganda', flag: '🇺🇬' },
+  { code: '+233', country: 'Ghana', flag: '🇬🇭' },
+  { code: '+225', country: 'Ivory Coast', flag: '🇨🇮' },
+  { code: '+237', country: 'Cameroon', flag: '🇨🇲' },
+  { code: '+212', country: 'Morocco', flag: '🇲🇦' },
+  { code: '+213', country: 'Algeria', flag: '🇩🇿' },
+  { code: '+216', country: 'Tunisia', flag: '🇹🇳' },
+  { code: '+218', country: 'Libya', flag: '🇱🇾' },
+  { code: '+221', country: 'Senegal', flag: '🇸🇳' },
+  { code: '+249', country: 'Sudan', flag: '🇸🇩' },
+  { code: '+250', country: 'Rwanda', flag: '🇷🇼' },
+  { code: '+251', country: 'Ethiopia', flag: '🇪🇹' },
+  { code: '+252', country: 'Somalia', flag: '🇸🇴' },
+  { code: '+253', country: 'Djibouti', flag: '🇩🇯' },
+  { code: '+258', country: 'Mozambique', flag: '🇲🇿' },
+  { code: '+260', country: 'Zambia', flag: '🇿🇲' },
+  { code: '+261', country: 'Madagascar', flag: '🇲🇬' },
+  { code: '+263', country: 'Zimbabwe', flag: '🇿🇼' },
+  { code: '+265', country: 'Malawi', flag: '🇲🇼' },
+  { code: '+267', country: 'Botswana', flag: '🇧🇼' },
+  { code: '+268', country: 'Eswatini', flag: '🇸🇿' },
+  { code: '+264', country: 'Namibia', flag: '🇳🇦' },
+  { code: '+266', country: 'Lesotho', flag: '🇱🇸' },
+  { code: '+269', country: 'Comoros', flag: '🇰🇲' },
+  { code: '+230', country: 'Mauritius', flag: '🇲🇺' },
+  { code: '+231', country: 'Liberia', flag: '🇱🇷' },
+  { code: '+232', country: 'Sierra Leone', flag: '🇸🇱' },
+  { code: '+235', country: 'Chad', flag: '🇹🇩' },
+  { code: '+236', country: 'Central African Rep.', flag: '🇨🇫' },
+  { code: '+238', country: 'Cape Verde', flag: '🇨🇻' },
+  { code: '+239', country: 'São Tomé', flag: '🇸🇹' },
+  { code: '+240', country: 'Equatorial Guinea', flag: '🇬🇶' },
+  { code: '+241', country: 'Gabon', flag: '🇬🇦' },
+  { code: '+242', country: 'Congo', flag: '🇨🇬' },
+  { code: '+243', country: 'DR Congo', flag: '🇨🇩' },
+  { code: '+244', country: 'Angola', flag: '🇦🇴' },
+  { code: '+245', country: 'Guinea-Bissau', flag: '🇬🇼' },
+  { code: '+246', country: 'Diego Garcia', flag: '🇮🇴' },
+  { code: '+248', country: 'Seychelles', flag: '🇸🇨' },
+  { code: '+257', country: 'Burundi', flag: '🇧🇮' },
+  { code: '+262', country: 'Réunion', flag: '🇷🇪' },
+  { code: '+220', country: 'Gambia', flag: '🇬🇲' },
+  { code: '+222', country: 'Mauritania', flag: '🇲🇷' },
+  { code: '+223', country: 'Mali', flag: '🇲🇱' },
+  { code: '+224', country: 'Guinea', flag: '🇬🇳' },
+  { code: '+226', country: 'Burkina Faso', flag: '🇧🇫' },
+  { code: '+227', country: 'Niger', flag: '🇳🇪' },
+  { code: '+228', country: 'Togo', flag: '🇹🇬' },
+  { code: '+229', country: 'Benin', flag: '🇧🇯' },
 ];
 
 interface CustomRSVPFormProps {
   weddingId?: string;
   primaryColor?: string;
+  isPreview?: boolean;
 }
 
-export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryColor }: CustomRSVPFormProps) {
+export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryColor, isPreview }: CustomRSVPFormProps) {
   const themeColor = primaryColor || '#DE3F5E';
 
   const theme = useTheme();
@@ -181,9 +361,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if plus-ones are allowed based on PIN
-  const allowsPlusOne = typeof window !== 'undefined' ?
-    localStorage.getItem(`phera_allows_plus_one_${weddingId}`) === 'true' : true;
+  // Check if plus-ones are allowed based on PIN (always true in preview so admin can see all steps)
+  const allowsPlusOne = isPreview ? true : (typeof window !== 'undefined' ?
+    localStorage.getItem(`phera_allows_plus_one_${weddingId}`) === 'true' : true);
 
   // Set default values for non-plus-one guests
   useEffect(() => {
@@ -223,7 +403,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
     return () => channel.close();
   }, [fetchCustomQuestions]);
 
-  // Steps definition - includes Phera Concierge as final step for attending guests
+  // Steps definition - includes Guest Concierge as final step for attending guests
   const hiddenSteps = wedding?.hidden_rsvp_steps || [];
   const steps = (allowsPlusOne ? [
     'Basic Information',
@@ -396,7 +576,16 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           if (typeof s === 'string') return s === targetName;
           return s.id === targetId || s.step_title === targetName;
         });
-        if (idx !== -1) setCurrentStep(idx);
+        if (idx !== -1) {
+          setIsSubmitted(false);
+          setCurrentStep(idx);
+        }
+      }
+      // Show confirmation screen preview
+      if (event.data?.type === 'SHOW_RSVP_CONFIRMATION') {
+        const response = event.data.response as 'yes' | 'no' | 'maybe';
+        setFormData(prev => ({ ...prev, attending: response }));
+        setIsSubmitted(true);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -783,6 +972,84 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       }
     };
 
+    // In preview mode, render confirmation inside FullScreenFormContainer for consistent positioning
+    if (isPreview) {
+      return (
+        <FullScreenFormContainer
+          title="RSVP"
+          onClose={() => setIsSubmitted(false)}
+        >
+          {/* Scrollable Content Area */}
+          <Box sx={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: { xs: 2, sm: 3 },
+            position: 'relative',
+          }}>
+            {getOverlayImage() && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  width: '100%',
+                  height: 200,
+                  backgroundImage: `url(${getOverlayImage()})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center top',
+                  backgroundRepeat: 'no-repeat',
+                  borderRadius: '4px 4px 0 0',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, textAlign: 'center', px: 4 }}>
+              <Box
+                component="img"
+                src="/logo-lotus-flame.svg"
+                alt="Logo"
+                sx={{ width: 80, height: 80, filter: 'brightness(0)' }}
+              />
+              {(() => {
+                const msgs = (wedding as any)?.rsvp_confirmation_messages;
+                const defaults: Record<string, { heading: string; body: string }> = {
+                  yes: { heading: "Yay! We can't wait to celebrate with you!", body: "Check out the rest of the website for travel tips, event details, dress codes, and more." },
+                  maybe: { heading: 'Thanks for letting us know!', body: "We understand you need to figure some things out. Let us know your final answer by the RSVP deadline." },
+                  no: { heading: "We'll miss you!", body: "We're sad you can't make it, but we understand. Your account is still ready if anything changes!" },
+                };
+                const key = formData.attending as 'yes' | 'maybe' | 'no';
+                if (!key || !defaults[key]) return null;
+                const heading = msgs?.[key]?.heading || defaults[key].heading;
+                const body = msgs?.[key]?.body || defaults[key].body;
+                return (
+                  <>
+                    <Typography variant="h4" sx={{ color: '#000', lineHeight: 1.5, fontWeight: 400, fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>
+                      {heading}
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#474747', lineHeight: 1.5, fontSize: { xs: '1.1rem', sm: '1.2rem' } }}>
+                      {body}
+                    </Typography>
+                  </>
+                );
+              })()}
+              <Box
+                component="img"
+                src="/logo-lotus-flame.svg"
+                alt="Logo"
+                sx={{ width: 80, height: 80, filter: 'brightness(0)', transform: 'rotate(180deg)' }}
+              />
+            </Box>
+          </Box>
+        </FullScreenFormContainer>
+      );
+    }
+
     return (
       <>
         {/* Only show confetti for 'yes' responses */}
@@ -803,7 +1070,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             right: isMobile ? 0 : 'auto',
             bottom: isMobile ? 0 : 'auto',
             width: isMobile ? 'auto' : '100%',
-            maxWidth: isMobile ? 'none' : { md: 700, lg: 800, xl: 900 },
+            maxWidth: isMobile ? 'none' : { md: 550, lg: 600, xl: 650 },
+            mx: isMobile ? 0 : 'auto',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -1011,45 +1279,34 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                             fontSize: { xs: '1.1rem', sm: '1.2rem' },
                           };
 
-                          if (formData.attending === 'yes') {
+                          const msgs = (wedding as any)?.rsvp_confirmation_messages;
+
+                          const defaults = {
+                            yes: {
+                              heading: "Yay! We can't wait to celebrate with you!",
+                              body: "Check out the rest of the website for travel tips, event details, dress codes, and more. We may need more information closer to the wedding — keep an eye on your email!",
+                            },
+                            maybe: {
+                              heading: 'Thanks for letting us know!',
+                              body: "We understand you need to figure some things out. Let us know your final answer by the RSVP deadline. Use your email or phone number to sign in anytime to update your response.",
+                            },
+                            no: {
+                              heading: "We'll miss you!",
+                              body: "We're sad you can't make it, but we understand. Your account is still ready if anything changes!",
+                            },
+                          };
+
+                          const key = formData.attending as 'yes' | 'maybe' | 'no';
+                          if (key && defaults[key]) {
+                            const heading = msgs?.[key]?.heading || defaults[key].heading;
+                            const body = msgs?.[key]?.body || defaults[key].body;
                             return (
                               <>
                                 <Typography variant="h4" sx={headingStyle}>
-                                  Yay! You're part of our celebration and we can't wait to have you there
+                                  {heading}
                                 </Typography>
-
                                 <Typography variant="body1" sx={bodyStyle}>
-                                  Your room is booked and fully paid for! Check out the rest of the website for travel trips, event details, dress codes, etc. We may require more information from you closer to the wedding so keep an eye out for emails!
-                                </Typography>
-                              </>
-                            );
-                          }
-
-                          if (formData.attending === 'maybe') {
-                            return (
-                              <>
-                                <Typography variant="h4" sx={headingStyle}>
-                                  Thanks for letting us know!
-                                </Typography>
-
-                                <Typography variant="body1" sx={bodyStyle}>
-                                  We understand you need to figure some things out. Just remember: We need your final answer by <strong>September 30, 2025</strong>. We'll check in with you before then!
-                                  {'\n\n'}
-                                  Use your email or phone number to sign in anytime so you can update your response.
-                                </Typography>
-                              </>
-                            );
-                          }
-
-                          if (formData.attending === 'no') {
-                            return (
-                              <>
-                                <Typography variant="h4" sx={headingStyle}>
-                                  We'll miss you! :(
-                                </Typography>
-
-                                <Typography variant="body1" sx={bodyStyle}>
-                                  We're sad you can't make it, but we understand. Your account is still ready if anything changes! RSVPs close on <strong>September 30, 2025</strong>.
+                                  {body}
                                 </Typography>
                               </>
                             );
@@ -1168,87 +1425,40 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           return (
             <Box key={q.id}>
               {q.type === 'short_text' && (
-                <Box
-                  sx={{
-                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                    height: { xs: '40px', md: '52px' },
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
-                    placeholder={q.label + (q.required ? ' *' : '')}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: '1rem',
-                      color: '#000',
-                      background: 'transparent',
-                    }}
-                  />
-                </Box>
+                <TextField
+                  label={q.label + (q.required ? ' *' : '')}
+                  value={value}
+                  onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                  error={hasError}
+                  helperText={hasError ? errors[errorKey] : undefined}
+                  fullWidth
+                  sx={guestTextFieldSx(themeColor)}
+                />
               )}
               {q.type === 'long_text' && (
-                <Box
-                  sx={{
-                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                  }}
-                >
-                  <textarea
-                    value={value}
-                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
-                    placeholder={q.label + (q.required ? ' *' : '')}
-                    rows={3}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: '1rem',
-                      color: '#000',
-                      background: 'transparent',
-                      resize: 'vertical',
-                      fontFamily: 'inherit',
-                    }}
-                  />
-                </Box>
+                <TextField
+                  label={q.label + (q.required ? ' *' : '')}
+                  value={value}
+                  onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                  error={hasError}
+                  helperText={hasError ? errors[errorKey] : undefined}
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  sx={guestTextFieldSx(themeColor)}
+                />
               )}
               {q.type === 'numeric' && (
-                <Box
-                  sx={{
-                    border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                    height: { xs: '40px', md: '52px' },
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <input
-                    type="number"
-                    value={value}
-                    onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
-                    placeholder={q.label + (q.required ? ' *' : '')}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: '1rem',
-                      color: '#000',
-                      background: 'transparent',
-                    }}
-                  />
-                </Box>
+                <TextField
+                  label={q.label + (q.required ? ' *' : '')}
+                  type="number"
+                  value={value}
+                  onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
+                  error={hasError}
+                  helperText={hasError ? errors[errorKey] : undefined}
+                  fullWidth
+                  sx={guestTextFieldSx(themeColor)}
+                />
               )}
               {q.type === 'dropdown' && (
                 <FormControl fullWidth error={hasError}>
@@ -1272,41 +1482,30 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <MenuItem key={i} value={opt}>{opt}</MenuItem>
                     ))}
                   </Select>
+                  {hasError && (
+                    <FormHelperText>{errors[errorKey]}</FormHelperText>
+                  )}
                 </FormControl>
               )}
               {q.type === 'date' && (
-                <Box>
-                  <Typography variant="body2" sx={{ color: '#808080', mb: 0.5 }}>
-                    {q.label}{q.required ? ' *' : ''}
-                  </Typography>
-                  <Box
-                    sx={{
-                      border: `1px solid ${hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)'}`,
-                      borderRadius: { xs: '8px', md: '10px' },
-                      padding: { xs: '12px 12px', md: '14px 16px' },
-                      backgroundColor: 'white',
-                      height: { xs: '40px', md: '52px' },
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <input
-                      type="date"
-                      value={value}
-                      onChange={e => handleCustomAnswerChange(q.id, e.target.value)}
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        width: '100%',
-                        fontSize: '1rem',
-                        color: '#000',
-                        background: 'transparent',
-                      }}
+                <DatePicker
+                  selected={value ? new Date(value) : null}
+                  onChange={(date: Date | null) => {
+                    handleCustomAnswerChange(q.id, date ? date.toISOString().split('T')[0] : '');
+                  }}
+                  dateFormat="MMM d, yyyy"
+                  customInput={
+                    <GuestDateInput
+                      label={q.label + (q.required ? ' *' : '')}
+                      error={hasError}
+                      helperText={hasError ? errors[errorKey] : undefined}
+                      themeColor={themeColor}
                     />
-                  </Box>
-                </Box>
+                  }
+                  wrapperClassName="guest-datepicker-wrapper"
+                />
               )}
-              {hasError && (
+              {hasError && q.type !== 'short_text' && q.type !== 'long_text' && q.type !== 'numeric' && q.type !== 'dropdown' && q.type !== 'date' && (
                 <Typography variant="caption" sx={{ color: '#d32f2f', mt: 0.5, display: 'block' }}>
                   {errors[errorKey]}
                 </Typography>
@@ -1356,93 +1555,24 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row' }}>
-              <Box sx={{ flex: 1 }}>
-                <Box
-                  sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.4)',
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                    cursor: 'text',
-                    height: { xs: '40px', md: '52px' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontSize: { xs: '1rem', md: '1.125rem' },
-                    '&:hover': {
-                      borderColor: 'rgba(0, 0, 0, 0.4)',
-                    },
-                    '&:focus-within': {
-                      borderColor: themeColor,
-                      borderWidth: '2px',
-                      padding: { xs: '11px 11px', md: '13px 15px' },
-                    },
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="First name"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: 'inherit',
-                      color: formData.firstName ? '#000' : '#888888',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Box>
-                {errors.firstName && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                    {errors.firstName}
-                  </Typography>
-                )}
-              </Box>
-
-              <Box sx={{ flex: 1 }}>
-                <Box
-                  sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.4)',
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                    cursor: 'text',
-                    height: { xs: '40px', md: '52px' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontSize: { xs: '1rem', md: '1.125rem' },
-                    '&:hover': {
-                      borderColor: 'rgba(0, 0, 0, 0.4)',
-                    },
-                    '&:focus-within': {
-                      borderColor: themeColor,
-                      borderWidth: '2px',
-                      padding: { xs: '11px 11px', md: '13px 15px' },
-                    },
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Last name"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: 'inherit',
-                      color: formData.lastName ? '#000' : '#888888',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Box>
-                {errors.lastName && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                    {errors.lastName}
-                  </Typography>
-                )}
-              </Box>
+              <TextField
+                label="First name"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+                fullWidth
+                sx={guestTextFieldSx(themeColor)}
+              />
+              <TextField
+                label="Last name"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+                fullWidth
+                sx={guestTextFieldSx(themeColor)}
+              />
             </Box>
 
             <Box>
@@ -1467,8 +1597,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                  <FormControl sx={{ minWidth: 100 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <FormControl sx={{ minWidth: 80 }}>
                     <Select
                       value={formData.countryCode}
                       onChange={(e) => handleInputChange('countryCode', e.target.value)}
@@ -1476,23 +1606,24 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       disableUnderline
                       sx={{
                         height: '24px',
-                        color: '#000', // always black
+                        color: '#000',
                         fontSize: '1rem',
                         '& .MuiSelect-select': {
-                          padding: '0px 8px 0px 0px',
+                          padding: '0px 4px 0px 0px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: 0.5,
                           fontSize: '1rem',
                           border: 'none',
-                          color: '#000', // always black
+                          color: '#000',
                           '&:focus': {
                             backgroundColor: 'transparent',
                           },
                         },
                         '& .MuiSelect-icon': {
                           color: '#666',
-                          fontSize: '1.2rem',
+                          fontSize: '1rem',
+                          right: 0,
                         },
                       }}
                       MenuProps={{
@@ -1526,6 +1657,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   type="tel"
                   inputMode="tel"
                   placeholder="000 000 0000"
+                  maxLength={PHONE_MAX_LENGTH}
                   value={formData.phone}
                   onChange={(e) => {
                     // Remove any non-numeric characters except + and spaces
@@ -1612,130 +1744,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               </Box>
             ) : (
               <>
-                <Box>
-                  <Box
-                    sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.4)',
-                      borderRadius: { xs: '8px', md: '10px' },
-                      padding: { xs: '12px 12px', md: '14px 16px' },
-                      backgroundColor: 'white',
-                      cursor: 'text',
-                      height: { xs: '40px', md: '52px' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        borderColor: 'rgba(0, 0, 0, 0.4)',
-                      },
-                      '&:focus-within': {
-                        borderColor: themeColor,
-                        borderWidth: '2px',
-                        padding: { xs: '11px 11px', md: '13px 15px' },
-                      },
-                    }}
-                  >
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      disabled={isAuthenticating}
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        width: '100%',
-                        fontSize: 'inherit',
-                        color: formData.email ? '#000' : '#888888',
-                        backgroundColor: 'transparent',
-                      }}
-                    />
-                  </Box>
-                  {errors.email && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                      {errors.email}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box>
-                  <Box
-                    sx={{
-                      border: '1px solid rgba(0, 0, 0, 0.4)',
-                      borderRadius: { xs: '8px', md: '10px' },
-                      padding: { xs: '12px 12px', md: '14px 16px' },
-                      backgroundColor: 'white',
-                      cursor: 'text',
-                      height: { xs: '40px', md: '52px' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        borderColor: 'rgba(0, 0, 0, 0.4)',
-                      },
-                      '&:focus-within': {
-                        borderColor: themeColor,
-                        borderWidth: '2px',
-                        padding: { xs: '11px 11px', md: '13px 15px' },
-                      },
-                    }}
-                  >
-                    <input
-                      type="password"
-                      placeholder="Password (min 6 characters)"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      disabled={isAuthenticating}
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        width: '100%',
-                        fontSize: 'inherit',
-                        color: (formData.password && formData.password.length > 0) ? '#000' : '#888888',
-                        backgroundColor: 'transparent',
-                      }}
-                    />
-                  </Box>
-                  {errors.password && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                      {errors.password}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={handleEmailPasswordAuth}
-                  disabled={isAuthenticating}
-                  sx={{
-                    bgcolor: themeColor,
-                    color: 'white',
-                    py: 1.5,
-                    borderRadius: '32px',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                    '&:hover': {
-                      bgcolor: '#C8365A',
-                      boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                    },
-                    '&:disabled': {
-                      bgcolor: alpha(themeColor, 0.5),
-                    },
-                  }}
-                >
-                  {isAuthenticating ? (
-                    <CircularProgress size={24} sx={{ color: 'white' }} />
-                  ) : (
-                    'Sign In / Sign Up'
-                  )}
-                </Button>
-
-                <Box sx={{ textAlign: 'center', my: 2 }}>
-                  <Typography variant="body2" sx={{ color: '#666' }}>
-                    or
-                  </Typography>
-                </Box>
-
                 <Button
                   variant="outlined"
                   fullWidth
@@ -1778,6 +1786,66 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 >
                   {isAuthenticating ? 'Connecting...' : 'Continue with Google'}
                 </Button>
+
+                <Box sx={{ textAlign: 'center', my: 2 }}>
+                  <Typography variant="body2" sx={{ color: '#666' }}>
+                    or
+                  </Typography>
+                </Box>
+
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  disabled={isAuthenticating}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  fullWidth
+                  sx={guestTextFieldSx(themeColor)}
+                />
+
+                <TextField
+                  label="Password (min 6 characters)"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  disabled={isAuthenticating}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  fullWidth
+                  sx={guestTextFieldSx(themeColor)}
+                />
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleEmailPasswordAuth}
+                  disabled={isAuthenticating}
+                  sx={{
+                    bgcolor: themeColor,
+                    color: 'white',
+                    py: 1.5,
+                    borderRadius: '32px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                    '&:hover': {
+                      bgcolor: '#C8365A',
+                      boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
+                    },
+                    '&:disabled': {
+                      bgcolor: alpha(themeColor, 0.5),
+                    },
+                  }}
+                >
+                  {isAuthenticating ? (
+                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                  ) : (
+                    'Sign In / Sign Up'
+                  )}
+                </Button>
               </>
             )}
           </Stack>
@@ -1796,17 +1864,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   mb: 2,
                 }}
               >
-                Will you be celebrating with us in Thailand? 🏖️
-              </Typography>
-
-              <Typography
-                variant="body2"
-                sx={{
-                  color: 'rgba(0, 0, 0, 0.48)',
-                  lineHeight: 1.5,
-                }}
-              >
-                Ready to make some memories?
+                Will you be celebrating with us? 🏖️
               </Typography>
             </Box>
 
@@ -1872,60 +1930,37 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     {/* Maybe text field - show when maybe is selected */}
                     {option.value === 'maybe' && formData.attending === 'maybe' && (
                       <Box sx={{ mt: 2, mb: 2 }}>
-                        <Box
-                          sx={{
-                            border: '1px solid rgba(0, 0, 0, 0.4)',
-                            borderRadius: { xs: '8px', md: '10px' },
-                            padding: '8px 12px',
-                            backgroundColor: 'white',
-                            cursor: 'text',
-                            minHeight: '60px',
-                            '&:hover': {
-                              borderColor: 'rgba(0, 0, 0, 0.4)',
-                            },
-                            '&:focus-within': {
-                              borderColor: themeColor,
-                              borderWidth: '2px',
-                              padding: '7px 11px',
-                            },
-                          }}
-                        >
-                          <textarea
-                            placeholder="Help us understand what's holding you back We want to make this work! Let us know what you're figuring out:"
-                            value={formData.maybeComment}
-                            onChange={(e) => handleInputChange('maybeComment', e.target.value)}
-                            style={{
-                              border: 'none',
-                              outline: 'none',
-                              width: '100%',
-                              height: '70px',
-                              resize: 'none',
-                              fontSize: 'inherit',
-                              color: formData.maybeComment ? '#141414' : 'rgba(0, 0, 0, 0.6)',
-                              backgroundColor: 'transparent',
-                            }}
-                          />
-                        </Box>
+                        <TextField
+                          label="Tell us what you're figuring out"
+                          value={formData.maybeComment}
+                          onChange={(e) => handleInputChange('maybeComment', e.target.value)}
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          sx={guestTextFieldSx(themeColor)}
+                        />
 
-                        {/* Final answer reminder */}
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            p: 2,
-                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                            borderRadius: { xs: '8px', md: '10px' },
-                            color: 'rgba(0, 0, 0, 0.72)',
-                            mt: 2
-                          }}
-                        >
-                          <Typography variant="body1" sx={{
-                            lineHeight: 1.5,
-                          }}>
-                            📅  Final answer needed by: <strong>September 30, 2025</strong>
-                          </Typography>
-                        </Box>
+                        {/* Final answer reminder — only show if RSVP deadline is set */}
+                        {wedding?.rsvp_deadline && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              p: 2,
+                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                              borderRadius: { xs: '8px', md: '10px' },
+                              color: 'rgba(0, 0, 0, 0.72)',
+                              mt: 2
+                            }}
+                          >
+                            <Typography variant="body1" sx={{
+                              lineHeight: 1.5,
+                            }}>
+                              📅  Final answer needed by: <strong>{new Date(wedding.rsvp_deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
                     )}
                   </Box>
@@ -1938,16 +1973,6 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               )}
             </FormControl>
 
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'rgba(0, 0, 0, 0.48)',
-                lineHeight: 1.5,
-                mt: 3
-              }}
-            >
-              <strong>Note:</strong> Your accommodation will be covered by us! We need to book the right number of rooms, so please let us know for sure by {WEDDING_CONFIG.rsvpDeadline}!
-            </Typography>
 
 
 
@@ -2074,136 +2099,42 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <Box>
                         {/* First Name and Last Name Row */}
                         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Box
-                              sx={{
-                                border: '1px solid rgba(0, 0, 0, 0.4)',
-                                borderRadius: { xs: '8px', md: '10px' },
-                                padding: { xs: '12px 12px', md: '14px 16px' },
-                                backgroundColor: 'white',
-                                cursor: 'text',
-                                height: { xs: '40px', md: '52px' },
-                                display: 'flex',
-                                alignItems: 'center',
-                                '&:hover': {
-                                  borderColor: 'rgba(0, 0, 0, 0.4)',
-                                },
-                                '&:focus-within': {
-                                  borderColor: themeColor,
-                                  borderWidth: '2px',
-                                  padding: { xs: '11px 11px', md: '13px 15px' },
-                                },
-                              }}
-                            >
-                              <input
-                                type="text"
-                                placeholder="First name"
-                                value={formData.plusOneName.split(' ')[0] || ''}
-                                onChange={(e) => {
-                                  const lastName = formData.plusOneName.split(' ').slice(1).join(' ');
-                                  handleInputChange('plusOneName', e.target.value + (lastName ? ' ' + lastName : ''));
-                                }}
-                                style={{
-                                  border: 'none',
-                                  outline: 'none',
-                                  width: '100%',
-                                  fontSize: 'inherit',
-                                  color: formData.plusOneName.split(' ')[0] ? '#000' : '#888888',
-                                  backgroundColor: 'transparent',
-                                }}
-                              />
-                            </Box>
-                            {errors.plusOneName && (
-                              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                                {errors.plusOneName}
-                              </Typography>
-                            )}
-                          </Box>
-
-                          <Box sx={{ flex: 1 }}>
-                            <Box
-                              sx={{
-                                border: '1px solid rgba(0, 0, 0, 0.4)',
-                                borderRadius: { xs: '8px', md: '10px' },
-                                padding: { xs: '12px 12px', md: '14px 16px' },
-                                backgroundColor: 'white',
-                                cursor: 'text',
-                                height: { xs: '40px', md: '52px' },
-                                display: 'flex',
-                                alignItems: 'center',
-                                '&:hover': {
-                                  borderColor: 'rgba(0, 0, 0, 0.4)',
-                                },
-                                '&:focus-within': {
-                                  borderColor: themeColor,
-                                  borderWidth: '2px',
-                                  padding: { xs: '11px 11px', md: '13px 15px' },
-                                },
-                              }}
-                            >
-                              <input
-                                type="text"
-                                placeholder="Last name"
-                                value={formData.plusOneName.split(' ').slice(1).join(' ') || ''}
-                                onChange={(e) => {
-                                  const firstName = formData.plusOneName.split(' ')[0] || '';
-                                  handleInputChange('plusOneName', firstName + (e.target.value ? ' ' + e.target.value : ''));
-                                }}
-                                style={{
-                                  border: 'none',
-                                  outline: 'none',
-                                  width: '100%',
-                                  fontSize: 'inherit',
-                                  color: formData.plusOneName.split(' ').slice(1).join(' ') ? '#000' : '#888888',
-                                  backgroundColor: 'transparent',
-                                }}
-                              />
-                            </Box>
-                          </Box>
+                          <TextField
+                            label="First name"
+                            value={formData.plusOneName.split(' ')[0] || ''}
+                            onChange={(e) => {
+                              const lastName = formData.plusOneName.split(' ').slice(1).join(' ');
+                              handleInputChange('plusOneName', e.target.value + (lastName ? ' ' + lastName : ''));
+                            }}
+                            error={!!errors.plusOneName}
+                            helperText={errors.plusOneName}
+                            fullWidth
+                            sx={guestTextFieldSx(themeColor)}
+                          />
+                          <TextField
+                            label="Last name"
+                            value={formData.plusOneName.split(' ').slice(1).join(' ') || ''}
+                            onChange={(e) => {
+                              const firstName = formData.plusOneName.split(' ')[0] || '';
+                              handleInputChange('plusOneName', firstName + (e.target.value ? ' ' + e.target.value : ''));
+                            }}
+                            fullWidth
+                            sx={guestTextFieldSx(themeColor)}
+                          />
                         </Box>
 
                         {/* Email Field */}
                         <Box sx={{ mb: 2 }}>
-                          <Box
-                            sx={{
-                              border: '1px solid rgba(0, 0, 0, 0.4)',
-                              borderRadius: { xs: '8px', md: '10px' },
-                              padding: { xs: '12px 12px', md: '14px 16px' },
-                              backgroundColor: 'white',
-                              cursor: 'text',
-                              height: { xs: '40px', md: '52px' },
-                              display: 'flex',
-                              alignItems: 'center',
-                              '&:hover': {
-                                borderColor: 'rgba(0, 0, 0, 0.4)',
-                              },
-                              '&:focus-within': {
-                                borderColor: themeColor,
-                                borderWidth: '2px',
-                                padding: { xs: '11px 11px', md: '13px 15px' },
-                              },
-                            }}
-                          >
-                            <input
-                              type="email"
-                              placeholder="Email"
-                              value={formData.plusOneEmail}
-                              onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
-                              style={{
-                                border: 'none',
-                                outline: 'none',
-                                width: '100%',
-                                fontSize: 'inherit',
-                                color: formData.plusOneEmail ? '#000' : '#888888',
-                                backgroundColor: 'transparent',
-                              }}
-                            />
-                          </Box>
-                          {errors.plusOneEmail && (
-                            <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
-                              {errors.plusOneEmail}
-                            </Typography>
-                          )}
+                          <TextField
+                            label="Email"
+                            type="email"
+                            value={formData.plusOneEmail}
+                            onChange={(e) => handleInputChange('plusOneEmail', e.target.value)}
+                            error={!!errors.plusOneEmail}
+                            helperText={errors.plusOneEmail}
+                            fullWidth
+                            sx={guestTextFieldSx(themeColor)}
+                          />
                         </Box>
 
                         {/* Phone Field (with country code select) */}
@@ -2288,6 +2219,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               type="tel"
                               inputMode="tel"
                               placeholder="000 000 0000 (optional)"
+                              maxLength={PHONE_MAX_LENGTH}
                               value={formData.plusOnePhone}
                               onChange={(e) => {
                                 const cleanValue = e.target.value.replace(/[^\d+\s-()]/g, '');
@@ -2702,19 +2634,17 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               {/* Music Request Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: '#000',
-                        fontWeight: 400,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      Music requests
-                    </Typography>
-                    <StreamlineIcon name="music-note" size={24} />
-                  </Stack>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: '#000',
+                      fontWeight: 400,
+                      lineHeight: 1.3,
+                      mb: 1,
+                    }}
+                  >
+                    Music requests
+                  </Typography>
 
                   <Typography
                     variant="body2"
@@ -2727,60 +2657,29 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.4)',
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: { xs: '12px 12px', md: '14px 16px' },
-                    backgroundColor: 'white',
-                    cursor: 'text',
-                    height: { xs: '40px', md: '52px' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontSize: { xs: '1rem', md: '1.125rem' },
-                    '&:hover': {
-                      borderColor: 'rgba(0, 0, 0, 0.4)',
-                    },
-                    '&:focus-within': {
-                      borderColor: themeColor,
-                      borderWidth: '2px',
-                      padding: { xs: '11px 11px', md: '13px 15px' },
-                    },
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Add song name and artist..."
-                    value={formData.songRequest}
-                    onChange={(e) => handleInputChange('songRequest', e.target.value)}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      fontSize: 'inherit',
-                      color: formData.songRequest ? '#000' : '#888888',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Box>
+                <TextField
+                  label="Song name and artist"
+                  value={formData.songRequest}
+                  onChange={(e) => handleInputChange('songRequest', e.target.value)}
+                  fullWidth
+                  sx={guestTextFieldSx(themeColor)}
+                />
               </Box>
 
               {/* Special Message Section */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: '#000',
-                        fontWeight: 400,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      Share your excitement
-                    </Typography>
-                    <StreamlineIcon name="celebration" size={24} />
-                  </Stack>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: '#000',
+                      fontWeight: 400,
+                      lineHeight: 1.3,
+                      mb: 1,
+                    }}
+                  >
+                    Share your excitement
+                  </Typography>
 
                   <Typography
                     variant="body2"
@@ -2793,41 +2692,15 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{
-                    border: '1px solid rgba(0, 0, 0, 0.4)',
-                    borderRadius: { xs: '8px', md: '10px' },
-                    padding: '8px 12px',
-                    backgroundColor: 'white',
-                    cursor: 'text',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    minHeight: '100px',
-                    '&:hover': {
-                      borderColor: 'rgba(0, 0, 0, 0.4)',
-                    },
-                    '&:focus-within': {
-                      borderColor: themeColor,
-                      borderWidth: '2px',
-                      padding: '7px 11px',
-                    },
-                  }}
-                >
-                  <textarea
-                    placeholder="Your wishes for the happy couple..."
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <TextField
+                    label="Your wishes for the happy couple..."
                     value={formData.specialMessage}
                     onChange={(e) => handleInputChange('specialMessage', e.target.value)}
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      width: '100%',
-                      height: '60px',
-                      resize: 'none',
-                      fontSize: 'inherit',
-                      color: formData.specialMessage ? '#000' : '#888888',
-                      backgroundColor: 'transparent',
-                    }}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    sx={guestTextFieldSx(themeColor)}
                   />
 
                   {/* GIF Button - only show when no GIF is selected */}
@@ -3030,7 +2903,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             </IconButton>
           )}
 
-          {(currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'RSVP' && formData.attending === 'no')) ? (
+          {/* Hide Next/Submit on Account Creation — auth buttons handle progression */}
+          {getStepName(mergedSteps[currentStep]) === 'Account Creation' && !isAuthenticated ? null : (currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'RSVP' && formData.attending === 'no')) ? (
             <Button
               onClick={handleSubmit}
               variant="contained"

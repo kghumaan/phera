@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
@@ -13,24 +12,42 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert,
-  Snackbar,
   Grid,
   CircularProgress,
+  ClickAwayListener,
 } from '@mui/material';
-import { useState, useEffect, use } from 'react';
-import { Add, Edit, Delete, OpenInNew } from '@mui/icons-material';
+import { useState, useEffect, use, useCallback } from 'react';
+import { Delete } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SHOP_TEMPLATES, ShopTemplate } from '@/components/admin/ShopTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
-// Use the enhanced TextField styling
-const textFieldSx = ENHANCED_TEXT_FIELD_SX;
+const inlineFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    bgcolor: 'white',
+    '& fieldset': { borderColor: '#BCBCBC' },
+    '&:hover fieldset': { borderColor: '#999' },
+    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+  },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
+  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+};
+
+interface ShopDraft {
+  id?: string;
+  wedding_id: string | null;
+  name: string;
+  details: string;
+  url: string;
+  order_index: number;
+}
 
 export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -39,23 +56,17 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [shops, setShops] = useState<any[]>([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentShop, setCurrentShop] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
+  const { showStatus } = useAutoSaveStatus();
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<ShopDraft | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
 
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -67,85 +78,95 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
       }
     } catch (err) {
       console.error('Error loading shops:', err);
-      const errorMessage = 'Failed to load shops';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddFromTemplate = (template: ShopTemplate) => {
+  const syncPreview = useCallback(async () => {
+    if (!weddingId) return;
+    await weddingService.markUnpublishedChanges(weddingId);
+    const channel = new BroadcastChannel('phera-design-sync');
+    channel.postMessage({ type: 'PREVIEW_REFRESH' });
+    channel.close();
+  }, [weddingId]);
+
+  const startEditing = (shop: any) => {
     if (isViewOnly) return;
-    setCurrentShop({
-      wedding_id: weddingId,
-      name: template.name,
-      details: template.details,
-      url: template.url,
-      order_index: shops.length,
+    setEditingId(shop.id);
+    setDraft({
+      id: shop.id,
+      wedding_id: shop.wedding_id,
+      name: shop.name,
+      details: shop.details || '',
+      url: shop.url || '',
+      order_index: shop.order_index,
     });
-    setTemplateDialogOpen(false);
-    setEditDialogOpen(true);
   };
 
-  const handleAddCustom = () => {
+  const startNew = () => {
     if (isViewOnly) return;
-    setCurrentShop({
+    setEditingId('__new__');
+    setDraft({
       wedding_id: weddingId,
       name: '',
       details: '',
       url: '',
       order_index: shops.length,
     });
-    setEditDialogOpen(true);
   };
 
-  const handleEdit = (shop: any) => {
-    setCurrentShop(shop);
-    setEditDialogOpen(true);
+  const startFromTemplate = () => {
+    if (isViewOnly) return;
+    setTemplateDialogOpen(true);
   };
 
-  const [saving, setSaving] = useState(false);
+  const handleSelectTemplate = (template: ShopTemplate) => {
+    if (isViewOnly) return;
+    setTemplateDialogOpen(false);
+    setEditingId('__new__');
+    setDraft({
+      wedding_id: weddingId,
+      name: template.name,
+      details: template.details,
+      url: template.url,
+      order_index: shops.length,
+    });
+  };
+
+  const cancelEditing = () => {
+    if (saving) return;
+    setEditingId(null);
+    setDraft(null);
+  };
 
   const handleSave = async () => {
-    if (isViewOnly) return;
-    if (!currentShop?.name || !currentShop?.url) {
-      const errorMessage = 'Please fill in shop name and URL';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+    if (isViewOnly || !draft) return;
+    if (!draft.name.trim() || !draft.url.trim()) {
+      showStatus('error', 'Please fill in shop name and URL');
       return;
     }
 
     setSaving(true);
     try {
-      if (currentShop.id) {
-        await weddingService.updateShop(currentShop.id, currentShop);
+      if (draft.id) {
+        await weddingService.updateShop(draft.id, draft);
       } else {
-        await weddingService.createShop(currentShop);
+        await weddingService.createShop(draft);
       }
       await loadData();
-      if (weddingId) {
-        await weddingService.markUnpublishedChanges(weddingId);
-        const channel = new BroadcastChannel('phera-design-sync');
-        channel.postMessage({ type: 'PREVIEW_REFRESH' });
-        channel.close();
-      }
-      setEditDialogOpen(false);
-      setCurrentShop(null);
-      setSuccess(true);
-      showToast('Changes saved!', 'success');
-      setTimeout(() => setSuccess(false), 3000);
+      await syncPreview();
+      setEditingId(null);
+      setDraft(null);
+      showStatus('saved');
     } catch (err) {
       console.error('Error saving shop:', err);
-      const errorMessage = 'Failed to save shop';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showStatus('error');
     } finally {
       setSaving(false);
     }
   };
-
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
 
   const handleDelete = async (shopId: string) => {
     if (isViewOnly) return;
@@ -156,19 +177,12 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
         setConfirmDialog(prev => ({ ...prev, open: false }));
         try {
           await weddingService.deleteShop(shopId);
+          if (editingId === shopId) { setEditingId(null); setDraft(null); }
           await loadData();
-          if (weddingId) {
-            await weddingService.markUnpublishedChanges(weddingId);
-            const channel = new BroadcastChannel('phera-design-sync');
-            channel.postMessage({ type: 'PREVIEW_REFRESH' });
-            channel.close();
-          }
-          setSuccess(true);
-          showToast('Shop deleted successfully', 'success');
+          await syncPreview();
+          showStatus('saved');
         } catch (err) {
-          const errorMessage = 'Failed to delete shop';
-          setError(errorMessage);
-          showToast(errorMessage, 'error');
+          showStatus('error');
         }
       },
     });
@@ -182,7 +196,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
     );
   }
 
-
+  const isAddingNew = editingId === '__new__';
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
@@ -196,95 +210,125 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           </Typography>
         </Box>
 
-
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setTemplateDialogOpen(true)}
-            sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                bgcolor: '#C8365A',
-              },
-            }}
-          >
-            Add Recommended Shop
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Add />}
-            onClick={handleAddCustom}
-            sx={{
-              borderColor: '#DE3F5E',
-              color: '#DE3F5E',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                borderColor: '#C8365A',
-                bgcolor: 'rgba(222, 63, 94, 0.05)',
-              },
-            }}
-          >
-            Add Store
-          </Button>
-        </Stack>
-
         <Stack spacing={2}>
           {shops.map((shop) => (
-            <Paper key={shop.id} sx={{
-              p: 3,
-              borderRadius: '16px',
-              bgcolor: '#fafafa',
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              }
-            }}>
-              <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                <Box sx={{ flex: 1, mr: 2 }}>
-                  <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            editingId === shop.id ? (
+              <InlineShopForm
+                key={shop.id}
+                draft={draft!}
+                setDraft={setDraft}
+                onSave={handleSave}
+                onCancel={cancelEditing}
+                onDelete={() => handleDelete(shop.id)}
+                saving={saving}
+              />
+            ) : (
+              <Paper
+                key={shop.id}
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  bgcolor: 'white',
+                  border: '1px solid #EEE',
+                  boxShadow: 'none',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: '#ddd', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
+                }}
+                onClick={() => startEditing(shop)}
+              >
+                <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                  <Box sx={{ flex: 1, mr: 2 }}>
+                    <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem', mb: 0.5 }}>
                       {shop.name}
                     </Typography>
-                    <IconButton size="small" href={shop.url} target="_blank">
-                      <OpenInNew fontSize="small" />
+                    {shop.details && (
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: '#6a6a6a', mb: 0.5 }}>
+                        {shop.details}
+                      </Typography>
+                    )}
+                    {shop.url && (
+                      <Typography variant="caption" sx={{ color: '#DE3F5E', wordBreak: 'break-all' }}>
+                        {shop.url}
+                      </Typography>
+                    )}
+                  </Box>
+                  {!isViewOnly && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(shop.id); }}
+                      sx={{ color: '#1a1a1a', flexShrink: 0 }}
+                    >
+                      <Delete fontSize="small" />
                     </IconButton>
-                  </Stack>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: '#6a6a6a' }}>
-                    {shop.details}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <IconButton size="small" onClick={() => handleEdit(shop)} color="error">
-                    <Edit />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDelete(shop.id)} color="error">
-                    <Delete />
-                  </IconButton>
+                  )}
                 </Stack>
-              </Stack>
-            </Paper>
+              </Paper>
+            )
           ))}
 
-          {shops.length === 0 && (
-            <Paper sx={{
-              p: 4,
-              textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
-              boxShadow: 'none',
-            }}>
+          {isAddingNew && draft && (
+            <InlineShopForm
+              draft={draft}
+              setDraft={setDraft}
+              onSave={handleSave}
+              onCancel={cancelEditing}
+              saving={saving}
+              isNew
+            />
+          )}
+
+          {shops.length === 0 && !isAddingNew && (
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white', boxShadow: 'none' }}>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                No stores yet. Add a recommended shop from our curated list or create a custom one.
+                No stores yet. Add one below.
               </Typography>
             </Paper>
+          )}
+
+          {/* Add buttons at bottom */}
+          {!isViewOnly && !isAddingNew && (
+            <Stack direction="row" spacing={1.5}>
+              <Box
+                onClick={startNew}
+                sx={{
+                  flex: 1,
+                  bgcolor: '#EBEBEB',
+                  border: '1px dashed #BCBCBC',
+                  borderRadius: '8px',
+                  px: 2, py: 1.5,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+                  Add Custom Store
+                </Typography>
+                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  Enter your own store details
+                </Typography>
+              </Box>
+              <Box
+                onClick={startFromTemplate}
+                sx={{
+                  flex: 1,
+                  bgcolor: '#EBEBEB',
+                  border: '1px dashed #BCBCBC',
+                  borderRadius: '8px',
+                  px: 2, py: 1.5,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+                  Add Recommended Shop
+                </Typography>
+                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  Choose from popular stores
+                </Typography>
+              </Box>
+            </Stack>
           )}
         </Stack>
 
@@ -294,12 +338,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           onClose={() => setTemplateDialogOpen(false)}
           maxWidth="md"
           fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-            }
-          }}
+          PaperProps={{ sx: { borderRadius: '24px', bgcolor: 'white' } }}
         >
           <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>Choose a Recommended Shop</DialogTitle>
           <DialogContent sx={{ bgcolor: 'white' }}>
@@ -313,11 +352,9 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                       borderRadius: '12px',
                       bgcolor: 'white',
                       boxShadow: 'none',
-                      '&:hover': {
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                      },
+                      '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' },
                     }}
-                    onClick={() => handleAddFromTemplate(template)}
+                    onClick={() => handleSelectTemplate(template)}
                   >
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
                       {template.name}
@@ -335,96 +372,102 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           </DialogActions>
         </Dialog>
 
-        {/* Edit Shop Dialog */}
-        <Dialog
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-            }
-          }}
-        >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{currentShop?.id ? 'Edit Store' : 'New Store'}</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
-            <Stack spacing={3} sx={{ mt: 2 }}>
-              <TextField
-                label="Store Name *"
-                fullWidth
-                value={currentShop?.name || ''}
-                onChange={(e) => setCurrentShop({ ...currentShop, name: e.target.value })}
-                placeholder="e.g., Pernia's Pop-Up Shop"
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Details"
-                fullWidth
-                multiline
-                rows={4}
-                value={currentShop?.details || ''}
-                onChange={(e) => setCurrentShop({ ...currentShop, details: e.target.value })}
-                placeholder="Shipping details, price range, etc."
-                helperText="Use line breaks for formatting"
-                sx={textFieldSx}
-              />
-              <TextField
-                label="Website URL *"
-                fullWidth
-                value={currentShop?.url || ''}
-                onChange={(e) => setCurrentShop({ ...currentShop, url: e.target.value })}
-                placeholder="https://..."
-                sx={textFieldSx}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+      </Stack>
+      <ConfirmDialog open={confirmDialog.open} message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))} />
+      <ContinueButton weddingSlug={weddingSlug} currentSection="shopping" weddingId={weddingId} />
+    </Box>
+  );
+}
+
+// ── Inline Shop Form ─────────────────────────────────────────────────────────
+
+const inFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    bgcolor: 'white',
+    '& fieldset': { borderColor: '#BCBCBC' },
+    '&:hover fieldset': { borderColor: '#999' },
+    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+  },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
+  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+};
+
+interface InlineShopFormProps {
+  draft: ShopDraft;
+  setDraft: (d: ShopDraft | null) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+  saving: boolean;
+  isNew?: boolean;
+}
+
+function InlineShopForm({ draft, setDraft, onSave, onCancel, onDelete, saving, isNew }: InlineShopFormProps) {
+  const canSave = !!draft.name.trim() && !!draft.url.trim();
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+  };
+
+  return (
+    <ClickAwayListener onClickAway={onCancel}>
+      <Paper sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'white', border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+        <Stack spacing={2}>
+          <TextField
+            label="Store Name"
+            size="small"
+            fullWidth
+            value={draft.name}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+            autoFocus
+            onKeyDown={handleKeyDown}
+            placeholder="e.g., Pernia's Pop-Up Shop"
+            sx={inFieldSx}
+          />
+          <TextField
+            label="Details"
+            size="small"
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={6}
+            value={draft.details}
+            onChange={(e) => setDraft({ ...draft, details: e.target.value })}
+            onKeyDown={handleKeyDown}
+            placeholder="Shipping details, price range, etc."
+            sx={inFieldSx}
+          />
+          <TextField
+            label="Website URL"
+            size="small"
+            fullWidth
+            value={draft.url}
+            onChange={(e) => setDraft({ ...draft, url: e.target.value })}
+            onKeyDown={handleKeyDown}
+            placeholder="https://..."
+            sx={inFieldSx}
+          />
+          <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
+            {!isNew && onDelete && (
+              <IconButton size="small" onClick={onDelete} sx={{ color: '#1a1a1a' }}>
+                <Delete fontSize="small" />
+              </IconButton>
+            )}
             <Button
               variant="contained"
-              onClick={handleSave}
-              disabled={saving}
+              onClick={onSave}
+              disabled={!canSave || saving}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#C8365A',
-                },
+                bgcolor: '#DE3F5E', color: 'white', borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, minWidth: 80,
+                '&:hover': { bgcolor: '#C8365A' }, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
               }}
             >
               {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
             </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Stack>
-      <ConfirmDialog
-        open={confirmDialog.open}
-        message={confirmDialog.message}
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-      />
-      <ContinueButton weddingSlug={weddingSlug} currentSection="shopping" weddingId={weddingId} />
-    </Box>
+          </Stack>
+        </Stack>
+      </Paper>
+    </ClickAwayListener>
   );
 }

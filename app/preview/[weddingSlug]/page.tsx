@@ -284,7 +284,18 @@ function PreviewContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    setIsInIframe(window.self !== window.top);
+    const inIframe = window.self !== window.top;
+    setIsInIframe(inIframe);
+    // When inside an iframe, trap back-navigation so history.back() in guest
+    // components (e.g. back buttons) can't escape and navigate the parent admin page
+    if (inIframe) {
+      window.history.replaceState({ preview: true }, '', window.location.href);
+      const handlePopState = () => {
+        window.history.pushState({ preview: true }, '', window.location.href);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
   }, []);
 
   // Listen for SET_PREVIEW_MODE postMessage from admin panel
@@ -546,9 +557,11 @@ function PreviewContent() {
             wedding_date: wedding.wedding_date,
             wedding_date_display: wedding.wedding_date_display,
             venue_name: wedding.venue_name,
+            venue_location: wedding.venue_location || '',
             venue_flag: wedding.venue_flag || '',
             rsvp_deadline: wedding.rsvp_deadline,
             welcome_text: wedding.welcome_text || undefined,
+            registry_description: (wedding as any).registry_description || undefined,
             primary_color: wedding.primary_color || undefined,
             couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
           }}
@@ -736,13 +749,10 @@ function PreviewContent() {
                   {/* Date */}
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ width: '100%' }}>
                     <Typography
-                      variant="body2"
+                      variant="subtitleCaps"
                       sx={{
                         color: '#000',
                         fontSize: { md: '1rem', lg: '1.25rem' },
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
                       }}
                     >
                       {wedding.wedding_date_display}
@@ -970,11 +980,10 @@ function PreviewContent() {
                 <Stack spacing={1} alignItems="center" textAlign="center">
                   {/* Date */}
                   <Typography
-                    variant="body2"
+                    variant="subtitleCaps"
                     sx={{
                       color: '#000',
                       fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
-                      letterSpacing: '0.5px',
                     }}
                   >
                     {wedding.wedding_date_display}

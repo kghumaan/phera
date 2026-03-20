@@ -5,20 +5,32 @@ import { SaveStatus } from '@/lib/hooks/useAutoSave';
 
 interface AutoSaveContextType {
   status: SaveStatus;
-  setStatus: (status: SaveStatus) => void;
+  message: string | null;
+  setStatus: (status: SaveStatus, message?: string) => void;
+  /** Show a brief status message in the header (auto-clears after timeout) */
+  showStatus: (status: 'saving' | 'saved' | 'error', message?: string) => void;
 }
 
 const AutoSaveContext = createContext<AutoSaveContextType | undefined>(undefined);
 
 export function AutoSaveProvider({ children }: { children: ReactNode }) {
   const [status, setStatusRaw] = useState<SaveStatus>('idle');
+  const [message, setMessage] = useState<string | null>(null);
 
-  const setStatus = useCallback((s: SaveStatus) => {
+  const setStatus = useCallback((s: SaveStatus, msg?: string) => {
     setStatusRaw(s);
+    setMessage(msg || null);
+  }, []);
+
+  const showStatus = useCallback((s: 'saving' | 'saved' | 'error', msg?: string) => {
+    setStatusRaw(s);
+    setMessage(msg || null);
+    if (s === 'saved') setTimeout(() => { setStatusRaw('idle'); setMessage(null); }, 2000);
+    if (s === 'error') setTimeout(() => { setStatusRaw('idle'); setMessage(null); }, 3000);
   }, []);
 
   return (
-    <AutoSaveContext.Provider value={{ status, setStatus }}>
+    <AutoSaveContext.Provider value={{ status, message, setStatus, showStatus }}>
       {children}
     </AutoSaveContext.Provider>
   );
@@ -27,8 +39,7 @@ export function AutoSaveProvider({ children }: { children: ReactNode }) {
 export function useAutoSaveStatus() {
   const ctx = useContext(AutoSaveContext);
   if (!ctx) {
-    // Return a no-op fallback if used outside provider (e.g. in non-admin pages)
-    return { status: 'idle' as SaveStatus, setStatus: () => {} };
+    return { status: 'idle' as SaveStatus, message: null as string | null, setStatus: () => {}, showStatus: () => {} };
   }
   return ctx;
 }

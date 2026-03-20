@@ -141,7 +141,7 @@ export default function NewWeddingPage() {
         rsvp_deadline: 'TBD',
         status: 'draft',
         created_by: userId,
-        background_image: '/images/backgrounds/blue-clouds.jpg',
+        background_image: '/images/backgrounds/blue-clouds.webp',
         primary_color: '#DE3F5E',
       });
 

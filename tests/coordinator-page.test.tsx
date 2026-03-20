@@ -906,7 +906,7 @@ describe('CoordinatorPage', () => {
     });
 
     it('should show direct chats on tab 1', () => {
-      const syncDialogTab = 1;
+      const syncDialogTab: number = 1;
       const discoveredGroups = [{ id: 'g1@g.us', name: 'Group', participantCount: 3 }];
       const discoveredDirectChats = [{ id: 'd1@s.whatsapp.net', name: 'Direct', participantCount: 0 }];
 
@@ -1220,25 +1220,25 @@ describe('CoordinatorPage', () => {
 
   describe('super admin detection', () => {
     it('should identify kv as super admin', () => {
-      const email = 'kv.s.ghumaan@gmail.com';
+      const email: string = 'kv.s.ghumaan@gmail.com';
       const isSuperAdmin = email === 'kv.s.ghumaan@gmail.com' || email === 'savani.simran@google.com' || email === 'demo@phera.io';
       expect(isSuperAdmin).toBe(true);
     });
 
     it('should identify simran as super admin', () => {
-      const email = 'savani.simran@google.com';
+      const email: string = 'savani.simran@google.com';
       const isSuperAdmin = email === 'kv.s.ghumaan@gmail.com' || email === 'savani.simran@google.com' || email === 'demo@phera.io';
       expect(isSuperAdmin).toBe(true);
     });
 
     it('should identify demo user as super admin', () => {
-      const email = 'demo@phera.io';
+      const email: string = 'demo@phera.io';
       const isSuperAdmin = email === 'kv.s.ghumaan@gmail.com' || email === 'savani.simran@google.com' || email === 'demo@phera.io';
       expect(isSuperAdmin).toBe(true);
     });
 
     it('should not identify random user as super admin', () => {
-      const email = 'random@example.com';
+      const email: string = 'random@example.com';
       const isSuperAdmin = email === 'kv.s.ghumaan@gmail.com' || email === 'savani.simran@google.com' || email === 'demo@phera.io';
       expect(isSuperAdmin).toBe(false);
     });

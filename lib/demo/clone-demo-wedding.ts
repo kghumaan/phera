@@ -231,7 +231,7 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     cloneSimpleTable(supabase, 'wedding_settings', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'concierge_knowledge_base', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'transportation_settings', template.id, newWeddingId),
-    cloneSimpleTable(supabase, 'transportation_vehicle_types', template.id, newWeddingId),
+    // transportation_vehicle_types is cloned in cloneTransportationData() with ID remapping
     cloneSimpleTable(supabase, 'wedding_tasks', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'guest_flights', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'travel_bus_signups', template.id, newWeddingId),

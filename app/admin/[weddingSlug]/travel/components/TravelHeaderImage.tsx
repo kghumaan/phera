@@ -31,7 +31,7 @@ export default function TravelHeaderImage({
       }}>
         <Box sx={{ p: 2.5 }}>
           <Stack direction="row" alignItems="flex-start" spacing={1.5}>
-            <Box sx={{ color: '#6a6a6a', mt: 0.3 }}>
+            <Box sx={{ color: '#6a6a6a', display: 'flex' }}>
               <ImageIcon fontSize="small" />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -56,105 +56,88 @@ export default function TravelHeaderImage({
     );
   }
 
-  // Has image — show preview with hover actions
+  // Has image — show info + actions on left, thumbnail on right
   return (
     <Box
       sx={{
-        position: 'relative',
         borderRadius: '16px',
         bgcolor: 'white',
         border: '1px solid rgba(0,0,0,0.07)',
         overflow: 'hidden',
-        '&:hover .header-actions': { opacity: 1 },
       }}
     >
-      <Box
-        component="img"
-        src={imageUrl}
-        alt="Travel header"
-        sx={{
-          maxWidth: '100%',
-          maxHeight: 160,
-          width: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
-      />
-
-      {/* Gradient overlay with title */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'linear-gradient(transparent, rgba(0,0,0,0.5))',
-          p: 2,
-          pt: 4,
-        }}
-      >
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-          Header Image
-        </Typography>
-      </Box>
-
-      {/* Action buttons — visible on hover */}
-      {!isViewOnly && (
-        <Stack
-          className="header-actions"
-          direction="row"
-          spacing={0.5}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            opacity: 0,
-            transition: 'opacity 0.15s',
-          }}
-        >
-          <IconButton
-            size="small"
-            onClick={() => {
-              // Trigger file picker by creating a hidden ImageUpload
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-              input.onchange = async (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (!file) return;
-                const { uploadImage } = await import('@/lib/utils/image-upload');
-                const result = await uploadImage(file, getWeddingImagePath(weddingId, 'travel'));
-                if (result.success && result.url) {
-                  onChange(result.url);
-                }
-              };
-              input.click();
-            }}
-            sx={{
-              bgcolor: 'rgba(0,0,0,0.6)',
-              color: 'white',
-              '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
-              width: 32,
-              height: 32,
-            }}
-          >
-            <Edit sx={{ fontSize: 16 }} />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => onChange(null)}
-            sx={{
-              bgcolor: 'rgba(0,0,0,0.6)',
-              color: 'white',
-              '&:hover': { bgcolor: 'rgba(222,63,94,0.9)' },
-              width: 32,
-              height: 32,
-            }}
-          >
-            <Delete sx={{ fontSize: 16 }} />
-          </IconButton>
+      <Box sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+          <Box sx={{ color: '#6a6a6a', display: 'flex' }}>
+            <ImageIcon fontSize="small" />
+          </Box>
+          <Stack direction="row" alignItems="flex-start" sx={{ flex: 1, minWidth: 0 }} spacing={2}>
+            {/* Left side — title, description */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3, mb: 0.5 }}>
+                Header Image
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                This image appears at the top of the Travel &amp; Stay section for your guests
+              </Typography>
+            </Box>
+            {/* Right side — image thumbnail */}
+            <Box
+              sx={{
+                borderRadius: '10px',
+                overflow: 'hidden',
+                border: '1px solid rgba(0,0,0,0.07)',
+                flexShrink: 0,
+                maxWidth: 260,
+              }}
+            >
+              <Box
+                component="img"
+                src={imageUrl}
+                alt="Travel header"
+                sx={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                }}
+              />
+            </Box>
+            {/* Actions */}
+            {!isViewOnly && (
+              <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
+                <IconButton
+                  size="small"
+                  onClick={() => onChange(null)}
+                  sx={{ color: '#6a6a6a', p: 0, '&:hover': { color: '#DE3F5E' } }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      const { uploadImage } = await import('@/lib/utils/image-upload');
+                      const result = await uploadImage(file, getWeddingImagePath(weddingId, 'travel'));
+                      if (result.success && result.url) {
+                        onChange(result.url);
+                      }
+                    };
+                    input.click();
+                  }}
+                  sx={{ color: '#6a6a6a', p: 0, '&:hover': { color: '#DE3F5E' } }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </Stack>
+            )}
+          </Stack>
         </Stack>
-      )}
+      </Box>
     </Box>
   );
 }

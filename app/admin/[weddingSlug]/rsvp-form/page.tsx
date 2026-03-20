@@ -33,6 +33,9 @@ import {
   CalendarToday,
   AddCircleOutline,
   Close,
+  CheckCircleOutline,
+  HelpOutline,
+  CancelOutlined,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -64,7 +67,7 @@ import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import ContinueButton from '@/components/admin/ContinueButton';
-import { toast } from 'sonner';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -84,7 +87,7 @@ const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
   'Basic Information': 'Collects guest name, email, and phone number',
   'Account Creation': 'Lets guests create a password for their account',
   'RSVP': 'Guest confirms attendance: attending, not attending, or maybe',
-  'Plus One Details': 'Collects plus-one name, email, and phone if allowed by PIN',
+  'Plus One Details': 'This step is only shown to guests whose PIN allows a plus-one. You can configure this in Pin Management.',
   'Dietary Restrictions': 'Food preferences and dietary restriction details',
   'Team Bride/Groom': 'Guest picks whose side they\'re celebrating',
   'Music Request & Comment': 'Song request and a personal message to the couple',
@@ -355,6 +358,7 @@ const emptyQuestion = (): CustomQuestion => ({
 export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -364,6 +368,15 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
   const [hiddenFixedSteps, setHiddenFixedSteps] = useState<Set<string>>(new Set());
   const [deletingStepId, setDeletingStepId] = useState<string | null>(null);
 
+  // Confirmation messages state
+  const [confirmationMessages, setConfirmationMessages] = useState<Record<string, { heading: string; body: string }>>({
+    yes: { heading: '', body: '' },
+    no: { heading: '', body: '' },
+    maybe: { heading: '', body: '' },
+  });
+  const [savingMessages, setSavingMessages] = useState(false);
+  const [selectedConfirmation, setSelectedConfirmation] = useState<string | null>(null);
+
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<RSVPCustomQuestionStep | null>(null);
@@ -371,8 +384,6 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
   const [dialogDescription, setDialogDescription] = useState('');
   const [dialogQuestions, setDialogQuestions] = useState<CustomQuestion[]>([emptyQuestion()]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number | null>(0);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [editingDescription, setEditingDescription] = useState(false);
 
   // Confirm dialog
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel?: string; onConfirm: () => void }>({
@@ -397,10 +408,18 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         const steps = await getCustomQuestions(weddingSlug);
         setCustomSteps(steps);
         setHiddenFixedSteps(new Set(wedding.hidden_rsvp_steps || []));
+        const msgs = (wedding as any).rsvp_confirmation_messages;
+        if (msgs) {
+          setConfirmationMessages({
+            yes: { heading: msgs.yes?.heading || '', body: msgs.yes?.body || '' },
+            no: { heading: msgs.no?.heading || '', body: msgs.no?.body || '' },
+            maybe: { heading: msgs.maybe?.heading || '', body: msgs.maybe?.body || '' },
+          });
+        }
       }
     } catch (err) {
       console.error('Error loading RSVP form config:', err);
-      toast.error('Failed to load RSVP form configuration');
+      showStatus('error', 'Failed to load RSVP form configuration');
     } finally {
       setLoading(false);
     }
@@ -426,6 +445,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
 
   const handleStepClick = useCallback((item: MergedItem) => {
     setSelectedStepId(item.id);
+    setSelectedConfirmation(null); // Deselect confirmation row
     const stepName = item.type === 'fixed' ? item.name : item.step.step_title;
     const stepId = item.type === 'custom' ? item.step.id : undefined;
     // Find the preview iframe and send name + id so the form can resolve its own index
@@ -444,8 +464,6 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     setDialogDescription('');
     setDialogQuestions([emptyQuestion()]);
     setActiveQuestionIndex(0);
-    setEditingTitle(false);
-    setEditingDescription(false);
     setDialogOpen(true);
   };
 
@@ -455,19 +473,17 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     setDialogDescription(step.description || '');
     setDialogQuestions(step.questions.length > 0 ? [...step.questions] : [emptyQuestion()]);
     setActiveQuestionIndex(null);
-    setEditingTitle(false);
-    setEditingDescription(false);
     setDialogOpen(true);
   };
 
   const handleSaveStep = async () => {
     if (!dialogTitle.trim()) {
-      toast.error('Title is required');
+      showStatus('error', 'Title is required');
       return;
     }
     const validQuestions = dialogQuestions.filter(q => q.label.trim());
     if (validQuestions.length === 0) {
-      toast.error('At least one question is required');
+      showStatus('error', 'At least one question is required');
       return;
     }
 
@@ -489,7 +505,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       await upsertCustomQuestionStep(stepData);
       await loadData();
       setDialogOpen(false);
-      toast.success(editingStep ? 'Step updated' : 'Step added');
+      showStatus('saved', editingStep ? 'Step updated' : 'Step added');
 
       // Notify preview to re-fetch custom questions
       const channel = new BroadcastChannel('phera-design-sync');
@@ -497,7 +513,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       channel.close();
     } catch (err) {
       console.error('Error saving step:', err);
-      toast.error('Failed to save step');
+      showStatus('error', 'Failed to save step');
     } finally {
       setSaving(false);
     }
@@ -514,7 +530,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           await deleteCustomQuestionStep(step.id);
           const updatedCustomSteps = customSteps.filter(s => s.id !== step.id);
           setCustomSteps(updatedCustomSteps);
-          toast.success('Step deleted');
+          showStatus('saved', 'Step deleted');
 
           // Notify preview to re-fetch custom questions
           const channel = new BroadcastChannel('phera-design-sync');
@@ -540,7 +556,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           }
         } catch (err) {
           console.error('Error deleting step:', err);
-          toast.error('Failed to delete step');
+          showStatus('error', 'Failed to delete step');
         } finally {
           setDeletingStepId(null);
         }
@@ -560,7 +576,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           newHidden.add(stepName);
           await weddingService.updateHiddenRsvpSteps(weddingSlug, Array.from(newHidden));
           setHiddenFixedSteps(newHidden);
-          toast.success('Step hidden');
+          showStatus('saved', 'Step hidden');
 
           // Refresh preview: navigate to first remaining step
           const remainingFixed = FIXED_STEPS.filter(s => !newHidden.has(s));
@@ -577,12 +593,25 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           }
         } catch (err) {
           console.error('Error hiding step:', err);
-          toast.error('Failed to hide step');
+          showStatus('error', 'Failed to hide step');
         } finally {
           setDeletingStepId(null);
         }
       },
     });
+  };
+
+  const handleSaveConfirmationMessages = async () => {
+    setSavingMessages(true);
+    try {
+      await weddingService.updateRsvpConfirmationMessages(weddingSlug, confirmationMessages);
+      showStatus('saved', 'Confirmation messages saved');
+    } catch (err) {
+      console.error('Error saving confirmation messages:', err);
+      showStatus('error', 'Failed to save confirmation messages');
+    } finally {
+      setSavingMessages(false);
+    }
   };
 
   const handlePinNavigate = () => {
@@ -650,7 +679,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       );
     } catch (err) {
       console.error('Error reordering:', err);
-      toast.error('Failed to reorder steps');
+      showStatus('error', 'Failed to reorder steps');
       await loadData();
     }
   };
@@ -764,6 +793,126 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           )}
         </Paper>
 
+        {/* Confirmation Messages */}
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Confirmation Messages
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+            Customize the messages guests see after submitting their RSVP. Click a response to preview it.
+          </Typography>
+        </Box>
+
+        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3 }}>
+          <Stack spacing={1.5}>
+            {[
+              { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: '#DE3F5E' },
+              { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: '#1a1a1a' },
+              { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: '#9e9e9e' },
+            ].map(({ key, label, description, icon: Icon, color }) => {
+              const isSelected = selectedConfirmation === key;
+              return (
+                <Box
+                  key={key}
+                  onClick={() => {
+                    setSelectedConfirmation(isSelected ? null : key);
+                    setSelectedStepId(null);
+                    const iframe = document.querySelector('iframe') as HTMLIFrameElement | null;
+                    if (iframe?.contentWindow) {
+                      iframe.contentWindow.postMessage(
+                        { type: 'SHOW_RSVP_CONFIRMATION', response: key },
+                        '*'
+                      );
+                    }
+                  }}
+                  sx={{
+                    bgcolor: 'white',
+                    borderRadius: '12px',
+                    p: 2,
+                    border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
+                    cursor: 'pointer',
+                    '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Icon sx={{ color, fontSize: 20 }} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                        {label}
+                      </Typography>
+                      {isSelected && (
+                        <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+                          {description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+
+                  {/* Inline edit fields */}
+                  {isSelected && (
+                    <Stack spacing={2} sx={{ mt: 2 }} onClick={(e) => e.stopPropagation()}>
+                      <TextField
+                        label="Heading"
+                        value={confirmationMessages[key]?.heading || ''}
+                        onChange={(e) => setConfirmationMessages(prev => ({
+                          ...prev,
+                          [key]: { ...prev[key], heading: e.target.value },
+                        }))}
+                        fullWidth
+                        placeholder={
+                          key === 'yes' ? "e.g., Yay! We can't wait to celebrate with you!"
+                          : key === 'maybe' ? 'e.g., Thanks for letting us know!'
+                          : "e.g., We'll miss you!"
+                        }
+                        disabled={isViewOnly}
+                        sx={textFieldSx}
+                      />
+                      <TextField
+                        label="Message"
+                        value={confirmationMessages[key]?.body || ''}
+                        onChange={(e) => setConfirmationMessages(prev => ({
+                          ...prev,
+                          [key]: { ...prev[key], body: e.target.value },
+                        }))}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder={
+                          key === 'yes' ? 'e.g., Check out the rest of the website for travel tips, event details, dress codes, etc.'
+                          : key === 'maybe' ? 'e.g., We understand you need to figure some things out. Let us know by the RSVP deadline!'
+                          : "e.g., We're sad you can't make it, but we understand. Your account is still ready if anything changes!"
+                        }
+                        disabled={isViewOnly}
+                        sx={textFieldSx}
+                      />
+                      {!isViewOnly && (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            onClick={(e) => { e.stopPropagation(); handleSaveConfirmationMessages(); }}
+                            variant="contained"
+                            disabled={savingMessages}
+                            size="small"
+                            sx={{
+                              bgcolor: '#DE3F5E',
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              borderRadius: '12px',
+                              px: 3,
+                              '&:hover': { bgcolor: '#C8365A' },
+                            }}
+                          >
+                            {savingMessages ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'Save'}
+                          </Button>
+                        </Box>
+                      )}
+                    </Stack>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+        </Paper>
+
         <ContinueButton
           weddingSlug={weddingSlug}
           currentSection="rsvp-form"
@@ -780,102 +929,35 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       >
         <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#F8F8F8' }}>
           <Stack spacing={2.5}>
-            {/* Title Card */}
+            {/* Title & Description */}
             <Paper
               elevation={0}
               sx={{
                 p: 3,
                 borderRadius: '12px',
                 border: '1px solid rgba(0,0,0,0.07)',
-                borderTop: '4px solid #DE3F5E',
                 bgcolor: 'white',
               }}
             >
-              <Stack spacing={2}>
-                {/* Title field */}
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                    Title <span style={{ color: '#DE3F5E' }}>*</span>
-                  </Typography>
-                  {editingTitle ? (
-                    <TextField
-                      autoFocus
-                      variant="standard"
-                      value={dialogTitle}
-                      onChange={e => setDialogTitle(e.target.value)}
-                      onBlur={() => setEditingTitle(false)}
-                      placeholder="Untitled form"
-                      InputProps={{
-                        disableUnderline: false,
-                        sx: {
-                          fontSize: '1.5rem',
-                          fontWeight: 600,
-                          color: '#1a1a1a',
-                          '&:before': { borderColor: 'rgba(0,0,0,0.12)' },
-                          '&:after': { borderColor: '#DE3F5E' },
-                        },
-                      }}
-                      fullWidth
-                    />
-                  ) : (
-                    <Typography
-                      onClick={() => setEditingTitle(true)}
-                      sx={{
-                        fontSize: '1.5rem',
-                        fontWeight: 600,
-                        color: dialogTitle ? '#1a1a1a' : '#999',
-                        cursor: 'text',
-                        borderBottom: '1px solid transparent',
-                        pb: 0.5,
-                        '&:hover': { borderBottomColor: 'rgba(0,0,0,0.12)' },
-                      }}
-                    >
-                      {dialogTitle || 'Untitled form'}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Description field */}
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                    Description
-                  </Typography>
-                  {editingDescription ? (
-                    <TextField
-                      autoFocus
-                      variant="standard"
-                      value={dialogDescription}
-                      onChange={e => setDialogDescription(e.target.value)}
-                      onBlur={() => setEditingDescription(false)}
-                      placeholder="Form description"
-                      InputProps={{
-                        disableUnderline: false,
-                        sx: {
-                          fontSize: '0.875rem',
-                          color: '#4a4a4a',
-                          '&:before': { borderColor: 'rgba(0,0,0,0.12)' },
-                          '&:after': { borderColor: '#DE3F5E' },
-                        },
-                      }}
-                      fullWidth
-                      multiline
-                    />
-                  ) : (
-                    <Typography
-                      onClick={() => setEditingDescription(true)}
-                      sx={{
-                        fontSize: '0.875rem',
-                        color: dialogDescription ? '#4a4a4a' : '#999',
-                        cursor: 'text',
-                        borderBottom: '1px solid transparent',
-                        pb: 0.25,
-                        '&:hover': { borderBottomColor: 'rgba(0,0,0,0.12)' },
-                      }}
-                    >
-                      {dialogDescription || 'Form description'}
-                    </Typography>
-                  )}
-                </Box>
+              <Stack spacing={2.5}>
+                <TextField
+                  value={dialogTitle}
+                  onChange={e => setDialogTitle(e.target.value)}
+                  label="Section Title *"
+                  placeholder="e.g. Travel Preferences"
+                  fullWidth
+                  sx={textFieldSx}
+                />
+                <TextField
+                  value={dialogDescription}
+                  onChange={e => setDialogDescription(e.target.value)}
+                  label="Section Description"
+                  placeholder="e.g. Help us plan your travel arrangements"
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  sx={textFieldSx}
+                />
               </Stack>
             </Paper>
 
@@ -891,8 +973,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   sx={{
                     p: isActive ? 3 : 2.5,
                     borderRadius: '12px',
-                    border: '1px solid rgba(0,0,0,0.07)',
-                    borderLeft: isActive ? '4px solid #DE3F5E' : '1px solid rgba(0,0,0,0.07)',
+                    border: isActive ? '1.5px solid #DE3F5E' : '1px solid rgba(0,0,0,0.07)',
                     bgcolor: 'white',
                     cursor: isActive ? 'default' : 'pointer',
                     transition: 'all 0.15s ease',
@@ -905,36 +986,28 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                       {/* Row 1: Label + Type */}
                       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Question <span style={{ color: '#DE3F5E' }}>*</span>
-                          </Typography>
                           <TextField
                             value={q.label}
                             onChange={e => handleQuestionChange(qIndex, 'label', e.target.value)}
                             fullWidth
+                            label="Question *"
                             placeholder="e.g. What's your favorite song?"
-                            sx={{
-                              ...textFieldSx,
-                              mt: 0,
-                            }}
+                            sx={textFieldSx}
                           />
                         </Box>
                         <Box sx={{ minWidth: 180 }}>
-                          <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Type <span style={{ color: '#DE3F5E' }}>*</span>
-                          </Typography>
                           <FormControl fullWidth>
+                            <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Type *</InputLabel>
                             <Select
                               value={q.type}
                               onChange={e => handleQuestionChange(qIndex, 'type', e.target.value)}
-                              size="small"
+                              label="Type *"
                               sx={{
                                 borderRadius: '12px',
                                 bgcolor: 'white',
                                 '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
                                 '&:hover fieldset': { borderColor: '#DE3F5E' },
                                 '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-                                '& .MuiSelect-select': { py: 1.5 },
                               }}
                             >
                               {QUESTION_TYPES.map(t => (

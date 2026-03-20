@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Box, TextField, Stack, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { CheckCircle } from '@mui/icons-material';
+import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
 
 const fieldSx = {
@@ -16,6 +17,13 @@ const fieldSx = {
   '& .MuiInputLabel-root': {
     color: '#524344',
     fontSize: '0.875rem',
+    transform: 'translate(14px, 13px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+    },
+    '&.Mui-focused': {
+      color: '#DE3F5E',
+    },
   },
   '& .MuiInputBase-input': {
     color: '#1a1a1a',
@@ -86,7 +94,7 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
             onChange={(e) => setLocation(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); if (e.key === 'Escape') onCancel(); }}
             InputProps={{
-              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}>{'📍'}</InputAdornment>,
+              startAdornment: <InputAdornment position="start" sx={{ mr: 0.5 }}><StreamlineIcon name="map-pin" size={16} color="#6a6a6a" /></InputAdornment>,
             }}
             sx={{ ...fieldSx, flex: 1 }}
           />

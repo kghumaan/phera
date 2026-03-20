@@ -354,7 +354,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. Thai Airways"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -368,7 +368,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. TG123"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -386,7 +386,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. LAX"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -400,7 +400,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. BKK"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -420,7 +420,7 @@ export default function TravelDetailsPage() {
                       inputProps={{ min: '2025-12-01', max: '2026-01-10' }}
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -435,7 +435,7 @@ export default function TravelDetailsPage() {
                       InputLabelProps={{ shrink: true }}
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666' },
+                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                         '& .MuiOutlinedInput-root': { 
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         },
@@ -474,7 +474,7 @@ export default function TravelDetailsPage() {
                     helperText="This is your preferred time. We'll confirm the closest available shuttle slot."
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
-                      '& .MuiInputLabel-root': { color: '#666' },
+                      '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                       '& .MuiOutlinedInput-root': { 
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                       },
@@ -492,7 +492,7 @@ export default function TravelDetailsPage() {
                     placeholder="e.g. Traveling with luggage, need wheelchair access, etc."
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
-                      '& .MuiInputLabel-root': { color: '#666' },
+                      '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
                       '& .MuiOutlinedInput-root': { 
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                       },

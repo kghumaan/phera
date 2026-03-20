@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
  */
 
 describe('Tier upgrade redirect logic', () => {
-  let mockRouterPush: ReturnType<typeof vi.fn>;
+  let mockRouterPush: any;
 
   beforeEach(() => {
     mockRouterPush = vi.fn();

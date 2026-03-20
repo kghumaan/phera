@@ -22,8 +22,8 @@ import { format, parseISO } from 'date-fns';
 import { TablesUpdate } from '@/lib/supabase/types';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
@@ -134,6 +134,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   const router = useRouter();
   const { user: authUser } = useAuth();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -343,11 +344,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         console.log('✅ Form data set successfully');
       } else {
         console.warn('⚠️ No wedding found for slug:', weddingSlug);
-        toast.error(`No wedding found with ID: ${weddingSlug}`);
+        showStatus('error', `No wedding found with ID: ${weddingSlug}`);
       }
     } catch (err) {
       console.error('❌ Error loading wedding:', err);
-      toast.error(`Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`);
+      showStatus('error', `Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`);
       setError(`Failed to load wedding data: ${(err as Error).message || 'Unknown error'}`);
     } finally {
       console.log('✅ Setting loading to false');

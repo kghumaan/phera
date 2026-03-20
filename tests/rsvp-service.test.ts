@@ -43,7 +43,8 @@ vi.mock('@/lib/utils/avatar-generator', () => ({
     generateFallbackColor: vi.fn(() => '#E91E63'),
 }));
 
-import { getExistingRSVP, getAllRSVPs, getComments } from '@/lib/supabase/rsvp-service';
+import { getExistingRSVP, getAllRSVPs, getComments, submitRSVP } from '@/lib/supabase/rsvp-service';
+import type { RSVPFormData } from '@/lib/supabase/types';
 
 describe('rsvp-service', () => {
     beforeEach(() => {
@@ -196,6 +197,244 @@ describe('rsvp-service', () => {
             mockSupabase.from.mockReturnValue(failBuilder);
 
             await expect(getComments('wedding-1')).rejects.toBeTruthy();
+        });
+    });
+
+    // ─── submitRSVP ─────────────────────────────────────────────────
+    // These tests verify that form submission works regardless of which
+    // optional steps are present, matching the admin's ability to hide
+    // "Team Bride/Groom" and "Music Request & Comment".
+
+    describe('submitRSVP', () => {
+        const baseFormData: RSVPFormData = {
+            firstName: 'Jane',
+            lastName: 'Doe',
+            email: 'jane@example.com',
+            password: 'password123',
+            countryCode: '+1',
+            phone: '1234567890',
+            attending: 'yes',
+            plusOne: 'no',
+            plusOneName: '',
+            plusOneEmail: '',
+            plusOneCountryCode: '+1',
+            plusOnePhone: '',
+            guestCount: 1,
+            foodPreference: ['vegetarian'],
+            dietaryRestrictions: 'none',
+            weddingSide: 'bride',
+            songRequest: 'Song A',
+            specialMessage: 'Congrats!',
+            maybeComment: '',
+        };
+
+        function setupSubmitMocks(existingGuestId: string | null = null) {
+            // Mock global fetch for WhatsApp / other API calls
+            global.fetch = vi.fn().mockResolvedValue({ ok: true });
+
+            // Call 1: guests.select (check existing guest)
+            const guestSelectBuilder = mockSupabase._makeBuilder(
+                existingGuestId ? { id: existingGuestId } : null,
+                existingGuestId ? null : { code: 'PGRST116' }
+            );
+
+            // Call 2: guests.update or guests.insert
+            const guestMutateBuilder = mockSupabase._makeBuilder({ id: existingGuestId || 'new-guest-id' });
+
+            // Call 3: rsvps.upsert
+            const rsvpBuilder = mockSupabase._makeBuilder({ id: 'rsvp-1' });
+
+            // Call 4: comments.insert (if specialMessage provided)
+            const commentBuilder = mockSupabase._makeBuilder({ id: 'comment-1' });
+
+            let callCount = 0;
+            (mockSupabase.from as any).mockImplementation((table: string) => {
+                callCount++;
+                if (table === 'guests' && callCount === 1) return guestSelectBuilder;
+                if (table === 'guests') return guestMutateBuilder;
+                if (table === 'rsvps') return rsvpBuilder;
+                if (table === 'comments') return commentBuilder;
+                return mockSupabase._makeBuilder();
+            });
+
+            return { guestSelectBuilder, guestMutateBuilder, rsvpBuilder, commentBuilder };
+        }
+
+        it('should submit successfully with all steps present', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const result = await submitRSVP(baseFormData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+            expect(result.guestId).toBe('existing-guest-1');
+        });
+
+        it('should submit successfully when Team Bride/Groom is hidden (no weddingSide)', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                weddingSide: '', // hidden step — empty value
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+            // Verify guest update was called with null wedding_side
+            expect(mockSupabase.from).toHaveBeenCalledWith('guests');
+        });
+
+        it('should submit successfully when Music Request & Comment is hidden (no song/message)', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                songRequest: '',    // hidden step — empty
+                specialMessage: '', // hidden step — empty
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+            // Should NOT insert a comment when specialMessage is empty
+            const commentCalls = mockSupabase.from.mock.calls.filter(
+                (c: any[]) => c[0] === 'comments'
+            );
+            expect(commentCalls).toHaveLength(0);
+        });
+
+        it('should submit successfully when both optional steps are hidden', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                weddingSide: '',
+                songRequest: '',
+                specialMessage: '',
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should submit successfully for a new guest (no existing record)', async () => {
+            setupSubmitMocks(null);
+
+            const result = await submitRSVP(baseFormData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+            // First guests call is select (returns null), second is insert
+            expect(mockSupabase.from).toHaveBeenCalledWith('guests');
+        });
+
+        it('should submit successfully with "no" attendance (early exit scenario)', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                attending: 'no',
+                foodPreference: [],
+                weddingSide: '',
+                songRequest: '',
+                specialMessage: '',
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should submit successfully with "maybe" attendance', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                attending: 'maybe',
+                maybeComment: 'Checking flights',
+                weddingSide: '',
+                songRequest: '',
+                specialMessage: '',
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should submit successfully with custom_answers (custom steps)', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                custom_answers: {
+                    'q-1': 'Blue',
+                    'q-2': 'Large',
+                },
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should submit with plus-one details when allowed', async () => {
+            setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                plusOne: 'yes',
+                plusOneName: 'John Doe',
+                plusOneEmail: 'john@example.com',
+                plusOneCountryCode: '+1',
+                plusOnePhone: '9876543210',
+                guestCount: 2,
+            };
+
+            const result = await submitRSVP(formData, 'wedding-1');
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should return error when rsvp upsert fails', async () => {
+            global.fetch = vi.fn().mockResolvedValue({ ok: true });
+
+            // Guest select — existing guest found
+            const guestSelectBuilder = mockSupabase._makeBuilder({ id: 'guest-1' });
+            // Guest update
+            const guestUpdateBuilder = mockSupabase._makeBuilder({ id: 'guest-1' });
+            // RSVP upsert — fails
+            const rsvpBuilder = mockSupabase._makeBuilder(null, { code: '42703', message: 'column error' });
+
+            let callCount = 0;
+            (mockSupabase.from as any).mockImplementation((table: string) => {
+                callCount++;
+                if (table === 'guests' && callCount === 1) return guestSelectBuilder;
+                if (table === 'guests') return guestUpdateBuilder;
+                if (table === 'rsvps') return rsvpBuilder;
+                return mockSupabase._makeBuilder();
+            });
+
+            const result = await submitRSVP(baseFormData, 'wedding-1');
+
+            expect(result.success).toBe(false);
+        });
+
+        it('should not include custom_answers in rsvp upsert payload', async () => {
+            const { rsvpBuilder } = setupSubmitMocks('existing-guest-1');
+
+            const formData: RSVPFormData = {
+                ...baseFormData,
+                custom_answers: { 'q-1': 'Answer' },
+            };
+
+            await submitRSVP(formData, 'wedding-1');
+
+            // Verify the upsert was called and the payload does NOT contain custom_answers
+            const upsertCall = rsvpBuilder.upsert.mock.calls[0];
+            expect(upsertCall).toBeDefined();
+            const payload = upsertCall[0];
+            expect(payload).not.toHaveProperty('custom_answers');
         });
     });
 });

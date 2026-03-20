@@ -118,7 +118,7 @@ describe('AppHeader avatar rendering logic', () => {
     it('should show WhatsApp button when RSVPed maybe', () => {
       const isLandingPage = false;
       const hasRSVPed = true;
-      const rsvpResponse = 'maybe';
+      const rsvpResponse: string = 'maybe';
       const shouldShow = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
       expect(shouldShow).toBe(true);
     });
@@ -126,7 +126,7 @@ describe('AppHeader avatar rendering logic', () => {
     it('should NOT show WhatsApp button when RSVPed no', () => {
       const isLandingPage = false;
       const hasRSVPed = true;
-      const rsvpResponse = 'no';
+      const rsvpResponse: string = 'no';
       const shouldShow = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
       expect(shouldShow).toBe(false);
     });

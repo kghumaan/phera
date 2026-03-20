@@ -29,38 +29,26 @@ import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailC
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 
-// All available background filenames (derived from thumbs directory)
+// Curated background options — 3 rows of 5
 const BACKGROUNDS = [
+  // Row 1
+  'pro-bg-mesh-2.webp',
+  'paisley-cream.webp',
+  'royal-purple.webp',
+  'ivory-linen.webp',
+  'burgundy-silk.webp',
+  // Row 2
+  'paisley-blue.webp',
   'GradientReception.webp',
-  'pearl.webp',
   'GradientYellow.webp',
-  'GradientJaggo.webp',
   'GradientPoolParty.webp',
+  'GradientJaggo.webp',
+  // Row 3
   'GradientCottonCandy.webp',
+  'aquarium.webp',
   'rose-quartz.webp',
   'marble-gold.webp',
-  'jade.webp',
-  'lavender.webp',
-  'sunset.webp',
-  'lotus-petals.webp',
-  'handmade-paper-floral.webp',
-  'pressed-flowers-subtle.webp',
-  'aquamarine.webp',
-  'amethyst-lavender.webp',
-  'aquarium.webp',
-  'aventurine-green.webp',
-  'bamboo-sage.webp',
-  'blue-clouds.webp',
-  'citrine-quartz.webp',
-  'moonstone-shimmer.webp',
-  'ocean-waves.webp',
-  'periwinkle-pink-sunset.webp',
-  'pressed-flowers-faded.webp',
-  'pressed-flowers-textured.webp',
-  'sage-watercolor.webp',
-  'sandstone-beige.webp',
-  'tropical-sage.webp',
-  'watercolor-blue-sky.webp',
+  'pearl.webp',
 ];
 
 const COLLAGE_PRESETS = [
@@ -289,7 +277,7 @@ const fieldSx = {
     '&:hover fieldset': { borderColor: '#999' },
     '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem' },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
   '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '0.9rem' },
 };
 
@@ -334,7 +322,7 @@ export default function MoreDetailsModal({
   const { setStatus: setGlobalSaveStatus } = useAutoSaveStatus();
   // activeTab: 'look-feel' or slide index (0, 1, 2, ...)
   const [activeTab, setActiveTab] = useState<'look-feel' | number>('look-feel');
-  const [gradientBackground, setGradientBackground] = useState<string>('GradientReception.webp');
+  const [gradientBackground, setGradientBackground] = useState<string>('pro-bg-mesh-2.webp');
   const [fontColor, setFontColor] = useState<string>('#FFFFFF');
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
@@ -362,7 +350,7 @@ export default function MoreDetailsModal({
             // Only use gradient_background if it's a valid filename (not a hex color)
             const bg = event.gradient_background;
             const isValidBg = bg && !bg.startsWith('#') && bg.endsWith('.webp');
-            setGradientBackground(isValidBg ? bg : 'GradientReception.webp');
+            setGradientBackground(isValidBg ? bg : 'pro-bg-mesh-2.webp');
             setFontColor(event.text_color || '#FFFFFF');
             const existingSlides = event.carousel_slides || [];
             setSlides(existingSlides.length > 0 ? existingSlides : defaultSlides);
@@ -386,7 +374,7 @@ export default function MoreDetailsModal({
             time: scheduleItem.time || '',
             date: '',
             dress_code: scheduleItem.dress_code || '',
-            gradient_background: 'GradientReception.webp',
+            gradient_background: 'pro-bg-mesh-2.webp',
             order_index: 0,
           });
 
@@ -396,7 +384,7 @@ export default function MoreDetailsModal({
               linked_event_id: newEvent.id,
             });
             setLinkedEventId(newEvent.id);
-            setGradientBackground(newEvent.gradient_background || 'GradientReception.webp');
+            setGradientBackground(newEvent.gradient_background || 'pro-bg-mesh-2.webp');
             setSlides(defaultSlides);
           }
         }
@@ -716,6 +704,18 @@ export default function MoreDetailsModal({
               {slides.length > 0 && (
                 <DiamondIndicators total={slides.length} current={previewSlideIndex} activeColor="#DE3F5E" />
               )}
+
+              {/* CTA preview — matches what guests see on the schedule card */}
+              {slides.length > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'underline' }}>
+                    More Details
+                  </Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem' }}>
+                    {'>'}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>
@@ -789,47 +789,32 @@ function BackgroundPicker({
         </Typography>
 
         <Box sx={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           gap: '12px',
-          overflowX: 'auto',
-          pb: 1,
-          '&::-webkit-scrollbar': { height: 4 },
-          '&::-webkit-scrollbar-thumb': { bgcolor: '#ccc', borderRadius: 2 },
         }}>
-          {/* Chunk backgrounds into columns of 3 for horizontal scroll */}
-          {(() => {
-            const cols: string[][] = [];
-            for (let i = 0; i < BACKGROUNDS.length; i += 3) {
-              cols.push(BACKGROUNDS.slice(i, i + 3));
-            }
-            return cols.map((col, ci) => (
-              <Box key={ci} sx={{ display: 'flex', flexDirection: 'column', gap: '12px', flexShrink: 0 }}>
-                {col.map((bg) => {
-                  const thumbName = bg.replace('.webp', '.thumb.webp');
-                  const isSelected = selected === bg;
-                  return (
-                    <Box
-                      key={bg}
-                      onClick={() => onSelect(bg)}
-                      sx={{
-                        width: 106,
-                        height: 106,
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        border: isSelected ? '4px solid #DE3F5E' : '2px solid transparent',
-                        transition: 'border-color 0.15s',
-                        '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ccc' },
-                        backgroundImage: `url(/images/backgrounds/thumbs/${thumbName})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            ));
-          })()}
+          {BACKGROUNDS.map((bg) => {
+            const thumbName = bg.replace('.webp', '.thumb.webp');
+            const isSelected = selected === bg;
+            return (
+              <Box
+                key={bg}
+                onClick={() => onSelect(bg)}
+                sx={{
+                  aspectRatio: '1',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: isSelected ? '4px solid #DE3F5E' : '2px solid transparent',
+                  transition: 'border-color 0.15s',
+                  '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ccc' },
+                  backgroundImage: `url(/images/backgrounds/thumbs/${thumbName})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              />
+            );
+          })}
         </Box>
       </Stack>
 

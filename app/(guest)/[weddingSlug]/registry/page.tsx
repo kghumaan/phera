@@ -74,7 +74,7 @@ export default function RegistryPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/lavender.png"
+      src="/images/backgrounds/lavender.webp"
       className="min-h-screen"
     >
       {/* Desktop Header - AppHeader with consistent styling */}
@@ -255,12 +255,11 @@ export default function RegistryPage() {
                         variant="h4"
                         sx={{
                           fontWeight: 600,
-                          fontSize: { xs: 28, md: 32, lg: 36 },
                           lineHeight: 1,
                           color: '#141414',
                         }}
                       >
-                        {item.emoji} {item.fund_name}
+                        {item.fund_name}
                       </Typography>
 
                       <ChevronRight

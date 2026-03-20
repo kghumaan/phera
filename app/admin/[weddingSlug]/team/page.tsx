@@ -7,7 +7,6 @@ import {
   Button,
   Stack,
   Paper,
-  Alert,
   TextField,
   Chip,
   IconButton,
@@ -17,7 +16,6 @@ import {
   ListItemIcon,
   ListItemSecondaryAction,
   Divider,
-  Snackbar,
   alpha,
   Avatar,
   Select,
@@ -47,13 +45,15 @@ import { supabase } from '@/lib/supabase/client';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 const selectSx = {
+  mt: 1,
   '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
+    borderRadius: '12px',
     bgcolor: 'white',
     '& fieldset': {
       borderColor: 'rgba(0, 0, 0, 0.23)',
@@ -68,23 +68,22 @@ const selectSx = {
   },
   '& .MuiInputLabel-root': {
     color: '#4a4a4a',
-    fontSize: '1rem',
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E',
+    fontWeight: 500,
+    '&.Mui-focused': {
+      color: '#DE3F5E',
+    },
   },
   '& .MuiSelect-select': {
     color: '#1a1a1a',
-    fontSize: '1.1rem',
-  },
-  '& .MuiOutlinedInput-input': {
-    color: '#1a1a1a',
+    fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
+    py: { xs: 1.5, md: 1.75, lg: 2 },
   },
 };
 
 export default function TeamPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -102,20 +101,9 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   const [itemToDelete, setItemToDelete] = useState<{ type: 'member' | 'invite'; id: string; email: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   
-  // Toast notifications
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('info');
-
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
-
-  const showToast = (message: string, severity: 'error' | 'success' | 'info' | 'warning' = 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
 
   const loadData = async () => {
     try {
@@ -142,7 +130,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       }
     } catch (err) {
       console.error('Error loading team data:', err);
-      showToast('Failed to load team data', 'error');
+      showStatus('error', 'Failed to load team data');
     } finally {
       setLoading(false);
     }
@@ -156,19 +144,19 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   const handleSendInvite = async () => {
     if (isViewOnly) return;
     if (!weddingId || !currentUserId) {
-      showToast('Missing required information. Please refresh the page.', 'error');
+      showStatus('error', 'Missing required information. Please refresh the page.');
       return;
     }
 
     const email = inviteEmail.trim().toLowerCase();
 
     if (!email) {
-      showToast('Please enter an email address', 'warning');
+      showStatus('error', 'Please enter an email address');
       return;
     }
 
     if (!validateEmail(email)) {
-      showToast('Please enter a valid email address', 'error');
+      showStatus('error', 'Please enter a valid email address');
       return;
     }
 
@@ -176,7 +164,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
     try {
       const inviteExists = await weddingService.checkInviteExists(weddingId, email);
       if (inviteExists) {
-        showToast('An invite has already been sent to this email', 'warning');
+        showStatus('error', 'An invite has already been sent to this email');
         return;
       }
     } catch (err) {
@@ -189,7 +177,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       member => member.email.toLowerCase() === email
     );
     if (isAlreadyMember) {
-      showToast('This person is already a team member', 'warning');
+      showStatus('error', 'This person is already a team member');
       return;
     }
 
@@ -239,15 +227,12 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
         
         // Show appropriate message based on email status
         if (emailSent) {
-          showToast(`Invite sent to ${email}`, 'success');
+          showStatus('saved', `Invite sent to ${email}`);
         } else {
-          showToast(
-            `Invite created for ${email}, but email notification failed. They can still sign up with this email.`,
-            'warning'
-          );
+          showStatus('saved', `Invite created for ${email}, but email notification failed. They can still sign up with this email.`);
         }
       } else {
-        showToast('Failed to send invite. Please check console for details.', 'error');
+        showStatus('error', 'Failed to send invite. Please check console for details.');
       }
     } catch (err: any) {
       console.error('Error sending invite:', err);
@@ -288,7 +273,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
         currentUserId,
       });
       
-      showToast(errorMessage, 'error');
+      showStatus('error', errorMessage);
     } finally {
       setSending(false);
     }
@@ -311,22 +296,22 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
         const success = await weddingService.deleteWeddingInvite(itemToDelete.id);
         if (success) {
           setPendingInvites(pendingInvites.filter(inv => inv.id !== itemToDelete.id));
-          showToast('Invite cancelled', 'success');
+          showStatus('saved', 'Invite cancelled');
         } else {
-          showToast('Failed to cancel invite', 'error');
+          showStatus('error', 'Failed to cancel invite');
         }
       } else if (itemToDelete.type === 'member') {
         const success = await weddingService.removeWeddingAdmin(itemToDelete.id);
         if (success) {
           setTeamMembers(teamMembers.filter(m => m.id !== itemToDelete.id));
-          showToast('Team member removed', 'success');
+          showStatus('saved', 'Team member removed');
         } else {
-          showToast('Failed to remove team member', 'error');
+          showStatus('error', 'Failed to remove team member');
         }
       }
     } catch (err) {
       console.error('Error deleting:', err);
-      showToast('An error occurred', 'error');
+      showStatus('error', 'An error occurred');
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
@@ -408,158 +393,100 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={4}>
+      <Stack spacing={3} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              mb: 0.5,
-              color: '#1a1a1a',
-            }}
-          >
-            Team
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            Collaborators
           </Typography>
           <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
             Manage who can access and edit your wedding website
           </Typography>
         </Box>
 
-        {/* Invite New Member Card */}
-        {isOwner && (
-          <Paper
-            sx={{
-              p: { xs: 3, md: 4 },
-              borderRadius: '24px',
-              bgcolor: 'white',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            <Stack spacing={3}>
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <PersonAdd sx={{ color: '#DE3F5E', fontSize: 28 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                  Invite Team Member
-                </Typography>
-              </Box>
-
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Invite your partner or wedding planner to help manage your wedding website.
-                They&apos;ll get access when they sign up or log in with this email.
-              </Typography>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'flex-start' }}>
-                <TextField
-                  label="Email Address"
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="partner@example.com"
-                  fullWidth
-                  sx={{ ...textFieldSx, flex: 2 }}
-                />
-
-                <FormControl sx={{ ...selectSx, minWidth: 160 }}>
-                  <InputLabel>Role</InputLabel>
-                  <Select
-                    value={inviteRole}
-                    label="Role"
-                    onChange={(e) => setInviteRole(e.target.value as 'admin' | 'viewer')}
-                  >
-                    <MenuItem value="admin">
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <EditIcon sx={{ fontSize: 18, color: '#DE3F5E' }} />
-                        Can Edit
-                      </Box>
-                    </MenuItem>
-                    <MenuItem value="viewer">
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Visibility sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                        View Only
-                      </Box>
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-
-                <Button
-                  variant="contained"
-                  startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <Send />}
-                  onClick={handleSendInvite}
-                  disabled={sending || !inviteEmail.trim()}
-                  sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    py: 2,
-                    px: 4,
-                    borderRadius: '16px',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    minWidth: 140,
-                    boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                    '&:hover': {
-                      bgcolor: '#C8365A',
-                      boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                    },
-                    '&:disabled': {
-                      bgcolor: alpha('#DE3F5E', 0.5),
-                      color: 'white',
-                    },
-                  }}
-                >
-                  {sending ? 'Sending...' : 'Send Invite'}
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        )}
-
-        {/* Team Members (including pending invites) */}
-        <Paper
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: '24px',
-            bgcolor: 'white',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          }}
-        >
+        {/* Single combined section */}
+        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3, boxShadow: 'none' }}>
           <Stack spacing={3}>
-            <Box display="flex" alignItems="center" gap={1.5}>
-              <CheckCircle sx={{ color: '#10B981', fontSize: 28 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                Team Members
-              </Typography>
-              <Chip
-                label={teamMembers.length + pendingInvites.length}
-                size="small"
-                sx={{
-                  bgcolor: alpha('#10B981', 0.1),
-                  color: '#10B981',
-                  fontWeight: 700,
-                }}
-              />
-            </Box>
+            {/* Invite form */}
+            {isOwner && (
+              <>
+                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  Invite your partner or wedding planner to help manage your wedding website.
+                  They&apos;ll get access when they sign up or log in with this email.
+                </Typography>
 
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'flex-start' }}>
+                  <TextField
+                    label="Email Address"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="partner@example.com"
+                    fullWidth
+                    sx={{ ...textFieldSx, flex: 2 }}
+                  />
+
+                  <FormControl sx={{ ...selectSx, minWidth: 160 }}>
+                    <InputLabel>Role</InputLabel>
+                    <Select
+                      value={inviteRole}
+                      label="Role"
+                      onChange={(e) => setInviteRole(e.target.value as 'admin' | 'viewer')}
+                    >
+                      <MenuItem value="admin">
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <EditIcon sx={{ fontSize: 18, color: '#DE3F5E' }} />
+                          Can Edit
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="viewer">
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Visibility sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                          View Only
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    variant="contained"
+                    startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <Send />}
+                    onClick={handleSendInvite}
+                    disabled={sending || !inviteEmail.trim()}
+                    sx={{
+                      bgcolor: '#DE3F5E',
+                      color: 'white',
+                      borderRadius: '12px',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      px: 3,
+                      py: 1.75,
+                      '&:hover': { bgcolor: '#C8365A' },
+                      '&:disabled': { bgcolor: alpha('#DE3F5E', 0.5), color: 'white' },
+                    }}
+                  >
+                    {sending ? 'Sending...' : 'Send Invite'}
+                  </Button>
+                </Stack>
+
+                <Divider />
+              </>
+            )}
+
+            {/* Members list */}
             <List sx={{ p: 0 }}>
-              {/* Active team members */}
               {teamMembers.map((member, index) => (
                 <Box key={member.id}>
                   {index > 0 && <Divider />}
-                  <ListItem
-                    sx={{
-                      py: 2,
-                      px: 0,
-                    }}
-                  >
+                  <ListItem sx={{ py: 2, px: 0 }}>
                     <ListItemIcon>
                       <Avatar
                         sx={{
-                          bgcolor: member.is_owner
-                            ? alpha('#FFB800', 0.15)
-                            : alpha('#DE3F5E', 0.1),
+                          bgcolor: member.is_owner ? alpha('#FFB800', 0.15) : alpha('#DE3F5E', 0.1),
                           color: member.is_owner ? '#B38600' : '#DE3F5E',
                           fontWeight: 600,
+                          width: 40,
+                          height: 40,
                         }}
                       >
                         {getInitials(member.email)}
@@ -568,50 +495,36 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemText
                       primary={member.email}
                       secondary={member.is_owner ? 'Wedding creator' : `Added ${new Date(member.created_at).toLocaleDateString()}`}
-                      primaryTypographyProps={{
-                        fontWeight: 600,
-                        color: '#1a1a1a',
-                        fontSize: '1.05rem',
-                      }}
-                      secondaryTypographyProps={{
-                        color: '#6a6a6a',
-                      }}
+                      primaryTypographyProps={{ fontWeight: 600, color: '#1a1a1a' }}
+                      secondaryTypographyProps={{ color: '#6a6a6a' }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       {getRoleChip(member.role, member.is_owner)}
                       {!member.is_owner && isOwner && (
                         <IconButton
+                          size="small"
                           onClick={() => handleDeleteClick('member', member.id, member.email)}
-                          sx={{
-                            color: '#EF4444',
-                            '&:hover': {
-                              bgcolor: alpha('#EF4444', 0.1),
-                            },
-                          }}
+                          sx={{ color: '#1a1a1a', '&:hover': { color: '#DE3F5E' } }}
                         >
-                          <Delete />
+                          <Delete fontSize="small" />
                         </IconButton>
                       )}
                     </Box>
                   </ListItem>
                 </Box>
               ))}
-              
-              {/* Pending invites */}
+
               {pendingInvites.map((invite, index) => (
                 <Box key={`invite-${invite.id}`}>
                   {(teamMembers.length > 0 || index > 0) && <Divider />}
-                  <ListItem
-                    sx={{
-                      py: 2,
-                      px: 0,
-                    }}
-                  >
+                  <ListItem sx={{ py: 2, px: 0 }}>
                     <ListItemIcon>
                       <Avatar
                         sx={{
                           bgcolor: alpha('#FFB800', 0.15),
                           color: '#B38600',
+                          width: 40,
+                          height: 40,
                         }}
                       >
                         <HourglassEmpty sx={{ fontSize: 20 }} />
@@ -620,29 +533,18 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemText
                       primary={invite.email}
                       secondary="Invite pending — waiting for them to sign up or log in"
-                      primaryTypographyProps={{
-                        fontWeight: 600,
-                        color: '#1a1a1a',
-                        fontSize: '1.05rem',
-                      }}
-                      secondaryTypographyProps={{
-                        color: '#B38600',
-                        fontStyle: 'italic',
-                      }}
+                      primaryTypographyProps={{ fontWeight: 600, color: '#1a1a1a' }}
+                      secondaryTypographyProps={{ color: '#B38600', fontStyle: 'italic' }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       {getRoleChip(invite.role, false)}
                       {isOwner && (
                         <IconButton
+                          size="small"
                           onClick={() => handleDeleteClick('invite', invite.id, invite.email)}
-                          sx={{
-                            color: '#EF4444',
-                            '&:hover': {
-                              bgcolor: alpha('#EF4444', 0.1),
-                            },
-                          }}
+                          sx={{ color: '#1a1a1a', '&:hover': { color: '#DE3F5E' } }}
                         >
-                          <Delete />
+                          <Delete fontSize="small" />
                         </IconButton>
                       )}
                     </Box>
@@ -650,32 +552,22 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                 </Box>
               ))}
             </List>
-          </Stack>
-        </Paper>
 
-        {/* Info Card */}
-        <Paper
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: '24px',
-            bgcolor: alpha('#f5f5f5', 0.5),
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
-          }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            {/* About access */}
+            <Divider />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
               About Team Access
             </Typography>
             <Box component="ul" sx={{ m: 0, pl: 2.5, color: '#4a4a4a' }}>
-              <Box component="li" sx={{ mb: 1 }}>
-                <strong>Owner</strong> - The person who created the wedding. Has full control including deleting the wedding.
-              </Box>
-              <Box component="li" sx={{ mb: 1 }}>
-                <strong>Can Edit</strong> - Can make changes to all wedding details, events, and settings.
-              </Box>
-              <Box component="li">
-                <strong>View Only</strong> - Can view the admin dashboard but cannot make changes.
-              </Box>
+              <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                <strong>Owner</strong> — The person who created the wedding. Has full control including deleting the wedding.
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                <strong>Can Edit</strong> — Can make changes to all wedding details, events, and settings.
+              </Typography>
+              <Typography component="li" variant="body2">
+                <strong>View Only</strong> — Can view the admin dashboard but cannot make changes.
+              </Typography>
             </Box>
           </Stack>
         </Paper>
@@ -733,21 +625,6 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           </DialogActions>
         </Dialog>
 
-        {/* Toast Notification */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </Stack>
     </Box>
   );

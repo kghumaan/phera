@@ -81,8 +81,8 @@ export default function TravelPage() {
   if (loading) {
     return (
       <OptimizedBackground
-        src="/images/backgrounds/rose-quartz.png"
-        alt="Rose Quartz Background"
+        src="/images/backgrounds/pearl.webp"
+        alt="Pearl Background"
         priority
       >
         <Box sx={{ minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -94,8 +94,8 @@ export default function TravelPage() {
 
   return (
     <OptimizedBackground
-      src="/images/backgrounds/rose-quartz.png"
-      alt="Rose Quartz Background"
+      src="/images/backgrounds/pearl.webp"
+      alt="Pearl Background"
       priority
     >
       <Box
@@ -243,11 +243,6 @@ export default function TravelPage() {
                 }}
               >
                 <Box>
-                  {detailSection.subtitle && (
-                    <Typography variant="overline" sx={{ color: '#6a6a6a', letterSpacing: 1.5, display: 'block' }}>
-                      {detailSection.subtitle}
-                    </Typography>
-                  )}
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                     {detailSection.title}
                   </Typography>

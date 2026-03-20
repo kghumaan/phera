@@ -514,10 +514,9 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
 
           {/* Heading */}
           <Typography
-            variant="h2"
+            variant="h3"
             sx={{
               color: pinEntryFontColor,
-              fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem', lg: '3rem', xl: '3.25rem' },
               lineHeight: 1.3,
               textAlign: 'center',
             }}

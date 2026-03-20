@@ -141,7 +141,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               <Switch
                 checked={formData.allows_plus_one}
                 onChange={(e) => setFormData({ ...formData, allows_plus_one: e.target.checked })}
-                sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
               />
             }
             label={
@@ -158,7 +158,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               <Switch
                 checked={formData.skip_rsvp}
                 onChange={(e) => setFormData({ ...formData, skip_rsvp: e.target.checked })}
-                sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
               />
             }
             label={
@@ -179,7 +179,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
                 <Switch
                   checked={formData.restrictEvents}
                   onChange={(e) => setFormData({ ...formData, restrictEvents: e.target.checked, hidden_events: e.target.checked ? formData.hidden_events : [] })}
-                  sx={{ '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                  sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
                 />
               }
               label={

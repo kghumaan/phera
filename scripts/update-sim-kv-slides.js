@@ -166,14 +166,14 @@ const EVENT_SLIDES = {
 
 // Gradient backgrounds for events
 const EVENT_GRADIENTS = {
-  'haldi': 'GradientYellow.png',
-  'baraat': 'GradientJaggo.png',
-  'varmala': 'pearl.png',
-  'jaggo': 'GradientJaggo.png',
-  'anand-karaj': 'pearl.png',
-  'pool-party': 'GradientPoolParty.png',
-  'sangeet': 'GradientReception.png',
-  'reception': 'GradientReception.png',
+  'haldi': 'GradientYellow.webp',
+  'baraat': 'GradientJaggo.webp',
+  'varmala': 'pearl.webp',
+  'jaggo': 'GradientJaggo.webp',
+  'anand-karaj': 'pearl.webp',
+  'pool-party': 'GradientPoolParty.webp',
+  'sangeet': 'GradientReception.webp',
+  'reception': 'GradientReception.webp',
 };
 
 // Match event names to slide keys with fuzzy matching

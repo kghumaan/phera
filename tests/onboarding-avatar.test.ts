@@ -91,7 +91,7 @@ describe('onboarding avatar generation', () => {
     });
 
     it('should generate avatar when no settings exist at all', () => {
-      const existingSettings = null;
+      const existingSettings = null as any;
 
       const shouldGenerate = !existingSettings?.avatar_svg;
       expect(shouldGenerate).toBe(true);

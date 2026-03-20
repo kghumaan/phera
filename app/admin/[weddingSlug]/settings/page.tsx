@@ -23,8 +23,8 @@ import { CheckCircle, Cancel, Launch, ContentCopy } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
-import { toast } from 'sonner';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
@@ -36,6 +36,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   const { weddingSlug } = use(params);
   const { user: authUser } = useAuth();
   const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
@@ -80,7 +81,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       console.error('Error loading settings:', err);
       const errorMessage = 'Failed to load settings';
       setError(errorMessage);
-      toast.error(errorMessage);
+      showStatus('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -136,11 +137,11 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         draft: 'Wedding set to draft mode',
         live: '🎉 Wedding website is now live!'
       };
-      toast.success(statusMessages[newStatus]);
+      showStatus('saved', statusMessages[newStatus]);
     } catch (err) {
       const errorMessage = 'Failed to update status';
       setError(errorMessage);
-      toast.error(errorMessage);
+      showStatus('error', errorMessage);
     } finally {
       setUpdatingStatus(false);
     }
@@ -193,7 +194,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
+    showStatus('saved', 'Copied to clipboard!');
   };
 
   if (loading) {

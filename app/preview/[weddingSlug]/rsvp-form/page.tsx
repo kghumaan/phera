@@ -18,12 +18,13 @@ function RSVPFormContent({ weddingSlug }: { weddingSlug: string }) {
         sx={{
           minHeight: '100vh',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
-          py: 4,
+          pt: 8,
+          pb: 4,
         }}
       >
-        <CustomRSVPForm weddingId={weddingSlug} />
+        <CustomRSVPForm weddingId={weddingSlug} isPreview />
       </Box>
     </OptimizedBackground>
   );
