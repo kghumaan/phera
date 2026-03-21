@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
 
-export type PlanType = 'basic' | 'pro' | 'planner';
+export type PlanType = 'phera' | 'phera_premium' | 'phera_grand' | 'planner';
 
 interface PlanContextType {
   plan: PlanType;
@@ -19,7 +19,7 @@ const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [plan, setPlanState] = useState<PlanType>('basic');
+  const [plan, setPlanState] = useState<PlanType>('phera');
   const [isLoading, setIsLoading] = useState(true);
 
   // Load user's plan from Supabase
@@ -46,7 +46,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setPlanState(data.subscription_tier as PlanType);
       } else {
         // Default to basic for new users
-        setPlanState('basic');
+        setPlanState('phera');
       }
     } catch (err) {
       console.error('Error loading plan:', err);
@@ -90,7 +90,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id]);
 
   const togglePlan = useCallback(async () => {
-    const newPlan = plan === 'basic' ? 'pro' : 'basic';
+    const newPlan = plan === 'phera' ? 'phera_premium' : 'phera';
     await setPlan(newPlan);
   }, [plan, setPlan]);
 
@@ -99,7 +99,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       value={{
         plan,
         isLoading,
-        isPro: plan === 'pro' || plan === 'planner',
+        isPro: true, // All features included in all paid tiers
         isPlanner: plan === 'planner',
         togglePlan,
         setPlan,
