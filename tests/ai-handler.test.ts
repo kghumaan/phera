@@ -84,13 +84,14 @@ function setupMockData(overrides: {
 
   const d = { ...defaults, ...overrides };
 
-  // Promise.all expects 12 parallel queries in order
+  // Promise.all expects 13 parallel queries in order
   const mockCalls = [
     chain(d.wedding),                    // weddings
     chain(d.events),                     // wedding_events
     chain(d.schedule),                   // wedding_schedule
     chain(d.scheduleItems),              // schedule_items
     chain(d.travel),                     // wedding_travel_cards
+    chain(d.travel),                     // travel_sections
     chain(d.faqs),                       // wedding_faqs
     chain(d.rsvps),                      // rsvps
     chain(d.chat),                       // whatsapp_chat_history

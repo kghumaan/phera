@@ -8,24 +8,23 @@ Branch: develop-v2
 | Metric | Count |
 |--------|-------|
 | Total test files | 65 |
-| Passing files | 60 |
-| Failing files | 5 (all pre-existing on main) |
+| Passing files | 62 |
+| Failing files | 3 (integration tests needing Supabase connection) |
 | Total tests | 1,177 |
-| Passing tests | 1,022 |
-| Failing tests | 29 (all pre-existing on main) |
-| Skipped tests | 126 |
+| Passing tests | 1,051 |
+| Failing tests | 0 |
+| Skipped tests | 126 (integration tests without DB credentials) |
 
-### Pre-Existing Failures (confirmed on main branch)
+### Integration Test Suites (require TEST_SUPABASE_* env vars)
 
-| Test File | Failure Count | Reason |
-|-----------|--------------|--------|
-| tests/rls-integration.test.ts | 12 | Requires TEST_SUPABASE_* env vars |
-| tests/workflow-integration.test.ts | 6 | Requires TEST_SUPABASE_* env vars |
-| tests/edge-cases-integration.test.ts | 2 | Requires TEST_SUPABASE_* env vars |
-| tests/ai-handler.test.ts | 7 | Mock structure issue (pre-existing) |
-| tests/concierge-knowledge-entry.test.tsx | 2 | DOM element click test (pre-existing) |
+| Test File | Tests | Reason |
+|-----------|-------|--------|
+| tests/rls-integration.test.ts | 87 skipped | Requires TEST_SUPABASE_URL/KEY |
+| tests/workflow-integration.test.ts | 30 skipped | Requires TEST_SUPABASE_URL/KEY |
+| tests/edge-cases-integration.test.ts | 9 skipped | Requires TEST_SUPABASE_URL/KEY |
 
-None of these failures are caused by pivot changes.
+All non-integration tests pass with zero failures.
+Previously broken tests (ai-handler, concierge-knowledge-entry) were fixed during this build.
 
 ## Feature Checklist
 

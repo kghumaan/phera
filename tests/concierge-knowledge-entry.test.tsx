@@ -31,9 +31,10 @@ const defaultProps = {
 };
 
 function getEditButton(container: HTMLElement) {
-  // Edit icon has data-testid="EditIcon"
-  const editIcon = container.querySelector('[data-testid="EditIcon"]');
-  return editIcon?.closest('button') as HTMLButtonElement;
+  // The component enters edit mode by clicking the Paper card itself (not a separate button)
+  // Find the outermost Paper element which has the onClick handler
+  const paper = container.querySelector('.MuiPaper-root') as HTMLElement;
+  return paper;
 }
 
 function getDeleteButton(container: HTMLElement) {
@@ -278,9 +279,14 @@ describe('ConciergeKnowledgeEntry', () => {
         <ConciergeKnowledgeEntry {...defaultProps} isViewOnly />
       );
 
-      expect(getEditButton(container)).toBeFalsy();
+      // Delete button should not exist
       expect(getDeleteButton(container)).toBeFalsy();
       expect(container.querySelector('input[type="checkbox"]')).toBeFalsy();
+
+      // Clicking the card in view-only mode should NOT enter edit mode
+      const paper = container.querySelector('.MuiPaper-root') as HTMLElement;
+      if (paper) fireEvent.click(paper);
+      expect(screen.queryByLabelText('Title')).toBeFalsy();
     });
   });
 
