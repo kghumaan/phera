@@ -25,6 +25,9 @@ import {
   ViewKanban,
   ArrowBack,
   SupportAgent,
+  Radar,
+  ChatBubbleOutline,
+  Settings,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -56,77 +59,40 @@ export interface SidebarGroup {
 
 export const groups: SidebarGroup[] = [
   {
-    id: 'overview',
-    label: 'Overview',
-    icon: <Home />,
-    standalone: true,
+    id: 'operations',
+    label: 'Operations',
+    icon: <Radar />,
     items: [
-      { id: 'overview', label: 'Overview', path: '/overview' }
-    ]
+      { id: 'control-tower', label: 'Control Tower', path: '/control-tower' },
+      { id: 'guests', label: 'Guest List', path: '/guests' },
+      { id: 'communication', label: 'Communication Log', path: '/communication' },
+    ],
   },
   {
-    id: 'website',
-    label: 'Wedding Website',
+    id: 'wedding-setup',
+    label: 'Wedding Setup',
     icon: <Language />,
     items: [
+      { id: 'overview', label: 'Overview', path: '/overview' },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
-      { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry Integration', path: '/registry' },
-      { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
-    ]
+    ],
   },
   {
-    id: 'guest-responses',
-    label: 'Guest Responses',
-    icon: <People />,
+    id: 'more',
+    label: 'More',
+    icon: <Settings />,
     items: [
-      { id: 'guests', label: 'RSVPs', path: '/guests' },
-      { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
-    ]
-  },
-  {
-    id: 'concierge',
-    label: 'Guest Concierge',
-    icon: <WhatsApp />,
-    standalone: true,
-    isPro: true,
-    items: [
-      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true }
-    ]
-  },
-  {
-    id: 'task-manager',
-    label: 'Task Manager',
-    icon: <ViewKanban />,
-    standalone: true,
-    isPro: true,
-    items: [
-      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true }
-    ]
-  },
-  {
-    id: 'coordinator',
-    label: 'Vendor Management',
-    icon: <SupportAgent />,
-    standalone: true,
-    isPro: true,
-    items: [
-      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true }
-    ]
-  },
-  {
-    id: 'team',
-    label: 'Collaborators',
-    icon: <Groups />,
-    standalone: true,
-    items: [
-      { id: 'team', label: 'Collaborators', path: '/team' }
-    ]
+      { id: 'faq', label: 'FAQ', path: '/faq' },
+      { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'concierge', label: 'Concierge', path: '/concierge' },
+      { id: 'team', label: 'Team', path: '/team' },
+      { id: 'settings', label: 'Settings', path: '/settings' },
+    ],
   },
 ];
 
@@ -202,7 +168,6 @@ export default function OnboardingSidebar({
 
     // Initialize based on current path
     groups.forEach(g => {
-      // Check if any item includes the current path
       const isActive = g.items.some(item => pathname.includes(item.path));
 
       if (isActive) {
@@ -218,9 +183,11 @@ export default function OnboardingSidebar({
       }
     });
 
-    // Default to first group if nothing active found
-    if (!foundActive && groups.length > 0 && !groups[1]?.standalone) {
-      initialState[groups[1].id] = true; // Index 1 is 'website' in the groups array
+    // Default: Operations expanded, others collapsed
+    if (!foundActive) {
+      initialState['operations'] = true;
+      initialState['wedding-setup'] = false;
+      initialState['more'] = false;
     }
 
     return initialState;
@@ -514,7 +481,7 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
-                          {group.id === 'website' && sectionComplete[item.id] && (
+                          {group.id === 'wedding-setup' && sectionComplete[item.id] && (
                             <CheckCircle sx={{ fontSize: 14, color: '#DE3F5E', ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}
