@@ -64,159 +64,151 @@ import AppFooter from '@/components/shared/AppFooter';
 // Combined features with problem + solution
 const features = [
   {
-    id: 'website-creation',
-    title: 'Wedding Website',
-    problem: 'Every wedding website template out there looks the same... and none of them get Indian weddings!',
-    solution: 'Beautiful custom website built to feel like an Indian wedding.',
+    id: 'guest-outreach',
+    title: 'We collect every detail from your guests',
+    problem: 'Chasing 300 guests on WhatsApp groups for RSVPs, dietary needs, and travel plans',
+    solution: 'Proactive WhatsApp outreach collects everything automatically. Save-the-dates, RSVP requests, travel details, dietary needs. Automatic follow-ups for non-responders.',
     featureImage: '/images/feature_images/wedding_website.png',
     frameType: 'desktop' as const,
   },
   {
-    id: 'rsvp-management',
-    title: 'RSVP Collection',
-    problem: 'Who\'s vegetarian? Is this uncle bringing his whole family? Who has RSVPd??',
-    solution: 'Simplified RSVP process to collect all the details, viewable in one dashboard.',
+    id: 'travel-coordination',
+    title: 'We coordinate all travel and transportation',
+    problem: 'Tracking flights, coordinating shuttles, making sure nobody is stranded',
+    solution: 'Track every guest travel plan, optimize shuttle routes and timing, send reminders, handle last-minute changes. Airport pickups to venue transport, all coordinated.',
+    featureImage: '/images/feature_images/travel_coordination.png',
+    frameType: 'desktop' as const,
+  },
+  {
+    id: 'guest-communication',
+    title: 'We keep every guest informed, 24/7',
+    problem: 'Guests messaging the couple at 2 AM asking about dress code and venue directions',
+    solution: 'WhatsApp Concierge answers guest questions instantly — schedule, venue, dress code, local recommendations — in their language, on their schedule.',
+    frameType: 'mobile' as const,
+    customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
+  },
+  {
+    id: 'website-creation',
+    title: 'Your wedding, your vibe',
+    problem: 'Having to choose between a beautiful website and actual logistics help',
+    solution: 'A stunning, culturally-aware wedding website as your digital invitation. Design it yourself, let AI build it from a conversation, or work 1-on-1 with our team.',
     featureImage: '/images/feature_images/rsvp_collection.png',
     frameType: 'desktop' as const,
   },
   {
-    id: 'multi-event',
-    title: 'Multi-Event Support',
-    problem: 'Haldi on Thursday, Ceremony on Friday, Sangeet on Saturday... and my international guests are clueless...',
-    solution: 'Display multi-day events with explanations for rituals, traditions, and dress codes—especially for international guests.',
+    id: 'reverse-destination',
+    title: 'Your guests from abroad? We\'ve got them.',
+    problem: 'Non-Indian friends and colleagues attending an Indian wedding with no idea what to expect',
+    solution: 'Visa guides, cultural briefings, dress code advice per event, ceremony explanations, airport-to-venue coordination — all delivered via WhatsApp.',
     featureImage: '/images/feature_images/multi_event.png',
     frameType: 'desktop' as const,
   },
   {
-    id: 'guest-access',
-    title: 'Guest Access Control',
-    problem: 'This auntie isn\'t invited to my cocktail party…',
-    solution: 'Create different PINs so guests only see the events they\'re invited to. Even control who gets a plus one!',
+    id: 'control-tower',
+    title: 'Real-time operations dashboard',
+    problem: 'No visibility into which guests have responded, who needs follow-up, what is coming next',
+    solution: 'Control Tower shows guest response rates, outreach timeline, shuttle capacity, escalations, and upcoming actions. Full visibility, zero manual tracking.',
     featureImage: '/images/feature_images/guest_access.png',
     frameType: 'mobile' as const,
   },
   {
-    id: 'travel-coordination',
-    title: 'Travel Coordination',
-    problem: 'When\'s this friend arriving? When\'s the vendor landing? How many shuttles do I book??',
-    solution: 'View everyone\'s arrival times and let guests sign up for shuttles — all in one place.',
-    featureImage: '/images/feature_images/travel_coordination.png',
-    frameType: 'desktop' as const,
-    isPro: true,
-  },
-  {
-    id: 'guest-communication',
-    title: 'Guest Communication',
-    problem: 'I have 30 unread messages from guests about this or that… I don\'t have time for this!',
-    solution: '24/7 WhatsApp Agent that knows all your wedding details, ready to answer questions and even recommend what to do in the city!',
-    frameType: 'mobile' as const,
-    customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
-    isPro: true,
-  },
-  {
-    id: 'task-management',
-    title: 'Task Management',
-    problem: 'I need to talk to the decorator, send the DJ my song list, buy welcome gifts… I can\'t keep track!',
-    solution: 'Ramble to our voice agent anytime and we\'ll organize your to-do items so you don\'t forget anything.',
+    id: 'family-liaison',
+    title: 'Family knows best',
+    problem: 'Tech-averse relatives who will never open an app or fill out a form',
+    solution: 'Designate family liaisons who can respond on behalf of multiple guests. One tech-savvy aunt can RSVP and share travel details for the whole family branch.',
     featureImage: '/images/feature_images/task_management.png',
     frameType: 'desktop' as const,
-    isPro: true,
   },
   {
-    id: 'vendor-coordinator',
-    title: 'Vendor Coordinator',
-    problem: 'Messaging 10 vendors across WhatsApp, email, and calls... I can\'t remember who said what!',
-    solution: 'Import vendor chats, get AI-powered summaries and action items, and keep every conversation organized in one place.',
+    id: 'smart-import',
+    title: 'Smart guest import',
+    problem: 'Guest list scattered across spreadsheets, WhatsApp chats, and sticky notes',
+    solution: 'Upload a spreadsheet, add guests manually, or just paste names and numbers in any format. AI parses everything into a clean guest list.',
     featureImage: '/images/feature_images/coordinator1.png',
     featureImage2: '/images/feature_images/coordinator2.png',
     frameType: 'desktop-stacked' as const,
-    isPro: true,
   },
 ];
 
 const pricingTiers = [
   {
-    name: 'FREE FOREVER',
-    price: '$0',
-    description: 'Everything you need to plan your wedding',
+    name: 'PHERA BASE',
+    price: '$349',
+    priceSuffix: '/wedding',
+    description: 'Up to 200 guests',
     features: [
+      'Guest logistics via WhatsApp',
+      'Proactive outreach sequences',
+      'WhatsApp Flows RSVP',
+      '24/7 WhatsApp Concierge',
       'Custom wedding website',
-      'Unlimited RSVP collection',
-      'Guest list management',
-      'Multi-event pages',
-      'PIN-based guest access',
-      'Event schedule & details',
-      'FAQ management',
-      'Shopping guide',
+      'Transportation optimization',
+      'Control Tower dashboard',
     ],
-    buttonText: 'Start Free',
+    buttonText: 'Get Started',
     highlight: false,
   },
   {
-    name: 'PRO',
-    price: '$99',
-    description: 'Advanced features for destination weddings',
+    name: 'PHERA PREMIUM',
+    price: '$599',
+    priceSuffix: '/wedding',
+    description: 'Up to 400 guests',
     features: [
-      'Everything in Basic, plus:',
-      'Voice-to-task manager',
-      'WhatsApp Concierge Agent',
-      'Vendor Coordinator',
-      'Travel & shuttle coordination',
-      'Registry integration',
-      'Premium themes & backgrounds',
-      'Priority support',
+      'Everything in Base',
+      'Reverse-destination cultural guides',
+      'WhatsApp concierge during wedding weekend',
+      'Priority escalation support',
     ],
-    buttonText: 'Upgrade to Pro',
+    buttonText: 'Get Started',
     highlight: true,
   },
   {
-    name: 'PLANNER',
-    price: '$249',
-    priceSuffix: '/year',
-    description: 'For professionals managing multiple weddings',
+    name: 'PHERA GRAND',
+    price: '$799',
+    priceSuffix: '/wedding',
+    description: '400+ guests',
     features: [
-      'Everything in Pro, plus:',
-      'Unlimited client weddings',
-      'Multi-wedding dashboard',
-      'Pro features on every wedding',
-      'Client handoff & collaboration',
-      'Planner branding (coming soon)',
-      'Dedicated support',
+      'Everything in Premium',
+      'Dedicated coordination support',
+      'Custom outreach sequences',
     ],
-    buttonText: 'Start as a Planner',
-    buttonHref: '/auth/login?role=planner',
+    buttonText: 'Get Started',
     highlight: false,
   },
 ];
 
 const faqs = [
   {
-    q: 'Is this only for destination weddings?',
-    a: 'Not at all! It works perfectly for any Indian wedding—local, destination, intimate, or grand.',
+    q: 'How does the guest coordination work?',
+    a: 'Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
   },
   {
-    q: 'Can I customize the look and feel?',
-    a: 'Absolutely! Choose designs, colors, photos, and cultural elements to match your vision.',
+    q: 'What information does Phera collect from my guests?',
+    a: 'RSVP confirmations, event attendance, dietary requirements, travel plans, flight details, party size, and any special needs — all collected conversationally via WhatsApp.',
   },
   {
-    q: 'What if I only need RSVP collection?',
-    a: "That's completely free! Create invites and collect RSVPs without paying a dime.",
+    q: 'Do my guests need to download an app?',
+    a: 'No. Everything happens through WhatsApp and your wedding website. Guests just reply to messages — no app downloads, no account creation, no passwords.',
   },
   {
-    q: 'Can guests access this without an app?',
-    a: 'Yes! It works in any browser on mobile or desktop. No downloads needed.',
+    q: 'What if a guest does not respond on WhatsApp?',
+    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After 3 attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
   },
   {
-    q: 'Is my guest data secure?',
-    a: 'Yes, we use bank-level encryption to keep your guest information private and secure.',
+    q: 'I already have a wedding website — can I still use Phera?',
+    a: 'Absolutely. Phera complements any existing wedding website. We handle the guest logistics layer — outreach, coordination, concierge — regardless of where your website lives.',
   },
   {
-    q: 'What is the WhatsApp Concierge?',
-    a: 'It is an intelligent automated assistant that guests can text to get answers about your wedding schedule, events, and travel details. It saves you from answering the same questions repeatedly.',
+    q: 'Can I customize my wedding website myself?',
+    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
   },
   {
-    q: 'Can I upgrade to Pro later?',
-    a: 'Yes, you can start with the Free plan and upgrade to Pro whenever you need the advanced features like travel coordination or the WhatsApp agent.',
+    q: 'Do I still need a day-of coordinator?',
+    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your wedding. We recommend pairing with a local day-of coordinator for on-site execution. Together you get planner-quality outcomes at a fraction of the cost.',
+  },
+  {
+    q: 'Is my guests\' data safe?',
+    a: 'Yes. We are DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
   },
 ];
 
@@ -1139,7 +1131,7 @@ function LandingPageContent() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Box>Destination Wedding,</Box>
+                  <Box>Your Wedding</Box>
                   <Box
                     component="span"
                     sx={{
@@ -1163,7 +1155,7 @@ function LandingPageContent() {
                       },
                     }}
                   >
-                    Minus the Chaos
+                    Operations Team
                   </Box>
                 </Typography>
                 <Typography
@@ -1176,7 +1168,7 @@ function LandingPageContent() {
                     lineHeight: 1.4,
                   }}
                 >
-                  Wedding Planner in your Pocket
+                  We coordinate your guests so you can focus on the celebration.
                 </Typography>
                 <Typography
                   variant="body2"
@@ -1189,9 +1181,7 @@ function LandingPageContent() {
                     px: { xs: 2, md: 0 }
                   }}
                 >
-                  Custom Indian wedding websites, smart RSVPs, 24/7 WhatsApp concierge,
-                  <br />
-                  and much more - all in one place.
+                  300+ guests, 3 days of events, people flying in from everywhere. Phera handles the guest logistics — travel coordination, RSVPs, communication, transportation — end to end via WhatsApp.
                 </Typography>
 
                 <Stack
@@ -1217,7 +1207,7 @@ function LandingPageContent() {
                       '&:hover': { bgcolor: '#C8365A' },
                     }}
                   >
-                    Start Planning Free
+                    Get Started
                   </Button>
                   <Button
                     component={Link}
@@ -1240,7 +1230,7 @@ function LandingPageContent() {
                       },
                     }}
                   >
-                    View Demo
+                    See How It Works
                   </Button>
                 </Stack>
               </Stack>
@@ -1988,13 +1978,13 @@ function LandingPageContent() {
                   }}
                 />
                 <Typography variant="body2" sx={{ mb: 2, color: '#4a4a4a' }}>
-                  Phera was built by a couple frustrated with the complexity of
-                  planning a modern Indian destination wedding. We knew there had
-                  to be a better way—so we built it.
+                  Phera was built by a couple who spent more time coordinating
+                  guests than enjoying their own wedding. We built the operations
+                  team we wish we had.
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-                  Making Indian weddings beautiful to plan, not just beautiful to
-                  attend.
+                  Indian weddings are beautiful chaos. Phera handles the guest logistics
+                  so you can focus on the celebration.
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6, md: 2 }}>

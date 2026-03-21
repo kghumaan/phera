@@ -24,7 +24,7 @@ export default function FinalCTA() {
                         variant="h2"
                         sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: '#1a1a1a', fontSize: { xs: '1.5rem', md: '2.5rem' } }}
                     >
-                        Your Wedding, Your Way
+                        300 guests. 3 days. Zero stress.
                     </Typography>
                     <Typography
                         variant="h6"
@@ -36,8 +36,7 @@ export default function FinalCTA() {
                             fontSize: { xs: '0.8rem', md: '1.25rem' }
                         }}
                     >
-                        Join the couples who are planning beautiful Indian weddings
-                        without the burnout. Start free, upgrade when you need to.
+                        Let Phera coordinate your guests while you celebrate.
                     </Typography>
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
@@ -61,7 +60,7 @@ export default function FinalCTA() {
                                 '&:hover': { bgcolor: '#C8365A' },
                             }}
                         >
-                            Get Started for Free
+                            Get Started
                         </Button>
                     </Stack>
                     <Stack
@@ -71,7 +70,7 @@ export default function FinalCTA() {
                     >
                         <Chip
                             icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="No credit card required"
+                            label="Less than a single shuttle bus rental"
                             sx={{
                                 bgcolor: 'transparent',
                                 color: '#4a4a4a',
@@ -82,7 +81,7 @@ export default function FinalCTA() {
                         />
                         <Chip
                             icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="Free forever plan"
+                            label="DPDPA compliant"
                             sx={{
                                 bgcolor: 'transparent',
                                 color: '#4a4a4a',
