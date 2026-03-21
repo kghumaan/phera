@@ -201,6 +201,14 @@ export default function OnboardingPage() {
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
 
+  // Service-oriented onboarding fields
+  const [coupleCountry, setCoupleCountry] = useState('');
+  const [coupleCity, setCoupleCity] = useState('');
+  const [estimatedGuestCount, setEstimatedGuestCount] = useState('');
+  const [hasNonIndianGuests, setHasNonIndianGuests] = useState(false);
+  const [weddingLocationType, setWeddingLocationType] = useState('');
+  const [destination, setDestination] = useState('');
+
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   // Close venue suggestions when clicking outside
@@ -931,7 +939,7 @@ export default function OnboardingPage() {
                     {step === 2 && (
                       <Box>
                         <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
-                          {role === 'planner' ? 'Tell us about your business' : "Let's get ready to get planning"}
+                          {role === 'planner' ? 'Tell us about your business' : "Let's get your wedding set up"}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
@@ -1137,6 +1145,136 @@ export default function OnboardingPage() {
                                     </Typography>
                                   </Stack>
                                 </Box>
+
+                                {/* --- Service-oriented fields --- */}
+                                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
+                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
+                                  <Typography variant="caption" sx={{ color: '#999', fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                    Help us coordinate your guests
+                                  </Typography>
+                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
+                                </Stack>
+
+                                <Stack direction="row" spacing={2}>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Country</Typography>
+                                    <StyledTextField
+                                      fullWidth
+                                      label=""
+                                      placeholder="United States"
+                                      value={coupleCountry}
+                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleCountry(e.target.value)}
+                                    />
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>City</Typography>
+                                    <StyledTextField
+                                      fullWidth
+                                      label=""
+                                      placeholder="San Francisco"
+                                      value={coupleCity}
+                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleCity(e.target.value)}
+                                    />
+                                  </Box>
+                                </Stack>
+
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Estimated Guest Count</Typography>
+                                  <Stack direction="row" spacing={1}>
+                                    {['Under 50', '50-150', '150-300', '300+'].map((range) => (
+                                      <Chip
+                                        key={range}
+                                        label={range}
+                                        onClick={() => setEstimatedGuestCount(range)}
+                                        sx={{
+                                          bgcolor: estimatedGuestCount === range ? '#DE3F5E' : 'white',
+                                          color: estimatedGuestCount === range ? 'white' : '#4a4a4a',
+                                          border: '1px solid',
+                                          borderColor: estimatedGuestCount === range ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
+                                          fontWeight: 500,
+                                          fontSize: '0.75rem',
+                                          '&:hover': { bgcolor: estimatedGuestCount === range ? '#C8365A' : alpha('#DE3F5E', 0.05) },
+                                        }}
+                                      />
+                                    ))}
+                                  </Stack>
+                                </Box>
+
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Location Type</Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                    {[
+                                      { value: 'international_destination', label: 'International destination' },
+                                      { value: 'domestic_destination', label: 'Domestic destination' },
+                                      { value: 'local', label: 'Local (same city)' },
+                                    ].map((opt) => (
+                                      <Chip
+                                        key={opt.value}
+                                        label={opt.label}
+                                        onClick={() => setWeddingLocationType(opt.value)}
+                                        sx={{
+                                          bgcolor: weddingLocationType === opt.value ? '#DE3F5E' : 'white',
+                                          color: weddingLocationType === opt.value ? 'white' : '#4a4a4a',
+                                          border: '1px solid',
+                                          borderColor: weddingLocationType === opt.value ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
+                                          fontWeight: 500,
+                                          fontSize: '0.75rem',
+                                          '&:hover': { bgcolor: weddingLocationType === opt.value ? '#C8365A' : alpha('#DE3F5E', 0.05) },
+                                        }}
+                                      />
+                                    ))}
+                                  </Stack>
+                                </Box>
+
+                                {(weddingLocationType === 'international_destination' || weddingLocationType === 'domestic_destination') && (
+                                  <Box>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Destination</Typography>
+                                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                      {['Thailand', 'Bali', 'Sri Lanka', 'Goa', 'Udaipur', 'Jaipur', 'Other'].map((dest) => (
+                                        <Chip
+                                          key={dest}
+                                          label={dest}
+                                          onClick={() => setDestination(dest)}
+                                          sx={{
+                                            bgcolor: destination === dest ? '#DE3F5E' : 'white',
+                                            color: destination === dest ? 'white' : '#4a4a4a',
+                                            border: '1px solid',
+                                            borderColor: destination === dest ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
+                                            fontWeight: 500,
+                                            fontSize: '0.75rem',
+                                            '&:hover': { bgcolor: destination === dest ? '#C8365A' : alpha('#DE3F5E', 0.05) },
+                                          }}
+                                        />
+                                      ))}
+                                    </Stack>
+                                  </Box>
+                                )}
+
+                                <Stack direction="row" spacing={1} alignItems="center" onClick={() => setHasNonIndianGuests(!hasNonIndianGuests)} sx={{ cursor: 'pointer' }}>
+                                  <Box
+                                    sx={{
+                                      width: 15,
+                                      height: 15,
+                                      borderRadius: '3px',
+                                      border: '1.5px solid',
+                                      borderColor: hasNonIndianGuests ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      bgcolor: hasNonIndianGuests ? '#DE3F5E' : 'transparent',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    {hasNonIndianGuests && (
+                                      <Box component="svg" viewBox="0 0 24 24" sx={{ width: 11, height: 11 }}>
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white" />
+                                      </Box>
+                                    )}
+                                  </Box>
+                                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, fontSize: '0.8rem' }}>
+                                    I will have non-Indian guests attending
+                                  </Typography>
+                                </Stack>
                               </>
                             )}
                           </Stack>
@@ -1190,7 +1328,7 @@ export default function OnboardingPage() {
                           '&:hover': { bgcolor: '#C8365A' },
                         }}
                       >
-                        {step === 2 ? (submitting ? 'Setting up...' : 'Start Planning') : 'Continue'}
+                        {step === 2 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
                       </Button>
                     </Stack>
                   </>
