@@ -133,9 +133,9 @@ export default function ControlTowerPage() {
     async function fetchData() {
       try {
         const [summaryRes, eventsRes, sequencesRes] = await Promise.all([
-          fetch(`/api/outreach/${weddingSlug}/summary`),
-          fetch(`/api/outreach/${weddingSlug}/events`),
-          fetch(`/api/outreach/${weddingSlug}/sequences?status=pending,scheduled`),
+          fetch(`/api/outreach/status?weddingId=${weddingSlug}`),
+          fetch(`/api/outreach/events?weddingId=${weddingSlug}`),
+          fetch(`/api/outreach/sequences?weddingId=${weddingSlug}`),
         ]);
 
         if (summaryRes.ok) {
@@ -226,10 +226,18 @@ export default function ControlTowerPage() {
               <ActionQueue
                 pendingSequences={pendingSequences}
                 escalationsCount={summary.escalations_open}
+                weddingSlug={weddingSlug}
+                onIssueResolved={() => {
+                  // Re-fetch data after resolving
+                  fetch(`/api/outreach/status?weddingId=${weddingSlug}`)
+                    .then((r) => r.json())
+                    .then((d) => setSummary(d))
+                    .catch(() => {});
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <RecentActivity events={events} />
+              <RecentActivity events={events} weddingSlug={weddingSlug} />
             </Grid>
           </Grid>
 

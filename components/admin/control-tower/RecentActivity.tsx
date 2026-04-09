@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,6 +8,8 @@ import {
   List,
   ListItem,
   Divider,
+  Chip,
+  Collapse,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ReplyIcon from '@mui/icons-material/Reply';
@@ -16,13 +18,17 @@ import InfoIcon from '@mui/icons-material/Info';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import BlockIcon from '@mui/icons-material/Block';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
-import type { OutreachEvent, OutreachEventType } from '@/lib/types/outreach';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 interface RecentActivityProps {
-  events: OutreachEvent[];
+  events: any[];
+  weddingSlug?: string;
 }
 
-const EVENT_ICONS: Record<OutreachEventType, React.ReactNode> = {
+const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 16, color: '#3b82f6' }} />,
   message_received: <ReplyIcon sx={{ fontSize: 16, color: '#22c55e' }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />,
@@ -30,9 +36,11 @@ const EVENT_ICONS: Record<OutreachEventType, React.ReactNode> = {
   escalated: <ErrorOutlineIcon sx={{ fontSize: 16, color: '#ef4444' }} />,
   opted_out: <BlockIcon sx={{ fontSize: 16, color: '#94a3b8' }} />,
   status_changed: <SyncAltIcon sx={{ fontSize: 16, color: '#f59e0b' }} />,
+  issue_created: <WarningAmberIcon sx={{ fontSize: 16, color: '#ef4444' }} />,
+  rsvp_received: <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />,
 };
 
-const EVENT_LABELS: Record<OutreachEventType, string> = {
+const EVENT_LABELS: Record<string, string> = {
   template_sent: 'sent a message',
   message_received: 'replied',
   conversation_started: 'started a conversation',
@@ -40,9 +48,18 @@ const EVENT_LABELS: Record<OutreachEventType, string> = {
   escalated: 'was escalated',
   opted_out: 'opted out',
   status_changed: 'status changed',
+  issue_created: 'issue created',
+  rsvp_received: 'RSVPed',
 };
 
-function formatTimestamp(date: Date): string {
+const PRIORITY_COLORS: Record<string, string> = {
+  urgent: '#EF5350',
+  high: '#FF9800',
+  medium: '#2196F3',
+  low: '#9E9E9E',
+};
+
+function formatRelativeTime(date: Date): string {
   const d = new Date(date);
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
@@ -58,13 +75,32 @@ function formatTimestamp(date: Date): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const MAX_ITEMS = 20;
+function formatFullTimestamp(date: Date): string {
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
-export default function RecentActivity({ events }: RecentActivityProps) {
+const MAX_ITEMS = 30;
+
+export default function RecentActivity({ events, weddingSlug }: RecentActivityProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   const sorted = [...events]
     .filter((e) => new Date(e.created_at).getTime() <= Date.now())
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, MAX_ITEMS);
+
+  const toggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   return (
     <Paper
@@ -77,7 +113,7 @@ export default function RecentActivity({ events }: RecentActivityProps) {
       }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
-        Recent Activity
+        Recent Activity ({sorted.length})
       </Typography>
 
       {sorted.length === 0 ? (
@@ -87,14 +123,43 @@ export default function RecentActivity({ events }: RecentActivityProps) {
           </Typography>
         </Box>
       ) : (
-        <List disablePadding>
+        <List disablePadding sx={{ maxHeight: 500, overflow: 'auto' }}>
           {sorted.map((event, index) => {
-            const guestName = event.details?.guest_name || 'Guest';
+            const details = event.details || {};
+            const eventType = event.event_type || 'status_changed';
+            const isExpanded = expandedId === event.id;
+
+            // Build collapsed display
+            let displayName = details.guest_name || details.title || 'Guest';
+            let displayLabel = EVENT_LABELS[eventType] || eventType.replace(/_/g, ' ');
+
+            if (eventType === 'rsvp_received') {
+              displayLabel = details.attending === 'yes' ? 'RSVPed yes'
+                : details.attending === 'no' ? 'RSVPed no'
+                : details.attending === 'maybe' ? 'RSVPed maybe'
+                : 'RSVPed';
+            }
+            if (eventType === 'issue_created') {
+              displayName = details.category || 'Issue';
+              displayLabel = details.title || 'issue created';
+            }
+
             return (
               <React.Fragment key={event.id}>
+                {/* Collapsed row */}
                 <ListItem
                   disableGutters
-                  sx={{ py: 1, px: 0, display: 'flex', alignItems: 'center', gap: 1.5 }}
+                  onClick={() => toggleExpand(event.id)}
+                  sx={{
+                    py: 1,
+                    px: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    '&:hover': { bgcolor: '#FAFAFA' },
+                  }}
                 >
                   <Box
                     sx={{
@@ -108,31 +173,151 @@ export default function RecentActivity({ events }: RecentActivityProps) {
                       flexShrink: 0,
                     }}
                   >
-                    {EVENT_ICONS[event.event_type]}
+                    {EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 16, color: '#94a3b8' }} />}
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       variant="body2"
                       sx={{
                         color: '#1a1a1a',
-                        whiteSpace: 'nowrap',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        lineHeight: 1.4,
                       }}
                     >
                       <Typography component="span" variant="body2" sx={{ fontWeight: 600 }}>
-                        {guestName}
+                        {displayName}
                       </Typography>{' '}
-                      {EVENT_LABELS[event.event_type]}
+                      {displayLabel}
                     </Typography>
                   </Box>
                   <Typography
                     variant="caption"
                     sx={{ color: '#94a3b8', flexShrink: 0, whiteSpace: 'nowrap' }}
                   >
-                    {formatTimestamp(event.created_at)}
+                    {formatRelativeTime(event.created_at)}
                   </Typography>
+                  {isExpanded
+                    ? <ExpandLessIcon sx={{ fontSize: 16, color: '#9a9a9a', flexShrink: 0 }} />
+                    : <ExpandMoreIcon sx={{ fontSize: 16, color: '#9a9a9a', flexShrink: 0 }} />
+                  }
                 </ListItem>
+
+                {/* Expanded details */}
+                <Collapse in={isExpanded}>
+                  <Box sx={{ pl: 5.5, pr: 1, pb: 1.5, pt: 0.5 }}>
+                    {/* Full timestamp */}
+                    <Typography sx={{ fontSize: 11, color: '#6a6a6a', mb: 1 }}>
+                      {formatFullTimestamp(event.created_at)}
+                    </Typography>
+
+                    {/* Issue details */}
+                    {eventType === 'issue_created' && (
+                      <Box sx={{ mb: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5, mb: 0.75, flexWrap: 'wrap' }}>
+                          {details.priority && (
+                            <Chip
+                              label={details.priority}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                textTransform: 'uppercase',
+                                bgcolor: PRIORITY_COLORS[details.priority] || '#9E9E9E',
+                                color: 'white',
+                              }}
+                            />
+                          )}
+                          {details.category && (
+                            <Chip
+                              label={details.category}
+                              size="small"
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: 10, color: '#4a4a4a', borderColor: 'rgba(0,0,0,0.2)' }}
+                            />
+                          )}
+                          {details.status && (
+                            <Chip
+                              label={details.status}
+                              size="small"
+                              sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#6a6a6a' }}
+                            />
+                          )}
+                        </Box>
+                        {details.description && (
+                          <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>
+                            {details.description}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+
+                    {/* RSVP details */}
+                    {eventType === 'rsvp_received' && (
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 0.5 }}>
+                        <Chip
+                          label={details.attending === 'yes' ? 'Attending' : details.attending === 'no' ? 'Not Attending' : 'Maybe'}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: 10,
+                            fontWeight: 600,
+                            bgcolor: details.attending === 'yes' ? '#E8F5E9' : details.attending === 'no' ? '#FFEBEE' : '#FFF3E0',
+                            color: details.attending === 'yes' ? '#2E7D32' : details.attending === 'no' ? '#C62828' : '#E65100',
+                          }}
+                        />
+                        {details.guest_count > 1 && (
+                          <Chip label={`${details.guest_count} guests`} size="small" sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#4a4a4a' }} />
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Escalation details */}
+                    {eventType === 'escalated' && details.reason && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>
+                          {details.reason}
+                        </Typography>
+                        {details.urgency && (
+                          <Chip
+                            label={details.urgency}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: 10,
+                              fontWeight: 600,
+                              mt: 0.5,
+                              bgcolor: details.urgency === 'urgent' ? '#EF5350' : '#FF9800',
+                              color: 'white',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Generic details fallback */}
+                    {!['issue_created', 'rsvp_received', 'escalated'].includes(eventType) && details.template && (
+                      <Typography sx={{ fontSize: 11, color: '#6a6a6a' }}>
+                        Template: {details.template}
+                      </Typography>
+                    )}
+
+                    {/* Link to guest */}
+                    {weddingSlug && event.guest_id && (
+                      <Typography
+                        component="a"
+                        href={`/admin/${weddingSlug}/guests`}
+                        sx={{ fontSize: 11, color: '#DE3F5E', textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
+                      >
+                        View guest in Guest List
+                      </Typography>
+                    )}
+                  </Box>
+                </Collapse>
+
                 {index < sorted.length - 1 && (
                   <Divider sx={{ borderColor: 'rgba(0,0,0,0.04)' }} />
                 )}

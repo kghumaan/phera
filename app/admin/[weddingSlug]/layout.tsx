@@ -210,7 +210,7 @@ function OnboardingLayoutContent({
                     const currentGroup = groups.find(group =>
                       group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
                     );
-                    return currentGroup?.id === 'website' ? '0 0 55%' : 1;
+                    return currentGroup?.id === 'wedding-website' ? '0 0 55%' : 1;
                   })()
                 },
                 bgcolor: 'white',
@@ -244,8 +244,8 @@ function OnboardingLayoutContent({
                 group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
               );
 
-              // Only show preview for 'website' group
-              if (currentGroup?.id !== 'website') {
+              // Only show preview for 'wedding-website' group
+              if (currentGroup?.id !== 'wedding-website') {
                 return null;
               }
 

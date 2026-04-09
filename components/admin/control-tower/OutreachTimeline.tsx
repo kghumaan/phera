@@ -9,13 +9,11 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import type { OutreachEvent, OutreachEventType } from '@/lib/types/outreach';
-
 interface OutreachTimelineProps {
-  events: OutreachEvent[];
+  events: any[];
 }
 
-const EVENT_TYPE_CONFIG: Record<OutreachEventType, { label: string; color: string }> = {
+const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Message Sent', color: '#3b82f6' },
   message_received: { label: 'Reply Received', color: '#22c55e' },
   conversation_started: { label: 'Conversation', color: '#8b5cf6' },
@@ -23,7 +21,11 @@ const EVENT_TYPE_CONFIG: Record<OutreachEventType, { label: string; color: strin
   escalated: { label: 'Escalated', color: '#ef4444' },
   opted_out: { label: 'Opted Out', color: '#94a3b8' },
   status_changed: { label: 'Status Changed', color: '#f59e0b' },
+  issue_created: { label: 'Issue Created', color: '#ef4444' },
+  rsvp_received: { label: 'RSVP Received', color: '#22c55e' },
 };
+
+const FALLBACK_CONFIG = { label: 'Event', color: '#94a3b8' };
 
 function formatTimestamp(date: Date): string {
   const d = new Date(date);
@@ -84,7 +86,7 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
           />
 
           {sorted.map((event, index) => {
-            const config = EVENT_TYPE_CONFIG[event.event_type];
+            const config = EVENT_TYPE_CONFIG[event.event_type] || FALLBACK_CONFIG;
             const future = isFutureEvent(event.created_at);
 
             return (

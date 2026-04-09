@@ -59,39 +59,40 @@ export interface SidebarGroup {
 
 export const groups: SidebarGroup[] = [
   {
-    id: 'operations',
-    label: 'Operations',
+    id: 'coordination',
+    label: 'Coordination',
     icon: <Radar />,
     items: [
       { id: 'control-tower', label: 'Control Tower', path: '/control-tower' },
       { id: 'guests', label: 'Guest List', path: '/guests' },
-      { id: 'communication', label: 'Communication Log', path: '/communication' },
+      { id: 'concierge', label: 'Concierge', path: '/concierge' },
+      { id: 'communication', label: 'Outreach', path: '/communication' },
+      { id: 'logistics', label: 'Logistics', path: '/travel-coordination' },
     ],
   },
   {
-    id: 'wedding-setup',
-    label: 'Wedding Setup',
+    id: 'wedding-website',
+    label: 'Wedding Website',
     icon: <Language />,
     items: [
       { id: 'overview', label: 'Overview', path: '/overview' },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
-      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
-      { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
+      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
+      { id: 'faq', label: 'FAQ', path: '/faq' },
+      { id: 'registry', label: 'Registry', path: '/registry' },
     ],
   },
   {
-    id: 'more',
-    label: 'More',
+    id: 'settings',
+    label: 'Settings',
     icon: <Settings />,
     items: [
-      { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry', path: '/registry' },
-      { id: 'concierge', label: 'Concierge', path: '/concierge' },
+      { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
       { id: 'team', label: 'Team', path: '/team' },
-      { id: 'settings', label: 'Settings', path: '/settings' },
+      { id: 'settings-page', label: 'Settings', path: '/settings' },
     ],
   },
 ];
@@ -185,9 +186,9 @@ export default function OnboardingSidebar({
 
     // Default: Operations expanded, others collapsed
     if (!foundActive) {
-      initialState['operations'] = true;
-      initialState['wedding-setup'] = false;
-      initialState['more'] = false;
+      initialState['coordination'] = true;
+      initialState['wedding-website'] = false;
+      initialState['settings'] = false;
     }
 
     return initialState;
@@ -481,7 +482,7 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
-                          {group.id === 'wedding-setup' && sectionComplete[item.id] && (
+                          {group.id === 'wedding-website' && sectionComplete[item.id] && (
                             <CheckCircle sx={{ fontSize: 14, color: '#DE3F5E', ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}

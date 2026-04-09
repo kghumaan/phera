@@ -24,72 +24,84 @@ describe('Sidebar Reorganization', () => {
 
   it('should have correct group IDs', () => {
     const ids = groups.map((g) => g.id);
-    expect(ids).toEqual(['operations', 'wedding-setup', 'more']);
+    expect(ids).toEqual(['coordination', 'wedding-website', 'settings']);
   });
 
   it('should have correct group labels', () => {
     const labels = groups.map((g) => g.label);
-    expect(labels).toEqual(['Operations', 'Wedding Setup', 'More']);
+    expect(labels).toEqual(['Coordination', 'Wedding Website', 'Settings']);
   });
 
-  describe('Operations group', () => {
-    const operations = groups.find((g) => g.id === 'operations');
+  describe('Coordination group', () => {
+    const coordination = groups.find((g) => g.id === 'coordination');
 
     it('should exist', () => {
-      expect(operations).toBeDefined();
+      expect(coordination).toBeDefined();
     });
 
     it('should have Control Tower as first item', () => {
-      expect(operations!.items[0].id).toBe('control-tower');
-      expect(operations!.items[0].path).toBe('/control-tower');
+      expect(coordination!.items[0].id).toBe('control-tower');
+      expect(coordination!.items[0].path).toBe('/control-tower');
     });
 
     it('should have Guest List', () => {
-      expect(operations!.items.some((i) => i.id === 'guests')).toBe(true);
+      expect(coordination!.items.some((i) => i.id === 'guests')).toBe(true);
     });
 
-    it('should have Communication Log', () => {
-      expect(operations!.items.some((i) => i.id === 'communication')).toBe(true);
+    it('should have Concierge', () => {
+      expect(coordination!.items.some((i) => i.id === 'concierge')).toBe(true);
     });
 
-    it('should have 3 items', () => {
-      expect(operations!.items).toHaveLength(3);
-    });
-  });
-
-  describe('Wedding Setup group', () => {
-    const setup = groups.find((g) => g.id === 'wedding-setup');
-
-    it('should contain core setup items', () => {
-      const ids = setup!.items.map((i) => i.id);
-      expect(ids).toContain('overview');
-      expect(ids).toContain('details');
-      expect(ids).toContain('design');
-      expect(ids).toContain('rsvp-form');
-      expect(ids).toContain('schedule');
-      expect(ids).toContain('travel');
-      expect(ids).toContain('pins');
+    it('should have Outreach (communication)', () => {
+      const item = coordination!.items.find((i) => i.id === 'communication');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Outreach');
     });
 
-    it('should have 7 items', () => {
-      expect(setup!.items).toHaveLength(7);
-    });
-  });
-
-  describe('More group', () => {
-    const more = groups.find((g) => g.id === 'more');
-
-    it('should contain secondary items', () => {
-      const ids = more!.items.map((i) => i.id);
-      expect(ids).toContain('faq');
-      expect(ids).toContain('registry');
-      expect(ids).toContain('concierge');
-      expect(ids).toContain('team');
-      expect(ids).toContain('settings');
+    it('should have Logistics pointing to /travel-coordination', () => {
+      const item = coordination!.items.find((i) => i.id === 'logistics');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Logistics');
+      expect(item!.path).toBe('/travel-coordination');
     });
 
     it('should have 5 items', () => {
-      expect(more!.items).toHaveLength(5);
+      expect(coordination!.items).toHaveLength(5);
+    });
+  });
+
+  describe('Wedding Website group', () => {
+    const website = groups.find((g) => g.id === 'wedding-website');
+
+    it('should contain core website items', () => {
+      const ids = website!.items.map((i) => i.id);
+      expect(ids).toContain('overview');
+      expect(ids).toContain('details');
+      expect(ids).toContain('design');
+      expect(ids).toContain('schedule');
+      expect(ids).toContain('travel');
+      expect(ids).toContain('rsvp-form');
+      expect(ids).toContain('faq');
+      expect(ids).toContain('registry');
+    });
+
+    it('should have 8 items', () => {
+      expect(website!.items).toHaveLength(8);
+    });
+  });
+
+  describe('Settings group', () => {
+    const settings = groups.find((g) => g.id === 'settings');
+
+    it('should contain settings items', () => {
+      const ids = settings!.items.map((i) => i.id);
+      expect(ids).toContain('pins');
+      expect(ids).toContain('team');
+      expect(ids).toContain('settings-page');
+    });
+
+    it('should have 3 items', () => {
+      expect(settings!.items).toHaveLength(3);
     });
   });
 
