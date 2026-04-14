@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { PheraDatabase } from '@/lib/supabase/types';
 import { seedDemoMockData } from './seed-demo-mock-data';
+import { generateGuestAvatar, generateFallbackColor } from '@/lib/utils/avatar-generator';
 
 const TEMPLATE_SLUG = 'demo-template';
 const DEMO_SLUG_PREFIX = 'demo-';
@@ -158,10 +159,30 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     .eq('wedding_id', TEMPLATE_SLUG);
 
   if (templateGuests?.length) {
-    const guestsToInsert = templateGuests.map(({ id, wedding_id, created_at, initials, ...rest }: any) => ({
-      ...rest,
-      wedding_id: newSlug,
-    }));
+    const guestsToInsert = templateGuests.map(({ id, wedding_id, created_at, initials, ...rest }: any) => {
+      // Ensure every cloned guest has a deterministic avatar so the demo
+      // renders fully populated circles everywhere (activity feed, comments,
+      // guest list, etc.). Falls back gracefully when the template row
+      // doesn't already carry these fields.
+      const name = rest.name || 'Guest';
+      const seed = (rest.email || rest.phone || name).toString();
+      const color = rest.avatar_color || generateFallbackColor(name);
+      let avatarSvg = rest.avatar_svg;
+      if (!avatarSvg) {
+        try {
+          avatarSvg = generateGuestAvatar(seed, name).svg;
+        } catch {
+          avatarSvg = null;
+        }
+      }
+
+      return {
+        ...rest,
+        wedding_id: newSlug,
+        avatar_color: color,
+        avatar_svg: avatarSvg,
+      };
+    });
 
     const { data: newGuests } = await (supabase as any)
       .from('guests')
