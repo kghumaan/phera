@@ -51,6 +51,60 @@ interface RSVPData {
   guest_count: number;
 }
 
+const QUICK_LINKS = [
+  { label: 'Customize Design', path: 'design', icon: Edit },
+  { label: 'Guest Responses', path: 'guests', icon: People },
+  { label: 'Schedule & Events', path: 'schedule', icon: Event },
+];
+
+function QuickLinks({ weddingSlug }: { weddingSlug: string }) {
+  const router = useRouter();
+  const [loadingLink, setLoadingLink] = useState<string | null>(null);
+
+  const btnSx = {
+    py: 1.5,
+    borderRadius: '12px',
+    borderColor: '#e0e0e0',
+    bgcolor: '#fff',
+    color: '#1a1a1a',
+    textTransform: 'none',
+    fontSize: 13,
+    justifyContent: 'flex-start',
+    gap: 1.5,
+    minHeight: 48,
+    '&:hover': { borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.02) },
+  } as const;
+
+  const handleClick = (path: string) => {
+    setLoadingLink(path);
+    router.push(`/admin/${weddingSlug}/${path}`);
+  };
+
+  return (
+    <Paper sx={{ p: 4, borderRadius: '16px', bgcolor: '#fafafa', boxShadow: 'none' }}>
+      <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a' }}>
+        Quick Links
+      </Typography>
+      <Grid container spacing={2}>
+        {QUICK_LINKS.map(({ label, path, icon: Icon }) => (
+          <Grid key={path} size={{ xs: 12, sm: 6, md: 4 }}>
+            <Button fullWidth variant="outlined" onClick={() => handleClick(path)} disabled={loadingLink === path} sx={{ ...btnSx, justifyContent: loadingLink === path ? 'center' : 'flex-start' }}>
+              {loadingLink === path ? (
+                <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
+              ) : (
+                <>
+                  <Icon sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                  {label}
+                </>
+              )}
+            </Button>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
+  );
+}
+
 export default function OverviewPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
@@ -391,82 +445,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         )}
 
         {/* Quick Links */}
-        <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: alpha('#fff', 0.95) }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
-            Quick Links
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/details`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <Edit sx={{ color: '#DE3F5E' }} />
-                Edit Wedding Details
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <People sx={{ color: '#DE3F5E' }} />
-                View Guest Responses
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/events`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <Event sx={{ color: '#DE3F5E' }} />
-                Manage Events
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+        <QuickLinks weddingSlug={weddingSlug} />
 
         {/* Edit Wedding ID Modal */}
         <Dialog

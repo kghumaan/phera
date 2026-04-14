@@ -254,23 +254,31 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       throw rsvpError;
     }
 
-    // Add special message as a comment if provided (keep for backwards compatibility)
+    // Add special message as a comment if provided — skip if guest already has one
     if (formData.specialMessage || formData.selectedGif) {
-      const commentData: any = {
-        guest_id: guestId,
-        wedding_id: weddingId,
-        message: formData.specialMessage || null
-      };
+      const { data: existingComment } = await supabase
+        .from('comments')
+        .select('id')
+        .eq('guest_id', guestId)
+        .eq('wedding_id', weddingId)
+        .limit(1);
 
-      // Add GIF data if selected
-      if (formData.selectedGif) {
-        commentData.gif_id = formData.selectedGif.id;
-        commentData.gif_url = formData.selectedGif.url;
-        commentData.gif_title = formData.selectedGif.title;
-        commentData.gif_preview_url = formData.selectedGif.preview_url;
+      if (!existingComment || existingComment.length === 0) {
+        const commentData: any = {
+          guest_id: guestId,
+          wedding_id: weddingId,
+          message: formData.specialMessage || null
+        };
+
+        if (formData.selectedGif) {
+          commentData.gif_id = formData.selectedGif.id;
+          commentData.gif_url = formData.selectedGif.url;
+          commentData.gif_title = formData.selectedGif.title;
+          commentData.gif_preview_url = formData.selectedGif.preview_url;
+        }
+
+        await supabase.from('comments').insert(commentData);
       }
-
-      await supabase.from('comments').insert(commentData);
     }
 
     // Handle WhatsApp opt-in if selected
@@ -420,6 +428,18 @@ export async function addComment(
     gif_preview_url: string;
   }
 ) {
+  // Prevent duplicate: one comment per guest per wedding
+  const { data: existing } = await supabase
+    .from('comments')
+    .select('id')
+    .eq('guest_id', guestId)
+    .eq('wedding_id', weddingId)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    throw new Error('You have already posted a comment for this wedding.');
+  }
+
   const insertData: TablesInsert<'comments'> = {
     guest_id: guestId,
     wedding_id: weddingId,

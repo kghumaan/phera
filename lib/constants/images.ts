@@ -133,18 +133,7 @@ export const BACKGROUND_UI_OPTIONS = [
   { name: 'Moonstone', url: BACKGROUNDS.MOONSTONE_SHIMMER, thumbUrl: '/images/backgrounds/thumbs/moonstone-shimmer.thumb.webp' },
   { name: 'Sage Watercolor', url: BACKGROUNDS.SAGE_WATERCOLOR, thumbUrl: '/images/backgrounds/thumbs/sage-watercolor.thumb.webp' },
   { name: 'Bamboo', url: BACKGROUNDS.BAMBOO_SAGE, thumbUrl: '/images/backgrounds/thumbs/bamboo-sage.thumb.webp' },
-  { name: 'Sky Watercolor', url: BACKGROUNDS.WATERCOLOR_BLUE_SKY, thumbUrl: '/images/backgrounds/thumbs/watercolor-blue-sky.thumb.webp' },
   { name: 'Periwinkle Sunset', url: BACKGROUNDS.PERIWINKLE_PINK_SUNSET, thumbUrl: '/images/backgrounds/thumbs/periwinkle-pink-sunset.thumb.webp' },
-  { name: 'Misty Rose Mesh', url: BACKGROUNDS.PRO_MESH_1, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-1.thumb.webp' },
-  { name: 'Golden Aura Mesh', url: BACKGROUNDS.PRO_MESH_2, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-2.thumb.webp' },
-  { name: 'Azure Mist Mesh', url: BACKGROUNDS.PRO_MESH_3, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-3.thumb.webp' },
-  { name: 'Midnight Silk Mesh', url: BACKGROUNDS.PRO_MESH_4, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-4.thumb.webp' },
-  { name: 'Emerald Wash Mesh', url: BACKGROUNDS.PRO_MESH_5, thumbUrl: '/images/backgrounds/thumbs/pro-bg-mesh-5.thumb.webp' },
-  { name: 'Paisley Cream', url: BACKGROUNDS.PAISLEY_CREAM, thumbUrl: '/images/backgrounds/thumbs/paisley-cream.thumb.webp' },
-  { name: 'Royal Purple', url: BACKGROUNDS.ROYAL_PURPLE, thumbUrl: '/images/backgrounds/thumbs/royal-purple.thumb.webp' },
-  { name: 'Ivory Linen', url: BACKGROUNDS.IVORY_LINEN, thumbUrl: '/images/backgrounds/thumbs/ivory-linen.thumb.webp' },
-  { name: 'Burgundy Silk', url: BACKGROUNDS.BURGUNDY_SILK, thumbUrl: '/images/backgrounds/thumbs/burgundy-silk.thumb.webp' },
-  { name: 'Paisley Blue', url: BACKGROUNDS.PAISLEY_BLUE, thumbUrl: '/images/backgrounds/thumbs/paisley-blue.thumb.webp' },
 ] as const;
 
 // Frame Images
@@ -166,19 +155,19 @@ export const FRAMES = {
 // Frame UI Options (with thumbnail URLs for selectors)
 export const FRAME_UI_OPTIONS = [
   // Free frames (corner frames) — first row
-  { id: 'frame-1', url: '/images/frames/frame-1.png', thumbUrl: '/images/frames/thumbs/frame-1.thumb.webp', name: 'Frame 1' },
-  { id: 'frame-4', url: '/images/frames/frame-4.png', thumbUrl: '/images/frames/thumbs/frame-4.thumb.webp', name: 'Frame 4' },
-  { id: 'frame-9', url: '/images/frames/frame-9.png', thumbUrl: '/images/frames/thumbs/frame-9.thumb.webp', name: 'Frame 9' },
-  { id: 'frame-12', url: '/images/frames/frame-12.png', thumbUrl: '/images/frames/thumbs/frame-12.thumb.webp', name: 'Frame 12' },
+  { id: 'frame-1', url: '/images/frames/frame-1.png', thumbUrl: '/images/frames/frame-1.png', name: 'Frame 1' },
+  { id: 'frame-4', url: '/images/frames/frame-4.png', thumbUrl: '/images/frames/frame-4.png', name: 'Frame 4' },
+  { id: 'frame-9', url: '/images/frames/frame-9.png', thumbUrl: '/images/frames/frame-9.png', name: 'Frame 9' },
+  { id: 'frame-12', url: '/images/frames/frame-12.png', thumbUrl: '/images/frames/frame-12.png', name: 'Frame 12' },
   // Pro frames
-  { id: 'frame-2', url: '/images/frames/frame-2.png', thumbUrl: '/images/frames/thumbs/frame-2.thumb.webp', name: 'Frame 2' },
-  { id: 'frame-3', url: '/images/frames/frame-3.png', thumbUrl: '/images/frames/thumbs/frame-3.thumb.webp', name: 'Frame 3' },
-  { id: 'frame-5', url: '/images/frames/frame-5.png', thumbUrl: '/images/frames/thumbs/frame-5.thumb.webp', name: 'Frame 5' },
-  { id: 'frame-6', url: '/images/frames/frame-6.png', thumbUrl: '/images/frames/thumbs/frame-6.thumb.webp', name: 'Frame 6' },
-  { id: 'frame-7', url: '/images/frames/frame-7.png', thumbUrl: '/images/frames/thumbs/frame-7.thumb.webp', name: 'Frame 7' },
-  { id: 'frame-8', url: '/images/frames/frame-8.png', thumbUrl: '/images/frames/thumbs/frame-8.thumb.webp', name: 'Frame 8' },
-  { id: 'frame-10', url: '/images/frames/frame-10.png', thumbUrl: '/images/frames/thumbs/frame-10.thumb.webp', name: 'Frame 10' },
-  { id: 'frame-11', url: '/images/frames/frame-11.png', thumbUrl: '/images/frames/thumbs/frame-11.thumb.webp', name: 'Frame 11' },
+  { id: 'frame-2', url: '/images/frames/frame-2.png', thumbUrl: '/images/frames/frame-2.png', name: 'Frame 2' },
+  { id: 'frame-3', url: '/images/frames/frame-3.png', thumbUrl: '/images/frames/frame-3.png', name: 'Frame 3' },
+  { id: 'frame-5', url: '/images/frames/frame-5.png', thumbUrl: '/images/frames/frame-5.png', name: 'Frame 5' },
+  { id: 'frame-6', url: '/images/frames/frame-6.png', thumbUrl: '/images/frames/frame-6.png', name: 'Frame 6' },
+  { id: 'frame-7', url: '/images/frames/frame-7.png', thumbUrl: '/images/frames/frame-7.png', name: 'Frame 7' },
+  { id: 'frame-8', url: '/images/frames/frame-8.png', thumbUrl: '/images/frames/frame-8.png', name: 'Frame 8' },
+  { id: 'frame-10', url: '/images/frames/frame-10.png', thumbUrl: '/images/frames/frame-10.png', name: 'Frame 10' },
+  { id: 'frame-11', url: '/images/frames/frame-11.png', thumbUrl: '/images/frames/frame-11.png', name: 'Frame 11' },
 ] as const;
 
 // Frame Configurations - Calibrated for perfect fit

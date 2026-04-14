@@ -10,7 +10,7 @@ import { groups } from '@/components/admin/OnboardingSidebar';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 
-const websiteItems = groups.find(g => g.id === 'website')!.items;
+const websiteItems = groups.find(g => g.id === 'wedding-website')!.items;
 
 interface ContinueButtonProps {
   weddingSlug: string;

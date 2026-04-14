@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined, PhoneAndroid, ContentCopy } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -67,6 +68,16 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [phoneCopied, setPhoneCopied] = useState(false);
+  const searchParams = useSearchParams();
+
+  // Deep-link: if ?guest=<id> is in URL, auto-select that guest and switch to conversations tab
+  useEffect(() => {
+    const guestParam = searchParams.get('guest');
+    if (guestParam) {
+      setSelectedGuestId(guestParam);
+      setActiveTab(1); // Switch to Conversations tab
+    }
+  }, [searchParams]);
 
   const conciergePhone = '+1 (555) 839-7813';
 

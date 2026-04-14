@@ -404,7 +404,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
   }, [fetchCustomQuestions]);
 
   // Steps definition - includes Guest Concierge as final step for attending guests
-  const hiddenSteps = wedding?.hidden_rsvp_steps || [];
+  // Normalize legacy hidden step name
+  const rawHidden = wedding?.hidden_rsvp_steps || [];
+  const hiddenSteps = rawHidden.flatMap((s: string) =>
+    s === 'Music Request & Comment' ? ['Music Request', 'Comment'] : [s]
+  );
   const steps = (allowsPlusOne ? [
     'Basic Information',
     'Account Creation',
@@ -412,14 +416,16 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
     'Plus One Details',
     'Dietary Restrictions',
     'Team Bride/Groom',
-    'Music Request & Comment',
+    'Music Request',
+    'Comment',
   ] : [
     'Basic Information',
     'Account Creation',
     'RSVP',
     'Dietary Restrictions',
     'Team Bride/Groom',
-    'Music Request & Comment',
+    'Music Request',
+    'Comment',
   ]).filter(s => !hiddenSteps.includes(s));
 
   // Merge fixed steps with custom question steps
@@ -842,8 +848,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
         }
         break;
 
-      case 'Music Request & Comment':
-        // No required fields in this step - both song request and special message are optional
+      case 'Music Request':
+      case 'Comment':
+        // Both steps are fully optional
         break;
     }
 
@@ -2628,166 +2635,103 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Stack>
         );
 
-      case 'Music Request & Comment':
+      case 'Music Request':
         return (
           <Stack spacing={4}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {/* Music Request Section */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: '#000',
-                      fontWeight: 400,
-                      lineHeight: 1.3,
-                      mb: 1,
-                    }}
-                  >
-                    Music requests
-                  </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box>
+                <Typography variant="h4" sx={{ color: '#000', fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
+                  Music requests
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(0, 0, 0, 0.48)', lineHeight: 1.5 }}>
+                  What song will make this celebration perfect? (optional)
+                </Typography>
+              </Box>
+              <TextField
+                label="Song name and artist"
+                value={formData.songRequest}
+                onChange={(e) => handleInputChange('songRequest', e.target.value)}
+                fullWidth
+                sx={guestTextFieldSx(themeColor)}
+              />
+            </Box>
+          </Stack>
+        );
 
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: 'rgba(0, 0, 0, 0.48)',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    What song will make this celebration perfect? (optional)
-                  </Typography>
-                </Box>
-
+      case 'Comment':
+        return (
+          <Stack spacing={4}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box>
+                <Typography variant="h4" sx={{ color: '#000', fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
+                  Share your excitement
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(0, 0, 0, 0.48)', lineHeight: 1.5 }}>
+                  Leave a message for everyone to see! (optional)
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TextField
-                  label="Song name and artist"
-                  value={formData.songRequest}
-                  onChange={(e) => handleInputChange('songRequest', e.target.value)}
+                  label="Your wishes for the happy couple..."
+                  value={formData.specialMessage}
+                  onChange={(e) => handleInputChange('specialMessage', e.target.value)}
                   fullWidth
+                  multiline
+                  minRows={2}
                   sx={guestTextFieldSx(themeColor)}
                 />
-              </Box>
 
-              {/* Special Message Section */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: '#000',
-                      fontWeight: 400,
-                      lineHeight: 1.3,
-                      mb: 1,
-                    }}
-                  >
-                    Share your excitement
-                  </Typography>
+                {!formData.selectedGif && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                    <IconButton
+                      onClick={() => setShowGifPicker(true)}
+                      sx={{
+                        width: 32, height: 32, border: '1px solid #000', borderRadius: '6px',
+                        backgroundColor: 'white', p: 1,
+                        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#000' },
+                      }}
+                    >
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.61429 8V0H10.1571V8H8.61429ZM0 8V0H6.17143V1.6H1.54286V6.4H4.62857V4H6.17143V8H0ZM12.4714 8V0H18V1.6H14.0143V3.6H16.6179V5.2H14.0143V8H12.4714Z" fill="#141414" />
+                      </svg>
+                    </IconButton>
+                  </Box>
+                )}
 
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: 'rgba(0, 0, 0, 0.48)',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Leave a message for everyone to see! (optional)
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <TextField
-                    label="Your wishes for the happy couple..."
-                    value={formData.specialMessage}
-                    onChange={(e) => handleInputChange('specialMessage', e.target.value)}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    sx={guestTextFieldSx(themeColor)}
-                  />
-
-                  {/* GIF Button - only show when no GIF is selected */}
-                  {!formData.selectedGif && (
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                {formData.selectedGif && (
+                  <Box sx={{ mt: 2 }}>
+                    <Box
+                      sx={{
+                        position: 'relative', borderRadius: '16px', overflow: 'hidden',
+                        border: '1px solid rgba(0, 0, 0, 0.12)', cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': { boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', transform: 'translateY(-1px)' },
+                      }}
+                      onClick={() => setShowGifPicker(true)}
+                    >
+                      <Image
+                        src={formData.selectedGif.preview_url}
+                        alt={formData.selectedGif.title}
+                        width={200}
+                        height={200}
+                        style={{ width: '100%', height: 'auto', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
+                        unoptimized
+                      />
                       <IconButton
-                        onClick={() => setShowGifPicker(true)}
+                        onClick={(e) => { e.stopPropagation(); handleRemoveGif(); }}
                         sx={{
-                          width: 32,
-                          height: 32,
-                          border: '1px solid #000',
-                          borderRadius: '6px',
-                          backgroundColor: 'white',
-                          p: 1,
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            borderColor: '#000',
-                          },
+                          position: 'absolute', top: 8, right: 8,
+                          backgroundColor: 'rgba(0, 0, 0, 0.6)', color: 'white',
+                          width: 32, height: 32,
+                          '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                         }}
+                        size="small"
                       >
-                        <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M8.61429 8V0H10.1571V8H8.61429ZM0 8V0H6.17143V1.6H1.54286V6.4H4.62857V4H6.17143V8H0ZM12.4714 8V0H18V1.6H14.0143V3.6H16.6179V5.2H14.0143V8H12.4714Z" fill="#141414" />
-                        </svg>
+                        <CloseIcon fontSize="small" />
                       </IconButton>
                     </Box>
-                  )}
-
-                  {/* Selected GIF Display - show under input when selected */}
-                  {formData.selectedGif && (
-                    <Box sx={{ mt: 2 }}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          borderRadius: '16px',
-                          overflow: 'hidden',
-                          border: '1px solid rgba(0, 0, 0, 0.12)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                            transform: 'translateY(-1px)',
-                          },
-                        }}
-                        onClick={() => setShowGifPicker(true)}
-                      >
-                        <Image
-                          src={formData.selectedGif.preview_url}
-                          alt={formData.selectedGif.title}
-                          width={200}
-                          height={200}
-                          style={{
-                            width: '100%',
-                            height: 'auto',
-                            maxHeight: '200px',
-                            objectFit: 'cover',
-                            display: 'block',
-                          }}
-                          unoptimized // For external GIF URLs
-                        />
-
-                        {/* Delete button */}
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveGif();
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                            color: 'white',
-                            width: 32,
-                            height: 32,
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            },
-                          }}
-                          size="small"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
+                  </Box>
+                )}
               </Box>
             </Box>
           </Stack>

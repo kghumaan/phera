@@ -19,7 +19,6 @@ import {
 import { DirectionsBus, CheckCircle, WhatsApp, Add, Remove } from '@mui/icons-material';
 import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { useWedding } from '@/lib/contexts/WeddingContext';
 import Link from 'next/link';
 
 interface TravelFormData {
@@ -41,8 +40,6 @@ const initialFormData: TravelFormData = {
 };
 
 export default function TravelFormPage() {
-  const { wedding } = useWedding();
-  const primaryColor = wedding?.primary_color || '#DE3F5E';
   const [formData, setFormData] = useState<TravelFormData>(initialFormData);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -89,8 +86,7 @@ export default function TravelFormPage() {
 
     try {
       const submissionData = {
-        wedding_id: 'simran-karanvir',
-
+        wedding_id: 'sim-kv',
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         party_size: formData.party_size,
@@ -200,6 +196,7 @@ export default function TravelFormPage() {
               <Typography
                 variant="h4"
                 sx={{
+                  fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
                   color: '#000000',
@@ -209,7 +206,7 @@ export default function TravelFormPage() {
                 All Set!
               </Typography>
               <Typography
-                variant="body2"
+                variant="body1"
                 sx={{
                   mb: 4,
                   color: '#333333',
@@ -227,13 +224,14 @@ export default function TravelFormPage() {
                   <DirectionsBus
                     sx={{
                       fontSize: { xs: 40, md: 50 },
-                      color: primaryColor,
+                      color: '#DE3F5E',
                       mb: 1,
                     }}
                   />
                   <Typography
                     variant="h4"
                     sx={{
+                      fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
                       color: '#000000',
@@ -275,14 +273,14 @@ export default function TravelFormPage() {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: primaryColor,
+                        borderColor: '#DE3F5E',
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: primaryColor,
+                        color: '#DE3F5E',
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -327,20 +325,20 @@ export default function TravelFormPage() {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#000000',
                       '& fieldset': {
-                        borderColor: '#999999',
+                         borderColor: '#999999',
                       },
                       '&:hover fieldset': {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: primaryColor,
+                        borderColor: '#DE3F5E',
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: primaryColor,
+                        color: '#DE3F5E',
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -370,69 +368,68 @@ export default function TravelFormPage() {
 
                 {/* Party Size */}
                 <Box>
-                  <Typography variant="body2" gutterBottom sx={{ color: '#666' }}>
-                    Party Size
-                  </Typography>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        minWidth: '48px',
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '12px',
-                        borderColor: '#999',
-                        color: '#333',
-                        '&:hover': { borderColor: primaryColor, color: primaryColor }
-                      }}
-                      onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
-                    >
-                      <Remove />
-                    </Button>
-                    <TextField
-                      sx={{
-                        width: '80px',
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '12px',
-                          textAlign: 'center',
-                          color: '#000000',
-                          '& fieldset': { borderColor: '#999' },
-                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-                          '&.Mui-focused fieldset': { borderColor: primaryColor },
-                        },
-                        '& input': { textAlign: 'center', color: '#000000' }
-                      }}
-                      value={formData.party_size}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') {
-                          handleInputChange('party_size', 0); // Handle empty as 0 temporarily
-                        } else {
-                          const num = parseInt(val);
-                          if (!isNaN(num)) handleInputChange('party_size', num);
-                        }
-                      }}
-                      onBlur={() => {
-                        if (formData.party_size < 1) handleInputChange('party_size', 1);
-                      }}
-                      inputProps={{ min: 1, type: 'number', style: { textAlign: 'center' } }}
-                    />
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        minWidth: '48px',
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '12px',
-                        borderColor: '#999',
-                        color: '#333',
-                        '&:hover': { borderColor: primaryColor, color: primaryColor }
-                      }}
-                      onClick={() => handleInputChange('party_size', formData.party_size + 1)}
-                    >
-                      <Add />
-                    </Button>
-                  </Stack>
+                    <Typography gutterBottom sx={{ color: '#666' }}>
+                        Party Size
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                        <Button
+                            variant="outlined"
+                            sx={{ 
+                                minWidth: '48px', 
+                                width: '48px', 
+                                height: '48px',
+                                borderRadius: '12px',
+                                borderColor: '#999',
+                                color: '#333',
+                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                            }}
+                            onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
+                        >
+                            <Remove />
+                        </Button>
+                        <TextField
+                            sx={{
+                                width: '80px',
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                    color: '#000000',
+                                    '& fieldset': { borderColor: '#999' },
+                                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                },
+                                '& input': { textAlign: 'center', color: '#000000' }
+                            }}
+                            value={formData.party_size}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '') {
+                                    handleInputChange('party_size', 0); // Handle empty as 0 temporarily
+                                } else {
+                                    const num = parseInt(val);
+                                    if (!isNaN(num)) handleInputChange('party_size', num);
+                                }
+                            }}
+                            onBlur={() => {
+                                if (formData.party_size < 1) handleInputChange('party_size', 1);
+                            }}
+                            inputProps={{ min: 1, type: 'number', style: { textAlign: 'center' } }}
+                        />
+                         <Button
+                            variant="outlined"
+                            sx={{ 
+                                minWidth: '48px', 
+                                width: '48px', 
+                                height: '48px',
+                                borderRadius: '12px',
+                                borderColor: '#999',
+                                color: '#333',
+                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                            }}
+                            onClick={() => handleInputChange('party_size', formData.party_size + 1)}
+                        >
+                            <Add />
+                        </Button>
+                    </Stack>
                 </Box>
 
 
@@ -441,8 +438,9 @@ export default function TravelFormPage() {
                 {/* Bus Options */}
                 <Box>
                   <Typography
-                    variant="subtitleCaps"
+                    variant="subtitle1"
                     sx={{
+                      fontWeight: 600,
                       mb: 2,
                       color: '#000000',
                       fontSize: { xs: '1.05rem', md: '1.15rem' },
@@ -458,10 +456,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.bangkok_to_huahin
-                          ? `2px solid ${primaryColor}`
+                          ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.bangkok_to_huahin
-                          ? alpha(primaryColor, 0.05)
+                          ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -486,7 +484,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: primaryColor,
+                                color: '#DE3F5E',
                               },
                               pointerEvents: 'none',
                             }}
@@ -495,7 +493,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body2"
+                              variant="body1"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -518,18 +516,18 @@ export default function TravelFormPage() {
                         sx={{ width: '100%', m: 0, pointerEvents: 'none' }}
                       />
                     </Paper>
-
+                    
                     {/* Notice for Return Trips */}
                     <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#666666',
-                        fontStyle: 'italic',
-                        mt: 1,
-                        display: 'block'
-                      }}
+                        variant="caption"
+                        sx={{
+                            color: '#666666',
+                            fontStyle: 'italic',
+                             mt: 1,
+                             display: 'block'
+                        }}
                     >
-                      Note: You can only select one return trip option. The Airport shuttle goes directly to BKK, while the Sukhumvit shuttle goes to Bangkok central.
+                        Note: You can only select one return trip option. The Airport shuttle goes directly to BKK, while the Sukhumvit shuttle goes to Bangkok central.
                     </Typography>
 
                     {/* Hua Hin to Airport */}
@@ -538,10 +536,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.huahin_to_airport
-                          ? `2px solid ${primaryColor}`
+                          ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_airport
-                          ? alpha(primaryColor, 0.05)
+                          ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -566,7 +564,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: primaryColor,
+                                color: '#DE3F5E',
                               },
                               pointerEvents: 'none',
                             }}
@@ -575,7 +573,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body2"
+                              variant="body1"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -605,10 +603,10 @@ export default function TravelFormPage() {
                         p: 2,
                         borderRadius: '16px',
                         border: formData.huahin_to_sukhumvit
-                          ? `2px solid ${primaryColor}`
+                          ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_sukhumvit
-                          ? alpha(primaryColor, 0.05)
+                          ? alpha('#DE3F5E', 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -633,7 +631,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: primaryColor,
+                                color: '#DE3F5E',
                               },
                               pointerEvents: 'none',
                             }}
@@ -642,7 +640,7 @@ export default function TravelFormPage() {
                         label={
                           <Box>
                             <Typography
-                              variant="body2"
+                              variant="body1"
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -690,6 +688,7 @@ export default function TravelFormPage() {
                     <Typography
                       variant="subtitle2"
                       sx={{
+                        fontWeight: 600,
                         color: '#000000',
                         fontSize: { xs: '0.95rem', md: '1.05rem' },
                       }}
@@ -706,64 +705,64 @@ export default function TravelFormPage() {
                       <strong>Small Group Shuttles (max 6 people):</strong> <br />Contact Lynda via WhatsApp
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Button
-                        component="a"
-                        href="https://wa.me/66882959254"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        startIcon={<WhatsApp />}
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          borderColor: '#25D366',
-                          color: '#25D366',
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          fontSize: { xs: '0.9rem', md: '1rem' },
-                          '&:hover': {
-                            borderColor: '#1ead54',
-                            bgcolor: alpha('#25D366', 0.05),
-                          },
-                        }}
-                      >
-                        +66 88 295 9254
-                      </Button>
+                        <Button
+                          component="a"
+                          href="https://wa.me/66882959254"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          startIcon={<WhatsApp />}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            borderColor: '#25D366',
+                            color: '#25D366',
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontSize: { xs: '0.9rem', md: '1rem' },
+                            '&:hover': {
+                              borderColor: '#1ead54',
+                              bgcolor: alpha('#25D366', 0.05),
+                            },
+                          }}
+                        >
+                          +66 88 295 9254
+                        </Button>
                     </Box>
-                    <Divider sx={{ my: 1, borderColor: alpha('#20C997', 0.2) }} />
-
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: '#333333',
-                        fontSize: { xs: '0.9rem', md: '1rem' },
-                      }}
-                    >
-                      <strong>City Transport:</strong> <br />Download Grab in advance to get around in Bangkok via motor bikes / taxis
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Button
-                        component="a"
-                        href="https://apps.apple.com/us/app/grab-taxi-ride-food-delivery/id647268330"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="outlined"
-                        size="small"
+                     <Divider sx={{ my: 1, borderColor: alpha('#20C997', 0.2) }} />
+                     
+                     <Typography
+                        variant="body2"
                         sx={{
-                          borderColor: '#00B14F',
-                          color: '#00B14F',
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          fontSize: { xs: '0.9rem', md: '1rem' },
-                          '&:hover': {
-                            borderColor: '#008a3d',
-                            bgcolor: alpha('#00B14F', 0.05)
-                          }
+                            color: '#333333',
+                             fontSize: { xs: '0.9rem', md: '1rem' },
                         }}
-                      >
-                        Download Grab App
-                      </Button>
-                    </Box>
+                     >
+                        <strong>City Transport:</strong> <br />Download Grab in advance to get around in Bangkok via motor bikes / taxis
+                     </Typography>
+                     
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                         <Button
+                          component="a"
+                          href="https://apps.apple.com/us/app/grab-taxi-ride-food-delivery/id647268330"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            borderColor: '#00B14F',
+                            color: '#00B14F',
+                            borderRadius: '12px',
+                             textTransform: 'none',
+                             fontSize: { xs: '0.9rem', md: '1rem' },
+                             '&:hover': {
+                                 borderColor: '#008a3d',
+                                 bgcolor: alpha('#00B14F', 0.05)
+                             }
+                          }}
+                        >
+                            Download Grab App
+                        </Button>
+                      </Box>
 
                     <Typography
                       variant="caption"
@@ -790,7 +789,7 @@ export default function TravelFormPage() {
                   variant="contained"
                   disabled={loading}
                   sx={{
-                    bgcolor: primaryColor,
+                    bgcolor: '#DE3F5E',
                     color: 'white',
                     borderRadius: '16px',
                     py: 1.5,

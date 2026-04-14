@@ -88,7 +88,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   // Guard against concurrent ensureDaysExist calls (React StrictMode, fast re-renders)
   const ensureDaysRunning = useRef(false);
 
-  // Auto-generate days from wedding date range
+  // Sync schedule days with the wedding date range.
+  // - Reassigns dates on existing days when the range shifts
+  // - Creates new days if the range grew
+  // - Never deletes days — extras keep their events
   const ensureDaysExist = useCallback(async (
     wId: string,
     dateStart: Date,
@@ -102,26 +105,50 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       const endDate = dateEnd || dateStart;
       const allDates = eachDayOfInterval({ start: dateStart, end: endDate });
 
-      // If we already have at least as many days as the date range, skip
-      if (existingDays.length >= allDates.length) return false;
+      // Sort existing days by order_index so we reassign in order
+      const sorted = [...existingDays].sort((a, b) => a.order_index - b.order_index);
 
-      const existingDateSet = new Set(existingDays.map(d => normalizeDateStr(d.date)));
-      let created = false;
+      // Check if existing days already match the new date range
+      const existingDateSet = new Set(sorted.map(d => normalizeDateStr(d.date)));
+      const newDateStrs = allDates.map(d => format(d, 'yyyy-MM-dd'));
+      const alreadyInSync = newDateStrs.every(d => existingDateSet.has(d)) && sorted.length >= allDates.length;
+      if (alreadyInSync) return false;
 
-      for (let i = 0; i < allDates.length; i++) {
-        const dateStr = format(allDates[i], 'yyyy-MM-dd');
-        if (!existingDateSet.has(dateStr)) {
-          const dayName = format(allDates[i], 'EEEE');
-          await weddingService.createSchedule({
-            wedding_id: wId,
-            day_name: dayName,
-            date: dateStr,
+      let changed = false;
+
+      // Reassign dates on existing days that overlap with the new range
+      for (let i = 0; i < Math.min(sorted.length, allDates.length); i++) {
+        const newDateStr = format(allDates[i], 'yyyy-MM-dd');
+        const newDayName = format(allDates[i], 'EEEE');
+        const existingNorm = normalizeDateStr(sorted[i].date);
+
+        if (existingNorm !== newDateStr) {
+          await weddingService.updateSchedule(sorted[i].id, {
+            date: newDateStr,
+            day_name: newDayName,
             order_index: i,
           });
-          created = true;
+          changed = true;
+        } else if (sorted[i].order_index !== i) {
+          await weddingService.updateSchedule(sorted[i].id, { order_index: i });
+          changed = true;
         }
       }
-      return created;
+
+      // If the range grew, create new days for the extra dates
+      for (let i = sorted.length; i < allDates.length; i++) {
+        const dateStr = format(allDates[i], 'yyyy-MM-dd');
+        const dayName = format(allDates[i], 'EEEE');
+        await weddingService.createSchedule({
+          wedding_id: wId,
+          day_name: dayName,
+          date: dateStr,
+          order_index: i,
+        });
+        changed = true;
+      }
+
+      return changed;
     } finally {
       ensureDaysRunning.current = false;
     }

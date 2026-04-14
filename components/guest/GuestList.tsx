@@ -110,6 +110,7 @@ interface GuestListProps {
   initialMaxComments?: number;
   initialTab?: number;
   primaryColor?: string;
+  hideCommentInput?: boolean;
 }
 
 const emojis = ['❤️', '😍', '🎉', '👏', '😂', '🥰', '🔥', '💯'];
@@ -121,6 +122,7 @@ export default function GuestList({
   initialMaxComments = 2,
   initialTab = 0,
   primaryColor: primaryColorProp,
+  hideCommentInput = false,
 }: GuestListProps) {
   const themeColor = primaryColorProp || '#DE3F5E';
   const theme = useTheme();
@@ -384,18 +386,25 @@ export default function GuestList({
   //   console.log(`Booped guest ${guestId}! 💕`);
   // };
 
+  const userAlreadyCommented = user?.guestId
+    ? comments.some((c) => c.guest_id === user.guestId)
+    : false;
+
   const handleAddComment = async () => {
     if ((!newComment.trim() && !selectedGif) || !user) return;
 
-    // Use guestId (guests table UUID) not user.id (auth UUID)
     const guestId = user.guestId;
     if (!guestId) {
       console.error('Cannot post comment: user has no guestId for this wedding');
       return;
     }
 
+    // Prevent duplicate: if this guest already has a comment, don't add another
+    if (userAlreadyCommented) {
+      return;
+    }
+
     try {
-      // Save to database - pass GIF data if selected
       const savedComment = await addComment(
         weddingId,
         guestId,
@@ -408,13 +417,11 @@ export default function GuestList({
         } : undefined
       );
 
-      // Add to local state
       setComments(prev => [savedComment, ...prev]);
       setNewComment('');
       setSelectedGif(null);
     } catch (error) {
       console.error('Error saving comment:', error);
-      // You could show a toast notification here
     }
   };
 
@@ -500,8 +507,8 @@ export default function GuestList({
 
   const renderActivityTab = () => (
     <Stack spacing={3}> {/* 24px gap */}
-      {/* Comment Input */}
-      {user && (
+      {/* Comment Input — hidden if admin removed comment step or user already posted */}
+      {user && !hideCommentInput && !userAlreadyCommented && (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Avatar
             sx={{

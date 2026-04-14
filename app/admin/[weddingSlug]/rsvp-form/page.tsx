@@ -78,10 +78,11 @@ const FIXED_STEPS = [
   'Plus One Details',
   'Dietary Restrictions',
   'Team Bride/Groom',
-  'Music Request & Comment',
+  'Music Request',
+  'Comment',
 ];
 
-const OPTIONAL_FIXED_STEPS = new Set(['Team Bride/Groom', 'Music Request & Comment']);
+const OPTIONAL_FIXED_STEPS = new Set(['Team Bride/Groom', 'Music Request', 'Comment']);
 
 const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
   'Basic Information': 'Collects guest name, email, and phone number',
@@ -90,7 +91,8 @@ const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
   'Plus One Details': 'This step is only shown to guests whose PIN allows a plus-one. You can configure this in Pin Management.',
   'Dietary Restrictions': 'Food preferences and dietary restriction details',
   'Team Bride/Groom': 'Guest picks whose side they\'re celebrating',
-  'Music Request & Comment': 'Song request and a personal message to the couple',
+  'Music Request': 'Song request — what should the DJ play?',
+  'Comment': 'A personal message and optional GIF for the couple',
 };
 
 const QUESTION_TYPES = [
@@ -409,7 +411,12 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         setWeddingId(wedding.id);
         const steps = await getCustomQuestions(weddingSlug);
         setCustomSteps(steps);
-        setHiddenFixedSteps(new Set(wedding.hidden_rsvp_steps || []));
+        // Normalize legacy combined step name into the two new separate steps
+        const rawHidden = (wedding.hidden_rsvp_steps || []) as string[];
+        const normalized = rawHidden.flatMap((s: string) =>
+          s === 'Music Request & Comment' ? ['Music Request', 'Comment'] : [s]
+        );
+        setHiddenFixedSteps(new Set(normalized));
         const msgs = (wedding as any).rsvp_confirmation_messages;
         if (msgs) {
           setConfirmationMessages({
