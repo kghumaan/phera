@@ -610,59 +610,188 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   )}
 
                   {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                    /* Mobile Phone Frame — more compact, positioned toward right */
+                    /* iPhone 15 Pro mockup — CSS-only, no extra deps */
                     <Box
                       sx={{
                         width: { md: '320px', lg: '380px' },
-                        aspectRatio: '9 / 18', // Slightly taller aspect ratio for modern phones
+                        aspectRatio: '9 / 19', // iPhone 15 Pro ratio (~2.16)
                         mx: 'auto',
-                        borderRadius: '40px',
-                        overflow: 'hidden',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)',
-                        bgcolor: '#1a1a1a',
-                        border: '12px solid #1a1a1a',
                         position: 'relative',
+                        borderRadius: '52px',
+                        // Two-tone shadow for depth like a real product shot
+                        boxShadow: `
+                          0 28px 70px rgba(0, 0, 0, 0.22),
+                          0 10px 24px rgba(0, 0, 0, 0.12),
+                          inset 0 0 0 1.5px rgba(255, 255, 255, 0.06)
+                        `,
+                        // Titanium frame: subtle vertical gradient for material feel
+                        background: 'linear-gradient(160deg, #2a2a2c 0%, #1a1a1c 40%, #0f0f10 100%)',
+                        padding: { md: '11px', lg: '12px' },
                       }}
                     >
-                      {/* Dynamic Island / Notch */}
+                      {/* Side buttons — left: silent toggle + 2 volume; right: power */}
                       <Box
                         sx={{
                           position: 'absolute',
-                          top: 0,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '100px',
-                          height: '24px',
-                          bgcolor: '#1a1a1a',
-                          borderBottomLeftRadius: '18px',
-                          borderBottomRightRadius: '18px',
-                          zIndex: 20,
+                          left: '-2.5px',
+                          top: '14%',
+                          width: '3px',
+                          height: '32px',
+                          borderRadius: '2px 0 0 2px',
+                          bgcolor: '#0a0a0b',
+                          boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.05)',
                         }}
                       />
-                      {/* Phone Screen */}
                       <Box
                         sx={{
-                          borderRadius: '28px',
-                          overflow: 'hidden',
-                          lineHeight: 0,
+                          position: 'absolute',
+                          left: '-2.5px',
+                          top: '24%',
+                          width: '3px',
+                          height: '52px',
+                          borderRadius: '2px 0 0 2px',
+                          bgcolor: '#0a0a0b',
+                          boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.05)',
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: '-2.5px',
+                          top: '32%',
+                          width: '3px',
+                          height: '52px',
+                          borderRadius: '2px 0 0 2px',
+                          bgcolor: '#0a0a0b',
+                          boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.05)',
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          right: '-2.5px',
+                          top: '26%',
+                          width: '3px',
+                          height: '72px',
+                          borderRadius: '0 2px 2px 0',
+                          bgcolor: '#0a0a0b',
+                          boxShadow: 'inset 1px 0 0 rgba(255,255,255,0.05)',
+                        }}
+                      />
+
+                      {/* Inner screen */}
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          width: '100%',
                           height: '100%',
+                          borderRadius: '40px',
+                          overflow: 'hidden',
+                          bgcolor: '#000',
+                          // Subtle inner edge highlight
+                          boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)',
                         }}
                       >
-                        {item.customComponent ? (
-                          item.customComponent
-                        ) : (
-                          <Image
-                            src={item.featureImage!}
-                            alt={item.title}
-                            fill
-                            quality={85}
-                            sizes="380px"
-                            style={{
-                              objectFit: 'cover',
-                              objectPosition: 'top',
-                            }}
-                          />
-                        )}
+                        {/* Status bar overlay (faux) */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '44px',
+                            zIndex: 25,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: 3,
+                            color: 'white',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif',
+                            pointerEvents: 'none',
+                          }}
+                        >
+                          <Box sx={{ minWidth: 50 }}>9:41</Box>
+                          <Box sx={{ flex: 1 }} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 50, justifyContent: 'flex-end' }}>
+                            {/* Signal bars */}
+                            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '2px' }}>
+                              {[3, 5, 7, 9].map((h) => (
+                                <Box key={h} sx={{ width: '3px', height: `${h}px`, bgcolor: 'white', borderRadius: '0.5px' }} />
+                              ))}
+                            </Box>
+                            {/* WiFi (simplified) */}
+                            <Box
+                              sx={{
+                                width: 14,
+                                height: 10,
+                                ml: 0.5,
+                                background: 'radial-gradient(circle at 50% 100%, white 0 2px, transparent 2.5px 4.5px, white 5px 6.5px, transparent 7px 9px, white 9.5px 11px)',
+                                opacity: 0.95,
+                              }}
+                            />
+                            {/* Battery */}
+                            <Box
+                              sx={{
+                                ml: 0.5,
+                                width: 22,
+                                height: 11,
+                                border: '1.2px solid white',
+                                borderRadius: '3px',
+                                position: 'relative',
+                                p: '1px',
+                                '&::after': {
+                                  content: '""',
+                                  position: 'absolute',
+                                  right: '-3px',
+                                  top: '3px',
+                                  width: '1.5px',
+                                  height: '5px',
+                                  bgcolor: 'white',
+                                  borderRadius: '0 1px 1px 0',
+                                },
+                              }}
+                            >
+                              <Box sx={{ width: '78%', height: '100%', bgcolor: 'white', borderRadius: '1px' }} />
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        {/* Dynamic Island */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '11px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '108px',
+                            height: '32px',
+                            bgcolor: '#000',
+                            borderRadius: '999px',
+                            zIndex: 30,
+                            boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.05)',
+                          }}
+                        />
+
+                        {/* Screen content */}
+                        <Box sx={{ position: 'absolute', inset: 0, lineHeight: 0 }}>
+                          {item.customComponent ? (
+                            item.customComponent
+                          ) : (
+                            <Image
+                              src={item.featureImage!}
+                              alt={item.title}
+                              fill
+                              quality={85}
+                              sizes="380px"
+                              style={{
+                                objectFit: 'cover',
+                                objectPosition: 'top',
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   )}
