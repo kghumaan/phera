@@ -55,7 +55,27 @@ import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 // --- Types ---
-type OnboardingStep = 1 | 2;
+type OnboardingStep = 1 | 2 | 3;
+
+interface OnboardingGoal {
+  id: string;
+  label: string;
+  subtext: string;
+}
+
+// Deliberately shuffled so related items don't cluster — we want users to
+// scan the whole list before picking.
+const ONBOARDING_GOALS: OnboardingGoal[] = [
+  { id: 'save_the_dates',   label: 'Send out Save The Dates',    subtext: 'Share the news with your guests.' },
+  { id: 'guest_list',       label: 'Manage my guest list',       subtext: 'One organized place for every invite.' },
+  { id: 'wedding_website',  label: 'Build Wedding Website',      subtext: 'A branded site for schedule, travel, and RSVPs.' },
+  { id: 'rsvp_invites',     label: 'Send RSVP invites to guests', subtext: 'Bulk RSVP requests via email or WhatsApp.' },
+  { id: 'rsvp_gather',      label: 'Gather RSVPs',                subtext: 'Track yes / no / maybe responses in one view.' },
+  { id: 'broadcast',        label: 'Broadcast messages',          subtext: 'Send a note to all guests at once.' },
+  { id: 'room_assignments', label: 'Room Assignments',            subtext: 'Place guests into hotel rooms from a floorplan.' },
+  { id: 'guest_logistics',  label: 'Guest Logistics',             subtext: 'Shuttles, airport pickups, and transfers.' },
+  { id: 'vendor_mgmt',      label: 'Vendor Management',           subtext: 'Track vendor conversations and stay organized.' },
+];
 
 type UserRole = 'couple' | 'planner';
 
@@ -179,6 +199,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [plan, setPlan] = useState<'basic' | 'pro'>('basic');
   const [coupleName, setCoupleName] = useState('');
   const [partnerName, setPartnerName] = useState('');
@@ -610,7 +631,7 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     console.log('[Onboarding] handleNext clicked', { step });
-    if (step < 2) {
+    if (step < 3) {
       setStep((step + 1) as OnboardingStep);
     }
     else {
@@ -656,6 +677,21 @@ export default function OnboardingPage() {
         companyName,
         plannerLocation,
       });
+
+      // Record onboarding goals for product research — non-fatal on error.
+      if (selectedGoals.length > 0 && authUser?.email) {
+        try {
+          await (supabase as any).from('contact_submissions').insert([
+            {
+              name: coupleName || companyName || authUser?.email || 'Onboarded user',
+              email: authUser.email.toLowerCase(),
+              message: `Onboarding goals: ${selectedGoals.join(', ')}`,
+            },
+          ]);
+        } catch (err) {
+          console.error('[Onboarding] Failed to record goals:', err);
+        }
+      }
     } catch (error) {
       console.error('[Onboarding DEBUG] handleSubmit: Error completing onboarding:', error);
       alert('Something went wrong. Please try again.');
@@ -1287,7 +1323,82 @@ export default function OnboardingPage() {
                       </Box>
                     )}
 
-                    {/* STEP 3 & 4 (LEGACY) REMOVED */}
+                    {/* STEP 3: ONBOARDING GOALS — multi-select topics */}
+                    {step === 3 && (
+                      <Box>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                          What do you want to get done?
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#666', mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                          Pick everything that sounds useful — we'll tailor your setup around it. You can change this later.
+                        </Typography>
+
+                        <Grid container spacing={1.5} sx={{ maxWidth: '720px', mx: 'auto' }}>
+                          {ONBOARDING_GOALS.map((goal) => {
+                            const selected = selectedGoals.includes(goal.id);
+                            return (
+                              <Grid size={{ xs: 12, sm: 6 }} key={goal.id}>
+                                <Card
+                                  elevation={0}
+                                  sx={{
+                                    borderRadius: '14px',
+                                    border: '2px solid',
+                                    borderColor: selected ? '#DE3F5E' : 'transparent',
+                                    bgcolor: selected ? alpha('#DE3F5E', 0.06) : '#f8f9fa',
+                                    transition: 'all 0.2s ease',
+                                    height: '100%',
+                                  }}
+                                >
+                                  <CardActionArea
+                                    sx={{ p: 2, height: '100%', textAlign: 'left' }}
+                                    onClick={() =>
+                                      setSelectedGoals((prev) =>
+                                        prev.includes(goal.id)
+                                          ? prev.filter((g) => g !== goal.id)
+                                          : [...prev, goal.id],
+                                      )
+                                    }
+                                  >
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        mb: 0.25,
+                                        fontSize: '0.9rem',
+                                        color: selected ? '#DE3F5E' : '#1a1a1a',
+                                        transition: 'color 0.2s ease',
+                                      }}
+                                    >
+                                      {goal.label}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: '#666',
+                                        fontSize: '0.72rem',
+                                        lineHeight: 1.4,
+                                        display: 'block',
+                                      }}
+                                    >
+                                      {goal.subtext}
+                                    </Typography>
+                                  </CardActionArea>
+                                </Card>
+                              </Grid>
+                            );
+                          })}
+                        </Grid>
+
+                        {selectedGoals.length > 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', color: '#DE3F5E', mt: 2, fontWeight: 600, textAlign: 'center' }}
+                          >
+                            {selectedGoals.length} selected — you can skip or select more.
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
 
                     {/* Navigation Buttons */}
                     <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
@@ -1333,7 +1444,7 @@ export default function OnboardingPage() {
                           '&:hover': { bgcolor: '#C8365A' },
                         }}
                       >
-                        {step === 2 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
+                        {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
                       </Button>
                     </Stack>
                   </>
@@ -1345,7 +1456,7 @@ export default function OnboardingPage() {
           {/* Progress Dots */}
           {!checkoutClientSecret && (
             <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
-              {[1, 2].map(s => (
+              {[1, 2, 3].map(s => (
                 <Box
                   key={s}
                   sx={{
