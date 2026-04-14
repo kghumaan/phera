@@ -17,7 +17,7 @@ import {
   Tooltip,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect, use, useCallback } from 'react';
+import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { Check, ViewAgenda, UnfoldMore, InfoOutlined, Add, Delete } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
@@ -25,6 +25,7 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { BACKGROUNDS, BACKGROUND_UI_OPTIONS, FRAME_UI_OPTIONS } from '@/lib/constants/images';
+import { COUPLE_NAME_FONTS, DEFAULT_COUPLE_FONT_ID, getCoupleFont } from '@/lib/constants/fonts';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -92,6 +93,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
   const [websiteLayout, setWebsiteLayout] = useState<'multi_page' | 'vertical_scroll'>('vertical_scroll');
   const [frameImageUrl, setFrameImageUrl] = useState<string | null>(null);
+  const [coupleNameFont, setCoupleNameFont] = useState<string>(DEFAULT_COUPLE_FONT_ID);
+  const [coupleNamePreview, setCoupleNamePreview] = useState<string>('Simran & Arjun');
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
   const [initialDesignData, setInitialDesignData] = useState<any>(null);
@@ -126,9 +129,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       pin_entry_primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
+      couple_name_font: coupleNameFont,
       couple_images: coupleImages.filter(img => img),
       couple_image_url: (coupleImages.filter(img => img)[0] as string) || null,
-    });
+    } as any);
     if (!result) throw new Error('Save failed');
 
     await weddingService.markUnpublishedChanges(weddingId);
@@ -138,11 +142,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
+      couple_name_font: coupleNameFont,
       couple_images: coupleImages.filter(img => img),
     });
     setIsDirty(false);
   }, [weddingId, isPro, mainBackground, customMainBackground,
-    mainPrimaryColor, websiteLayout, frameImageUrl, coupleImages]);
+    mainPrimaryColor, websiteLayout, frameImageUrl, coupleNameFont, coupleImages]);
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveDesign, enabled: !!authUser });
 
@@ -166,12 +171,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         primary_color: mainPrimaryColor,
         website_layout: websiteLayout,
         frame_image_url: frameImageUrl,
+        couple_name_font: coupleNameFont,
         couple_images: coupleImages.filter(img => img),
       };
       const dirty = JSON.stringify(currentData) !== JSON.stringify(initialDesignData);
       setIsDirty(dirty);
-      // Don't auto-save when a basic user has pro selections — let them preview
-      // and prompt on navigation instead
       if (dirty && !hasProSelection) {
         debouncedSave();
       }
@@ -181,6 +185,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     mainPrimaryColor,
     websiteLayout,
     frameImageUrl,
+    coupleNameFont,
     coupleImages,
     initialDesignData,
     debouncedSave,
@@ -247,27 +252,28 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [visibleMainBgs, setVisibleMainBgs] = useState(8);
 
 
-  // Real-time Preview Sync Effect (debounced)
+  // Real-time Preview Sync — only broadcast when serialized value actually changes
+  const lastSyncRef = useRef('');
+
   useEffect(() => {
-    // Only sync if we have a weddingId and relevant data
     if (!weddingId) return;
+
+    const updates = {
+      background_image: customMainBackground || mainBackground,
+      primary_color: mainPrimaryColor,
+      website_layout: websiteLayout,
+      frame_image_url: frameImageUrl,
+      couple_name_font: coupleNameFont,
+      couple_images: coupleImages.filter(img => img),
+    };
+
+    const serialized = JSON.stringify(updates);
+    if (serialized === lastSyncRef.current) return;
+    lastSyncRef.current = serialized;
 
     const timer = setTimeout(() => {
       const channel = new BroadcastChannel('phera-design-sync');
-
-      const syncData = {
-        type: 'DESIGN_UPDATE',
-        weddingId,
-        updates: {
-          background_image: customMainBackground || mainBackground,
-          primary_color: mainPrimaryColor,
-          website_layout: websiteLayout,
-          frame_image_url: frameImageUrl,
-          couple_images: coupleImages.filter(img => img),
-        }
-      };
-
-      channel.postMessage(syncData);
+      channel.postMessage({ type: 'DESIGN_UPDATE', weddingId, updates });
       channel.close();
     }, 300);
 
@@ -279,6 +285,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     mainPrimaryColor,
     websiteLayout,
     frameImageUrl,
+    coupleNameFont,
     coupleImages
   ]);
 
@@ -301,6 +308,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           (rawLayout === 'infinite_scroll' || rawLayout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
         setWebsiteLayout(normalizedLayout);
         setFrameImageUrl(wedding.frame_image_url || null);
+        setCoupleNameFont((wedding as any).couple_name_font || DEFAULT_COUPLE_FONT_ID);
+        setCoupleNamePreview(wedding.couple_name || 'Simran & Arjun');
 
         // Load couple images
         let loadedCoupleImages: (string | null)[] = Array(6).fill(null);
@@ -319,6 +328,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           primary_color: wedding.primary_color || '#DE3F5E',
           website_layout: normalizedLayout,
           frame_image_url: wedding.frame_image_url || null,
+          couple_name_font: (wedding as any).couple_name_font || DEFAULT_COUPLE_FONT_ID,
           couple_images: loadedCoupleImages.filter(img => img),
         });
       }
@@ -502,7 +512,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             <Stack direction="row" spacing={2} mb={3} justifyContent="center">
               {visibleMainBgs < BACKGROUND_OPTIONS.length && (
                 <Button
-                  onClick={() => setVisibleMainBgs((prev: number) => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
+                  onClick={() => setVisibleMainBgs(BACKGROUND_OPTIONS.length)}
                   variant="outlined"
                   sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
                 >
@@ -592,6 +602,63 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             </Box>
           </Paper>
 
+          {/* Primary Font Style */}
+          <Paper sx={sectionPaperSx}>
+            <Typography variant="subtitleCaps" sx={{ mb: 1, color: '#1a1a1a' }}>
+              Primary Font Style
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, display: 'block' }}>
+              Choose how the couple names appear on the hero section of your website.
+            </Typography>
+
+            {/* Live preview */}
+            <Box sx={{ textAlign: 'center', py: 3, mb: 3, bgcolor: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0' }}>
+              <Typography sx={{
+                fontFamily: getCoupleFont(coupleNameFont).cssVar,
+                fontStyle: getCoupleFont(coupleNameFont).fontStyle || 'normal',
+                fontSize: { xs: 32, sm: 40 },
+                color: '#1a1a1a',
+                lineHeight: 1.2,
+              }}>
+                {coupleNamePreview}
+              </Typography>
+            </Box>
+
+            {/* Font name chips — horizontal scroll */}
+            <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 2 } }}>
+              {COUPLE_NAME_FONTS.map((font) => (
+                <Box
+                  key={font.id}
+                  onClick={() => { setCoupleNameFont(font.id); debouncedSave(); }}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    borderRadius: '10px',
+                    border: 2,
+                    borderColor: coupleNameFont === font.id ? '#DE3F5E' : '#e0e0e0',
+                    bgcolor: coupleNameFont === font.id ? 'rgba(222, 63, 94, 0.04)' : '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    '&:hover': { borderColor: '#DE3F5E' },
+                  }}
+                >
+                  <Typography sx={{
+                    fontFamily: font.cssVar,
+                    fontStyle: font.fontStyle || 'normal',
+                    fontSize: 14,
+                    color: coupleNameFont === font.id ? '#DE3F5E' : '#1a1a1a',
+                    fontWeight: coupleNameFont === font.id ? 600 : 400,
+                  }}>
+                    {font.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Paper>
+
           {/* Images & Frames */}
           <Paper sx={sectionPaperSx}>
             <Stack spacing={4}>
@@ -601,7 +668,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                   Couple Photos (up to 6)
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                  Add multiple photos of the couple. Drag to re-order — the first photo is used as the main image.
+                  Upload your favorite photos — or a wedding logo. Drag to reorder; the first is the main image.
                 </Typography>
 
                 {/* Add Photos Button (multiple) */}

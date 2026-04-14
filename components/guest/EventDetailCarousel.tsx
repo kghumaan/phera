@@ -286,7 +286,6 @@ interface EventDetailCarouselProps {
   gradientBackground: string | null;
   onClose: () => void;
   primaryColor?: string;
-  weddingBackground?: string;
 }
 
 export default function EventDetailCarousel({
@@ -296,7 +295,6 @@ export default function EventDetailCarousel({
   gradientBackground,
   onClose,
   primaryColor,
-  weddingBackground,
 }: EventDetailCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = slides.length;
@@ -343,18 +341,6 @@ export default function EventDetailCarousel({
           zIndex: 10,
         }}
       >
-        {/* Background layer — uses the wedding's main background */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: weddingBackground ? `url(${weddingBackground})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
-          }}
-        />
-
         {/* Close Button */}
         <IconButton
           onClick={onClose}

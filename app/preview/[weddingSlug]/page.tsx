@@ -16,6 +16,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PinEntry from '@/components/guest/PinEntry';
 import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -564,7 +565,8 @@ function PreviewContent() {
             registry_description: (wedding as any).registry_description || undefined,
             primary_color: wedding.primary_color || undefined,
             couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
-          }}
+            couple_name_font: (wedding as any).couple_name_font || undefined,
+          } as any}
           weddingSlug={wedding.slug}
           isBypassPin={previewView === 'rsvp_submitted'}
           hasRSVPed={previewView === 'rsvp_submitted'}
@@ -739,8 +741,8 @@ function PreviewContent() {
                       fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
                       color: '#000',
                       lineHeight: 1.2,
-                      fontFamily: 'var(--font-instrument-serif)',
-                      fontStyle: 'italic',
+                      fontFamily: getCoupleFont((wedding as any).couple_name_font).cssVar,
+                      fontStyle: getCoupleFont((wedding as any).couple_name_font).fontStyle || 'normal',
                     }}
                   >
                     {wedding.couple_name}
@@ -996,8 +998,8 @@ function PreviewContent() {
                       fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.25rem', xl: '3.5rem' },
                       color: '#000',
                       lineHeight: 1.2,
-                      fontFamily: 'var(--font-instrument-serif)',
-                      fontStyle: 'italic',
+                      fontFamily: getCoupleFont((wedding as any).couple_name_font).cssVar,
+                      fontStyle: getCoupleFont((wedding as any).couple_name_font).fontStyle || 'normal',
                     }}
                   >
                     {wedding.couple_name}
@@ -1108,7 +1110,7 @@ function PreviewContent() {
                       bgcolor: wedding?.primary_color || '#DE3F5E',
                       color: 'white',
                       py: 1.5,
-                      borderRadius: '16px',
+                      borderRadius: '80px',
                       fontSize: '1.1rem',
                       fontWeight: 600,
                       textTransform: 'uppercase',

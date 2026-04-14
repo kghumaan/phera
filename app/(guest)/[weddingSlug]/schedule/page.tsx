@@ -359,17 +359,14 @@ const CarouselOverlay = ({
           justifyContent: 'center',
         }}
       >
-        {/* Background — uses the wedding's main background */}
+        {/* Background — uses the wedding's main background, falls back to default look & feel */}
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: weddingBackground
-              ? `url(${weddingBackground})`
-              : 'none',
+            backgroundImage: `url(${weddingBackground || '/images/backgrounds/pearl.webp'})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
           }}
         />
         {/* Back button */}

@@ -36,6 +36,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -279,6 +280,8 @@ export default function HomePage() {
   }, [weddingSlug, setCurrentWeddingSlug]);
 
   // Use data from context if available, otherwise fallback to config
+  const coupleNameFontId = (wedding as any)?.couple_name_font || null;
+
   const coupleData = {
     names: wedding?.couple_name || WEDDING_CONFIG.coupleNames,
     date: wedding?.wedding_date_display || WEDDING_CONFIG.weddingDateDisplay,
@@ -799,15 +802,15 @@ export default function HomePage() {
             style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
           >
             <Stack spacing={3.2} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 400, lg: 480, xl: 560 } }}>
-              {/* Names - Large italic serif */}
+              {/* Names - Large serif */}
               <Typography
                 variant="h2"
                 sx={{
                   fontSize: { md: '2.8rem', lg: '3.6rem', xl: '4.4rem' },
                   color: '#000',
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont(coupleNameFontId).cssVar,
+                  fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -1016,7 +1019,7 @@ export default function HomePage() {
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true, margin: '-100px' }}
                   >
-                    <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} />
+                    <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} hideCommentInput={!!(wedding?.hidden_rsvp_steps?.includes('Comment') || wedding?.hidden_rsvp_steps?.includes('Music Request & Comment'))} />
                   </motion.div>
                 </Box>
               )}
@@ -1264,8 +1267,8 @@ export default function HomePage() {
                   fontSize: { xs: '2.5rem', sm: '3rem' },
                   color: '#000',
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont(coupleNameFontId).cssVar,
+                  fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -1409,7 +1412,8 @@ export default function HomePage() {
               couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
               registry_description: (wedding as any).registry_description || undefined,
               frame_image_url: wedding.frame_image_url,
-            }}
+              couple_name_font: (wedding as any).couple_name_font || undefined,
+            } as any}
             weddingSlug={weddingSlug}
             isBypassPin={isBypassPin}
             hasRSVPed={hasRSVPed}
@@ -1467,7 +1471,7 @@ export default function HomePage() {
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       fullWidth
-                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 2, borderRadius: '32px' }}
+                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 2, borderRadius: '80px' }}
                     >
                       RSVP
                     </Button>
@@ -1485,7 +1489,7 @@ export default function HomePage() {
                     variant="contained"
                     fullWidth
                     disabled={isNavigating}
-                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '16px' }}
+                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '80px' }}
                   >
                     {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
                   </Button>

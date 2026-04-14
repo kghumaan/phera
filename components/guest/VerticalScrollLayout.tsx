@@ -45,6 +45,7 @@ import GuestList from '@/components/guest/GuestList';
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import EventDetailCarousel from './EventDetailCarousel';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
 
 // Types
 interface WeddingData {
@@ -638,8 +639,8 @@ export default function VerticalScrollLayout({
                 sx={{
                   color: '#1a1a1a',
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont((wedding as any).couple_name_font).cssVar,
+                  fontStyle: getCoupleFont((wedding as any).couple_name_font).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -1512,7 +1513,6 @@ export default function VerticalScrollLayout({
             gradientBackground={selectedEvent.gradient_background || null}
             onClose={handleCloseEventCarousel}
             primaryColor={primaryColor}
-            weddingBackground={wedding.background_image || undefined}
           />
         ) : (
           <Box

@@ -66,67 +66,34 @@ const features = [
   {
     id: 'guest-outreach',
     title: 'We collect every detail from your guests',
-    problem: 'Chasing 300 guests on WhatsApp groups for RSVPs, dietary needs, and travel plans',
-    solution: 'Proactive WhatsApp outreach collects everything automatically. Save-the-dates, RSVP requests, travel details, dietary needs. Automatic follow-ups for non-responders.',
+    problem: 'Chasing 300 guests across WhatsApp groups for RSVPs, dietary needs, and +1 counts.',
+    solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
     featureImage: '/images/feature_images/wedding_website.png',
     frameType: 'desktop' as const,
   },
   {
     id: 'travel-coordination',
-    title: 'We coordinate all travel and transportation',
-    problem: 'Tracking flights, coordinating shuttles, making sure nobody is stranded',
-    solution: 'Track every guest travel plan, optimize shuttle routes and timing, send reminders, handle last-minute changes. Airport pickups to venue transport, all coordinated.',
+    title: 'We coordinate flights, shuttles, and everything in between',
+    problem: "Spreadsheets of flight numbers, hotel blocks, and shuttle manifests you're updating at midnight.",
+    solution: 'We collect travel plans from every guest, optimize shuttle routes and timings, and send pickup reminders. Nobody gets stranded at the airport.',
     featureImage: '/images/feature_images/travel_coordination.png',
     frameType: 'desktop' as const,
   },
   {
     id: 'guest-communication',
-    title: 'We keep every guest informed, 24/7',
-    problem: 'Guests messaging the couple at 2 AM asking about dress code and venue directions',
-    solution: 'WhatsApp Concierge answers guest questions instantly — schedule, venue, dress code, local recommendations — in their language, on their schedule.',
+    title: 'We answer every guest question, 24/7',
+    problem: "Guests messaging you at 2 AM asking about dress code, venue directions, and what to pack.",
+    solution: 'An AI concierge on WhatsApp answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.',
     frameType: 'mobile' as const,
     customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
   },
   {
-    id: 'website-creation',
-    title: 'Your wedding, your vibe',
-    problem: 'Having to choose between a beautiful website and actual logistics help',
-    solution: 'A stunning, culturally-aware wedding website as your digital invitation. Design it yourself, let AI build it from a conversation, or work 1-on-1 with our team.',
-    featureImage: '/images/feature_images/rsvp_collection.png',
-    frameType: 'desktop' as const,
-  },
-  {
     id: 'reverse-destination',
-    title: 'Your guests from abroad? We\'ve got them.',
-    problem: 'Non-Indian friends and colleagues attending an Indian wedding with no idea what to expect',
-    solution: 'Visa guides, cultural briefings, dress code advice per event, ceremony explanations, airport-to-venue coordination — all delivered via WhatsApp.',
+    title: "Your friends from abroad? We've got them.",
+    problem: 'Non-Indian friends and colleagues flying in with no idea what a sangeet is, what to wear, or how visas work.',
+    solution: 'Cultural briefings per event, dress-code guides, visa walkthroughs, ceremony explainers — all delivered through WhatsApp before they board.',
     featureImage: '/images/feature_images/multi_event.png',
     frameType: 'desktop' as const,
-  },
-  {
-    id: 'control-tower',
-    title: 'Real-time operations dashboard',
-    problem: 'No visibility into which guests have responded, who needs follow-up, what is coming next',
-    solution: 'Control Tower shows guest response rates, outreach timeline, shuttle capacity, escalations, and upcoming actions. Full visibility, zero manual tracking.',
-    featureImage: '/images/feature_images/guest_access.png',
-    frameType: 'mobile' as const,
-  },
-  {
-    id: 'family-liaison',
-    title: 'Family knows best',
-    problem: 'Tech-averse relatives who will never open an app or fill out a form',
-    solution: 'Designate family liaisons who can respond on behalf of multiple guests. One tech-savvy aunt can RSVP and share travel details for the whole family branch.',
-    featureImage: '/images/feature_images/task_management.png',
-    frameType: 'desktop' as const,
-  },
-  {
-    id: 'smart-import',
-    title: 'Smart guest import',
-    problem: 'Guest list scattered across spreadsheets, WhatsApp chats, and sticky notes',
-    solution: 'Upload a spreadsheet, add guests manually, or just paste names and numbers in any format. AI parses everything into a clean guest list.',
-    featureImage: '/images/feature_images/coordinator1.png',
-    featureImage2: '/images/feature_images/coordinator2.png',
-    frameType: 'desktop-stacked' as const,
   },
 ];
 
@@ -335,17 +302,27 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               alignItems: 'center',
             }}
           >
-            {/* Left Side - Content */}
-            <Box sx={{ flex: 1, maxWidth: { md: '420px', lg: '520px' } }}>
-              {/* Section Header - Big */}
+            {/* Left Side - Content (fixed pane + stepper) */}
+            <Box
+              sx={{
+                flex: 1,
+                maxWidth: { md: '460px', lg: '560px' },
+                display: 'flex',
+                flexDirection: 'column',
+                height: '80vh',
+              }}
+            >
+              {/* Section Header - pinned top */}
               <Typography
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
-                  fontSize: { md: '3rem', lg: '3.5rem' },
+                  fontSize: { md: '1.75rem', lg: '2.25rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
-                  mb: { sm: 2, md: 3, lg: 3 },
+                  mb: { md: 4, lg: 5 },
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Everything you need,{' '}
@@ -354,8 +331,80 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 </Box>
               </Typography>
 
-              {/* Feature Items List */}
-              <Stack spacing={0}>
+              {/* Active feature content — fixed slot, cross-fades */}
+              <Box
+                sx={{
+                  position: 'relative',
+                  flex: 1,
+                  minHeight: { md: '340px', lg: '380px' },
+                }}
+              >
+                {items.map((item, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={false}
+                      animate={{ opacity: isActive ? 1 : 0 }}
+                      transition={{ duration: 0.35, ease: 'easeOut' }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        pointerEvents: isActive ? 'auto' : 'none',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: '#1a1a1a',
+                          fontSize: { md: '2rem', lg: '2.5rem' },
+                          fontWeight: 500,
+                          lineHeight: 1.15,
+                          mb: { md: 3, lg: 4 },
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: '#888',
+                          fontSize: { md: '1rem', lg: '1.15rem' },
+                          lineHeight: 1.6,
+                          mb: 2,
+                        }}
+                      >
+                        <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                          The problem:
+                        </Box>{' '}
+                        {item.problem}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: '#555',
+                          fontSize: { md: '1rem', lg: '1.15rem' },
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                          Our solution:
+                        </Box>{' '}
+                        {item.solution}
+                      </Typography>
+                    </motion.div>
+                  );
+                })}
+              </Box>
+
+              {/* Stepper — dots only, clickable */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1.25,
+                  alignItems: 'center',
+                  pt: 4,
+                  mt: 'auto',
+                  flexShrink: 0,
+                }}
+              >
                 {items.map((item, idx) => {
                   const isActive = idx === activeIndex;
                   return (
@@ -363,101 +412,20 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       key={item.id}
                       onClick={() => scrollToFeature(idx)}
                       sx={{
-                        py: isActive ? 3 : 1.5,
-                        borderBottom: idx < items.length - 1 ? '1px solid' : 'none',
-                        borderColor: alpha('#000', 0.06),
-                        transition: 'padding 0.3s ease',
-                        opacity: isActive ? 1 : 0.35,
+                        width: isActive ? 32 : 8,
+                        height: 8,
+                        borderRadius: '999px',
+                        bgcolor: isActive ? '#DE3F5E' : alpha('#000', 0.15),
                         cursor: isActive ? 'default' : 'pointer',
-                        '&:hover': !isActive ? {
-                          opacity: 0.6,
-                        } : {},
+                        transition: 'all 0.3s ease',
+                        '&:hover': !isActive
+                          ? { bgcolor: alpha('#000', 0.3) }
+                          : {},
                       }}
-                    >
-                      {/* Title - Not bold, left aligned always */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Typography
-                          sx={{
-                            color: '#1a1a1a',
-                            fontSize: isActive ? { md: '1.5rem', lg: '2rem' } : { md: '1rem', lg: '1.25rem' },
-                            transition: 'all 0.3s ease',
-                            fontWeight: 500,
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
-                        {item.isPro && (
-                          <Box
-                            sx={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 0.4,
-                              bgcolor: alpha('#DE3F5E', 0.08),
-                              color: '#DE3F5E',
-                              px: isActive ? 1.2 : 0.8,
-                              py: isActive ? 0.4 : 0.2,
-                              borderRadius: '20px',
-                              transition: 'all 0.3s ease',
-                            }}
-                          >
-                            <AutoAwesome sx={{ fontSize: isActive ? '0.9rem' : '0.7rem', transition: 'all 0.3s ease' }} />
-                            <Typography
-                              sx={{
-                                fontSize: isActive ? '0.75rem' : '0.6rem',
-                                fontWeight: 700,
-                                letterSpacing: '0.5px',
-                                transition: 'all 0.3s ease',
-                              }}
-                            >
-                              PRO
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-
-                      {/* Problem & Solution - Only show when active */}
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          height: isActive ? 'auto' : 0,
-                          opacity: isActive ? 1 : 0,
-                        }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <Box sx={{ mt: 2 }}>
-                          <Typography
-                            sx={{
-                              color: '#888',
-                              fontSize: { md: '1rem', lg: '1.25rem' },
-                              lineHeight: 1.6,
-                              mb: 1.5,
-                            }}
-                          >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
-                              The problem:
-                            </Box>{' '}
-                            {item.problem}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              color: '#555',
-                              fontSize: { md: '1rem', lg: '1.25rem' },
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
-                              Our solution:
-                            </Box>{' '}
-                            {item.solution}
-                          </Typography>
-                        </Box>
-                      </motion.div>
-                    </Box>
+                    />
                   );
                 })}
-              </Stack>
+              </Box>
             </Box>
 
             {/* Right Side - Feature Images */}
@@ -470,16 +438,17 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 minWidth: 0, // Allow flex child to shrink
               }}
             >
-              {items.map((item, idx) => (
+              {items.map((item, idx) => {
+                const position = idx - activeIndex; // -n = above/past, 0 = active, +n = below/upcoming
+                return (
                 <motion.div
                   key={item.id}
                   initial={false}
                   animate={{
-                    opacity: idx === activeIndex ? 1 : 0,
-                    scale: idx === activeIndex ? 1 : 0.95,
-                    y: idx === activeIndex ? 0 : 30,
+                    opacity: position === 0 ? 1 : 0,
+                    y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
                   }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -489,7 +458,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
-                    pointerEvents: idx === activeIndex ? 'auto' : 'none',
+                    pointerEvents: position === 0 ? 'auto' : 'none',
                   }}
                 >
                   {item.featureImage && item.frameType === 'desktop' && (
@@ -699,7 +668,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   )}
 
                 </motion.div>
-              ))}
+                );
+              })}
             </Box>
           </Box>
         </Box>
@@ -1115,73 +1085,50 @@ function LandingPageContent() {
         >
           <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
             <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-              <Stack spacing={4} sx={{ alignItems: 'center', textAlign: 'center' }}>
+              <Stack spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'center', textAlign: 'center' }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    px: 2,
+                    py: 0.75,
+                    borderRadius: '999px',
+                    border: '1px solid rgba(0,0,0,0.08)',
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(8px)',
+                    color: '#4a4a4a',
+                    fontSize: { xs: '0.8rem', md: '0.875rem' },
+                    fontWeight: 500,
+                  }}
+                >
+                  <AutoAwesome sx={{ fontSize: '0.95rem', color: '#DE3F5E' }} />
+                  Wedding operations, done for you
+                </Box>
                 <Typography
                   variant="h1"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
-                    fontStyle: 'italic',
-                    fontSize: { xs: '3.2rem', md: '4rem', lg: '5rem' },
-                    lineHeight: 1.1,
+                    fontSize: { xs: '3rem', md: '4.5rem', lg: '5.5rem' },
+                    lineHeight: 1.05,
+                    letterSpacing: '-0.02em',
                     color: '#1a1a1a',
-                    maxWidth: '1000px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    maxWidth: '1100px',
                   }}
                 >
-                  <Box>Your Wedding</Box>
-                  <Box
-                    component="span"
-                    sx={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        left: 0,
-                        top: '50%',
-                        width: '100%',
-                        height: '3px',
-                        bgcolor: '#DE3F5E',
-                        transform: 'scaleX(0)',
-                        transformOrigin: 'left',
-                        animation: 'strikethrough 0.8s ease-out 1s forwards',
-                      },
-                      '@keyframes strikethrough': {
-                        '0%': { transform: 'scaleX(0)' },
-                        '100%': { transform: 'scaleX(1)' },
-                      },
-                    }}
-                  >
-                    Operations Team
-                  </Box>
+                  We run your wedding,<br />so you can live it.
                 </Typography>
                 <Typography
-                  variant="h5"
                   sx={{
-                    fontSize: { xs: '1.25rem', md: '1.5rem' },
-                    fontWeight: 600,
-                    color: '#1a1a1a',
-                    maxWidth: '800px',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  We coordinate your guests so you can focus on the celebration.
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: { xs: '1rem', md: '1.25rem' },
+                    fontSize: { xs: '1.1rem', md: '1.35rem' },
                     color: '#4a4a4a',
-                    maxWidth: '800px',
+                    maxWidth: '720px',
                     lineHeight: 1.5,
                     fontWeight: 400,
-                    px: { xs: 2, md: 0 }
+                    px: { xs: 2, md: 0 },
                   }}
                 >
-                  300+ guests, 3 days of events, people flying in from everywhere. Phera handles the guest logistics — travel coordination, RSVPs, communication, transportation — end to end via WhatsApp.
+                  Phera coordinates your guests — RSVPs, travel, shuttles, questions — end to end on WhatsApp.
                 </Typography>
 
                 <Stack

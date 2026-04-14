@@ -59,15 +59,40 @@ export interface SidebarGroup {
 
 export const groups: SidebarGroup[] = [
   {
-    id: 'coordination',
-    label: 'Coordination',
+    id: 'overview',
+    label: 'Overview',
+    icon: <Home />,
+    standalone: true,
+    items: [
+      { id: 'overview', label: 'Overview', path: '/overview' },
+    ],
+  },
+  {
+    id: 'control-tower',
+    label: 'Control Tower',
     icon: <Radar />,
+    standalone: true,
     items: [
       { id: 'control-tower', label: 'Control Tower', path: '/control-tower' },
-      { id: 'guests', label: 'Guest List', path: '/guests' },
-      { id: 'concierge', label: 'Concierge', path: '/concierge' },
-      { id: 'communication', label: 'Outreach', path: '/communication' },
-      { id: 'logistics', label: 'Logistics', path: '/travel-coordination' },
+    ],
+  },
+  {
+    id: 'guests-group',
+    label: 'Guests',
+    icon: <People />,
+    items: [
+      { id: 'guests', label: 'Guest Responses', path: '/guests' },
+      { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
+      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
+    ],
+  },
+  {
+    id: 'planning',
+    label: 'Planning',
+    icon: <ViewKanban />,
+    items: [
+      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
+      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true },
     ],
   },
   {
@@ -75,7 +100,6 @@ export const groups: SidebarGroup[] = [
     label: 'Wedding Website',
     icon: <Language />,
     items: [
-      { id: 'overview', label: 'Overview', path: '/overview' },
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
@@ -91,8 +115,7 @@ export const groups: SidebarGroup[] = [
     icon: <Settings />,
     items: [
       { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
-      { id: 'team', label: 'Team', path: '/team' },
-      { id: 'settings-page', label: 'Settings', path: '/settings' },
+      { id: 'team', label: 'Collaborators', path: '/team' },
     ],
   },
 ];
@@ -193,6 +216,17 @@ export default function OnboardingSidebar({
 
     return initialState;
   });
+
+  // Expand the correct sidebar group when route changes (e.g. via quick links)
+  useEffect(() => {
+    groups.forEach(g => {
+      if (g.standalone) return;
+      const isActive = g.items.some(item => pathname.includes(item.path));
+      if (isActive && !expandedGroups[g.id]) {
+        setExpandedGroups(prev => ({ ...prev, [g.id]: true }));
+      }
+    });
+  }, [pathname]);
 
   // Measure active item positions for arrow alignment
   useEffect(() => {

@@ -37,10 +37,25 @@ import {
   CheckCircle,
   Close,
   Celebration,
+  PhoneIphone,
+  Android,
+  ExpandMore,
 } from '@mui/icons-material';
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import {
+  parseCsv,
+  parseXlsx,
+  parseVCard,
+  AUTO_MAP,
+  autoMapColumns,
+  applyColumnMapping,
+  type ParsedRow,
+} from '@/lib/admin/guest-import-parsers';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -50,10 +65,6 @@ interface GuestImportWizardProps {
   weddingId: string;
   weddingSlug: string;
   onImportComplete?: (count: number) => void;
-}
-
-interface ParsedRow {
-  [key: string]: string;
 }
 
 interface ImportResult {
@@ -83,7 +94,36 @@ const SELECT_SX = {
   '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
 };
 
-// ─── Column mapping ─────────────────────────────────────────────────
+// FormControl sx that matches ENHANCED_TEXT_FIELD_SX height & label placement
+const ENHANCED_FORM_CONTROL_SX = {
+  mt: 1,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    bgcolor: 'white',
+    fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
+    '& .MuiSelect-select': {
+      py: { xs: 1.5, md: 1.75, lg: 2 },
+      fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
+      color: '#1a1a1a',
+    },
+    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
+    '&:hover fieldset': { borderColor: '#DE3F5E' },
+    '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#4a4a4a',
+    fontSize: { xs: '0.95rem', md: '1rem', lg: '1.05rem' },
+    fontWeight: 500,
+    lineHeight: 1.5,
+    transform: 'translate(14px, 14px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+    },
+    '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 },
+  },
+};
+
+// ─── Field options for column mapping UI ────────────────────────────
 
 const FIELD_OPTIONS = [
   { value: '', label: '— Skip —' },
@@ -93,18 +133,8 @@ const FIELD_OPTIONS = [
   { value: 'email', label: 'Email' },
   { value: 'phone', label: 'Phone' },
   { value: 'wedding_side', label: 'Wedding Side' },
-  { value: 'group', label: 'Group / Family' },
+  { value: 'group', label: 'Tag / Group' },
 ];
-
-const AUTO_MAP: Record<string, string> = {
-  name: 'name', 'full name': 'name', full_name: 'name', guest: 'name', 'guest name': 'name',
-  'first name': 'first_name', first_name: 'first_name', firstname: 'first_name', first: 'first_name',
-  'last name': 'last_name', last_name: 'last_name', lastname: 'last_name', last: 'last_name', surname: 'last_name',
-  email: 'email', 'email address': 'email', 'e-mail': 'email',
-  phone: 'phone', 'phone number': 'phone', mobile: 'phone', cell: 'phone', telephone: 'phone', 'contact number': 'phone', 'phone no': 'phone',
-  side: 'wedding_side', 'wedding side': 'wedding_side', wedding_side: 'wedding_side',
-  group: 'group', family: 'group', 'group name': 'group', 'family name': 'group', team: 'group',
-};
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -124,8 +154,8 @@ export default function GuestImportWizard({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [manualGuests, setManualGuests] = useState<Array<{ name: string; email: string; phone: string; country_code: string; wedding_side: string }>>([]);
-  const [manualForm, setManualForm] = useState({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '' });
+  const [manualGuests, setManualGuests] = useState<Array<{ name: string; email: string; phone: string; country_code: string; wedding_side: string; tag: string }>>([]);
+  const [manualForm, setManualForm] = useState({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '', tag: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Reset ───────────────────────────────────────────────────
@@ -141,7 +171,7 @@ export default function GuestImportWizard({
     setDragOver(false);
     setParseError(null);
     setManualGuests([]);
-    setManualForm({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '' });
+    setManualForm({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '', tag: '' });
   };
 
   const handleClose = () => {
@@ -151,59 +181,39 @@ export default function GuestImportWizard({
 
   // ─── File Parsing ────────────────────────────────────────────
 
-  const processFile = useCallback((file: File) => {
+  const processFile = useCallback(async (file: File) => {
     setParseError(null);
     const ext = file.name.split('.').pop()?.toLowerCase();
 
-    if (ext === 'csv' || ext === 'tsv' || ext === 'txt') {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          if (results.errors.length > 0 && results.data.length === 0) {
-            setParseError(`Parse error: ${results.errors[0].message}`);
-            return;
-          }
-          handleParsedData(results.meta.fields || [], results.data as ParsedRow[]);
-        },
-        error: (err: any) => setParseError(`Failed to parse: ${err.message}`),
-      });
-    } else if (ext === 'xlsx' || ext === 'xls') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const wb = XLSX.read(data, { type: 'array' });
-          const ws = wb.Sheets[wb.SheetNames[0]];
-          const json = XLSX.utils.sheet_to_json<ParsedRow>(ws, { defval: '' });
-          if (json.length === 0) {
-            setParseError('Spreadsheet is empty');
-            return;
-          }
-          handleParsedData(Object.keys(json[0]), json);
-        } catch (err: any) {
-          setParseError(`Failed to parse Excel: ${err.message}`);
+    try {
+      if (ext === 'csv' || ext === 'tsv' || ext === 'txt') {
+        const text = await file.text();
+        const { headers: h, rows: r } = parseCsv(text);
+        handleParsedData(h, r);
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        const buffer = await file.arrayBuffer();
+        const { headers: h, rows: r } = parseXlsx(buffer);
+        handleParsedData(h, r);
+      } else if (ext === 'vcf' || ext === 'vcard') {
+        const text = await file.text();
+        const parsed = parseVCard(text);
+        if (parsed.length === 0) {
+          setParseError('No contacts found in vCard file');
+          return;
         }
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      setParseError('Unsupported file type. Use .csv, .xlsx, or .xls');
+        handleParsedData(['Name', 'Email', 'Phone'], parsed);
+      } else {
+        setParseError('Unsupported file type. Use .csv, .xlsx, .xls, or .vcf');
+      }
+    } catch (err: any) {
+      setParseError(err.message || 'Failed to parse file');
     }
   }, []);
 
   const handleParsedData = (fields: string[], data: ParsedRow[]) => {
     setHeaders(fields);
     setRows(data);
-
-    // Auto-detect column mapping
-    const mapping: Record<string, string> = {};
-    for (const header of fields) {
-      const key = header.trim().toLowerCase();
-      if (AUTO_MAP[key]) {
-        mapping[header] = AUTO_MAP[key];
-      }
-    }
-    setColumnMap(mapping);
+    setColumnMap(autoMapColumns(fields));
     setStep('mapping');
   };
 
@@ -212,7 +222,7 @@ export default function GuestImportWizard({
   const handleAddManual = () => {
     if (!manualForm.name.trim()) return;
     setManualGuests((prev) => [...prev, { ...manualForm }]);
-    setManualForm({ ...manualForm, name: '', email: '', phone: '' });
+    setManualForm({ ...manualForm, name: '', email: '', phone: '', tag: '' });
   };
 
   const handleRemoveManual = (index: number) => {
@@ -221,22 +231,8 @@ export default function GuestImportWizard({
 
   // ─── Build Guest Array ───────────────────────────────────────
 
-  function buildGuestsFromMapping(): Array<Record<string, string>> {
-    return rows.map((row) => {
-      const guest: Record<string, string> = {};
-      for (const [header, field] of Object.entries(columnMap)) {
-        if (field && row[header]) {
-          guest[field] = row[header].trim();
-        }
-      }
-      // Combine first + last if no name mapped
-      if (!guest.name && (guest.first_name || guest.last_name)) {
-        guest.name = [guest.first_name, guest.last_name].filter(Boolean).join(' ');
-      }
-      delete guest.first_name;
-      delete guest.last_name;
-      return guest;
-    }).filter((g) => g.name);
+  function buildGuestsFromMapping(): ParsedRow[] {
+    return applyColumnMapping(rows, columnMap);
   }
 
   function getPreviewStats() {
@@ -261,6 +257,7 @@ export default function GuestImportWizard({
           email: g.email || undefined,
           phone: g.phone ? `${g.country_code}${g.phone}` : undefined,
           wedding_side: g.wedding_side || undefined,
+          group: g.tag || undefined,
         }))
       : buildGuestsFromMapping();
 
@@ -353,16 +350,87 @@ export default function GuestImportWizard({
                     Drag & drop your guest list here
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: '#6a6a6a' }}>
-                    or click to browse — .csv, .xlsx, .xls supported
+                    or click to browse — .csv, .xlsx, .xls, .vcf supported
                   </Typography>
                   <input
                     ref={fileInputRef}
                     type="file"
                     hidden
-                    accept=".csv,.xlsx,.xls,.tsv,.txt"
+                    accept=".csv,.xlsx,.xls,.tsv,.txt,.vcf,.vcard"
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }}
                   />
                 </Box>
+
+                {/* Export from phone — help drawer */}
+                <Accordion
+                  elevation={0}
+                  sx={{
+                    mt: 2,
+                    border: '1px solid rgba(0,0,0,0.07)',
+                    borderRadius: '12px !important',
+                    bgcolor: 'white',
+                    '&::before': { display: 'none' },
+                    '& .MuiAccordionSummary-root': { minHeight: 48, px: 2 },
+                    '& .MuiAccordionDetails-root': { px: 2, pt: 0, pb: 2 },
+                  }}
+                >
+                  <AccordionSummary expandIcon={<ExpandMore sx={{ color: '#6a6a6a' }} />}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                      📱 How to export contacts from your phone
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography sx={{ fontSize: 12, color: '#4a4a4a', mb: 2, lineHeight: 1.6 }}>
+                      Export your phone's address book as a .vcf file, then upload it here. Easiest from a desktop browser after emailing the file to yourself.
+                    </Typography>
+
+                    <Stack spacing={2}>
+                      {/* iPhone instructions */}
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <PhoneIphone sx={{ fontSize: 18, color: '#1a1a1a' }} />
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                            iPhone (via iCloud)
+                          </Typography>
+                        </Box>
+                        <Stack component="ol" spacing={0.5} sx={{ pl: 2.5, m: 0 }}>
+                          {[
+                            'On a desktop browser, go to icloud.com → Contacts.',
+                            'Press ⌘/Ctrl + A to select all contacts (or pick a group).',
+                            'Click the share icon at the bottom-left → Export vCard.',
+                            'Upload the downloaded .vcf file above.',
+                          ].map((step, i) => (
+                            <Typography key={i} component="li" sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.6 }}>
+                              {step}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </Box>
+
+                      {/* Android instructions */}
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <Android sx={{ fontSize: 18, color: '#1a1a1a' }} />
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                            Android
+                          </Typography>
+                        </Box>
+                        <Stack component="ol" spacing={0.5} sx={{ pl: 2.5, m: 0 }}>
+                          {[
+                            'Open the Contacts app → tap the menu (⋮ or ☰) → Settings.',
+                            'Tap Export → choose .vcf format.',
+                            'Email or AirDrop the file to your computer.',
+                            'Upload the .vcf file above.',
+                          ].map((step, i) => (
+                            <Typography key={i} component="li" sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.6 }}>
+                              {step}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
 
                 {/* Format guide */}
                 <Paper elevation={0} sx={{ mt: 2.5, p: 2, bgcolor: '#FAFAFA', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px' }}>
@@ -382,6 +450,7 @@ export default function GuestImportWizard({
                           <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, py: 0.75 }}>Email</TableCell>
                           <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, py: 0.75 }}>Phone</TableCell>
                           <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, py: 0.75 }}>Side</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, py: 0.75 }}>Tag</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -389,20 +458,29 @@ export default function GuestImportWizard({
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Priya Sharma</TableCell>
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>priya@email.com</TableCell>
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>+919876543210</TableCell>
-                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>bride</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Bride</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Priya's Friends</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Arjun Mehta</TableCell>
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>arjun@email.com</TableCell>
                           <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>+14155551234</TableCell>
-                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>groom</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Groom</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Arjun's Family</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Neha Patel</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>neha@email.com</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>+14085559876</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Bride</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 11, py: 0.5 }}>Priya's US Friends</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
 
                   <Typography sx={{ fontSize: 11, color: '#6a6a6a', mt: 1 }}>
-                    Recognized columns: Name, First Name, Last Name, Email, Phone, Mobile, Side, Group, Family
+                    <strong>Tag</strong> and <strong>Side</strong> are optional, but very helpful for room planning, seating, and grouping guests for outreach.
                   </Typography>
                 </Paper>
               </Box>
@@ -411,15 +489,15 @@ export default function GuestImportWizard({
             {/* ── Tab 1: Add Manually ─────────────────────── */}
             {tab === 1 && (
               <Box>
-                {/* Input row */}
+                {/* Input rows — 3 input rows, all same height */}
                 <Stack spacing={1.5}>
+                  {/* Row 1: Full Name | Email */}
                   <Stack direction="row" spacing={1}>
                     <TextField
                       label="Full Name"
                       value={manualForm.name}
                       onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
                       fullWidth
-                      size="small"
                       required
                       sx={ENHANCED_TEXT_FIELD_SX}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
@@ -429,17 +507,19 @@ export default function GuestImportWizard({
                       value={manualForm.email}
                       onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })}
                       fullWidth
-                      size="small"
                       sx={ENHANCED_TEXT_FIELD_SX}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
                   </Stack>
-                  <Stack direction="row" spacing={1} alignItems="flex-start">
-                    <FormControl size="small" sx={{ minWidth: 90, mt: 1 }}>
+
+                  {/* Row 2: Country Code | Phone */}
+                  <Stack direction="row" spacing={1}>
+                    <FormControl sx={{ ...ENHANCED_FORM_CONTROL_SX, minWidth: 110, flexShrink: 0 }}>
+                      <InputLabel>Code</InputLabel>
                       <Select
+                        label="Code"
                         value={manualForm.country_code}
                         onChange={(e) => setManualForm({ ...manualForm, country_code: e.target.value })}
-                        sx={SELECT_SX}
                       >
                         <MenuItem value="+1">+1</MenuItem>
                         <MenuItem value="+91">+91</MenuItem>
@@ -455,17 +535,19 @@ export default function GuestImportWizard({
                       value={manualForm.phone}
                       onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
                       fullWidth
-                      size="small"
                       sx={ENHANCED_TEXT_FIELD_SX}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
-                    <FormControl size="small" sx={{ minWidth: 130, mt: 1 }}>
-                      <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Side</InputLabel>
+                  </Stack>
+
+                  {/* Row 3: Side | Tag (equal width) */}
+                  <Stack direction="row" spacing={1}>
+                    <FormControl sx={{ ...ENHANCED_FORM_CONTROL_SX, flex: 1 }}>
+                      <InputLabel>Side (optional)</InputLabel>
                       <Select
+                        label="Side (optional)"
                         value={manualForm.wedding_side}
-                        label="Side"
                         onChange={(e) => setManualForm({ ...manualForm, wedding_side: e.target.value })}
-                        sx={SELECT_SX}
                       >
                         <MenuItem value="">—</MenuItem>
                         <MenuItem value="bride">Bride</MenuItem>
@@ -473,11 +555,47 @@ export default function GuestImportWizard({
                         <MenuItem value="both">Both</MenuItem>
                       </Select>
                     </FormControl>
+                    <TextField
+                      label="Tag (optional)"
+                      placeholder="e.g. Priya's Friends"
+                      value={manualForm.tag}
+                      onChange={(e) => setManualForm({ ...manualForm, tag: e.target.value })}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 1 }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                    />
+                  </Stack>
+
+                  {/* Button row: Cancel | Add — right-aligned */}
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={handleClose}
+                      sx={{
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        minWidth: 100,
+                        height: 40,
+                        color: '#4a4a4a',
+                        borderColor: 'rgba(0, 0, 0, 0.23)',
+                        '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)', color: '#DE3F5E' },
+                      }}
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       variant="contained"
                       onClick={handleAddManual}
-                      disabled={!manualForm.name.trim()}
-                      sx={{ ...PRIMARY_BTN, minWidth: 80, mt: 1, height: 42 }}
+                      disabled={!manualForm.name.trim() || (!manualForm.email.trim() && !manualForm.phone.trim())}
+                      sx={{
+                        ...PRIMARY_BTN,
+                        minWidth: 100,
+                        height: 40,
+                        '&.Mui-disabled': {
+                          bgcolor: 'rgba(222, 63, 94, 0.35)',
+                          color: 'white',
+                        },
+                      }}
                     >
                       Add
                     </Button>
@@ -495,6 +613,7 @@ export default function GuestImportWizard({
                             <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 12 }}>Email</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 12 }}>Phone</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 12 }}>Side</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 12 }}>Tag</TableCell>
                             <TableCell sx={{ width: 40 }} />
                           </TableRow>
                         </TableHead>
@@ -505,6 +624,7 @@ export default function GuestImportWizard({
                               <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{g.email || '—'}</TableCell>
                               <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{g.phone ? `${g.country_code}${g.phone}` : '—'}</TableCell>
                               <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{g.wedding_side || '—'}</TableCell>
+                              <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{g.tag || '—'}</TableCell>
                               <TableCell>
                                 <IconButton size="small" onClick={() => handleRemoveManual(i)}>
                                   <Close sx={{ fontSize: 14, color: '#9a9a9a' }} />
@@ -683,9 +803,13 @@ export default function GuestImportWizard({
       {/* ═══ Footer Actions ══════════════════════════════════ */}
       {step !== 'done' && step !== 'importing' && (
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-          <Button onClick={step === 'mapping' ? () => setStep('select') : handleClose} sx={{ textTransform: 'none', color: '#6a6a6a', fontWeight: 500 }}>
-            {step === 'mapping' ? 'Back' : 'Cancel'}
-          </Button>
+          {step === 'mapping' || tab !== 1 ? (
+            <Button onClick={step === 'mapping' ? () => setStep('select') : handleClose} sx={{ textTransform: 'none', color: '#6a6a6a', fontWeight: 500 }}>
+              {step === 'mapping' ? 'Back' : 'Cancel'}
+            </Button>
+          ) : (
+            <Box />
+          )}
 
           {step === 'mapping' && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
