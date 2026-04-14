@@ -15,6 +15,12 @@ export interface WhatsAppConciergeProps {
     sx?: any;
     messages?: Message[];
     hideNotch?: boolean;
+    /**
+     * Render the chat at a tighter size — useful when the component sits inside
+     * a small phone mockup so the header avatar, fonts, and bubble padding
+     * don't visually dominate the screen.
+     */
+    dense?: boolean;
 }
 
 const defaultMessages: Message[] = [
@@ -53,7 +59,29 @@ const defaultMessages: Message[] = [
     }
 ];
 
-const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false }) => {
+const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false, dense = false }) => {
+    // Sizing tokens — when `dense`, render at the xs (mobile) sizes regardless
+    // of viewport so the chrome doesn't overpower a phone-mockup container.
+    const D = {
+        headerPt: dense ? 5 : { xs: 5, md: 7 },
+        headerPb: dense ? 1.25 : { xs: 1.5, md: 2 },
+        backIcon: dense ? '1.25rem' : { xs: '1.5rem', md: '2.2rem' },
+        avatar: dense ? 32 : { xs: 40, md: 56 },
+        nameSize: dense ? '0.95rem' : { xs: '1.1rem', md: '1.4rem' },
+        verifiedSize: dense ? '0.95rem' : { xs: '1.1rem', md: '1.4rem' },
+        statusSize: dense ? '0.65rem' : { xs: '0.75rem', md: '0.9rem' },
+        chatSpacing: dense ? 1 : { xs: 1.5, md: 2 },
+        chatPad: dense ? 1.25 : { xs: 1.5, md: 2 },
+        bubblePad: dense ? 1 : { xs: 1.25, md: 1.5 },
+        bubbleFont: dense ? '0.75rem' : { xs: '0.85rem', md: '1rem' },
+        timeFont: dense ? '0.6rem' : { xs: '0.65rem', md: '0.75rem' },
+        checkSize: dense ? '0.7rem' : { xs: '0.8rem', md: '1rem' },
+        dateFont: dense ? '0.55rem' : { xs: '0.6rem', md: '0.75rem' },
+        notchWidth: dense ? '70px' : { xs: '80px', md: '120px' },
+        notchHeight: dense ? '18px' : { xs: '20px', md: '28px' },
+        notchRadius: dense ? '10px' : { xs: '12px', md: '14px' },
+    };
+
     return (
         <Paper
             elevation={20}
@@ -79,11 +107,11 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                         top: 0,
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        width: { xs: '80px', md: '120px' },
-                        height: { xs: '20px', md: '28px' },
+                        width: D.notchWidth,
+                        height: D.notchHeight,
                         bgcolor: '#1a1a1a',
-                        borderBottomLeftRadius: { xs: '12px', md: '14px' },
-                        borderBottomRightRadius: { xs: '12px', md: '14px' },
+                        borderBottomLeftRadius: D.notchRadius,
+                        borderBottomRightRadius: D.notchRadius,
                         zIndex: 20,
                     }}
                 />
@@ -92,23 +120,23 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
             {/* Custom WhatsApp Header */}
             <Box
                 sx={{
-                    bgcolor: '#202C33', // Dark header
+                    bgcolor: '#202C33',
                     color: 'primary.contrastText',
-                    pt: { xs: 5, md: 7 }, // Increased space for notch
-                    pb: { xs: 1.5, md: 2 },
-                    px: 2,
+                    pt: D.headerPt,
+                    pb: D.headerPb,
+                    px: dense ? 1.25 : 2,
                     display: 'flex',
                     alignItems: 'center',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                     zIndex: 10,
                 }}
             >
-                <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: 1.5, color: 'white' }}>
-                    <ArrowBack sx={{ fontSize: { xs: '1.5rem', md: '2.2rem' } }} />
+                <Stack direction="row" alignItems="center" spacing={0} sx={{ mr: dense ? 1 : 1.5, color: 'white' }}>
+                    <ArrowBack sx={{ fontSize: D.backIcon }} />
                 </Stack>
 
-                <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, md: 2 }} sx={{ flexGrow: 1 }}>
-                    <Avatar src="/Phera Logomark.jpg" sx={{ width: { xs: 40, md: 56 }, height: { xs: 40, md: 56 } }} />
+                <Stack direction="row" alignItems="center" spacing={dense ? 1 : { xs: 1.5, md: 2 }} sx={{ flexGrow: 1 }}>
+                    <Avatar src="/Phera Logomark.jpg" sx={{ width: D.avatar, height: D.avatar }} />
                     <Box>
                         <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Typography
@@ -117,16 +145,16 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                                     fontWeight: 600,
                                     color: 'white',
                                     lineHeight: 1.2,
-                                    fontSize: { xs: '1.1rem', md: '1.4rem' },
+                                    fontSize: D.nameSize,
                                 }}
                             >
                                 Phera
                             </Typography>
-                            <Verified sx={{ fontSize: { xs: '1.1rem', md: '1.4rem' }, color: '#2979FF' }} />
+                            <Verified sx={{ fontSize: D.verifiedSize, color: '#2979FF' }} />
                         </Stack>
                         <Typography
                             variant="caption"
-                            sx={{ color: '#8696a0', fontSize: { xs: '0.75rem', md: '0.9rem' } }}
+                            sx={{ color: '#8696a0', fontSize: D.statusSize }}
                         >
                             online
                         </Typography>
@@ -135,17 +163,17 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
             </Box>
 
             {/* Chat Area */}
-            <Stack spacing={{ xs: 1.5, md: 2 }} sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1, overflowY: 'auto' }}>
+            <Stack spacing={D.chatSpacing} sx={{ p: D.chatPad, flexGrow: 1, overflowY: 'auto' }}>
                 {/* Date Separator */}
                 <Box
                     sx={{
                         alignSelf: 'center',
                         bgcolor: 'rgba(255,255,255,0.2)',
                         backdropFilter: 'blur(10px)',
-                        px: { xs: 1, md: 1.5 },
+                        px: dense ? 0.75 : { xs: 1, md: 1.5 },
                         py: 0.5,
                         borderRadius: '8px',
-                        mb: { xs: 1, md: 2 },
+                        mb: dense ? 0.75 : { xs: 1, md: 2 },
                     }}
                 >
                     <Typography
@@ -154,11 +182,11 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                             color: '#54656F',
                             fontWeight: 500,
                             bgcolor: '#FFF',
-                            px: { xs: 0.75, md: 1 },
+                            px: dense ? 0.6 : { xs: 0.75, md: 1 },
                             py: 0.5,
                             borderRadius: '8px',
                             boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)',
-                            fontSize: { xs: '0.6rem', md: '0.75rem' },
+                            fontSize: D.dateFont,
                         }}
                     >
                         Today
@@ -171,7 +199,7 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                         sx={{
                             alignSelf: msg.type === 'guest' ? 'flex-end' : 'flex-start',
                             bgcolor: msg.type === 'guest' ? '#E7FFDB' : 'white',
-                            p: { xs: 1.25, md: 1.5 },
+                            p: D.bubblePad,
                             borderRadius: msg.type === 'guest' ? '12px 0px 12px 12px' : '0px 12px 12px 12px',
                             maxWidth: '85%',
                             boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)',
@@ -183,17 +211,17 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                             sx={{
                                 position: 'absolute',
                                 top: 0,
-                                [msg.type === 'guest' ? 'right' : 'left']: -8,
+                                [msg.type === 'guest' ? 'right' : 'left']: dense ? -6 : -8,
                                 width: 0,
                                 height: 0,
-                                borderTop: `12px solid ${msg.type === 'guest' ? '#E7FFDB' : 'white'}`,
-                                [msg.type === 'guest' ? 'borderRight' : 'borderLeft']: '12px solid transparent',
+                                borderTop: `${dense ? 9 : 12}px solid ${msg.type === 'guest' ? '#E7FFDB' : 'white'}`,
+                                [msg.type === 'guest' ? 'borderRight' : 'borderLeft']: `${dense ? 9 : 12}px solid transparent`,
                             }}
                         />
 
                         <Typography
                             variant="body2"
-                            sx={{ color: '#111b21', fontSize: { xs: '0.85rem', md: '1rem' }, lineHeight: 1.4 }}
+                            sx={{ color: '#111b21', fontSize: D.bubbleFont, lineHeight: 1.4 }}
                         >
                             {msg.text}
                         </Typography>
@@ -205,12 +233,12 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                                 justifyContent: 'flex-end',
                                 mt: 0.5,
                                 color: '#667781',
-                                fontSize: { xs: '0.65rem', md: '0.75rem' },
+                                fontSize: D.timeFont,
                                 gap: 0.5,
                                 textAlign: msg.type === 'guest' ? 'right' : 'left'
                             }}
                         >
-                            {msg.time} {msg.hasCheck && <Check sx={{ fontSize: { xs: '0.8rem', md: '1rem' }, color: '#53bdeb' }} />}
+                            {msg.time} {msg.hasCheck && <Check sx={{ fontSize: D.checkSize, color: '#53bdeb' }} />}
                         </Typography>
                     </Box>
                 ))}

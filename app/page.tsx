@@ -86,7 +86,7 @@ const features = [
     problem: "Guests messaging you at 2 AM asking about dress code, venue directions, and what to pack.",
     solution: 'An AI concierge on WhatsApp answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.',
     frameType: 'mobile' as const,
-    customComponent: <WhatsAppConcierge hideNotch sx={{ borderRadius: '28px' }} />,
+    customComponent: <WhatsAppConcierge hideNotch dense sx={{ borderRadius: 0 }} />,
   },
   {
     id: 'reverse-destination',
@@ -1299,7 +1299,7 @@ function LandingPageContent() {
         </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
-        <Box sx={{ py: { xs: 4, md: 4 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ py: { xs: 6, md: 10 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
           {/* Decorative background circle */}
           <Box sx={{
             position: 'absolute',
@@ -1394,9 +1394,10 @@ function LandingPageContent() {
                     visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
                   }}
                 >
-                  <IPhoneMockup width={{ xs: '240px', sm: '260px', md: '300px' }}>
+                  <IPhoneMockup width={{ xs: '260px', sm: '290px', md: '360px', lg: '400px' }}>
                     <WhatsAppConcierge
                       hideNotch
+                      dense
                       messages={conciergeMessages}
                       sx={{
                         width: '100%',
