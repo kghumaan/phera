@@ -516,7 +516,7 @@ export default function AdminPreviewPanel({
                             </Box>
                         </>
                     ) : (
-                        <IPhoneMockup width="100%" statusBarColor="dark" sx={{ height: '100%' }}>
+                        <IPhoneMockup width="100%" sx={{ height: '100%' }}>
                             <MobileBrowserShell url={`phera.io/${weddingSlug}`}>
                                 <iframe
                                     key={iframeSrc}

@@ -36,11 +36,11 @@ interface MobileBrowserShellProps {
   tabCount?: number;
 }
 
-// Chrome mobile light theme palette
-const CHROME_BG = '#f1f3f4';
-const CHROME_FG = '#1a1a1a';
-const CHROME_FG_MUTED = '#5f6368';
-const URL_PILL_BG = '#e1e3e6';
+// Chrome mobile dark theme palette
+const CHROME_BG = '#202124';
+const CHROME_FG = '#e8eaed';
+const CHROME_FG_MUTED = '#9aa0a6';
+const URL_PILL_BG = '#3c4043';
 
 const STATUS_BAR_HEIGHT = 44;
 const URL_BAR_HEIGHT = 44;
@@ -63,7 +63,7 @@ const ToolbarButton = ({
       alignItems: 'center',
       justifyContent: 'center',
       cursor: disabled || !onClick ? 'default' : 'pointer',
-      color: disabled ? 'rgba(0,0,0,0.3)' : CHROME_FG,
+      color: disabled ? 'rgba(255,255,255,0.3)' : CHROME_FG,
       '& svg': { fontSize: 20 },
     }}
   >
@@ -158,7 +158,7 @@ export default function MobileBrowserShell({
         sx={{
           height: `${BOTTOM_TOOLBAR_HEIGHT}px`,
           flexShrink: 0,
-          borderTop: '1px solid rgba(0,0,0,0.06)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
           bgcolor: CHROME_BG,
         }}
       >
