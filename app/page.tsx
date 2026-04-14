@@ -1069,32 +1069,32 @@ function LandingPageContent() {
                   }}
                 >
                   <AutoAwesome sx={{ fontSize: '0.95rem', color: '#DE3F5E' }} />
-                  Wedding operations, done for you
+                  Your wedding concierge, on call
                 </Box>
                 <Typography
                   variant="h1"
                   sx={{
                     fontFamily: 'var(--font-instrument-serif)',
-                    fontSize: { xs: '3rem', md: '4.5rem', lg: '5.5rem' },
+                    fontSize: { xs: '2.6rem', md: '4rem', lg: '4.75rem' },
                     lineHeight: 1.05,
                     letterSpacing: '-0.02em',
                     color: '#1a1a1a',
                     maxWidth: '1100px',
                   }}
                 >
-                  We run your wedding,<br />so you can live it.
+                  We coordinate every guest,<br />end to end.
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: { xs: '1.1rem', md: '1.35rem' },
+                    fontSize: { xs: '1.05rem', md: '1.3rem' },
                     color: '#4a4a4a',
-                    maxWidth: '720px',
+                    maxWidth: '760px',
                     lineHeight: 1.5,
                     fontWeight: 400,
                     px: { xs: 2, md: 0 },
                   }}
                 >
-                  Phera coordinates your guests — RSVPs, travel, shuttles, questions — end to end on WhatsApp.
+                  From save-the-dates and RSVPs to travel, shuttles, concierge, and broadcasts — all coordinated over WhatsApp.
                 </Typography>
 
                 <Stack
