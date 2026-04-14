@@ -38,7 +38,7 @@ describe('Sidebar Reorganization', () => {
     expect(labels).toEqual([
       'Overview',
       'Wedding Website',
-      'Guests',
+      'Guest Management',
       'Planning',
       'Collaborators',
     ]);
@@ -63,9 +63,15 @@ describe('Sidebar Reorganization', () => {
   describe('Guests group', () => {
     const guests = groups.find((g) => g.id === 'guests-group');
 
-    it('should exist with label "Guests"', () => {
+    it('should exist with label "Guest Management"', () => {
       expect(guests).toBeDefined();
-      expect(guests!.label).toBe('Guests');
+      expect(guests!.label).toBe('Guest Management');
+    });
+
+    it('should have Guest List as the first item', () => {
+      expect(guests!.items[0].id).toBe('guest-list');
+      expect(guests!.items[0].label).toBe('Guest List');
+      expect(guests!.items[0].path).toBe('/guest-list');
     });
 
     it('should have Guest Responses', () => {
@@ -94,8 +100,8 @@ describe('Sidebar Reorganization', () => {
       expect(item!.label).toBe('Guest Concierge');
     });
 
-    it('should have 4 items', () => {
-      expect(guests!.items).toHaveLength(4);
+    it('should have 5 items', () => {
+      expect(guests!.items).toHaveLength(5);
     });
 
     it('should NOT include Outreach (removed)', () => {
