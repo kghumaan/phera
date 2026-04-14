@@ -1,5 +1,32 @@
 import { supabase } from './client';
 
+/**
+ * Canonicalize a room number so superficial variants (zero-padding, casing,
+ * surrounding whitespace) collapse to the same value. Examples:
+ *   "V.09"   → "V.9"
+ *   "v.9"    → "V.9"
+ *   "PH-02"  → "PH-2"
+ *   " 1207 " → "1207"
+ *
+ * Letters keep their casing only for the FIRST normalization pass; downstream
+ * duplicate-checks use the lowercased form. The returned value is what gets
+ * stored in the DB so the user sees a single canonical entry per real room.
+ */
+export function canonicalizeRoomNumber(raw: string): string {
+  if (!raw) return '';
+  let s = raw.trim();
+  // Collapse internal whitespace runs to a single space
+  s = s.replace(/\s+/g, ' ');
+  // Strip leading zeros from each numeric segment (keep at least one digit)
+  s = s.replace(/\d+/g, (digits) => {
+    const trimmed = digits.replace(/^0+/, '');
+    return trimmed.length === 0 ? '0' : trimmed;
+  });
+  // Uppercase any leading alpha prefix so "v.9" and "V.9" agree
+  s = s.replace(/^[a-z]+/, (m) => m.toUpperCase());
+  return s;
+}
+
 export interface WeddingRoom {
   id: string;
   wedding_id: string;
@@ -42,15 +69,41 @@ export const roomsService = {
   async insertMany(weddingSlug: string, rooms: RoomDraft[]): Promise<WeddingRoom[]> {
     if (rooms.length === 0) return [];
 
-    const rows = rooms.map((r) => ({
-      wedding_id: weddingSlug,
-      room_number: r.room_number,
-      floor: r.floor || null,
-      hotel_name: r.hotel_name || null,
-      capacity: r.capacity ?? null,
-      notes: r.notes || null,
-      source: r.source || 'parsed',
-    }));
+    // Canonicalize + intra-batch dedupe so "V.9" and "V.09" don't both hit
+    // the DB as separate rows. Last-write-wins for fields when the same
+    // canonical room number appears multiple times in this batch.
+    const seen = new Map<string, ReturnType<typeof toRow>>();
+    function toRow(r: RoomDraft) {
+      return {
+        wedding_id: weddingSlug,
+        room_number: canonicalizeRoomNumber(r.room_number),
+        floor: r.floor || null,
+        hotel_name: r.hotel_name || null,
+        capacity: r.capacity ?? null,
+        notes: r.notes || null,
+        source: r.source || 'parsed',
+      };
+    }
+    for (const r of rooms) {
+      if (!r.room_number?.trim()) continue;
+      const row = toRow(r);
+      if (!row.room_number) continue;
+      const key = `${(row.hotel_name || '').toLowerCase()}|${row.room_number.toLowerCase()}`;
+      const prior = seen.get(key);
+      if (prior) {
+        // Merge: prefer non-null values from either source
+        seen.set(key, {
+          ...prior,
+          floor: row.floor || prior.floor,
+          capacity: row.capacity ?? prior.capacity,
+          notes: row.notes || prior.notes,
+          hotel_name: row.hotel_name || prior.hotel_name,
+        });
+      } else {
+        seen.set(key, row);
+      }
+    }
+    const rows = Array.from(seen.values());
 
     const { data, error } = await (supabase as any)
       .from('wedding_rooms')
@@ -69,7 +122,7 @@ export const roomsService = {
 
   async update(id: string, patch: Partial<RoomDraft>): Promise<WeddingRoom | null> {
     const updates: Record<string, any> = {};
-    if (patch.room_number !== undefined) updates.room_number = patch.room_number;
+    if (patch.room_number !== undefined) updates.room_number = canonicalizeRoomNumber(patch.room_number);
     if (patch.floor !== undefined) updates.floor = patch.floor || null;
     if (patch.hotel_name !== undefined) updates.hotel_name = patch.hotel_name || null;
     if (patch.capacity !== undefined) updates.capacity = patch.capacity ?? null;

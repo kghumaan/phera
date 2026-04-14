@@ -49,31 +49,56 @@ function stripJsonFences(text: string): string {
     .trim();
 }
 
+// Mirror of lib/supabase/rooms-service.canonicalizeRoomNumber. Kept inline
+// to avoid pulling the supabase client into this server route's bundle.
+function canonicalize(raw: string): string {
+  if (!raw) return '';
+  let s = raw.trim().replace(/\s+/g, ' ');
+  s = s.replace(/\d+/g, (digits) => {
+    const trimmed = digits.replace(/^0+/, '');
+    return trimmed.length === 0 ? '0' : trimmed;
+  });
+  s = s.replace(/^[a-z]+/, (m) => m.toUpperCase());
+  return s;
+}
+
 function validateRooms(input: any): ParsedRoom[] {
   if (!input || !Array.isArray(input.rooms)) return [];
 
-  const seen = new Set<string>();
-  const out: ParsedRoom[] = [];
+  const merged = new Map<string, ParsedRoom>();
 
   for (const r of input.rooms) {
     if (!r || typeof r !== 'object') continue;
-    const room_number = typeof r.room_number === 'string' ? r.room_number.trim() : String(r.room_number ?? '').trim();
+    const rawNumber = typeof r.room_number === 'string' ? r.room_number : String(r.room_number ?? '');
+    const room_number = canonicalize(rawNumber);
     if (!room_number) continue;
 
     const hotel_name = typeof r.hotel_name === 'string' && r.hotel_name.trim() ? r.hotel_name.trim() : null;
-    const dedupeKey = `${hotel_name || ''}|${room_number.toLowerCase()}`;
-    if (seen.has(dedupeKey)) continue;
-    seen.add(dedupeKey);
+    const dedupeKey = `${(hotel_name || '').toLowerCase()}|${room_number.toLowerCase()}`;
 
     const floor = typeof r.floor === 'string' && r.floor.trim() ? r.floor.trim() : r.floor != null ? String(r.floor) : null;
     const capacityNum = typeof r.capacity === 'number' ? Math.floor(r.capacity) : Number.parseInt(r.capacity, 10);
     const capacity = Number.isFinite(capacityNum) && capacityNum > 0 ? capacityNum : null;
     const notes = typeof r.notes === 'string' && r.notes.trim() ? r.notes.trim() : null;
 
-    out.push({ room_number, floor, hotel_name, capacity, notes });
+    const incoming: ParsedRoom = { room_number, floor, hotel_name, capacity, notes };
+
+    const existing = merged.get(dedupeKey);
+    if (existing) {
+      // Merge: keep the highest-confidence values from either occurrence.
+      merged.set(dedupeKey, {
+        room_number, // canonical form is identical for both
+        floor: existing.floor || incoming.floor,
+        hotel_name: existing.hotel_name || incoming.hotel_name,
+        capacity: Math.max(existing.capacity ?? 0, incoming.capacity ?? 0) || null,
+        notes: existing.notes || incoming.notes,
+      });
+    } else {
+      merged.set(dedupeKey, incoming);
+    }
   }
 
-  return out;
+  return Array.from(merged.values());
 }
 
 export async function POST(request: NextRequest) {
