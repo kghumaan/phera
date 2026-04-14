@@ -28,6 +28,11 @@ interface AdminPreviewPanelProps {
     onPublished?: () => void;
     currentAdminPath?: string | null;
     websiteLayout?: string | null;
+    /**
+     * When true, the wedding is published — the mobile preview URL bar will
+     * show the live guest URL. Otherwise it shows the preview URL.
+     */
+    isLive?: boolean;
 }
 
 interface PinCode {
@@ -44,6 +49,7 @@ export default function AdminPreviewPanel({
     onPublished,
     currentAdminPath,
     websiteLayout,
+    isLive = false,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -517,7 +523,7 @@ export default function AdminPreviewPanel({
                         </>
                     ) : (
                         <IPhoneMockup width="100%" sx={{ height: '100%' }}>
-                            <MobileBrowserShell url={`phera.io/${weddingSlug}`}>
+                            <MobileBrowserShell url={isLive ? `phera.io/${weddingSlug}` : `phera.io/preview/${weddingSlug}`}>
                                 <iframe
                                     key={iframeSrc}
                                     ref={iframeRefLine}

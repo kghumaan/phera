@@ -267,6 +267,7 @@ function OnboardingLayoutContent({
                     lastPublishedAt={wedding?.last_published_at ?? null}
                     currentAdminPath={currentAdminPath}
                     websiteLayout={wedding?.website_layout}
+                    isLive={wedding?.status === 'live'}
                     onPublished={() => {
                       if (wedding) {
                         setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
