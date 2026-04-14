@@ -1,7 +1,13 @@
 'use client';
 
 import { Box, Stack } from '@mui/material';
-import { ChevronLeft, ChevronRight, IosShare, MenuBook, ContentCopy, Lock } from '@mui/icons-material';
+import {
+  ArrowBackIos,
+  ArrowForwardIos,
+  Add,
+  MoreVert,
+  Lock,
+} from '@mui/icons-material';
 import type { ReactNode } from 'react';
 
 interface MobileBrowserShellProps {
@@ -24,28 +30,41 @@ interface MobileBrowserShellProps {
    * Click handler for the back button (rendered in the bottom toolbar).
    */
   onBack?: () => void;
+  /**
+   * Number shown in the tabs pill at the bottom right. Defaults to 1.
+   */
+  tabCount?: number;
 }
 
-const TOOLBAR_BG = '#0d0d0d';
-const TOOLBAR_FG = '#e0e0e0';
-const URL_PILL_BG = '#2a2a2c';
-const URL_PILL_FG = '#f5f5f7';
+// Chrome mobile light theme palette
+const CHROME_BG = '#f1f3f4';
+const CHROME_FG = '#1a1a1a';
+const CHROME_FG_MUTED = '#5f6368';
+const URL_PILL_BG = '#e1e3e6';
 
 const STATUS_BAR_HEIGHT = 44;
 const URL_BAR_HEIGHT = 44;
-const BOTTOM_TOOLBAR_HEIGHT = 44;
+const BOTTOM_TOOLBAR_HEIGHT = 48;
 
-const ToolbarButton = ({ children, onClick }: { children: ReactNode; onClick?: () => void }) => (
+const ToolbarButton = ({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}) => (
   <Box
-    onClick={onClick}
+    onClick={disabled ? undefined : onClick}
     sx={{
       flex: 1,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      cursor: onClick ? 'pointer' : 'default',
-      color: TOOLBAR_FG,
-      '& svg': { fontSize: 22 },
+      cursor: disabled || !onClick ? 'default' : 'pointer',
+      color: disabled ? 'rgba(0,0,0,0.3)' : CHROME_FG,
+      '& svg': { fontSize: 20 },
     }}
   >
     {children}
@@ -57,6 +76,7 @@ export default function MobileBrowserShell({
   url,
   reserveStatusBar = true,
   onBack,
+  tabCount = 1,
 }: MobileBrowserShellProps) {
   return (
     <Box
@@ -64,7 +84,7 @@ export default function MobileBrowserShell({
         position: 'relative',
         width: '100%',
         height: '100%',
-        bgcolor: TOOLBAR_BG,
+        bgcolor: CHROME_BG,
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -72,7 +92,7 @@ export default function MobileBrowserShell({
       {/* Status bar spacer — keeps URL bar below the iPhone status bar */}
       {reserveStatusBar && <Box sx={{ height: `${STATUS_BAR_HEIGHT}px`, flexShrink: 0 }} />}
 
-      {/* Top URL bar */}
+      {/* Top URL bar (Chrome mobile: URL pill + 3-dot menu) */}
       <Box
         sx={{
           height: `${URL_BAR_HEIGHT}px`,
@@ -80,107 +100,101 @@ export default function MobileBrowserShell({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          px: 1.5,
+          px: 1,
           gap: 1,
         }}
       >
         <Box
-          component="span"
-          sx={{
-            color: TOOLBAR_FG,
-            fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif',
-            fontSize: '15px',
-            fontWeight: 400,
-            opacity: 0.7,
-            cursor: 'default',
-            userSelect: 'none',
-          }}
-        >
-          AA
-        </Box>
-        <Box
           sx={{
             flex: 1,
-            maxWidth: 280,
-            height: 30,
+            maxWidth: 300,
+            height: 32,
             bgcolor: URL_PILL_BG,
-            borderRadius: '8px',
+            borderRadius: '999px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 0.6,
+            gap: 0.75,
             px: 1.5,
-            color: URL_PILL_FG,
-            fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif',
+            color: CHROME_FG,
+            fontFamily: '-apple-system, "SF Pro Text", Roboto, system-ui, sans-serif',
             fontSize: '13px',
             fontWeight: 500,
-            letterSpacing: '0.01em',
           }}
         >
-          <Lock sx={{ fontSize: 11, color: URL_PILL_FG, opacity: 0.85 }} />
+          <Lock sx={{ fontSize: 13, color: CHROME_FG_MUTED, flexShrink: 0 }} />
           <Box
             component="span"
             sx={{
+              flex: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: 220,
+              textAlign: 'center',
             }}
           >
             {url}
           </Box>
         </Box>
         <Box
-          component="span"
           sx={{
-            color: TOOLBAR_FG,
-            fontSize: '13px',
-            opacity: 0.7,
-            cursor: 'default',
-            userSelect: 'none',
+            width: 28,
+            height: 28,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
+            color: CHROME_FG,
+            flexShrink: 0,
           }}
         >
-          {/* Tabs / refresh stand-in: simple square icon */}
-          <Box
-            sx={{
-              width: 14,
-              height: 14,
-              border: `1.5px solid ${TOOLBAR_FG}`,
-              borderRadius: '3px',
-              opacity: 0.6,
-            }}
-          />
+          <MoreVert sx={{ fontSize: 20 }} />
         </Box>
       </Box>
 
       {/* Page content */}
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', bgcolor: 'white' }}>{children}</Box>
 
-      {/* Bottom toolbar — back, forward, share, bookmarks, tabs */}
+      {/* Bottom toolbar (Chrome mobile: back, forward, +, tabs, menu) */}
       <Box
         sx={{
           height: `${BOTTOM_TOOLBAR_HEIGHT}px`,
           flexShrink: 0,
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid rgba(0,0,0,0.06)',
+          bgcolor: CHROME_BG,
         }}
       >
         <Stack direction="row" sx={{ height: '100%', alignItems: 'center' }}>
           <ToolbarButton onClick={onBack}>
-            <ChevronLeft />
+            <ArrowBackIos sx={{ fontSize: 18, ml: 0.5 }} />
+          </ToolbarButton>
+          <ToolbarButton disabled>
+            <ArrowForwardIos sx={{ fontSize: 18 }} />
           </ToolbarButton>
           <ToolbarButton>
-            <ChevronRight sx={{ opacity: 0.4 }} />
+            <Add />
           </ToolbarButton>
           <ToolbarButton>
-            <IosShare />
+            {/* Tabs pill with count */}
+            <Box
+              sx={{
+                width: 22,
+                height: 22,
+                border: `1.8px solid ${CHROME_FG}`,
+                borderRadius: '5px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: CHROME_FG,
+                lineHeight: 1,
+                fontFamily: '-apple-system, "SF Pro Text", Roboto, system-ui, sans-serif',
+              }}
+            >
+              {tabCount}
+            </Box>
           </ToolbarButton>
           <ToolbarButton>
-            <MenuBook />
-          </ToolbarButton>
-          <ToolbarButton>
-            <ContentCopy />
+            <MoreVert />
           </ToolbarButton>
         </Stack>
       </Box>

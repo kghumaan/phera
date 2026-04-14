@@ -22,6 +22,11 @@ interface IPhoneMockupProps {
    */
   showDynamicIsland?: boolean;
   /**
+   * Icon/text color used for the faux status bar. Use 'dark' when the screen
+   * content sits on a light background (e.g. a browser chrome). Defaults to 'light'.
+   */
+  statusBarColor?: 'light' | 'dark';
+  /**
    * Inner-bezel padding around the screen. Defaults to a responsive value
    * matching the parallax mockup. Pass a smaller value for tighter mockups.
    */
@@ -47,9 +52,12 @@ export default function IPhoneMockup({
   width = { xs: '260px', md: '320px', lg: '380px' },
   showStatusBar = true,
   showDynamicIsland = true,
+  statusBarColor = 'light',
   bezelPadding = { xs: '7px', md: '9px', lg: '10px' },
   sx,
 }: IPhoneMockupProps) {
+  const statusFg = statusBarColor === 'dark' ? '#1a1a1a' : 'white';
+  const batteryOuterBorder = `1.2px solid ${statusFg}`;
   return (
     <Box
       sx={{
@@ -114,7 +122,7 @@ export default function IPhoneMockup({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 px: 3,
-                color: 'white',
+                color: statusFg,
                 fontSize: '13px',
                 fontWeight: 600,
                 fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif',
@@ -127,7 +135,7 @@ export default function IPhoneMockup({
                 {/* Signal bars */}
                 <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '2px' }}>
                   {[3, 5, 7, 9].map((h) => (
-                    <Box key={h} sx={{ width: '3px', height: `${h}px`, bgcolor: 'white', borderRadius: '0.5px' }} />
+                    <Box key={h} sx={{ width: '3px', height: `${h}px`, bgcolor: statusFg, borderRadius: '0.5px' }} />
                   ))}
                 </Box>
                 {/* 5G label */}
@@ -148,7 +156,7 @@ export default function IPhoneMockup({
                     ml: 0.5,
                     width: 22,
                     height: 11,
-                    border: '1.2px solid white',
+                    border: batteryOuterBorder,
                     borderRadius: '3px',
                     position: 'relative',
                     p: '1px',
@@ -159,12 +167,12 @@ export default function IPhoneMockup({
                       top: '3px',
                       width: '1.5px',
                       height: '5px',
-                      bgcolor: 'white',
+                      bgcolor: statusFg,
                       borderRadius: '0 1px 1px 0',
                     },
                   }}
                 >
-                  <Box sx={{ width: '78%', height: '100%', bgcolor: 'white', borderRadius: '1px' }} />
+                  <Box sx={{ width: '78%', height: '100%', bgcolor: statusFg, borderRadius: '1px' }} />
                 </Box>
               </Box>
             </Box>

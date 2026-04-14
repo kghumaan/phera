@@ -468,7 +468,7 @@ export default function AdminPreviewPanel({
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-80px' : '-15px',
+                        marginTop: viewMode === 'desktop' ? '-80px' : '-60px',
                         backgroundColor: viewMode === 'desktop' ? 'white' : 'transparent',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
@@ -516,7 +516,7 @@ export default function AdminPreviewPanel({
                             </Box>
                         </>
                     ) : (
-                        <IPhoneMockup width="100%" sx={{ height: '100%' }}>
+                        <IPhoneMockup width="100%" statusBarColor="dark" sx={{ height: '100%' }}>
                             <MobileBrowserShell url={`phera.io/${weddingSlug}`}>
                                 <iframe
                                     key={iframeSrc}
