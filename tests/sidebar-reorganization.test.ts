@@ -18,15 +18,14 @@ vi.mock('./ProBadge', () => ({ default: () => null }));
 import { groups } from '@/components/admin/OnboardingSidebar';
 
 describe('Sidebar Reorganization', () => {
-  it('should have 6 groups', () => {
-    expect(groups).toHaveLength(6);
+  it('should have 5 groups (Control Tower hidden)', () => {
+    expect(groups).toHaveLength(5);
   });
 
   it('should have correct group IDs', () => {
     const ids = groups.map((g) => g.id);
     expect(ids).toEqual([
       'overview',
-      'control-tower',
       'wedding-website',
       'guests-group',
       'planning',
@@ -38,12 +37,15 @@ describe('Sidebar Reorganization', () => {
     const labels = groups.map((g) => g.label);
     expect(labels).toEqual([
       'Overview',
-      'Control Tower',
       'Wedding Website',
       'Guests',
       'Planning',
       'Settings',
     ]);
+  });
+
+  it('should NOT include Control Tower (hidden until feature-ready)', () => {
+    expect(groups.find((g) => g.id === 'control-tower')).toBeUndefined();
   });
 
   describe('Overview group', () => {
@@ -55,18 +57,6 @@ describe('Sidebar Reorganization', () => {
 
     it('should have Overview item', () => {
       expect(overview!.items[0].path).toBe('/overview');
-    });
-  });
-
-  describe('Control Tower group', () => {
-    const ct = groups.find((g) => g.id === 'control-tower');
-
-    it('should be standalone', () => {
-      expect(ct!.standalone).toBe(true);
-    });
-
-    it('should point to /control-tower', () => {
-      expect(ct!.items[0].path).toBe('/control-tower');
     });
   });
 

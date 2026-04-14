@@ -32,6 +32,13 @@ import { TransportationSettings, TransportationMode } from '@/lib/supabase/types
 import TransportationSetupWizard from '@/components/admin/transportation/TransportationSetupWizard';
 import TransportationDashboard from '@/components/admin/transportation/TransportationDashboard';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
+
+const BETA_ACCESS_EMAILS = new Set([
+  'kv.s.ghumaan@gmail.com',
+  'savani.simran@google.com',
+]);
 
 type WizardStep =
   | 'initial'
@@ -45,11 +52,27 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { isViewOnly } = useAdminRole();
+  const { user } = useAuth();
+  const isBetaUser = BETA_ACCESS_EMAILS.has(user?.email?.toLowerCase() || '');
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [settings, setSettings] = useState<TransportationSettings | null>(null);
   const [wizardStep, setWizardStep] = useState<WizardStep>('initial');
+
+  // Early beta gate: non-beta users see the request-access screen.
+  // Demo weddings bypass so the demo experience stays complete.
+  if (!isBetaUser && !weddingSlug.startsWith('demo-')) {
+    return (
+      <EarlyBetaGate
+        featureName="Transportation"
+        description="Airport shuttles, venue transfers, and pickup coordination for every guest."
+        when={true}
+      >
+        <></>
+      </EarlyBetaGate>
+    );
+  }
 
   useEffect(() => {
     loadData();

@@ -68,15 +68,8 @@ export const groups: SidebarGroup[] = [
       { id: 'overview', label: 'Overview', path: '/overview' },
     ],
   },
-  {
-    id: 'control-tower',
-    label: 'Control Tower',
-    icon: <Radar />,
-    standalone: true,
-    items: [
-      { id: 'control-tower', label: 'Control Tower', path: '/control-tower' },
-    ],
-  },
+  // Control Tower hidden from sidebar until feature is ready for broader
+  // rollout. Page still exists at /control-tower for direct navigation.
   {
     id: 'wedding-website',
     label: 'Wedding Website',

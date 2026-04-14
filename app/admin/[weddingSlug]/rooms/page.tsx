@@ -36,6 +36,7 @@ import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { roomsService, type WeddingRoom, type RoomDraft } from '@/lib/supabase/rooms-service';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
 
 interface ParsedRoom {
   room_number: string;
@@ -194,6 +195,10 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
   );
 
   return (
+    <EarlyBetaGate
+      featureName="Room Assignments"
+      description="Upload floorplans and automatically place guests in rooms."
+    >
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       {/* Header — matches other admin pages */}
       <Box sx={{ mb: 3 }}>
@@ -518,6 +523,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
         )}
       </Paper>
     </Box>
+    </EarlyBetaGate>
   );
 }
 
