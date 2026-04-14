@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
+import MobileBrowserShell from '@/components/ui/MobileBrowserShell';
 
 const SECTION_MAP: Record<string, string> = {
     '/schedule': 'Schedule',
@@ -516,19 +517,22 @@ export default function AdminPreviewPanel({
                         </>
                     ) : (
                         <IPhoneMockup width="100%" sx={{ height: '100%' }}>
-                            <iframe
-                                key={iframeSrc}
-                                ref={iframeRefLine}
-                                src={iframeSrc}
-                                onLoad={handleIframeLoad}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    border: 'none',
-                                    backgroundColor: 'white',
-                                }}
-                                title="Wedding Preview - Mobile"
-                            />
+                            <MobileBrowserShell url={`phera.io/${weddingSlug}`}>
+                                <iframe
+                                    key={iframeSrc}
+                                    ref={iframeRefLine}
+                                    src={iframeSrc}
+                                    onLoad={handleIframeLoad}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        border: 'none',
+                                        backgroundColor: 'white',
+                                        display: 'block',
+                                    }}
+                                    title="Wedding Preview - Mobile"
+                                />
+                            </MobileBrowserShell>
                         </IPhoneMockup>
                     )}
                 </motion.div>
