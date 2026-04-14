@@ -318,14 +318,6 @@ export default function AdminPreviewPanel({
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
 
-    // Render the iframe at a real-phone viewport (iPhone 14 Pro = 393px) and
-    // visually scale it down to fit the mockup's inner screen width. This
-    // mirrors what a guest sees on their actual phone: MUI xs sizes render
-    // for a ~390px viewport, then the whole thing is scaled into the mockup.
-    const IFRAME_VIEWPORT_WIDTH = 393;
-    // Mockup inner screen width ≈ mobileWidth minus ~22px of bezel padding
-    const iframeScale = Math.max(0.5, (mobileWidth - 22) / IFRAME_VIEWPORT_WIDTH);
-
     return (
         <Box
             data-tour="tour-preview"
@@ -538,13 +530,11 @@ export default function AdminPreviewPanel({
                                     src={iframeSrc}
                                     onLoad={handleIframeLoad}
                                     style={{
-                                        width: IFRAME_VIEWPORT_WIDTH,
-                                        height: `${100 / iframeScale}%`,
+                                        width: '100%',
+                                        height: '100%',
                                         border: 'none',
                                         backgroundColor: 'white',
                                         display: 'block',
-                                        transform: `scale(${iframeScale})`,
-                                        transformOrigin: 'top left',
                                     }}
                                     title="Wedding Preview - Mobile"
                                 />
