@@ -45,10 +45,20 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   // 3. Insert cloned wedding row
   const { id: _id, created_at: _ca, updated_at: _ua, slug: _slug, created_by: _cb, ...weddingData } = template;
 
+  // Guarantee couple_name is populated. The template occasionally has it blank
+  // because the Details admin page only regenerates it on save; derive it from
+  // partner names so the preview hero shows something sensible.
+  const wd = weddingData as any;
+  const p1 = (wd.partner1_name || '').trim().split(' ')[0];
+  const p2 = (wd.partner2_name || '').trim().split(' ')[0];
+  const derivedCoupleName = p1 && p2 ? `${p1} & ${p2}` : p1 || p2 || '';
+  const finalCoupleName = wd.couple_name?.trim() || derivedCoupleName || 'Our Wedding';
+
   const { data: newWedding, error: insertError } = await supabase
     .from('weddings')
     .insert({
       ...weddingData,
+      couple_name: finalCoupleName,
       slug: newSlug,
       created_by: userId,
       status: 'draft',
