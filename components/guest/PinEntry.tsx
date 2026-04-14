@@ -480,10 +480,10 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           justifyContent: 'center',
           alignItems: 'center',
           minHeight: '100svh',
-          pt: { xs: 3, sm: 4 },
-          pb: { xs: 4, sm: 6 },
-          px: { xs: 3, sm: 4 },
-          gap: { xs: 4, sm: 6 },
+          pt: { xs: 2, sm: 4 },
+          pb: { xs: 3, sm: 6 },
+          px: { xs: 2.5, sm: 4 },
+          gap: { xs: 2.5, sm: 6 },
         }}
       >
         {/* Top Section - Logo and Title */}
@@ -506,7 +506,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             src="/logo-stacked.svg"
             alt="Phera Logo"
             sx={{
-              height: { xs: 60, sm: 60, md: 80, lg: 100, xl: 100 },
+              height: { xs: 42, sm: 60, md: 80, lg: 100, xl: 100 },
               width: 'auto',
               filter: 'brightness(0)',
             }}
@@ -517,8 +517,9 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             variant="h3"
             sx={{
               color: pinEntryFontColor,
-              lineHeight: 1.3,
+              lineHeight: 1.25,
               textAlign: 'center',
+              fontSize: { xs: '1.4rem', sm: '2rem', md: '2.5rem', lg: '3rem' },
             }}
           >
             {displayText}
@@ -529,12 +530,12 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             variant="body2"
             sx={{
               color: pinEntryFontColor,
-              // fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem', lg: '1.2rem', xl: '1.25rem' },
-              lineHeight: 1.5,
-              maxWidth: { xs: 355, sm: 400, lg: 800, xl: 800 },
+              lineHeight: 1.45,
+              maxWidth: { xs: 300, sm: 400, lg: 800, xl: 800 },
               mx: 'auto',
               textAlign: 'center',
-              px: 2,
+              px: 1.5,
+              fontSize: { xs: '0.75rem', sm: '0.95rem', md: '1rem', lg: '1.125rem' },
             }}
           >
             {displaySubtitle}
@@ -558,7 +559,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           {/* Pin Input Section */}
           <Stack
             direction="row"
-            spacing={{ xs: 1.5, sm: 1.5, md: 1.5, lg: 1.75, xl: 2 }}
+            spacing={{ xs: 1, sm: 1.5, md: 1.5, lg: 1.75, xl: 2 }}
             justifyContent="center"
           >
             {pin.map((digit, index) => (
@@ -570,12 +571,12 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
                 sx={{
-                  width: { xs: 72, sm: 72, md: 73, lg: 80, xl: 88 },
+                  width: { xs: 48, sm: 72, md: 73, lg: 80, xl: 88 },
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#FFFFFF',
                     borderRadius: '50%', // Perfect circle
-                    height: { xs: 72, sm: 72, md: 73, lg: 80, xl: 88 },
-                    fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
+                    height: { xs: 48, sm: 72, md: 73, lg: 80, xl: 88 },
+                    fontSize: { xs: '1.1rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
                     fontWeight: 700,
                     textAlign: 'center',
                     border: error ? `1px solid ${pinEntryPrimaryColor}` : '1px solid #D6D6D6',
@@ -685,7 +686,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           {/* Or Divider */}
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '354px' }}>
             <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
-            <Typography variant="body2" sx={{ px: 2, color: '#6a6a6a', fontSize: '0.875rem', fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ px: 2, color: '#6a6a6a', fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 500 }}>
               or
             </Typography>
             <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
@@ -698,9 +699,9 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               backgroundColor: '#FFFFFF',
               color: '#141414',
               borderRadius: '16px',
-              px: { xs: '20px', lg: '22px', xl: '24px' },
-              py: { xs: '12px', lg: '13px', xl: '14px' },
-              fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
+              px: { xs: '14px', sm: '20px', lg: '22px', xl: '24px' },
+              py: { xs: '8px', sm: '12px', lg: '13px', xl: '14px' },
+              fontSize: { xs: '0.8rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
