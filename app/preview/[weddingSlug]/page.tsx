@@ -960,7 +960,7 @@ function PreviewContent() {
         {/* Mobile/Tablet Layout (xs to md) */}
         <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
           <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ pt: 10, pb: 1 }}>
+            <Box sx={{ pt: { xs: 3, md: 5 }, pb: 1 }}>
               {/* Couple Photo Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
