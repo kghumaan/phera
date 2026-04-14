@@ -908,7 +908,7 @@ export default function OnboardingPage() {
                               <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('couple')}>
                                 <Favorite sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Couple</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own multi-day destination wedding</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own wedding</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -927,7 +927,7 @@ export default function OnboardingPage() {
                               <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('planner')}>
                                 <Work sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Planner</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings for my clients</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -1110,6 +1110,11 @@ export default function OnboardingPage() {
                                     customInput={<DateRangeInput />}
                                     dateFormat="MMM d, yyyy"
                                     monthsShown={1}
+                                    showMonthDropdown
+                                    showYearDropdown
+                                    dropdownMode="select"
+                                    yearDropdownItemNumber={5}
+                                    scrollableYearDropdown
                                     wrapperClassName="onboarding-datepicker-wrapper"
                                   />
                                   <Stack direction="row" spacing={1} alignItems="center" onClick={() => { if (!dateTbd) { setWeddingDate(''); setWeddingEndDate(''); } setDateTbd(!dateTbd); }} sx={{ cursor: 'pointer', mt: 1 }}>
