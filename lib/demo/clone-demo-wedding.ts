@@ -45,19 +45,23 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   // 3. Insert cloned wedding row
   const { id: _id, created_at: _ca, updated_at: _ua, slug: _slug, created_by: _cb, ...weddingData } = template;
 
-  // Guarantee couple_name is populated. The template occasionally has it blank
-  // because the Details admin page only regenerates it on save; derive it from
-  // partner names so the preview hero shows something sensible.
+  // Guarantee couple_name + partner names are populated. The template
+  // occasionally has them blank; derive defaults so the preview hero
+  // renders real content instead of an empty frame with no names.
   const wd = weddingData as any;
-  const p1 = (wd.partner1_name || '').trim().split(' ')[0];
-  const p2 = (wd.partner2_name || '').trim().split(' ')[0];
-  const derivedCoupleName = p1 && p2 ? `${p1} & ${p2}` : p1 || p2 || '';
-  const finalCoupleName = wd.couple_name?.trim() || derivedCoupleName || 'Our Wedding';
+  const partner1Name = (wd.partner1_name || '').trim() || 'Priya Sharma';
+  const partner2Name = (wd.partner2_name || '').trim() || 'Arjun Mehta';
+  const p1 = partner1Name.split(' ')[0];
+  const p2 = partner2Name.split(' ')[0];
+  const derivedCoupleName = p1 && p2 ? `${p1} & ${p2}` : p1 || p2;
+  const finalCoupleName = wd.couple_name?.trim() || derivedCoupleName;
 
   const { data: newWedding, error: insertError } = await supabase
     .from('weddings')
     .insert({
       ...weddingData,
+      partner1_name: partner1Name,
+      partner2_name: partner2Name,
       couple_name: finalCoupleName,
       slug: newSlug,
       created_by: userId,
