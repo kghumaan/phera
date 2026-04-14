@@ -53,7 +53,6 @@ import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
-import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
 
 interface RSVPData {
   id: string;
@@ -91,7 +90,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   const [activeTab, setActiveTab] = useState(0);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
-  const [importOpen, setImportOpen] = useState(false);
   const [allCustomQuestions, setAllCustomQuestions] = useState<CustomQuestion[]>([]);
 
   const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
@@ -350,14 +348,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-            <Button
-              variant="contained"
-              startIcon={<Upload />}
-              onClick={() => setImportOpen(true)}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#c13550' } }}
-            >
-              Import Guests
-            </Button>
             <Button
               variant="outlined"
               startIcon={<Download />}
@@ -992,13 +982,6 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
 
-      <GuestImportWizard
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        weddingId={weddingSlug}
-        weddingSlug={weddingSlug}
-        onImportComplete={() => loadData()}
-      />
     </Box>
   );
 }

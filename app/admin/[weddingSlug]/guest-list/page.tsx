@@ -20,25 +20,33 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Tooltip,
 } from '@mui/material';
-import { Add, People, Upload, Edit, Save, Close, Delete } from '@mui/icons-material';
-import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import { Add, People, Upload, Delete } from '@mui/icons-material';
+import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
+
+type SideValue = 'bride' | 'groom' | 'both' | null;
 
 interface Guest {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
-  wedding_side: 'bride' | 'groom' | 'both' | null;
+  wedding_side: SideValue;
   logistics_data: any;
   initials: string | null;
   avatar_color: string | null;
   created_at: string;
+}
+
+type EditableField = 'name' | 'email' | 'phone' | 'side' | 'tag';
+
+interface CellEdit {
+  guestId: string;
+  field: EditableField;
 }
 
 export default function GuestListPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -49,9 +57,13 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
   const [loading, setLoading] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTag, setEditTag] = useState('');
-  const [editSide, setEditSide] = useState<'bride' | 'groom' | 'both' | ''>('');
+  // Which single cell is currently being edited. null when nothing is edited.
+  const [editing, setEditing] = useState<CellEdit | null>(null);
+  // Working value for the active cell; kept in local state so blur commits
+  // the latest value without extra round-trips.
+  const [draft, setDraft] = useState<string>('');
+  // Prevent double-save if both blur + Enter fire.
+  const committingRef = useRef(false);
 
   // ─── Load ────────────────────────────────────────────────────
 
@@ -86,52 +98,97 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [guests]);
 
-  // ─── Edit ────────────────────────────────────────────────────
+  // ─── Cell editing ────────────────────────────────────────────
 
-  const startEdit = (g: Guest) => {
-    setEditingId(g.id);
-    setEditTag(g.logistics_data?.tag || '');
-    setEditSide((g.wedding_side as any) || '');
+  const beginEdit = (guest: Guest, field: EditableField) => {
+    if (editing) return; // one cell at a time
+    let initial = '';
+    if (field === 'name') initial = guest.name || '';
+    else if (field === 'email') initial = guest.email && !guest.email.includes('@phera.io') ? guest.email : '';
+    else if (field === 'phone') initial = guest.phone || '';
+    else if (field === 'side') initial = guest.wedding_side || '';
+    else if (field === 'tag') initial = guest.logistics_data?.tag || '';
+    setDraft(initial);
+    setEditing({ guestId: guest.id, field });
   };
 
   const cancelEdit = () => {
-    setEditingId(null);
-    setEditTag('');
-    setEditSide('');
+    setEditing(null);
+    setDraft('');
+    committingRef.current = false;
   };
 
-  const saveEdit = async () => {
-    if (!editingId) return;
-    const guest = guests.find((x) => x.id === editingId);
-    if (!guest) return;
+  const commitEdit = async (overrideValue?: string) => {
+    if (!editing || committingRef.current) return;
+    committingRef.current = true;
 
-    const nextLogistics = {
-      ...(guest.logistics_data || {}),
-      tag: editTag.trim() || undefined,
-    };
-    // Clean undefined keys so we don't store them
-    if (!nextLogistics.tag) delete nextLogistics.tag;
-
-    const { error } = await (supabase as any)
-      .from('guests')
-      .update({
-        wedding_side: editSide || null,
-        logistics_data: nextLogistics,
-      })
-      .eq('id', editingId);
-
-    if (error) {
-      console.error('guest update error:', error);
+    const guest = guests.find((g) => g.id === editing.guestId);
+    if (!guest) {
+      cancelEdit();
       return;
     }
 
-    setGuests((prev) =>
-      prev.map((g) =>
-        g.id === editingId
-          ? { ...g, wedding_side: (editSide || null) as Guest['wedding_side'], logistics_data: nextLogistics }
-          : g,
-      ),
-    );
+    const value = overrideValue !== undefined ? overrideValue : draft;
+    const field = editing.field;
+
+    // No-op detection so we don't write on every blur of an unchanged cell.
+    let unchanged = false;
+    if (field === 'name') unchanged = (value || '').trim() === (guest.name || '').trim();
+    else if (field === 'email') {
+      const current = guest.email && !guest.email.includes('@phera.io') ? guest.email : '';
+      unchanged = (value || '').trim() === current.trim();
+    } else if (field === 'phone') unchanged = (value || '').trim() === (guest.phone || '').trim();
+    else if (field === 'side') unchanged = (value || '') === (guest.wedding_side || '');
+    else if (field === 'tag') unchanged = (value || '').trim() === (guest.logistics_data?.tag || '').trim();
+
+    if (unchanged) {
+      cancelEdit();
+      return;
+    }
+
+    // Build the update payload scoped to this field only
+    const updates: Record<string, any> = {};
+    const optimistic: Partial<Guest> = {};
+
+    if (field === 'name') {
+      const name = (value || '').trim();
+      if (!name) {
+        // Don't allow empty name — just cancel
+        cancelEdit();
+        return;
+      }
+      updates.name = name;
+      optimistic.name = name;
+    } else if (field === 'email') {
+      const email = (value || '').trim().toLowerCase();
+      updates.email = email || null;
+      optimistic.email = email || null;
+    } else if (field === 'phone') {
+      const phone = (value || '').trim();
+      updates.phone = phone || null;
+      optimistic.phone = phone || null;
+    } else if (field === 'side') {
+      const side = (['bride', 'groom', 'both'] as const).find((s) => s === value) || null;
+      updates.wedding_side = side;
+      optimistic.wedding_side = side;
+    } else if (field === 'tag') {
+      const tag = (value || '').trim();
+      const nextLogistics = { ...(guest.logistics_data || {}) };
+      if (tag) nextLogistics.tag = tag;
+      else delete nextLogistics.tag;
+      updates.logistics_data = nextLogistics;
+      optimistic.logistics_data = nextLogistics;
+    }
+
+    const { error } = await (supabase as any).from('guests').update(updates).eq('id', editing.guestId);
+
+    if (error) {
+      console.error('guest update error:', error);
+      committingRef.current = false;
+      return;
+    }
+
+    setGuests((prev) => prev.map((g) => (g.id === editing.guestId ? { ...g, ...optimistic } : g)));
     cancelEdit();
   };
 
@@ -145,14 +202,19 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     setGuests((prev) => prev.filter((g) => g.id !== id));
   };
 
-  // ─── Render ──────────────────────────────────────────────────
+  // ─── Render helpers ──────────────────────────────────────────
 
-  const sideChipColor = (side: Guest['wedding_side']) => {
+  const sideChipColor = (side: SideValue) => {
     if (side === 'bride') return { bg: 'rgba(222, 63, 94, 0.1)', fg: '#DE3F5E' };
     if (side === 'groom') return { bg: 'rgba(59, 130, 246, 0.1)', fg: '#3b82f6' };
     if (side === 'both') return { bg: 'rgba(139, 92, 246, 0.1)', fg: '#8b5cf6' };
     return { bg: 'rgba(0, 0, 0, 0.05)', fg: '#6a6a6a' };
   };
+
+  const isEditing = (g: Guest, field: EditableField) =>
+    editing?.guestId === g.id && editing.field === field;
+
+  const EDIT_HINT = { cursor: 'pointer', userSelect: 'none' as const };
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
@@ -162,7 +224,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             Guest List
           </Typography>
           <Typography sx={{ fontSize: 13, color: '#6a6a6a', mt: 0.5 }}>
-            Import, tag, and manage every guest invited to your wedding.
+            Import, tag, and manage every guest invited to your wedding. Double-click any field to edit.
           </Typography>
         </Box>
         <Button
@@ -246,16 +308,21 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                   <TableCell sx={headerCell}>Phone</TableCell>
                   <TableCell sx={headerCell}>Side</TableCell>
                   <TableCell sx={headerCell}>Tag</TableCell>
-                  <TableCell sx={{ width: 100 }} />
+                  <TableCell sx={{ width: 50 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
                 {guests.map((g) => {
-                  const isEditing = editingId === g.id;
                   const tag = g.logistics_data?.tag || '';
+                  const cleanEmail = g.email && !g.email.includes('@phera.io') ? g.email : '';
+
                   return (
                     <TableRow key={g.id} hover sx={{ '&:hover .row-actions': { opacity: 1 } }}>
-                      <TableCell>
+                      {/* Name */}
+                      <TableCell
+                        onDoubleClick={() => beginEdit(g, 'name')}
+                        sx={{ ...EDIT_HINT }}
+                      >
                         <Stack direction="row" alignItems="center" spacing={1.25}>
                           <Box
                             sx={{
@@ -274,17 +341,92 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                           >
                             {g.initials || g.name.slice(0, 2).toUpperCase()}
                           </Box>
-                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{g.name}</Typography>
+                          {isEditing(g, 'name') ? (
+                            <TextField
+                              autoFocus
+                              size="small"
+                              value={draft}
+                              onChange={(e) => setDraft(e.target.value)}
+                              onBlur={() => commitEdit()}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') commitEdit();
+                                if (e.key === 'Escape') cancelEdit();
+                              }}
+                              sx={{ ...selectSx, minWidth: 180 }}
+                            />
+                          ) : (
+                            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{g.name}</Typography>
+                          )}
                         </Stack>
                       </TableCell>
-                      <TableCell sx={bodyCell}>{g.email && !g.email.includes('@phera.io') ? g.email : '—'}</TableCell>
-                      <TableCell sx={bodyCell}>{g.phone || '—'}</TableCell>
-                      <TableCell>
-                        {isEditing ? (
+
+                      {/* Email */}
+                      <TableCell
+                        onDoubleClick={() => beginEdit(g, 'email')}
+                        sx={{ ...bodyCell, ...EDIT_HINT }}
+                      >
+                        {isEditing(g, 'email') ? (
+                          <TextField
+                            autoFocus
+                            size="small"
+                            type="email"
+                            value={draft}
+                            placeholder="email@example.com"
+                            onChange={(e) => setDraft(e.target.value)}
+                            onBlur={() => commitEdit()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitEdit();
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                            sx={{ ...selectSx, minWidth: 200 }}
+                          />
+                        ) : (
+                          cleanEmail || <span style={{ color: '#bbb' }}>—</span>
+                        )}
+                      </TableCell>
+
+                      {/* Phone */}
+                      <TableCell
+                        onDoubleClick={() => beginEdit(g, 'phone')}
+                        sx={{ ...bodyCell, ...EDIT_HINT }}
+                      >
+                        {isEditing(g, 'phone') ? (
+                          <TextField
+                            autoFocus
+                            size="small"
+                            value={draft}
+                            placeholder="+1 415 555 1234"
+                            onChange={(e) => setDraft(e.target.value)}
+                            onBlur={() => commitEdit()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitEdit();
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                            sx={{ ...selectSx, minWidth: 180 }}
+                          />
+                        ) : (
+                          g.phone || <span style={{ color: '#bbb' }}>—</span>
+                        )}
+                      </TableCell>
+
+                      {/* Side */}
+                      <TableCell
+                        onDoubleClick={() => beginEdit(g, 'side')}
+                        sx={{ ...EDIT_HINT }}
+                      >
+                        {isEditing(g, 'side') ? (
                           <FormControl size="small" sx={{ minWidth: 110 }}>
                             <Select
-                              value={editSide}
-                              onChange={(e) => setEditSide(e.target.value as any)}
+                              autoFocus
+                              open
+                              value={draft}
+                              onChange={(e) => {
+                                const v = e.target.value as string;
+                                setDraft(v);
+                                commitEdit(v);
+                              }}
+                              onBlur={() => commitEdit()}
+                              onClose={() => setTimeout(() => commitEdit(), 0)}
                               sx={selectSx}
                             >
                               <MenuItem value="">—</MenuItem>
@@ -306,24 +448,39 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             }}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 12, color: '#9a9a9a' }}>—</Typography>
+                          <span style={{ color: '#bbb' }}>—</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {isEditing ? (
+
+                      {/* Tag */}
+                      <TableCell
+                        onDoubleClick={() => beginEdit(g, 'tag')}
+                        sx={{ ...EDIT_HINT }}
+                      >
+                        {isEditing(g, 'tag') ? (
                           <Autocomplete
                             freeSolo
                             size="small"
                             options={existingTags}
-                            value={editTag}
-                            onChange={(_, v) => setEditTag((v as string) || '')}
-                            onInputChange={(_, v) => setEditTag(v || '')}
+                            value={draft}
+                            onChange={(_, v) => {
+                              const s = (v as string) || '';
+                              setDraft(s);
+                              commitEdit(s);
+                            }}
+                            onInputChange={(_, v) => setDraft(v || '')}
+                            onBlur={() => commitEdit()}
                             sx={{ minWidth: 200 }}
                             renderInput={(params) => (
                               <TextField
                                 {...params}
+                                autoFocus
                                 placeholder="e.g. Priya's Friends"
                                 size="small"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') commitEdit();
+                                  if (e.key === 'Escape') cancelEdit();
+                                }}
                                 sx={selectSx}
                               />
                             )}
@@ -335,37 +492,19 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             sx={{ height: 20, fontSize: 11, fontWeight: 500, bgcolor: 'rgba(0, 0, 0, 0.05)', color: '#1a1a1a' }}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 12, color: '#9a9a9a' }}>—</Typography>
+                          <span style={{ color: '#bbb' }}>—</span>
                         )}
                       </TableCell>
+
+                      {/* Delete */}
                       <TableCell align="right">
-                        {isEditing ? (
-                          <Stack direction="row" justifyContent="flex-end">
-                            <Tooltip title="Save">
-                              <IconButton size="small" onClick={saveEdit}>
-                                <Save sx={{ fontSize: 18, color: '#22c55e' }} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Cancel">
-                              <IconButton size="small" onClick={cancelEdit}>
-                                <Close sx={{ fontSize: 18, color: '#9a9a9a' }} />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        ) : (
-                          <Box className="row-actions" sx={{ opacity: 0, transition: 'opacity 0.15s' }}>
-                            <Tooltip title="Edit tag / side">
-                              <IconButton size="small" onClick={() => startEdit(g)}>
-                                <Edit sx={{ fontSize: 16, color: '#6a6a6a' }} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Remove">
-                              <IconButton size="small" onClick={() => removeGuest(g.id)}>
-                                <Delete sx={{ fontSize: 16, color: '#9a9a9a' }} />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        )}
+                        <Box className="row-actions" sx={{ opacity: 0, transition: 'opacity 0.15s' }}>
+                          <Tooltip title="Remove">
+                            <IconButton size="small" onClick={() => removeGuest(g.id)}>
+                              <Delete sx={{ fontSize: 16, color: '#9a9a9a' }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   );
@@ -376,7 +515,6 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
         )}
       </Paper>
 
-      {/* Import wizard */}
       {weddingId && (
         <GuestImportWizard
           open={importOpen}
