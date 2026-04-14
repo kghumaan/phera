@@ -1582,19 +1582,24 @@ export default function VerticalScrollLayout({
 
       </Box>
 
-      {/* Fixed Menu Button — top right, always visible regardless of scroll */}
+      {/* Fixed Menu Button — aligned with the AppHeader user avatar:
+          - Avatar sits inside AppHeader Container at pt { xs: 2, md: 4 } and
+            is centered in a row whose height equals the logo (40px xs, 48px md).
+          - Avatar is 32px xs / 45px md on the right edge (Container px 2/4).
+          - Match: same top + same height, positioned just left of the avatar
+            with an 8px gap. */}
       <Box
         onClick={() => setNavOpen(true)}
         sx={{
           position: 'fixed',
-          right: 24,
-          top: 18,
+          right: { xs: '56px', md: '85px' },   // avatar width (32/45) + 8 gap + container px (16/32)
+          top: { xs: '20px', md: '33.5px' },   // header pt + (row - avatar)/2
+          height: { xs: 32, md: 45 },
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
           gap: 0.75,
-          px: 2,
-          py: 1,
+          px: { xs: 1.5, md: 2 },
           borderRadius: '100px',
           backgroundColor: '#1a1a1a',
           color: 'white',
@@ -1607,8 +1612,8 @@ export default function VerticalScrollLayout({
           },
         }}
       >
-        <MenuIcon sx={{ fontSize: 20, color: 'white' }} />
-        <Typography variant="subtitleCaps" sx={{ fontSize: '0.8rem', color: 'white', letterSpacing: '0.03em' }}>
+        <MenuIcon sx={{ fontSize: { xs: 18, md: 20 }, color: 'white' }} />
+        <Typography variant="subtitleCaps" sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, color: 'white', letterSpacing: '0.03em' }}>
           Menu
         </Typography>
       </Box>

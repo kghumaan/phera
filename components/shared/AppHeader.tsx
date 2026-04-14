@@ -27,6 +27,12 @@ interface AppHeaderProps {
   backHref?: string;
   title?: string;
   variant?: 'transparent' | 'solid';
+  /**
+   * Optional content rendered on the right side of the header, just before
+   * the user avatar / login button. Use for per-page controls like a nav
+   * Menu toggle that should align with the avatar.
+   */
+  rightSlot?: React.ReactNode;
 }
 
 export default function AppHeader({
@@ -34,6 +40,7 @@ export default function AppHeader({
   backHref = '/',
   title,
   variant = 'transparent',
+  rightSlot,
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut, isAdmin, adminWeddingSlug } = useAuth();
   const pathname = usePathname();
@@ -227,6 +234,7 @@ export default function AppHeader({
               <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
             ) : user ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {rightSlot}
                 {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
                 {shouldShowWhatsApp && (
                   <IconButton
@@ -323,6 +331,7 @@ export default function AppHeader({
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {rightSlot}
                 {/* WhatsApp Button - Hidden for non-authenticated users since they can't have RSVP'd */}
 
                 <Button
