@@ -17,7 +17,7 @@ interface OutreachFunnelChartProps {
 }
 
 const STAGES = [
-  { key: 'not_contacted', label: 'Not Contacted', color: '#94a3b8' },
+  { key: 'not_contacted', label: 'Not Reached by Concierge', color: '#94a3b8' },
   { key: 'save_the_date_sent', label: 'Save the Date', color: '#f59e0b' },
   { key: 'rsvp_requested', label: 'RSVP Requested', color: '#3b82f6' },
   { key: 'rsvp_confirmed', label: 'RSVP Confirmed', color: '#22c55e' },
@@ -31,7 +31,7 @@ export default function OutreachFunnelChart({ summary }: OutreachFunnelChartProp
     name: s.label,
     value: (summary as any)[s.key] || 0,
     color: s.color,
-  })).filter((d) => d.value > 0 || d.name === 'Not Contacted');
+  })).filter((d) => d.value > 0 || d.name === 'Not Reached by Concierge');
 
   const total = Object.values(summary).reduce((a, b) => a + b, 0);
 

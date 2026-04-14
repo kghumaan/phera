@@ -78,6 +78,20 @@ export const groups: SidebarGroup[] = [
     ],
   },
   {
+    id: 'wedding-website',
+    label: 'Wedding Website',
+    icon: <Language />,
+    items: [
+      { id: 'details', label: 'Wedding Details', path: '/details', required: true },
+      { id: 'design', label: 'Look & Feel', path: '/design', required: true },
+      { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
+      { id: 'travel', label: 'Travel & Stay', path: '/travel' },
+      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
+      { id: 'faq', label: 'FAQ', path: '/faq' },
+      { id: 'registry', label: 'Registry', path: '/registry' },
+    ],
+  },
+  {
     id: 'guests-group',
     label: 'Guests',
     icon: <People />,
@@ -95,20 +109,6 @@ export const groups: SidebarGroup[] = [
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
       { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true },
-    ],
-  },
-  {
-    id: 'wedding-website',
-    label: 'Wedding Website',
-    icon: <Language />,
-    items: [
-      { id: 'details', label: 'Wedding Details', path: '/details', required: true },
-      { id: 'design', label: 'Look & Feel', path: '/design', required: true },
-      { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
-      { id: 'travel', label: 'Travel & Stay', path: '/travel' },
-      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
-      { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry', path: '/registry' },
     ],
   },
   {

@@ -27,9 +27,9 @@ describe('Sidebar Reorganization', () => {
     expect(ids).toEqual([
       'overview',
       'control-tower',
+      'wedding-website',
       'guests-group',
       'planning',
-      'wedding-website',
       'settings',
     ]);
   });
@@ -39,9 +39,9 @@ describe('Sidebar Reorganization', () => {
     expect(labels).toEqual([
       'Overview',
       'Control Tower',
+      'Wedding Website',
       'Guests',
       'Planning',
-      'Wedding Website',
       'Settings',
     ]);
   });
