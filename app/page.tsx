@@ -610,38 +610,56 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   )}
 
                   {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                    /* iPhone 15 Pro mockup — CSS-only, no extra deps */
+                    /* iPhone 15 Pro mockup — CSS-only, no extra deps.
+                       Layered: outer titanium band → inner dark bezel → screen */
                     <Box
                       sx={{
                         width: { md: '320px', lg: '380px' },
                         aspectRatio: '9 / 19', // iPhone 15 Pro ratio (~2.16)
                         mx: 'auto',
                         position: 'relative',
-                        borderRadius: '52px',
-                        // Realistic iPhone titanium edge:
-                        //  - 1px outer "polish" ring (catches the light)
-                        //  - inset highlight along the entire frame perimeter
-                        //  - sharper top-edge highlight (light from above)
-                        //  - dark bottom inner shadow for depth
-                        //  - two-tone outer shadow for product-shot lift
+                        borderRadius: '54px',
+                        // Polished titanium band — visible silver edge around the body
+                        background: `
+                          linear-gradient(
+                            135deg,
+                            #c8c8cc 0%,
+                            #8e8e93 18%,
+                            #5a5a5d 35%,
+                            #2c2c2e 55%,
+                            #5a5a5d 75%,
+                            #8e8e93 90%,
+                            #c8c8cc 100%
+                          )
+                        `,
+                        padding: '2.5px',
                         boxShadow: `
-                          0 0 0 1px rgba(255, 255, 255, 0.22),
                           0 28px 70px rgba(0, 0, 0, 0.22),
                           0 10px 24px rgba(0, 0, 0, 0.12),
-                          inset 0 0 0 1.5px rgba(255, 255, 255, 0.18),
-                          inset 0 1.5px 0 rgba(255, 255, 255, 0.35),
-                          inset 0 -1.5px 0 rgba(0, 0, 0, 0.5)
+                          inset 0 0 0 0.5px rgba(255, 255, 255, 0.4)
                         `,
-                        // Titanium frame: subtle vertical gradient for material feel
-                        background: 'linear-gradient(160deg, #3a3a3c 0%, #1f1f21 40%, #0f0f10 100%)',
-                        padding: { md: '11px', lg: '12px' },
+                      }}
+                    >
+                    {/* Inner dark bezel */}
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        position: 'relative',
+                        borderRadius: '51px',
+                        background: 'linear-gradient(160deg, #2a2a2c 0%, #1a1a1c 40%, #0f0f10 100%)',
+                        padding: { md: '9px', lg: '10px' },
+                        boxShadow: `
+                          inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.06)
+                        `,
                       }}
                     >
                       {/* Side buttons — left: silent toggle + 2 volume; right: power */}
                       <Box
                         sx={{
                           position: 'absolute',
-                          left: '-2.5px',
+                          left: '-5px',
                           top: '14%',
                           width: '3px',
                           height: '32px',
@@ -653,7 +671,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           position: 'absolute',
-                          left: '-2.5px',
+                          left: '-5px',
                           top: '24%',
                           width: '3px',
                           height: '52px',
@@ -665,7 +683,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           position: 'absolute',
-                          left: '-2.5px',
+                          left: '-5px',
                           top: '32%',
                           width: '3px',
                           height: '52px',
@@ -677,7 +695,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           position: 'absolute',
-                          right: '-2.5px',
+                          right: '-5px',
                           top: '26%',
                           width: '3px',
                           height: '72px',
@@ -801,6 +819,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           )}
                         </Box>
                       </Box>
+                    </Box>
                     </Box>
                   )}
 
