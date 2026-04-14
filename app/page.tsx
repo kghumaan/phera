@@ -618,14 +618,22 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         mx: 'auto',
                         position: 'relative',
                         borderRadius: '52px',
-                        // Two-tone shadow for depth like a real product shot
+                        // Realistic iPhone titanium edge:
+                        //  - 1px outer "polish" ring (catches the light)
+                        //  - inset highlight along the entire frame perimeter
+                        //  - sharper top-edge highlight (light from above)
+                        //  - dark bottom inner shadow for depth
+                        //  - two-tone outer shadow for product-shot lift
                         boxShadow: `
+                          0 0 0 1px rgba(255, 255, 255, 0.22),
                           0 28px 70px rgba(0, 0, 0, 0.22),
                           0 10px 24px rgba(0, 0, 0, 0.12),
-                          inset 0 0 0 1.5px rgba(255, 255, 255, 0.06)
+                          inset 0 0 0 1.5px rgba(255, 255, 255, 0.18),
+                          inset 0 1.5px 0 rgba(255, 255, 255, 0.35),
+                          inset 0 -1.5px 0 rgba(0, 0, 0, 0.5)
                         `,
                         // Titanium frame: subtle vertical gradient for material feel
-                        background: 'linear-gradient(160deg, #2a2a2c 0%, #1a1a1c 40%, #0f0f10 100%)',
+                        background: 'linear-gradient(160deg, #3a3a3c 0%, #1f1f21 40%, #0f0f10 100%)',
                         padding: { md: '11px', lg: '12px' },
                       }}
                     >
