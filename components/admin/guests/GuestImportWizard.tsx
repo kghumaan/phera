@@ -657,35 +657,110 @@ export default function GuestImportWizard({
             </Typography>
 
             {/* Column mapping rows */}
-            <Stack spacing={1.5} sx={{ mb: 3 }}>
-              {headers.map((header) => (
-                <Stack key={header} direction="row" alignItems="center" spacing={2}>
-                  <Box sx={{ minWidth: 150, maxWidth: 180, overflow: 'hidden' }}>
-                    <Typography sx={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid rgba(0,0,0,0.07)',
+                borderRadius: '12px',
+                bgcolor: 'white',
+                overflow: 'hidden',
+                mb: 3,
+              }}
+            >
+              {headers.map((header, idx) => (
+                <Box
+                  key={header}
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.1fr 24px 1.3fr 1fr',
+                    gap: 2,
+                    alignItems: 'center',
+                    px: 2,
+                    py: 1.5,
+                    borderBottom: idx < headers.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
+                    bgcolor: 'white',
+                  }}
+                >
+                  {/* Source column header */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: columnMap[header] ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        color: '#1a1a1a',
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {header}
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 12, color: '#9a9a9a' }}>→</Typography>
-                  <FormControl size="small" sx={{ minWidth: 180 }}>
+
+                  <Typography sx={{ fontSize: 13, color: '#b0b0b0', textAlign: 'center' }}>→</Typography>
+
+                  {/* Mapping dropdown */}
+                  <FormControl size="small" fullWidth>
                     <Select
                       value={columnMap[header] || ''}
                       onChange={(e) => setColumnMap((prev) => ({ ...prev, [header]: e.target.value }))}
                       displayEmpty
                       sx={SELECT_SX}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            bgcolor: 'white',
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            borderRadius: '10px',
+                            mt: 0.5,
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                            '& .MuiMenuItem-root': {
+                              fontSize: 13,
+                              color: '#1a1a1a',
+                              py: 1,
+                              '&:hover': { bgcolor: 'rgba(222,63,94,0.06)' },
+                              '&.Mui-selected': {
+                                bgcolor: 'rgba(222,63,94,0.08)',
+                                '&:hover': { bgcolor: 'rgba(222,63,94,0.12)' },
+                              },
+                            },
+                          },
+                        },
+                      }}
                     >
                       {FIELD_OPTIONS.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 13, color: '#1a1a1a' }}>
+                        <MenuItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  <Typography sx={{ fontSize: 11, color: '#9a9a9a', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>
-                    e.g. "{rows[0]?.[header] || ''}"
+
+                  {/* Example value */}
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      color: '#9a9a9a',
+                      fontStyle: 'italic',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {rows[0]?.[header] ? `e.g. "${rows[0][header]}"` : ''}
                   </Typography>
-                </Stack>
+                </Box>
               ))}
-            </Stack>
+            </Paper>
 
             {!hasNameMapped && (
               <Alert severity="warning" sx={{ mb: 2 }}>
@@ -697,23 +772,47 @@ export default function GuestImportWizard({
             <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
               Preview ({Math.min(rows.length, 5)} of {rows.length} rows)
             </Typography>
-            <Paper elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px', overflow: 'hidden' }}>
-              <TableContainer sx={{ maxHeight: 200 }}>
-                <Table size="small">
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid rgba(0,0,0,0.07)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                bgcolor: 'white',
+              }}
+            >
+              <TableContainer sx={{ maxHeight: 200, bgcolor: 'white' }}>
+                <Table size="small" sx={{ bgcolor: 'white' }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#FAFAFA' }}>
                       {headers.filter((h) => columnMap[h]).map((h) => (
-                        <TableCell key={h} sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11 }}>
+                        <TableCell
+                          key={h}
+                          sx={{
+                            fontWeight: 600,
+                            color: '#1a1a1a',
+                            fontSize: 11,
+                            bgcolor: '#FAFAFA',
+                            borderBottom: '1px solid rgba(0,0,0,0.06)',
+                          }}
+                        >
                           {FIELD_OPTIONS.find((o) => o.value === columnMap[h])?.label || h}
                         </TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
-                  <TableBody>
+                  <TableBody sx={{ bgcolor: 'white' }}>
                     {rows.slice(0, 5).map((row, i) => (
-                      <TableRow key={i}>
+                      <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
                         {headers.filter((h) => columnMap[h]).map((h) => (
-                          <TableCell key={h} sx={{ color: '#4a4a4a', fontSize: 12 }}>
+                          <TableCell
+                            key={h}
+                            sx={{
+                              color: '#4a4a4a',
+                              fontSize: 12,
+                              borderBottom: '1px solid rgba(0,0,0,0.04)',
+                            }}
+                          >
                             {row[h] || '—'}
                           </TableCell>
                         ))}
