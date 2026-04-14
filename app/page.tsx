@@ -1403,7 +1403,10 @@ function LandingPageContent() {
                     visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
                   }}
                 >
-                  <IPhoneMockup width={{ xs: '260px', sm: '290px', md: '360px', lg: '400px' }}>
+                  <IPhoneMockup
+                    width={{ xs: '240px', sm: '270px', md: '310px', lg: '340px' }}
+                    sx={{ maxHeight: { md: '80vh' }, mx: { xs: 'auto', md: 0 } }}
+                  >
                     <WhatsAppConcierge
                       hideNotch
                       dense
