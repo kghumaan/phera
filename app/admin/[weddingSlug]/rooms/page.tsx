@@ -96,7 +96,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     }
 
     setParsing(true);
-    setParseStatus('Reading floorplan with AI…');
+    setParseStatus('Reading floorplan…');
     try {
       const fd = new FormData();
       fd.append('file', file);
