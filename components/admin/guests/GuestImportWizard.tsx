@@ -29,6 +29,7 @@ import {
   IconButton,
   CircularProgress,
   LinearProgress,
+  Collapse,
 } from '@mui/material';
 import {
   UploadFile as UploadFileIcon,
@@ -156,6 +157,7 @@ export default function GuestImportWizard({
   const [parseError, setParseError] = useState<string | null>(null);
   const [manualGuests, setManualGuests] = useState<Array<{ name: string; email: string; phone: string; country_code: string; wedding_side: string; tag: string }>>([]);
   const [manualForm, setManualForm] = useState({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '', tag: '' });
+  const [exportHelpOpen, setExportHelpOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Reset ───────────────────────────────────────────────────
@@ -413,58 +415,85 @@ export default function GuestImportWizard({
                   </Typography>
                 </Paper>
 
-                {/* Export from phone — sibling info card, same styling as format guide */}
+                {/* Export from phone — sibling info card, collapsed by default */}
                 <Paper elevation={0} sx={{ mt: 2, p: 2, bgcolor: '#FAFAFA', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px' }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
-                    📱 How to export contacts from your phone
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, color: '#4a4a4a', mb: 1.5, lineHeight: 1.7 }}>
-                    Export your phone&apos;s address book as a .vcf file, then upload it here. Easiest from a desktop browser after emailing the file to yourself.
-                  </Typography>
+                  <Box
+                    onClick={() => setExportHelpOpen((v) => !v)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      mx: -0.5,
+                      px: 0.5,
+                      py: 0.25,
+                      borderRadius: '6px',
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                      📱 How to export contacts from your phone
+                    </Typography>
+                    <ExpandMore
+                      sx={{
+                        fontSize: 18,
+                        color: '#6a6a6a',
+                        transform: exportHelpOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </Box>
 
-                  <Stack spacing={1.5}>
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
-                        <PhoneIphone sx={{ fontSize: 16, color: '#1a1a1a' }} />
-                        <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>
-                          iPhone (via iCloud)
-                        </Typography>
-                      </Box>
-                      <Stack component="ol" spacing={0.25} sx={{ pl: 2.5, m: 0 }}>
-                        {[
-                          'On a desktop browser, go to icloud.com → Contacts.',
-                          'Press ⌘/Ctrl + A to select all contacts (or pick a group).',
-                          'Click the share icon at the bottom-left → Export vCard.',
-                          'Upload the downloaded .vcf file above.',
-                        ].map((step, i) => (
-                          <Typography key={i} component="li" sx={{ fontSize: 11, color: '#4a4a4a', lineHeight: 1.6 }}>
-                            {step}
-                          </Typography>
-                        ))}
-                      </Stack>
-                    </Box>
+                  <Collapse in={exportHelpOpen} timeout="auto" unmountOnExit>
+                    <Typography sx={{ fontSize: 12, color: '#4a4a4a', mt: 1.5, mb: 1.5, lineHeight: 1.7 }}>
+                      Export your phone&apos;s address book as a .vcf file, then upload it here. Easiest from a desktop browser after emailing the file to yourself.
+                    </Typography>
 
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
-                        <Android sx={{ fontSize: 16, color: '#1a1a1a' }} />
-                        <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>
-                          Android
-                        </Typography>
-                      </Box>
-                      <Stack component="ol" spacing={0.25} sx={{ pl: 2.5, m: 0 }}>
-                        {[
-                          'Open the Contacts app → tap the menu (⋮ or ☰) → Settings.',
-                          'Tap Export → choose .vcf format.',
-                          'Email or AirDrop the file to your computer.',
-                          'Upload the .vcf file above.',
-                        ].map((step, i) => (
-                          <Typography key={i} component="li" sx={{ fontSize: 11, color: '#4a4a4a', lineHeight: 1.6 }}>
-                            {step}
+                    <Stack spacing={1.5}>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
+                          <PhoneIphone sx={{ fontSize: 16, color: '#1a1a1a' }} />
+                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>
+                            iPhone (via iCloud)
                           </Typography>
-                        ))}
-                      </Stack>
-                    </Box>
-                  </Stack>
+                        </Box>
+                        <Stack component="ol" spacing={0.25} sx={{ pl: 2.5, m: 0 }}>
+                          {[
+                            'On a desktop browser, go to icloud.com → Contacts.',
+                            'Press ⌘/Ctrl + A to select all contacts (or pick a group).',
+                            'Click the share icon at the bottom-left → Export vCard.',
+                            'Upload the downloaded .vcf file above.',
+                          ].map((step, i) => (
+                            <Typography key={i} component="li" sx={{ fontSize: 11, color: '#4a4a4a', lineHeight: 1.6 }}>
+                              {step}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </Box>
+
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
+                          <Android sx={{ fontSize: 16, color: '#1a1a1a' }} />
+                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>
+                            Android
+                          </Typography>
+                        </Box>
+                        <Stack component="ol" spacing={0.25} sx={{ pl: 2.5, m: 0 }}>
+                          {[
+                            'Open the Contacts app → tap the menu (⋮ or ☰) → Settings.',
+                            'Tap Export → choose .vcf format.',
+                            'Email or AirDrop the file to your computer.',
+                            'Upload the .vcf file above.',
+                          ].map((step, i) => (
+                            <Typography key={i} component="li" sx={{ fontSize: 11, color: '#4a4a4a', lineHeight: 1.6 }}>
+                              {step}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Collapse>
                 </Paper>
               </Box>
             )}
