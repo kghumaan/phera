@@ -89,9 +89,9 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     setParseStatus(null);
 
     const ext = file.name.split('.').pop()?.toLowerCase();
-    const allowed = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'csv', 'tsv', 'txt'];
+    const allowed = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'csv', 'tsv', 'txt', 'xlsx', 'xls'];
     if (!ext || !allowed.includes(ext)) {
-      setParseError('Unsupported file. Use PDF, PNG, JPG, WEBP, or CSV.');
+      setParseError('Unsupported file. Use PDF, PNG, JPG, WEBP, CSV, or XLSX.');
       return;
     }
 
@@ -246,7 +246,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                 Drag & drop your floorplan or room list
               </Typography>
               <Typography sx={{ fontSize: 12, color: '#6a6a6a', mb: 1.5 }}>
-                or click to browse — PDF, PNG, JPG, or CSV
+                or click to browse — PDF, PNG, JPG, CSV, or XLSX
               </Typography>
               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: '#9a9a9a' }}>
                 <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />
@@ -258,7 +258,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                 ref={fileInputRef}
                 type="file"
                 hidden
-                accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.tsv,.txt"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.tsv,.txt,.xlsx,.xls"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleFile(f); e.target.value = ''; } }}
               />
             </>

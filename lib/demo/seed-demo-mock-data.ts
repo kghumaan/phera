@@ -50,6 +50,25 @@ const TEMPLATE_NAMES = [
   'reminder',
 ];
 
+// Tag pool — realistic groupings for an Indian/NRI demo wedding
+const BRIDE_TAGS = [
+  "Priya's Family",
+  "Priya's Friends",
+  "Priya's US Friends",
+  "Priya's UK Friends",
+  "College Friends",
+  "Cousins",
+];
+const GROOM_TAGS = [
+  "Arjun's Family",
+  "Arjun's Friends",
+  "Arjun's AU Friends",
+  "Work Friends",
+  "Childhood Friends",
+  "Cousins",
+];
+const SHARED_TAGS = ['Shared Friends', 'Family Elders'];
+
 interface SeedOpts {
   slug: string;
   weddingUuid: string;
@@ -123,6 +142,71 @@ export async function seedDemoMockData(
         .update({ conversation_topic: topic } as any)
         .in('id', ids);
     }),
+  );
+
+  // ─── 1b. Assign wedding_side (50/50) and tags to every cloned guest ─────
+  // Group each guest into bride / groom / both and a realistic tag bucket
+  // so the room-planning & outreach views look populated.
+  const sideBuckets: Record<'bride' | 'groom' | 'both', string[]> = {
+    bride: [],
+    groom: [],
+    both: [],
+  };
+  const tagBuckets: Record<string, string[]> = {};
+
+  guestIds.forEach((gid, i) => {
+    const h = hash(`${slug}:side:${gid}`);
+    // 50/50 split with a small "both" group (~6%) for couple's mutual friends
+    const sideRand = h % 100;
+    let side: 'bride' | 'groom' | 'both';
+    if (sideRand < 47) side = 'bride';
+    else if (sideRand < 94) side = 'groom';
+    else side = 'both';
+    sideBuckets[side].push(gid);
+
+    // Pick a tag from the matching pool (or shared for 'both')
+    const pool = side === 'both' ? SHARED_TAGS : side === 'bride' ? BRIDE_TAGS : GROOM_TAGS;
+    const tag = pool[(h >> 6) % pool.length];
+    (tagBuckets[tag] ??= []).push(gid);
+  });
+
+  await Promise.all(
+    (Object.entries(sideBuckets) as ['bride' | 'groom' | 'both', string[]][]).map(
+      async ([side, ids]) => {
+        if (ids.length === 0) return;
+        await supabase.from('guests').update({ wedding_side: side } as any).in('id', ids);
+      },
+    ),
+  );
+
+  // Tags are persisted in the JSONB logistics_data column under .tag —
+  // there's no dedicated column on guests yet. Fetch existing logistics_data
+  // first so we don't clobber other keys, then write back per-guest.
+  const guestsForTags = (
+    await supabase
+      .from('guests')
+      .select('id, logistics_data')
+      .in('id', guestIds)
+  ).data as { id: string; logistics_data: any }[] | null;
+
+  const existingDataById = new Map(
+    (guestsForTags || []).map((g) => [g.id, g.logistics_data || {}]),
+  );
+
+  const tagUpdates: { id: string; logistics_data: any }[] = [];
+  for (const [tag, ids] of Object.entries(tagBuckets)) {
+    for (const gid of ids) {
+      tagUpdates.push({
+        id: gid,
+        logistics_data: { ...(existingDataById.get(gid) || {}), tag },
+      });
+    }
+  }
+
+  await Promise.all(
+    tagUpdates.map((u) =>
+      supabase.from('guests').update({ logistics_data: u.logistics_data } as any).eq('id', u.id),
+    ),
   );
 
   // ─── 2. Insert outreach_events over the past 7 days ─────────────────────

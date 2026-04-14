@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as XLSX from 'xlsx';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -13,10 +14,17 @@ Rules:
 - "room_number" is REQUIRED for every entry. Strings only — preserve any letters or zero-padding (e.g. "1207", "PH-2", "A12").
 - "floor" is optional. Use the floor designator as it appears (numeric like "1", "12", or labels like "Lobby", "Mezzanine", "PH").
 - "hotel_name" is optional. If the document covers a single hotel and a name is visible, set it on every room. If multiple hotels are described, set the appropriate name per room. If no hotel is mentioned, leave it null.
-- "capacity" is optional integer (number of beds or persons).
-- "notes" is optional, short. Use only when clearly relevant (e.g. "ADA accessible", "suite").
+- "capacity" is optional integer. Estimate it from any of these clues:
+    * An explicit column ("Capacity", "Sleeps", "Max Occupancy", "Pax", "Beds").
+    * Bed type ("King" → 2, "Queen" → 2, "Twin" → 2, "Double" → 2, "Single" → 1, "Suite" → 4, "Connecting Suite" → 4).
+    * Room type ("Standard" → 2, "Deluxe" → 2, "Family Room" → 4, "Junior Suite" → 3).
+    * Number of repeated rows for the same room number (each row may represent one occupant — use the row count as capacity in that case).
+    * Floorplan shapes implying bed counts.
+  When uncertain, prefer 2 over null for typical hotel rooms; only leave null when there's no signal at all.
+- "notes" is optional, short. Use only when clearly relevant (e.g. "ADA accessible", "suite", "connecting").
 - Skip non-room entries (lobbies, ballrooms, hallways, elevators) unless they are clearly numbered guest rooms.
 - Do not fabricate room numbers. If unclear, skip the entry.
+- If the same room appears multiple times in the input, output it ONCE with the best-known fields merged (highest-confidence floor, max capacity seen, etc.).
 
 Respond with ONLY valid JSON in this exact shape, no prose, no markdown fences:
 
@@ -86,23 +94,41 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64 = buffer.toString('base64');
-
-    // Gemini supports inline PDF + image data; for spreadsheets/CSV, send as text/plain
+    let buffer = Buffer.from(await file.arrayBuffer());
     let mimeType = file.type || 'application/octet-stream';
-    if (ext === 'csv' || ext === 'tsv' || ext === 'txt') mimeType = 'text/plain';
-    else if (ext === 'pdf') mimeType = 'application/pdf';
+
+    // Gemini handles PDF + image natively, but doesn't parse Excel. Convert
+    // .xlsx/.xls to CSV here so Gemini sees the raw rows; CSV/TSV/TXT pass
+    // through as text. If the workbook has multiple sheets, concatenate
+    // them with a sheet-name marker so the LLM sees structure.
+    if (ext === 'xlsx' || ext === 'xls') {
+      try {
+        const wb = XLSX.read(buffer, { type: 'buffer' });
+        const parts: string[] = [];
+        for (const name of wb.SheetNames) {
+          const ws = wb.Sheets[name];
+          const csv = XLSX.utils.sheet_to_csv(ws);
+          if (csv.trim()) {
+            parts.push(`### Sheet: ${name}\n${csv}`);
+          }
+        }
+        const text = parts.join('\n\n');
+        if (!text.trim()) {
+          return NextResponse.json({ error: 'Excel file is empty' }, { status: 400 });
+        }
+        buffer = Buffer.from(text, 'utf8');
+        mimeType = 'text/plain';
+      } catch (err: any) {
+        return NextResponse.json({ error: `Failed to read Excel: ${err.message}` }, { status: 400 });
+      }
+    } else if (ext === 'csv' || ext === 'tsv' || ext === 'txt') {
+      mimeType = 'text/plain';
+    } else if (ext === 'pdf') mimeType = 'application/pdf';
     else if (ext === 'png') mimeType = 'image/png';
     else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
     else if (ext === 'webp') mimeType = 'image/webp';
-    // For xlsx/xls Gemini doesn't natively parse — convert client-side or warn
-    if (ext === 'xlsx' || ext === 'xls') {
-      return NextResponse.json(
-        { error: 'Excel files are not supported directly. Convert to CSV or PDF first.' },
-        { status: 400 },
-      );
-    }
+
+    const base64 = buffer.toString('base64');
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
