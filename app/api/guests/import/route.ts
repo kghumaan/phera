@@ -118,12 +118,15 @@ export async function POST(request: NextRequest) {
       if (phone) existingPhones.add(phone.replace(/[^\d+]/g, ''));
 
       const name = g.name.trim();
+      const sideRaw = (g.wedding_side || '').toString().trim().toLowerCase();
+      const weddingSide = (['bride', 'groom', 'both'] as const).find((s) => s === sideRaw) || null;
+
       toInsert.push({
         name,
         email: email || `imported-${Date.now()}-${i}@phera.io`,
         phone,
         wedding_id,
-        wedding_side: g.wedding_side || null,
+        wedding_side: weddingSide,
         avatar_color: generateFallbackColor(name),
         auth_method: 'imported',
       });
