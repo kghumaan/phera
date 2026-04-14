@@ -85,6 +85,13 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/guests');
     });
 
+    it('should have Room Assignments', () => {
+      const item = guests!.items.find((i) => i.id === 'rooms');
+      expect(item).toBeDefined();
+      expect(item!.path).toBe('/rooms');
+      expect(item!.label).toBe('Room Assignments');
+    });
+
     it('should have Transportation', () => {
       const item = guests!.items.find((i) => i.id === 'transportation');
       expect(item).toBeDefined();
@@ -97,8 +104,8 @@ describe('Sidebar Reorganization', () => {
       expect(item!.label).toBe('Guest Concierge');
     });
 
-    it('should have 3 items', () => {
-      expect(guests!.items).toHaveLength(3);
+    it('should have 4 items', () => {
+      expect(guests!.items).toHaveLength(4);
     });
 
     it('should NOT include Outreach (removed)', () => {

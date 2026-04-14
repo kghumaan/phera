@@ -28,6 +28,7 @@ import {
   Radar,
   ChatBubbleOutline,
   Settings,
+  Hotel,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -82,6 +83,7 @@ export const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guests', label: 'Guest Responses', path: '/guests' },
+      { id: 'rooms', label: 'Room Assignments', path: '/rooms' },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
       { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
     ],
