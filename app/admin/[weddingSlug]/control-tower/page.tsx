@@ -99,16 +99,26 @@ export default function ControlTowerPage() {
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activityEvents, setActivityEvents] = useState<any[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
 
   const fetchDashboard = async () => {
+    setFetchError(null);
     try {
       const res = await fetch(`/api/control-tower/dashboard?weddingId=${weddingSlug}`);
-      if (res.ok) {
-        setData(await res.json());
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = body?.error || `Request failed (${res.status})`;
+        console.error('[control-tower] dashboard fetch failed:', msg, body);
+        setFetchError(msg);
+      } else {
+        setData(body);
       }
-    } catch {}
+    } catch (err: any) {
+      console.error('[control-tower] dashboard fetch threw:', err);
+      setFetchError(err?.message || 'Network error');
+    }
     setLoading(false);
   };
 
@@ -138,6 +148,25 @@ export default function ControlTowerPage() {
     );
   }
 
+  if (fetchError) {
+    return (
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>Control Tower</Typography>
+        <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(220,38,38,0.2)', p: 4, bgcolor: '#fef2f2' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#b91c1c', mb: 0.5 }}>
+            Could not load dashboard
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: '#7f1d1d', mb: 2 }}>
+            {fetchError}
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: '#7f1d1d' }}>
+            Common cause in development: <code>SUPABASE_SERVICE_ROLE_KEY</code> is missing from <code>.env.local</code>. Check the server console for details.
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   if (!data || data.summary.total_guests === 0) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
@@ -147,6 +176,9 @@ export default function ControlTowerPage() {
           <Typography sx={{ fontWeight: 600, fontSize: 16, color: '#1a1a1a', mb: 1 }}>No guests yet</Typography>
           <Typography sx={{ fontSize: 13, color: '#6a6a6a', maxWidth: 400, mx: 'auto' }}>
             Add guests to start tracking outreach, RSVPs, and coordination.
+          </Typography>
+          <Typography sx={{ fontSize: 11, color: '#9a9a9a', mt: 2 }}>
+            Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If Guest Responses shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
           </Typography>
         </Paper>
       </Box>

@@ -29,13 +29,18 @@ export async function GET(request: NextRequest) {
     // ── 0. Resolve wedding UUID for tables that use UUID ────────
     let weddingUuid = weddingId;
     let weddingDate: string | null = null;
+    let w: any = null;
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(weddingId);
     if (!isUuid) {
-      const w = await safe(() => supabase.from('weddings').select('id, partner1_name, partner2_name, couple_name, wedding_date_display, venue_name, venue_location').eq('slug', weddingId).single(), null);
+      w = await safe(() => supabase.from('weddings').select('id, partner1_name, partner2_name, couple_name, wedding_date_display, venue_name, venue_location').eq('slug', weddingId).single(), null);
       if (w) {
-        weddingUuid = (w as any).id;
-        weddingDate = (w as any).wedding_date_display || null;
+        weddingUuid = w.id;
+        weddingDate = w.wedding_date_display || null;
       }
+    } else {
+      // weddingId is already a UUID; fetch metadata too
+      w = await safe(() => supabase.from('weddings').select('id, partner1_name, partner2_name, couple_name, wedding_date_display, venue_name, venue_location').eq('id', weddingId).single(), null);
+      if (w) weddingDate = w.wedding_date_display || null;
     }
 
     // ── 1. All guests (build name map) ──────────────────────────
