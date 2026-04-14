@@ -60,9 +60,8 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   const [settings, setSettings] = useState<TransportationSettings | null>(null);
   const [wizardStep, setWizardStep] = useState<WizardStep>('initial');
 
-  // Early beta gate: non-beta users see the request-access screen.
-  // Demo weddings bypass so the demo experience stays complete.
-  if (!isBetaUser && !weddingSlug.startsWith('demo-')) {
+  // Early beta gate: non-beta users (including demo) see the request screen.
+  if (!isBetaUser) {
     return (
       <EarlyBetaGate
         featureName="Transportation"

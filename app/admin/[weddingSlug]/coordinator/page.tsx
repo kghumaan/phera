@@ -654,7 +654,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   }
 
   // ─── STATE A.5: Pro user, NOT in beta ────────────────────────────────
-  if (isPro && !isBetaUser && !isDemo) {
+  // Demo bypass removed so the beta gate fires for everyone except the
+  // explicit allowlist. Demo weddings no longer skip the gate.
+  if (isPro && !isBetaUser) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
@@ -721,8 +723,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 }}
               >
                 <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
-                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600 }}>
-                  We've received your request! Someone from our team will be in touch shortly to get you set up.
+                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600, textAlign: 'center' }}>
+                  Request confirmed! We'll reach out soon to get you set up. In the meantime, feel free to explore our other services.
                 </Typography>
               </Box>
             ) : (

@@ -29,7 +29,7 @@ describe('Sidebar Reorganization', () => {
       'wedding-website',
       'guests-group',
       'planning',
-      'settings',
+      'collaborators',
     ]);
   });
 
@@ -40,7 +40,7 @@ describe('Sidebar Reorganization', () => {
       'Wedding Website',
       'Guests',
       'Planning',
-      'Settings',
+      'Collaborators',
     ]);
   });
 
@@ -137,32 +137,39 @@ describe('Sidebar Reorganization', () => {
       expect(ids).toContain('rsvp-form');
       expect(ids).toContain('faq');
       expect(ids).toContain('registry');
+      expect(ids).toContain('pins');
     });
 
-    it('should have 7 items', () => {
-      expect(website!.items).toHaveLength(7);
+    it('should have 8 items (incl. Event Access)', () => {
+      expect(website!.items).toHaveLength(8);
     });
 
-    it('should NOT include Overview (now standalone)', () => {
+    it('Event Access should be the last item and labeled "Event Access"', () => {
+      const last = website!.items[website!.items.length - 1];
+      expect(last.id).toBe('pins');
+      expect(last.label).toBe('Event Access');
+      expect(last.path).toBe('/pins');
+    });
+
+    it('should NOT include Overview (standalone)', () => {
       expect(website!.items.find((i) => i.id === 'overview')).toBeUndefined();
     });
   });
 
-  describe('Settings group', () => {
-    const settings = groups.find((g) => g.id === 'settings');
+  describe('Collaborators group', () => {
+    const collab = groups.find((g) => g.id === 'collaborators');
 
-    it('should contain PIN Management and Collaborators', () => {
-      const ids = settings!.items.map((i) => i.id);
-      expect(ids).toContain('pins');
-      expect(ids).toContain('team');
+    it('should be standalone', () => {
+      expect(collab!.standalone).toBe(true);
     });
 
-    it('should have 2 items', () => {
-      expect(settings!.items).toHaveLength(2);
+    it('should have a single team item', () => {
+      expect(collab!.items).toHaveLength(1);
+      expect(collab!.items[0].path).toBe('/team');
     });
+  });
 
-    it('should NOT include placeholder Settings page (hidden)', () => {
-      expect(settings!.items.find((i) => i.id === 'settings-page')).toBeUndefined();
-    });
+  it('should NOT have a Settings group', () => {
+    expect(groups.find((g) => g.id === 'settings')).toBeUndefined();
   });
 });

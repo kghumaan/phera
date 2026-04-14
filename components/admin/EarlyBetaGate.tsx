@@ -167,8 +167,8 @@ export default function EarlyBetaGate({ featureName, description, when, children
             }}
           >
             <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
-            <Typography sx={{ fontSize: 13, color: '#1B5E20', fontWeight: 600 }}>
-              We&apos;ve received your request! Someone from our team will be in touch shortly to get you set up.
+            <Typography sx={{ fontSize: 13, color: '#1B5E20', fontWeight: 600, textAlign: 'center' }}>
+              Request confirmed! We&apos;ll reach out soon to get you set up. In the meantime, feel free to explore our other services.
             </Typography>
           </Box>
         ) : (

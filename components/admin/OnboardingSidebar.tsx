@@ -82,6 +82,7 @@ export const groups: SidebarGroup[] = [
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
       { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'pins', label: 'Event Access', path: '/pins', required: true },
     ],
   },
   {
@@ -105,11 +106,11 @@ export const groups: SidebarGroup[] = [
     ],
   },
   {
-    id: 'settings',
-    label: 'Settings',
-    icon: <Settings />,
+    id: 'collaborators',
+    label: 'Collaborators',
+    icon: <Groups />,
+    standalone: true,
     items: [
-      { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
       { id: 'team', label: 'Collaborators', path: '/team' },
     ],
   },

@@ -173,7 +173,9 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   };
 
   // ─── State C: Beta user with Pro → Full tabbed dashboard ───
-  if ((isPro && isBetaUser) || weddingSlug.startsWith('demo-')) {
+  // Demo bypass removed: beta gate fires for everyone except the explicit
+  // allowlist, matching Room Assignments / Transportation behavior.
+  if (isPro && isBetaUser) {
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
@@ -343,7 +345,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               >
                 <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
                 <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600 }}>
-                  We've received your request! Someone from our team will be in touch shortly to get you set up.
+                  Request confirmed! We'll reach out soon to get you set up. In the meantime, feel free to explore our other services.
                 </Typography>
               </Box>
             ) : (
