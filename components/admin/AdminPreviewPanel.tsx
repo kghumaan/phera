@@ -6,6 +6,7 @@ import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import IPhoneMockup from '@/components/ui/IPhoneMockup';
 
 const SECTION_MAP: Record<string, string> = {
     '/schedule': 'Schedule',
@@ -297,8 +298,8 @@ export default function AdminPreviewPanel({
         return frameWidth / (16 / 10);
     }, [containerWidth]);
 
-    // iPhone aspect ratio (roughly 9:19.5) — fit within available space
-    const MOBILE_ASPECT = 19.5 / 11;
+    // Match IPhoneMockup aspect (9 : 19) so the chrome fills exactly
+    const MOBILE_ASPECT = 19 / 9;
     const mobileWidth = useMemo(() => {
         if (!containerHeight || !containerWidth) return 420;
         const maxH = containerHeight * 0.92;
@@ -460,20 +461,20 @@ export default function AdminPreviewPanel({
                     animate={{
                         width: viewMode === 'desktop' ? '94%' : mobileWidth,
                         height: viewMode === 'desktop' ? desktopHeight : mobileHeight,
-                        borderRadius: viewMode === 'desktop' ? '12px' : '40px',
+                        borderRadius: viewMode === 'desktop' ? '12px' : 0,
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
                         marginTop: viewMode === 'desktop' ? '-80px' : '-15px',
-                        backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
+                        backgroundColor: viewMode === 'desktop' ? 'white' : 'transparent',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
-                            : '0 10px 40px rgba(0, 0, 0, 0.25)',
+                            : 'none',
                         border: viewMode === 'desktop'
                             ? '1px solid rgba(0, 0, 0, 0.08)'
-                            : '12px solid #ebebeb',
+                            : 'none',
                         position: 'relative',
                     }}
                 >
@@ -514,49 +515,21 @@ export default function AdminPreviewPanel({
                             </Box>
                         </>
                     ) : (
-                        <>
-                            <Box
-                                sx={{
-                                    width: 100,
-                                    height: 20,
-                                    bgcolor: '#ebebeb',
-                                    borderRadius: '0 0 14px 14px',
-                                    mx: 'auto',
-                                    mt: 0,
-                                    border: '1px solid rgba(0,0,0,0.06)',
-                                    borderTop: 'none',
-                                    position: 'relative',
-                                    zIndex: 2,
+                        <IPhoneMockup width="100%" sx={{ height: '100%' }}>
+                            <iframe
+                                key={iframeSrc}
+                                ref={iframeRefLine}
+                                src={iframeSrc}
+                                onLoad={handleIframeLoad}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    border: 'none',
+                                    backgroundColor: 'white',
                                 }}
+                                title="Wedding Preview - Mobile"
                             />
-                            <Box
-                                sx={{
-                                    flex: 1,
-                                    bgcolor: '#ebebeb',
-                                    borderRadius: '24px',
-                                    overflow: 'hidden',
-                                    mt: -2.2,
-                                    position: 'relative',
-                                    WebkitMaskImage: '-webkit-radial-gradient(white, black)',
-                                }}
-                            >
-                                <iframe
-                                    key={iframeSrc}
-                                    ref={iframeRefLine}
-                                    src={iframeSrc}
-                                    onLoad={handleIframeLoad}
-                                    style={{
-                                        width: '125%',
-                                        height: '125%',
-                                        border: 'none',
-                                        backgroundColor: 'white',
-                                        transform: 'scale(0.8)',
-                                        transformOrigin: 'top left',
-                                    }}
-                                    title="Wedding Preview - Mobile"
-                                />
-                            </Box>
-                        </>
+                        </IPhoneMockup>
                     )}
                 </motion.div>
 
