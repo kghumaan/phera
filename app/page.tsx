@@ -1299,7 +1299,16 @@ function LandingPageContent() {
         </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
-        <Box sx={{ py: { xs: 6, md: 10 }, bgcolor: '#075E54', color: 'white', position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{
+          minHeight: { md: '90vh' },
+          py: { xs: 6, md: 0 },
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: '#075E54',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
           {/* Decorative background circle */}
           <Box sx={{
             position: 'absolute',

@@ -63,7 +63,10 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
     // Sizing tokens — when `dense`, render at the xs (mobile) sizes regardless
     // of viewport so the chrome doesn't overpower a phone-mockup container.
     const D = {
-        headerPt: dense ? 5 : { xs: 5, md: 7 },
+        // In dense mode the component sits inside an IPhoneMockup that draws
+        // its own 44px status bar over the top of this content. Push the
+        // header content past it so the dark bg fills underneath the bar.
+        headerPt: dense ? '52px' : { xs: 5, md: 7 },
         headerPb: dense ? 1.25 : { xs: 1.5, md: 2 },
         backIcon: dense ? '1.25rem' : { xs: '1.5rem', md: '2.2rem' },
         avatar: dense ? 32 : { xs: 40, md: 56 },

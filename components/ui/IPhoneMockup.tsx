@@ -123,24 +123,25 @@ export default function IPhoneMockup({
             >
               <Box sx={{ minWidth: 50 }}>9:41</Box>
               <Box sx={{ flex: 1 }} />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 50, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 50, justifyContent: 'flex-end' }}>
                 {/* Signal bars */}
                 <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '2px' }}>
                   {[3, 5, 7, 9].map((h) => (
                     <Box key={h} sx={{ width: '3px', height: `${h}px`, bgcolor: 'white', borderRadius: '0.5px' }} />
                   ))}
                 </Box>
-                {/* WiFi */}
+                {/* 5G label */}
                 <Box
+                  component="span"
                   sx={{
-                    width: 14,
-                    height: 10,
-                    ml: 0.5,
-                    background:
-                      'radial-gradient(circle at 50% 100%, white 0 2px, transparent 2.5px 4.5px, white 5px 6.5px, transparent 7px 9px, white 9.5px 11px)',
-                    opacity: 0.95,
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.02em',
+                    lineHeight: 1,
                   }}
-                />
+                >
+                  5G
+                </Box>
                 {/* Battery */}
                 <Box
                   sx={{
