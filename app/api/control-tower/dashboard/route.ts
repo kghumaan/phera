@@ -26,21 +26,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // ── 0. Resolve wedding UUID for tables that use UUID ────────
+    // ── 0. Resolve wedding metadata ──────────────────────────────
+    // Prefer the real `wedding_date` timestamp for date math; fall back to
+    // `wedding_date_display` only as a presentation hint. The display field
+    // can drift out of sync (it's only refreshed when the Details page opens).
     let weddingUuid = weddingId;
     let weddingDate: string | null = null;
     let w: any = null;
+    const SELECT_COLS = 'id, partner1_name, partner2_name, couple_name, wedding_date, wedding_date_display, venue_name, venue_location';
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(weddingId);
     if (!isUuid) {
-      w = await safe(() => supabase.from('weddings').select('id, partner1_name, partner2_name, couple_name, wedding_date_display, venue_name, venue_location').eq('slug', weddingId).single(), null);
-      if (w) {
-        weddingUuid = w.id;
-        weddingDate = w.wedding_date_display || null;
-      }
+      w = await safe(() => supabase.from('weddings').select(SELECT_COLS).eq('slug', weddingId).single(), null);
+      if (w) weddingUuid = w.id;
     } else {
-      // weddingId is already a UUID; fetch metadata too
-      w = await safe(() => supabase.from('weddings').select('id, partner1_name, partner2_name, couple_name, wedding_date_display, venue_name, venue_location').eq('id', weddingId).single(), null);
-      if (w) weddingDate = w.wedding_date_display || null;
+      w = await safe(() => supabase.from('weddings').select(SELECT_COLS).eq('id', weddingId).single(), null);
+    }
+    if (w) {
+      weddingDate = w.wedding_date || w.wedding_date_display || null;
     }
 
     // ── 1. All guests (build name map) ──────────────────────────
@@ -68,12 +70,6 @@ export async function GET(request: NextRequest) {
     );
 
     const hasOutreachCol = guestsWithOutreach !== null;
-    if (hasOutreachCol) {
-      for (const g of guestsWithOutreach as any[]) {
-        const s = g.outreach_status || 'not_contacted';
-        if (s in outreachCounts) outreachCounts[s]++;
-      }
-    }
 
     // ── 3. RSVPs ────────────────────────────────────────────────
     let rsvpYes = 0, rsvpNo = 0, rsvpMaybe = 0;
@@ -92,9 +88,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!hasOutreachCol) {
+    // Each guest belongs to EXACTLY one funnel stage. When outreach_status
+    // is missing, infer it from RSVP presence so we never double-count.
+    if (hasOutreachCol) {
+      for (const g of guestsWithOutreach as any[]) {
+        let stage = g.outreach_status;
+        if (!stage) {
+          stage = rsvpByGuest.has(g.id) ? 'rsvp_confirmed' : 'not_contacted';
+        }
+        if (stage in outreachCounts) outreachCounts[stage]++;
+      }
+    } else {
+      // Fallback: outreach_status column doesn't exist at all
       outreachCounts.not_contacted = totalGuests - rsvpByGuest.size;
-      outreachCounts.rsvp_confirmed = rsvpYes;
+      outreachCounts.rsvp_confirmed = rsvpByGuest.size;
     }
 
     // ── 4. Escalations with guest names ─────────────────────────
@@ -257,7 +264,6 @@ export async function GET(request: NextRequest) {
       summary: {
         total_guests: totalGuests,
         ...outreachCounts,
-        rsvp_confirmed: Math.max(outreachCounts.rsvp_confirmed, rsvpYes),
         escalations_open: escalations.length,
         messages_sent_this_week: messagesSentThisWeek,
         rsvp_breakdown: {
