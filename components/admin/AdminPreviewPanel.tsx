@@ -308,13 +308,13 @@ export default function AdminPreviewPanel({
     // Match IPhoneMockup aspect (9 : 19) so the chrome fills exactly
     const MOBILE_ASPECT = 19 / 9;
     const mobileWidth = useMemo(() => {
-        if (!containerHeight || !containerWidth) return 380;
-        const maxH = containerHeight * 0.88;
-        const maxW = containerWidth * 0.78;
+        if (!containerHeight || !containerWidth) return 400;
+        const maxH = containerHeight * 0.94;
+        const maxW = containerWidth * 0.82;
         // Width from fitting height
         const wFromH = maxH / MOBILE_ASPECT;
-        // Use the smaller of the two to ensure it fits, but don't go below 320
-        return Math.max(Math.min(wFromH, maxW, 380), 320);
+        // Use the smaller of the two to ensure it fits, but don't go below 340
+        return Math.max(Math.min(wFromH, maxW, 400), 340);
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
 
@@ -482,7 +482,7 @@ export default function AdminPreviewPanel({
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-80px' : '-100px',
+                        marginTop: viewMode === 'desktop' ? '-80px' : 0,
                         backgroundColor: viewMode === 'desktop' ? 'white' : 'transparent',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
