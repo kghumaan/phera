@@ -473,6 +473,7 @@ export default function OnboardingPage() {
     venueName?: string | null,
     venueLocation?: string | null,
     selectedFeatures: string[],
+    selectedGoals?: string[],
     companyName?: string,
     plannerLocation?: string,
   }) => {
@@ -484,7 +485,7 @@ export default function OnboardingPage() {
       console.log('[Onboarding DEBUG] Step 1: Upserting user_settings...');
       const userEmail = authUser?.email || data.userId;
       const avatar = generateGuestAvatar(userEmail, data.coupleName);
-      const settingsToSave = {
+      const settingsToSave: Record<string, any> = {
         user_id: data.userId,
         account_type: data.role,
         enabled_features: data.selectedFeatures,
@@ -495,6 +496,12 @@ export default function OnboardingPage() {
         avatar_svg: avatar.svg,
         avatar_color: null,
       };
+      // Persist onboarding goals if the column exists. If the migration hasn't
+      // been run the upsert will error out below and we'll fall back to the
+      // contact_submissions record created in handleSubmit.
+      if (data.selectedGoals && data.selectedGoals.length > 0) {
+        settingsToSave.onboarding_goals = data.selectedGoals;
+      }
       console.log('[Onboarding DEBUG] Data to upsert:', settingsToSave);
 
       const { data: upsertData, error: settingsError } = await (supabase as any)
@@ -674,6 +681,7 @@ export default function OnboardingPage() {
         venueName: venueTbd ? 'TBD' : venueName,
         venueLocation: venueTbd ? null : venueLocation,
         selectedFeatures,
+        selectedGoals,
         companyName,
         plannerLocation,
       });
@@ -941,7 +949,10 @@ export default function OnboardingPage() {
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('couple')}>
+                              <CardActionArea
+                                sx={{ p: 3, height: '100%' }}
+                                onClick={() => { setRole('couple'); setStep(2); }}
+                              >
                                 <Favorite sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Couple</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own wedding</Typography>
@@ -960,7 +971,10 @@ export default function OnboardingPage() {
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('planner')}>
+                              <CardActionArea
+                                sx={{ p: 3, height: '100%' }}
+                                onClick={() => { setRole('planner'); setStep(2); }}
+                              >
                                 <Work sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Planner</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings</Typography>
@@ -1187,135 +1201,6 @@ export default function OnboardingPage() {
                                   </Stack>
                                 </Box>
 
-                                {/* --- Service-oriented fields --- */}
-                                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
-                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
-                                  <Typography variant="caption" sx={{ color: '#999', fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                    Help us coordinate your guests
-                                  </Typography>
-                                  <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
-                                </Stack>
-
-                                <Stack direction="row" spacing={2}>
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Country</Typography>
-                                    <StyledTextField
-                                      fullWidth
-                                      label=""
-                                      placeholder="United States"
-                                      value={coupleCountry}
-                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleCountry(e.target.value)}
-                                    />
-                                  </Box>
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>City</Typography>
-                                    <StyledTextField
-                                      fullWidth
-                                      label=""
-                                      placeholder="San Francisco"
-                                      value={coupleCity}
-                                      onChange={(e: ChangeEvent<HTMLInputElement>) => setCoupleCity(e.target.value)}
-                                    />
-                                  </Box>
-                                </Stack>
-
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Estimated Guest Count</Typography>
-                                  <Stack direction="row" spacing={1}>
-                                    {['Under 50', '50-150', '150-300', '300+'].map((range) => (
-                                      <Chip
-                                        key={range}
-                                        label={range}
-                                        onClick={() => setEstimatedGuestCount(range)}
-                                        sx={{
-                                          bgcolor: estimatedGuestCount === range ? '#DE3F5E' : 'white',
-                                          color: estimatedGuestCount === range ? 'white' : '#4a4a4a',
-                                          border: '1px solid',
-                                          borderColor: estimatedGuestCount === range ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
-                                          fontWeight: 500,
-                                          fontSize: '0.75rem',
-                                          '&:hover': { bgcolor: estimatedGuestCount === range ? '#C8365A' : alpha('#DE3F5E', 0.05) },
-                                        }}
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Box>
-
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Location Type</Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                    {[
-                                      { value: 'international_destination', label: 'International destination' },
-                                      { value: 'domestic_destination', label: 'Domestic destination' },
-                                      { value: 'local', label: 'Local (same city)' },
-                                    ].map((opt) => (
-                                      <Chip
-                                        key={opt.value}
-                                        label={opt.label}
-                                        onClick={() => setWeddingLocationType(opt.value)}
-                                        sx={{
-                                          bgcolor: weddingLocationType === opt.value ? '#DE3F5E' : 'white',
-                                          color: weddingLocationType === opt.value ? 'white' : '#4a4a4a',
-                                          border: '1px solid',
-                                          borderColor: weddingLocationType === opt.value ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
-                                          fontWeight: 500,
-                                          fontSize: '0.75rem',
-                                          '&:hover': { bgcolor: weddingLocationType === opt.value ? '#C8365A' : alpha('#DE3F5E', 0.05) },
-                                        }}
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Box>
-
-                                {(weddingLocationType === 'international_destination' || weddingLocationType === 'domestic_destination') && (
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Destination</Typography>
-                                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                      {['Thailand', 'Bali', 'Sri Lanka', 'Goa', 'Udaipur', 'Jaipur', 'Other'].map((dest) => (
-                                        <Chip
-                                          key={dest}
-                                          label={dest}
-                                          onClick={() => setDestination(dest)}
-                                          sx={{
-                                            bgcolor: destination === dest ? '#DE3F5E' : 'white',
-                                            color: destination === dest ? 'white' : '#4a4a4a',
-                                            border: '1px solid',
-                                            borderColor: destination === dest ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
-                                            fontWeight: 500,
-                                            fontSize: '0.75rem',
-                                            '&:hover': { bgcolor: destination === dest ? '#C8365A' : alpha('#DE3F5E', 0.05) },
-                                          }}
-                                        />
-                                      ))}
-                                    </Stack>
-                                  </Box>
-                                )}
-
-                                <Stack direction="row" spacing={1} alignItems="center" onClick={() => setHasNonIndianGuests(!hasNonIndianGuests)} sx={{ cursor: 'pointer' }}>
-                                  <Box
-                                    sx={{
-                                      width: 15,
-                                      height: 15,
-                                      borderRadius: '3px',
-                                      border: '1.5px solid',
-                                      borderColor: hasNonIndianGuests ? '#DE3F5E' : 'rgba(0,0,0,0.2)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      bgcolor: hasNonIndianGuests ? '#DE3F5E' : 'transparent',
-                                      transition: 'all 0.2s'
-                                    }}
-                                  >
-                                    {hasNonIndianGuests && (
-                                      <Box component="svg" viewBox="0 0 24 24" sx={{ width: 11, height: 11 }}>
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white" />
-                                      </Box>
-                                    )}
-                                  </Box>
-                                  <Typography variant="caption" sx={{ color: '#4a4a4a', fontWeight: 500, fontSize: '0.8rem' }}>
-                                    I will have non-Indian guests attending
-                                  </Typography>
-                                </Stack>
                               </>
                             )}
                           </Stack>
@@ -1400,9 +1285,9 @@ export default function OnboardingPage() {
                       </Box>
                     )}
 
-                    {/* Navigation Buttons */}
-                    <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
-                      {step > 1 && (
+                    {/* Navigation Buttons — hidden on step 1 (role cards auto-advance) */}
+                    {step > 1 && (
+                      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
                         <Button
                           variant="text"
                           onClick={handleBack}
@@ -1410,43 +1295,40 @@ export default function OnboardingPage() {
                         >
                           Back
                         </Button>
-                      )}
-                      <Button
-                        variant="contained"
-                        endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
-                        title={
-                          (step === 1 && !role) ? "Please select your role" :
+                        <Button
+                          variant="contained"
+                          endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
+                          title={
                             (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ? "Please fill in all celebration details" :
                               (step === 2 && role === 'planner' && !companyName) ? "Please enter your company name" :
                                 ""
-                        }
-                        onClick={() => {
-                          if (step === 1 && !role) return;
-                          if (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) return;
-                          if (step === 2 && role === 'planner' && !companyName) return;
-                          handleNext();
-                        }}
-                        sx={{
-                          bgcolor: '#DE3F5E',
-                          color: 'white',
-                          px: 4,
-                          py: 1,
-                          borderRadius: '24px',
-                          textTransform: 'none',
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
-                          opacity: (
-                            (step === 1 && !role) ||
-                            (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
-                            (step === 2 && role === 'planner' && !companyName)
-                          ) ? 0.6 : 1, // Desaturate if "disabled"
-                          '&:hover': { bgcolor: '#C8365A' },
-                        }}
-                      >
-                        {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
-                      </Button>
-                    </Stack>
+                          }
+                          onClick={() => {
+                            if (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) return;
+                            if (step === 2 && role === 'planner' && !companyName) return;
+                            handleNext();
+                          }}
+                          sx={{
+                            bgcolor: '#DE3F5E',
+                            color: 'white',
+                            px: 4,
+                            py: 1,
+                            borderRadius: '24px',
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
+                            opacity: (
+                              (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
+                              (step === 2 && role === 'planner' && !companyName)
+                            ) ? 0.6 : 1,
+                            '&:hover': { bgcolor: '#C8365A' },
+                          }}
+                        >
+                          {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
+                        </Button>
+                      </Stack>
+                    )}
                   </>
                 )}
               </Paper>

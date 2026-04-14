@@ -23,7 +23,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline } from '@mui/icons-material';
+import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline, UploadFile, Web, Hotel, DirectionsBus, WhatsApp, SupportAgent, ArrowForward } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
 import { useRouter } from 'next/navigation';
@@ -61,43 +61,180 @@ function QuickLinks({ weddingSlug }: { weddingSlug: string }) {
   const router = useRouter();
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
 
-  const btnSx = {
-    py: 1.5,
-    borderRadius: '12px',
-    borderColor: '#e0e0e0',
-    bgcolor: '#fff',
-    color: '#1a1a1a',
-    textTransform: 'none',
-    fontSize: 13,
-    justifyContent: 'flex-start',
-    gap: 1.5,
-    minHeight: 48,
-    '&:hover': { borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.02) },
-  } as const;
-
-  const handleClick = (path: string) => {
+  const go = (path: string) => {
     setLoadingLink(path);
     router.push(`/admin/${weddingSlug}/${path}`);
   };
 
+  const primarySteps = [
+    {
+      step: 1,
+      label: 'Import Guest List',
+      subtext: 'Pull in every guest so we can nudge anyone who hasn\'t responded, track who\'s coming, and group people for outreach.',
+      icon: UploadFile,
+      path: 'guest-list',
+    },
+    {
+      step: 2,
+      label: 'Create Wedding Website',
+      subtext: 'Fill in your wedding details so your site is ready for guests — and so our Concierge knows how to answer their questions.',
+      icon: Web,
+      path: 'details',
+    },
+  ];
+
+  const betaFeatures = [
+    { label: 'Room Assignments',  subtext: 'Upload a floorplan and place guests into hotel rooms.', icon: Hotel },
+    { label: 'Guest Transportation', subtext: 'Shuttles, airport pickups, and venue transfers.', icon: DirectionsBus },
+    { label: 'Guest Concierge',   subtext: '24/7 WhatsApp concierge that answers every guest question.', icon: WhatsApp },
+    { label: 'Vendor Management', subtext: 'Track vendor conversations and stay organized.', icon: SupportAgent },
+  ];
+
   return (
-    <Paper sx={{ p: 4, borderRadius: '16px', bgcolor: '#fafafa', boxShadow: 'none' }}>
-      <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a' }}>
-        Quick Links
-      </Typography>
-      <Grid container spacing={2}>
-        {QUICK_LINKS.map(({ label, path, icon: Icon }) => (
-          <Grid key={path} size={{ xs: 12, sm: 6, md: 4 }}>
-            <Button fullWidth variant="outlined" onClick={() => handleClick(path)} disabled={loadingLink === path} sx={{ ...btnSx, justifyContent: loadingLink === path ? 'center' : 'flex-start' }}>
-              {loadingLink === path ? (
-                <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
-              ) : (
-                <>
-                  <Icon sx={{ color: '#DE3F5E', fontSize: 20 }} />
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 3, md: 4 },
+        borderRadius: '20px',
+        background: `linear-gradient(135deg, ${alpha('#DE3F5E', 0.08)} 0%, ${alpha('#DE3F5E', 0.02)} 60%, #fff 100%)`,
+        border: `1px solid ${alpha('#DE3F5E', 0.15)}`,
+      }}
+    >
+      <Stack spacing={0.5} sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
+          What would you like to do?
+        </Typography>
+        <Typography sx={{ fontSize: 13, color: '#6a6a6a' }}>
+          A simple roadmap for setting up your wedding in Phera.
+        </Typography>
+      </Stack>
+
+      {/* Primary steps */}
+      <Stack spacing={2} sx={{ mb: 3 }}>
+        {primarySteps.map(({ step, label, subtext, icon: Icon, path }) => {
+          const isLoading = loadingLink === path;
+          return (
+            <Paper
+              key={path}
+              elevation={0}
+              onClick={() => !isLoading && go(path)}
+              sx={{
+                p: { xs: 2.5, md: 3 },
+                borderRadius: '16px',
+                bgcolor: 'white',
+                border: `1.5px solid ${alpha('#DE3F5E', 0.2)}`,
+                cursor: isLoading ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2.5,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#DE3F5E',
+                  boxShadow: '0 6px 20px rgba(222, 63, 94, 0.12)',
+                  transform: isLoading ? 'none' : 'translateY(-1px)',
+                },
+              }}
+            >
+              {/* Step number badge */}
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon sx={{ fontSize: 22 }} />
+              </Box>
+
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.08em' }}>
+                    STEP {step}
+                  </Typography>
+                </Stack>
+                <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
                   {label}
-                </>
-              )}
-            </Button>
+                </Typography>
+                <Typography sx={{ fontSize: 13, color: '#4a4a4a', lineHeight: 1.5 }}>
+                  {subtext}
+                </Typography>
+              </Box>
+
+              <Box sx={{ flexShrink: 0, color: '#DE3F5E' }}>
+                {isLoading ? <CircularProgress size={20} sx={{ color: '#DE3F5E' }} /> : <ArrowForward sx={{ fontSize: 22 }} />}
+              </Box>
+            </Paper>
+          );
+        })}
+      </Stack>
+
+      {/* Beta / Coming soon features */}
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6a6a6a', letterSpacing: '0.08em', mb: 1.5 }}>
+        COMING SOON
+      </Typography>
+      <Grid container spacing={1.5}>
+        {betaFeatures.map(({ label, subtext, icon: Icon }) => (
+          <Grid key={label} size={{ xs: 12, sm: 6 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                bgcolor: alpha('#fff', 0.6),
+                border: '1px dashed rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                cursor: 'not-allowed',
+                opacity: 0.75,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '8px',
+                  bgcolor: alpha('#DE3F5E', 0.08),
+                  color: '#DE3F5E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon sx={{ fontSize: 16 }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
+                    {label}
+                  </Typography>
+                  <Box
+                    sx={{
+                      px: 0.75,
+                      py: 0.1,
+                      borderRadius: '6px',
+                      bgcolor: alpha('#DE3F5E', 0.1),
+                      color: '#DE3F5E',
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    COMING SOON
+                  </Box>
+                </Stack>
+                <Typography sx={{ fontSize: 11.5, color: '#6a6a6a', lineHeight: 1.4 }}>
+                  {subtext}
+                </Typography>
+              </Box>
+            </Paper>
           </Grid>
         ))}
       </Grid>
