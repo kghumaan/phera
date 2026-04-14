@@ -123,16 +123,17 @@ export default function MobileBrowserShell({
         >
           <Lock sx={{ fontSize: 13, color: CHROME_FG_MUTED, flexShrink: 0 }} />
           <Box
-            component="span"
             sx={{
               flex: 1,
+              minWidth: 0,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               textAlign: 'center',
+              color: CHROME_FG,
             }}
           >
-            {url}
+            {url || 'phera.io'}
           </Box>
         </Box>
         <Box
