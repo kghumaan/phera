@@ -619,19 +619,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         mx: 'auto',
                         position: 'relative',
                         borderRadius: '54px',
-                        // Polished titanium band — visible silver edge around the body
-                        background: `
-                          linear-gradient(
-                            135deg,
-                            #c8c8cc 0%,
-                            #8e8e93 18%,
-                            #5a5a5d 35%,
-                            #2c2c2e 55%,
-                            #5a5a5d 75%,
-                            #8e8e93 90%,
-                            #c8c8cc 100%
-                          )
-                        `,
+                        // Polished titanium band — uniform silver around the body
+                        background: '#9a9a9e',
                         padding: '2.5px',
                         boxShadow: `
                           0 28px 70px rgba(0, 0, 0, 0.22),
