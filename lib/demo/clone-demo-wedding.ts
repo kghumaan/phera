@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { PheraDatabase } from '@/lib/supabase/types';
+import { seedDemoMockData } from './seed-demo-mock-data';
 
 const TEMPLATE_SLUG = 'demo-template';
 const DEMO_SLUG_PREFIX = 'demo-';
@@ -250,6 +251,19 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   simpleClones.push(adminInsert as Promise<void>);
 
   await Promise.all(simpleClones);
+
+  // Seed Control Tower mock data (outreach funnel, topics, events, escalations)
+  // so every demo shows a populated dashboard from the first load.
+  try {
+    await seedDemoMockData(supabase, {
+      slug: newSlug,
+      weddingUuid: newWeddingId,
+      guestIds: Object.values(guestIdMapping),
+    });
+  } catch (err) {
+    // Non-fatal: if the mock seed fails, the demo still works — log and move on.
+    console.error('[cloneDemoWedding] seedDemoMockData failed:', err);
+  }
 
   return newSlug;
 }
