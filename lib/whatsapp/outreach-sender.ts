@@ -1,15 +1,15 @@
 /**
  * Outreach sender with batch support, rate limiting, frequency cap handling, and quality tracking.
- * Uses the existing WhatsAppClient from client.ts.
+ * Supports both Meta Business API (templates) and Whapi.Cloud (free-form text).
  */
 
-import { whatsappClient } from '@/lib/whatsapp/client';
 import { checkOptInStatus, handleOptOut } from '@/lib/whatsapp/opt-ins';
 import { outreachService } from '@/lib/supabase/outreach-service';
 import { buildTemplatePayload, TemplatePayload } from '@/lib/whatsapp/outreach-templates';
+import { getProvider, getRateLimitMs, sendOutreach, sendMetaTemplate, type WhatsAppProvider } from '@/lib/whatsapp/provider';
 import { supabase } from '@/lib/supabase/client';
 
-// WhatsApp error codes
+// WhatsApp error codes (Meta-specific)
 const ERROR_FREQUENCY_CAP = 131049;
 const ERROR_OPTED_OUT = 131050;
 
@@ -20,6 +20,7 @@ export interface SendResult {
   status: 'accepted' | 'frequency_capped' | 'opted_out' | 'failed';
   error?: string;
   errorCode?: number;
+  provider?: WhatsAppProvider;
 }
 
 export interface BatchSendResult {
@@ -29,6 +30,7 @@ export interface BatchSendResult {
   optedOut: SendResult[];
   failed: SendResult[];
   total: number;
+  provider: WhatsAppProvider;
 }
 
 export interface QualityMetrics {
@@ -52,11 +54,13 @@ export interface OutreachMessage {
   languageCode: string;
   params: Record<string, string>;
   mediaUrl?: string;
+  /** Pre-rendered plain text for Whapi sends. */
+  renderedText?: string;
 }
 
 class OutreachSender {
   /**
-   * Send a single template message via WhatsApp Cloud API.
+   * Send a single template message via WhatsApp Cloud API (Meta only).
    */
   async sendTemplate(
     phoneNumber: string,
@@ -64,29 +68,49 @@ class OutreachSender {
     languageCode: string,
     components: any[]
   ): Promise<{ messageId: string; status: string } | null> {
-    const response = await whatsappClient.sendTemplate(
-      phoneNumber,
-      templateName,
-      languageCode,
-      [] // Components are handled by the template
-    );
+    const provider = getProvider();
 
-    if (!response) return null;
+    if (provider === 'whapi') {
+      // Whapi doesn't support templates — caller should use sendBatch with renderedText
+      console.warn('[outreach-sender] sendTemplate called with Whapi provider — skipping. Use sendBatch with renderedText.');
+      return null;
+    }
+
+    const payload = {
+      messaging_product: 'whatsapp',
+      to: phoneNumber.replace(/[^0-9]/g, ''),
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: languageCode },
+        components,
+      },
+    };
+
+    const result = await sendMetaTemplate(payload);
+    if (!result.success) return null;
 
     return {
-      messageId: response.messages[0].id,
+      messageId: result.messageId || '',
       status: 'accepted',
     };
   }
 
   /**
-   * Send messages in batch with rate limiting.
-   * Default rate limit is 80 messages/second (Meta's default throughput).
+   * Send messages in batch with provider-aware rate limiting.
+   *
+   * Meta:  80 msg/sec (default)
+   * Whapi: 1 msg/30sec (to avoid blocks on unofficial API)
+   *
+   * @param staggerMinutes If set, spread messages evenly over this many minutes.
    */
   async sendBatch(
     messages: OutreachMessage[],
-    rateLimit: number = 80
+    rateLimit?: number,
+    staggerMinutes?: number,
   ): Promise<BatchSendResult> {
+    const provider = getProvider();
+
     const result: BatchSendResult = {
       delivered: [],
       accepted: [],
@@ -94,9 +118,20 @@ class OutreachSender {
       optedOut: [],
       failed: [],
       total: messages.length,
+      provider,
     };
 
-    const delayMs = Math.ceil(1000 / rateLimit);
+    // Calculate delay between messages
+    let delayMs: number;
+    if (staggerMinutes && staggerMinutes > 0 && messages.length > 1) {
+      delayMs = Math.ceil((staggerMinutes * 60 * 1000) / messages.length);
+    } else if (rateLimit) {
+      delayMs = Math.ceil(1000 / rateLimit);
+    } else {
+      delayMs = getRateLimitMs();
+    }
+
+    console.log(`[outreach-sender] Sending ${messages.length} messages via ${provider}, delay=${delayMs}ms`);
 
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
@@ -109,29 +144,39 @@ class OutreachSender {
             phoneNumber: msg.phoneNumber,
             guestId: msg.guestId,
             status: 'opted_out',
+            provider,
           });
           continue;
         }
 
-        // Build and send the template payload
-        const payload = buildTemplatePayload(
-          msg.phoneNumber,
-          msg.templateKey,
-          msg.languageCode,
-          msg.params,
-          msg.mediaUrl
-        );
+        let sendResult: { success: boolean; messageId?: string; error?: string };
 
-        const response = await this.sendTemplatePayload(payload);
+        if (provider === 'whapi') {
+          // Whapi: send as plain text (or image+caption)
+          const text = msg.renderedText || this.renderFallbackText(msg);
+          sendResult = await sendOutreach(msg.phoneNumber, text, msg.mediaUrl);
+        } else {
+          // Meta: send as template
+          const payload = buildTemplatePayload(
+            msg.phoneNumber,
+            msg.templateKey,
+            msg.languageCode,
+            msg.params,
+            msg.mediaUrl
+          );
+          const metaResult = await sendMetaTemplate(payload);
+          sendResult = metaResult;
+        }
 
-        if (response.messageId) {
-          const sendResult: SendResult = {
+        if (sendResult.success && sendResult.messageId) {
+          const sr: SendResult = {
             phoneNumber: msg.phoneNumber,
             guestId: msg.guestId,
-            messageId: response.messageId,
+            messageId: sendResult.messageId,
             status: 'accepted',
+            provider,
           };
-          result.accepted.push(sendResult);
+          result.accepted.push(sr);
 
           // Log the outreach event
           await outreachService.logEvent({
@@ -141,26 +186,34 @@ class OutreachSender {
             template_name: msg.templateKey,
             channel: 'whatsapp',
             details: {
-              message_id: response.messageId,
+              message_id: sendResult.messageId,
               template: msg.templateKey,
               language: msg.languageCode,
+              provider,
             },
+          });
+        } else {
+          result.failed.push({
+            phoneNumber: msg.phoneNumber,
+            guestId: msg.guestId,
+            status: 'failed',
+            error: sendResult.error || 'Send failed',
+            provider,
           });
         }
       } catch (error: any) {
         const errorCode = this.extractErrorCode(error);
 
         if (errorCode === ERROR_FREQUENCY_CAP) {
-          // Queue for retry tomorrow — do NOT retry immediately
           result.retryTomorrow.push({
             phoneNumber: msg.phoneNumber,
             guestId: msg.guestId,
             status: 'frequency_capped',
             errorCode: ERROR_FREQUENCY_CAP,
             error: 'Frequency cap hit. Queued for next-day retry.',
+            provider,
           });
         } else if (errorCode === ERROR_OPTED_OUT) {
-          // Mark as opted out — NEVER retry
           await handleOptOut(msg.phoneNumber, msg.weddingId);
           await supabase
             .from('guests')
@@ -172,6 +225,7 @@ class OutreachSender {
             guestId: msg.guestId,
             status: 'opted_out',
             errorCode: ERROR_OPTED_OUT,
+            provider,
           });
         } else {
           result.failed.push({
@@ -180,6 +234,7 @@ class OutreachSender {
             status: 'failed',
             error: error.message || 'Unknown error',
             errorCode,
+            provider,
           });
         }
       }
@@ -220,7 +275,6 @@ class OutreachSender {
     status: 'sent' | 'delivered' | 'read' | 'failed',
     errorCode?: number
   ): Promise<void> {
-    // Find the event by message_id in details
     const { data: events } = await supabase
       .from('outreach_events')
       .select('*')
@@ -231,7 +285,6 @@ class OutreachSender {
 
     const event = events[0] as any;
 
-    // Log the delivery status as a new event
     await outreachService.logEvent({
       wedding_id: event.wedding_id,
       guest_id: event.guest_id,
@@ -245,7 +298,6 @@ class OutreachSender {
       },
     });
 
-    // Handle failure with specific error codes
     if (status === 'failed' && errorCode === ERROR_OPTED_OUT) {
       await handleOptOut(event.guest_id, event.wedding_id);
       await supabase
@@ -321,34 +373,16 @@ class OutreachSender {
 
   // ─── Private helpers ────────────────────────────────────────────
 
-  private async sendTemplatePayload(payload: TemplatePayload): Promise<{ messageId: string }> {
-    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0';
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+  /** Render a basic fallback text when renderedText is not provided (Whapi sends). */
+  private renderFallbackText(msg: OutreachMessage): string {
+    const p = msg.params;
+    const partner1 = p.partner1_name || p.guest_name || '';
+    const partner2 = p.partner2_name || p.couple_names || '';
+    const date = p.wedding_date || '';
+    const venue = p.location || '';
+    const url = p.website_url || '';
 
-    const response = await fetch(
-      `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      const err = new Error(
-        `WhatsApp API error: ${error.error?.message || 'Unknown'} (Code: ${error.error?.code})`
-      );
-      (err as any).code = error.error?.code;
-      throw err;
-    }
-
-    const data = await response.json();
-    return { messageId: data.messages[0].id };
+    return `${partner1} & ${partner2} would love for you to join their wedding celebration${date ? ` on ${date}` : ''}${venue ? ` at ${venue}` : ''}.\n\nView details & RSVP: ${url}`;
   }
 
   private extractErrorCode(error: any): number | undefined {

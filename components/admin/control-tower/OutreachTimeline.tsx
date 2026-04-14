@@ -125,14 +125,17 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                 </Box>
 
                 <ListItemText
+                  sx={{ m: 0 }}
+                  slotProps={{ primary: { component: 'span' }, secondary: { component: 'span' } }}
                   primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                    <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" component="span" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
                         {config.label}
                       </Typography>
                       {future && (
                         <Typography
                           variant="caption"
+                          component="span"
                           sx={{
                             color: '#6a6a6a',
                             bgcolor: '#F8F8F8',
@@ -148,7 +151,7 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                     </Box>
                   }
                   secondary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
+                    <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
                       <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
                         {formatTimestamp(event.created_at)}
                       </Typography>
@@ -164,7 +167,6 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                       )}
                     </Box>
                   }
-                  sx={{ m: 0 }}
                 />
               </ListItem>
             );

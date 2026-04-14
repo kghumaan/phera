@@ -18,18 +18,30 @@ vi.mock('./ProBadge', () => ({ default: () => null }));
 import { groups } from '@/components/admin/OnboardingSidebar';
 
 describe('Sidebar Reorganization', () => {
-  it('should have exactly 3 groups', () => {
-    expect(groups).toHaveLength(3);
+  it('should have 5 groups', () => {
+    expect(groups).toHaveLength(5);
   });
 
   it('should have correct group IDs', () => {
     const ids = groups.map((g) => g.id);
-    expect(ids).toEqual(['coordination', 'wedding-website', 'settings']);
+    expect(ids).toEqual(['overview', 'coordination', 'wedding-website', 'team', 'settings']);
   });
 
   it('should have correct group labels', () => {
     const labels = groups.map((g) => g.label);
-    expect(labels).toEqual(['Coordination', 'Wedding Website', 'Settings']);
+    expect(labels).toEqual(['Overview', 'Coordination', 'Wedding Website', 'Collaborators', 'Settings']);
+  });
+
+  describe('Overview group', () => {
+    const overview = groups.find((g) => g.id === 'overview');
+
+    it('should be standalone', () => {
+      expect(overview!.standalone).toBe(true);
+    });
+
+    it('should have Overview item', () => {
+      expect(overview!.items[0].path).toBe('/overview');
+    });
   });
 
   describe('Coordination group', () => {
@@ -44,12 +56,10 @@ describe('Sidebar Reorganization', () => {
       expect(coordination!.items[0].path).toBe('/control-tower');
     });
 
-    it('should have Guest List', () => {
-      expect(coordination!.items.some((i) => i.id === 'guests')).toBe(true);
-    });
-
-    it('should have Concierge', () => {
-      expect(coordination!.items.some((i) => i.id === 'concierge')).toBe(true);
+    it('should have Guest Responses', () => {
+      const item = coordination!.items.find((i) => i.id === 'guests');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Guest Responses');
     });
 
     it('should have Outreach (communication)', () => {
@@ -58,15 +68,14 @@ describe('Sidebar Reorganization', () => {
       expect(item!.label).toBe('Outreach');
     });
 
-    it('should have Logistics pointing to /travel-coordination', () => {
-      const item = coordination!.items.find((i) => i.id === 'logistics');
+    it('should have Travel Coordination', () => {
+      const item = coordination!.items.find((i) => i.id === 'travel-coordination');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('Logistics');
       expect(item!.path).toBe('/travel-coordination');
     });
 
-    it('should have 5 items', () => {
-      expect(coordination!.items).toHaveLength(5);
+    it('should have 8 items', () => {
+      expect(coordination!.items).toHaveLength(8);
     });
   });
 
@@ -75,7 +84,6 @@ describe('Sidebar Reorganization', () => {
 
     it('should contain core website items', () => {
       const ids = website!.items.map((i) => i.id);
-      expect(ids).toContain('overview');
       expect(ids).toContain('details');
       expect(ids).toContain('design');
       expect(ids).toContain('schedule');
@@ -85,38 +93,34 @@ describe('Sidebar Reorganization', () => {
       expect(ids).toContain('registry');
     });
 
-    it('should have 8 items', () => {
-      expect(website!.items).toHaveLength(8);
+    it('should have 7 items', () => {
+      expect(website!.items).toHaveLength(7);
     });
   });
 
   describe('Settings group', () => {
     const settings = groups.find((g) => g.id === 'settings');
 
-    it('should contain settings items', () => {
+    it('should contain pins and settings-page', () => {
       const ids = settings!.items.map((i) => i.id);
       expect(ids).toContain('pins');
-      expect(ids).toContain('team');
       expect(ids).toContain('settings-page');
     });
 
-    it('should have 3 items', () => {
-      expect(settings!.items).toHaveLength(3);
+    it('should have 2 items', () => {
+      expect(settings!.items).toHaveLength(2);
     });
   });
 
-  it('should NOT contain Shopping Guide in any group', () => {
-    const allItems = groups.flatMap((g) => g.items);
-    expect(allItems.some((i) => i.id === 'shopping')).toBe(false);
-  });
+  describe('Collaborators group', () => {
+    const team = groups.find((g) => g.id === 'team');
 
-  it('should NOT contain Vendor Coordinator in any group', () => {
-    const allItems = groups.flatMap((g) => g.items);
-    expect(allItems.some((i) => i.id === 'coordinator')).toBe(false);
-  });
+    it('should be standalone', () => {
+      expect(team!.standalone).toBe(true);
+    });
 
-  it('should NOT contain Task Manager in any group', () => {
-    const allItems = groups.flatMap((g) => g.items);
-    expect(allItems.some((i) => i.id === 'task-manager')).toBe(false);
+    it('should have team item', () => {
+      expect(team!.items[0].path).toBe('/team');
+    });
   });
 });

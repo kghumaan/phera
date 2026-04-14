@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { buildSystemPrompt, CONCIERGE_TOOLS } from '@/lib/whatsapp/concierge-system-prompt';
 import type { WeddingContext, GuestContext } from '@/lib/whatsapp/concierge-system-prompt';
 import { dispatchTool } from '@/lib/whatsapp/concierge-tools';
+import { logChatMessage } from '@/lib/whatsapp/webhooks';
 
 // Use service role client to bypass RLS for server-side operations
 const supabase = createClient(
@@ -66,11 +67,24 @@ export async function generateAIResponse(params: {
     );
 
     // -----------------------------------------------------------------------
-    // 2. Fetch all context in parallel
+    // 2. Resolve wedding data + UUID
+    // -----------------------------------------------------------------------
+    // Wedding tables use UUID for wedding_id; guests/rsvps use slug.
+    // Resolve the wedding record first so we can use the UUID for content queries.
+    const weddingResult = await safeQuery(async () => {
+      const byId = await supabase.from('weddings').select('*').eq('id', weddingId).single();
+      if (byId.data) return byId;
+      return supabase.from('weddings').select('*').eq('slug', weddingId).single();
+    });
+    const wedding = (weddingResult as any).data as any;
+    const weddingUuid = wedding?.id || weddingId; // UUID for content tables
+    const weddingSlugForGuests = weddingId; // slug for guests/rsvps tables
+
+    // -----------------------------------------------------------------------
+    // 3. Fetch all context in parallel
     // -----------------------------------------------------------------------
     const [
-      // Wedding context sources (existing 13)
-      weddingResult,
+      // Wedding context sources
       eventsResult,
       scheduleResult,
       scheduleItemsResult,
@@ -92,61 +106,61 @@ export async function generateAIResponse(params: {
       shuttleResult,
       rsvpCountsResult,
     ] = await Promise.all([
-      // Existing wedding context
-      supabase.from('weddings').select('*').eq('id', weddingId).single(),
-      supabase.from('wedding_events').select('*').eq('wedding_id', weddingId).order('order_index'),
-      supabase.from('wedding_schedule').select('*').eq('wedding_id', weddingId).order('order_index'),
+      // Wedding content tables — use UUID
+      supabase.from('wedding_events').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      supabase.from('wedding_schedule').select('*').eq('wedding_id', weddingUuid).order('order_index'),
       supabase.from('schedule_items').select('*').order('order_index'),
-      supabase.from('wedding_travel_cards').select('*').eq('wedding_id', weddingId).order('order_index'),
-      (supabase as any).from('travel_sections').select('*').eq('wedding_id', weddingId).order('order_index'),
-      supabase.from('wedding_faqs').select('*').eq('wedding_id', weddingId).order('order_index'),
+      supabase.from('wedding_travel_cards').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      (supabase as any).from('travel_sections').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      supabase.from('wedding_faqs').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      // Guest-specific tables — use slug for rsvps, UUID for chat history
       supabase.from('rsvps').select('*').eq('guest_id', guestId),
       (supabase as any)
         .from('whatsapp_chat_history')
         .select('role, content')
         .eq('guest_id', guestId)
-        .eq('wedding_id', weddingId)
+        .eq('wedding_id', weddingUuid)
         .order('created_at', { ascending: false })
         .limit(20),
-      supabase.from('wedding_registry').select('*').eq('wedding_id', weddingId).order('order_index'),
-      supabase.from('wedding_shops').select('*').eq('wedding_id', weddingId).order('order_index'),
-      supabase.from('wedding_settings').select('*').eq('wedding_id', weddingId).single(),
+      // More wedding content — UUID
+      supabase.from('wedding_registry').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      supabase.from('wedding_shops').select('*').eq('wedding_id', weddingUuid).order('order_index'),
+      supabase.from('wedding_settings').select('*').eq('wedding_id', weddingUuid).single(),
       (supabase as any)
         .from('concierge_knowledge_base')
         .select('title, content, category')
-        .eq('wedding_id', weddingId)
+        .eq('wedding_id', weddingUuid)
         .eq('is_active', true)
         .order('order_index'),
-      // New guest context — wrapped in safeQuery for tables/columns that may not exist yet
+      // Guest context — safeQuery for tables/columns that may not exist yet
       safeQuery(() =>
         supabase.from('guests').select('id, name, phone, email, wedding_side').eq('id', guestId).single()
       ),
       safeQuery(() =>
-        supabase.from('guest_flights').select('airline, flight_number, arrival_datetime, departure_datetime, arrival_airport, departure_airport').eq('guest_id', guestId).eq('wedding_id', weddingId)
+        supabase.from('guest_flights').select('airline, flight_number, arrival_datetime, departure_datetime, arrival_airport, departure_airport').eq('guest_id', guestId).eq('wedding_id', weddingSlugForGuests)
       ),
       safeQuery(() =>
-        (supabase as any).from('guest_hotels').select('hotel_name, confirmation_number, check_in, check_out, room_type, status').eq('guest_id', guestId).eq('wedding_id', weddingId)
+        (supabase as any).from('guest_hotels').select('hotel_name, confirmation_number, check_in, check_out, room_type, status').eq('guest_id', guestId).eq('wedding_id', weddingSlugForGuests)
       ),
       safeQuery(() =>
-        (supabase as any).from('guest_visas').select('visa_type, status, applied_at, expiry_date').eq('guest_id', guestId).eq('wedding_id', weddingId)
+        (supabase as any).from('guest_visas').select('visa_type, status, applied_at, expiry_date').eq('guest_id', guestId).eq('wedding_id', weddingSlugForGuests)
       ),
       safeQuery(() =>
         (supabase as any).from('coordination_issues').select('category, title, priority').eq('guest_id', guestId).not('status', 'in', '("resolved","dismissed")')
       ),
       safeQuery(() =>
-        (supabase as any).from('travel_bus_signups').select('*').eq('wedding_id', weddingId).eq('email', '')
+        (supabase as any).from('travel_bus_signups').select('*').eq('wedding_id', weddingSlugForGuests).eq('email', '')
       ),
-      // RSVP aggregate counts for wedding context
+      // RSVP aggregate counts — slug
       supabase
         .from('rsvps')
         .select('attending')
-        .eq('wedding_id', weddingId),
+        .eq('wedding_id', weddingSlugForGuests),
     ]);
 
     // -----------------------------------------------------------------------
-    // 3. Unpack results
+    // 4. Unpack results
     // -----------------------------------------------------------------------
-    const wedding = weddingResult.data as any;
     const events = (eventsResult.data as any[]) || [];
     const schedules = (scheduleResult.data as any[]) || [];
     const allScheduleItems = (scheduleItemsResult.data as any[]) || [];
@@ -360,8 +374,14 @@ export async function generateAIResponse(params: {
     ];
 
     // -----------------------------------------------------------------------
-    // 7. LLM call with tiered fallback: Gemini → Groq → DeepSeek
+    // 7. Log inbound message + LLM call
     // -----------------------------------------------------------------------
+
+    // Log the user's message to chat history (use UUID, not slug)
+    if (weddingUuid) {
+      await logChatMessage({ weddingId: weddingUuid, guestId, role: 'user', content: userMessage }).catch(() => {});
+    }
+
     let finalMessage: string | null = null;
 
     lastProvider = 'none';
@@ -419,6 +439,10 @@ export async function generateAIResponse(params: {
     );
 
     if (finalMessage) {
+      // Log the assistant response to chat history (use UUID, not slug)
+      if (weddingUuid) {
+        await logChatMessage({ weddingId: weddingUuid, guestId, role: 'assistant', content: finalMessage }).catch(() => {});
+      }
       return finalMessage;
     }
 

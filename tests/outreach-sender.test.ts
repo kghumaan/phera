@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock sendMetaTemplate (used by sendBatch for Meta provider)
+const mockSendMetaTemplate = vi.fn();
+
 // Mock dependencies
+vi.mock('@/lib/whatsapp/provider', () => ({
+  getProvider: vi.fn().mockReturnValue('meta'),
+  getRateLimitMs: vi.fn().mockReturnValue(0), // no delay in tests
+  sendOutreach: vi.fn(),
+  sendMetaTemplate: (...args: any[]) => mockSendMetaTemplate(...args),
+}));
+
 vi.mock('@/lib/whatsapp/client', () => ({
   whatsappClient: {
     sendTemplate: vi.fn(),
@@ -40,8 +50,7 @@ const mockFrom = (supabase as any).from as ReturnType<typeof vi.fn>;
 describe('OutreachSender', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset fetch mock
-    global.fetch = vi.fn();
+    mockSendMetaTemplate.mockReset();
   });
 
   describe('sendBatch', () => {
@@ -56,10 +65,7 @@ describe('OutreachSender', () => {
     });
 
     it('should send messages and return accepted results', async () => {
-      (global.fetch as any).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ messages: [{ id: 'wamid123' }] }),
-      });
+      mockSendMetaTemplate.mockResolvedValue({ success: true, messageId: 'wamid123', provider: 'meta' });
 
       const messages = [makeMessage()];
       const result = await outreachSender.sendBatch(messages);
@@ -72,10 +78,7 @@ describe('OutreachSender', () => {
     it('should handle frequency cap (error 131049) by queueing for tomorrow', async () => {
       const error = new Error('WhatsApp API error: Frequency cap (Code: 131049)');
       (error as any).code = 131049;
-      (global.fetch as any).mockResolvedValue({
-        ok: false,
-        json: () => Promise.resolve({ error: { message: 'Frequency cap', code: 131049 } }),
-      });
+      mockSendMetaTemplate.mockRejectedValue(error);
 
       const messages = [makeMessage()];
       const result = await outreachSender.sendBatch(messages);
@@ -87,10 +90,9 @@ describe('OutreachSender', () => {
     });
 
     it('should handle opt-out (error 131050) and never retry', async () => {
-      (global.fetch as any).mockResolvedValue({
-        ok: false,
-        json: () => Promise.resolve({ error: { message: 'User opted out', code: 131050 } }),
-      });
+      const error = new Error('WhatsApp API error: User opted out (Code: 131050)');
+      (error as any).code = 131050;
+      mockSendMetaTemplate.mockRejectedValue(error);
 
       const chain: any = {
         update: vi.fn().mockReturnThis(),
@@ -113,14 +115,11 @@ describe('OutreachSender', () => {
       const result = await outreachSender.sendBatch(messages);
 
       expect(result.optedOut).toHaveLength(1);
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockSendMetaTemplate).not.toHaveBeenCalled();
     });
 
     it('should log events for accepted messages', async () => {
-      (global.fetch as any).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ messages: [{ id: 'wamid456' }] }),
-      });
+      mockSendMetaTemplate.mockResolvedValue({ success: true, messageId: 'wamid456', provider: 'meta' });
 
       const messages = [makeMessage()];
       await outreachSender.sendBatch(messages);
@@ -135,10 +134,7 @@ describe('OutreachSender', () => {
     });
 
     it('should handle generic failures', async () => {
-      (global.fetch as any).mockResolvedValue({
-        ok: false,
-        json: () => Promise.resolve({ error: { message: 'Internal error', code: 500 } }),
-      });
+      mockSendMetaTemplate.mockResolvedValue({ success: false, error: 'Internal error', provider: 'meta' });
 
       const messages = [makeMessage()];
       const result = await outreachSender.sendBatch(messages);

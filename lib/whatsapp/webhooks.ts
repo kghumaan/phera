@@ -218,7 +218,6 @@ export async function logChatMessage({
   role,
   content,
   waMessageId,
-  metadata = {}
 }: {
   weddingId: string;
   guestId: string;
@@ -228,16 +227,17 @@ export async function logChatMessage({
   metadata?: any;
 }): Promise<void> {
   try {
+    const record: any = {
+      wedding_id: weddingId,
+      guest_id: guestId,
+      role,
+      content,
+    };
+    if (waMessageId) record.wa_message_id = waMessageId;
+
     const { error } = await (supabase as any)
       .from('whatsapp_chat_history')
-      .insert({
-        wedding_id: weddingId,
-        guest_id: guestId,
-        role,
-        content,
-        wa_message_id: waMessageId,
-        metadata,
-      });
+      .insert(record);
 
     if (error) {
       console.error('Error logging chat message:', error);

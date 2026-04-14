@@ -1,0 +1,97 @@
+'use client';
+
+import React from 'react';
+import { Box, Typography, Paper, Chip, Stack } from '@mui/material';
+
+interface GuestRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  wedding_side: string | null;
+  outreach_status: string;
+  rsvp_attending: string | null;
+  last_contacted: string | null;
+}
+
+interface NeedsAttentionPanelProps {
+  guests: GuestRow[];
+  totalNeedsAttention: number;
+  weddingSlug: string;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  not_contacted: 'Not Contacted',
+  save_the_date_sent: 'Save the Date Sent',
+  rsvp_requested: 'RSVP Requested',
+  unresponsive: 'Unresponsive',
+};
+
+function timeAgo(date: string | null): string {
+  if (!date) return 'Never';
+  const diff = Date.now() - new Date(date).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
+}
+
+export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddingSlug }: NeedsAttentionPanelProps) {
+  return (
+    <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', p: 2.5, bgcolor: 'white', height: '100%' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+        <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+          Not Responding ({totalNeedsAttention})
+        </Typography>
+        {totalNeedsAttention > guests.length && (
+          <Typography
+            component="a"
+            href={`/admin/${weddingSlug}/guests`}
+            sx={{ fontSize: 11, color: '#DE3F5E', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+          >
+            View all
+          </Typography>
+        )}
+      </Box>
+
+      {guests.length === 0 ? (
+        <Box sx={{ py: 3, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: 13, color: '#9a9a9a' }}>
+            Everyone is responding!
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, maxHeight: 280, overflow: 'auto' }}>
+          {guests.map((g) => (
+            <Box key={g.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.75, px: 1, borderRadius: '8px', bgcolor: '#FAFAFA', border: '1px solid rgba(0,0,0,0.04)' }}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {g.name}
+                </Typography>
+                <Typography sx={{ fontSize: 10, color: '#6a6a6a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {g.email}
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0, ml: 1 }}>
+                <Chip
+                  label={STATUS_LABELS[g.outreach_status] || g.outreach_status}
+                  size="small"
+                  sx={{
+                    height: 18, fontSize: 9,
+                    bgcolor: g.outreach_status === 'unresponsive' ? '#FFEBEE' : '#F5F5F5',
+                    color: g.outreach_status === 'unresponsive' ? '#C62828' : '#6a6a6a',
+                  }}
+                />
+                <Typography sx={{ fontSize: 9, color: '#9a9a9a', whiteSpace: 'nowrap', alignSelf: 'center' }}>
+                  {timeAgo(g.last_contacted)}
+                </Typography>
+              </Stack>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Paper>
+  );
+}
