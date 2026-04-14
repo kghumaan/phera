@@ -671,45 +671,35 @@ export default function GuestImportWizard({
                 <Box
                   key={header}
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.1fr 24px 1.3fr 1fr',
-                    gap: 2,
+                    display: 'flex',
                     alignItems: 'center',
+                    gap: 1.5,
                     px: 2,
-                    py: 1.5,
+                    py: 1.25,
                     borderBottom: idx < headers.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                     bgcolor: 'white',
                   }}
                 >
                   {/* Source column header */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
-                    <Box
-                      sx={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        bgcolor: columnMap[header] ? '#DE3F5E' : 'rgba(0,0,0,0.15)',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: 13,
-                        color: '#1a1a1a',
-                        fontWeight: 600,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {header}
-                    </Typography>
-                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: '#1a1a1a',
+                      fontWeight: 600,
+                      width: 110,
+                      flexShrink: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {header}
+                  </Typography>
 
-                  <Typography sx={{ fontSize: 13, color: '#b0b0b0', textAlign: 'center' }}>→</Typography>
+                  <Typography sx={{ fontSize: 13, color: '#b0b0b0', flexShrink: 0 }}>→</Typography>
 
                   {/* Mapping dropdown */}
-                  <FormControl size="small" fullWidth>
+                  <FormControl size="small" sx={{ width: 220, flexShrink: 0 }}>
                     <Select
                       value={columnMap[header] || ''}
                       onChange={(e) => setColumnMap((prev) => ({ ...prev, [header]: e.target.value }))}
@@ -754,6 +744,8 @@ export default function GuestImportWizard({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      flex: 1,
+                      minWidth: 0,
                     }}
                   >
                     {rows[0]?.[header] ? `e.g. "${rows[0][header]}"` : ''}
