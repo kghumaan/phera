@@ -67,7 +67,7 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
                 sx={{
                   fontWeight: 700,
                   color: theme.palette.primary.main,
-                  fontSize: { xs: '2rem', md: '2.5rem' },
+                  fontSize: { xs: '1.5rem', md: '2.5rem' },
                   lineHeight: 1,
                 }}
               >
@@ -80,7 +80,7 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: 1,
-                  fontSize: { xs: '0.75rem', md: '0.875rem' },
+                  fontSize: { xs: '0.65rem', md: '0.875rem' },
                   mt: 0.5,
                 }}
               >
