@@ -308,13 +308,13 @@ export default function AdminPreviewPanel({
     // Match IPhoneMockup aspect (9 : 19) so the chrome fills exactly
     const MOBILE_ASPECT = 19 / 9;
     const mobileWidth = useMemo(() => {
-        if (!containerHeight || !containerWidth) return 420;
-        const maxH = containerHeight * 0.92;
-        const maxW = containerWidth * 0.85;
+        if (!containerHeight || !containerWidth) return 340;
+        const maxH = containerHeight * 0.82;
+        const maxW = containerWidth * 0.7;
         // Width from fitting height
         const wFromH = maxH / MOBILE_ASPECT;
-        // Use the smaller of the two to ensure it fits, but don't go below 340
-        return Math.max(Math.min(wFromH, maxW, 420), 360);
+        // Use the smaller of the two to ensure it fits, but don't go below 280
+        return Math.max(Math.min(wFromH, maxW, 340), 280);
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
 
