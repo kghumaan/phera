@@ -43,8 +43,8 @@ const CHROME_FG_MUTED = '#9aa0a6';
 const URL_PILL_BG = '#3c4043';
 
 const STATUS_BAR_HEIGHT = 44;
-const URL_BAR_HEIGHT = 44;
-const BOTTOM_TOOLBAR_HEIGHT = 48;
+const URL_BAR_HEIGHT = 32;
+const BOTTOM_TOOLBAR_HEIGHT = 44;
 
 const ToolbarButton = ({
   children,
@@ -108,7 +108,7 @@ export default function MobileBrowserShell({
           sx={{
             flex: 1,
             maxWidth: 300,
-            height: 32,
+            height: 26,
             bgcolor: URL_PILL_BG,
             borderRadius: '999px',
             display: 'flex',
@@ -117,7 +117,7 @@ export default function MobileBrowserShell({
             px: 1.5,
             color: CHROME_FG,
             fontFamily: '-apple-system, "SF Pro Text", Roboto, system-ui, sans-serif',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: 500,
           }}
         >
@@ -138,8 +138,8 @@ export default function MobileBrowserShell({
         </Box>
         <Box
           sx={{
-            width: 28,
-            height: 28,
+            width: 24,
+            height: 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -147,7 +147,7 @@ export default function MobileBrowserShell({
             flexShrink: 0,
           }}
         >
-          <MoreVert sx={{ fontSize: 20 }} />
+          <MoreVert sx={{ fontSize: 18 }} />
         </Box>
       </Box>
 
