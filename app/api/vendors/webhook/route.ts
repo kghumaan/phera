@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { whapiClient } from '@/lib/vendors/whapi-client';
 import { extractVendorInsights, saveInsights, generateCoordinatorReply } from '@/lib/vendors/ai-extractor';
+import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
+import { logChatMessage } from '@/lib/whatsapp/webhooks';
+import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -99,7 +102,13 @@ export async function POST(request: NextRequest) {
         }
 
         if (!weddingId) {
-          console.log(`⚠️ No wedding match for chat ${chatId}, skipping`);
+          // No vendor match. If this is a direct chat, try Concierge:
+          // look up sender as a guest and run the AI response flow.
+          if (isDirect) {
+            const handled = await tryConciergeFlow(senderPhone, content, msg);
+            if (handled) continue;
+          }
+          console.log(`⚠️ No wedding or guest match for chat ${chatId}, skipping`);
           continue;
         }
 
@@ -209,5 +218,79 @@ export async function POST(request: NextRequest) {
     console.error('Vendor webhook error:', error);
     // Always return 200 to avoid retries
     return NextResponse.json({ success: true }, { status: 200 });
+  }
+}
+
+/**
+ * Concierge fallback: if an incoming direct message didn't match a vendor,
+ * look the sender up in the guest list and run the AI response flow so the
+ * same Whapi number powers both Coordinator (vendor groups) and Concierge
+ * (guest DMs). Returns true if the flow handled the message.
+ */
+async function tryConciergeFlow(senderPhone: string, content: string, msg: any): Promise<boolean> {
+  try {
+    const rawDigits = senderPhone.replace(/\D/g, '');
+    const phoneVariants = [`+${rawDigits}`, rawDigits, `+${rawDigits.slice(-10)}`];
+
+    let guest: any = null;
+    for (const phone of phoneVariants) {
+      const { data } = await supabase.from('guests').select('*').eq('phone', phone);
+      if (data && data.length > 0) { guest = data[0]; break; }
+    }
+    if (!guest) {
+      const last10 = rawDigits.slice(-10);
+      const { data } = await supabase.from('guests').select('*').ilike('phone', `%${last10}`);
+      if (data && data.length > 0) guest = data[0];
+    }
+    if (!guest) return false;
+
+    // Resolve wedding (guests.wedding_id is a slug)
+    let wedding: any = null;
+    const { data: wBySlug } = await supabase
+      .from('weddings').select('*').eq('slug', guest.wedding_id).single();
+    if (wBySlug) wedding = wBySlug;
+    if (!wedding) {
+      const { data: wById } = await supabase
+        .from('weddings').select('*').eq('id', guest.wedding_id).single();
+      if (wById) wedding = wById;
+    }
+    if (!wedding) return false;
+
+    const guestName = guest.name?.split(' ')[0] || 'Guest';
+    console.log(`[concierge] Message from ${guest.name} (${senderPhone}): ${content.slice(0, 80)}`);
+
+    await logChatMessage({
+      weddingId: wedding.id,
+      guestId: guest.id,
+      role: 'user',
+      content,
+      waMessageId: msg.id,
+      metadata: { type: msg.type, provider: 'whapi', timestamp: msg.timestamp },
+    });
+
+    const aiResponse = await generateAIResponse({
+      weddingId: wedding.id,
+      weddingSlug: wedding.slug,
+      guestId: guest.id,
+      guestName,
+      userMessage: content,
+    });
+
+    const sendResult = await whapiSend(senderPhone, aiResponse);
+
+    await logChatMessage({
+      weddingId: wedding.id,
+      guestId: guest.id,
+      role: 'assistant',
+      content: aiResponse,
+      waMessageId: sendResult.messageId,
+      metadata: { provider: 'whapi' },
+    });
+
+    console.log(`[concierge] Replied to ${guestName}: ${aiResponse.slice(0, 80)}`);
+    return true;
+  } catch (err) {
+    console.error('[concierge] Flow error:', err);
+    return false;
   }
 }

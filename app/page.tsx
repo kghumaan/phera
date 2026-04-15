@@ -462,89 +462,32 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               {items.map((item, idx) => {
                 const position = idx - activeIndex; // -n = above/past, 0 = active, +n = below/upcoming
                 return (
-                <motion.div
-                  key={item.id}
-                  initial={false}
-                  animate={{
-                    opacity: position === 0 ? 1 : 0,
-                    y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
-                  }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
-                    pointerEvents: position === 0 ? 'auto' : 'none',
-                  }}
-                >
-                  {item.featureImage && item.frameType === 'desktop' && (
-                    /* Browser Frame — extends past viewport right edge */
-                    <Box
-                      sx={{
-                        width: 'calc(100% + 8vw)', // Extends past the right edge of the viewport
-                        minWidth: { md: '700px', lg: '900px' },
-                        borderRadius: '12px 0 0 12px',
-                        overflow: 'hidden',
-                        boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
-                        bgcolor: 'white',
-                        border: '1px solid',
-                        borderColor: alpha('#000', 0.08),
-                        borderRight: 'none',
-                      }}
-                    >
-                      {/* Browser Title Bar */}
+                  <motion.div
+                    key={item.id}
+                    initial={false}
+                    animate={{
+                      opacity: position === 0 ? 1 : 0,
+                      y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
+                    }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
+                      pointerEvents: position === 0 ? 'auto' : 'none',
+                    }}
+                  >
+                    {item.featureImage && item.frameType === 'desktop' && (
+                      /* Browser Frame — extends past viewport right edge */
                       <Box
                         sx={{
-                          height: { md: 36, lg: 42 },
-                          bgcolor: '#f1f1f1',
-                          borderBottom: '1px solid',
-                          borderColor: alpha('#000', 0.08),
-                          display: 'flex',
-                          alignItems: 'center',
-                          px: 2,
-                          gap: 1,
-                        }}
-                      >
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
-                      </Box>
-                      {/* Screenshot */}
-                      <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
-                        <Image
-                          src={item.featureImage!}
-                          alt={item.title}
-                          width={2694}
-                          height={1302}
-                          quality={85}
-                          sizes="(max-width: 768px) 100vw, 60vw"
-                          style={{
-                            width: '100%',
-                            height: 'auto',
-                            display: 'block',
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  )}
-
-                  {item.featureImage && item.featureImage2 && item.frameType === 'desktop-stacked' && (
-                    /* Stacked Browser Frames — coordinator1 base (normal pos), coordinator2 overlay (down-right) */
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        width: 'calc(100% + 8vw)',
-                        minWidth: { md: '700px', lg: '900px' },
-                      }}
-                    >
-                      {/* Base frame (coordinator1) — exact same position as regular desktop frames */}
-                      <Box
-                        sx={{
+                          width: 'calc(100% + 8vw)', // Extends past the right edge of the viewport
+                          minWidth: { md: '700px', lg: '900px' },
                           borderRadius: '12px 0 0 12px',
                           overflow: 'hidden',
                           boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
@@ -554,6 +497,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           borderRight: 'none',
                         }}
                       >
+                        {/* Browser Title Bar */}
                         <Box
                           sx={{
                             height: { md: 36, lg: 42 },
@@ -570,90 +514,146 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
                           <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
                         </Box>
-                        <Box sx={{ width: '100%', lineHeight: 0 }}>
+                        {/* Screenshot */}
+                        <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
                           <Image
                             src={item.featureImage!}
-                            alt={`${item.title} - overview`}
+                            alt={item.title}
                             width={2694}
                             height={1302}
                             quality={85}
                             sizes="(max-width: 768px) 100vw, 60vw"
-                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                            style={{
+                              width: '100%',
+                              height: 'auto',
+                              display: 'block',
+                            }}
                           />
                         </Box>
                       </Box>
-                      {/* Overlay frame (coordinator2) — offset down and to the right */}
+                    )}
+
+                    {item.featureImage && item.featureImage2 && item.frameType === 'desktop-stacked' && (
+                      /* Stacked Browser Frames — coordinator1 base (normal pos), coordinator2 overlay (down-right) */
                       <Box
                         sx={{
-                          position: 'absolute',
-                          top: { md: '40%', lg: '40%' },
-                          left: { md: '35%', lg: '35%' },
-                          width: '100%',
-                          borderRadius: '12px 0 0 12px',
-                          overflow: 'hidden',
-                          boxShadow: '-15px 35px 90px rgba(0,0,0,0.22), -8px 15px 40px rgba(0,0,0,0.14)',
-                          bgcolor: 'white',
-                          border: '1px solid',
-                          borderColor: alpha('#000', 0.08),
-                          borderRight: 'none',
-                          zIndex: 2,
+                          position: 'relative',
+                          width: 'calc(100% + 8vw)',
+                          minWidth: { md: '700px', lg: '900px' },
                         }}
                       >
+                        {/* Base frame (coordinator1) — exact same position as regular desktop frames */}
                         <Box
                           sx={{
-                            height: { md: 36, lg: 42 },
-                            bgcolor: '#f1f1f1',
-                            borderBottom: '1px solid',
+                            borderRadius: '12px 0 0 12px',
+                            overflow: 'hidden',
+                            boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
+                            bgcolor: 'white',
+                            border: '1px solid',
                             borderColor: alpha('#000', 0.08),
-                            display: 'flex',
-                            alignItems: 'center',
-                            px: 2,
-                            gap: 1,
+                            borderRight: 'none',
                           }}
                         >
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                          <Box
+                            sx={{
+                              height: { md: 36, lg: 42 },
+                              bgcolor: '#f1f1f1',
+                              borderBottom: '1px solid',
+                              borderColor: alpha('#000', 0.08),
+                              display: 'flex',
+                              alignItems: 'center',
+                              px: 2,
+                              gap: 1,
+                            }}
+                          >
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                          </Box>
+                          <Box sx={{ width: '100%', lineHeight: 0 }}>
+                            <Image
+                              src={item.featureImage!}
+                              alt={`${item.title} - overview`}
+                              width={2694}
+                              height={1302}
+                              quality={85}
+                              sizes="(max-width: 768px) 100vw, 60vw"
+                              style={{ width: '100%', height: 'auto', display: 'block' }}
+                            />
+                          </Box>
                         </Box>
-                        <Box sx={{ width: '100%', lineHeight: 0 }}>
-                          <Image
-                            src={item.featureImage2!}
-                            alt={`${item.title} - detail`}
-                            width={2694}
-                            height={1302}
-                            quality={85}
-                            sizes="(max-width: 768px) 100vw, 60vw"
-                            style={{ width: '100%', height: 'auto', display: 'block' }}
-                          />
+                        {/* Overlay frame (coordinator2) — offset down and to the right */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: { md: '40%', lg: '40%' },
+                            left: { md: '35%', lg: '35%' },
+                            width: '100%',
+                            borderRadius: '12px 0 0 12px',
+                            overflow: 'hidden',
+                            boxShadow: '-15px 35px 90px rgba(0,0,0,0.22), -8px 15px 40px rgba(0,0,0,0.14)',
+                            bgcolor: 'white',
+                            border: '1px solid',
+                            borderColor: alpha('#000', 0.08),
+                            borderRight: 'none',
+                            zIndex: 2,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              height: { md: 36, lg: 42 },
+                              bgcolor: '#f1f1f1',
+                              borderBottom: '1px solid',
+                              borderColor: alpha('#000', 0.08),
+                              display: 'flex',
+                              alignItems: 'center',
+                              px: 2,
+                              gap: 1,
+                            }}
+                          >
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                          </Box>
+                          <Box sx={{ width: '100%', lineHeight: 0 }}>
+                            <Image
+                              src={item.featureImage2!}
+                              alt={`${item.title} - detail`}
+                              width={2694}
+                              height={1302}
+                              quality={85}
+                              sizes="(max-width: 768px) 100vw, 60vw"
+                              style={{ width: '100%', height: 'auto', display: 'block' }}
+                            />
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  )}
+                    )}
 
-                  {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                    <IPhoneMockup
-                      width={{ md: '320px', lg: '380px' }}
-                      sx={{ mx: 'auto' }}
-                    >
-                      {item.customComponent ? (
-                        item.customComponent
-                      ) : (
-                        <Image
-                          src={item.featureImage!}
-                          alt={item.title}
-                          fill
-                          quality={85}
-                          sizes="380px"
-                          style={{
-                            objectFit: 'cover',
-                            objectPosition: 'top',
-                          }}
-                        />
-                      )}
-                    </IPhoneMockup>
-                  )}
+                    {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
+                      <IPhoneMockup
+                        width={{ md: '320px', lg: '380px' }}
+                        sx={{ mx: 'auto' }}
+                      >
+                        {item.customComponent ? (
+                          item.customComponent
+                        ) : (
+                          <Image
+                            src={item.featureImage!}
+                            alt={item.title}
+                            fill
+                            quality={85}
+                            sizes="380px"
+                            style={{
+                              objectFit: 'cover',
+                              objectPosition: 'top',
+                            }}
+                          />
+                        )}
+                      </IPhoneMockup>
+                    )}
 
-                </motion.div>
+                  </motion.div>
                 );
               })}
             </Box>
@@ -1104,7 +1104,7 @@ function LandingPageContent() {
                     maxWidth: '1100px',
                   }}
                 >
-                  Your Indian Wedding,<br />
+                  Your Desi Wedding,<br />
                   <Box
                     component="span"
                     sx={{
@@ -1112,7 +1112,7 @@ function LandingPageContent() {
                       display: 'inline-block',
                     }}
                   >
-                    Minus the Chaos
+                    Minus the Headaches
                     <Box
                       component={motion.span}
                       initial={{ scaleX: 0 }}
