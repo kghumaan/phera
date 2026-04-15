@@ -6,13 +6,7 @@ import { InfoOutlined, CheckCircleOutline } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
-
-// Beta allowlist — users in this set bypass the gate and see the feature.
-// Mirrors the allowlist in concierge/coordinator pages.
-const BETA_ACCESS_EMAILS = new Set([
-  'kv.s.ghumaan@gmail.com',
-  'savani.simran@google.com',
-]);
+import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 
 type Status = 'idle' | 'checking' | 'submitting' | 'success' | 'error';
 
@@ -34,7 +28,7 @@ export default function EarlyBetaGate({ featureName, description, when, children
   const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
   const email = user?.email?.toLowerCase() || '';
-  const isBetaUser = email && BETA_ACCESS_EMAILS.has(email);
+  const isBetaUser = checkBetaAccess(email);
   const gated = when ?? !isBetaUser;
 
   const [status, setStatus] = useState<Status>('idle');

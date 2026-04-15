@@ -365,11 +365,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasCheckedAdminRef.current = true;
 
     try {
-      // First check if user created any weddings
+      // First check if user created any weddings. Exclude demo clones
+      // (slug prefix "demo-") so a stale demo session doesn't mask the
+      // user's real wedding on the admin landing page.
       const { data: createdWeddings, error: createdError } = await supabase
         .from('weddings')
         .select('slug')
         .eq('created_by', userId)
+        .not('slug', 'like', 'demo-%')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -380,11 +383,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Then check if user is an admin of any wedding
+      // Then check if user is an admin of any wedding (also filter demo clones)
       const { data: adminWeddings, error: adminError } = await supabase
         .from('wedding_admins' as any)
-        .select('wedding_id, weddings(slug)')
+        .select('wedding_id, weddings!inner(slug)')
         .eq('user_id', userId)
+        .not('weddings.slug', 'like', 'demo-%')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -878,6 +882,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWeddingSlug]);
+
+  // Auto-exit demo: when the user navigates back to the landing page while
+  // the demo session is active, sign them out so they don't remain logged in
+  // as demo@phera.io on the marketing site.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (pathname !== '/') return;
+    const inDemo = sessionStorage.getItem('phera_demo_mode') === 'true';
+    if (!inDemo) return;
+    sessionStorage.removeItem('phera_demo_mode');
+    sessionStorage.removeItem('demo-wedding-slug');
+    sessionStorage.removeItem('demo-tour-step');
+    signOut();
+  }, [pathname, signOut]);
 
   useEffect(() => {
     if (user && !isLoading) {

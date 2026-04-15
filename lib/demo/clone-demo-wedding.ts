@@ -372,88 +372,109 @@ async function cloneSimpleTable(
   await supabase.from(tableName as any).insert(cloned);
 }
 
-export async function cleanupExpiredDemoWeddings(userId: string) {
-  const supabase = getServiceClient();
+// Tables with TEXT wedding_id storing the wedding slug.
+// No FK CASCADE on slug — must be deleted explicitly.
+// Order matters: tables with NO ACTION FK to guests must precede `guests`,
+// and `guests` must be LAST so all guest_id FKs are cleared.
+const SLUG_CHILD_TABLES = [
+  // NO ACTION FK to guests — must precede guests deletion
+  'coordination_issues',
+  'whatsapp_broadcasts',
+  // Other slug-based children (most CASCADE from guests; explicit for orphans)
+  'rsvps',
+  'comments',
+  'outreach_events',
+  'outreach_sequences',
+  'outreach_escalations',
+  'guest_flights',
+  'guest_hotels',
+  'guest_visas',
+  'guest_checklist_items',
+  'milestones',
+  'whatsapp_messages',
+  'whatsapp_opt_ins',
+  'travel_bus_signups',
+  'pin_access',
+  'rsvp_custom_questions',
+  'wedding_rooms',
+  // Parent of many of the above — must be LAST among slug tables
+  'guests',
+] as const;
 
+// Vendor group: TEXT column but stores wedding UUID as string.
+// Order matters — leaf tables first.
+const VENDOR_TABLES_UUID_IN_TEXT = [
+  'conversation_members',
+  'vendor_messages',
+  'vendor_insights',
+  'vendor_conversations',
+  'vendors',
+] as const;
+
+// UUID children with FK but ON DELETE NO ACTION — would block parent delete.
+const UUID_NO_CASCADE_TABLES = [
+  'concierge_knowledge_base',
+  'feature_requests',
+] as const;
+
+// Skip Postgres "relation does not exist" (42P01) — schema drift between envs is OK.
+function isMissingTable(error: any): boolean {
+  return error?.code === '42P01' || /does not exist/i.test(error?.message || '');
+}
+
+async function deleteWeddingFully(
+  supabase: ReturnType<typeof getServiceClient>,
+  weddingId: string,
+  weddingSlug: string,
+) {
+  const deleteFrom = async (table: string, idValue: string) => {
+    const { error } = await supabase.from(table as any).delete().eq('wedding_id', idValue);
+    if (error && !isMissingTable(error)) {
+      throw new Error(`delete ${table} (id=${idValue}): ${error.message}`);
+    }
+  };
+
+  for (const table of SLUG_CHILD_TABLES) await deleteFrom(table, weddingSlug);
+  for (const table of VENDOR_TABLES_UUID_IN_TEXT) await deleteFrom(table, weddingId);
+  for (const table of UUID_NO_CASCADE_TABLES) await deleteFrom(table, weddingId);
+
+  // CASCADE handles the remaining UUID children (wedding_events, wedding_schedule,
+  // wedding_faqs, transportation_*, travel_sections, whatsapp_chat_history, etc.).
+  const { error } = await supabase.from('weddings').delete().eq('id', weddingId);
+  if (error) throw new Error(`delete weddings row (uuid=${weddingId}): ${error.message}`);
+}
+
+export async function cleanupExpiredDemoWeddings(_userId?: string) {
+  const supabase = getServiceClient();
   const cutoff = new Date(Date.now() - DEMO_MAX_AGE_MS).toISOString();
 
-  // Find expired demo weddings by this user
-  const { data: expired } = await supabase
+  // Scan ALL users' expired demos, not just the caller's.
+  const { data: expired, error: findErr } = await supabase
     .from('weddings')
     .select('id, slug')
-    .eq('created_by', userId)
     .like('slug', `${DEMO_SLUG_PREFIX}%`)
     .neq('slug', TEMPLATE_SLUG)
     .lt('created_at', cutoff);
 
+  if (findErr) {
+    console.error('[demo-cleanup] failed to list expired demos:', findErr.message);
+    return;
+  }
   if (!expired?.length) return;
 
-  const weddingIds = expired.map(w => w.id);
-  const weddingSlugs = expired.map(w => w.slug);
-
-  // Tables that use slug as wedding_id (TEXT columns)
-  const slugTables = ['guests', 'rsvps', 'outreach_events', 'coordination_issues'];
-
-  // Tables that use UUID as wedding_id
-  const uuidChildTables = [
-    'schedule_items',
-    'wedding_schedule',
-    'wedding_events',
-    'wedding_faqs',
-    'wedding_travel_cards',
-    'travel_sections',
-    'wedding_registry',
-    'wedding_shops',
-    'wedding_settings',
-    'wedding_admins',
-    'whatsapp_chat_history',
-    'concierge_knowledge_base',
-    'transportation_settings',
-    'transportation_vehicles',
-    'transportation_pickup_locations',
-    'transportation_time_ranges',
-    'transportation_vehicle_types',
-    'transportation_reservations',
-    'transportation_groups',
-    'guest_flights',
-    'travel_bus_signups',
-    'vendors',
-  ];
-
-  // schedule_items needs special handling — delete by schedule_id
-  const { data: schedules } = await supabase
-    .from('wedding_schedule')
-    .select('id')
-    .in('wedding_id', weddingIds);
-
-  if (schedules?.length) {
-    await supabase
-      .from('schedule_items' as any)
-      .delete()
-      .in('schedule_id', schedules.map(s => s.id));
+  console.log(`[demo-cleanup] purging ${expired.length} expired demo wedding(s)`);
+  let ok = 0;
+  let failed = 0;
+  for (const w of expired) {
+    try {
+      await deleteWeddingFully(supabase, w.id, w.slug);
+      ok++;
+    } catch (err: any) {
+      failed++;
+      console.error(`[demo-cleanup] ${w.slug}: ${err?.message || err}`);
+    }
   }
-
-  // Delete slug-based tables (guests, rsvps)
-  for (const table of slugTables) {
-    await supabase
-      .from(table as any)
-      .delete()
-      .in('wedding_id', weddingSlugs);
-  }
-
-  // Delete UUID-based child tables
-  for (const table of uuidChildTables.filter(t => t !== 'schedule_items')) {
-    await supabase
-      .from(table as any)
-      .delete()
-      .in('wedding_id', weddingIds);
-  }
-
-  // Delete the wedding rows
-  await supabase
-    .from('weddings')
-    .delete()
-    .in('id', weddingIds);
+  console.log(`[demo-cleanup] done: ${ok} purged, ${failed} failed`);
 }
 
 async function cloneTransportationData(

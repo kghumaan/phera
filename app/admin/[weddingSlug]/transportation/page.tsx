@@ -34,11 +34,7 @@ import TransportationDashboard from '@/components/admin/transportation/Transport
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
-
-const BETA_ACCESS_EMAILS = new Set([
-  'kv.s.ghumaan@gmail.com',
-  'savani.simran@google.com',
-]);
+import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 
 type WizardStep =
   | 'initial'
@@ -53,7 +49,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   const { isPro } = usePlan();
   const { isViewOnly } = useAdminRole();
   const { user } = useAuth();
-  const isBetaUser = BETA_ACCESS_EMAILS.has(user?.email?.toLowerCase() || '');
+  const isBetaUser = checkBetaAccess(user?.email);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);

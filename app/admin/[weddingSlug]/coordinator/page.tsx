@@ -52,11 +52,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { InfoOutlined } from '@mui/icons-material';
 import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
-
-const BETA_ACCESS_EMAILS = [
-  'kv.s.ghumaan@gmail.com',
-  'savani.simran@google.com',
-];
+import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 
 interface Vendor {
   id: string;
@@ -155,7 +151,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [deleting, setDeleting] = useState(false);
 
   // Beta access check
-  const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+  const isBetaUser = checkBetaAccess(user?.email);
   const isDemo = isDemoUser();
 
   // Early access request state

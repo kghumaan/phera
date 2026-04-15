@@ -27,11 +27,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConciergeDashboard from '@/components/admin/concierge/ConciergeDashboard';
 import ConciergeConversations from '@/components/admin/concierge/ConciergeConversations';
 import ConciergeKnowledgeBase from '@/components/admin/concierge/ConciergeKnowledgeBase';
-
-const BETA_ACCESS_EMAILS = [
-  'kv.s.ghumaan@gmail.com',
-  'savani.simran@google.com',
-];
+import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -89,7 +85,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     } catch {}
   };
 
-  const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+  const isBetaUser = checkBetaAccess(user?.email);
 
   // Load wedding ID
   useEffect(() => {
