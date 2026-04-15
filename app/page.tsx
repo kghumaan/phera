@@ -65,18 +65,26 @@ import AppFooter from '@/components/shared/AppFooter';
 // Combined features with problem + solution
 const features = [
   {
-    id: 'guest-outreach',
-    title: 'We collect every detail from your guests',
-    problem: 'Chasing 300 guests across WhatsApp groups for RSVPs, dietary needs, and +1 counts.',
-    solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
+    id: 'wedding-website',
+    title: 'A wedding website that actually gets used',
+    problem: 'Static wedding sites guests visit once and forget — leaving them to ping you for schedules, venues, and dress codes.',
+    solution: 'A beautiful, bespoke site with schedule, FAQ, registry, and PIN-gated event access. Design it yourself, let AI build it, or have our team craft it 1-on-1.',
     featureImage: '/images/feature_images/wedding_website.png',
     frameType: 'desktop' as const,
   },
   {
+    id: 'guest-outreach',
+    title: 'We collect every detail from your guests',
+    problem: 'Chasing 300 guests across WhatsApp groups for RSVPs, dietary needs, and +1 counts.',
+    solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
+    featureImage: '/images/feature_images/rsvp_collection.png',
+    frameType: 'desktop' as const,
+  },
+  {
     id: 'travel-coordination',
-    title: 'We coordinate flights, shuttles, and everything in between',
+    title: 'Travel, shuttles, and rooms — handled',
     problem: "Spreadsheets of flight numbers, hotel blocks, and shuttle manifests you're updating at midnight.",
-    solution: 'We collect travel plans from every guest, optimize shuttle routes and timings, and send pickup reminders. Nobody gets stranded at the airport.',
+    solution: 'We collect travel plans from every guest, manage hotel blocks and room assignments, optimize shuttle routes, and send pickup reminders. Nobody gets stranded at the airport.',
     featureImage: '/images/feature_images/travel_coordination.png',
     frameType: 'desktop' as const,
   },
@@ -84,9 +92,19 @@ const features = [
     id: 'guest-communication',
     title: 'We answer every guest question, 24/7',
     problem: "Guests messaging you at 2 AM asking about dress code, venue directions, and what to pack.",
-    solution: 'An AI concierge on WhatsApp answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.',
+    solution: 'Our WhatsApp Agent answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.',
     frameType: 'mobile' as const,
     customComponent: <WhatsAppConcierge hideNotch dense sx={{ borderRadius: 0 }} />,
+  },
+  {
+    id: 'vendor-coordinator',
+    title: 'Your vendor groups, finally organized',
+    problem: "Endless WhatsApp groups with caterers, florists, and decorators — decisions buried in 500-message threads.",
+    solution: "Add our Agent to your vendor groups. It summarizes threads, extracts action items, flags risks, and keeps every commitment on record. You'll never miss a detail again.",
+    featureImage: '/images/feature_images/coordinator1.png',
+    featureImage2: '/images/feature_images/coordinator2.png',
+    frameType: 'desktop-stacked' as const,
+    isPro: true,
   },
   {
     id: 'reverse-destination',
@@ -105,12 +123,11 @@ const pricingTiers = [
     priceSuffix: '/wedding',
     description: 'Up to 200 guests',
     features: [
-      'Guest logistics via WhatsApp',
-      'Proactive outreach sequences',
-      'WhatsApp Flows RSVP',
-      '24/7 WhatsApp Concierge',
       'Custom wedding website',
-      'Transportation optimization',
+      'Guest list & RSVP collection',
+      'Proactive WhatsApp outreach',
+      'Travel, rooms & shuttle coordination',
+      '24/7 WhatsApp Concierge for guests',
       'Control Tower dashboard',
     ],
     buttonText: 'Get Started',
@@ -123,8 +140,8 @@ const pricingTiers = [
     description: 'Up to 400 guests',
     features: [
       'Everything in Base',
+      'Vendor Coordinator Agent',
       'Reverse-destination cultural guides',
-      'WhatsApp concierge during wedding weekend',
       'Priority escalation support',
     ],
     buttonText: 'Get Started',
@@ -132,13 +149,14 @@ const pricingTiers = [
   },
   {
     name: 'PHERA GRAND',
-    price: '$799',
+    price: '$999',
     priceSuffix: '/wedding',
     description: '400+ guests',
     features: [
       'Everything in Premium',
-      'Dedicated coordination support',
+      'Dedicated human coordinator hours',
       'Custom outreach sequences',
+      'White-glove onboarding',
     ],
     buttonText: 'Get Started',
     highlight: false,
@@ -315,10 +333,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             >
               {/* Section Header - pinned top */}
               <Typography
+                variant="h1"
                 sx={{
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
-                  fontSize: { md: '1.75rem', lg: '2.25rem' },
+                  fontSize: { md: '2.75rem', lg: '3.5rem' },
                   lineHeight: 1.1,
                   color: '#1a1a1a',
                   mb: { md: 4, lg: 5 },
@@ -355,6 +374,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       }}
                     >
                       <Typography
+                        variant="h5"
                         sx={{
                           color: '#1a1a1a',
                           fontSize: { md: '2rem', lg: '2.5rem' },
@@ -646,10 +666,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
         {/* Mobile Header */}
         <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
           <Typography
+            variant="h1"
             sx={{
               fontFamily: 'var(--font-instrument-serif)',
               fontStyle: 'italic',
-              fontSize: '2rem',
+              fontSize: '2.5rem',
               lineHeight: 1.15,
               color: '#1a1a1a',
             }}
@@ -757,6 +778,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Typography
+                    variant="h5"
                     sx={{
                       color: '#1a1a1a',
                       fontSize: '1.35rem',
@@ -1069,7 +1091,7 @@ function LandingPageContent() {
                   }}
                 >
                   <AutoAwesome sx={{ fontSize: '0.95rem', color: '#DE3F5E' }} />
-                  Your wedding concierge, on call
+                  Wedding operations, done for you
                 </Box>
                 <Typography
                   variant="h1"
@@ -1082,7 +1104,32 @@ function LandingPageContent() {
                     maxWidth: '1100px',
                   }}
                 >
-                  We coordinate every guest,<br />end to end.
+                  Your Indian Wedding,<br />
+                  <Box
+                    component="span"
+                    sx={{
+                      position: 'relative',
+                      display: 'inline-block',
+                    }}
+                  >
+                    Minus the Chaos
+                    <Box
+                      component={motion.span}
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.8, delay: 0.9, ease: 'easeOut' }}
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: '55%',
+                        height: '3px',
+                        bgcolor: 'rgba(222, 63, 94, 0.5)',
+                        transformOrigin: 'left center',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </Box>
                 </Typography>
                 <Typography
                   sx={{
@@ -1094,7 +1141,7 @@ function LandingPageContent() {
                     px: { xs: 2, md: 0 },
                   }}
                 >
-                  From save-the-dates and RSVPs to travel, shuttles, concierge, and broadcasts — all coordinated over WhatsApp.
+                  One platform for the website, RSVPs, travel, rooms, transport, vendors, and a 24/7 WhatsApp concierge.
                 </Typography>
 
                 <Stack
@@ -1143,7 +1190,7 @@ function LandingPageContent() {
                       },
                     }}
                   >
-                    See How It Works
+                    Try the Demo
                   </Button>
                 </Stack>
               </Stack>
@@ -1155,6 +1202,133 @@ function LandingPageContent() {
         <Box id="features">
           <FeaturesSection items={features} />
         </Box>
+
+        {/* --- WHATSAPP AGENT SHOWCASE --- */}
+        <Box sx={{
+          minHeight: { md: '90vh' },
+          py: { xs: 6, md: 0 },
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: '#075E54',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Decorative background circle */}
+          <Box sx={{
+            position: 'absolute',
+            top: -100,
+            right: -100,
+            width: { xs: 200, md: 400 },
+            height: { xs: 200, md: 400 },
+            bgcolor: 'rgba(255,255,255,0.1)',
+            borderRadius: '50%',
+          }} />
+
+          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 }, pr: { md: 6, lg: 10 } }}>
+            <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
+              <Grid size={{ xs: 12, md: 8 }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeIn}
+                >
+                  <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
+                    <Typography
+                      variant="h2"
+                      sx={{
+                        fontFamily: 'var(--font-instrument-serif)',
+                        fontStyle: 'italic',
+                        // fontSize: { xs: '2rem', md: '3rem', lg: '4rem' },
+                        lineHeight: 1.1,
+                        color: 'white'
+                      }}
+                    >
+                      Your 24/7 Wedding Concierge
+                    </Typography>
+                    <StreamlineIcon name="whatsapp" sx={{ width: { xs: 40, md: 50 }, height: { xs: 40, md: 50 }, color: 'white' }} />
+
+                  </Stack>
+                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4, color: 'white' }}>
+                    Stop being your guests' personal assistant. Let our intelligent WhatsApp
+                    Concierge handle the repetitive questions so you can focus on your celebration.
+                  </Typography>
+
+                  <List sx={{ mb: { xs: 1, md: 2 }, color: 'white' }}>
+                    {[
+                      { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
+                      { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
+                      { icon: <Campaign />, text: "Broadcasts urgent updates to your entire guest list" },
+                      { icon: <Check />, text: "All data comes directly from your wedding website" }
+                    ].map((item, idx) => (
+                      <ListItem key={idx} sx={{ px: 0, py: { xs: 0.25, md: 0.5 } }}>
+                        <ListItemIcon sx={{ color: 'white', minWidth: { xs: 28, md: 40 } }}>
+                          <Box sx={{ '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } } }}>
+                            {item.icon}
+                          </Box>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' }, color: 'white' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+
+                  <Button
+                    onClick={handleProAction}
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      bgcolor: '#25D366',
+                      color: 'white',
+                      px: { xs: 3, md: 5 },
+                      py: { xs: 1, md: 2 },
+                      borderRadius: '32px',
+                      fontSize: { xs: '0.85rem', md: '1.25rem' },
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      mt: { xs: 1.5, md: 2 },
+                      '&:hover': { bgcolor: '#128C7E' },
+                    }}
+                  >
+                    Get Guest Concierge
+                  </Button>
+                </motion.div>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={{
+                    hidden: { opacity: 0, x: 20 },
+                    visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
+                  }}
+                >
+                  <IPhoneMockup
+                    width={{ xs: '240px', sm: '270px', md: '310px', lg: '340px' }}
+                    sx={{ maxHeight: { md: '80vh' }, mx: { xs: 'auto', md: 0 } }}
+                  >
+                    <WhatsAppConcierge
+                      hideNotch
+                      dense
+                      messages={conciergeMessages}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        borderRadius: 0,
+                      }}
+                    />
+                  </IPhoneMockup>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </Container >
+        </Box >
 
         {/* --- FOR PLANNERS SECTION --- */}
         <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#FFFFFF', overflow: 'hidden' }}>
@@ -1297,134 +1471,6 @@ function LandingPageContent() {
             </Grid>
           </Container>
         </Box>
-
-        {/* --- WHATSAPP AGENT SHOWCASE --- */}
-        <Box sx={{
-          minHeight: { md: '90vh' },
-          py: { xs: 6, md: 0 },
-          display: 'flex',
-          alignItems: 'center',
-          bgcolor: '#075E54',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Decorative background circle */}
-          <Box sx={{
-            position: 'absolute',
-            top: -100,
-            right: -100,
-            width: { xs: 200, md: 400 },
-            height: { xs: 200, md: 400 },
-            bgcolor: 'rgba(255,255,255,0.1)',
-            borderRadius: '50%',
-          }} />
-
-          <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 }, pr: { md: 6, lg: 10 } }}>
-            <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
-              <Grid size={{ xs: 12, md: 8 }}>
-                <motion.div
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeIn}
-                >
-                  <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
-                    <Typography
-                      variant="h2"
-                      sx={{
-                        fontFamily: 'var(--font-instrument-serif)',
-                        fontStyle: 'italic',
-                        // fontSize: { xs: '2rem', md: '3rem', lg: '4rem' },
-                        lineHeight: 1.1,
-                        color: 'white'
-                      }}
-                    >
-                      Your 24/7 Wedding Concierge
-                    </Typography>
-                    <StreamlineIcon name="whatsapp" sx={{ width: { xs: 40, md: 50 }, height: { xs: 40, md: 50 }, color: 'white' }} />
-
-                  </Stack>
-                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4, color: 'white' }}>
-                    Stop being your guests' personal assistant. Let our intelligent WhatsApp
-                    Concierge handle the repetitive questions so you can focus on your celebration.
-                  </Typography>
-
-                  <List sx={{ mb: { xs: 1, md: 2 }, color: 'white' }}>
-                    {[
-                      { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
-                      { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
-                      { icon: <Campaign />, text: "Broadcasts urgent updates to your entire guest list" },
-                      { icon: <Check />, text: "All data comes directly from your wedding website" }
-                    ].map((item, idx) => (
-                      <ListItem key={idx} sx={{ px: 0, py: { xs: 0.25, md: 0.5 } }}>
-                        <ListItemIcon sx={{ color: 'white', minWidth: { xs: 28, md: 40 } }}>
-                          <Box sx={{ '& svg': { fontSize: { xs: '1.2rem', md: '1.5rem' } } }}>
-                            {item.icon}
-                          </Box>
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={item.text}
-                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' }, color: 'white' }}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-
-                  <Button
-                    onClick={handleProAction}
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      bgcolor: '#25D366',
-                      color: 'white',
-                      px: { xs: 3, md: 5 },
-                      py: { xs: 1, md: 2 },
-                      borderRadius: '32px',
-                      fontSize: { xs: '0.85rem', md: '1.25rem' },
-                      fontWeight: 'bold',
-                      textTransform: 'none',
-                      mt: { xs: 1.5, md: 2 },
-                      '&:hover': { bgcolor: '#128C7E' },
-                    }}
-                  >
-                    Get Guest Concierge
-                  </Button>
-                </motion.div>
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <motion.div
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={{
-                    hidden: { opacity: 0, x: 20 },
-                    visible: { opacity: 1, x: 0, transition: { duration: 0.8 } }
-                  }}
-                >
-                  <IPhoneMockup
-                    width={{ xs: '240px', sm: '270px', md: '310px', lg: '340px' }}
-                    sx={{ maxHeight: { md: '80vh' }, mx: { xs: 'auto', md: 0 } }}
-                  >
-                    <WhatsAppConcierge
-                      hideNotch
-                      dense
-                      messages={conciergeMessages}
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        borderRadius: 0,
-                      }}
-                    />
-                  </IPhoneMockup>
-                </motion.div>
-              </Grid>
-            </Grid>
-          </Container >
-        </Box >
-
 
         {/* --- WEDDING ROADMAP SECTION --- */}
         {/* <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
@@ -1647,7 +1693,7 @@ function LandingPageContent() {
                 Simple, Transparent Pricing
               </Typography>
               <Typography variant="h6" sx={{ color: '#4a4a4a', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
-                Start free, upgrade for power features.
+                One flat fee per wedding. No subscriptions, no surprises.
               </Typography>
             </Stack>
 
@@ -1808,6 +1854,93 @@ function LandingPageContent() {
                 </Grid>
               ))}
             </Grid>
+
+            {/* For Planners strip */}
+            <Paper
+              elevation={0}
+              sx={{
+                mt: { xs: 3, md: 6 },
+                p: { xs: 2.5, md: 4 },
+                borderRadius: { xs: '12px', md: '24px' },
+                bgcolor: 'white',
+                border: '1px solid',
+                borderColor: alpha('#000', 0.08),
+              }}
+            >
+              <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Typography
+                    variant="overline"
+                    sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                  >
+                    FOR WEDDING PLANNERS
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'var(--font-instrument-serif)',
+                      fontStyle: 'italic',
+                      fontSize: { xs: '1.5rem', md: '2rem' },
+                      color: '#1a1a1a',
+                      lineHeight: 1.2,
+                      mt: 0.5,
+                    }}
+                  >
+                    Wholesale pricing for planners.
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Grid container spacing={{ xs: 2, md: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                        Per-Wedding
+                      </Typography>
+                      <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                        $199
+                        <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                          /wedding
+                        </Box>
+                      </Typography>
+                      <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                        Resell to couples at your own rate. No commitment.
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                        Studio Plan
+                      </Typography>
+                      <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                        $299
+                        <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                          /month
+                        </Box>
+                      </Typography>
+                      <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                        Up to 20 active weddings. White-label, team seats.
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <Button
+                    component={Link}
+                    href="/auth/login?role=planner"
+                    variant="outlined"
+                    sx={{
+                      mt: { xs: 2, md: 3 },
+                      borderColor: '#DE3F5E',
+                      color: '#DE3F5E',
+                      borderRadius: '32px',
+                      px: 3,
+                      py: 1,
+                      fontSize: { xs: '0.85rem', md: '0.95rem' },
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': { borderColor: '#C8365A', bgcolor: alpha('#DE3F5E', 0.05) },
+                    }}
+                  >
+                    Start as a Planner
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
           </Container>
         </Box>
 

@@ -31,12 +31,14 @@ import {
   PictureAsPdf,
   Image as ImageIcon,
   Description,
+  LockOutlined,
 } from '@mui/icons-material';
 import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { roomsService, type WeddingRoom, type RoomDraft } from '@/lib/supabase/rooms-service';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
-import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import UpgradeModal from '@/components/admin/UpgradeModal';
 
 interface ParsedRoom {
   room_number: string;
@@ -63,6 +65,8 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
   const [editDraft, setEditDraft] = useState<RoomDraft>({ room_number: '' });
   const [adding, setAdding] = useState(false);
   const [addDraft, setAddDraft] = useState<RoomDraft>({ room_number: '' });
+  const { isPro } = usePlan();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -194,11 +198,111 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     </Stack>
   );
 
+  // Non-Pro users see a locked preview (demo weddings bypass the gate).
+  if (!isPro && !weddingSlug.startsWith('demo-')) {
+    return (
+      <Box sx={{ maxWidth: 1000 }}>
+        <Stack spacing={3}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+                Room Assignments
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                Upload a floorplan and place guests into hotel rooms.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{
+                bgcolor: '#DE3F5E',
+                color: 'white',
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap',
+                '&:hover': { bgcolor: '#c73552' },
+              }}
+            >
+              Upgrade to Pro
+            </Button>
+          </Box>
+
+          <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.8, maxWidth: 680 }}>
+            Assign your guests to hotel rooms by uploading a floorplan or a room list. We parse the document, extract every room, and let you drag-and-drop guests into place. Share a live view with family members so everyone knows who's where.
+          </Typography>
+
+          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 2,
+                backdropFilter: 'blur(6px)',
+                bgcolor: 'rgba(255,255,255,0.45)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}
+            >
+              <LockOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+              <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+                Upgrade to unlock Room Assignments
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#c73552' },
+                }}
+              >
+                Upgrade to Pro
+              </Button>
+            </Box>
+
+            <Box sx={{ pointerEvents: 'none', userSelect: 'none', p: 4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  border: '2px dashed',
+                  borderColor: 'rgba(0,0,0,0.1)',
+                  borderRadius: 3,
+                  bgcolor: 'white',
+                }}
+              >
+                <Hotel sx={{ fontSize: 40, color: '#DE3F5E', mb: 1 }} />
+                <Typography sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                  Drop a floorplan or room list
+                </Typography>
+                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                  PDF, PNG, JPG, CSV, or XLSX — we'll extract every room for you.
+                </Typography>
+              </Paper>
+            </Box>
+          </Box>
+        </Stack>
+
+        <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
+      </Box>
+    );
+  }
+
   return (
-    <EarlyBetaGate
-      featureName="Room Assignments"
-      description="Upload floorplans and automatically place guests in rooms."
-    >
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       {/* Header — matches other admin pages */}
       <Box sx={{ mb: 3 }}>
@@ -522,8 +626,8 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
           </TableContainer>
         )}
       </Paper>
+      <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
     </Box>
-    </EarlyBetaGate>
   );
 }
 

@@ -92,7 +92,7 @@ export const groups: SidebarGroup[] = [
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
       { id: 'guests', label: 'Guest Responses', path: '/guests' },
-      { id: 'rooms', label: 'Room Assignments', path: '/rooms' },
+      { id: 'rooms', label: 'Room Assignments', path: '/rooms', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
       { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
     ],
@@ -473,7 +473,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          {...(['build-ai', 'pins', 'guests'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'concierge', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           onClick={() => {
                             handleItemClick(item, false, group.id);
                           }}

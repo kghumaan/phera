@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Box, CircularProgress, Typography } from '@mui/material';
@@ -10,6 +10,7 @@ const DEMO_SLUG_KEY = 'demo-wedding-slug';
 const DEMO_MODE_KEY = 'phera_demo_mode';
 
 async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: (e: string) => void) {
+  const t0 = performance.now();
   // Check sessionStorage for an existing clone
   const existingSlug = sessionStorage.getItem(DEMO_SLUG_KEY);
   if (existingSlug) {
@@ -21,6 +22,7 @@ async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: 
       .single();
 
     if (data) {
+      console.log(`[demo-clone] reused existing slug (${Math.round(performance.now() - t0)}ms)`);
       router.replace(`/admin/${existingSlug}/overview?tour=true`);
       return;
     }
@@ -29,7 +31,9 @@ async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: 
   }
 
   // Clone template
+  const fetchStart = performance.now();
   const res = await fetch('/api/demo/clone', { method: 'POST' });
+  console.log(`[demo-clone] /api/demo/clone fetch: ${Math.round(performance.now() - fetchStart)}ms`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     console.error('Clone error:', body);
@@ -39,14 +43,21 @@ async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: 
 
   const { slug } = await res.json();
   sessionStorage.setItem(DEMO_SLUG_KEY, slug);
+  console.log(`[demo-clone] total client wall: ${Math.round(performance.now() - t0)}ms`);
   router.replace(`/admin/${slug}/overview?tour=true`);
 }
 
 export default function DemoPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    // Guard against React strict-mode double-invocation in dev, which would
+    // otherwise fire two concurrent clones per page load.
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     const startDemo = async () => {
       // Always reset tour to step 1
       sessionStorage.removeItem('demo-tour-step');

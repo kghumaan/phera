@@ -25,13 +25,19 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Lazy cleanup of expired demo weddings
-    await cleanupExpiredDemoWeddings(user.id).catch(err => {
+    const apiStart = Date.now();
+
+    // Lazy cleanup of expired demo weddings — don't block clone on this.
+    // Fire-and-forget: the clone result is what matters for time-to-demo.
+    cleanupExpiredDemoWeddings(user.id).catch(err => {
       console.error('Demo cleanup error (non-fatal):', err);
     });
 
     // Clone template
+    const cloneStart = Date.now();
     const slug = await cloneDemoWedding(user.id);
+    console.log(`[demo-clone] cloneDemoWedding wall: ${Date.now() - cloneStart}ms`);
+    console.log(`[demo-clone] /api/demo/clone total: ${Date.now() - apiStart}ms`);
 
     return NextResponse.json({ slug });
   } catch (error: any) {

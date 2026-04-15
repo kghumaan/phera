@@ -16,58 +16,69 @@ interface TourStep {
   expandGroup?: string; // group id (e.g. 'website', 'guest-responses')
   sidebarCutout?: boolean; // cut out entire sidebar instead of single element
   tooltipPosition?: 'right' | 'below-target' | 'left-of-target';
+  extraTargets?: string[]; // additional data-tour targets to union into the spotlight
 }
 
 const TOUR_STEPS: TourStep[] = [
   {
     target: 'tour-overview',
     title: 'Welcome to Phera',
-    description: 'This is your wedding planning dashboard. Everything you need to set up and manage your celebration lives here.',
+    description: 'This is your wedding command center. Everything you need to plan, coordinate, and run your celebration lives here.',
   },
   {
-    target: 'tour-website-group',
+    target: 'tour-wedding-website',
     title: 'Your Wedding Website',
-    description: 'This section is where you build your guest-facing website. Add wedding details, customize the look, set up your schedule, and publish when you\'re ready.',
+    description: "Build a beautiful, bespoke site for your guests — schedule, FAQ, registry, travel info, and more. Design it yourself, let AI build it, or work with our team.",
     navigateTo: '/details',
-    expandGroup: 'website',
+    expandGroup: 'wedding-website',
   },
   {
     target: 'tour-preview',
     title: 'Live Preview',
-    description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views at the top to see exactly how your guests will experience it.',
+    description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views to see exactly what your guests will experience.',
     tooltipPosition: 'left-of-target',
   },
   {
     target: 'tour-pins',
-    title: 'PIN Management',
-    description: 'Set up different PIN codes to control who sees what. Direct who gets a plus-one, which guests see certain events, and manage access levels — all from here.',
-    expandGroup: 'website',
+    title: 'Event Access',
+    description: 'Set PIN codes to control who sees what. Restrict sensitive events to close family, decide who gets a plus-one, and manage access levels — all from here.',
+    expandGroup: 'wedding-website',
   },
   {
-    target: 'tour-guest-responses-group',
-    title: 'Track Guest Responses',
-    description: 'See who\'s attending each event, dietary preferences, plus-ones, and travel details — all in one dashboard.',
-    expandGroup: 'guest-responses',
+    target: 'tour-guests-group',
+    title: 'Guest Management',
+    description: "Import your guest list, track RSVPs, dietary needs, plus-ones, and every detail your guests share — collected and organized in one dashboard.",
+    expandGroup: 'guests-group',
+  },
+  {
+    target: 'tour-rooms',
+    title: 'Travel, Rooms & Shuttles',
+    description: "Hotel blocks, room assignments, flight details, airport pickups, and shuttle routes — all coordinated so no one gets stranded. We collect travel plans from every guest and optimize the logistics.",
+    expandGroup: 'guests-group',
+    extraTargets: ['tour-transportation'],
   },
   {
     target: 'tour-concierge',
-    title: 'WhatsApp Concierge',
-    description: 'Your guests\' 24/7 AI assistant on WhatsApp. It answers questions about schedule, venue, dress code, and even recommends things to do in the area — so you don\'t have to.',
+    title: 'WhatsApp Agent',
+    description: "Your guests' 24/7 agent on WhatsApp. Answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.",
+    expandGroup: 'guests-group',
   },
   {
     target: 'tour-task-manager',
-    title: 'Wedding Task Manager',
-    description: 'Organize your entire planning process with a Kanban board. Simply ramble with voice about what\'s on your mind and we\'ll keep track of everything — vendors, to-dos, deadlines, all of it.',
+    title: 'Task Manager',
+    description: "Organize your entire planning process on a Kanban board. Ramble with voice about what's on your mind and we'll keep track — vendors, to-dos, deadlines, all of it.",
+    expandGroup: 'planning',
   },
   {
     target: 'tour-coordinator',
     title: 'Vendor Coordinator',
-    description: 'Manage all your wedding vendors in one place. Track conversations, get AI-powered insights and action items, and keep everything organized through WhatsApp integration.',
+    description: "Add our Agent to your WhatsApp groups with caterers, florists, and decorators. It summarizes threads, extracts action items, and flags risks so nothing slips.",
+    expandGroup: 'planning',
   },
   {
-    target: 'tour-team',
-    title: 'Team',
-    description: 'Invite family members, your partner, or anyone else to help plan. Add them as admins so they can contribute, edit details, and manage things alongside you.',
+    target: 'tour-collaborators',
+    title: 'Collaborators',
+    description: "Invite your partner, family members, or planner to help. Add them as admins so they can contribute, edit details, and manage things alongside you.",
   },
   {
     target: 'tour-cta',
@@ -141,20 +152,37 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       return;
     }
 
-    // Support both data-tour and data-tour-group attributes
-    const el = document.querySelector(`[data-tour="${step.target}"]`)
-      || document.querySelector(`[data-tour-group="${step.target.replace('tour-', '').replace('-group', '')}"]`);
-    if (!el) {
+    // Resolve all targets (primary + extras) to DOM rects
+    const resolve = (sel: string) =>
+      document.querySelector(`[data-tour="${sel}"]`) ||
+      document.querySelector(`[data-tour-group="${sel.replace('tour-', '').replace('-group', '')}"]`);
+
+    const rects: DOMRect[] = [];
+    const primaryEl = resolve(step.target);
+    if (primaryEl) rects.push(primaryEl.getBoundingClientRect());
+    if (step.extraTargets) {
+      for (const extra of step.extraTargets) {
+        const el = resolve(extra);
+        if (el) rects.push(el.getBoundingClientRect());
+      }
+    }
+
+    if (rects.length === 0) {
       setTargetRect(null);
       return;
     }
 
-    const rect = el.getBoundingClientRect();
+    // Union all rects into a single bounding box
+    const top = Math.min(...rects.map(r => r.top));
+    const left = Math.min(...rects.map(r => r.left));
+    const right = Math.max(...rects.map(r => r.right));
+    const bottom = Math.max(...rects.map(r => r.bottom));
+
     setTargetRect({
-      top: rect.top - PADDING,
-      left: rect.left - PADDING,
-      width: rect.width + PADDING * 2,
-      height: rect.height + PADDING * 2,
+      top: top - PADDING,
+      left: left - PADDING,
+      width: (right - left) + PADDING * 2,
+      height: (bottom - top) + PADDING * 2,
     });
 
     if (step.sidebarCutout) {
@@ -316,68 +344,45 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
   return (
     <>
-      {/* Dark overlay — 4 strips around cutout for clean rectangular spotlight */}
+      {/* Dark overlay — single box-shadow cutout (pixel-perfect, no gaps) */}
       {cutoutRect ? (
         <>
-          {/* Top strip */}
+          {/* Visual spotlight: a transparent box with a massive shadow that
+              paints the darkened overlay around it. Because the shadow is
+              rendered as one continuous paint, there are no seam/gap
+              artifacts between strips. pointer-events:none lets the user
+              still interact with the underlying element if they want. */}
           <Box
-            onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: Math.max(0, cutoutRect.top),
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-          />
-          {/* Bottom strip */}
-          <Box
-            onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: cutoutRect.top + cutoutRect.height,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-          />
-          {/* Left strip (between top and bottom) */}
-          <Box
-            onClick={endTour}
             sx={{
               position: 'fixed',
               top: cutoutRect.top,
-              left: 0,
-              width: Math.max(0, cutoutRect.left),
+              left: cutoutRect.left,
+              width: cutoutRect.width,
               height: cutoutRect.height,
               zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
+              pointerEvents: 'none',
+              boxShadow: '0 0 0 100vmax rgba(0,0,0,0.6)',
               transition: 'all 0.3s ease',
             }}
           />
-          {/* Right strip (between top and bottom) */}
+          {/* Transparent click-catchers for endTour on the four surrounding
+              areas. Visual is already handled above; these only carry the
+              click handler. Gaps here are invisible. */}
           <Box
             onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: cutoutRect.top,
-              left: cutoutRect.left + cutoutRect.width,
-              right: 0,
-              height: cutoutRect.height,
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
+            sx={{ position: 'fixed', top: 0, left: 0, right: 0, height: Math.max(0, cutoutRect.top), zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top + cutoutRect.height, left: 0, right: 0, bottom: 0, zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top, left: 0, width: Math.max(0, cutoutRect.left), height: cutoutRect.height, zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top, left: cutoutRect.left + cutoutRect.width, right: 0, height: cutoutRect.height, zIndex: 9998, cursor: 'pointer' }}
           />
         </>
       ) : (

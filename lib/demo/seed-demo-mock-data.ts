@@ -164,9 +164,12 @@ export async function seedDemoMockData(
     else side = 'both';
     sideBuckets[side].push(gid);
 
-    // Pick a tag from the matching pool (or shared for 'both')
+    // Pick a tag from the matching pool (or shared for 'both').
+    // Use unsigned shift (>>>) — signed shift on large hash values can
+    // produce negative indices, landing on `pool[undefined]` and storing
+    // the literal string "undefined" as a tag downstream.
     const pool = side === 'both' ? SHARED_TAGS : side === 'bride' ? BRIDE_TAGS : GROOM_TAGS;
-    const tag = pool[(h >> 6) % pool.length];
+    const tag = pool[(h >>> 6) % pool.length];
     (tagBuckets[tag] ??= []).push(gid);
   });
 
@@ -180,33 +183,18 @@ export async function seedDemoMockData(
   );
 
   // Tags are persisted in the JSONB logistics_data column under .tag —
-  // there's no dedicated column on guests yet. Fetch existing logistics_data
-  // first so we don't clobber other keys, then write back per-guest.
-  const guestsForTags = (
-    await supabase
-      .from('guests')
-      .select('id, logistics_data')
-      .in('id', guestIds)
-  ).data as { id: string; logistics_data: any }[] | null;
-
-  const existingDataById = new Map(
-    (guestsForTags || []).map((g) => [g.id, g.logistics_data || {}]),
-  );
-
-  const tagUpdates: { id: string; logistics_data: any }[] = [];
-  for (const [tag, ids] of Object.entries(tagBuckets)) {
-    for (const gid of ids) {
-      tagUpdates.push({
-        id: gid,
-        logistics_data: { ...(existingDataById.get(gid) || {}), tag },
-      });
-    }
-  }
-
+  // there's no dedicated column on guests yet. For the demo we overwrite
+  // logistics_data per tag bucket with a fresh `{ tag }` blob. The template
+  // doesn't populate other logistics_data keys, so nothing material is lost
+  // and we collapse N per-guest UPDATEs into (tag buckets) bulk UPDATEs.
   await Promise.all(
-    tagUpdates.map((u) =>
-      supabase.from('guests').update({ logistics_data: u.logistics_data } as any).eq('id', u.id),
-    ),
+    (Object.entries(tagBuckets) as [string, string[]][]).map(([tag, ids]) => {
+      if (ids.length === 0) return Promise.resolve();
+      return supabase
+        .from('guests')
+        .update({ logistics_data: { tag } } as any)
+        .in('id', ids);
+    }),
   );
 
   // ─── 2. Insert outreach_events over the past 7 days ─────────────────────

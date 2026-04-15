@@ -126,55 +126,47 @@ const features = [
 
 const pricingTiers = [
   {
-    name: 'FREE FOREVER',
-    price: '$0',
-    description: 'Everything you need to plan your wedding',
+    name: 'PHERA BASE',
+    price: '$349',
+    priceSuffix: '/wedding',
+    description: 'Up to 200 guests',
     features: [
       'Custom wedding website',
-      'Unlimited RSVP collection',
-      'Guest list management',
-      'Multi-event pages',
-      'PIN-based guest access',
-      'Event schedule & details',
-      'FAQ management',
-      'Shopping guide',
+      'Guest list & RSVP collection',
+      'Proactive WhatsApp outreach',
+      'Travel, rooms & shuttle coordination',
+      '24/7 WhatsApp Concierge for guests',
+      'Control Tower dashboard',
     ],
-    buttonText: 'Start Free',
+    buttonText: 'Get Started',
     highlight: false,
   },
   {
-    name: 'PRO',
-    price: '$99',
-    description: 'Advanced features for destination weddings',
+    name: 'PHERA PREMIUM',
+    price: '$599',
+    priceSuffix: '/wedding',
+    description: 'Up to 400 guests',
     features: [
-      'Everything in Basic, plus:',
-      'Voice-to-task manager',
-      'WhatsApp Concierge Agent',
-      'Vendor Coordinator',
-      'Travel & shuttle coordination',
-      'Registry integration',
-      'Premium themes & backgrounds',
-      'Priority support',
+      'Everything in Base',
+      'Vendor Coordinator Agent',
+      'Reverse-destination cultural guides',
+      'Priority escalation support',
     ],
-    buttonText: 'Upgrade to Pro',
+    buttonText: 'Get Started',
     highlight: true,
   },
   {
-    name: 'PLANNER',
-    price: '$249',
-    priceSuffix: '/year',
-    description: 'For professionals managing multiple weddings',
+    name: 'PHERA GRAND',
+    price: '$999',
+    priceSuffix: '/wedding',
+    description: '400+ guests',
     features: [
-      'Everything in Pro, plus:',
-      'Unlimited client weddings',
-      'Multi-wedding dashboard',
-      'Pro features on every wedding',
-      'Client handoff & collaboration',
-      'Planner branding (coming soon)',
-      'Dedicated support',
+      'Everything in Premium',
+      'Dedicated human coordinator hours',
+      'Custom outreach sequences',
+      'White-glove onboarding',
     ],
-    buttonText: 'Start as a Planner',
-    buttonHref: '/auth/login?role=planner',
+    buttonText: 'Get Started',
     highlight: false,
   },
 ];
@@ -189,8 +181,8 @@ const faqs = [
     a: 'Absolutely! Choose designs, colors, photos, and cultural elements to match your vision.',
   },
   {
-    q: 'What if I only need RSVP collection?',
-    a: "That's completely free! Create invites and collect RSVPs without paying a dime.",
+    q: 'What do I actually pay for?',
+    a: "One flat fee per wedding — no subscriptions. Every tier includes the wedding website, RSVP collection, travel coordination, and a 24/7 WhatsApp Concierge. Premium adds the Vendor Coordinator Agent; Grand adds dedicated human coordinator hours.",
   },
   {
     q: 'Can guests access this without an app?',
@@ -1144,6 +1136,94 @@ function PricingPageContent() {
                 </Grid>
               ))}
             </Grid>
+
+            {/* For Planners strip */}
+            <Container maxWidth="lg" sx={{ mt: { xs: 3, md: 6 }, px: 0 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 2.5, md: 4 },
+                  borderRadius: { xs: '12px', md: '24px' },
+                  bgcolor: 'white',
+                  border: '1px solid',
+                  borderColor: alpha('#000', 0.08),
+                }}
+              >
+                <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
+                  <Grid size={{ xs: 12, md: 5 }}>
+                    <Typography
+                      variant="overline"
+                      sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                    >
+                      FOR WEDDING PLANNERS
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: 'var(--font-instrument-serif)',
+                        fontStyle: 'italic',
+                        fontSize: { xs: '1.5rem', md: '2rem' },
+                        color: '#1a1a1a',
+                        lineHeight: 1.2,
+                        mt: 0.5,
+                      }}
+                    >
+                      Wholesale pricing for planners.
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 7 }}>
+                    <Grid container spacing={{ xs: 2, md: 3 }}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                          Per-Wedding
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                          $199
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                            /wedding
+                          </Box>
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                          Resell to couples at your own rate. No commitment.
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                          Studio Plan
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                          $299
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                            /month
+                          </Box>
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                          Up to 20 active weddings. White-label, team seats.
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                    <Button
+                      component={Link}
+                      href="/auth/login?role=planner"
+                      variant="outlined"
+                      sx={{
+                        mt: { xs: 2, md: 3 },
+                        borderColor: '#DE3F5E',
+                        color: '#DE3F5E',
+                        borderRadius: '32px',
+                        px: 3,
+                        py: 1,
+                        fontSize: { xs: '0.85rem', md: '0.95rem' },
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': { borderColor: '#C8365A', bgcolor: alpha('#DE3F5E', 0.05) },
+                      }}
+                    >
+                      Start as a Planner
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Container>
           </Container>
         </Box>
 

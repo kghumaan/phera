@@ -26,6 +26,7 @@ import { useState, useEffect, use } from 'react';
 import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline, UploadFile, Web, Hotel, DirectionsBus, WhatsApp, SupportAgent, ArrowForward } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
+import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
@@ -57,37 +58,91 @@ const QUICK_LINKS = [
   { label: 'Schedule & Events', path: 'schedule', icon: Event },
 ];
 
-function QuickLinks({ weddingSlug }: { weddingSlug: string }) {
+function QuickLinks({
+  weddingSlug,
+  weddingId,
+  weddingData,
+}: {
+  weddingSlug: string;
+  weddingId: string | null;
+  weddingData: WeddingData | null;
+}) {
   const router = useRouter();
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
+  const [completion, setCompletion] = useState<Record<string, boolean>>({});
 
   const go = (path: string) => {
     setLoadingLink(path);
     router.push(`/admin/${weddingSlug}/${path}`);
   };
 
-  const primarySteps = [
+  // Load completion state for each roadmap step in parallel.
+  useEffect(() => {
+    if (!weddingId) return;
+
+    let cancelled = false;
+    (async () => {
+      const [guestsRes, roomsRes, vehiclesRes, vendorsRes] = await Promise.all([
+        (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
+        (supabase as any).from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        (supabase as any).from('transportation_vehicles').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        (supabase as any).from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+      ]);
+
+      if (cancelled) return;
+
+      const websiteDone = !!(
+        weddingData?.couple_name &&
+        weddingData?.venue_name &&
+        weddingData?.wedding_date_display
+      );
+
+      setCompletion({
+        'guest-list': (guestsRes.count ?? 0) > 0,
+        'details': websiteDone,
+        'rooms': (roomsRes.count ?? 0) > 0,
+        'transportation': (vehiclesRes.count ?? 0) > 0,
+        'coordinator': (vendorsRes.count ?? 0) > 0,
+      });
+    })();
+
+    return () => { cancelled = true; };
+  }, [weddingId, weddingSlug, weddingData?.couple_name, weddingData?.venue_name, weddingData?.wedding_date_display]);
+
+  const roadmap = [
     {
-      step: 1,
       label: 'Import Guest List',
-      subtext: 'Pull in every guest so we can nudge anyone who hasn\'t responded, track who\'s coming, and group people for outreach.',
+      subtext: "Pull in every guest so we can nudge anyone who hasn't responded, track who's coming, and group people for outreach.",
       icon: UploadFile,
       path: 'guest-list',
     },
     {
-      step: 2,
       label: 'Create Wedding Website',
-      subtext: 'Fill in your wedding details so your site is ready for guests — and so our Concierge knows how to answer their questions.',
+      subtext: "Fill in your wedding details so your site is ready for guests — and so our Concierge knows how to answer their questions.",
       icon: Web,
       path: 'details',
     },
-  ];
-
-  const betaFeatures = [
-    { label: 'Room Assignments',  subtext: 'Upload a floorplan and place guests into hotel rooms.', icon: Hotel },
-    { label: 'Guest Transportation', subtext: 'Shuttles, airport pickups, and venue transfers.', icon: DirectionsBus },
-    { label: 'Guest Concierge',   subtext: '24/7 WhatsApp concierge that answers every guest question.', icon: WhatsApp },
-    { label: 'Vendor Management', subtext: 'Track vendor conversations and stay organized.', icon: SupportAgent },
+    {
+      label: 'Set Up Room Assignments',
+      subtext: 'Upload a floorplan and place guests into hotel rooms.',
+      icon: Hotel,
+      path: 'rooms',
+      isPro: true,
+    },
+    {
+      label: 'Coordinate Guest Transportation',
+      subtext: 'Shuttles, airport pickups, and venue transfers — optimized so no one gets stranded.',
+      icon: DirectionsBus,
+      path: 'transportation',
+      isPro: true,
+    },
+    {
+      label: 'Track Vendor Conversations',
+      subtext: 'Add our Agent to your vendor WhatsApp groups for summaries, action items, and flagged risks.',
+      icon: SupportAgent,
+      path: 'coordinator',
+      isPro: true,
+    },
   ];
 
   return (
@@ -101,7 +156,7 @@ function QuickLinks({ weddingSlug }: { weddingSlug: string }) {
       }}
     >
       <Stack spacing={0.5} sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
+        <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a' }}>
           What would you like to do?
         </Typography>
         <Typography sx={{ fontSize: 13, color: '#6a6a6a' }}>
@@ -109,135 +164,114 @@ function QuickLinks({ weddingSlug }: { weddingSlug: string }) {
         </Typography>
       </Stack>
 
-      {/* Primary steps */}
-      <Stack spacing={2} sx={{ mb: 3 }}>
-        {primarySteps.map(({ step, label, subtext, icon: Icon, path }) => {
+      <Stack spacing={1.25}>
+        {roadmap.map(({ label, subtext, icon: Icon, path, isPro }) => {
           const isLoading = loadingLink === path;
+          const isDone = !!completion[path];
           return (
             <Paper
               key={path}
               elevation={0}
               onClick={() => !isLoading && go(path)}
               sx={{
-                p: { xs: 2.5, md: 3 },
-                borderRadius: '16px',
-                bgcolor: 'white',
-                border: `1.5px solid ${alpha('#DE3F5E', 0.2)}`,
+                px: { xs: 2, md: 2.5 },
+                py: { xs: 1.75, md: 2 },
+                borderRadius: '14px',
+                bgcolor: isDone ? alpha('#DE3F5E', 0.03) : 'white',
+                border: '1px solid',
+                borderColor: isDone ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.08),
                 cursor: isLoading ? 'wait' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 2.5,
-                transition: 'all 0.2s ease',
+                gap: 2,
+                transition: 'all 0.18s ease',
                 '&:hover': {
-                  borderColor: '#DE3F5E',
-                  boxShadow: '0 6px 20px rgba(222, 63, 94, 0.12)',
-                  transform: isLoading ? 'none' : 'translateY(-1px)',
+                  borderColor: alpha('#DE3F5E', 0.4),
+                  bgcolor: alpha('#DE3F5E', isDone ? 0.05 : 0.02),
+                  transform: isLoading ? 'none' : 'translateX(2px)',
+                  '& .roadmap-circle': isDone ? {} : {
+                    borderColor: '#DE3F5E',
+                    bgcolor: alpha('#DE3F5E', 0.08),
+                  },
+                  '& .roadmap-chevron': { color: '#DE3F5E' },
                 },
               }}
             >
-              {/* Step number badge */}
+              {/* Circle — check when done, icon when not */}
               <Box
+                className="roadmap-circle"
                 sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '12px',
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  border: isDone ? 'none' : `1.5px solid ${alpha('#DE3F5E', 0.3)}`,
+                  bgcolor: isDone ? '#DE3F5E' : alpha('#DE3F5E', 0.04),
+                  color: isDone ? 'white' : '#DE3F5E',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  transition: 'all 0.18s ease',
                 }}
               >
-                <Icon sx={{ fontSize: 22 }} />
+                {isDone ? <Check sx={{ fontSize: 20 }} /> : <Icon sx={{ fontSize: 18 }} />}
               </Box>
 
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#DE3F5E', letterSpacing: '0.08em' }}>
-                    STEP {step}
+              <Box sx={{ flex: 1, minWidth: 0, opacity: isDone ? 0.55 : 1, transition: 'opacity 0.18s ease' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: 14, md: 15 },
+                      fontWeight: 700,
+                      color: '#1a1a1a',
+                      textDecoration: isDone ? 'line-through' : 'none',
+                      textDecorationColor: alpha('#000', 0.3),
+                    }}
+                  >
+                    {label}
                   </Typography>
+                  {isPro && (
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 0.75,
+                        py: 0.15,
+                        borderRadius: '6px',
+                        border: '1px solid #DE3F5E',
+                        color: '#DE3F5E',
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      PRO
+                    </Box>
+                  )}
                 </Stack>
-                <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
-                  {label}
-                </Typography>
-                <Typography sx={{ fontSize: 13, color: '#4a4a4a', lineHeight: 1.5 }}>
+                <Typography sx={{ fontSize: { xs: 12, md: 12.5 }, color: '#6a6a6a', lineHeight: 1.5 }}>
                   {subtext}
                 </Typography>
               </Box>
 
-              <Box sx={{ flexShrink: 0, color: '#DE3F5E' }}>
-                {isLoading ? <CircularProgress size={20} sx={{ color: '#DE3F5E' }} /> : <ArrowForward sx={{ fontSize: 22 }} />}
+              <Box
+                className="roadmap-chevron"
+                sx={{
+                  flexShrink: 0,
+                  color: alpha('#000', 0.3),
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.18s ease',
+                }}
+              >
+                {isLoading
+                  ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
+                  : <ArrowForward sx={{ fontSize: 18 }} />}
               </Box>
             </Paper>
           );
         })}
       </Stack>
-
-      {/* Beta / Coming soon features */}
-      <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6a6a6a', letterSpacing: '0.08em', mb: 1.5 }}>
-        COMING SOON
-      </Typography>
-      <Grid container spacing={1.5}>
-        {betaFeatures.map(({ label, subtext, icon: Icon }) => (
-          <Grid key={label} size={{ xs: 12, sm: 6 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                borderRadius: '12px',
-                bgcolor: alpha('#fff', 0.6),
-                border: '1px dashed rgba(0,0,0,0.15)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 1.5,
-                cursor: 'not-allowed',
-                opacity: 0.75,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '8px',
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                  color: '#DE3F5E',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon sx={{ fontSize: 16 }} />
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
-                    {label}
-                  </Typography>
-                  <Box
-                    sx={{
-                      px: 0.75,
-                      py: 0.1,
-                      borderRadius: '6px',
-                      bgcolor: alpha('#DE3F5E', 0.1),
-                      color: '#DE3F5E',
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    COMING SOON
-                  </Box>
-                </Stack>
-                <Typography sx={{ fontSize: 11.5, color: '#6a6a6a', lineHeight: 1.4 }}>
-                  {subtext}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
     </Paper>
   );
 }
@@ -438,13 +472,12 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
             bgcolor: '#fafafa',
             boxShadow: 'none',
           }}>
-            <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a' }}>
-              Wedding Summary
-            </Typography>
-
             <Grid container spacing={3}>
               {/* Wedding Details */}
               <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a', display: 'block' }}>
+                  Wedding Summary
+                </Typography>
                 <Stack spacing={2.5}>
                   {/* Couple */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -582,7 +615,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         )}
 
         {/* Quick Links */}
-        <QuickLinks weddingSlug={weddingSlug} />
+        <QuickLinks weddingSlug={weddingSlug} weddingId={weddingId} weddingData={weddingData} />
 
         {/* Edit Wedding ID Modal */}
         <Dialog
