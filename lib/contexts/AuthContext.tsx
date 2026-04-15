@@ -888,13 +888,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // as demo@phera.io on the marketing site.
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    console.log('🧹 [demo-cleanup] effect fired, pathname:', pathname);
     if (pathname !== '/') return;
     const inDemo = sessionStorage.getItem('phera_demo_mode') === 'true';
+    console.log('🧹 [demo-cleanup] on landing, inDemo flag:', inDemo);
     if (!inDemo) return;
+    console.log('🧹 [demo-cleanup] clearing session storage and signing out');
     sessionStorage.removeItem('phera_demo_mode');
     sessionStorage.removeItem('demo-wedding-slug');
     sessionStorage.removeItem('demo-tour-step');
-    signOut();
+    signOut().then(() => console.log('🧹 [demo-cleanup] signOut resolved'));
   }, [pathname, signOut]);
 
   useEffect(() => {
