@@ -64,7 +64,21 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [phoneCopied, setPhoneCopied] = useState(false);
+  const [conciergePhone, setConciergePhone] = useState('');
   const searchParams = useSearchParams();
+
+  // Fetch the configured phone number (shared with Coordinator — driven by
+  // COORDINATOR_PHONE_NUMBER env var so both features show the same number).
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/vendors/coordinator-info');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.phoneNumber) setConciergePhone(data.phoneNumber);
+      } catch {}
+    })();
+  }, []);
 
   // Deep-link: if ?guest=<id> is in URL, auto-select that guest and switch to conversations tab
   useEffect(() => {
@@ -74,8 +88,6 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       setActiveTab(1); // Switch to Conversations tab
     }
   }, [searchParams]);
-
-  const conciergePhone = '+1 (555) 839-7813';
 
   const handleCopyPhone = async () => {
     try {
