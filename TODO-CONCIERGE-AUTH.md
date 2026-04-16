@@ -27,6 +27,23 @@ When revisiting this:
 - Or when >1 match, reply with a numbered disambiguation prompt and cache the selection.
 - Either way, the reply should include a footer "(asking about Priya & Rahul's wedding)" so the guest notices if we matched the wrong event.
 
+## wedding_schedule date drift on wedding_date edit (added 2026-04-16)
+
+In `wedding-service.ts:1345-1366` (`prepopulateScheduleFromTemplate` /
+`createSchedule` flow), the schedule's day rows are computed once from
+`weddingDateStart` at prepopulation time and never re-synced if the
+couple later edits their wedding date. simran-karanvir hit this — the
+wedding moved from 2025 to 2026 in `weddings.wedding_date`, but the
+`wedding_schedule.date` rows kept the 2025 year, so Concierge weekday
+inference and schedule UI both ended up wrong until I patched the
+rows manually.
+
+Fix: when `updateWedding` mutates `wedding_date` (or `wedding_date_end`),
+shift every `wedding_schedule` row by the same delta. Or recompute from
+the new date if order_index is preserved. Should also handle the case
+where the wedding spans more days now (add new schedule day) or fewer
+(soft-delete the trailing day).
+
 ## Event ↔ Schedule data duplication (added 2026-04-16)
 
 `wedding_events` and `schedule_items` store overlapping event info but are
