@@ -14,6 +14,19 @@ The unified Whapi webhook at `app/api/vendors/webhook/route.ts` (Concierge fallb
 4. **Ambiguous multi-wedding phones.** A phone that appears in multiple `guests` rows (attending multiple weddings) always resolves to the first match.
 5. **No rate limiting.** A single sender can flood the webhook with no per-phone throttle.
 
+## Phone → wedding disambiguation (added 2026-04-16)
+
+Current lookup `tryConciergeFlow` grabs the first `guests` row matching the sender's phone regardless of wedding. For testing we've hardcoded the reality to simran-karanvir by only having one guest row for this phone, but in production a single phone will belong to multiple weddings (friends attending several). Today:
+
+- First-match wins, arbitrary order.
+- No way for the sender to indicate which wedding they're asking about.
+- AI is fed data for whichever wedding happened to match first.
+
+When revisiting this:
+- Either persist a "last active wedding" per phone so follow-up messages stay in context.
+- Or when >1 match, reply with a numbered disambiguation prompt and cache the selection.
+- Either way, the reply should include a footer "(asking about Priya & Rahul's wedding)" so the guest notices if we matched the wrong event.
+
 ## Proposed work
 
 - [ ] First-contact consent template: when an unknown phone matches a guest, send a one-time Meta-approved template asking "Are you Priya Sharma attending Simran & Karanvir's wedding? Reply YES to continue." Don't process the real question until YES received. Store the YES timestamp in `whatsapp_opt_ins.consent_given_at`.

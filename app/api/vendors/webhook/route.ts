@@ -268,7 +268,7 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
       metadata: { type: msg.type, provider: 'whapi', timestamp: msg.timestamp },
     });
 
-    const aiResponse = await generateAIResponse({
+    const rawAi = await generateAIResponse({
       weddingId: wedding.id,
       weddingSlug: wedding.slug,
       guestId: guest.id,
@@ -276,6 +276,7 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
       userMessage: content,
     });
 
+    const aiResponse = sanitizeAIResponse(rawAi, guestName);
     const sendResult = await whapiSend(senderPhone, aiResponse);
 
     await logChatMessage({
@@ -293,4 +294,21 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
     console.error('[concierge] Flow error:', err);
     return false;
   }
+}
+
+/**
+ * Guard against empty / broken AI responses. When the model loses structure
+ * (e.g. emits orphan markdown bullets with no content, or comes back empty),
+ * we swap in a graceful fallback so the guest never receives garbage. The
+ * raw response is logged so we can diagnose prompt/data issues.
+ */
+function sanitizeAIResponse(raw: string | null | undefined, guestName: string): string {
+  const trimmed = (raw || '').trim();
+  const plain = trimmed.replace(/[\s*_\-•·—]+/g, '');
+  const looksBroken = !trimmed || trimmed.length < 15 || plain.length < 5;
+  if (looksBroken) {
+    console.warn(`[concierge] Rejected AI response as broken/empty. raw="${trimmed.slice(0, 200)}"`);
+    return `Sorry ${guestName}, I couldn't pull that up right now. Could you rephrase your question or try again in a moment?`;
+  }
+  return trimmed;
 }
