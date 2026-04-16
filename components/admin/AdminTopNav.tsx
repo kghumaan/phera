@@ -84,11 +84,12 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         router.push('/');
     };
 
-    const handleExitDemo = () => {
+    const handleExitDemo = async () => {
         handleMenuClose();
         sessionStorage.removeItem('phera_demo_mode');
         sessionStorage.removeItem('demo-wedding-slug');
         sessionStorage.removeItem('demo-tour-step');
+        await signOut();
         router.push('/');
     };
 
@@ -524,12 +525,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
                     <Button
-                        onClick={() => {
+                        onClick={async () => {
                             setHomeModalOpen(false);
                             if (isDemo) {
                                 sessionStorage.removeItem('phera_demo_mode');
                                 sessionStorage.removeItem('demo-wedding-slug');
                                 sessionStorage.removeItem('demo-tour-step');
+                                await signOut();
                             }
                             router.push('/');
                         }}
