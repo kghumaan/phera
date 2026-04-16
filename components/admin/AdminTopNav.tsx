@@ -325,7 +325,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 )}
                             </Avatar>
                             <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
-                                {isDemo ? 'Simran & Karanvir' : (wedding?.couple_name || 'Your Wedding')}
+                                {wedding?.couple_name || 'Your Wedding'}
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
                                 {isDemo ? 'Demo Mode' : user?.email}
