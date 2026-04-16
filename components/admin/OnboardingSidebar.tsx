@@ -82,6 +82,7 @@ export const groups: SidebarGroup[] = [
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
       { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'shopping', label: 'Where to Shop', path: '/shopping' },
       { id: 'pins', label: 'Event Access', path: '/pins', required: true },
     ],
   },
