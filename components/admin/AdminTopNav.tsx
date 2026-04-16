@@ -84,12 +84,16 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         router.push('/');
     };
 
-    const handleExitDemo = async () => {
+    const handleExitDemo = () => {
         handleMenuClose();
         sessionStorage.removeItem('phera_demo_mode');
         sessionStorage.removeItem('demo-wedding-slug');
         sessionStorage.removeItem('demo-tour-step');
-        await signOut();
+        // Fire signOut without awaiting — AuthContext updates user state
+        // synchronously, the supabase network call finishes in background.
+        // Awaiting here was blocking the router.push long enough that the
+        // first attempt appeared to do nothing.
+        signOut();
         router.push('/');
     };
 
@@ -525,13 +529,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
                     <Button
-                        onClick={async () => {
+                        onClick={() => {
                             setHomeModalOpen(false);
                             if (isDemo) {
                                 sessionStorage.removeItem('phera_demo_mode');
                                 sessionStorage.removeItem('demo-wedding-slug');
                                 sessionStorage.removeItem('demo-tour-step');
-                                await signOut();
+                                signOut();
                             }
                             router.push('/');
                         }}
