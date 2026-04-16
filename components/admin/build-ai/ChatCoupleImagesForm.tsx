@@ -1,0 +1,205 @@
+'use client';
+
+import { useState } from 'react';
+import { Box, Typography, Button, IconButton, CircularProgress, alpha } from '@mui/material';
+import { Add, Delete, Check } from '@mui/icons-material';
+import { uploadImage } from '@/lib/utils/image-upload';
+import { getWeddingImagePath } from '@/lib/utils/image-upload';
+
+interface ChatCoupleImagesFormProps {
+  onSave: (images: string[]) => void;
+  onCancel: () => void;
+  weddingId: string | null;
+  currentImages?: string[];
+}
+
+export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, currentImages = [] }: ChatCoupleImagesFormProps) {
+  const [images, setImages] = useState<string[]>(currentImages);
+  const [uploading, setUploading] = useState(false);
+
+  const handleAddPhoto = () => {
+    if (!weddingId || images.length >= 6) return;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+    input.multiple = true;
+    input.onchange = async (e) => {
+      const files = Array.from((e.target as HTMLInputElement).files || []);
+      if (!files.length) return;
+
+      setUploading(true);
+      const remaining = 6 - images.length;
+      const toUpload = files.slice(0, remaining);
+
+      const newImages = [...images];
+      for (const file of toUpload) {
+        const result = await uploadImage(file, getWeddingImagePath(weddingId, 'couple'));
+        if (result.success && result.url) {
+          newImages.push(result.url);
+        }
+      }
+      setImages(newImages.slice(0, 6));
+      setUploading(false);
+    };
+    input.click();
+  };
+
+  const handleDelete = async (index: number) => {
+    const url = images[index];
+    if (url && !url.includes('placeholder')) {
+      const { deleteImage } = await import('@/lib/utils/image-upload');
+      await deleteImage(url);
+    }
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <Box sx={{
+      bgcolor: 'white',
+      p: 3,
+      borderRadius: '16px',
+      border: '2px solid',
+      borderColor: alpha('#000', 0.12),
+      width: '100%',
+      maxWidth: 640,
+      mt: 1,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+    }}>
+      <Typography variant="h6" sx={{ mb: 1, fontWeight: 700, color: '#000', fontSize: '1rem' }}>
+        Couple Photos
+      </Typography>
+      <Typography variant="caption" sx={{ color: '#666', mb: 2, display: 'block' }}>
+        Upload up to 6 photos of the couple. These appear on your wedding website homepage.
+      </Typography>
+
+      {/* Thumbnails */}
+      {images.length > 0 && (
+        <Box sx={{
+          display: 'flex',
+          gap: 1.5,
+          flexWrap: 'wrap',
+          mb: 2,
+        }}>
+          {images.map((img, index) => (
+            <Box
+              key={index}
+              sx={{
+                position: 'relative',
+                width: 90,
+                height: 90,
+                borderRadius: '10px',
+                overflow: 'hidden',
+                border: index === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
+                flexShrink: 0,
+              }}
+            >
+              <Box
+                component="img"
+                src={img}
+                alt={`Couple photo ${index + 1}`}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              {index === 0 && (
+                <Typography sx={{
+                  position: 'absolute',
+                  top: 4,
+                  left: 4,
+                  bgcolor: '#DE3F5E',
+                  color: 'white',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  px: 0.75,
+                  py: 0.25,
+                  borderRadius: '4px',
+                }}>
+                  Main
+                </Typography>
+              )}
+              <IconButton
+                size="small"
+                onClick={() => handleDelete(index)}
+                sx={{
+                  position: 'absolute',
+                  top: 2,
+                  right: 2,
+                  bgcolor: 'rgba(0,0,0,0.6)',
+                  color: 'white',
+                  width: 22,
+                  height: 22,
+                  '&:hover': { bgcolor: 'rgba(222,63,94,0.9)' },
+                }}
+              >
+                <Delete sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Add button */}
+      {images.length < 6 && (
+        <Button
+          variant="outlined"
+          startIcon={uploading ? <CircularProgress size={16} /> : <Add />}
+          onClick={handleAddPhoto}
+          disabled={uploading || !weddingId}
+          sx={{
+            borderColor: '#DE3F5E',
+            color: '#DE3F5E',
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            mb: 2,
+            '&:hover': { borderColor: '#c73552', bgcolor: 'rgba(222,63,94,0.04)' },
+          }}
+        >
+          {uploading ? 'Uploading...' : `Add Photo${images.length > 0 ? ` (${images.length}/6)` : ''}`}
+        </Button>
+      )}
+
+      {/* Action buttons */}
+      <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
+        <Button
+          onClick={onCancel}
+          size="small"
+          variant="outlined"
+          fullWidth
+          sx={{
+            color: '#666',
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            py: 1,
+            textTransform: 'none',
+            borderRadius: '16px',
+            flex: 1,
+            border: '2px solid',
+            borderColor: 'rgba(0,0,0,0.1)',
+            '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' },
+          }}
+        >
+          Skip
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => onSave(images)}
+          size="small"
+          fullWidth
+          disabled={images.length === 0}
+          sx={{
+            bgcolor: '#DE3F5E',
+            borderRadius: '16px',
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            py: 1,
+            textTransform: 'none',
+            flex: 1,
+            '&:hover': { bgcolor: '#c73552' },
+          }}
+        >
+          Save Photos
+        </Button>
+      </Box>
+    </Box>
+  );
+}

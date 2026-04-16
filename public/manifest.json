@@ -1,0 +1,27 @@
+{
+    "name": "Sim & KV's Wedding Invite - Phera",
+    "short_name": "Phera",
+    "description": "Join us for our traditional Indian wedding celebration",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#D4AF37",
+    "icons": [
+        {
+            "src": "/logo-lotus-flame.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "32x32",
+            "type": "image/x-icon"
+        }
+    ],
+    "orientation": "portrait-primary",
+    "categories": [
+        "lifestyle",
+        "social"
+    ]
+}

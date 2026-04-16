@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit);
+  --font-serif: var(--font-instrument-serif);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Viewport optimizations for background images */
+html,
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  /* Small viewport height accounts for mobile browser chrome (address bar, nav buttons) */
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Ensure backgrounds cover the full viewport on all devices */
+.background-container {
+  min-height: 100vh;
+  min-height: 100svh;
+  width: 100vw;
+  position: relative;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  body {
+    /* Ensure smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for iOS Safari address bar issues */
+  .background-container {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+  /* Ensure crisp backgrounds on retina displays */
+  .background-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Override browser autofill styling to keep white background and black text */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: #000 !important;
+  background-color: white !important;
+  color: #000 !important;
+  caret-color: #000 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* react-datepicker onboarding overrides */
+.onboarding-datepicker-wrapper,
+.guest-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker {
+  font-family: inherit !important;
+  border: 1px solid rgba(222, 63, 94, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+.react-datepicker__header {
+  background-color: #fff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.react-datepicker__current-month {
+  color: #1a1a1a !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+.react-datepicker__day-name {
+  color: #999 !important;
+  font-weight: 500 !important;
+}
+
+.react-datepicker__day {
+  color: #1a1a1a !important;
+  font-weight: 500 !important;
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: rgba(222, 63, 94, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  background-color: #DE3F5E !important;
+  color: #1a1a1a !important;
+  border-radius: 50% !important;
+  font-weight: 700 !important;
+}
+
+.react-datepicker__day--in-range {
+  background-color: rgba(222, 63, 94, 0.25) !important;
+  color: #1a1a1a !important;
+  border-radius: 0 !important;
+}
+
+.react-datepicker__day--in-selecting-range {
+  background-color: rgba(222, 63, 94, 0.2) !important;
+  color: #1a1a1a !important;
+}
+
+.react-datepicker__day--range-start {
+  border-radius: 50% 0 0 50% !important;
+}
+
+.react-datepicker__day--range-end {
+  border-radius: 0 50% 50% 0 !important;
+}
+
+.react-datepicker__day--range-start.react-datepicker__day--range-end {
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day--today {
+  font-weight: 700 !important;
+  color: #DE3F5E !important;
+}
+
+.react-datepicker__day--today.react-datepicker__day--selected,
+.react-datepicker__day--today.react-datepicker__day--range-start,
+.react-datepicker__day--today.react-datepicker__day--range-end {
+  color: #1a1a1a !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #1a1a1a !important;
+}
+
+.react-datepicker__navigation:hover *::before {
+  border-color: #DE3F5E !important;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: rgba(222, 63, 94, 0.15) !important;
+  color: #1a1a1a !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #ccc !important;
+}
+
+.react-datepicker__triangle {
+  display: none !important;
+}

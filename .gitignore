@@ -1,0 +1,65 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+.vscode/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Large image files
+design-reference/**/*.png
+design-reference/**/*.jpg
+design-reference/**/*.jpeg
+public/design-reference/**/*.png
+public/design-reference/**/*.jpg
+public/design-reference/**/*.jpeg
+public/couple-images/**/*.png
+public/couple-images/**/*.jpg
+public/couple-images/**/*.jpeg
+public/logo-white.png
+
+.gemini/
+.claude/
+
+# supabase
+supabase/.temp/
+supabase/schema_dump.sql
+
+# Image originals (backed up by optimize-images script)
+public/images/backgrounds/_originals/
+public/images/frames/_originals/
