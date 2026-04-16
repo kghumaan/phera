@@ -27,6 +27,48 @@ When revisiting this:
 - Or when >1 match, reply with a numbered disambiguation prompt and cache the selection.
 - Either way, the reply should include a footer "(asking about Priya & Rahul's wedding)" so the guest notices if we matched the wrong event.
 
+## Dead admin routes — candidates for deletion (added 2026-04-16)
+
+Sidebar nav (OnboardingSidebar) only links these paths under
+`/admin/<slug>/`:
+overview, details, design, schedule, travel, rsvp-form, faq, registry,
+pins, guest-list, guests, rooms, transportation, concierge,
+task-manager, coordinator, team.
+
+The pages below exist as routes but have **zero inbound refs** from
+sidebar, buttons, or programmatic pushes. Worth deleting unless they're
+intentional preview/test surfaces. Verified via grep across app/, components/, lib/.
+
+Per-wedding (under `/admin/[weddingSlug]/`):
+- `events/page.tsx` — replaced by `/schedule`. The events admin UI
+  writes to `wedding_events` which the schedule page doesn't read,
+  causing the duplication issue we just hit. Delete.
+- `communication/page.tsx` — 0 refs.
+- `concierge-test/page.tsx` — looks like a dev test surface.
+- `pin-entry/page.tsx` — likely a relic from PIN entry refactor (guest
+  PIN entry lives under guest routes).
+- `shopping/page.tsx` — 0 refs.
+- `travel-coordination/page.tsx` — 0 refs (separate from `travel/`).
+- `publish/page.tsx` — just a 12-line redirect to `/settings`. Either
+  delete or wire something to it.
+
+Top-level (under `/admin/`):
+- `events/page.tsx` — 0 refs.
+- `guests/page.tsx` — 0 refs.
+- `dashboard/page.tsx` — 0 refs.
+- `icon-preview/page.tsx` — 0 refs (looks like a dev preview).
+- `settings/page.tsx` — 0 refs (per-wedding settings lives under slug).
+
+**Keep:**
+- `[weddingSlug]/build-ai/page.tsx` — Build with AI feature, not live yet but planned.
+- `[weddingSlug]/control-tower/page.tsx` — explicit user request.
+- `[weddingSlug]/upgrade-success/page.tsx` — Stripe redirect target.
+- `[weddingSlug]/settings/page.tsx` — gear icon menu probably routes here even if not via Link.
+- `admin/new/page.tsx` — used by signup / first-run flow.
+
+Before deleting any, sanity-check by running the dev server and clicking
+through the admin to make sure nothing 404s.
+
 ## wedding_schedule date drift on wedding_date edit (added 2026-04-16)
 
 In `wedding-service.ts:1345-1366` (`prepopulateScheduleFromTemplate` /
