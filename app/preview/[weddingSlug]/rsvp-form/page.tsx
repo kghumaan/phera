@@ -18,10 +18,9 @@ function RSVPFormContent({ weddingSlug }: { weddingSlug: string }) {
         sx={{
           minHeight: '100vh',
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'stretch',
           justifyContent: 'center',
-          pt: 8,
-          pb: 4,
+          py: 2,
         }}
       >
         <CustomRSVPForm weddingId={weddingSlug} isPreview />
