@@ -36,6 +36,8 @@ export interface WeddingContext {
   events: Array<{
     name: string;
     date: string | null;
+    iso_date: string | null;
+    day_of_week: string | null;
     time: string | null;
     venue: string | null;
     dress_code: string | null;

@@ -262,16 +262,21 @@ export async function generateAIResponse(params: {
       wedding_slug: weddingSlug,
       rsvp_deadline: wedding?.rsvp_deadline || null,
       rsvp_counts: rsvpCounts,
-      events: events.map((e: any) => ({
-        name: e.name,
-        date: e.date || null,
-        time: e.time || null,
-        venue: e.venue_name || null,
-        dress_code: e.dress_code || null,
-        dress_code_description: e.dress_code_description || null,
-        ritual_name: e.ritual_name || null,
-        ritual_description: e.ritual_description || null,
-      })),
+      events: events.map((e: any) => {
+        const inferred = inferEventDate(e.date, wedding?.wedding_date);
+        return {
+          name: e.name,
+          date: e.date || null,
+          iso_date: inferred.isoDate,
+          day_of_week: inferred.dayOfWeek,
+          time: e.time || null,
+          venue: e.venue_name || null,
+          dress_code: e.dress_code || null,
+          dress_code_description: e.dress_code_description || null,
+          ritual_name: e.ritual_name || null,
+          ritual_description: e.ritual_description || null,
+        };
+      }),
       schedule: scheduleData,
       travel_info: travelInfo,
       shuttle_info: '', // TODO: format from transportation tables if needed
@@ -675,6 +680,31 @@ function extractTextToolCalls(text: string): {
   const cleanText = text.replace(/<function[=(][^>]*>[\s\S]*?<\/function>/gi, '').trim();
 
   return { cleanText, parsedCalls };
+}
+
+/**
+ * Derive ISO date + day-of-week from an event's freeform date string (e.g.
+ * "January 4", "Jan 4", "2026-01-04") anchored to the wedding's known year.
+ * We don't store the computed values — we derive them every time the AI is
+ * called so answers like "What's on Saturday?" always resolve correctly even
+ * if the underlying event text is only partially structured.
+ */
+function inferEventDate(
+  rawDate: string | null | undefined,
+  weddingDate: string | Date | null | undefined,
+): { isoDate: string | null; dayOfWeek: string | null } {
+  if (!rawDate) return { isoDate: null, dayOfWeek: null };
+  const anchorYear = weddingDate ? new Date(weddingDate).getUTCFullYear() : new Date().getUTCFullYear();
+  const candidates = [rawDate, `${rawDate}, ${anchorYear}`, `${rawDate} ${anchorYear}`];
+  for (const candidate of candidates) {
+    const parsed = new Date(candidate);
+    if (!isNaN(parsed.getTime())) {
+      const isoDate = parsed.toISOString().slice(0, 10);
+      const dayOfWeek = parsed.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
+      return { isoDate, dayOfWeek };
+    }
+  }
+  return { isoDate: null, dayOfWeek: null };
 }
 
 function getFallbackResponse(guestName: string, partnerName: string, weddingSlug: string): string {
