@@ -269,9 +269,9 @@ export default function EventsPage({ params }: { params: Promise<{ weddingSlug: 
     try {
       setError(null);
       const newFieldErrors: Record<string, boolean> = {};
-      if (!currentEvent.name) newFieldErrors.name = true;
-      if (!currentEvent.date) newFieldErrors.date = true;
-      if (!currentEvent.dress_code) newFieldErrors.dress_code = true;
+      if (!currentEvent.name?.trim()) newFieldErrors.name = true;
+      if (!currentEvent.date?.trim()) newFieldErrors.date = true;
+      if (!currentEvent.dress_code?.trim()) newFieldErrors.dress_code = true;
 
       if (Object.keys(newFieldErrors).length > 0) {
         setFieldErrors(newFieldErrors);
