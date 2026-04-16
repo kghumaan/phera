@@ -137,6 +137,26 @@ const SENDER_COLORS: Record<string, string> = {
   unknown: '#757575',
 };
 
+/**
+ * Deterministic color palette for per-member message tinting in the
+ * conversation view. Hashes the sender name into a stable palette index
+ * so each participant keeps the same color across renders and reloads.
+ */
+const MEMBER_PALETTE = [
+  '#DE3F5E', '#2196F3', '#9C27B0', '#4CAF50', '#FF9800',
+  '#00BCD4', '#F06292', '#795548', '#5E35B1', '#00897B',
+  '#FB8C00', '#3949AB', '#8BC34A', '#E53935', '#546E7A',
+];
+function memberColor(name: string): string {
+  if (!name) return '#757575';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0;
+  }
+  return MEMBER_PALETTE[Math.abs(hash) % MEMBER_PALETTE.length];
+}
+
 export default function VendorDetailPage({
   params,
 }: {
@@ -838,13 +858,22 @@ export default function VendorDetailPage({
                               })}
                             </Typography>
                           )}
-                          <Box>
-                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.25 }}>
+                          <Box
+                            sx={{
+                              borderLeft: `3px solid ${memberColor(msg.sender_name)}`,
+                              bgcolor: alpha(memberColor(msg.sender_name), 0.05),
+                              pl: 1.25,
+                              pr: 1,
+                              py: 0.75,
+                              borderRadius: '4px',
+                            }}
+                          >
+                            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25 }}>
                               <Typography
                                 sx={{
                                   fontSize: '0.72rem',
                                   fontWeight: 600,
-                                  color: SENDER_COLORS[msg.sender_type] || '#757575',
+                                  color: memberColor(msg.sender_name),
                                 }}
                               >
                                 {msg.sender_name}

@@ -104,15 +104,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Dedup against any messages already on this conversation, then bulk
-    // insert. Dedup key is (sender_name, content, message_timestamp) since
-    // chat exports don't carry Whapi message ids.
+    // insert. Dedup key is (sender_name, content, epoch_ms_timestamp) since
+    // chat exports don't carry Whapi message ids. We normalise the timestamp
+    // via Date.parse() so Postgres' ISO-with-offset representation
+    // (2025-12-26T12:31:28+00:00) compares equal to the ISO-with-ms form
+    // that toISOString() emits (2025-12-26T12:31:28.000Z).
     const { data: existing } = await serviceSupabase
       .from('vendor_messages')
       .select('sender_name, content, message_timestamp')
       .eq('conversation_id', conversation.id);
 
+    const makeKey = (sender: string, content: string, ts: string | number | Date) => {
+      const ms = typeof ts === 'number' ? ts : new Date(ts).getTime();
+      return `${sender}|${content}|${ms}`;
+    };
+
     const existingKeys = new Set(
-      (existing || []).map((r: any) => `${r.sender_name}|${r.content}|${r.message_timestamp}`),
+      (existing || []).map((r: any) => makeKey(r.sender_name, r.content, r.message_timestamp)),
     );
 
     const messageRows = parsed
@@ -124,7 +132,7 @@ export async function POST(request: NextRequest) {
         content: m.message,
         message_timestamp: m.timestamp.toISOString(),
       }))
-      .filter((r) => !existingKeys.has(`${r.sender_name}|${r.content}|${r.message_timestamp}`));
+      .filter((r) => !existingKeys.has(makeKey(r.sender_name, r.content, r.message_timestamp)));
 
     const insertedCount = messageRows.length;
     for (let i = 0; i < messageRows.length; i += 500) {

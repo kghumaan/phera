@@ -87,9 +87,15 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         flexDirection: 'column',
         borderLeft: '1px solid rgba(0,0,0,0.07)',
         bgcolor: 'white',
-        height: '100vh',
+        // Anchor to the viewport so switching admin tabs doesn't re-flow the
+        // panel. Sticky + height: 100vh was resetting the top offset whenever
+        // the sibling column's height changed (e.g. Members tab is taller).
         position: 'sticky',
         top: 0,
+        alignSelf: 'flex-start',
+        height: '100vh',
+        maxHeight: '100vh',
+        overflow: 'hidden',
         pt: 'calc(34px + 32px)',
       }}
     >

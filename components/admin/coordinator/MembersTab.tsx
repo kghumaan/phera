@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Stack, Chip, CircularProgress, alpha } from '@mui/material';
+import { Box, Typography, Stack, CircularProgress, alpha, Select, MenuItem } from '@mui/material';
 import { AdminPanelSettings, Person, Storefront } from '@mui/icons-material';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 
@@ -15,12 +15,10 @@ interface Member {
 }
 
 const ROLE_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  vendor: { color: '#9C27B0', icon: <Storefront sx={{ fontSize: 12 }} />, label: 'Vendor' },
-  admin: { color: '#2196F3', icon: <AdminPanelSettings sx={{ fontSize: 12 }} />, label: 'Admin' },
-  member: { color: '#9E9E9E', icon: <Person sx={{ fontSize: 12 }} />, label: 'Member' },
+  vendor: { color: '#9C27B0', icon: <Storefront sx={{ fontSize: 14 }} />, label: 'Vendor' },
+  admin: { color: '#2196F3', icon: <AdminPanelSettings sx={{ fontSize: 14 }} />, label: 'Admin' },
+  member: { color: '#9E9E9E', icon: <Person sx={{ fontSize: 14 }} />, label: 'Member' },
 };
-
-const ROLE_CYCLE = ['member', 'vendor', 'admin'];
 
 interface MembersTabProps {
   conversationId: string;
@@ -49,11 +47,10 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
     loadMembers();
   }, [loadMembers]);
 
-  const handleCycleRole = async (member: Member) => {
-    const currentIdx = ROLE_CYCLE.indexOf(member.role);
-    const nextRole = ROLE_CYCLE[(currentIdx + 1) % ROLE_CYCLE.length];
+  const handleRoleChange = async (member: Member, nextRole: string) => {
+    if (nextRole === member.role) return;
+    const previousRole = member.role;
 
-    // Optimistic update
     setMembers((prev) =>
       prev.map((m) => (m.id === member.id ? { ...m, role: nextRole } : m))
     );
@@ -65,14 +62,14 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
         body: JSON.stringify({ memberId: member.id, role: nextRole }),
       });
       if (!res.ok) {
-        throw new Error('Failed');
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed');
       }
-    } catch {
-      // Revert
+    } catch (err: any) {
       setMembers((prev) =>
-        prev.map((m) => (m.id === member.id ? { ...m, role: member.role } : m))
+        prev.map((m) => (m.id === member.id ? { ...m, role: previousRole } : m))
       );
-      showStatus('error', 'Failed to update role');
+      showStatus('error', err?.message || 'Failed to update role');
     }
   };
 
@@ -162,24 +159,44 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
               )}
             </Box>
 
-            {/* Role badge — click to cycle */}
-            <Chip
-              icon={config.icon as React.ReactElement}
-              label={config.label}
+            {/* Role select — dropdown, no race-condition cycling */}
+            <Select
+              value={member.role}
+              onChange={(e) => handleRoleChange(member, e.target.value as string)}
               size="small"
-              onClick={() => handleCycleRole(member)}
               sx={{
-                fontSize: '0.7rem',
-                height: 24,
-                borderRadius: '6px',
-                bgcolor: alpha(config.color, 0.1),
-                color: config.color,
+                minWidth: 120,
+                height: 32,
+                fontSize: '0.78rem',
                 fontWeight: 600,
-                cursor: 'pointer',
-                '& .MuiChip-icon': { color: config.color },
-                '&:hover': { bgcolor: alpha(config.color, 0.18) },
+                bgcolor: alpha(config.color, 0.08),
+                color: config.color,
+                borderRadius: '8px',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.25) },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.5) },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: config.color },
+                '& .MuiSelect-select': { py: 0.5, pl: 1.25, display: 'flex', alignItems: 'center', gap: 0.75 },
+                '& .MuiSvgIcon-root': { color: config.color },
               }}
-            />
+              renderValue={(value) => {
+                const cfg = ROLE_CONFIG[value as string] || ROLE_CONFIG.member;
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    {cfg.icon}
+                    <span>{cfg.label}</span>
+                  </Box>
+                );
+              }}
+            >
+              {Object.entries(ROLE_CONFIG).map(([value, cfg]) => (
+                <MenuItem key={value} value={value} sx={{ fontSize: '0.82rem', gap: 0.75 }}>
+                  <Box component="span" sx={{ color: cfg.color, display: 'flex', alignItems: 'center' }}>
+                    {cfg.icon}
+                  </Box>
+                  {cfg.label}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
         );
       })}
