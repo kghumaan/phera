@@ -234,10 +234,10 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      if (messages.length === 0) {
-        errors.push({ chatId, chatName, error: 'No messages returned from Whapi' });
-        continue;
-      }
+      // messages.length === 0 is allowed — this happens when admins add
+      // the number to a quiet / older chat with no traffic since it joined.
+      // We still create the conversation + vendor so the admin can use
+      // "Upload older messages" to import history, or wait for new traffic.
 
       // Create or get conversation
       let conversationId: string;
@@ -437,8 +437,51 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', conversationId);
 
-      // Run AI extraction
+      // Ensure a vendor row exists for this chat BEFORE AI extraction, so
+      // groups with zero messages still show up in the coordinator dashboard
+      // as a claimed vendor. AI extraction can refine the name later when
+      // messages arrive.
       let vendorName = chatName;
+      let vendorId: string | null = null;
+      {
+        const { data: existingVendor } = await supabase
+          .from('vendors')
+          .select('id')
+          .eq('wedding_id', weddingId)
+          .eq('whatsapp_group_id', chatId)
+          .maybeSingle();
+
+        if (existingVendor) {
+          vendorId = existingVendor.id;
+        } else {
+          const { data: newVendor, error: vendorErr } = await supabase
+            .from('vendors')
+            .insert({
+              wedding_id: weddingId,
+              name: vendorName,
+              category: 'Other',
+              whatsapp_group_id: chatId,
+              status: 'active',
+            })
+            .select()
+            .single();
+
+          if (vendorErr) {
+            console.error(`[sync-groups] Failed to create vendor for ${chatName}:`, vendorErr);
+          } else {
+            vendorId = newVendor.id;
+          }
+        }
+
+        if (vendorId) {
+          await supabase
+            .from('vendor_conversations')
+            .update({ vendor_id: vendorId })
+            .eq('id', conversationId);
+        }
+      }
+
+      // Run AI extraction only if we have messages to analyze
       if (importedCount > 0) {
         try {
           const { data: sampleMsgs } = await supabase
@@ -461,55 +504,28 @@ export async function POST(request: NextRequest) {
             } : undefined;
 
             const extraction = await extractVendorInsights(sampleMsgs, vendorContext);
-            vendorName = (extraction.vendor_name && extraction.vendor_name !== 'Unknown Vendor')
+            const refinedName = (extraction.vendor_name && extraction.vendor_name !== 'Unknown Vendor')
               ? extraction.vendor_name
               : chatName;
 
-            // Create or find vendor record
-            let vendorId: string;
-            const vendorLookupField = isDirectChat ? 'whatsapp_group_id' : 'whatsapp_group_id';
-            const { data: existingVendor } = await supabase
-              .from('vendors')
-              .select('id')
-              .eq('wedding_id', weddingId)
-              .eq('whatsapp_group_id', chatId)
-              .single();
-
-            if (existingVendor) {
-              vendorId = existingVendor.id;
-            } else {
-              const { data: newVendor, error: vendorError } = await supabase
-                .from('vendors')
-                .insert({
-                  wedding_id: weddingId,
-                  name: vendorName,
-                  category: extraction.vendor_category || 'Other',
-                  whatsapp_group_id: chatId,
-                  status: 'active',
-                })
-                .select()
-                .single();
-
-              if (vendorError) {
-                console.error(`[sync-groups] Failed to create vendor for ${chatName}:`, vendorError);
-                continue;
-              }
-              vendorId = newVendor.id;
+            // Refine the vendor name/category if AI detected something better
+            // than the default chat title. Vendor row was created before this
+            // block, so we only need to patch it here.
+            if (vendorId && (refinedName !== vendorName || extraction.vendor_category)) {
+              vendorName = refinedName;
+              const patch: any = { name: refinedName };
+              if (extraction.vendor_category) patch.category = extraction.vendor_category;
+              await supabase.from('vendors').update(patch).eq('id', vendorId);
             }
 
-            // Link conversation to vendor
-            await supabase
-              .from('vendor_conversations')
-              .update({ vendor_id: vendorId })
-              .eq('id', conversationId);
-
-            // Save insights
-            await saveInsights({
-              conversationId,
-              weddingId,
-              vendorId,
-              insights: extraction.insights,
-            });
+            if (vendorId) {
+              await saveInsights({
+                conversationId,
+                weddingId,
+                vendorId,
+                insights: extraction.insights,
+              });
+            }
           }
         } catch (aiError) {
           console.error(`[sync-groups] AI extraction failed for ${chatName}:`, aiError);
@@ -525,15 +541,25 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const totalImported = results.reduce((s, r) => s + r.messagesImported, 0);
+    const emptyCount = results.filter((r) => r.messagesImported === 0).length;
+    let message: string;
+    if (results.length > 0 && totalImported > 0) {
+      message = `Synced ${results.length} chat(s) with ${totalImported} new message(s)`;
+      if (emptyCount > 0) message += ` — ${emptyCount} claimed with no messages yet (use "Upload older messages" to import history)`;
+    } else if (results.length > 0) {
+      message = `Claimed ${results.length} chat(s) — no messages yet. Use "Upload older messages" on each vendor to import history, or wait for new traffic.`;
+    } else if (errors.length > 0) {
+      message = `Sync failed: ${errors.map(e => `${e.chatName}: ${e.error}`).join('; ')}`;
+    } else {
+      message = 'No new messages to sync';
+    }
+
     return NextResponse.json({
       synced: results.length,
       results,
       errors: errors.length > 0 ? errors : undefined,
-      message: results.length > 0
-        ? `Synced ${results.length} chat(s) with ${results.reduce((s, r) => s + r.messagesImported, 0)} new messages`
-        : errors.length > 0
-          ? `Sync failed: ${errors.map(e => `${e.chatName}: ${e.error}`).join('; ')}`
-          : 'No new messages to sync',
+      message,
     });
   } catch (error: any) {
     console.error('[sync-groups POST] Error:', error);
