@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { whapiClient } from '@/lib/vendors/whapi-client';
 import { extractVendorInsights, saveInsights, generateCoordinatorReply } from '@/lib/vendors/ai-extractor';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
-import { logChatMessage } from '@/lib/whatsapp/webhooks';
 import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
 
 const supabase = createClient(
@@ -259,15 +258,9 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
     const guestName = guest.name?.split(' ')[0] || 'Guest';
     console.log(`[concierge] Message from ${guest.name} (${senderPhone}): ${content.slice(0, 80)}`);
 
-    await logChatMessage({
-      weddingId: wedding.id,
-      guestId: guest.id,
-      role: 'user',
-      content,
-      waMessageId: msg.id,
-      metadata: { type: msg.type, provider: 'whapi', timestamp: msg.timestamp },
-    });
-
+    // Note: generateAIResponse logs both the inbound user message and the
+    // outbound assistant reply to whatsapp_chat_history internally. We skip
+    // webhook-side logging to avoid duplicate rows in the conversation view.
     const rawAi = await generateAIResponse({
       weddingId: wedding.id,
       weddingSlug: wedding.slug,
@@ -277,16 +270,7 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
     });
 
     const aiResponse = sanitizeAIResponse(rawAi, guestName);
-    const sendResult = await whapiSend(senderPhone, aiResponse);
-
-    await logChatMessage({
-      weddingId: wedding.id,
-      guestId: guest.id,
-      role: 'assistant',
-      content: aiResponse,
-      waMessageId: sendResult.messageId,
-      metadata: { provider: 'whapi' },
-    });
+    await whapiSend(senderPhone, aiResponse);
 
     console.log(`[concierge] Replied to ${guestName}: ${aiResponse.slice(0, 80)}`);
     return true;
