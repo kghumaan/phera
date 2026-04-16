@@ -367,11 +367,14 @@ export default function OnboardingPage() {
         }
 
         if (settings.subscription_tier === 'basic') {
-          // Verify user actually has a wedding before skipping onboarding
+          // Verify user actually has a wedding before skipping onboarding.
+          // Exclude demo clones so a stale demo session doesn't short-circuit
+          // the onboarding flow for a real wedding.
           const { data: wedding } = await supabase
             .from('weddings')
             .select('slug')
             .eq('created_by', userId)
+            .not('slug', 'like', 'demo-%')
             .limit(1)
             .single();
 

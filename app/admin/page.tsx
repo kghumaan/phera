@@ -128,6 +128,7 @@ export default function AdminPage() {
           .from('weddings')
           .select('*')
           .eq('created_by', currentUser.id)
+          .not('slug', 'like', 'demo-%')
           .order('created_at', { ascending: false })
           .limit(1)
           .single();

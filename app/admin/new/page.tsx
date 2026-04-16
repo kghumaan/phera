@@ -55,11 +55,12 @@ export default function NewWeddingPage() {
         return;
       }
 
-      // Check if user already has weddings
+      // Check if user already has weddings (exclude demo clones)
       const { data: existingWeddings } = await supabase
         .from('weddings')
         .select('slug')
         .eq('created_by', user.id)
+        .not('slug', 'like', 'demo-%')
         .order('created_at', { ascending: false })
         .limit(1);
 
