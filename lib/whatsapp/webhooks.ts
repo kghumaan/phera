@@ -227,6 +227,32 @@ export async function logChatMessage({
   metadata?: any;
 }): Promise<void> {
   try {
+    // Idempotent guard: if a row with this wa_message_id already exists,
+    // skip. Prevents duplicates when multiple callers (webhook + ai-handler)
+    // both try to log the same message.
+    if (waMessageId) {
+      const { data: existing } = await (supabase as any)
+        .from('whatsapp_chat_history')
+        .select('id')
+        .eq('wa_message_id', waMessageId)
+        .limit(1);
+      if (existing && existing.length > 0) return;
+    } else {
+      // Fallback dedup for callers that can't supply wa_message_id
+      // (ai-handler's internal logging). Within a 10-second window, skip if
+      // an identical (guest, role, content) row already exists.
+      const tenSecondsAgo = new Date(Date.now() - 10_000).toISOString();
+      const { data: recent } = await (supabase as any)
+        .from('whatsapp_chat_history')
+        .select('id')
+        .eq('guest_id', guestId)
+        .eq('role', role)
+        .eq('content', content)
+        .gte('created_at', tenSecondsAgo)
+        .limit(1);
+      if (recent && recent.length > 0) return;
+    }
+
     const record: any = {
       wedding_id: weddingId,
       guest_id: guestId,

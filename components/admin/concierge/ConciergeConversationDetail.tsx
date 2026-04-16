@@ -32,7 +32,7 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <IconButton onClick={onBack} size="small" sx={{ color: '#1a1a1a' }}>
-          <ArrowBack sx={{ fontSize: 20 }} />
+          <ArrowBack sx={{ fontSize: 20, color: '#1a1a1a' }} />
         </IconButton>
         <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#1a1a1a' }}>
           {guestName}
