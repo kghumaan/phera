@@ -42,6 +42,8 @@ import {
   ExpandLess,
   Delete,
   ViewKanban,
+  Upload,
+  InfoOutlined,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
@@ -177,6 +179,42 @@ export default function VendorDetailPage({
   // Track which action items have been imported to task manager
   const [importedItems, setImportedItems] = useState<Set<string>>(new Set());
   const [importingItem, setImportingItem] = useState<string | null>(null);
+
+  // Upload older messages (per-vendor chat export import)
+  const olderFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingOlder, setUploadingOlder] = useState(false);
+
+  const handleUploadOlderMessages = async (file: File) => {
+    if (!weddingId || isDemo) return;
+    if (!file.name.endsWith('.txt')) {
+      showStatus('error', 'Please upload a .txt WhatsApp export');
+      return;
+    }
+    setUploadingOlder(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('weddingId', weddingId);
+      formData.append('vendorId', vendorId);
+      const res = await fetch('/api/vendors/import-chat', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Upload failed');
+      const added = data.message_count ?? 0;
+      const skipped = data.skipped_duplicates ?? 0;
+      showStatus(
+        'saved',
+        `Added ${added} older message${added === 1 ? '' : 's'}${skipped > 0 ? ` (${skipped} duplicate${skipped === 1 ? '' : 's'} skipped)` : ''}`,
+      );
+      // Refresh vendor detail to surface the newly merged messages
+      window.location.reload();
+    } catch (err: any) {
+      console.error('Upload older messages error:', err);
+      showStatus('error', err?.message || 'Upload failed');
+    } finally {
+      setUploadingOlder(false);
+      if (olderFileInputRef.current) olderFileInputRef.current.value = '';
+    }
+  };
 
   const handleImportToTaskManager = useCallback(async (item: Insight) => {
     if (!weddingId || isDemo) return;
@@ -531,6 +569,27 @@ export default function VendorDetailPage({
                 </>
               ) : (
                 <>
+                  <input
+                    ref={olderFileInputRef}
+                    type="file"
+                    accept=".txt"
+                    hidden
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleUploadOlderMessages(f);
+                    }}
+                  />
+                  <Tooltip title="Phera only sees messages sent after it joined the group. Upload a WhatsApp chat export (.txt, no media) to merge older history into this thread.">
+                    <Button
+                      size="small"
+                      startIcon={uploadingOlder ? <CircularProgress size={14} /> : <Upload />}
+                      onClick={() => olderFileInputRef.current?.click()}
+                      disabled={uploadingOlder}
+                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+                    >
+                      {uploadingOlder ? 'Uploading...' : 'Upload older messages'}
+                    </Button>
+                  </Tooltip>
                   <Button
                     size="small"
                     startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}

@@ -63,37 +63,70 @@ export async function POST(request: NextRequest) {
       rawFileUrl = publicUrl;
     }
 
-    // 3. Create conversation record
+    // 3. Resolve the target conversation.
+    // If a vendorId is provided, prefer appending to an existing live
+    // (Whapi-tracked) conversation so the vendor detail page shows a single
+    // merged thread instead of a separate "chat_export" sibling. Fall back to
+    // creating a fresh chat_export conversation when there's no live one.
     const timestamps = parsed.map((m) => m.timestamp.toISOString());
-    const { data: conversation, error: convoError } = await serviceSupabase
-      .from('vendor_conversations')
-      .insert({
+    let conversation: any = null;
+
+    if (vendorId) {
+      const { data: liveConvo } = await serviceSupabase
+        .from('vendor_conversations')
+        .select('*')
+        .eq('vendor_id', vendorId)
+        .in('source', ['whapi_direct', 'whapi_webhook'])
+        .order('last_message_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (liveConvo) conversation = liveConvo;
+    }
+
+    if (!conversation) {
+      const { data: created, error: convoError } = await serviceSupabase
+        .from('vendor_conversations')
+        .insert({
+          wedding_id: weddingId,
+          vendor_id: vendorId || null,
+          source: 'chat_export',
+          title: file.name.replace('.txt', ''),
+          raw_file_url: rawFileUrl,
+          message_count: parsed.length,
+          first_message_at: timestamps[0],
+          last_message_at: timestamps[timestamps.length - 1],
+          status: 'processing',
+        })
+        .select()
+        .single();
+      if (convoError) throw convoError;
+      conversation = created;
+    }
+
+    // 4. Dedup against any messages already on this conversation, then bulk
+    // insert. Dedup key is (sender_name, content, message_timestamp) since
+    // chat exports don't carry Whapi message ids.
+    const { data: existing } = await serviceSupabase
+      .from('vendor_messages')
+      .select('sender_name, content, message_timestamp')
+      .eq('conversation_id', conversation.id);
+
+    const existingKeys = new Set(
+      (existing || []).map((r: any) => `${r.sender_name}|${r.content}|${r.message_timestamp}`),
+    );
+
+    const messageRows = parsed
+      .map((m) => ({
+        conversation_id: conversation.id,
         wedding_id: weddingId,
-        vendor_id: vendorId || null,
-        source: 'chat_export',
-        title: file.name.replace('.txt', ''),
-        raw_file_url: rawFileUrl,
-        message_count: parsed.length,
-        first_message_at: timestamps[0],
-        last_message_at: timestamps[timestamps.length - 1],
-        status: 'processing',
-      })
-      .select()
-      .single();
+        sender_name: m.sender,
+        sender_type: 'unknown' as const,
+        content: m.message,
+        message_timestamp: m.timestamp.toISOString(),
+      }))
+      .filter((r) => !existingKeys.has(`${r.sender_name}|${r.content}|${r.message_timestamp}`));
 
-    if (convoError) throw convoError;
-
-    // 4. Bulk insert messages
-    const messageRows = parsed.map((m) => ({
-      conversation_id: conversation.id,
-      wedding_id: weddingId,
-      sender_name: m.sender,
-      sender_type: 'unknown' as const,
-      content: m.message,
-      message_timestamp: m.timestamp.toISOString(),
-    }));
-
-    // Insert in batches of 500
+    const insertedCount = messageRows.length;
     for (let i = 0; i < messageRows.length; i += 500) {
       const batch = messageRows.slice(i, i + 500);
       const { error: insertError } = await serviceSupabase
@@ -103,6 +136,20 @@ export async function POST(request: NextRequest) {
         console.error('Batch insert error:', insertError);
       }
     }
+
+    // Refresh conversation stats after the merged insert
+    const { count: totalCount } = await serviceSupabase
+      .from('vendor_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('conversation_id', conversation.id);
+    await serviceSupabase
+      .from('vendor_conversations')
+      .update({
+        message_count: totalCount ?? parsed.length,
+        first_message_at: timestamps[0],
+        last_message_at: timestamps[timestamps.length - 1],
+      })
+      .eq('id', conversation.id);
 
     // 5. Run AI extraction
     try {
@@ -168,7 +215,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       conversation_id: conversation.id,
-      message_count: parsed.length,
+      message_count: insertedCount,
+      skipped_duplicates: parsed.length - insertedCount,
       status: 'processing',
     });
   } catch (error: any) {

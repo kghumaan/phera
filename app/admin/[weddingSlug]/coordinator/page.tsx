@@ -24,6 +24,7 @@ import {
   Tooltip,
   Tabs,
   Tab,
+  Collapse,
 } from '@mui/material';
 import React, { useState, use, useEffect, useCallback, useRef } from 'react';
 import {
@@ -40,6 +41,8 @@ import {
   Sync,
   CloudSync,
   Delete,
+  ExpandMore,
+  ExpandLess,
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -1127,6 +1130,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               </Stack>
             </Box>
 
+            {/* Collapsible instructions — stays visible after vendors exist */}
+            <HowToAddChatsPanel coordinatorPhone={coordinatorPhone} />
+
             {/* Conversation Tile Grid */}
             <Box
               sx={{
@@ -1607,6 +1613,68 @@ function ChatPickerItem({
           </Typography>
         )}
       </Box>
+    </Paper>
+  );
+}
+
+/**
+ * Persistent, collapsible "How to add vendor chats" panel. Rendered above
+ * the vendor grid so admins can always re-read the add-the-number flow
+ * without hunting through onboarding.
+ */
+function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: 1,
+        border: '1px solid rgba(0,0,0,0.07)',
+        bgcolor: '#FFFBF6',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        onClick={() => setOpen((p) => !p)}
+        sx={{
+          px: 2,
+          py: 1.25,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          cursor: 'pointer',
+          '&:hover': { bgcolor: '#FFF6EB' },
+        }}
+      >
+        <InfoOutlined sx={{ fontSize: 18, color: '#B35D00' }} />
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+          How to add a new vendor chat
+        </Typography>
+        {open ? <ExpandLess sx={{ fontSize: 20, color: '#6a6a6a' }} /> : <ExpandMore sx={{ fontSize: 20, color: '#6a6a6a' }} />}
+      </Box>
+      <Collapse in={open}>
+        <Box sx={{ px: 2.5, pb: 2, pt: 0.5 }}>
+          <Stack spacing={1} sx={{ color: '#4a4a4a', fontSize: '0.85rem', lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: '0.85rem' }}>
+              <strong>1.</strong> Open WhatsApp on your phone, pick a vendor group chat, tap the group name, and add
+              <strong> {coordinatorPhone || '+66 98 048 2140'} </strong>
+              as a participant (saved as &quot;Phera&quot; in your contacts makes it obvious).
+            </Typography>
+            <Typography sx={{ fontSize: '0.85rem' }}>
+              <strong>2.</strong> Repeat for every vendor you want Phera to track — caterer, florist, photographer, etc.
+            </Typography>
+            <Typography sx={{ fontSize: '0.85rem' }}>
+              <strong>3.</strong> Click <strong>Connect new Chat</strong> above. Phera will list every group it&apos;s
+              a member of — pick the ones that belong to this wedding and confirm.
+            </Typography>
+            <Typography sx={{ fontSize: '0.85rem', mt: 1, color: '#6a6a6a' }}>
+              Phera can only see messages sent <em>after</em> it joined a group. To pull older history, open that
+              vendor and use the <strong>Upload older messages</strong> button with a WhatsApp chat export (
+              Chat → ⋯ → Export chat → Without Media).
+            </Typography>
+          </Stack>
+        </Box>
+      </Collapse>
     </Paper>
   );
 }
