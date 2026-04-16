@@ -27,6 +27,23 @@ When revisiting this:
 - Or when >1 match, reply with a numbered disambiguation prompt and cache the selection.
 - Either way, the reply should include a footer "(asking about Priya & Rahul's wedding)" so the guest notices if we matched the wrong event.
 
+## Event ↔ Schedule data duplication (added 2026-04-16)
+
+`wedding_events` and `schedule_items` store overlapping event info but are
+not linked. Editing an event in `/admin/<slug>/events` doesn't update the
+matching row in `/admin/<slug>/schedule`, and vice versa. This caused
+Concierge to answer correctly (it reads events) while the schedule admin
+view was empty after cleanup.
+
+Options:
+- **Merge:** drop `schedule_items`, derive the timeline view from
+  `wedding_events` directly (simplest, removes the sync problem entirely).
+- **Sync:** keep both, add an upsert hook in `wedding-service.updateEvent`
+  / `createEvent` that writes the matching `schedule_items` row.
+
+Pick after we finalize the schedule UX. Until then, admins have to
+maintain both sides manually.
+
 ## Media support — inbound and outbound (added 2026-04-16)
 
 Concierge is currently text-only. Two related capabilities to add later:
