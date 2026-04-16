@@ -61,6 +61,10 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
 
   useEffect(() => {
     loadConversations();
+    // Poll every 15s so new guest messages show up without a manual refresh.
+    // Cheap (one GET of your own weddings' data) and stops when the tab unmounts.
+    const interval = setInterval(loadConversations, 15_000);
+    return () => clearInterval(interval);
   }, [loadConversations]);
 
   useEffect(() => {

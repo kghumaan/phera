@@ -3,7 +3,6 @@ import { normalizeWhapiPayload, verifyWhapiWebhookAuth } from '@/lib/whatsapp/wh
 import { createClient } from '@supabase/supabase-js';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
-import { logChatMessage } from '@/lib/whatsapp/webhooks';
 import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
 
 const supabase = createClient(
@@ -130,17 +129,10 @@ export async function POST(request: NextRequest) {
 
       const guestName = guest.name?.split(' ')[0] || 'Guest';
 
-      // Log incoming message to chat history
-      await logChatMessage({
-        weddingId: wedding.id,
-        guestId: guest.id,
-        role: 'user',
-        content: messageText,
-        waMessageId: msg.id,
-        metadata: { type: msg.type, provider: 'whapi', timestamp: msg.timestamp },
-      });
-
-      // Generate AI response
+      // Note: generateAIResponse logs both inbound and outbound messages to
+      // whatsapp_chat_history internally. Skipping the webhook-side log calls
+      // here avoids duplicate rows in the admin conversation view. Same
+      // rationale as /api/vendors/webhook.
       const aiResponse = await generateAIResponse({
         weddingId: wedding.id,
         weddingSlug: wedding.slug,
@@ -150,17 +142,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Send response via Whapi (same number the message came from)
-      const sendResult = await whapiSend(senderPhone, aiResponse);
-
-      // Log outgoing response
-      await logChatMessage({
-        weddingId: wedding.id,
-        guestId: guest.id,
-        role: 'assistant',
-        content: aiResponse,
-        waMessageId: sendResult.messageId,
-        metadata: { provider: 'whapi' },
-      });
+      await whapiSend(senderPhone, aiResponse);
 
       console.log(`[whapi-webhook] Replied to ${guestName}: ${aiResponse.slice(0, 80)}...`);
     }
