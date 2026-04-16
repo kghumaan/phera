@@ -27,6 +27,21 @@ When revisiting this:
 - Or when >1 match, reply with a numbered disambiguation prompt and cache the selection.
 - Either way, the reply should include a footer "(asking about Priya & Rahul's wedding)" so the guest notices if we matched the wrong event.
 
+## Media support — inbound and outbound (added 2026-04-16)
+
+Concierge is currently text-only. Two related capabilities to add later:
+
+**Inbound (guest → AI):**
+- Guest sends a photo ("here's my outfit — does it match the dress code?"). Whapi's Auto Download for images/voice/audio is already enabled, so the payload arrives with a hosted URL. The webhook today drops anything without `msg.text.body`.
+- Need: extend `tryConciergeFlow` to grab `msg.image.link` / `msg.voice.link`, push the media through a vision model (Gemini has vision already — GEMINI_API_KEY is wired) or Whisper for voice, then feed the transcribed/described content back into the AI context as part of `userMessage`.
+
+**Outbound (AI → guest):**
+- AI should be able to send the dress-code reference image we already store in `wedding_events` (fields `carousel_slides`, `carousel_images`, `outfit_example_url`, `outfit_ideas_women/men`) when a guest asks what to wear.
+- `whapiSend` supports an `imageUrl` parameter (see `lib/whatsapp/whapi-client.ts`) — not currently used by the concierge path.
+- Add a new tool (sibling to `escalate_to_human`) like `send_event_outfit_reference` that takes an `event_slug` and sends the stored image(s) with a short caption. Let the LLM decide when to use it.
+
+Not urgent — text is enough to validate the product. Revisit once consent + identity hardening lands.
+
 ## Proposed work
 
 - [ ] First-contact consent template: when an unknown phone matches a guest, send a one-time Meta-approved template asking "Are you Priya Sharma attending Simran & Karanvir's wedding? Reply YES to continue." Don't process the real question until YES received. Store the YES timestamp in `whatsapp_opt_ins.consent_given_at`.
