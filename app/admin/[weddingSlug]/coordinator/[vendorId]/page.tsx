@@ -685,7 +685,7 @@ export default function VendorDetailPage({
                       <Stack
                         key={item.id}
                         direction="row"
-                        alignItems="flex-start"
+                        alignItems="center"
                         spacing={1}
                         sx={{
                           py: 0.75,
@@ -729,12 +729,18 @@ export default function VendorDetailPage({
                             ) : (
                               <Tooltip title="Import to Task Manager">
                                 <IconButton
-                                  size="small"
                                   onClick={(e) => { e.stopPropagation(); handleImportToTaskManager(item); }}
                                   disabled={importingItem === item.id}
-                                  sx={{ p: 0.25, color: '#999', '&:hover': { color: '#DE3F5E' } }}
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    p: 0,
+                                    color: '#6a6a6a',
+                                    borderRadius: 1,
+                                    '&:hover': { color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.08) },
+                                  }}
                                 >
-                                  {importingItem === item.id ? <CircularProgress size={14} /> : <ViewKanban sx={{ fontSize: 14 }} />}
+                                  {importingItem === item.id ? <CircularProgress size={18} /> : <ViewKanban sx={{ fontSize: 20 }} />}
                                 </IconButton>
                               </Tooltip>
                             )}
