@@ -8,8 +8,6 @@ import {
   Paper,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Grid,
@@ -29,6 +27,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -331,14 +330,15 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
         </Stack>
 
         {/* Template Selection Dialog */}
-        <Dialog
+        <PheraDialog
           open={templateDialogOpen}
           onClose={() => setTemplateDialogOpen(false)}
           maxWidth="md"
           fullWidth
-          PaperProps={{ sx: { borderRadius: RADII.dialog, bgcolor: COLORS.bg.white } }}
         >
-          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>Choose a Recommended Shop</DialogTitle>
+          <PheraDialogTitle onClose={() => setTemplateDialogOpen(false)}>
+            Choose a Recommended Shop
+          </PheraDialogTitle>
           <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
             <Grid container spacing={2} sx={{ mt: 1 }}>
               {SHOP_TEMPLATES.map((template) => (
@@ -368,7 +368,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           <DialogActions sx={{ bgcolor: COLORS.bg.white, px: 3, pb: 2 }}>
             <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: COLORS.text.subtle }}>Cancel</Button>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
 
       </Stack>
       <ConfirmDialog open={confirmDialog.open} message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))} />
