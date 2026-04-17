@@ -42,7 +42,7 @@ export default function ConciergeInsightsPanel({ guestsReached, messagesHandled,
           <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>Messages</Typography>
         </Box>
         <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: avgResponseTimeSec > 30 ? '#f59e0b' : '#22c55e', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: avgResponseTimeSec > 30 ? COLORS.accent.warning : COLORS.accent.success, lineHeight: 1.2 }}>
             {avgResponseTimeSec > 0 ? `${avgResponseTimeSec}s` : '—'}
           </Typography>
           <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>Avg Response</Typography>

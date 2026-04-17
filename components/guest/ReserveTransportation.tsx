@@ -950,7 +950,7 @@ function FlexibleSection({
                         border: '1px solid',
                         borderColor: isSelected ? primaryColor : 'rgba(0,0,0,0.15)',
                         bgcolor: isSelected ? alpha(primaryColor, 0.1) : 'transparent',
-                        color: isSelected ? primaryColor : '#333',
+                        color: isSelected ? primaryColor : COLORS.text.strong,
                         fontWeight: isSelected ? 600 : 400,
                         cursor: 'pointer',
                         transition: 'all 0.2s',

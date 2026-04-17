@@ -1364,7 +1364,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                         letterSpacing: '6.25%',
                         boxShadow: 'none',
                         '&:hover': {
-                          backgroundColor: '#C8365A',
+                          backgroundColor: COLORS.brand.primaryHover,
                           boxShadow: 'none',
                         },
                       }}
@@ -1479,8 +1479,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       borderRadius: { xs: '8px', md: '10px' },
                       bgcolor: COLORS.bg.white,
                       color: value ? COLORS.text.strong : COLORS.text.faint,
-                      '& fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)' },
-                      '&:hover fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0,0,0,0.5)' },
+                      '& fieldset': { borderColor: hasError ? COLORS.accent.danger : 'rgba(0, 0, 0, 0.4)' },
+                      '&:hover fieldset': { borderColor: hasError ? COLORS.accent.danger : 'rgba(0,0,0,0.5)' },
                     }}
                   >
                     <MenuItem value="" disabled>
@@ -1516,7 +1516,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 />
               )}
               {hasError && q.type !== 'short_text' && q.type !== 'long_text' && q.type !== 'numeric' && q.type !== 'dropdown' && q.type !== 'date' && (
-                <Typography variant="caption" sx={{ color: '#d32f2f', mt: 0.5, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: COLORS.accent.danger, mt: 0.5, display: 'block' }}>
                   {errors[errorKey]}
                 </Typography>
               )}
@@ -2863,7 +2863,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
                 '&:hover': {
-                  backgroundColor: '#C8365A',
+                  backgroundColor: COLORS.brand.primaryHover,
                 },
                 '&:disabled': {
                   backgroundColor: COLORS.border.default,
@@ -2888,7 +2888,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
                 '&:hover': {
-                  backgroundColor: '#C8365A',
+                  backgroundColor: COLORS.brand.primaryHover,
                 },
                 '&:disabled': {
                   backgroundColor: COLORS.border.default,
@@ -2923,7 +2923,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Button onClick={handleCancelExit} variant="outlined" sx={{ color: COLORS.text.strong, borderColor: COLORS.text.strong, '&:hover': { borderColor: COLORS.text.strong, background: '#222' } }}>
             Cancel
           </Button>
-          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: '#C8365A' } }}>
+          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: COLORS.brand.primaryHover } }}>
             Leave
           </ActionButton>
         </DialogActions>

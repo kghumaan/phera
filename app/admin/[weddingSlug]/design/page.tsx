@@ -636,7 +636,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                     py: 1,
                     borderRadius: RADII.sm,
                     border: 2,
-                    borderColor: coupleNameFont === font.id ? COLORS.brand.primary : '#e0e0e0',
+                    borderColor: coupleNameFont === font.id ? COLORS.brand.primary : COLORS.border.default,
                     bgcolor: coupleNameFont === font.id ? 'rgba(222, 63, 94, 0.04)' : COLORS.bg.white,
                     cursor: 'pointer',
                     textAlign: 'center',
@@ -713,7 +713,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         textTransform: 'none',
                         fontWeight: 600,
                         '&:hover': {
-                          borderColor: '#C8365A',
+                          borderColor: COLORS.brand.primaryHover,
                           bgcolor: 'rgba(222, 63, 94, 0.05)',
                         },
                       }}

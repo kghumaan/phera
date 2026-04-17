@@ -155,7 +155,7 @@ export default function ActionQueue({
                 onIssueResolved?.();
               } catch {}
             }}
-            sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: '#ef4444' } }}
+            sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}
           >
             Dismiss All
           </Button>
@@ -304,7 +304,7 @@ export default function ActionQueue({
                         variant="contained"
                         onClick={() => handleResolve(item.id)}
                         sx={{
-                          bgcolor: '#22c55e',
+                          bgcolor: COLORS.accent.success,
                           borderRadius: RADII.sm,
                           textTransform: 'none',
                           fontSize: 11,
@@ -338,9 +338,9 @@ export default function ActionQueue({
                         textTransform: 'none',
                         fontSize: 11,
                         fontWeight: 600,
-                        color: '#22c55e',
+                        color: COLORS.accent.success,
                         borderColor: '#22c55e40',
-                        '&:hover': { borderColor: '#22c55e', bgcolor: '#22c55e08' },
+                        '&:hover': { borderColor: COLORS.accent.success, bgcolor: '#22c55e08' },
                       }}
                     >
                       Resolve

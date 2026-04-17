@@ -405,7 +405,7 @@ export default function OnboardingSidebar({
                   mb: 0.25,
                   borderRadius: RADII.sm,
                   color: isGroupActive ? COLORS.bg.white : COLORS.text.strong,
-                  '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha(COLORS.text.strong, 0.02) },
+                  '&:hover': { bgcolor: isGroupActive ? COLORS.brand.primaryHover : alpha(COLORS.text.strong, 0.02) },
                   '&.Mui-selected': {
                     bgcolor: COLORS.brand.primary,
                     color: COLORS.text.inverse,

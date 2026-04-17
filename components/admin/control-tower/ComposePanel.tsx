@@ -327,7 +327,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                             height: 26, fontSize: 11, fontWeight: 500, cursor: 'pointer',
                             bgcolor: targetFilter === f.value ? COLORS.text.strong : COLORS.bg.subtle,
                             color: targetFilter === f.value ? COLORS.bg.white : COLORS.text.muted,
-                            '&:hover': { bgcolor: targetFilter === f.value ? '#333' : '#EEEEEE' },
+                            '&:hover': { bgcolor: targetFilter === f.value ? COLORS.text.strong : '#EEEEEE' },
                           }}
                         />
                       ))}

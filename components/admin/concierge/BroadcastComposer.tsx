@@ -402,7 +402,7 @@ export default function BroadcastComposer({
           onClick={handleSend}
           loading={sending}
           disabled={!canSend}
-          sx={{ px: 3, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint } }}
+          sx={{ px: 3, '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint } }}
         >
           Send to {targetCount || 0}
         </PrimaryActionButton>

@@ -264,7 +264,7 @@ function SortableStepRow({
 const PREVIEW_FIELD_SX = {
   '& .MuiOutlinedInput-root': {
     borderRadius: RADII.md,
-    bgcolor: '#f0f0f0',
+    bgcolor: COLORS.border.faint,
     '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
     '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   },
@@ -280,7 +280,7 @@ const PREVIEW_FIELD_SX = {
 
 const PREVIEW_SELECT_SX = {
   borderRadius: RADII.md,
-  bgcolor: '#f0f0f0',
+  bgcolor: COLORS.border.faint,
   '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
   '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   '& .Mui-disabled': { WebkitTextFillColor: COLORS.text.faint },
@@ -1050,7 +1050,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                 <IconButton
                                   size="small"
                                   onClick={() => handleRemoveOption(qIndex, optIndex)}
-                                  sx={{ color: COLORS.text.faint, '&:hover': { color: '#d32f2f' } }}
+                                  sx={{ color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}
                                 >
                                   <Close fontSize="small" />
                                 </IconButton>
@@ -1079,7 +1079,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                   setDialogQuestions(prev => prev.filter((_, i) => i !== qIndex));
                                   setActiveQuestionIndex(null);
                                 }}
-                                sx={{ color: COLORS.text.subtle, '&:hover': { color: '#d32f2f' } }}
+                                sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.accent.danger } }}
                               >
                                 <Delete fontSize="small" />
                               </IconButton>
@@ -1165,7 +1165,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         open={confirmDialog.open}
         message={confirmDialog.message}
         confirmLabel={confirmDialog.confirmLabel || 'Delete'}
-        confirmColor={confirmDialog.confirmLabel ? COLORS.brand.primary : '#d32f2f'}
+        confirmColor={confirmDialog.confirmLabel ? COLORS.brand.primary : COLORS.accent.danger}
         isLoading={navigatingToPin}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setNavigatingToPin(false); }}

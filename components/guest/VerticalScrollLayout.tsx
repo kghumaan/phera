@@ -768,7 +768,7 @@ export default function VerticalScrollLayout({
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#333',
+                  color: COLORS.text.strong,
                   // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                   // lineHeight: 1.6,
                   maxWidth: { md: 480, lg: 540, xl: 650 },
@@ -801,7 +801,7 @@ export default function VerticalScrollLayout({
                         letterSpacing: '0.5px',
                         boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                         '&:hover': {
-                          backgroundColor: '#C8365A',
+                          backgroundColor: COLORS.brand.primaryHover,
                           boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                         },
                       }}
@@ -993,7 +993,7 @@ export default function VerticalScrollLayout({
                                             <Typography
                                               variant="body3"
                                               sx={{
-                                                color: '#333',
+                                                color: COLORS.text.strong,
                                                 lineHeight: 1.6,
                                                 mt: 1,
                                                 mb: 2,
@@ -1153,7 +1153,7 @@ export default function VerticalScrollLayout({
                                 >
                                   {card.title}
                                 </Typography>
-                                <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: '#333' }}>
+                                <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: COLORS.text.strong }}>
                                   {renderTravelContent(card.content)}
                                 </Box>
                                 {card.button_text && card.button_action && (
@@ -1249,7 +1249,7 @@ export default function VerticalScrollLayout({
                             <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 3 }}>
                               <Typography
                                 sx={{
-                                  color: '#333',
+                                  color: COLORS.text.strong,
                                   fontSize: '0.9rem',
                                   lineHeight: 1.7,
                                 }}

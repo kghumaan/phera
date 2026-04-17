@@ -176,7 +176,7 @@ const DateRangeInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
         padding: '10px 14px',
         borderRadius: RADII.md,
         border: '1px solid rgba(222, 63, 94, 0.2)',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: COLORS.bg.muted,
         fontSize: '0.9rem',
         color: COLORS.text.strong,
         fontFamily: 'inherit',
@@ -722,7 +722,7 @@ export default function OnboardingPage() {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        bgcolor: '#f8f9fa',
+        bgcolor: COLORS.bg.muted,
         gap: 3
       }}>
         <CircularProgress sx={{ color: COLORS.brand.primary }} />
@@ -893,7 +893,7 @@ export default function OnboardingPage() {
                                   {React.cloneElement(item.icon as React.ReactElement<any>, {
                                     sx: { color: COLORS.brand.primary, fontSize: { xs: 16, md: 20 }, mt: 0.3 }
                                   })}
-                                  <Typography variant="body2" sx={{ color: '#333', fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
                                     {item.text}
                                   </Typography>
                                 </Stack>
@@ -948,7 +948,7 @@ export default function OnboardingPage() {
                                 borderRadius: RADII.lg,
                                 border: '2px solid',
                                 borderColor: role === 'couple' ? COLORS.brand.primary : 'transparent',
-                                bgcolor: role === 'couple' ? alpha(COLORS.brand.primary, 0.05) : '#f8f9fa',
+                                bgcolor: role === 'couple' ? alpha(COLORS.brand.primary, 0.05) : COLORS.bg.muted,
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
@@ -970,7 +970,7 @@ export default function OnboardingPage() {
                                 borderRadius: RADII.lg,
                                 border: '2px solid',
                                 borderColor: role === 'planner' ? COLORS.brand.primary : 'transparent',
-                                bgcolor: role === 'planner' ? alpha(COLORS.brand.primary, 0.05) : '#f8f9fa',
+                                bgcolor: role === 'planner' ? alpha(COLORS.brand.primary, 0.05) : COLORS.bg.muted,
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
@@ -1233,7 +1233,7 @@ export default function OnboardingPage() {
                                     borderRadius: RADII.md,
                                     border: '2px solid',
                                     borderColor: selected ? COLORS.brand.primary : 'transparent',
-                                    bgcolor: selected ? alpha(COLORS.brand.primary, 0.06) : '#f8f9fa',
+                                    bgcolor: selected ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.muted,
                                     transition: 'all 0.2s ease',
                                     height: '100%',
                                   }}

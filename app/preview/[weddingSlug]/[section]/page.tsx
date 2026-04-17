@@ -14,6 +14,7 @@ import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
 import TravelPage from '@/app/(guest)/[weddingSlug]/travel/page';
 import RegistryPage from '@/app/(guest)/[weddingSlug]/registry/page';
 import WhereToShopPage from '@/app/(guest)/[weddingSlug]/where-to-shop/page';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const VALID_SECTIONS = ['schedule', 'travel', 'faq', 'registry', 'shopping'];
 
@@ -70,7 +71,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8,
         px: { xs: 3, sm: 4, md: 5, lg: 5.5, xl: 6 },
         py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
@@ -190,7 +191,7 @@ function SectionPreviewContent({ section }: { section: string }) {
           bgcolor: 'rgba(0, 0, 0, 0.7)',
           color: 'white',
           backdropFilter: 'blur(8px)',
-          borderRadius: '20px',
+          borderRadius: RADII.xl,
           textTransform: 'none',
           fontWeight: 600,
           fontSize: '0.8rem',

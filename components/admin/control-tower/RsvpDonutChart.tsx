@@ -16,9 +16,9 @@ interface RsvpDonutChartProps {
 }
 
 const SEGMENTS = [
-  { key: 'yes', label: 'Attending', color: '#22c55e' },
-  { key: 'no', label: 'Declined', color: '#ef4444' },
-  { key: 'maybe', label: 'Maybe', color: '#f59e0b' },
+  { key: 'yes', label: 'Attending', color: COLORS.accent.success },
+  { key: 'no', label: 'Declined', color: COLORS.accent.danger },
+  { key: 'maybe', label: 'Maybe', color: COLORS.accent.warning },
   { key: 'pending', label: 'No RSVP', color: '#e2e8f0' },
 ];
 

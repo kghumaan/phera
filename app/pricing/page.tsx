@@ -996,7 +996,7 @@ function PricingPageContent() {
                     borderColor: '#DE3F5E',
                     color: selectedPricingTier === idx ? 'white' : '#DE3F5E',
                     '&:hover': {
-                      bgcolor: selectedPricingTier === idx ? '#C8365A' : alpha('#DE3F5E', 0.05),
+                      bgcolor: selectedPricingTier === idx ? COLORS.brand.primaryHover : alpha('#DE3F5E', 0.05),
                       borderColor: '#DE3F5E',
                     },
                   }}
@@ -1124,7 +1124,7 @@ function PricingPageContent() {
                         color: tier.highlight ? 'white' : '#DE3F5E',
                         '&:hover': {
                           bgcolor: tier.highlight
-                            ? '#C8365A'
+                            ? COLORS.brand.primaryHover
                             : alpha('#DE3F5E', 0.05),
                           borderColor: '#DE3F5E',
                         },
@@ -1215,7 +1215,7 @@ function PricingPageContent() {
                         fontSize: { xs: '0.85rem', md: '0.95rem' },
                         textTransform: 'none',
                         fontWeight: 600,
-                        '&:hover': { borderColor: '#C8365A', bgcolor: alpha('#DE3F5E', 0.05) },
+                        '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
                       }}
                     >
                       Start as a Planner

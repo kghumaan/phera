@@ -126,7 +126,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   }, [whatsappLink, googleSheetsId, initialSettings, debouncedSave]);
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void }>({ open: false, message: '', confirmLabel: 'Confirm', confirmColor: '#d32f2f', onConfirm: () => {} });
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void }>({ open: false, message: '', confirmLabel: 'Confirm', confirmColor: COLORS.accent.danger, onConfirm: () => {} });
 
   const doUpdateStatus = async (newStatus: 'draft' | 'live') => {
     setUpdatingStatus(true);
@@ -173,7 +173,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         open: true,
         message: 'Are you sure you want to deactivate your wedding website? It will no longer be accessible to guests.',
         confirmLabel: 'Deactivate',
-        confirmColor: '#d32f2f',
+        confirmColor: COLORS.accent.danger,
         onConfirm: async () => {
           setConfirmDialog(prev => ({ ...prev, open: false }));
           await doUpdateStatus('draft');
@@ -292,7 +292,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   fontSize: '1rem',
                   flex: 1,
                   '&:hover': {
-                    bgcolor: status === 'live' ? COLORS.text.muted : '#C8365A',
+                    bgcolor: status === 'live' ? COLORS.text.muted : COLORS.brand.primaryHover,
                   },
                 }}
               >
@@ -386,7 +386,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                     fontWeight: 600,
                     px: 3,
                     '&:hover': {
-                      borderColor: '#C8365A',
+                      borderColor: COLORS.brand.primaryHover,
                       bgcolor: 'rgba(222, 63, 94, 0.05)',
                     },
                   }}

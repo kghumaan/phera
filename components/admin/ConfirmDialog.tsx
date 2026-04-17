@@ -29,7 +29,7 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
-  confirmColor = '#d32f2f',
+  confirmColor = COLORS.accent.danger,
   isLoading = false,
   onConfirm,
   onCancel,

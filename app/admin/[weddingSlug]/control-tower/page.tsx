@@ -212,7 +212,7 @@ export default function ControlTowerPage() {
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            icon={<HowToRegIcon sx={{ fontSize: 20, color: '#22c55e' }} />}
+            icon={<HowToRegIcon sx={{ fontSize: 20, color: COLORS.accent.success }} />}
             label="RSVPs Complete"
             value={rsvpPct}
             subtitle={`${summary.rsvp_breakdown.yes + summary.rsvp_breakdown.no + summary.rsvp_breakdown.maybe} of ${summary.total_guests} responded`}
@@ -221,7 +221,7 @@ export default function ControlTowerPage() {
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            icon={<PersonOffIcon sx={{ fontSize: 20, color: '#f59e0b' }} />}
+            icon={<PersonOffIcon sx={{ fontSize: 20, color: COLORS.accent.warning }} />}
             label="Not Yet Reached by Concierge"
             value={summary.not_contacted}
             subtitle={summary.total_guests > 0 ? `${Math.round((summary.not_contacted / summary.total_guests) * 100)}% of guests pending first touch` : undefined}

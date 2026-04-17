@@ -498,7 +498,7 @@ export default function MoreDetailsModal({
               fontSize: '16px',
               px: 2,
               py: 1,
-              '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
+              '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
             }}
           >
             {saving ? 'Saving...' : 'Save and Close'}
@@ -985,7 +985,7 @@ function SlideEditor({
               fontSize: '16px',
               px: 2,
               py: 1,
-              '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
+              '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
             }}
           >
             {saving ? 'Saving...' : 'Save'}
@@ -1010,7 +1010,7 @@ function SlideEditor({
         </Box>
         <IconButton
           onClick={() => onDeleteSlide(slideIndex)}
-          sx={{ color: COLORS.text.strong, '&:hover': { color: '#d32f2f' } }}
+          sx={{ color: COLORS.text.strong, '&:hover': { color: COLORS.accent.danger } }}
         >
           <Delete sx={{ fontSize: 24 }} />
         </IconButton>

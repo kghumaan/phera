@@ -947,7 +947,7 @@ export default function HomePage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#333',
+                  color: COLORS.text.strong,
                   fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                   lineHeight: 1.6,
                   maxWidth: { md: 440, lg: 520, xl: 600 },
@@ -986,7 +986,7 @@ export default function HomePage() {
                         letterSpacing: '0.5px',
                         boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                         '&:hover': {
-                          backgroundColor: '#C8365A',
+                          backgroundColor: COLORS.brand.primaryHover,
                           boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                         },
                       }}
@@ -1126,7 +1126,7 @@ export default function HomePage() {
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
-                      backgroundColor: '#C8365A',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                   }}
                 >
@@ -1322,7 +1322,7 @@ export default function HomePage() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#333',
+                    color: COLORS.text.strong,
                     fontSize: { xs: '0.95rem', sm: '1rem' },
                     lineHeight: 1.6,
                     textAlign: 'center',

@@ -489,7 +489,7 @@ function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, savin
               disabled={!canSave}
               sx={{
                 px: 3, minWidth: 80,
-                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
+                '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint },
               }}
             >
               Save

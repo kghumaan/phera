@@ -184,7 +184,7 @@ export default function EarlyBetaGate({ featureName, description, when, children
               Request Early Access
             </PrimaryActionButton>
             {status === 'error' && (
-              <Typography variant="caption" sx={{ color: '#d32f2f' }}>
+              <Typography variant="caption" sx={{ color: COLORS.accent.danger }}>
                 Something went wrong. Please try again or contact support.
               </Typography>
             )}

@@ -146,7 +146,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
           Needs Your Attention ({active.length})
         </Typography>
         {active.length > 0 && (
-          <Button size="small" onClick={handleDismissAll} sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: '#ef4444' } }}>
+          <Button size="small" onClick={handleDismissAll} sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}>
             Dismiss All
           </Button>
         )}
@@ -237,7 +237,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                     />
                     <Stack direction="row" spacing={1}>
                       <ActionButton size="small" variant="contained" onClick={() => handleResolve(esc.id)}
-                        sx={{ bgcolor: '#22c55e', borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
+                        sx={{ bgcolor: COLORS.accent.success, borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
                         Confirm
                       </ActionButton>
                       <Button size="small" onClick={() => { setResolvingId(null); setResolveNotes(''); }}
@@ -304,7 +304,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <ActionButton size="small" variant="outlined" startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => setResolvingId(esc.id)}
-                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, color: '#22c55e', borderColor: '#22c55e40', '&:hover': { borderColor: '#22c55e', bgcolor: '#22c55e08' } }}>
+                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, color: COLORS.accent.success, borderColor: '#22c55e40', '&:hover': { borderColor: COLORS.accent.success, bgcolor: '#22c55e08' } }}>
                       Resolve
                     </ActionButton>
                     <ActionButton size="small" variant="outlined"

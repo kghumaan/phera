@@ -728,7 +728,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   Request Early Access
                 </PrimaryActionButton>
                 {betaRequestStatus === 'error' && (
-                  <Typography variant="caption" sx={{ color: '#d32f2f' }}>
+                  <Typography variant="caption" sx={{ color: COLORS.accent.danger }}>
                     Something went wrong. Please try again or contact support.
                   </Typography>
                 )}

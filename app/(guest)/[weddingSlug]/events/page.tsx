@@ -126,7 +126,7 @@ export default function GuestEventsPage() {
                     backgroundColor: COLORS.text.strong,
                     color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       transform: 'scale(1.05)',
                     },
                     transition: 'all 0.2s ease',
@@ -337,7 +337,7 @@ export default function GuestEventsPage() {
                   letterSpacing: '0.5px',
                   boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                   '&:hover': {
-                    backgroundColor: '#C8365A',
+                    backgroundColor: COLORS.brand.primaryHover,
                     boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                   },
                 }}

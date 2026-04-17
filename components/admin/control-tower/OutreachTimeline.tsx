@@ -16,14 +16,14 @@ interface OutreachTimelineProps {
 
 const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Message Sent', color: COLORS.accent.info },
-  message_received: { label: 'Reply Received', color: '#22c55e' },
+  message_received: { label: 'Reply Received', color: COLORS.accent.success },
   conversation_started: { label: 'Conversation', color: '#8b5cf6' },
   info_collected: { label: 'Info Collected', color: '#06b6d4' },
-  escalated: { label: 'Escalated', color: '#ef4444' },
+  escalated: { label: 'Escalated', color: COLORS.accent.danger },
   opted_out: { label: 'Opted Out', color: '#94a3b8' },
-  status_changed: { label: 'Status Changed', color: '#f59e0b' },
-  issue_created: { label: 'Issue Created', color: '#ef4444' },
-  rsvp_received: { label: 'RSVP Received', color: '#22c55e' },
+  status_changed: { label: 'Status Changed', color: COLORS.accent.warning },
+  issue_created: { label: 'Issue Created', color: COLORS.accent.danger },
+  rsvp_received: { label: 'RSVP Received', color: COLORS.accent.success },
 };
 
 const FALLBACK_CONFIG = { label: 'Event', color: '#94a3b8' };

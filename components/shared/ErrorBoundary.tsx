@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <Typography
               variant="h5"
               sx={{
-                color: '#333',
+                color: COLORS.text.strong,
                 fontWeight: 600,
                 mb: 2,
               }}
@@ -87,7 +87,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 borderRadius: RADII.dialog,
                 textTransform: 'none',
                 '&:hover': {
-                  backgroundColor: '#C8365A',
+                  backgroundColor: COLORS.brand.primaryHover,
                 },
               }}
             >

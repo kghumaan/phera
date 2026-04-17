@@ -212,7 +212,7 @@ export default function InlineTravelForm({
                 fontWeight: 600,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
-                '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
+                '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
               }}
             >
               Done

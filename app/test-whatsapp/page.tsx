@@ -19,6 +19,7 @@ import { WhatsApp, ArrowBack, Send, InfoOutlined, CheckCircle } from '@mui/icons
 import { useState } from 'react';
 import Link from 'next/link';
 import AppHeader from '@/components/shared/AppHeader';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function WhatsAppTestPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -107,7 +108,7 @@ export default function WhatsAppTestPage() {
           elevation={0} 
           sx={{ 
             p: 4, 
-            borderRadius: '24px', 
+            borderRadius: RADII.dialog, 
             border: '1px solid #000', 
             bgcolor: '#fff',
             boxShadow: 'none'
@@ -129,7 +130,7 @@ export default function WhatsAppTestPage() {
                   variant="outlined"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
+                      borderRadius: RADII.md,
                       '& fieldset': { borderColor: '#000' },
                       '&:hover fieldset': { borderColor: '#000' },
                       '&.Mui-focused fieldset': { borderColor: '#000' },
@@ -154,7 +155,7 @@ export default function WhatsAppTestPage() {
                   variant="outlined"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
+                      borderRadius: RADII.md,
                       '& fieldset': { borderColor: '#000' },
                       '&:hover fieldset': { borderColor: '#000' },
                       '&.Mui-focused fieldset': { borderColor: '#000' },
@@ -168,7 +169,7 @@ export default function WhatsAppTestPage() {
                 severity="info" 
                 icon={<InfoOutlined sx={{ color: '#000' }} />}
                 sx={{ 
-                  borderRadius: '12px', 
+                  borderRadius: RADII.md, 
                   bgcolor: '#fff', 
                   border: '1px solid #000',
                   color: '#000',
@@ -186,7 +187,7 @@ export default function WhatsAppTestPage() {
                   severity={status.type} 
                   icon={status.type === 'success' ? <CheckCircle sx={{ color: '#000' }} /> : undefined}
                   sx={{ 
-                    borderRadius: '12px',
+                    borderRadius: RADII.md,
                     bgcolor: '#fff',
                     border: '1px solid #000',
                     color: '#000',
@@ -213,12 +214,12 @@ export default function WhatsAppTestPage() {
                   bgcolor: '#000',
                   color: '#fff',
                   py: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: RADII.md,
                   fontWeight: 600,
                   textTransform: 'none',
                   fontSize: '1rem',
                   '&:hover': {
-                    bgcolor: '#333',
+                    bgcolor: COLORS.text.strong,
                   },
                   '&.Mui-disabled': {
                     bgcolor: 'rgba(0, 0, 0, 0.5)',
@@ -232,7 +233,7 @@ export default function WhatsAppTestPage() {
           </form>
         </Paper>
 
-        <Card sx={{ mt: 4, borderRadius: '24px', bgcolor: '#fff', border: '1px solid #000', boxShadow: 'none' }}>
+        <Card sx={{ mt: 4, borderRadius: RADII.dialog, bgcolor: '#fff', border: '1px solid #000', boxShadow: 'none' }}>
           <CardContent sx={{ p: 4 }}>
             <Typography variant="h6" sx={{ color: '#000', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
               <WhatsApp fontSize="small" /> Integration Status

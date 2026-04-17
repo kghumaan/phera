@@ -689,7 +689,7 @@ export default function AdminPreviewPanel({
                                         readOnly: true,
                                         sx: {
                                             borderRadius: RADII.md,
-                                            bgcolor: '#f8f9fa',
+                                            bgcolor: COLORS.bg.muted,
                                             '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                             '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                             color: COLORS.text.subtle
@@ -741,7 +741,7 @@ export default function AdminPreviewPanel({
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: 1,
-                                                bgcolor: '#f8f9fa',
+                                                bgcolor: COLORS.bg.muted,
                                                 border: '1px solid rgba(0,0,0,0.08)',
                                                 borderRadius: '100px',
                                                 pl: 2,
@@ -808,7 +808,7 @@ export default function AdminPreviewPanel({
                                             borderRadius: '100px',
                                             py: 2,
                                             fontSize: '1.1rem',
-                                            '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint }
+                                            '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint }
                                         }}
                                     >
                                         Save
@@ -866,7 +866,7 @@ export default function AdminPreviewPanel({
                                 readOnly: true,
                                 sx: {
                                     borderRadius: RADII.md,
-                                    bgcolor: '#f8f9fa',
+                                    bgcolor: COLORS.bg.muted,
                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                     '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                     color: COLORS.text.subtle,

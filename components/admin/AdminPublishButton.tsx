@@ -156,7 +156,7 @@ export default function AdminPublishButton({
                         bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primary,
                         color: COLORS.text.inverse,
                         '&:hover': {
-                            bgcolor: statusSaved ? '#059669' : '#C8365A',
+                            bgcolor: statusSaved ? '#059669' : COLORS.brand.primaryHover,
                             transform: 'scale(1.05)',
                         },
                         boxShadow: statusSaved ? '0 4px 20px rgba(16, 185, 129, 0.4)' : '0 4px 20px rgba(222, 63, 94, 0.4)',
@@ -311,7 +311,7 @@ export default function AdminPublishButton({
                                         minWidth: 'auto',
                                         px: 2,
                                         '&:hover': {
-                                            borderColor: '#C8365A',
+                                            borderColor: COLORS.brand.primaryHover,
                                             bgcolor: alpha(COLORS.brand.primary, 0.05),
                                         },
                                     }}

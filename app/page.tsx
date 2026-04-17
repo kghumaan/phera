@@ -1198,7 +1198,7 @@ function LandingPageContent() {
                       fontSize: { xs: '1rem', md: '1.25rem' },
                       textTransform: 'none',
                       fontWeight: 700,
-                      '&:hover': { bgcolor: '#C8365A' },
+                      '&:hover': { bgcolor: COLORS.brand.primaryHover },
                     }}
                   >
                     Get Started
@@ -1219,7 +1219,7 @@ function LandingPageContent() {
                       textTransform: 'none',
                       fontWeight: 700,
                       '&:hover': {
-                        borderColor: '#C8365A',
+                        borderColor: COLORS.brand.primaryHover,
                         bgcolor: alpha('#DE3F5E', 0.05),
                       },
                     }}
@@ -1365,7 +1365,7 @@ function LandingPageContent() {
         </Box >
 
         {/* --- FOR PLANNERS SECTION --- */}
-        <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#FFFFFF', overflow: 'hidden' }}>
+        <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: COLORS.bg.white, overflow: 'hidden' }}>
           <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 } }}>
             <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
               <Grid size={{ xs: 12, md: 5 }}>
@@ -1434,7 +1434,7 @@ function LandingPageContent() {
                       fontSize: { xs: '0.95rem', md: '1.1rem' },
                       fontWeight: 'bold',
                       textTransform: 'none',
-                      '&:hover': { bgcolor: '#C8365A' },
+                      '&:hover': { bgcolor: COLORS.brand.primaryHover },
                     }}
                   >
                     Start as a Planner
@@ -1748,7 +1748,7 @@ function LandingPageContent() {
                     borderColor: '#DE3F5E',
                     color: selectedPricingTier === idx ? 'white' : '#DE3F5E',
                     '&:hover': {
-                      bgcolor: selectedPricingTier === idx ? '#C8365A' : alpha('#DE3F5E', 0.05),
+                      bgcolor: selectedPricingTier === idx ? COLORS.brand.primaryHover : alpha('#DE3F5E', 0.05),
                       borderColor: '#DE3F5E',
                     },
                   }}
@@ -1876,7 +1876,7 @@ function LandingPageContent() {
                         color: tier.highlight ? 'white' : '#DE3F5E',
                         '&:hover': {
                           bgcolor: tier.highlight
-                            ? '#C8365A'
+                            ? COLORS.brand.primaryHover
                             : alpha('#DE3F5E', 0.05),
                           borderColor: '#DE3F5E',
                         },
@@ -1967,7 +1967,7 @@ function LandingPageContent() {
                       fontSize: { xs: '0.85rem', md: '0.95rem' },
                       textTransform: 'none',
                       fontWeight: 600,
-                      '&:hover': { borderColor: '#C8365A', bgcolor: alpha('#DE3F5E', 0.05) },
+                      '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
                     }}
                   >
                     Start as a Planner

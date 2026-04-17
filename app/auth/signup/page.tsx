@@ -29,6 +29,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -134,7 +135,7 @@ export default function SignupPage() {
             py: 4,
           }}
         >
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
+          <CircularProgress sx={{ color: COLORS.brand.primary }} />
         </Box>
       </OptimizedBackground>
     );
@@ -155,7 +156,7 @@ export default function SignupPage() {
           <Paper
             sx={{
               p: { xs: 3, sm: 5 },
-              borderRadius: '24px',
+              borderRadius: RADII.dialog,
               bgcolor: alpha('#fff', 0.95),
               backdropFilter: 'blur(10px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
@@ -169,7 +170,7 @@ export default function SignupPage() {
                     fontFamily: 'var(--font-instrument-serif)',
                     fontWeight: 700,
                     mb: 1,
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                   }}
                 >
                   Start Planning
@@ -191,16 +192,16 @@ export default function SignupPage() {
                     disabled={isAnyLoading}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                         bgcolor: 'white',
                         '& fieldset': {
                           borderColor: 'rgba(0, 0, 0, 0.23)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                           borderWidth: '2px',
                         },
                         '&.Mui-disabled': {
@@ -211,19 +212,19 @@ export default function SignupPage() {
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#4a4a4a',
+                        color: COLORS.text.muted,
                         '&.Mui-disabled': {
-                          color: '#6a6a6a',
+                          color: COLORS.text.subtle,
                         },
                       },
                       '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                       '& .MuiInputBase-input': {
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         '&.Mui-disabled': {
                           WebkitTextFillColor: '#4a4a4a',
-                          color: '#4a4a4a',
+                          color: COLORS.text.muted,
                         },
                         '&:-webkit-autofill': {
                           WebkitBoxShadow: '0 0 0 100px white inset',
@@ -245,16 +246,16 @@ export default function SignupPage() {
                     helperText="At least 6 characters"
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                         bgcolor: 'white',
                         '& fieldset': {
                           borderColor: 'rgba(0, 0, 0, 0.23)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                           borderWidth: '2px',
                         },
                         '&.Mui-disabled': {
@@ -265,19 +266,19 @@ export default function SignupPage() {
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#4a4a4a',
+                        color: COLORS.text.muted,
                         '&.Mui-disabled': {
-                          color: '#6a6a6a',
+                          color: COLORS.text.subtle,
                         },
                       },
                       '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                       '& .MuiInputBase-input': {
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         '&.Mui-disabled': {
                           WebkitTextFillColor: '#4a4a4a',
-                          color: '#4a4a4a',
+                          color: COLORS.text.muted,
                         },
                         '&:-webkit-autofill': {
                           WebkitBoxShadow: '0 0 0 100px white inset !important',
@@ -300,7 +301,7 @@ export default function SignupPage() {
                         },
                       },
                       '& .MuiFormHelperText-root': {
-                        color: '#6a6a6a',
+                        color: COLORS.text.subtle,
                       },
                     }}
                   />
@@ -311,7 +312,7 @@ export default function SignupPage() {
                     fullWidth
                     disabled={isAnyLoading}
                     sx={{
-                      bgcolor: '#DE3F5E',
+                      bgcolor: COLORS.brand.primary,
                       color: 'white',
                       px: { xs: 4, md: 6 },
                       py: { xs: 1.2, md: 2 },
@@ -322,7 +323,7 @@ export default function SignupPage() {
                       boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        bgcolor: '#C8365A',
+                        bgcolor: COLORS.brand.primaryHover,
                         boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                       },
                       '&:disabled': {
@@ -339,7 +340,7 @@ export default function SignupPage() {
               </form>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500 }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 500 }}>
                   or
                 </Typography>
               </Box>
@@ -352,7 +353,7 @@ export default function SignupPage() {
                 disabled={isAnyLoading}
                 startIcon={
                   googleLoading ? (
-                    <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
+                    <CircularProgress size={18} sx={{ color: COLORS.text.strong }} />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                       <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4" />
@@ -367,7 +368,7 @@ export default function SignupPage() {
                   py: { xs: 1.2, md: 2 },
                   px: { xs: 4, md: 6 },
                   borderColor: '#1a1a1a',
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   borderWidth: '1.5px',
                   textTransform: 'none',
                   fontWeight: 700,
@@ -375,7 +376,7 @@ export default function SignupPage() {
                   bgcolor: 'white',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    borderColor: '#DE3F5E',
+                    borderColor: COLORS.brand.primary,
                     bgcolor: alpha('#DE3F5E', 0.05),
                     borderWidth: '1.5px',
                   },
@@ -392,13 +393,13 @@ export default function SignupPage() {
               </Button>
 
               <Box textAlign="center">
-                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                   Already have an account?{' '}
                   <MuiLink
                     component={Link}
                     href="/auth/login"
                     sx={{
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       fontWeight: 600,
                       textDecoration: 'none',
                       '&:hover': {

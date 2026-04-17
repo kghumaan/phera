@@ -7,12 +7,12 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Template Sent', color: COLORS.accent.info },
-  message_received: { label: 'Message Received', color: '#22c55e' },
+  message_received: { label: 'Message Received', color: COLORS.accent.success },
   conversation_started: { label: 'Conversation Started', color: '#8b5cf6' },
   info_collected: { label: 'Info Collected', color: '#06b6d4' },
-  escalated: { label: 'Escalated', color: '#ef4444' },
+  escalated: { label: 'Escalated', color: COLORS.accent.danger },
   opted_out: { label: 'Opted Out', color: '#94a3b8' },
-  status_changed: { label: 'Status Changed', color: '#f59e0b' },
+  status_changed: { label: 'Status Changed', color: COLORS.accent.warning },
 };
 
 interface CommunicationTimelineProps {

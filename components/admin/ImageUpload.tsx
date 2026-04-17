@@ -241,7 +241,7 @@ export default function ImageUpload({
             fontWeight: 600,
             py: 1.5,
             '&:hover': {
-              borderColor: '#C8365A',
+              borderColor: COLORS.brand.primaryHover,
               bgcolor: 'rgba(222, 63, 94, 0.05)',
             },
           }}

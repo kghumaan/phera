@@ -33,14 +33,14 @@ interface UnifiedTimelineProps {
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 14, color: COLORS.accent.info }} />,
-  message_received: <ReplyIcon sx={{ fontSize: 14, color: '#22c55e' }} />,
+  message_received: <ReplyIcon sx={{ fontSize: 14, color: COLORS.accent.success }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 14, color: '#8b5cf6' }} />,
   info_collected: <InfoIcon sx={{ fontSize: 14, color: '#06b6d4' }} />,
-  escalated: <ErrorOutlineIcon sx={{ fontSize: 14, color: '#ef4444' }} />,
+  escalated: <ErrorOutlineIcon sx={{ fontSize: 14, color: COLORS.accent.danger }} />,
   opted_out: <BlockIcon sx={{ fontSize: 14, color: '#94a3b8' }} />,
-  status_changed: <SyncAltIcon sx={{ fontSize: 14, color: '#f59e0b' }} />,
-  issue_created: <WarningAmberIcon sx={{ fontSize: 14, color: '#ef4444' }} />,
-  rsvp_received: <CheckCircleIcon sx={{ fontSize: 14, color: '#22c55e' }} />,
+  status_changed: <SyncAltIcon sx={{ fontSize: 14, color: COLORS.accent.warning }} />,
+  issue_created: <WarningAmberIcon sx={{ fontSize: 14, color: COLORS.accent.danger }} />,
+  rsvp_received: <CheckCircleIcon sx={{ fontSize: 14, color: COLORS.accent.success }} />,
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -57,14 +57,14 @@ const EVENT_LABELS: Record<string, string> = {
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
   template_sent: COLORS.accent.info,
-  message_received: '#22c55e',
+  message_received: COLORS.accent.success,
   conversation_started: '#8b5cf6',
   info_collected: '#06b6d4',
-  escalated: '#ef4444',
+  escalated: COLORS.accent.danger,
   opted_out: '#94a3b8',
-  status_changed: '#f59e0b',
-  issue_created: '#ef4444',
-  rsvp_received: '#22c55e',
+  status_changed: COLORS.accent.warning,
+  issue_created: COLORS.accent.danger,
+  rsvp_received: COLORS.accent.success,
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -152,7 +152,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
         exclusive
         onChange={(_, v) => { if (v) setFilter(v); }}
         size="small"
-        sx={{ mb: 2, '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 11, px: 1.5, py: 0.25, borderRadius: '8px !important', border: '1px solid rgba(0,0,0,0.1)', '&.Mui-selected': { bgcolor: COLORS.text.strong, color: COLORS.text.inverse, '&:hover': { bgcolor: '#333' } } } }}
+        sx={{ mb: 2, '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 11, px: 1.5, py: 0.25, borderRadius: '8px !important', border: '1px solid rgba(0,0,0,0.1)', '&.Mui-selected': { bgcolor: COLORS.text.strong, color: COLORS.text.inverse, '&:hover': { bgcolor: COLORS.text.strong } } } }}
       >
         <ToggleButton value="all">All</ToggleButton>
         <ToggleButton value="sent">Sent</ToggleButton>

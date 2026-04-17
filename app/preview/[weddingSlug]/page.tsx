@@ -17,6 +17,7 @@ import PinEntry from '@/components/guest/PinEntry';
 import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -80,7 +81,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8, // 64px from Figma converted to MUI scale
         px: { xs: 3, sm: 4, md: 5, lg: 5.5, xl: 6 }, // slightly less padding on mobile to fit 340px, reduced on lg/xl for overflow
         py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
@@ -373,7 +374,7 @@ function PreviewContent() {
           bgcolor: 'rgba(0, 0, 0, 0.7)',
           color: 'white',
           backdropFilter: 'blur(8px)',
-          borderRadius: '20px',
+          borderRadius: RADII.xl,
           textTransform: 'none',
           fontWeight: 600,
           fontSize: '0.8rem',
@@ -520,12 +521,12 @@ function PreviewContent() {
               </Box>
               <Button variant="contained" sx={{
                 bgcolor: '#000', color: '#fff',
-                borderRadius: '20px', px: 2,
+                borderRadius: RADII.xl, px: 2,
                 fontSize: '0.8rem', fontWeight: 500,
                 textTransform: 'none',
                 height: 36,
                 minHeight: 36,
-                '&:hover': { bgcolor: '#333' }
+                '&:hover': { bgcolor: COLORS.text.strong }
               }}>
                 Going
               </Button>
@@ -674,12 +675,12 @@ function PreviewContent() {
                 </Box>
                 <Button variant="contained" sx={{
                   bgcolor: '#000', color: '#fff',
-                  borderRadius: '20px', px: 2,
+                  borderRadius: RADII.xl, px: 2,
                   fontSize: '0.8rem', fontWeight: 500,
                   textTransform: 'none',
                   height: 36,
                   minHeight: 36,
-                  '&:hover': { bgcolor: '#333' }
+                  '&:hover': { bgcolor: COLORS.text.strong }
                 }}>
                   Going
                 </Button>
@@ -842,7 +843,7 @@ function PreviewContent() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#333',
+                    color: COLORS.text.strong,
                     fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                     lineHeight: 1.6,
                     maxWidth: { md: 400, lg: 460, xl: 520 },
@@ -925,11 +926,11 @@ function PreviewContent() {
                     py: { md: 2, lg: 2.25, xl: 2.5 },
                     fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
                     fontWeight: 700,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
-                      backgroundColor: wedding.primary_color || '#C8365A',
+                      backgroundColor: wedding.primary_color || COLORS.brand.primaryHover,
                       opacity: 0.9,
                     },
                   }}
@@ -1049,7 +1050,7 @@ function PreviewContent() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#333',
+                        color: COLORS.text.strong,
                         fontSize: { xs: '0.95rem', sm: '1rem' },
                         lineHeight: 1.6,
                         textAlign: 'center',

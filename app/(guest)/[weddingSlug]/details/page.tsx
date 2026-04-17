@@ -341,7 +341,7 @@ export default function DetailsPage() {
                     backgroundColor: COLORS.text.strong,
                     color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       transform: 'scale(1.05)',
                     },
                     transition: 'all 0.2s ease',

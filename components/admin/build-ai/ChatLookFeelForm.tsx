@@ -24,7 +24,7 @@ const COLOR_OPTIONS = [
 
 const FONT_COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
-  { name: 'Dark Gray', value: '#333333' },
+  { name: 'Dark Gray', value: COLORS.text.strong },
   { name: 'Charcoal', value: '#555555' },
   { name: 'White', value: COLORS.bg.white },
   { name: 'Ivory', value: '#FFFDD0' },
@@ -127,7 +127,7 @@ function ColorPicker({ selected, onSelect, label, options }: { selected: string;
               }}
             >
               {selected === color.value && (
-                <Check sx={{ fontSize: 16, color: color.value === COLORS.bg.white || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? '#333' : COLORS.bg.white, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                <Check sx={{ fontSize: 16, color: color.value === COLORS.bg.white || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? COLORS.text.strong : COLORS.bg.white, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
               )}
             </Box>
           </Tooltip>

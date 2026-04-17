@@ -152,7 +152,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: RADII.lg,
-                                        bgcolor: '#f8f9fa',
+                                        bgcolor: COLORS.bg.muted,
                                         fontSize: '1.1rem',
                                         color: COLORS.text.strong,
                                         '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
@@ -181,7 +181,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                         bgcolor: '#c23450',
                                         boxShadow: '0 10px 20px rgba(222, 63, 94, 0.3)',
                                     },
-                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
+                                    '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint },
                                 }}
                             >
                                 Submit Request

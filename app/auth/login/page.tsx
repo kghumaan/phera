@@ -22,6 +22,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { toast } from 'sonner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 function LoginContent() {
   const router = useRouter();
@@ -280,7 +281,7 @@ function LoginContent() {
           <Paper
             sx={{
               p: { xs: 3, sm: 5 },
-              borderRadius: '24px',
+              borderRadius: RADII.dialog,
               bgcolor: alpha('#fff', 0.95),
               backdropFilter: 'blur(10px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
@@ -293,12 +294,12 @@ function LoginContent() {
                   sx={{
                     fontWeight: 600,
                     mb: 1,
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                   }}
                 >
                   {step === 'form' ? 'Welcome to Phera' : 'Verify Your Email'}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                   {step === 'form'
                     ? 'Sign in or create an account to get started'
                     : <>We sent a 6-digit code to <strong>{email}</strong></>
@@ -313,7 +314,7 @@ function LoginContent() {
                       severity="warning"
                       onClose={() => setError(null)}
                       sx={{
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         '& .MuiAlert-icon': { color: 'white', display: 'flex', alignItems: 'center' },
                       }}
                     >
@@ -329,7 +330,7 @@ function LoginContent() {
                     disabled={isAnyLoading}
                     startIcon={
                       googleLoading ? (
-                        <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
+                        <CircularProgress size={18} sx={{ color: COLORS.text.strong }} />
                       ) : (
                         <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                           <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -343,13 +344,13 @@ function LoginContent() {
                       borderRadius: '32px',
                       py: 1.5,
                       borderColor: '#1a1a1a',
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       borderWidth: '1.5px',
                       textTransform: 'none',
                       fontWeight: 500,
                       bgcolor: 'white',
                       '&:hover': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         bgcolor: alpha('#DE3F5E', 0.05),
                         borderWidth: '1.5px',
                       },
@@ -384,16 +385,16 @@ function LoginContent() {
                         disabled={isAnyLoading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             bgcolor: 'white',
                             '& fieldset': {
                               borderColor: 'rgba(0, 0, 0, 0.23)',
                             },
                             '&:hover fieldset': {
-                              borderColor: '#DE3F5E',
+                              borderColor: COLORS.brand.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#DE3F5E',
+                              borderColor: COLORS.brand.primary,
                               borderWidth: '2px',
                             },
                             '&.Mui-disabled': {
@@ -404,24 +405,24 @@ function LoginContent() {
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#4a4a4a',
+                            color: COLORS.text.muted,
                             '&:not(.MuiInputLabel-shrink)': {
                               top: '50%',
                               transform: 'translateX(14px) translateY(-50%)',
                             },
                             '&.Mui-disabled': {
-                              color: '#6a6a6a',
+                              color: COLORS.text.subtle,
                             },
                           },
                           '& .MuiInputLabel-root.Mui-focused': {
-                            color: '#DE3F5E',
+                            color: COLORS.brand.primary,
                           },
                           '& .MuiInputBase-input': {
                             padding: '16.5px 14px',
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             '&.Mui-disabled': {
                               WebkitTextFillColor: '#4a4a4a',
-                              color: '#4a4a4a',
+                              color: COLORS.text.muted,
                             },
                             '&:-webkit-autofill': {
                               WebkitBoxShadow: '0 0 0 100px white inset',
@@ -442,16 +443,16 @@ function LoginContent() {
                         disabled={isAnyLoading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             bgcolor: 'white',
                             '& fieldset': {
                               borderColor: 'rgba(0, 0, 0, 0.23)',
                             },
                             '&:hover fieldset': {
-                              borderColor: '#DE3F5E',
+                              borderColor: COLORS.brand.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#DE3F5E',
+                              borderColor: COLORS.brand.primary,
                               borderWidth: '2px',
                             },
                             '&.Mui-disabled': {
@@ -462,24 +463,24 @@ function LoginContent() {
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#4a4a4a',
+                            color: COLORS.text.muted,
                             '&:not(.MuiInputLabel-shrink)': {
                               top: '50%',
                               transform: 'translateX(14px) translateY(-50%)',
                             },
                             '&.Mui-disabled': {
-                              color: '#6a6a6a',
+                              color: COLORS.text.subtle,
                             },
                           },
                           '& .MuiInputLabel-root.Mui-focused': {
-                            color: '#DE3F5E',
+                            color: COLORS.brand.primary,
                           },
                           '& .MuiInputBase-input': {
                             padding: '16.5px 14px',
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             '&.Mui-disabled': {
                               WebkitTextFillColor: '#4a4a4a',
-                              color: '#4a4a4a',
+                              color: COLORS.text.muted,
                             },
                             '&:-webkit-autofill': {
                               WebkitBoxShadow: '0 0 0 100px white inset !important',
@@ -510,7 +511,7 @@ function LoginContent() {
                         fullWidth
                         disabled={isAnyLoading}
                         sx={{
-                          bgcolor: '#DE3F5E',
+                          bgcolor: COLORS.brand.primary,
                           color: 'white',
                           py: 1.5,
                           borderRadius: '32px',
@@ -519,7 +520,7 @@ function LoginContent() {
                           textTransform: 'none',
                           boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                           '&:hover': {
-                            bgcolor: '#C8365A',
+                            bgcolor: COLORS.brand.primaryHover,
                             boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                           },
                           '&:disabled': {
@@ -541,7 +542,7 @@ function LoginContent() {
                     <Alert
                       severity="error"
                       onClose={() => setOtpError(null)}
-                      sx={{ borderRadius: '16px' }}
+                      sx={{ borderRadius: RADII.lg }}
                     >
                       {otpError}
                     </Alert>
@@ -555,7 +556,7 @@ function LoginContent() {
 
                   {otpLoading && (
                     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+                      <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
                     </Box>
                   )}
 
@@ -569,7 +570,7 @@ function LoginContent() {
                       }}
                       disabled={otpLoading}
                       sx={{
-                        color: '#4a4a4a',
+                        color: COLORS.text.muted,
                         textTransform: 'none',
                         fontWeight: 600,
                         fontSize: '0.875rem',
@@ -586,7 +587,7 @@ function LoginContent() {
                       onClick={handleResendOtp}
                       disabled={otpLoading}
                       sx={{
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                         textTransform: 'none',
                         fontWeight: 600,
                         fontSize: '0.875rem',
@@ -621,7 +622,7 @@ function LoginFallback() {
           py: 4,
         }}
       >
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     </OptimizedBackground>
   );

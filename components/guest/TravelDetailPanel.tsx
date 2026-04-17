@@ -108,9 +108,9 @@ export default function TravelDetailPanel({
         {bodyHtml && (
           <Box
             sx={{
-              '& p': { margin: '0 0 12px 0', color: '#333', lineHeight: 1.7, fontSize: '0.925rem' },
+              '& p': { margin: '0 0 12px 0', color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem' },
               '& ul': { paddingLeft: '20px', margin: '0 0 12px 0', listStyleType: 'disc' },
-              '& li': { color: '#333', lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5, display: 'list-item' },
+              '& li': { color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5, display: 'list-item' },
               '& li p': { margin: 0 },
               '& a': { color: primaryColor, textDecoration: 'underline' },
               '& strong': { fontWeight: 600 },

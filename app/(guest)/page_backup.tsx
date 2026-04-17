@@ -673,7 +673,7 @@ export default function HomePage() {
                     letterSpacing: '0.5px',
                     boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                     '&:hover': {
-                      backgroundColor: '#C8365A',
+                      backgroundColor: COLORS.brand.primaryHover,
                       boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                     },
                   }}
@@ -750,7 +750,7 @@ export default function HomePage() {
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
-                      backgroundColor: '#C8365A',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                   }}
                 >

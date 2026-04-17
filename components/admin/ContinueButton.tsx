@@ -128,7 +128,7 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
                 readOnly: true,
                 sx: {
                   borderRadius: RADII.md,
-                  bgcolor: '#f8f9fa',
+                  bgcolor: COLORS.bg.muted,
                   '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                   '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                   color: COLORS.text.subtle,

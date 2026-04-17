@@ -595,7 +595,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                   {/* Voice/upload error */}
                   {voiceError && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: '#d32f2f' }}>{voiceError}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: COLORS.accent.danger }}>{voiceError}</Typography>
                       <IconButton size="small" onClick={() => setVoiceError(null)} sx={{ color: COLORS.text.faint, p: 0.25 }}>
                         <Close sx={{ fontSize: 14 }} />
                       </IconButton>
@@ -659,7 +659,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         </Typography>
       )}
       {generateError && (
-        <Typography variant="body2" sx={{ color: '#d32f2f', fontSize: '0.8rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.accent.danger, fontSize: '0.8rem' }}>
           {generateError}
         </Typography>
       )}

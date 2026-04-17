@@ -251,7 +251,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       {/* Error display */}
       {error && state === 'idle' && !pendingTasks && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '0.8rem', color: '#d32f2f' }}>{error}</Typography>
+          <Typography sx={{ fontSize: '0.8rem', color: COLORS.accent.danger }}>{error}</Typography>
           <IconButton size="small" onClick={() => setError(null)} sx={{ color: COLORS.text.faint }}>
             <Close sx={{ fontSize: 14 }} />
           </IconButton>

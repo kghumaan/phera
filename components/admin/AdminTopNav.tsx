@@ -351,7 +351,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 onClick={() => !isPro && setUpgradeModalOpen(true)}
                                 sx={{
                                     mt: 1.5,
-                                    bgcolor: isPro ? COLORS.brand.primary : '#f0f0f0',
+                                    bgcolor: isPro ? COLORS.brand.primary : COLORS.border.faint,
                                     color: isPro ? COLORS.bg.white : COLORS.text.subtle,
                                     fontWeight: 600,
                                     fontSize: '0.8rem',

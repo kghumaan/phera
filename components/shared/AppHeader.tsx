@@ -200,7 +200,7 @@ export default function AppHeader({
                     backgroundColor: COLORS.text.strong,
                     color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                     },
                   }}
                 >
@@ -250,7 +250,7 @@ export default function AppHeader({
                       backgroundColor: COLORS.text.strong,
                       color: COLORS.text.inverse,
                       '&:hover': {
-                        backgroundColor: '#333',
+                        backgroundColor: COLORS.text.strong,
                         transform: 'scale(1.05)',
                       },
                       transition: 'all 0.2s ease',
@@ -287,7 +287,7 @@ export default function AppHeader({
                       textTransform: 'none',
                       minHeight: { xs: 32, md: 45 },
                       '&:hover': {
-                        backgroundColor: '#333',
+                        backgroundColor: COLORS.text.strong,
                       },
                     }}
                   >
@@ -358,7 +358,7 @@ export default function AppHeader({
                     minHeight: { xs: 40, md: 45 },
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
                     },
                     '&.Mui-disabled': {
@@ -431,7 +431,7 @@ export default function AppHeader({
             </Box> */}
             <Box
               sx={{
-                color: '#333',
+                color: COLORS.text.strong,
                 fontSize: '13px',
                 fontWeight: 500,
                 whiteSpace: 'nowrap',

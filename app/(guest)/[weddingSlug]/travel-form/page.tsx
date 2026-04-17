@@ -210,7 +210,7 @@ export default function TravelFormPage() {
                 variant="body1"
                 sx={{
                   mb: 4,
-                  color: '#333333',
+                  color: COLORS.text.strong,
                   fontSize: { xs: '1rem', md: '1.125rem' },
                 }}
               >
@@ -244,7 +244,7 @@ export default function TravelFormPage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#333333',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '0.95rem', md: '1.05rem' },
                     }}
                   >
@@ -271,7 +271,7 @@ export default function TravelFormPage() {
                         borderColor: '#999999',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#666666',
+                        borderColor: COLORS.text.subtle,
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: COLORS.brand.primary,
@@ -279,7 +279,7 @@ export default function TravelFormPage() {
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
-                      color: '#666666',
+                      color: COLORS.text.subtle,
                       '&.Mui-focused': {
                         color: COLORS.brand.primary,
                       },
@@ -329,7 +329,7 @@ export default function TravelFormPage() {
                          borderColor: '#999999',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#666666',
+                        borderColor: COLORS.text.subtle,
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: COLORS.brand.primary,
@@ -337,7 +337,7 @@ export default function TravelFormPage() {
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
-                      color: '#666666',
+                      color: COLORS.text.subtle,
                       '&.Mui-focused': {
                         color: COLORS.brand.primary,
                       },
@@ -381,7 +381,7 @@ export default function TravelFormPage() {
                                 height: '48px',
                                 borderRadius: RADII.md,
                                 borderColor: COLORS.text.faint,
-                                color: '#333',
+                                color: COLORS.text.strong,
                                 '&:hover': { borderColor: COLORS.brand.primary, color: COLORS.brand.primary }
                             }}
                             onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
@@ -423,7 +423,7 @@ export default function TravelFormPage() {
                                 height: '48px',
                                 borderRadius: RADII.md,
                                 borderColor: COLORS.text.faint,
-                                color: '#333',
+                                color: COLORS.text.strong,
                                 '&:hover': { borderColor: COLORS.brand.primary, color: COLORS.brand.primary }
                             }}
                             onClick={() => handleInputChange('party_size', formData.party_size + 1)}
@@ -483,7 +483,7 @@ export default function TravelFormPage() {
                             }}
                             disabled={loading}
                             sx={{
-                              color: '#666666',
+                              color: COLORS.text.subtle,
                               '&.Mui-checked': {
                                 color: COLORS.brand.primary,
                               },
@@ -506,7 +506,7 @@ export default function TravelFormPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#333333',
+                                color: COLORS.text.strong,
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -522,7 +522,7 @@ export default function TravelFormPage() {
                     <Typography
                         variant="caption"
                         sx={{
-                            color: '#666666',
+                            color: COLORS.text.subtle,
                             fontStyle: 'italic',
                              mt: 1,
                              display: 'block'
@@ -563,7 +563,7 @@ export default function TravelFormPage() {
                             }}
                             disabled={loading}
                             sx={{
-                              color: '#666666',
+                              color: COLORS.text.subtle,
                               '&.Mui-checked': {
                                 color: COLORS.brand.primary,
                               },
@@ -586,7 +586,7 @@ export default function TravelFormPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#333333',
+                                color: COLORS.text.strong,
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -630,7 +630,7 @@ export default function TravelFormPage() {
                             }}
                             disabled={loading}
                             sx={{
-                              color: '#666666',
+                              color: COLORS.text.subtle,
                               '&.Mui-checked': {
                                 color: COLORS.brand.primary,
                               },
@@ -653,7 +653,7 @@ export default function TravelFormPage() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#333333',
+                                color: COLORS.text.strong,
                                 fontSize: { xs: '0.9rem', md: '1rem' },
                               }}
                             >
@@ -699,7 +699,7 @@ export default function TravelFormPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#333333',
+                        color: COLORS.text.strong,
                         fontSize: { xs: '0.9rem', md: '1rem' },
                       }}
                     >
@@ -734,7 +734,7 @@ export default function TravelFormPage() {
                      <Typography
                         variant="body2"
                         sx={{
-                            color: '#333333',
+                            color: COLORS.text.strong,
                              fontSize: { xs: '0.9rem', md: '1rem' },
                         }}
                      >
@@ -768,7 +768,7 @@ export default function TravelFormPage() {
                     <Typography
                       variant="caption"
                       sx={{
-                        color: '#666666',
+                        color: COLORS.text.subtle,
                         fontSize: { xs: '0.85rem', md: '0.9rem' },
                       }}
                     >
@@ -812,7 +812,7 @@ export default function TravelFormPage() {
                   variant="caption"
                   sx={{
                     textAlign: 'center',
-                    color: '#666666',
+                    color: COLORS.text.subtle,
                     fontSize: { xs: '0.85rem', md: '0.9rem' },
                   }}
                 >

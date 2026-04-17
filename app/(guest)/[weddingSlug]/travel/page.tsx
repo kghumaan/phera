@@ -285,9 +285,9 @@ export default function TravelPage() {
                 {detailSection.more_details && (
                   <Box
                     sx={{
-                      '& p': { margin: '0 0 12px 0', color: '#333', lineHeight: 1.7, fontSize: '0.925rem' },
+                      '& p': { margin: '0 0 12px 0', color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem' },
                       '& ul': { paddingLeft: '20px', margin: '0 0 12px 0' },
-                      '& li': { color: '#333', lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5 },
+                      '& li': { color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5 },
                       '& a': { color: primaryColor, textDecoration: 'underline' },
                       '& strong': { fontWeight: 600 },
                     }}

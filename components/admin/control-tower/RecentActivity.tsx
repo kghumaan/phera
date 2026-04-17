@@ -31,14 +31,14 @@ interface RecentActivityProps {
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 16, color: COLORS.accent.info }} />,
-  message_received: <ReplyIcon sx={{ fontSize: 16, color: '#22c55e' }} />,
+  message_received: <ReplyIcon sx={{ fontSize: 16, color: COLORS.accent.success }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />,
   info_collected: <InfoIcon sx={{ fontSize: 16, color: '#06b6d4' }} />,
-  escalated: <ErrorOutlineIcon sx={{ fontSize: 16, color: '#ef4444' }} />,
+  escalated: <ErrorOutlineIcon sx={{ fontSize: 16, color: COLORS.accent.danger }} />,
   opted_out: <BlockIcon sx={{ fontSize: 16, color: '#94a3b8' }} />,
-  status_changed: <SyncAltIcon sx={{ fontSize: 16, color: '#f59e0b' }} />,
-  issue_created: <WarningAmberIcon sx={{ fontSize: 16, color: '#ef4444' }} />,
-  rsvp_received: <CheckCircleIcon sx={{ fontSize: 16, color: '#22c55e' }} />,
+  status_changed: <SyncAltIcon sx={{ fontSize: 16, color: COLORS.accent.warning }} />,
+  issue_created: <WarningAmberIcon sx={{ fontSize: 16, color: COLORS.accent.danger }} />,
+  rsvp_received: <CheckCircleIcon sx={{ fontSize: 16, color: COLORS.accent.success }} />,
 };
 
 const EVENT_LABELS: Record<string, string> = {

@@ -258,7 +258,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                               py: 1.25,
                               cursor: 'pointer',
                               fontSize: '0.85rem',
-                              color: '#333',
+                              color: COLORS.text.strong,
                               fontWeight: 500,
                               transition: 'all 0.1s',
                               '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary },
