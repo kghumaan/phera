@@ -1023,6 +1023,11 @@ export class WeddingService {
     // Note: We can't directly get emails from auth.users, so admins will need to be matched via user_id
     if (admins) {
       for (const admin of admins) {
+        // Skip any admin row that points to the wedding owner — they're already
+        // rendered as the "Owner" entry at the top. Happens when the owner
+        // accepts their own invite or legacy data double-counts them.
+        if (admin.user_id && admin.user_id === wedding.created_by) continue;
+
         // If the current user is one of the admins, we can show their email
         if (currentUser && admin.user_id === currentUser.id) {
           teamMembers.push({

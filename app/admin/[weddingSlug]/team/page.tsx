@@ -154,7 +154,27 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       return;
     }
 
-    // Check if invite already exists
+    // Check if user is already a team member (covers the wedding owner too —
+    // their row is pushed into teamMembers by getTeamMembers when viewing as owner).
+    const isAlreadyMember = teamMembers.some(
+      member => member.email.toLowerCase() === email
+    );
+    if (isAlreadyMember) {
+      showStatus('error', 'This person is already a team member');
+      return;
+    }
+
+    // Client-side dup check against pending invites so we fail fast without a roundtrip.
+    const alreadyInvited = pendingInvites.some(
+      inv => inv.email.toLowerCase() === email,
+    );
+    if (alreadyInvited) {
+      showStatus('error', 'An invite has already been sent to this email');
+      return;
+    }
+
+    // Server-side dup check as a second line of defense (handles invites created by a
+    // different admin between the last data load and this click).
     try {
       const inviteExists = await weddingService.checkInviteExists(weddingId, email);
       if (inviteExists) {
@@ -164,15 +184,6 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
     } catch (err) {
       console.error('Error checking invite existence:', err);
       // Continue anyway - might be a transient error
-    }
-
-    // Check if user is already a team member
-    const isAlreadyMember = teamMembers.some(
-      member => member.email.toLowerCase() === email
-    );
-    if (isAlreadyMember) {
-      showStatus('error', 'This person is already a team member');
-      return;
     }
 
     setSending(true);
@@ -315,22 +326,20 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
   const getRoleChip = (role: string, isOwner: boolean) => {
     if (isOwner) {
-      // Owner = unique gold accent; not covered by the standard chip tones
-      // so it stays inline. Every other chip goes through PheraChip.
       return (
         <Chip
-          icon={<Star sx={{ fontSize: 24 }} />}
+          icon={<Star sx={{ fontSize: 18 }} />}
           label="Owner"
           size="medium"
           sx={{
-            bgcolor: alpha('#FFB800', 0.15),
-            color: '#B38600',
+            bgcolor: alpha(COLORS.brand.primary, 0.08),
+            color: COLORS.text.strong,
             fontWeight: 700,
-            fontSize: '1rem',
-            height: 36,
-            px: 1.5,
-            '& .MuiChip-icon': { color: '#FFB800', fontSize: 24 },
-            '& .MuiChip-label': { px: 1.5, fontSize: '1rem', fontWeight: 700 },
+            fontSize: '0.85rem',
+            height: 32,
+            px: 1,
+            '& .MuiChip-icon': { color: COLORS.brand.primary, fontSize: 18 },
+            '& .MuiChip-label': { px: 1.25, fontSize: '0.85rem', fontWeight: 700 },
           }}
         />
       );
@@ -463,8 +472,8 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemIcon>
                       <Avatar
                         sx={{
-                          bgcolor: member.is_owner ? alpha('#FFB800', 0.15) : alpha(COLORS.brand.primary, 0.1),
-                          color: member.is_owner ? '#B38600' : COLORS.brand.primary,
+                          bgcolor: alpha(COLORS.brand.primary, 0.1),
+                          color: COLORS.brand.primary,
                           fontWeight: 600,
                           width: 40,
                           height: 40,
@@ -502,8 +511,8 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemIcon>
                       <Avatar
                         sx={{
-                          bgcolor: alpha('#FFB800', 0.15),
-                          color: '#B38600',
+                          bgcolor: alpha(COLORS.text.subtle, 0.12),
+                          color: COLORS.text.subtle,
                           width: 40,
                           height: 40,
                         }}
@@ -515,7 +524,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                       primary={invite.email}
                       secondary="Invite pending — waiting for them to sign up or log in"
                       primaryTypographyProps={{ fontWeight: 600, color: COLORS.text.strong }}
-                      secondaryTypographyProps={{ color: '#B38600', fontStyle: 'italic' }}
+                      secondaryTypographyProps={{ color: COLORS.text.subtle, fontStyle: 'italic' }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       {getRoleChip(invite.role, false)}
