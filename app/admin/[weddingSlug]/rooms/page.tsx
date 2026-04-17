@@ -5,17 +5,12 @@ import {
   Typography,
   Stack,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
   IconButton,
   CircularProgress,
   Tooltip,
   Chip,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Hotel,
@@ -23,7 +18,6 @@ import {
   Add,
   Delete,
   Edit,
-  Check,
   Close,
   AutoAwesome,
   PictureAsPdf,
@@ -31,17 +25,21 @@ import {
   Description,
   LockOutlined,
   People,
+  KingBed,
+  GroupAdd,
 } from '@mui/icons-material';
 import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { roomsService, type WeddingRoom, type RoomDraft } from '@/lib/supabase/rooms-service';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
-import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { PheraTextField } from '@/components/shared/TextField';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
 import { ErrorAlert, SuccessAlert } from '@/components/shared/Alert';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const MIN_GUESTS_FOR_ROOMS = 5;
@@ -50,8 +48,15 @@ interface ParsedRoom {
   room_number: string;
   floor: string | null;
   hotel_name: string | null;
+  bed_type: string | null;
   capacity: number | null;
   notes: string | null;
+}
+
+interface GuestLite {
+  id: string;
+  name: string | null;
+  wedding_side: 'bride' | 'groom' | 'both' | null;
 }
 
 export default function RoomAssignmentsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -76,6 +81,22 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
   const router = useRouter();
   const [guestCount, setGuestCount] = useState<number | null>(null);
   const [navigatingToGuestList, setNavigatingToGuestList] = useState(false);
+  const [guests, setGuests] = useState<GuestLite[]>([]);
+  const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
+  const [assignStatus, setAssignStatus] = useState<string | null>(null);
+  const [editRoomId, setEditRoomId] = useState<string | null>(null);
+
+  // Drag-and-drop state for slot-to-slot guest moves/swaps.
+  // Stored in a ref so re-renders during drag don't stutter; the draggedKey
+  // piece of state just drives the subtle ghost styling on the source slot.
+  const dragRef = useRef<{ roomId: string; index: number; guestId: string } | null>(null);
+  const [draggedKey, setDraggedKey] = useState<string | null>(null);
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+
+  // Add-guest menu anchor + room context.
+  const [addGuestAnchor, setAddGuestAnchor] = useState<HTMLElement | null>(null);
+  const [addGuestRoomId, setAddGuestRoomId] = useState<string | null>(null);
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -90,11 +111,13 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
   useEffect(() => {
     (async () => {
-      const { count } = await (supabase as any)
+      const { data } = await (supabase as any)
         .from('guests')
-        .select('id', { count: 'exact', head: true })
-        .eq('wedding_id', weddingSlug);
-      setGuestCount(count ?? 0);
+        .select('id, name, wedding_side')
+        .eq('wedding_id', weddingSlug)
+        .order('created_at', { ascending: true });
+      setGuests(((data ?? []) as GuestLite[]));
+      setGuestCount(data?.length ?? 0);
     })();
   }, [weddingSlug]);
 
@@ -228,6 +251,150 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     if (created) {
       await loadRooms();
       cancelAdd();
+    }
+  };
+
+  // ─── Auto-assignment ─────────────────────────────────────────
+  const handleAutoAssign = async () => {
+    setAssigning(true);
+    setAssignError(null);
+    setAssignStatus(null);
+    try {
+      const res = await fetch('/api/rooms/auto-assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weddingSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAssignError(data.error || 'Auto-assign failed');
+        return;
+      }
+      setAssignStatus(`Placed ${data.assignedCount} of ${data.totalGuests} guests into ${data.roomsUpdated} rooms.`);
+      await loadRooms();
+      setTimeout(() => setAssignStatus(null), 4500);
+    } catch (err: any) {
+      setAssignError(err?.message || 'Auto-assign failed');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleClearAssignments = async () => {
+    if (!confirm('Clear all current guest-to-room placements?')) return;
+    const ok = await roomsService.clearAllAssignments(weddingSlug);
+    if (ok) await loadRooms();
+  };
+
+  // Add a still-unplaced guest into a room. Bumps capacity by 1 automatically
+  // so the new slot is counted — the user implicitly said "this room can fit
+  // one more" by clicking Add Guest.
+  const handleAddGuestToRoom = async (roomId: string, guestId: string) => {
+    const room = rooms.find((r) => r.id === roomId);
+    if (!room) return;
+    const newAssigned = [...(room.assigned_guest_ids ?? []), guestId];
+    const newCapacity = Math.max((room.capacity ?? 0), newAssigned.length);
+
+    // Optimistic state update.
+    setRooms((prev) =>
+      prev.map((r) =>
+        r.id === roomId
+          ? { ...r, assigned_guest_ids: newAssigned, capacity: newCapacity }
+          : r,
+      ),
+    );
+    setAddGuestAnchor(null);
+    setAddGuestRoomId(null);
+
+    const { error } = await (supabase as any)
+      .from('wedding_rooms')
+      .update({ assigned_guest_ids: newAssigned, capacity: newCapacity })
+      .eq('id', roomId);
+    if (error) {
+      console.error('Error adding guest to room:', error);
+      await loadRooms();
+    }
+  };
+
+  const handleStartOver = async () => {
+    if (!confirm('Remove every room and all placements? This cannot be undone.')) return;
+    const ok = await roomsService.removeAll(weddingSlug);
+    if (ok) {
+      setAssignStatus(null);
+      setAssignError(null);
+      await loadRooms();
+    }
+  };
+
+  // Drop a dragged guest onto a (room, slot) target. Swaps with the existing
+  // guest in that slot, or moves into the empty slot if the target is open.
+  // Persists each affected room.
+  const handleSlotDrop = async (toRoomId: string, toIndex: number) => {
+    const src = dragRef.current;
+    dragRef.current = null;
+    setDraggedKey(null);
+    setDropTargetKey(null);
+    if (!src) return;
+    if (src.roomId === toRoomId && src.index === toIndex) return;
+
+    const next = rooms.map((r) => ({ ...r, assigned_guest_ids: [...(r.assigned_guest_ids ?? [])] }));
+    const srcRoom = next.find((r) => r.id === src.roomId);
+    const tgtRoom = next.find((r) => r.id === toRoomId);
+    if (!srcRoom || !tgtRoom) return;
+
+    const srcList = srcRoom.assigned_guest_ids;
+    const tgtList = tgtRoom.assigned_guest_ids;
+
+    // Guard: someone else may have already moved the source guest.
+    if (srcList[src.index] !== src.guestId) return;
+
+    if (src.roomId === toRoomId) {
+      // Same-room move/swap.
+      if (toIndex < tgtList.length) {
+        // Swap two filled positions.
+        [tgtList[src.index], tgtList[toIndex]] = [tgtList[toIndex], tgtList[src.index]];
+      } else {
+        // Move to empty trailing slot — just reorder to the end.
+        const [moved] = tgtList.splice(src.index, 1);
+        tgtList.push(moved);
+      }
+    } else {
+      // Cross-room.
+      if (toIndex < tgtList.length) {
+        // Swap with target's existing guest.
+        const tgtGuest = tgtList[toIndex];
+        tgtList[toIndex] = src.guestId;
+        srcList[src.index] = tgtGuest;
+      } else {
+        // Target slot is empty. Reject if target is already at capacity.
+        const cap = tgtRoom.capacity ?? 0;
+        if (cap > 0 && tgtList.length >= cap) {
+          setAssignError(`Room ${tgtRoom.room_number} is full.`);
+          setTimeout(() => setAssignError(null), 2500);
+          return;
+        }
+        srcList.splice(src.index, 1);
+        tgtList.push(src.guestId);
+      }
+    }
+
+    // Optimistic UI.
+    setRooms(next);
+
+    // Persist affected rooms. Same room → 1 write; different rooms → 2 parallel.
+    const touched = new Set<string>([src.roomId, toRoomId]);
+    const results = await Promise.all(
+      Array.from(touched).map((rid) => {
+        const r = next.find((x) => x.id === rid);
+        return r ? roomsService.setAssignments(rid, r.assigned_guest_ids) : null;
+      }),
+    );
+    const failed = results.some((r) => r === null);
+    if (failed) {
+      // Reload to re-sync with server state.
+      setAssignError('Failed to save move — reloading.');
+      await loadRooms();
+      setTimeout(() => setAssignError(null), 2500);
     }
   };
 
@@ -450,251 +617,581 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
         )}
       </Paper>
 
-      {/* Rooms table */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: RADII.md,
-          border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: COLORS.bg.white,
-          overflow: 'hidden',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Hotel sx={{ fontSize: 20, color: COLORS.text.strong }} />
-            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong }}>
-              Available Rooms
-            </Typography>
-            <Chip
-              label={loading ? '…' : rooms.length}
-              size="small"
-              sx={{ height: 20, fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
-            />
-          </Box>
-          <SecondaryActionButton
-            size="small"
-            startIcon={<Add />}
-            onClick={startAdd}
-            disabled={adding}
-          >
-            Add Room
-          </SecondaryActionButton>
-        </Box>
+      {/* Rooms grid */}
+      {(() => {
+        const guestIndexById = new Map<string, number>();
+        guests.forEach((g, i) => guestIndexById.set(g.id, i + 1));
+        const guestById = new Map<string, GuestLite>();
+        guests.forEach((g) => guestById.set(g.id, g));
+        const editingRoom = rooms.find((r) => r.id === editRoomId) || null;
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
-          </Box>
-        ) : rooms.length === 0 && !adding ? (
-          <Box sx={{ py: 6, textAlign: 'center', px: 3 }}>
-            <Hotel sx={{ fontSize: 40, color: COLORS.border.default, mb: 1.5 }} />
-            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
-              No rooms yet
-            </Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, maxWidth: 380, mx: 'auto' }}>
-              Upload a floorplan or list above, or add rooms manually one at a time.
-            </Typography>
-          </Box>
-        ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Room</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Floor</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Hotel</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Capacity</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Notes</TableCell>
-                  <TableCell sx={{ width: 110 }} />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {/* Inline add row */}
-                {adding && (
-                  <TableRow sx={{ bgcolor: 'rgba(222,63,94,0.03)' }}>
-                    <TableCell>
-                      <TextField
-                        autoFocus
-                        size="small"
-                        placeholder="e.g. 1207"
-                        value={addDraft.room_number}
-                        onChange={(e) => setAddDraft({ ...addDraft, room_number: e.target.value })}
-                        onKeyDown={(e) => { if (e.key === 'Enter') saveAdd(); if (e.key === 'Escape') cancelAdd(); }}
-                        sx={inlineFieldSx}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        placeholder="12"
-                        value={addDraft.floor || ''}
-                        onChange={(e) => setAddDraft({ ...addDraft, floor: e.target.value })}
-                        sx={inlineFieldSx}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        placeholder={defaultHotel || 'Optional'}
-                        value={addDraft.hotel_name || ''}
-                        onChange={(e) => setAddDraft({ ...addDraft, hotel_name: e.target.value })}
-                        sx={inlineFieldSx}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        type="number"
-                        placeholder="2"
-                        value={addDraft.capacity ?? ''}
-                        onChange={(e) => setAddDraft({ ...addDraft, capacity: e.target.value ? Number(e.target.value) : null })}
-                        sx={inlineFieldSx}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        placeholder="Optional"
-                        value={addDraft.notes || ''}
-                        onChange={(e) => setAddDraft({ ...addDraft, notes: e.target.value })}
-                        sx={inlineFieldSx}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Save">
-                        <IconActionButton size="small" onClick={saveAdd} disabled={!addDraft.room_number?.trim()}>
-                          <Check sx={{ fontSize: 18, color: COLORS.accent.success }} />
-                        </IconActionButton>
-                      </Tooltip>
-                      <Tooltip title="Cancel">
-                        <IconButton size="small" onClick={cancelAdd}>
-                          <Close sx={{ fontSize: 18, color: COLORS.text.faint }} />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+        return (
+          <>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Hotel sx={{ fontSize: 20, color: COLORS.text.strong }} />
+                <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                  Available Rooms
+                </Typography>
+                <Chip
+                  label={loading ? '…' : rooms.length}
+                  size="small"
+                  sx={{ height: 20, fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
+                />
+              </Box>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {rooms.length > 0 && guests.length > 0 && (
+                  <PrimaryActionButton
+                    size="small"
+                    startIcon={<GroupAdd />}
+                    onClick={handleAutoAssign}
+                    loading={assigning}
+                    sx={{ px: 2, py: 0.75 }}
+                  >
+                    Place All Guests
+                  </PrimaryActionButton>
                 )}
+                {rooms.some((r) => (r.assigned_guest_ids?.length ?? 0) > 0) && (
+                  <SecondaryActionButton size="small" onClick={handleClearAssignments}>
+                    Clear Assignments
+                  </SecondaryActionButton>
+                )}
+                <SecondaryActionButton
+                  size="small"
+                  startIcon={<Add />}
+                  onClick={startAdd}
+                  disabled={adding}
+                >
+                  Add Room
+                </SecondaryActionButton>
+                {rooms.length > 0 && (
+                  <SecondaryActionButton
+                    size="small"
+                    startIcon={<Delete />}
+                    onClick={handleStartOver}
+                  >
+                    Start Over
+                  </SecondaryActionButton>
+                )}
+              </Stack>
+            </Box>
 
+            {assignError && (
+              <Box sx={{ mb: 2 }}>
+                <ErrorAlert>{assignError}</ErrorAlert>
+              </Box>
+            )}
+            {assignStatus && !assignError && (
+              <Box sx={{ mb: 2 }}>
+                <SuccessAlert>{assignStatus}</SuccessAlert>
+              </Box>
+            )}
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
+              </Box>
+            ) : rooms.length === 0 && !adding ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  py: 6,
+                  textAlign: 'center',
+                  px: 3,
+                  borderRadius: RADII.md,
+                  border: '1px solid rgba(0,0,0,0.07)',
+                  bgcolor: COLORS.bg.white,
+                }}
+              >
+                <Hotel sx={{ fontSize: 40, color: COLORS.border.default, mb: 1.5 }} />
+                <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
+                  No rooms yet
+                </Typography>
+                <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, maxWidth: 380, mx: 'auto' }}>
+                  Upload a floorplan or list above, or add rooms manually one at a time.
+                </Typography>
+              </Paper>
+            ) : (
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: 'repeat(auto-fill, minmax(220px, 1fr))', md: 'repeat(auto-fill, minmax(240px, 1fr))' },
+                  gap: 2,
+                }}
+              >
                 {rooms.map((room) => {
-                  const isEditing = editingId === room.id;
+                  const cap = room.capacity ?? 0;
+                  const assigned = room.assigned_guest_ids ?? [];
+                  const slots = Math.max(cap, assigned.length);
                   return (
-                    <TableRow key={room.id} hover sx={{ '&:hover .row-actions': { opacity: 1 } }}>
-                      <TableCell>
-                        {isEditing ? (
-                          <TextField
-                            size="small"
-                            value={editDraft.room_number}
-                            onChange={(e) => setEditDraft({ ...editDraft, room_number: e.target.value })}
-                            sx={inlineFieldSx}
-                          />
-                        ) : (
-                          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
+                    <Paper
+                      key={room.id}
+                      elevation={0}
+                      sx={{
+                        position: 'relative',
+                        p: 2,
+                        borderRadius: RADII.md,
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        bgcolor: COLORS.bg.white,
+                        transition: 'all 0.15s',
+                        '&:hover': {
+                          borderColor: 'rgba(222,63,94,0.35)',
+                          boxShadow: '0 2px 14px rgba(0,0,0,0.04)',
+                          '& .card-actions': { opacity: 1 },
+                        },
+                      }}
+                    >
+                      {/* Hover actions */}
+                      <Box
+                        className="card-actions"
+                        sx={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 0.25, opacity: 0, transition: 'opacity 0.15s' }}
+                      >
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => { startEdit(room); setEditRoomId(room.id); }} sx={{ bgcolor: 'rgba(255,255,255,0.9)' }}>
+                            <Edit sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Remove">
+                          <IconButton size="small" onClick={() => removeRoom(room.id)} sx={{ bgcolor: 'rgba(255,255,255,0.9)' }}>
+                            <Delete sx={{ fontSize: 14, color: COLORS.text.faint }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+
+                      <Stack spacing={1.25}>
+                        {/* Room number + floor */}
+                        <Box>
+                          <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.1 }}>
                             {room.room_number}
                           </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEditing ? (
-                          <TextField
-                            size="small"
-                            value={editDraft.floor || ''}
-                            onChange={(e) => setEditDraft({ ...editDraft, floor: e.target.value })}
-                            sx={inlineFieldSx}
-                          />
-                        ) : (
-                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>{room.floor || '—'}</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEditing ? (
-                          <TextField
-                            size="small"
-                            value={editDraft.hotel_name || ''}
-                            onChange={(e) => setEditDraft({ ...editDraft, hotel_name: e.target.value })}
-                            sx={inlineFieldSx}
-                          />
-                        ) : (
-                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>
-                            {room.hotel_name || (defaultHotel ? <span style={{ color: COLORS.text.faint }}>{defaultHotel}</span> : '—')}
+                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.subtle, mt: 0.25 }}>
+                            {[room.floor ? `Floor ${room.floor}` : null, room.hotel_name || defaultHotel]
+                              .filter(Boolean)
+                              .join(' · ') || '—'}
+                          </Typography>
+                        </Box>
+
+                        {/* Bed type + capacity summary */}
+                        <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap>
+                          {room.bed_type && (
+                            <Chip
+                              size="small"
+                              icon={<KingBed sx={{ fontSize: 12 }} />}
+                              label={room.bed_type}
+                              sx={{
+                                height: 22,
+                                fontSize: '0.72rem',
+                                fontWeight: 600,
+                                bgcolor: 'rgba(222,63,94,0.08)',
+                                color: COLORS.brand.primary,
+                                '& .MuiChip-icon': { color: COLORS.brand.primary, ml: 0.5 },
+                              }}
+                            />
+                          )}
+                          {cap > 0 && (
+                            <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.subtle }}>
+                              {assigned.length}/{cap} placed
+                            </Typography>
+                          )}
+                        </Stack>
+
+                        {/* Capacity slots — full-width rows like outlined buttons */}
+                        <Stack spacing={0.75}>
+                            {Array.from({ length: slots }).map((_, i) => {
+                              const gid = assigned[i];
+                              const g = gid ? guestById.get(gid) : null;
+                              const num = gid ? guestIndexById.get(gid) : null;
+                              const side = g?.wedding_side;
+                              const tint =
+                                side === 'bride'
+                                  ? 'rgba(236,72,153,0.10)'
+                                  : side === 'groom'
+                                  ? 'rgba(59,130,246,0.10)'
+                                  : side === 'both'
+                                  ? 'rgba(168,85,247,0.10)'
+                                  : 'rgba(0,0,0,0.04)';
+                              const borderColor =
+                                side === 'bride'
+                                  ? 'rgba(236,72,153,0.35)'
+                                  : side === 'groom'
+                                  ? 'rgba(59,130,246,0.35)'
+                                  : side === 'both'
+                                  ? 'rgba(168,85,247,0.35)'
+                                  : 'rgba(0,0,0,0.12)';
+                              const slotKey = `${room.id}:${i}`;
+                              const isDragged = draggedKey === slotKey;
+                              const isDropTarget = dropTargetKey === slotKey;
+                              return (
+                                <Box
+                                  key={i}
+                                  draggable={!!gid}
+                                  onDragStart={(e) => {
+                                    if (!gid || !g) return;
+                                    dragRef.current = { roomId: room.id, index: i, guestId: gid };
+                                    setDraggedKey(slotKey);
+                                    e.dataTransfer.effectAllowed = 'move';
+                                    e.dataTransfer.setData('text/plain', gid);
+
+                                    // Build a styled drag preview that physically
+                                    // tracks the cursor — mirrors the slot's tint,
+                                    // gets a shadow + slight rotation for lift.
+                                    const srcEl = e.currentTarget as HTMLElement;
+                                    const rect = srcEl.getBoundingClientRect();
+                                    const ghost = document.createElement('div');
+                                    ghost.style.cssText = [
+                                      'position: fixed',
+                                      'top: -9999px',
+                                      'left: -9999px',
+                                      `width: ${rect.width}px`,
+                                      'min-height: 36px',
+                                      'padding: 6px 12px',
+                                      `border-radius: ${RADII.sm}px`,
+                                      `background: ${tint || 'rgba(222,63,94,0.12)'}`,
+                                      `border: 1px solid ${borderColor}`,
+                                      'box-shadow: 0 14px 28px rgba(0,0,0,0.22), 0 6px 10px rgba(0,0,0,0.12)',
+                                      'display: flex',
+                                      'align-items: center',
+                                      'gap: 8px',
+                                      'font-family: inherit',
+                                      'font-size: 12.8px',
+                                      'font-weight: 600',
+                                      `color: ${COLORS.text.strong}`,
+                                      'transform: rotate(-1.5deg)',
+                                      'white-space: nowrap',
+                                      'overflow: hidden',
+                                      'pointer-events: none',
+                                    ].join(';');
+                                    ghost.innerHTML = `<span style="color:${COLORS.brand.primary};font-size:11.2px;font-weight:700;min-width:20px;">#${num}</span><span style="overflow:hidden;text-overflow:ellipsis;">${(g.name || 'Unnamed guest').replace(/</g, '&lt;')}</span>`;
+                                    document.body.appendChild(ghost);
+                                    const offsetX = Math.min(e.clientX - rect.left, rect.width - 20);
+                                    const offsetY = Math.min(e.clientY - rect.top, 30);
+                                    e.dataTransfer.setDragImage(ghost, offsetX, offsetY);
+                                    // Remove the node after the browser has snapshotted it.
+                                    setTimeout(() => ghost.remove(), 0);
+                                  }}
+                                  onDragEnd={() => {
+                                    setDraggedKey(null);
+                                    setDropTargetKey(null);
+                                  }}
+                                  onDragOver={(e) => {
+                                    if (!dragRef.current) return;
+                                    e.preventDefault();
+                                    e.dataTransfer.dropEffect = 'move';
+                                    if (dropTargetKey !== slotKey) setDropTargetKey(slotKey);
+                                  }}
+                                  onDragLeave={() => {
+                                    if (dropTargetKey === slotKey) setDropTargetKey(null);
+                                  }}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    handleSlotDrop(room.id, i);
+                                  }}
+                                  sx={{
+                                    width: '100%',
+                                    minHeight: 36,
+                                    px: 1.25,
+                                    py: 0.5,
+                                    borderRadius: RADII.sm,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    bgcolor: isDragged
+                                      ? 'transparent'
+                                      : isDropTarget
+                                      ? 'rgba(222,63,94,0.12)'
+                                      : g
+                                      ? tint
+                                      : 'transparent',
+                                    border: isDragged
+                                      ? `1px dashed ${COLORS.border.default}`
+                                      : isDropTarget
+                                      ? `1px solid ${COLORS.brand.primary}`
+                                      : g
+                                      ? `1px solid ${borderColor}`
+                                      : `1px dashed ${COLORS.border.default}`,
+                                    cursor: g ? 'grab' : 'default',
+                                    transition: 'background-color 0.12s, border-color 0.12s',
+                                    userSelect: 'none',
+                                    '&:active': g ? { cursor: 'grabbing' } : {},
+                                    '& > *': isDragged ? { visibility: 'hidden' } : {},
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.7rem',
+                                      fontWeight: 700,
+                                      color: g ? COLORS.brand.primary : COLORS.text.faint,
+                                      minWidth: 20,
+                                    }}
+                                  >
+                                    {g ? `#${num}` : `${i + 1}.`}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.8rem',
+                                      fontWeight: g ? 600 : 400,
+                                      color: g ? COLORS.text.strong : COLORS.text.faint,
+                                      fontStyle: g ? 'normal' : 'italic',
+                                      flex: 1,
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      pointerEvents: 'none',
+                                    }}
+                                  >
+                                    {g ? g.name || 'Unnamed guest' : 'Empty'}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+
+                          {/* Add guest button — dashed call-to-action that
+                              mirrors the schedule page's "Add Minor Event".
+                              Opens a menu of still-unplaced guests. Selecting
+                              one auto-bumps the room capacity by 1. */}
+                          <Box
+                            onClick={(e) => {
+                              setAddGuestRoomId(room.id);
+                              setAddGuestAnchor(e.currentTarget as HTMLElement);
+                            }}
+                            sx={{
+                              width: '100%',
+                              minHeight: 36,
+                              px: 1.25,
+                              py: 0.5,
+                              borderRadius: RADII.sm,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 0.75,
+                              bgcolor: COLORS.border.light,
+                              border: '1px dashed #BCBCBC',
+                              cursor: 'pointer',
+                              transition: 'all 0.12s',
+                              '&:hover': {
+                                bgcolor: COLORS.border.default,
+                                borderColor: COLORS.text.faint,
+                              },
+                            }}
+                          >
+                            <Add sx={{ fontSize: 14, color: COLORS.text.muted }} />
+                            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: COLORS.text.muted }}>
+                              Add Guest
+                            </Typography>
+                          </Box>
+                        </Stack>
+
+                        {slots === 0 && (
+                          <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.faint, fontStyle: 'italic' }}>
+                            No capacity set — Add Guest will create the first slot
                           </Typography>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {isEditing ? (
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={editDraft.capacity ?? ''}
-                            onChange={(e) => setEditDraft({ ...editDraft, capacity: e.target.value ? Number(e.target.value) : null })}
-                            sx={inlineFieldSx}
-                          />
-                        ) : (
-                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>{room.capacity ?? '—'}</Typography>
+
+                        {room.notes && (
+                          <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.subtle }}>{room.notes}</Typography>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {isEditing ? (
-                          <TextField
-                            size="small"
-                            value={editDraft.notes || ''}
-                            onChange={(e) => setEditDraft({ ...editDraft, notes: e.target.value })}
-                            sx={inlineFieldSx}
-                          />
-                        ) : (
-                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>{room.notes || '—'}</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="right">
-                        {isEditing ? (
-                          <Stack direction="row" spacing={0} justifyContent="flex-end">
-                            <Tooltip title="Save">
-                              <IconActionButton size="small" onClick={saveEdit}>
-                                <Check sx={{ fontSize: 18, color: COLORS.accent.success }} />
-                              </IconActionButton>
-                            </Tooltip>
-                            <Tooltip title="Cancel">
-                              <IconButton size="small" onClick={cancelEdit}>
-                                <Close sx={{ fontSize: 18, color: COLORS.text.faint }} />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        ) : (
-                          <Box className="row-actions" sx={{ opacity: 0, transition: 'opacity 0.15s' }}>
-                            <Tooltip title="Edit">
-                              <IconButton size="small" onClick={() => startEdit(room)}>
-                                <Edit sx={{ fontSize: 16, color: COLORS.text.subtle }} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Remove">
-                              <IconActionButton size="small" onClick={() => removeRoom(room.id)} spinnerColor={COLORS.text.faint}>
-                                <Delete sx={{ fontSize: 16, color: COLORS.text.faint }} />
-                              </IconActionButton>
-                            </Tooltip>
-                          </Box>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                      </Stack>
+                    </Paper>
                   );
                 })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
+              </Box>
+            )}
+
+            {/* Add-guest menu — lists still-unplaced guests. Selecting one
+                appends the guest to the room and bumps capacity if needed. */}
+            <PheraMenu
+              anchorEl={addGuestAnchor}
+              open={!!addGuestAnchor && !!addGuestRoomId}
+              onClose={() => { setAddGuestAnchor(null); setAddGuestRoomId(null); }}
+              PaperProps={{ sx: { maxHeight: 360, minWidth: 240 } }}
+            >
+              {(() => {
+                const placed = new Set<string>();
+                rooms.forEach((r) => (r.assigned_guest_ids ?? []).forEach((id) => placed.add(id)));
+                const available = guests.filter((g) => !placed.has(g.id));
+                if (available.length === 0) {
+                  return (
+                    <Box sx={{ px: 2, py: 1.5, color: COLORS.text.subtle, fontSize: '0.82rem' }}>
+                      All guests are already placed.
+                    </Box>
+                  );
+                }
+                return available.map((g) => {
+                  const idx = guestIndexById.get(g.id);
+                  const side = g.wedding_side;
+                  const sideColor =
+                    side === 'bride'
+                      ? 'rgba(236,72,153,0.9)'
+                      : side === 'groom'
+                      ? 'rgba(59,130,246,0.9)'
+                      : side === 'both'
+                      ? 'rgba(168,85,247,0.9)'
+                      : COLORS.text.faint;
+                  return (
+                    <PheraMenuItem
+                      key={g.id}
+                      onClick={() => addGuestRoomId && handleAddGuestToRoom(addGuestRoomId, g.id)}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: COLORS.brand.primary, minWidth: 24 }}>
+                          #{idx}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, flex: 1 }}>
+                          {g.name || 'Unnamed guest'}
+                        </Typography>
+                        {side && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: sideColor,
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </PheraMenuItem>
+                  );
+                });
+              })()}
+            </PheraMenu>
+
+            {/* Add room dialog */}
+            <PheraDialog open={adding} onClose={cancelAdd} maxWidth="xs" fullWidth>
+              <PheraDialogTitle onClose={cancelAdd}>Add Room</PheraDialogTitle>
+              <DialogContent>
+                <Stack spacing={2} sx={{ pt: 1 }}>
+                  <PheraTextField
+                    autoFocus
+                    size="small"
+                    label="Room number"
+                    placeholder="e.g. 1207"
+                    value={addDraft.room_number}
+                    onChange={(e) => setAddDraft({ ...addDraft, room_number: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Floor"
+                    placeholder="12"
+                    value={addDraft.floor || ''}
+                    onChange={(e) => setAddDraft({ ...addDraft, floor: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Hotel"
+                    placeholder={defaultHotel || 'Optional'}
+                    value={addDraft.hotel_name || ''}
+                    onChange={(e) => setAddDraft({ ...addDraft, hotel_name: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Bed type"
+                    placeholder="e.g. 1 King, 2 Queens"
+                    value={addDraft.bed_type || ''}
+                    onChange={(e) => setAddDraft({ ...addDraft, bed_type: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    type="number"
+                    label="Capacity"
+                    placeholder="2"
+                    value={addDraft.capacity ?? ''}
+                    onChange={(e) => setAddDraft({ ...addDraft, capacity: e.target.value ? Number(e.target.value) : null })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Notes"
+                    placeholder="Optional"
+                    value={addDraft.notes || ''}
+                    onChange={(e) => setAddDraft({ ...addDraft, notes: e.target.value })}
+                    fullWidth
+                  />
+                </Stack>
+              </DialogContent>
+              <DialogActions>
+                <PrimaryActionButton onClick={saveAdd} disabled={!addDraft.room_number?.trim()}>
+                  Save
+                </PrimaryActionButton>
+              </DialogActions>
+            </PheraDialog>
+
+            {/* Edit room dialog */}
+            <PheraDialog
+              open={!!editingRoom}
+              onClose={() => { cancelEdit(); setEditRoomId(null); }}
+              maxWidth="xs"
+              fullWidth
+            >
+              <PheraDialogTitle onClose={() => { cancelEdit(); setEditRoomId(null); }}>
+                Edit Room
+              </PheraDialogTitle>
+              <DialogContent>
+                <Stack spacing={2} sx={{ pt: 1 }}>
+                  <PheraTextField
+                    autoFocus
+                    size="small"
+                    label="Room number"
+                    value={editDraft.room_number}
+                    onChange={(e) => setEditDraft({ ...editDraft, room_number: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Floor"
+                    value={editDraft.floor || ''}
+                    onChange={(e) => setEditDraft({ ...editDraft, floor: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Hotel"
+                    value={editDraft.hotel_name || ''}
+                    onChange={(e) => setEditDraft({ ...editDraft, hotel_name: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Bed type"
+                    placeholder="e.g. 1 King, 2 Queens"
+                    value={editDraft.bed_type || ''}
+                    onChange={(e) => setEditDraft({ ...editDraft, bed_type: e.target.value })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    type="number"
+                    label="Capacity"
+                    value={editDraft.capacity ?? ''}
+                    onChange={(e) => setEditDraft({ ...editDraft, capacity: e.target.value ? Number(e.target.value) : null })}
+                    fullWidth
+                  />
+                  <PheraTextField
+                    size="small"
+                    label="Notes"
+                    value={editDraft.notes || ''}
+                    onChange={(e) => setEditDraft({ ...editDraft, notes: e.target.value })}
+                    fullWidth
+                  />
+                </Stack>
+              </DialogContent>
+              <DialogActions>
+                <PrimaryActionButton onClick={async () => { await saveEdit(); setEditRoomId(null); }} disabled={!editDraft.room_number?.trim()}>
+                  Save
+                </PrimaryActionButton>
+              </DialogActions>
+            </PheraDialog>
+          </>
+        );
+      })()}
+
       <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
     </Box>
   );
 }
 
-const inlineFieldSx = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: RADII.sm,
-    bgcolor: COLORS.bg.white,
-    fontSize: '0.875rem',
-    '& input': { py: 0.75, fontSize: '0.875rem', color: COLORS.text.strong },
-    '& fieldset': { borderColor: COLORS.border.default },
-    '&:hover fieldset': { borderColor: COLORS.brand.primary },
-    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '1.5px' },
-  },
-};
