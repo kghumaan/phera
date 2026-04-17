@@ -52,6 +52,7 @@ import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-s
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -630,13 +631,15 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     return (
       <Box>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>Task Manager</Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Voice-to-tasks — speak your to-do list, we turn it into an organised board</Typography>
-            </Box>
-            <PrimaryActionButton startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ px: 3, py: 1.25, fontSize: '0.9rem', flexShrink: 0 }}>Upgrade to Pro</PrimaryActionButton>
-          </Box>
+          <PageHeading
+            title="Task Manager"
+            subtitle="Voice-to-tasks — speak your to-do list, we turn it into an organised board"
+            actions={
+              <PrimaryActionButton startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ flexShrink: 0 }}>
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
               Planning a wedding means a thousand things to track — and you shouldn&apos;t have to type them all out. <strong>Just speak.</strong> Ramble through everything that&apos;s on your mind, and Phera will transcribe it, extract every action item, and drop them into your board automatically.
@@ -674,13 +677,11 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   return (
     <Box>
       <Stack spacing={3}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>Task Manager</Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Voice-to-tasks — speak your to-do list, we handle the rest</Typography>
-          </Box>
-          <VoiceRecorder onTasksExtracted={handleVoiceTasks} />
-        </Box>
+        <PageHeading
+          title="Task Manager"
+          subtitle="Voice-to-tasks — speak your to-do list, we handle the rest"
+          actions={<VoiceRecorder onTasksExtracted={handleVoiceTasks} />}
+        />
 
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
           <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
