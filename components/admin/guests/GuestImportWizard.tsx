@@ -18,7 +18,6 @@ import {
   FormControl,
   InputLabel,
   Chip,
-  Alert,
   Table,
   TableBody,
   TableCell,
@@ -48,11 +47,13 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { ErrorAlert, InfoAlert } from '@/components/shared/Alert';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import {
   parseCsv,
   parseXlsx,
   parseVCard,
-  AUTO_MAP,
   autoMapColumns,
   applyColumnMapping,
   type ParsedRow,
@@ -74,45 +75,29 @@ interface ImportResult {
   errors: Array<{ row: number; reason: string }>;
 }
 
-type Step = 'select' | 'mapping' | 'importing' | 'done';
+type Step = 'select' | 'confirm' | 'importing' | 'done';
 
 // ─── Shared styles ──────────────────────────────────────────────────
 
-const PRIMARY_BTN = {
-  borderRadius: '12px',
-  textTransform: 'none' as const,
-  bgcolor: '#DE3F5E',
-  fontWeight: 600,
-  '&:hover': { bgcolor: '#c13550' },
-};
-
-const SELECT_SX = {
-  borderRadius: '12px',
-  bgcolor: 'white',
-  color: '#1a1a1a',
-  '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-  '&:hover fieldset': { borderColor: '#DE3F5E' },
-  '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-};
-
-// FormControl sx that matches ENHANCED_TEXT_FIELD_SX height & label placement
+// FormControl sx that matches ENHANCED_TEXT_FIELD_SX height & label placement.
+// Tokens resolve all colors and the input radius.
 const ENHANCED_FORM_CONTROL_SX = {
   mt: 1,
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    bgcolor: 'white',
+    borderRadius: RADII.md,
+    bgcolor: COLORS.bg.white,
     fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     '& .MuiSelect-select': {
       py: { xs: 1.5, md: 1.75, lg: 2 },
       fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
-      color: '#1a1a1a',
+      color: COLORS.text.strong,
     },
-    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-    '&:hover fieldset': { borderColor: '#DE3F5E' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+    '& fieldset': { borderColor: COLORS.border.strong },
+    '&:hover fieldset': { borderColor: COLORS.brand.primary },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
   },
   '& .MuiInputLabel-root': {
-    color: '#4a4a4a',
+    color: COLORS.text.muted,
     fontSize: { xs: '0.95rem', md: '1rem', lg: '1.05rem' },
     fontWeight: 500,
     lineHeight: 1.5,
@@ -120,22 +105,9 @@ const ENHANCED_FORM_CONTROL_SX = {
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -9px) scale(0.75)',
     },
-    '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 },
+    '&.Mui-focused': { color: COLORS.brand.primary, fontWeight: 600 },
   },
 };
-
-// ─── Field options for column mapping UI ────────────────────────────
-
-const FIELD_OPTIONS = [
-  { value: '', label: '— Skip —' },
-  { value: 'name', label: 'Full Name' },
-  { value: 'first_name', label: 'First Name' },
-  { value: 'last_name', label: 'Last Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'wedding_side', label: 'Wedding Side' },
-  { value: 'group', label: 'Tag / Group' },
-];
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -213,10 +185,16 @@ export default function GuestImportWizard({
   }, []);
 
   const handleParsedData = (fields: string[], data: ParsedRow[]) => {
+    const mapping = autoMapColumns(fields);
+    const mapped = applyColumnMapping(data, mapping);
+    if (mapped.length === 0) {
+      setParseError("We couldn't find any names in this file. Make sure there's a column with guest names.");
+      return;
+    }
     setHeaders(fields);
     setRows(data);
-    setColumnMap(autoMapColumns(fields));
-    setStep('mapping');
+    setColumnMap(mapping);
+    setStep('confirm');
   };
 
   // ─── Manual Guest Helpers ─────────────────────────────────────
@@ -235,15 +213,6 @@ export default function GuestImportWizard({
 
   function buildGuestsFromMapping(): ParsedRow[] {
     return applyColumnMapping(rows, columnMap);
-  }
-
-  function getPreviewStats() {
-    const guests = buildGuestsFromMapping();
-    return {
-      total: guests.length,
-      withEmail: guests.filter((g) => g.email).length,
-      withPhone: guests.filter((g) => g.phone).length,
-    };
   }
 
   // ─── Import ──────────────────────────────────────────────────
@@ -296,14 +265,12 @@ export default function GuestImportWizard({
     if (file) processFile(file);
   }, [processFile]);
 
-  const hasNameMapped = Object.values(columnMap).some((v) => v === 'name' || v === 'first_name');
-
   // ─── Render ──────────────────────────────────────────────────
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        {step === 'done' ? 'Import Complete' : step === 'mapping' ? 'Map Columns' : 'Import Guests'}
+        {step === 'done' ? 'Import Complete' : step === 'confirm' ? 'Confirm Import' : 'Import Guests'}
         <IconButton onClick={handleClose} size="small">
           <Close sx={{ color: '#6a6a6a' }} />
         </IconButton>
@@ -369,7 +336,7 @@ export default function GuestImportWizard({
                     How to format your file
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: '#4a4a4a', mb: 1.5, lineHeight: 1.7 }}>
-                    Your spreadsheet should have column headers in the first row. We'll auto-detect common column names. At minimum, include a <strong>Name</strong> column.
+                    Upload any schema — we'll match columns automatically. Names are required. Email and phone unlock RSVPs, WhatsApp, and concierge, so include them when you can. Works best with headers like below.
                   </Typography>
 
                   {/* Example table */}
@@ -411,7 +378,7 @@ export default function GuestImportWizard({
                   </TableContainer>
 
                   <Typography sx={{ fontSize: 11, color: '#6a6a6a', mt: 1 }}>
-                    <strong>Tag</strong> and <strong>Side</strong> are optional, but very helpful for room planning, seating, and grouping guests for outreach.
+                    Side and tag are optional.
                   </Typography>
                 </Paper>
 
@@ -579,38 +546,26 @@ export default function GuestImportWizard({
 
                   {/* Button row: Cancel | Add — right-aligned */}
                   <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pt: 1 }}>
-                    <Button
-                      variant="outlined"
+                    <SecondaryActionButton
                       onClick={handleClose}
-                      sx={{
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        minWidth: 100,
-                        height: 40,
-                        color: '#4a4a4a',
-                        borderColor: 'rgba(0, 0, 0, 0.23)',
-                        '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)', color: '#DE3F5E' },
-                      }}
+                      sx={{ minWidth: 100, height: 40 }}
                     >
                       Cancel
-                    </Button>
-                    <Button
-                      variant="contained"
+                    </SecondaryActionButton>
+                    <PrimaryActionButton
                       onClick={handleAddManual}
                       disabled={!manualForm.name.trim() || (!manualForm.email.trim() && !manualForm.phone.trim())}
                       sx={{
-                        ...PRIMARY_BTN,
                         minWidth: 100,
                         height: 40,
                         '&.Mui-disabled': {
-                          bgcolor: 'rgba(222, 63, 94, 0.35)',
-                          color: 'white',
+                          bgcolor: COLORS.brand.primaryDisabled,
+                          color: COLORS.text.inverse,
                         },
                       }}
                     >
                       Add
-                    </Button>
+                    </PrimaryActionButton>
                   </Stack>
                 </Stack>
 
@@ -657,186 +612,83 @@ export default function GuestImportWizard({
               </Box>
             )}
 
-            {parseError && <Alert severity="error" sx={{ mt: 2 }}>{parseError}</Alert>}
+            {parseError && <Box sx={{ mt: 2 }}><ErrorAlert>{parseError}</ErrorAlert></Box>}
           </>
         )}
 
-        {/* ═══ Step: Column Mapping ═══════════════════════════ */}
-        {step === 'mapping' && (
-          <Box>
-            <Typography sx={{ fontSize: 13, color: '#4a4a4a', mb: 2 }}>
-              We auto-detected some columns. Adjust the mapping if needed — at minimum, map a <strong>Name</strong> column.
-            </Typography>
+        {/* ═══ Step: Confirm ═══════════════════════════════════ */}
+        {step === 'confirm' && (() => {
+          const mapped = buildGuestsFromMapping();
+          const stats = {
+            total: mapped.length,
+            withEmail: mapped.filter((g) => g.email).length,
+            withPhone: mapped.filter((g) => g.phone).length,
+          };
+          const preview = mapped.slice(0, 5);
+          return (
+            <Box>
+              <Typography sx={{ fontSize: 13, color: '#4a4a4a', mb: 2 }}>
+                Found <strong>{stats.total}</strong> guest{stats.total !== 1 ? 's' : ''} in your file.
+                {' '}<span style={{ color: '#6a6a6a' }}>{stats.withEmail} with email · {stats.withPhone} with phone</span>
+              </Typography>
 
-            {/* Column mapping rows */}
-            <Paper
-              elevation={0}
-              sx={{
-                border: '1px solid rgba(0,0,0,0.07)',
-                borderRadius: '12px',
-                bgcolor: 'white',
-                overflow: 'hidden',
-                mb: 3,
-              }}
-            >
-              {headers.map((header, idx) => (
-                <Box
-                  key={header}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    px: 2,
-                    py: 1.25,
-                    borderBottom: idx < headers.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-                    bgcolor: 'white',
-                  }}
-                >
-                  {/* Source column header */}
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      color: '#1a1a1a',
-                      fontWeight: 600,
-                      width: 110,
-                      flexShrink: 0,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {header}
-                  </Typography>
-
-                  <Typography sx={{ fontSize: 13, color: '#b0b0b0', flexShrink: 0 }}>→</Typography>
-
-                  {/* Mapping dropdown */}
-                  <FormControl size="small" sx={{ width: 220, flexShrink: 0 }}>
-                    <Select
-                      value={columnMap[header] || ''}
-                      onChange={(e) => setColumnMap((prev) => ({ ...prev, [header]: e.target.value }))}
-                      displayEmpty
-                      sx={SELECT_SX}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            bgcolor: 'white',
-                            border: '1px solid rgba(0,0,0,0.08)',
-                            borderRadius: '10px',
-                            mt: 0.5,
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                            '& .MuiMenuItem-root': {
-                              fontSize: 13,
-                              color: '#1a1a1a',
-                              py: 1,
-                              '&:hover': { bgcolor: 'rgba(222,63,94,0.06)' },
-                              '&.Mui-selected': {
-                                bgcolor: 'rgba(222,63,94,0.08)',
-                                '&:hover': { bgcolor: 'rgba(222,63,94,0.12)' },
-                              },
-                            },
-                          },
-                        },
-                      }}
-                    >
-                      {FIELD_OPTIONS.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  {/* Example value */}
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      color: '#9a9a9a',
-                      fontStyle: 'italic',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      flex: 1,
-                      minWidth: 0,
-                    }}
-                  >
-                    {rows[0]?.[header] ? `e.g. "${rows[0][header]}"` : ''}
-                  </Typography>
-                </Box>
-              ))}
-            </Paper>
-
-            {!hasNameMapped && (
-              <Alert severity="warning" sx={{ mb: 2 }}>
-                Please map at least a <strong>Name</strong> or <strong>First Name</strong> column to continue.
-              </Alert>
-            )}
-
-            {/* Preview table */}
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
-              Preview ({Math.min(rows.length, 5)} of {rows.length} rows)
-            </Typography>
-            <Paper
-              elevation={0}
-              sx={{
-                border: '1px solid rgba(0,0,0,0.07)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                bgcolor: 'white',
-              }}
-            >
-              <TableContainer sx={{ maxHeight: 200, bgcolor: 'white' }}>
-                <Table size="small" sx={{ bgcolor: 'white' }}>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#FAFAFA' }}>
-                      {headers.filter((h) => columnMap[h]).map((h) => (
-                        <TableCell
-                          key={h}
-                          sx={{
-                            fontWeight: 600,
-                            color: '#1a1a1a',
-                            fontSize: 11,
-                            bgcolor: '#FAFAFA',
-                            borderBottom: '1px solid rgba(0,0,0,0.06)',
-                          }}
-                        >
-                          {FIELD_OPTIONS.find((o) => o.value === columnMap[h])?.label || h}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody sx={{ bgcolor: 'white' }}>
-                    {rows.slice(0, 5).map((row, i) => (
-                      <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
-                        {headers.filter((h) => columnMap[h]).map((h) => (
-                          <TableCell
-                            key={h}
-                            sx={{
-                              color: '#4a4a4a',
-                              fontSize: 12,
-                              borderBottom: '1px solid rgba(0,0,0,0.04)',
-                            }}
-                          >
-                            {row[h] || '—'}
-                          </TableCell>
-                        ))}
+              <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+                Preview (first {preview.length})
+              </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: '1px solid rgba(0,0,0,0.07)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  bgcolor: 'white',
+                }}
+              >
+                <TableContainer sx={{ maxHeight: 260, bgcolor: 'white' }}>
+                  <Table size="small" sx={{ bgcolor: 'white' }}>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#FAFAFA' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, bgcolor: '#FAFAFA' }}>Name</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, bgcolor: '#FAFAFA' }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, bgcolor: '#FAFAFA' }}>Phone</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, bgcolor: '#FAFAFA' }}>Side</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: 11, bgcolor: '#FAFAFA' }}>Tag</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Box>
-        )}
+                    </TableHead>
+                    <TableBody sx={{ bgcolor: 'white' }}>
+                      {preview.map((row, i) => (
+                        <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
+                          <TableCell sx={{ color: '#1a1a1a', fontSize: 12, fontWeight: 500 }}>{row.name || '—'}</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{row.email || '—'}</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{row.phone || '—'}</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{row.wedding_side || '—'}</TableCell>
+                          <TableCell sx={{ color: '#4a4a4a', fontSize: 12 }}>{row.group || '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+
+              {stats.withEmail === 0 && stats.withPhone === 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <InfoAlert>
+                    No email or phone detected. You can still import names — add contacts later to unlock WhatsApp broadcasting, RSVPs, travel and logistics collection, and the guest concierge.
+                  </InfoAlert>
+                </Box>
+              )}
+            </Box>
+          );
+        })()}
 
         {/* ═══ Step: Importing ════════════════════════════════ */}
         {step === 'importing' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 360, py: 4 }}>
-            <CircularProgress size={40} sx={{ color: '#DE3F5E', mb: 2 }} />
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1a1a1a' }}>
+            <CircularProgress size={40} sx={{ color: COLORS.brand.primary, mb: 2 }} />
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: COLORS.text.strong }}>
               Importing guests...
             </Typography>
-            <LinearProgress sx={{ width: '50%', mt: 2, borderRadius: 4, '& .MuiLinearProgress-bar': { bgcolor: '#DE3F5E' } }} />
+            <LinearProgress sx={{ width: '50%', mt: 2, borderRadius: 4, '& .MuiLinearProgress-bar': { bgcolor: COLORS.brand.primary } }} />
           </Box>
         )}
 
@@ -898,56 +750,46 @@ export default function GuestImportWizard({
       {/* ═══ Footer Actions ══════════════════════════════════ */}
       {step !== 'done' && step !== 'importing' && (
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-          {step === 'mapping' || tab !== 1 ? (
-            <Button onClick={step === 'mapping' ? () => setStep('select') : handleClose} sx={{ textTransform: 'none', color: '#6a6a6a', fontWeight: 500 }}>
-              {step === 'mapping' ? 'Back' : 'Cancel'}
+          {step === 'confirm' || tab !== 1 ? (
+            <Button
+              onClick={step === 'confirm' ? () => setStep('select') : handleClose}
+              sx={{ textTransform: 'none', color: COLORS.text.subtle, fontWeight: 500 }}
+            >
+              {step === 'confirm' ? 'Back' : 'Cancel'}
             </Button>
           ) : (
             <Box />
           )}
 
-          {step === 'mapping' && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              {(() => {
-                const stats = getPreviewStats();
-                return (
-                  <Typography sx={{ fontSize: 12, color: '#4a4a4a' }}>
-                    {stats.total} guests{stats.withEmail > 0 ? ` · ${stats.withEmail} with email` : ''}{stats.withPhone > 0 ? ` · ${stats.withPhone} with phone` : ''}
-                  </Typography>
-                );
-              })()}
-              <Button
-                variant="contained"
-                onClick={handleImport}
-                disabled={!hasNameMapped || buildGuestsFromMapping().length === 0}
-                sx={PRIMARY_BTN}
-              >
-                Import {buildGuestsFromMapping().length} Guests
-              </Button>
-            </Box>
+          {step === 'confirm' && (
+            <PrimaryActionButton
+              onClick={handleImport}
+              loading={importing}
+              disabled={buildGuestsFromMapping().length === 0}
+            >
+              Import {buildGuestsFromMapping().length} Guest{buildGuestsFromMapping().length !== 1 ? 's' : ''}
+            </PrimaryActionButton>
           )}
 
           {step === 'select' && tab === 1 && manualGuests.length > 0 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={handleImport}
-              sx={PRIMARY_BTN}
+              loading={importing}
             >
               Import {manualGuests.length} Guest{manualGuests.length !== 1 ? 's' : ''}
-            </Button>
+            </PrimaryActionButton>
           )}
         </DialogActions>
       )}
 
       {step === 'done' && (
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'center' }}>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleClose}
-            sx={{ ...PRIMARY_BTN, minWidth: 140, height: 40 }}
+            sx={{ minWidth: 140, height: 40 }}
           >
             Done
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
       )}
     </Dialog>

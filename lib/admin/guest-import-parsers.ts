@@ -98,16 +98,78 @@ export const AUTO_MAP: Record<string, string> = {
   group: 'group', family: 'group', 'group name': 'group', 'family name': 'group', team: 'group',
 };
 
+// Fuzzy match: exact hit first, then substring heuristics.
+function matchField(rawHeader: string): string | null {
+  const key = rawHeader.trim().toLowerCase();
+  if (!key) return null;
+  if (AUTO_MAP[key]) return AUTO_MAP[key];
+
+  // Normalize separators so "phone_number" / "phone-number" / "phone number" all collapse.
+  const norm = key.replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (AUTO_MAP[norm]) return AUTO_MAP[norm];
+
+  // Concatenated / camelCase forms — strip whitespace and do substring checks.
+  const squashed = norm.replace(/\s+/g, '');
+
+  // Email
+  if (squashed.includes('email') || squashed.includes('emailaddress') || /e-?mail/.test(squashed)) return 'email';
+
+  // Phone
+  if (/(phone|mobile|cell|telephone|^tel$|whatsapp|contactno|contactnumber)/.test(squashed)) return 'phone';
+
+  // First / Last name variants
+  if (squashed.includes('firstname') || squashed === 'first' || squashed === 'given' || squashed === 'givenname') return 'first_name';
+  if (squashed.includes('lastname') || squashed === 'last' || squashed === 'surname' || squashed === 'familyname') return 'last_name';
+
+  // Full name / person-ish
+  if (squashed.includes('fullname') || squashed === 'name' || squashed.endsWith('name')) return 'name';
+  if (/(guest|invitee|attendee|contact|person)/.test(squashed)) return 'name';
+
+  // Side
+  if (squashed.includes('side')) return 'wedding_side';
+
+  // Tag / group
+  if (/(tag|group|category|label|team)/.test(squashed)) return 'group';
+
+  return null;
+}
+
 export function autoMapColumns(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
+  const taken = new Set<string>();
+
   for (const header of headers) {
-    const key = header.trim().toLowerCase();
-    if (AUTO_MAP[key]) {
-      mapping[header] = AUTO_MAP[key];
+    const field = matchField(header);
+    if (!field) continue;
+    // Don't overwrite a field already claimed by an earlier column.
+    if (taken.has(field)) continue;
+    mapping[header] = field;
+    taken.add(field);
+  }
+
+  // Fallback: if nothing maps to a name at all, use the first non-empty header.
+  const hasName = Object.values(mapping).some((v) => v === 'name' || v === 'first_name');
+  if (!hasName && headers.length > 0) {
+    const first = headers.find((h) => h && h.trim());
+    if (first && !mapping[first]) {
+      mapping[first] = 'name';
     }
   }
+
   return mapping;
 }
+
+// Rows whose "name" is actually a header label repeated in the data.
+// Catches spreadsheets with title/banner rows or header duplication.
+const HEADER_NAME_BLOCKLIST = new Set([
+  'name', 'full name', 'fullname',
+  'guest', 'guests', 'guest name', 'guestname', 'guest names',
+  'first name', 'firstname', 'first',
+  'last name', 'lastname', 'last', 'surname',
+  'contact', 'contacts', 'contact name',
+  'invitee', 'invitees', 'attendee', 'attendees',
+  'person', 'people',
+]);
 
 // ─── Apply mapping to build final guest payload ─────────────────────
 
@@ -131,5 +193,10 @@ export function applyColumnMapping(
       delete guest.last_name;
       return guest;
     })
-    .filter((g) => g.name);
+    .filter((g) => {
+      if (!g.name) return false;
+      const lower = g.name.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (HEADER_NAME_BLOCKLIST.has(lower)) return false;
+      return true;
+    });
 }
