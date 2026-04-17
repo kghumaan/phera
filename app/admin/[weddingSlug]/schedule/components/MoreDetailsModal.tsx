@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Dialog,
   Box,
   Typography,
   Stack,
@@ -13,6 +12,7 @@ import {
   CardContent,
   CircularProgress,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import {
   Close,
@@ -464,14 +464,13 @@ export default function MoreDetailsModal({
   const previewBgUrl = weddingBackground || '/images/backgrounds/blue-clouds.webp';
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: RADII.dialog,
           height: '90vh',
           maxHeight: 800,
           maxWidth: 1100,
@@ -722,7 +721,7 @@ export default function MoreDetailsModal({
           </Box>
         </Box>
       )}
-    </Dialog>
+    </PheraDialog>
   );
 }
 

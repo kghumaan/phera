@@ -1,8 +1,6 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -13,6 +11,7 @@ import {
   Typography,
   Popover,
 } from '@mui/material';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import {
   FormatBold,
@@ -143,16 +142,15 @@ export default function TravelDetailEditor({
   if (!editor) return null;
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{ sx: { borderRadius: RADII.dialog, bgcolor: COLORS.bg.white } }}
     >
-      <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600, pb: 0 }}>
+      <PheraDialogTitle onClose={onClose} sx={{ pb: 0 }}>
         More Details
-      </DialogTitle>
+      </PheraDialogTitle>
       <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
           Add additional notes that you&apos;d like to share with your guests
@@ -398,6 +396,6 @@ export default function TravelDetailEditor({
           Save Details
         </PrimaryActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }

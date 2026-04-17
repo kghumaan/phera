@@ -19,8 +19,6 @@ import {
   Tabs,
   Tab,
   Collapse,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Tooltip,
@@ -57,6 +55,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser, DEMO_VENDOR_DETAILS, DEMO_MEMBERS, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface Message {
   id: string;
@@ -971,16 +970,14 @@ export default function VendorDetailPage({
       )}
 
       {/* Delete confirmation */}
-      <Dialog
+      <PheraDialog
         open={deleteConfirmOpen}
         onClose={() => !deleting && setDeleteConfirmOpen(false)}
-        PaperProps={{ sx: { borderRadius: 1, maxWidth: 380 } }}
+        PaperProps={{ sx: { maxWidth: 380 } }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
-          Remove vendor?
-        </DialogTitle>
+        <PheraDialogTitle>Remove vendor?</PheraDialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.muted }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
             This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
           </Typography>
         </DialogContent>
@@ -1000,7 +997,7 @@ export default function VendorDetailPage({
             Remove
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Box>
   );
 }
