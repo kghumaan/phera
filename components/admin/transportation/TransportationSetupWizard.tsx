@@ -16,11 +16,10 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
@@ -402,14 +401,14 @@ export default function TransportationSetupWizard({
           </PrimaryActionButton>
         </Box>
       </Stack>
-      <Dialog
+      <PheraDialog
         open={restartDialogOpen}
         onClose={() => setRestartDialogOpen(false)}
-        PaperProps={{
-          sx: { borderRadius: 1, p: 1, maxWidth: 400 }
-        }}
+        PaperProps={{ sx: { p: 1, maxWidth: 400 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Restart Setup?</DialogTitle>
+        <PheraDialogTitle onClose={() => setRestartDialogOpen(false)}>
+          Restart Setup?
+        </PheraDialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             This will reset your transportation settings. You'll need to choose between prescheduled or flexible mode again.
@@ -436,7 +435,7 @@ export default function TransportationSetupWizard({
             Yes, Restart
           </Button>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </LocalizationProvider>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Button, Dialog, DialogContent, TextField, IconButton, Stack, Typography } from '@mui/material';
+import { Box, Button, DialogContent, TextField, IconButton, Stack, Typography } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { ArrowForward, Publish, ContentCopy, Check, Close, OpenInNew } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -88,18 +89,12 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
       </Box>
 
       {/* Published Modal */}
-      <Dialog
+      <PheraDialog
         open={showPublishedModal}
         onClose={() => setShowPublishedModal(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: RADII.dialog,
-            p: 1,
-            bgcolor: COLORS.bg.white,
-          }
-        }}
+        PaperProps={{ sx: { p: 1 } }}
       >
         <DialogContent>
           <IconButton
@@ -164,7 +159,7 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
             </Stack>
           </Stack>
         </DialogContent>
-      </Dialog>
+      </PheraDialog>
     </>
   );
 }

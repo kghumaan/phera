@@ -5,7 +5,6 @@ import Image from 'next/image';
 import {
   Box,
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -14,6 +13,7 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close as CloseIcon, Search as SearchIcon, Gif as GifIcon } from '@mui/icons-material';
 import { GifData } from '@/lib/supabase/types';
 
@@ -104,17 +104,15 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
   }, [open]);
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
           minHeight: '600px',
           border: '1px solid #000',
-          backgroundColor: 'white',
         }
       }}
     >
@@ -336,6 +334,6 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
           Cancel
         </Button>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 } 

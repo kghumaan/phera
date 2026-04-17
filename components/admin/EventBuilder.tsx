@@ -8,8 +8,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
@@ -32,6 +30,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog } from '@/components/shared/Dialog';
 
 interface WeddingEvent {
   id: string;
@@ -319,23 +318,20 @@ export default function EventBuilder() {
       </Box>
 
       {/* Event Dialog */}
-      <Dialog 
-        open={isDialogOpen} 
+      <PheraDialog
+        open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
+        <Box sx={{ px: 3, pt: 3, pb: 1 }}>
           <Typography variant="h5" component="div">
             {editingEvent ? 'Edit Event' : 'Create New Event'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {editingEvent ? 'Update your event details' : 'Add a new celebration to your wedding timeline'}
           </Typography>
-        </DialogTitle>
+        </Box>
         
         <DialogContent>
           {/* Template Selection */}
@@ -439,7 +435,7 @@ export default function EventBuilder() {
             {editingEvent ? 'Update Event' : 'Create Event'}
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Box>
   );
 } 

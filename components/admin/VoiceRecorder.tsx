@@ -5,8 +5,6 @@ import {
   Box,
   Button,
   Typography,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
@@ -17,6 +15,7 @@ import {
 import { PrimaryActionButton, ActionButton } from './ActionButton';
 import { Mic, Stop, Close, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import VoiceWaveform from './VoiceWaveform';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ExtractedTask {
@@ -259,21 +258,21 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       )}
 
       {/* Results dialog */}
-      <Dialog
+      <PheraDialog
         open={!!pendingTasks}
         onClose={handleDismiss}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: RADII.lg, p: 1 },
-        }}
+        PaperProps={{ sx: { p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem', pb: 0.5 }}>
-          Voice Tasks
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 400, mt: 0.5 }}>
-            {pendingTasks?.length} task{pendingTasks?.length !== 1 ? 's' : ''} extracted from your voice note
-          </Typography>
-        </DialogTitle>
+        <PheraDialogTitle onClose={handleDismiss}>
+          <Box>
+            Voice Tasks
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 400, mt: 0.5 }}>
+              {pendingTasks?.length} task{pendingTasks?.length !== 1 ? 's' : ''} extracted from your voice note
+            </Typography>
+          </Box>
+        </PheraDialogTitle>
 
         <DialogContent sx={{ pt: 1 }}>
           {/* Collapsible transcript */}
@@ -375,7 +374,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
             Add {pendingTasks?.length} Task{pendingTasks?.length !== 1 ? 's' : ''}
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </>
   );
 }

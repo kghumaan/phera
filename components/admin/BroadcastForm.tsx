@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -23,6 +21,7 @@ import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface BroadcastFormProps {
   open: boolean;
@@ -152,8 +151,8 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
   const selectedTemplateData = templates.find(t => t.name === selectedTemplate);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Send WhatsApp Broadcast</DialogTitle>
+    <PheraDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <PheraDialogTitle onClose={onClose}>Send WhatsApp Broadcast</PheraDialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 2 }}>
           {error && <ErrorAlert>{error}</ErrorAlert>}
@@ -261,6 +260,6 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
           Send Broadcast
         </PrimaryActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }
