@@ -70,6 +70,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -745,15 +746,10 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            RSVP Form
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-            Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it.
-          </Typography>
-        </Box>
+        <PageHeading
+          title="RSVP Form"
+          subtitle="Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it."
+        />
 
         {/* Step List */}
         <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3 }}>
