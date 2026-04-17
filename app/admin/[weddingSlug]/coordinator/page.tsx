@@ -57,6 +57,11 @@ import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOL
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
+import { PheraCard } from '@/components/shared/Card';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { StatCard } from '@/components/shared/StatCard';
+import { PheraChip } from '@/components/shared/Chip';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface Vendor {
   id: string;
@@ -412,23 +417,19 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         <Stack spacing={3}>
 
           {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-                Vendor Management
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
-              </Typography>
-            </Box>
-            <PrimaryActionButton
-              startIcon={<SupportAgent />}
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{ px: 3, py: 1.25, borderRadius: 2, fontSize: '0.9rem', flexShrink: 0 }}
-            >
-              Upgrade to Pro
-            </PrimaryActionButton>
-          </Box>
+          <PageHeading
+            title="Vendor Management"
+            subtitle="Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place"
+            actions={
+              <PrimaryActionButton
+                startIcon={<SupportAgent />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{ px: 3, py: 1.25, fontSize: '0.9rem' }}
+              >
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
 
           {/* Description + bullet points */}
           <Box sx={{ maxWidth: 640 }}>
@@ -461,11 +462,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               {/* Stats row */}
               <Box sx={{ display: 'flex', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
                 {mockStats.map((stat) => (
-                  <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white }}>
-                    <Box sx={{ color: COLORS.brand.primary, mb: 0.5 }}>{stat.icon}</Box>
-                    <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>{stat.value}</Typography>
-                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>{stat.label}</Typography>
-                  </Paper>
+                  <StatCard key={stat.label} icon={stat.icon} value={stat.value} label={stat.label} />
                 ))}
               </Box>
 
@@ -473,57 +470,51 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
 
                 {/* Vendor list */}
-                <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: COLORS.bg.white }}>
-                  <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Your Vendors</Typography>
+                <PheraCard variant="default" sx={{ flex: 1.4, overflow: 'hidden' }}>
+                  <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                    <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Your Vendors</Typography>
                   </Box>
                   <Stack divider={<Divider />}>
                     {mockVendors.map((v) => (
                       <Box key={v.name} sx={{ px: 2.5, py: 1.75, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box>
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>{v.name}</Typography>
-                            <Chip label={v.category} size="small" sx={{ fontSize: '0.7rem', height: 20, borderRadius: '4px' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{v.name}</Typography>
+                            <PheraChip label={v.category} size="small" tone="neutral" />
                           </Stack>
-                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.subtle }}>{v.messages} messages</Typography>
+                          <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>{v.messages} messages</Typography>
                         </Box>
-                        <Chip
+                        <PheraChip
                           label={v.status}
                           size="small"
-                          sx={{
-                            fontSize: '0.7rem',
-                            height: 20,
-                            borderRadius: '4px',
-                            textTransform: 'capitalize',
-                            bgcolor: alpha(STATUS_COLORS[v.status] || COLORS.text.faint, 0.1),
-                            color: STATUS_COLORS[v.status] || COLORS.text.faint,
-                          }}
+                          tone={v.status === 'booked' ? 'success' : v.status === 'declined' ? 'neutral' : 'info'}
+                          sx={{ textTransform: 'capitalize' }}
                         />
                       </Box>
                     ))}
                   </Stack>
-                </Paper>
+                </PheraCard>
 
                 {/* Ask Phera mock */}
-                <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white, alignSelf: 'flex-start' }}>
-                  <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Ask Phera</Typography>
+                <PheraCard variant="default" sx={{ flex: 1, alignSelf: 'flex-start' }}>
+                  <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                    <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Ask Phera</Typography>
                   </Box>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.subtle, mb: 1.5 }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 1.5 }}>
                       Ask a question across all your vendor conversations
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Box sx={{ flex: 1, height: 36, borderRadius: 1, border: '1px solid rgba(0,0,0,0.15)', bgcolor: COLORS.bg.muted }} />
-                      <Box sx={{ width: 36, height: 36, borderRadius: 1, bgcolor: alpha(COLORS.brand.primary, 0.1) }} />
+                      <Box sx={{ flex: 1, height: 36, borderRadius: RADII.md, border: `1px solid ${COLORS.border.default}`, bgcolor: COLORS.bg.muted }} />
+                      <Box sx={{ width: 36, height: 36, borderRadius: RADII.md, bgcolor: alpha(COLORS.brand.primary, 0.1) }} />
                     </Box>
-                    <Paper elevation={0} sx={{ mt: 1.5, p: 2, bgcolor: alpha(COLORS.brand.primary, 0.03), borderRadius: 1 }}>
-                      <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.muted, lineHeight: 1.6 }}>
+                    <PheraCard variant="muted" sx={{ mt: 1.5, p: 2, bgcolor: alpha(COLORS.brand.primary, 0.03) }}>
+                      <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
                         Based on your conversations, Priya Catering quoted ₹1,200 per plate for 300 guests. The venue confirmed availability for Dec 15.
                       </Typography>
-                    </Paper>
+                    </PheraCard>
                   </Box>
-                </Paper>
+                </PheraCard>
 
               </Box>
             </Box>
@@ -737,42 +728,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     Add to a Vendor Group Chat
                   </Typography>
                   <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
-                    Open any vendor WhatsApp group chat, tap the group name at the top, select <strong>Add Participant</strong>, and add the Coordinator number. Phera will automatically start tracking messages and extracting insights.
+                    Open any vendor WhatsApp group chat, tap the group name at the top, select <strong>Add Participant</strong>, and add the Coordinator number. Phera tracks <strong style={{ color: COLORS.text.strong }}>future messages</strong> automatically and extracts insights — use Step 3 below to bring in any existing history.
                   </Typography>
-                  <Box
-                    sx={{
-                      mt: 1.25,
-                      p: 1.25,
-                      borderRadius: 1,
-                      bgcolor: alpha(COLORS.brand.primary, 0.05),
-                      border: `1px solid ${alpha(COLORS.brand.primary, 0.15)}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem', flex: 1, minWidth: 200 }}>
-                      Heads up — only <strong style={{ color: COLORS.text.strong }}>future messages</strong> get tracked. For the history,{' '}
-                    </Typography>
-                    <Button
-                      size="small"
-                      startIcon={<Upload sx={{ fontSize: 14 }} />}
-                      onClick={() => setImportDialogOpen(true)}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: RADII.md,
-                        color: COLORS.brand.primary,
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        minWidth: 0,
-                        px: 1,
-                        py: 0.25,
-                      }}
-                    >
-                      Import existing chat
-                    </Button>
-                  </Box>
                   <Button
                     size="small"
                     startIcon={discoveringGroups ? <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} /> : <Sync />}
