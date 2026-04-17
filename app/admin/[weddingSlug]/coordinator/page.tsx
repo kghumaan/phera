@@ -946,18 +946,15 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 const totalMessages = vendor.vendor_conversations?.reduce((s, c) => s + (c.message_count || 0), 0) || 0;
 
                 return (
-                  <Paper
+                  <PheraCard
                     key={vendor.id}
-                    elevation={0}
+                    variant="default"
                     onClick={() =>
                       router.push(`/admin/${weddingSlug}/coordinator/${vendor.id}`)
                     }
                     sx={{
                       p: 2.5,
                       cursor: 'pointer',
-                      borderRadius: 1,
-                      border: '1px solid rgba(0,0,0,0.07)',
-                      bgcolor: COLORS.bg.white,
                       transition: 'all 0.15s',
                       display: 'flex',
                       flexDirection: 'column',
@@ -1044,7 +1041,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         />
                       )}
                     </Stack>
-                  </Paper>
+                  </PheraCard>
                 );
               })}
             </Box>
