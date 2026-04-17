@@ -30,6 +30,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -305,37 +306,16 @@ export default function SignupPage() {
                       },
                     }}
                   />
-                  <Button
+                  <PrimaryActionButton
                     type="submit"
-                    variant="contained"
                     size="large"
                     fullWidth
                     disabled={isAnyLoading}
-                    sx={{
-                      bgcolor: COLORS.brand.primary,
-                      color: 'white',
-                      px: { xs: 4, md: 6 },
-                      py: { xs: 1.2, md: 2 },
-                      borderRadius: '32px',
-                      fontSize: { xs: '1rem', md: '1.25rem' },
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        bgcolor: COLORS.brand.primaryHover,
-                        boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                      },
-                      '&:disabled': {
-                        bgcolor: emailLoading ? '#DE3F5E' : alpha('#DE3F5E', 0.4),
-                        color: 'white',
-                        opacity: emailLoading ? 0.8 : 0.6,
-                        boxShadow: 'none',
-                      },
-                    }}
+                    loading={emailLoading}
+                    sx={{ px: { xs: 4, md: 6 }, py: { xs: 1.2, md: 2 }, fontSize: { xs: '1rem', md: '1.25rem' } }}
                   >
-                    {emailLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Create Account'}
-                  </Button>
+                    Create Account
+                  </PrimaryActionButton>
                 </Stack>
               </form>
 

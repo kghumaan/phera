@@ -23,6 +23,7 @@ import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { toast } from 'sonner';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { WarningAlert, ErrorAlert } from '@/components/shared/Alert';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 function LoginContent() {
   const router = useRouter();
@@ -497,34 +498,16 @@ function LoginContent() {
                           },
                         }}
                       />
-                      <Button
+                      <PrimaryActionButton
                         type="submit"
-                        variant="contained"
                         size="large"
                         fullWidth
                         disabled={isAnyLoading}
-                        sx={{
-                          bgcolor: COLORS.brand.primary,
-                          color: 'white',
-                          py: 1.5,
-                          borderRadius: '32px',
-                          fontSize: '1rem',
-                          fontWeight: 600,
-                          textTransform: 'none',
-                          boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                          '&:hover': {
-                            bgcolor: COLORS.brand.primaryHover,
-                            boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                          },
-                          '&:disabled': {
-                            bgcolor: emailLoading ? '#DE3F5E' : alpha('#DE3F5E', 0.4),
-                            color: 'white',
-                            opacity: emailLoading ? 0.8 : 0.6,
-                          },
-                        }}
+                        loading={emailLoading}
+                        sx={{ py: 1.5, fontSize: '1rem' }}
                       >
-                        {emailLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Sign In / Sign Up'}
-                      </Button>
+                        Sign In / Sign Up
+                      </PrimaryActionButton>
                     </Stack>
                   </form>
                 </>
