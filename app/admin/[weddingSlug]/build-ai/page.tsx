@@ -32,6 +32,7 @@ import { mockMessages } from '@/lib/build-ai/question-flow';
 import { Message } from '@/lib/build-ai/types';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -63,23 +64,19 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     return (
       <Container maxWidth="xl">
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-                Build with AI
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                Answer a few questions and watch your wedding website come to life
-              </Typography>
-            </Box>
-            <PrimaryActionButton
-              startIcon={<AutoAwesome />}
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{ px: 3, py: 1.25, borderRadius: RADII.lg, fontSize: '0.9rem', flexShrink: 0 }}
-            >
-              Upgrade to Pro
-            </PrimaryActionButton>
-          </Box>
+          <PageHeading
+            title="Build with AI"
+            subtitle="Answer a few questions and watch your wedding website come to life"
+            actions={
+              <PrimaryActionButton
+                startIcon={<AutoAwesome />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{ flexShrink: 0 }}
+              >
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
 
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
@@ -153,15 +150,11 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
 
   return (
     <Container maxWidth="xl" sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', pb: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, pt: 1 }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Build with AI
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Answer a few questions and watch your wedding website come to life
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 2, pt: 1 }}>
+      <PageHeading
+        title="Build with AI"
+        subtitle="Answer a few questions and watch your wedding website come to life"
+        actions={
         <Chip
           icon={<Check sx={{ fontSize: 18, color: 'white !important' }} />}
           label="All Changes Saved"
@@ -178,7 +171,8 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
             '& .MuiChip-label': { px: 1 },
           }}
         />
-
+        }
+      />
       </Box>
 
       <Box
