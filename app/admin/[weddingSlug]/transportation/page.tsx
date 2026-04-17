@@ -14,7 +14,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  DirectionsBus,
   AirportShuttle,
   ArrowForward,
   CheckCircle,
@@ -35,6 +34,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
 import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 type WizardStep =
   | 'initial'
@@ -193,24 +193,12 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
                 Coordinate shuttles and buses for your guests
               </Typography>
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#c73552' },
-              }}
+              sx={{ px: 3, py: 1, borderRadius: 2, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
             >
               Upgrade to Pro
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
           <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.8, maxWidth: 680 }}>
@@ -237,22 +225,12 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
               <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
                 Upgrade to unlock Transportation
               </Typography>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
+                sx={{ px: 3, py: 1, borderRadius: 2 }}
               >
                 Upgrade to Pro
-              </Button>
+              </PrimaryActionButton>
             </Box>
 
             {/* Mock Preview */}
@@ -275,25 +253,17 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
                 <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 400, mx: 'auto' }}>
                   We'll help organize shuttles and buses for your guests arriving and departing from your wedding.
                 </Typography>
-                <Button
-                  variant="contained"
+                <PrimaryActionButton
                   disabled
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
                     px: 4,
                     py: 1.5,
                     borderRadius: 2,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    '&.Mui-disabled': {
-                      bgcolor: alpha('#DE3F5E', 0.5),
-                      color: 'white',
-                    },
+                    '&.Mui-disabled': { bgcolor: alpha('#DE3F5E', 0.5), color: 'white' },
                   }}
                 >
                   Yes, let's get started
-                </Button>
+                </PrimaryActionButton>
               </Paper>
             </Box>
           </Box>
@@ -385,24 +355,13 @@ function InitialPrompt({ onStart }: { onStart: () => void }) {
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 480, mx: 'auto' }}>
           We'll help organize shuttles and buses for your guests arriving and departing from your wedding. Set up in minutes!
         </Typography>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onStart}
           endIcon={<ArrowForward />}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            px: 4,
-            py: 1.5,
-            borderRadius: 2,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '1rem',
-            '&:hover': { bgcolor: '#c73552' },
-          }}
+          sx={{ px: 4, py: 1.5, borderRadius: 2, fontSize: '1rem' }}
         >
           Yes, let's get started
-        </Button>
+        </PrimaryActionButton>
       </Paper>
     </Stack>
   );
@@ -455,7 +414,6 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
             }}
           >
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
-              <DirectionsBus sx={{ fontSize: 48, color: '#DE3F5E', mb: 2 }} />
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
                 Yes, I have vehicles booked
               </Typography>
@@ -484,7 +442,6 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
             }}
           >
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
-              <AirportShuttle sx={{ fontSize: 48, color: '#4CAF50', mb: 2 }} />
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
                 No, I need help organizing
               </Typography>
@@ -530,24 +487,13 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
         <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 580, mx: 'auto' }}>
           Your guests can now reserve transportation from your wedding website. You can view and manage their reservations from the dashboard.
         </Typography>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onViewResponses}
           endIcon={<ArrowForward />}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            px: 4,
-            py: 1.5,
-            borderRadius: 1,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '1rem',
-            '&:hover': { bgcolor: '#c73552' },
-          }}
+          sx={{ px: 4, py: 1.5, borderRadius: 1, fontSize: '1rem' }}
         >
           View Reservations
-        </Button>
+        </PrimaryActionButton>
       </Paper>
     </Stack>
   );

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
   TextField,
   Typography,
   alpha,
@@ -14,6 +13,7 @@ import {
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatPinFormProps {
   onSave: (pin: {
@@ -214,17 +214,14 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
 
         <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
           {onCancel && (
-            <Button
+            <SecondaryActionButton
               onClick={onCancel}
               size="small"
-              variant="outlined"
               fullWidth
               sx={{
                 color: '#666',
                 fontSize: '0.85rem',
-                fontWeight: 700,
                 py: 1,
-                textTransform: 'none',
                 borderRadius: '16px',
                 flex: 1,
                 border: '2px solid',
@@ -237,27 +234,22 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               }}
             >
               Cancel
-            </Button>
+            </SecondaryActionButton>
           )}
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleSave}
             disabled={!formData.pin || formData.pin.length < 4}
             size="small"
             fullWidth
             sx={{
-              bgcolor: '#DE3F5E',
               borderRadius: '16px',
               fontSize: '0.85rem',
-              fontWeight: 700,
               py: 1,
-              textTransform: 'none',
               flex: 1,
-              '&:hover': { bgcolor: '#c73552' }
             }}
           >
             Add PIN
-          </Button>
+          </PrimaryActionButton>
         </Box>
       </Box>
     </Box>

@@ -2,6 +2,7 @@
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, Stack } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
+import { PrimaryActionButton } from './ActionButton';
 
 export interface ProSelection {
   category: string;
@@ -83,22 +84,13 @@ export default function ProSelectionsModal({ open, selections, onCancel, onUpgra
         >
           Cancel
         </Button>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onUpgrade}
           startIcon={<AutoAwesome />}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            '&:hover': { bgcolor: '#C8365A' },
-          }}
+          sx={{ px: 3 }}
         >
           Upgrade to Pro
-        </Button>
+        </PrimaryActionButton>
       </DialogActions>
     </Dialog>
   );

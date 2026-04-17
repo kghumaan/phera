@@ -22,6 +22,7 @@ import {
   TextField,
 } from '@mui/material';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton, SecondaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import {
   DirectionsBus,
   FlightLand,
@@ -221,36 +222,28 @@ export default function TransportationDashboard({
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="outlined"
+          <SecondaryActionButton
             startIcon={<Settings />}
             onClick={onEditSetup}
             sx={{
               borderColor: '#6a6a6a',
-              color: '#1a1a1a',
-              textTransform: 'none',
               fontWeight: 500,
               borderRadius: 1,
               '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' },
             }}
           >
             Edit Setup
-          </Button>
+          </SecondaryActionButton>
           {totalPendingCount > 0 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<Send />}
               onClick={() => setConfirmDialogOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                textTransform: 'none',
-                fontWeight: 600,
                 borderRadius: 1,
-                '&:hover': { bgcolor: '#c73552' },
               }}
             >
               Finalize & Notify ({totalPendingCount})
-            </Button>
+            </PrimaryActionButton>
           )}
         </Box>
       </Box>
@@ -509,14 +502,13 @@ export default function TransportationDashboard({
           <Button onClick={() => setConfirmDialogOpen(false)} sx={{ color: '#6a6a6a', borderRadius: 1 }}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleFinalizeBookings}
-            disabled={confirming}
-            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#c73552' }, borderRadius: 1 }}
+            loading={confirming}
+            sx={{ borderRadius: 1 }}
           >
-            {confirming ? 'Confirming...' : 'Confirm & Notify'}
-          </Button>
+            Confirm & Notify
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </Stack>
@@ -706,26 +698,24 @@ function VehicleColumn({
                     >
                       Cancel
                     </Button>
-                    <Button
+                    <PrimaryActionButton
                       size="small"
-                      variant="contained"
                       onClick={handleAddManual}
-                      disabled={isSubmitting || !manualName.trim()}
+                      disabled={!manualName.trim()}
+                      loading={isSubmitting}
                       sx={{
-                        bgcolor: '#DE3F5E',
                         fontSize: '0.75rem',
-                        '&:hover': { bgcolor: '#c73552' },
                         borderRadius: 1,
                         minWidth: 50,
-                        height: 32
+                        height: 32,
                       }}
                     >
-                      {isSubmitting ? <CircularProgress size={16} sx={{ color: 'white' }} /> : 'Add'}
-                    </Button>
+                      Add
+                    </PrimaryActionButton>
                   </Box>
                 </Paper>
               ) : (
-                <Button
+                <ActionButton
                   fullWidth
                   startIcon={<Add />}
                   onClick={() => setIsAdding(true)}
@@ -735,7 +725,6 @@ function VehicleColumn({
                     borderRadius: 1,
                     color: '#6a6a6a',
                     fontSize: '0.8rem',
-                    textTransform: 'none',
                     '&:hover': {
                       border: '1px dashed #DE3F5E',
                       color: '#DE3F5E',
@@ -744,7 +733,7 @@ function VehicleColumn({
                   }}
                 >
                   Add Guest Manually
-                </Button>
+                </ActionButton>
               )}
             </Box>
           )}

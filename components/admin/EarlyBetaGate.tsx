@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Button, Stack, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Stack, CircularProgress } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { InfoOutlined, CheckCircleOutline } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
@@ -167,26 +168,20 @@ export default function EarlyBetaGate({ featureName, description, when, children
           </Box>
         ) : (
           <Stack spacing={2} alignItems="center">
-            <Button
-              variant="contained"
-              disabled={status === 'submitting' || isViewOnly}
+            <PrimaryActionButton
+              loading={status === 'submitting'}
+              disabled={isViewOnly}
               onClick={handleRequest}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 px: 4,
                 py: 1.5,
-                borderRadius: '14px',
-                fontWeight: 700,
-                textTransform: 'none',
                 fontSize: '1rem',
                 boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
-                '&:hover': { bgcolor: '#c73552' },
                 '&.Mui-disabled': { bgcolor: 'rgba(222, 63, 94, 0.5)', color: 'rgba(255,255,255,0.8)' },
               }}
             >
-              {status === 'submitting' ? <CircularProgress size={24} color="inherit" /> : 'Request Early Access'}
-            </Button>
+              Request Early Access
+            </PrimaryActionButton>
             {status === 'error' && (
               <Typography variant="caption" sx={{ color: '#d32f2f' }}>
                 Something went wrong. Please try again or contact support.

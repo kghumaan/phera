@@ -27,6 +27,7 @@ import { Add, AutoAwesome, Mic, Stop, Close, UploadFile } from '@mui/icons-mater
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ConciergeKnowledgeEntry from './ConciergeKnowledgeEntry';
 import VoiceWaveform from '@/components/admin/VoiceWaveform';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -392,24 +393,18 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                 Add Knowledge
               </Button>
               {venueLoaded && venueLocation && !hasAutoEntries && (
-                <Button
-                  startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+                <PrimaryActionButton
+                  startIcon={<AutoAwesome />}
                   onClick={handleGenerate}
-                  disabled={generating}
+                  loading={generating}
                   sx={{
-                    textTransform: 'none',
-                    color: 'white',
-                    bgcolor: '#DE3F5E',
-                    fontWeight: 600,
-                    borderRadius: '12px',
                     px: 2.5,
                     py: 1,
-                    '&:hover': { bgcolor: '#c73552' },
                     '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' },
                   }}
                 >
-                  {generating ? 'Generating...' : 'Generate with AI'}
-                </Button>
+                  Generate with AI
+                </PrimaryActionButton>
               )}
               {venueLoaded && venueLocation && hasAutoEntries && (
                 <Button
@@ -569,26 +564,20 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                         <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
                           {formatTime(voiceElapsed)}
                         </Typography>
-                        <Button
+                        <PrimaryActionButton
                           size="small"
-                          variant="contained"
                           startIcon={<Stop sx={{ fontSize: 16 }} />}
                           onClick={stopRecording}
                           sx={{
-                            bgcolor: '#DE3F5E',
-                            color: 'white',
                             borderRadius: '8px',
-                            textTransform: 'none',
-                            fontWeight: 600,
                             fontSize: '0.8rem',
                             py: 0.5,
                             px: 1.5,
                             minWidth: 'auto',
-                            '&:hover': { bgcolor: '#c73552' },
                           }}
                         >
                           Stop
-                        </Button>
+                        </PrimaryActionButton>
                       </>
                     )}
 
@@ -627,20 +616,15 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                   >
                     Cancel
                   </Button>
-                  <Button
+                  <PrimaryActionButton
                     size="small"
-                    variant="contained"
                     onClick={handleAdd}
-                    disabled={!newTitle.trim() || !newContent.trim() || saving}
-                    sx={{
-                      textTransform: 'none',
-                      bgcolor: '#DE3F5E',
-                      borderRadius: '10px',
-                      '&:hover': { bgcolor: '#c73552' },
-                    }}
+                    disabled={!newTitle.trim() || !newContent.trim()}
+                    loading={saving}
+                    sx={{ borderRadius: '10px' }}
                   >
-                    {saving ? <CircularProgress size={18} color="inherit" /> : 'Add'}
-                  </Button>
+                    Add
+                  </PrimaryActionButton>
                 </Box>
               </Stack>
             </Paper>
@@ -733,19 +717,13 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
           >
             Cancel
           </Button>
-          <Button
+          <PrimaryActionButton
             onClick={handleGenerate}
-            variant="contained"
-            disabled={generating}
-            sx={{
-              textTransform: 'none',
-              bgcolor: '#DE3F5E',
-              borderRadius: '10px',
-              '&:hover': { bgcolor: '#c73552' },
-            }}
+            loading={generating}
+            sx={{ borderRadius: '10px' }}
           >
-            {generating ? <CircularProgress size={20} color="inherit" /> : 'Regenerate'}
-          </Button>
+            Regenerate
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </Stack>

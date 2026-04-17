@@ -22,6 +22,7 @@ import {
   MenuItem,
   TextareaAutosize,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -182,8 +183,7 @@ export default function EventBuilder() {
             Create and manage your wedding celebration timeline
           </Typography>
         </Box>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           startIcon={<AddIcon />}
           onClick={handleAddEvent}
           sx={{
@@ -193,7 +193,7 @@ export default function EventBuilder() {
           }}
         >
           Add Event
-        </Button>
+        </PrimaryActionButton>
       </Box>
 
       {/* Events Grid */}
@@ -256,7 +256,7 @@ export default function EventBuilder() {
                       <IconButton onClick={() => handleEditEvent(event)} size="small">
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" color="error">
+                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: '#6a6a6a', '&:hover': { color: '#DE3F5E' } }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -309,9 +309,9 @@ export default function EventBuilder() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Start building your wedding timeline by adding your first event
               </Typography>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddEvent}>
+              <PrimaryActionButton startIcon={<AddIcon />} onClick={handleAddEvent}>
                 Create First Event
-              </Button>
+              </PrimaryActionButton>
             </CardContent>
           </Card>
         )}
@@ -431,13 +431,12 @@ export default function EventBuilder() {
           <Button onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <PrimaryActionButton
             onClick={handleSaveEvent}
             disabled={!formData.name || !formData.type}
           >
             {editingEvent ? 'Update Event' : 'Create Event'}
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </Box>

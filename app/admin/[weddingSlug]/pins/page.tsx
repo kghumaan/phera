@@ -45,6 +45,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
 import ContinueButton from '@/components/admin/ContinueButton';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -295,7 +296,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       const currentPins = settings?.pin_codes || [];
       let updatedPins;
 
-      if (editingPinIndex !== null) {
+      if (editingPinIndex !== null && editingPinIndex >= 0) {
         updatedPins = [...currentPins];
         updatedPins[editingPinIndex] = newPin;
       } else {
@@ -689,21 +690,12 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             <Button onClick={() => setDeletePinTarget(null)} sx={{ color: '#6a6a6a', borderRadius: '12px', textTransform: 'none' }}>
               Cancel
             </Button>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={handleDeletePin}
-              disabled={deletingPin}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': { bgcolor: '#C8365A' },
-              }}
+              loading={deletingPin}
             >
-              {deletingPin ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
-            </Button>
+              Delete
+            </PrimaryActionButton>
           </DialogActions>
         </Dialog>
 
@@ -907,17 +899,17 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                 <Delete fontSize="small" />
               </IconButton>
             )}
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={onSave}
-              disabled={!canSave || saving}
+              loading={saving}
+              disabled={!canSave}
               sx={{
-                bgcolor: '#DE3F5E', color: 'white', borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, minWidth: 80,
-                '&:hover': { bgcolor: '#C8365A' }, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                px: 3, minWidth: 80,
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
               }}
             >
-              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-            </Button>
+              Save
+            </PrimaryActionButton>
           </Stack>
         </Stack>
       </Paper>

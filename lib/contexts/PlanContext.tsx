@@ -50,7 +50,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error('Error loading plan:', err);
-      setPlanState('basic');
+      setPlanState('phera');
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       value={{
         plan,
         isLoading,
-        isPro: true, // All features included in all paid tiers
+        isPro: plan !== 'phera', // 'phera' = basic/free, anything else = Pro
         isPlanner: plan === 'planner',
         togglePlan,
         setPlan,

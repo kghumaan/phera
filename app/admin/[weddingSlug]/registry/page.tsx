@@ -3,12 +3,10 @@
 import {
   Box,
   Typography,
-  Button,
   Stack,
   Paper,
   IconButton,
   TextField,
-  CircularProgress,
   ClickAwayListener,
 } from '@mui/material';
 import React, { useState, useEffect, use, useRef, useCallback } from 'react';
@@ -17,6 +15,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
@@ -223,25 +222,19 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                 Accept contributions seamlessly with integrated payment links
               </Typography>
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<CardGiftcard />}
               onClick={() => setUpgradeModalOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 px: 3,
                 py: 1.25,
                 borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
                 fontSize: '0.9rem',
                 flexShrink: 0,
-                '&:hover': { bgcolor: '#c73552' },
               }}
             >
               Upgrade to Pro
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
           <Box sx={{ maxWidth: 640 }}>
@@ -284,14 +277,13 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
               <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 startIcon={<CardGiftcard />}
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: 2, fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
+                sx={{ px: 3.5, py: 1.5, borderRadius: 2, fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)' }}
               >
                 Unlock Registry Integration
-              </Button>
+              </PrimaryActionButton>
             </Box>
           </Box>
         </Stack>
@@ -490,17 +482,17 @@ function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, savin
                 <Delete fontSize="small" />
               </IconButton>
             )}
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={onSave}
-              disabled={!canSave || saving}
+              loading={saving}
+              disabled={!canSave}
               sx={{
-                bgcolor: '#DE3F5E', color: 'white', borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, minWidth: 80,
-                '&:hover': { bgcolor: '#C8365A' }, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                px: 3, minWidth: 80,
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
               }}
             >
-              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-            </Button>
+              Save
+            </PrimaryActionButton>
           </Stack>
         </Stack>
       </Paper>

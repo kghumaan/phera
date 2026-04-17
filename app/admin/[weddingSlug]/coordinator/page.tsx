@@ -56,6 +56,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { InfoOutlined } from '@mui/icons-material';
 import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface Vendor {
   id: string;
@@ -161,7 +162,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [betaRequestStatus, setBetaRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
 
   // Testing toggle
-  const isSuperAdmin = isBetaUser;
+  const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'simran@simmetrystudios.com';
   const [forceOnboarding, setForceOnboarding] = useState(false);
 
   // Load wedding ID and vendors
@@ -476,25 +477,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
               </Typography>
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<SupportAgent />}
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                px: 3,
-                py: 1.25,
-                borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.9rem',
-                flexShrink: 0,
-                '&:hover': { bgcolor: '#c73552' },
-              }}
+              sx={{ px: 3, py: 1.25, borderRadius: 2, fontSize: '0.9rem', flexShrink: 0 }}
             >
               Upgrade to Pro
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
           {/* Description + bullet points */}
@@ -623,25 +612,19 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               >
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 startIcon={<SupportAgent />}
                 onClick={() => setUpgradeModalOpen(true)}
                 sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
                   px: 3.5,
                   py: 1.5,
                   borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
                   fontSize: '0.95rem',
                   boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-                  '&:hover': { bgcolor: '#c73552' },
                 }}
               >
                 Unlock Vendor Management
-              </Button>
+              </PrimaryActionButton>
             </Box>
 
           </Box>
@@ -728,30 +711,21 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               </Box>
             ) : (
               <Stack spacing={2} alignItems="center">
-                <Button
-                  variant="contained"
-                  disabled={betaRequestStatus === 'submitting'}
+                <PrimaryActionButton
+                  loading={betaRequestStatus === 'submitting'}
                   onClick={handleRequestBetaAccess}
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
                     px: 4,
                     py: 1.5,
                     borderRadius: '14px',
                     fontWeight: 700,
-                    textTransform: 'none',
                     fontSize: '1rem',
                     boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
-                    '&:hover': { bgcolor: '#c73552' },
-                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' }
+                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' },
                   }}
                 >
-                  {betaRequestStatus === 'submitting' ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Request Early Access'
-                  )}
-                </Button>
+                  Request Early Access
+                </PrimaryActionButton>
                 {betaRequestStatus === 'error' && (
                   <Typography variant="caption" sx={{ color: '#d32f2f' }}>
                     Something went wrong. Please try again or contact support.
@@ -1305,20 +1279,14 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               >
                 Cancel
               </Button>
-              <Button
+              <PrimaryActionButton
                 onClick={handleDeleteVendor}
-                disabled={deleting}
-                variant="contained"
-                startIcon={deleting ? <CircularProgress size={14} /> : <Delete />}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: '12px',
-                  bgcolor: '#DE3F5E',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
+                loading={deleting}
+                startIcon={<Delete />}
+                sx={{ borderRadius: '12px' }}
               >
-                {deleting ? 'Removing...' : 'Remove'}
-              </Button>
+                Remove
+              </PrimaryActionButton>
             </DialogActions>
           </Dialog>
         </Box>
@@ -1395,14 +1363,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setImportDialogOpen(false)} sx={{ color: '#1a1a1a' }}>Cancel</Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleImportChat}
-            disabled={importing || !importFile}
-            sx={{ bgcolor: '#DE3F5E', '&:hover': { bgcolor: '#C8365A' } }}
+            loading={importing}
+            disabled={!importFile}
           >
-            {importing ? <CircularProgress size={20} /> : 'Import'}
-          </Button>
+            Import
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     );
@@ -1530,23 +1497,14 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           >
             Cancel
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleSyncSelected}
-            disabled={syncing || selectedChatIds.size === 0}
-            startIcon={syncing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Sync />}
-            sx={{
-              bgcolor: '#DE3F5E',
-              '&:hover': { bgcolor: '#C8365A' },
-              '&.Mui-disabled': { bgcolor: syncing ? '#DE3F5E' : undefined, color: syncing ? 'white' : undefined },
-              textTransform: 'none',
-              borderRadius: '12px',
-            }}
+            loading={syncing}
+            disabled={selectedChatIds.size === 0}
+            startIcon={<Sync />}
           >
-            {syncing
-              ? `Connecting ${selectedChatIds.size} chat${selectedChatIds.size !== 1 ? 's' : ''}...`
-              : `Connect ${selectedChatIds.size} chat${selectedChatIds.size !== 1 ? 's' : ''}`}
-          </Button>
+            Connect {selectedChatIds.size} chat{selectedChatIds.size !== 1 ? 's' : ''}
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     );

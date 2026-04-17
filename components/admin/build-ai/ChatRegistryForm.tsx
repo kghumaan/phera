@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import {
     Box,
-    Button,
     TextField,
     Typography,
     alpha,
 } from '@mui/material';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatRegistryFormProps {
     onSave: (registry: { fund_name: string; external_url: string; emoji: string }) => void;
@@ -99,17 +99,14 @@ export default function ChatRegistryForm({ onSave, onCancel, initialData }: Chat
 
                 <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
                     {onCancel && (
-                        <Button
+                        <SecondaryActionButton
                             onClick={onCancel}
                             size="small"
-                            variant="outlined"
                             fullWidth
                             sx={{
                                 color: '#666',
                                 fontSize: '0.85rem',
-                                fontWeight: 700,
                                 py: 1,
-                                textTransform: 'none',
                                 borderRadius: '16px',
                                 flex: 1,
                                 border: '2px solid',
@@ -122,27 +119,22 @@ export default function ChatRegistryForm({ onSave, onCancel, initialData }: Chat
                             }}
                         >
                             Cancel
-                        </Button>
+                        </SecondaryActionButton>
                     )}
-                    <Button
-                        variant="contained"
+                    <PrimaryActionButton
                         onClick={handleSave}
                         disabled={!formData.fund_name || !formData.external_url}
                         size="small"
                         fullWidth
                         sx={{
-                            bgcolor: '#DE3F5E',
                             borderRadius: '16px',
                             fontSize: '0.85rem',
-                            fontWeight: 700,
                             py: 1,
-                            textTransform: 'none',
                             flex: 1,
-                            '&:hover': { bgcolor: '#c73552' }
                         }}
                     >
                         Add Registry
-                    </Button>
+                    </PrimaryActionButton>
                 </Box>
             </Box>
         </Box>

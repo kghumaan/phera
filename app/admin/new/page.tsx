@@ -7,7 +7,6 @@ import {
   Container,
   Typography,
   TextField,
-  Button,
   Stack,
   Paper,
   Alert,
@@ -17,6 +16,7 @@ import {
 import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 export default function NewWeddingPage() {
   const router = useRouter();
@@ -265,33 +265,22 @@ export default function NewWeddingPage() {
                     </Alert>
                   )}
 
-                  <Button
+                  <PrimaryActionButton
                     type="submit"
-                    variant="contained"
                     size="large"
-                    disabled={loading || !coupleName.trim()}
+                    loading={loading}
+                    disabled={!coupleName.trim()}
                     sx={{
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
                       borderRadius: '16px',
                       py: 1.5,
                       fontSize: '1.1rem',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&:hover': {
-                        bgcolor: '#C8365A',
-                      },
                       '&:disabled': {
                         bgcolor: '#ccc',
                       },
                     }}
                   >
-                    {loading ? (
-                      <CircularProgress size={24} sx={{ color: 'white' }} />
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
+                    Continue
+                  </PrimaryActionButton>
                 </Stack>
               </form>
 

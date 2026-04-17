@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Box, TextField, Stack, Button, Typography, Switch, CircularProgress, ClickAwayListener } from '@mui/material';
 import { AttachMoney } from '@mui/icons-material';
 import { TravelSection } from '@/lib/supabase/wedding-service';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -216,26 +217,20 @@ export default function InlineTravelForm({
               Done
             </Button>
             {onMoreDetails && (
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => {
                   hasSubmitted.current = true;
                   onSave(getUpdates());
                   onMoreDetails();
                 }}
                 sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
                   borderRadius: '8px',
-                  textTransform: 'none',
-                  fontWeight: 600,
                   fontSize: '1rem',
                   px: 2, py: 0.75,
-                  '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
                 Add More Details
-              </Button>
+              </PrimaryActionButton>
             )}
           </Stack>
         </Stack>

@@ -9,11 +9,11 @@ import {
   Stack,
   IconButton,
   Box,
-  CircularProgress,
   TextField,
   Typography,
   Popover,
 } from '@mui/material';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import {
   FormatBold,
   FormatListBulleted,
@@ -238,22 +238,16 @@ export default function TravelDetailEditor({
                     '& .MuiInputBase-input': { fontSize: '0.875rem' },
                   }}
                 />
-                <Button
+                <PrimaryActionButton
                   size="small"
-                  variant="contained"
                   onClick={handleLinkApply}
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
                     minWidth: 'auto',
                     px: 2,
-                    '&:hover': { bgcolor: '#C8365A' },
                   }}
                 >
                   Apply
-                </Button>
+                </PrimaryActionButton>
                 {editor.isActive('link') && (
                   <IconButton size="small" onClick={handleLinkRemove} sx={{ color: '#6a6a6a' }}>
                     <Delete fontSize="small" />
@@ -396,21 +390,12 @@ export default function TravelDetailEditor({
       </DialogContent>
       <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
         <Button onClick={onClose} sx={{ color: '#6a6a6a', borderRadius: '12px', textTransform: 'none' }}>Cancel</Button>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={handleSave}
-          disabled={saving}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            '&:hover': { bgcolor: '#C8365A' },
-          }}
+          loading={saving}
         >
-          {saving ? <CircularProgress size={20} color="inherit" /> : 'Save Details'}
-        </Button>
+          Save Details
+        </PrimaryActionButton>
       </DialogActions>
     </Dialog>
   );

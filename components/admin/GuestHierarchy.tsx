@@ -31,6 +31,7 @@ import {
   Badge,
   Collapse,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -222,8 +223,7 @@ export default function GuestHierarchy() {
             Organize your wedding guests with family grouping and tier management
           </Typography>
         </Box>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           startIcon={<AddIcon />}
           onClick={handleAddGuest}
           sx={{
@@ -233,7 +233,7 @@ export default function GuestHierarchy() {
           }}
         >
           Add Guest
-        </Button>
+        </PrimaryActionButton>
       </Box>
 
       {/* RSVP Stats */}
@@ -368,9 +368,9 @@ export default function GuestHierarchy() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     Start building your guest list by adding your first guest
                   </Typography>
-                  <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddGuest}>
+                  <PrimaryActionButton startIcon={<AddIcon />} onClick={handleAddGuest}>
                     Add First Guest
-                  </Button>
+                  </PrimaryActionButton>
                 </Box>
               )}
             </List>
@@ -519,13 +519,12 @@ export default function GuestHierarchy() {
           <Button onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <PrimaryActionButton
             onClick={handleSaveGuest}
             disabled={!formData.name}
           >
             {editingGuest ? 'Update Guest' : 'Add Guest'}
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </Box>

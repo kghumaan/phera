@@ -5,6 +5,7 @@ import { Box, TextField, Stack, Button, InputAdornment, CircularProgress } from 
 import { Add } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const COLOR_PALETTE = [
   '#DE3F5E',
@@ -234,8 +235,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
             >
               Done
             </Button>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               disabled={!canSubmit}
               onClick={() => {
                 if (!canSubmit) return;
@@ -253,19 +253,14 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 }
               }}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 600,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
-                '&:hover': { bgcolor: '#C8365A' },
                 '&:disabled': { bgcolor: '#f0c0ca', color: 'white' },
               }}
             >
               Add More Details
-            </Button>
+            </PrimaryActionButton>
           </Stack>
         </Stack>
       </Stack>

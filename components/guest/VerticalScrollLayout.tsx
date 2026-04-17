@@ -46,6 +46,7 @@ import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIc
 import EventDetailCarousel from './EventDetailCarousel';
 import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 // Types
 interface WeddingData {
@@ -784,8 +785,7 @@ export default function VerticalScrollLayout({
               {!isBypassPin && (!user || !hasRSVPed) && (
                 <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 480, lg: 540, xl: 650 } }}>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                    <Button
-                      component={Link}
+                    <ActionButton
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       size="large"
@@ -794,7 +794,6 @@ export default function VerticalScrollLayout({
                         backgroundColor: primaryColor,
                         color: 'white',
                         py: 1.2,
-                        // fontSize: { md: '0.8rem', lg: '0.88rem' },
                         fontWeight: 600,
                         borderRadius: '32px',
                         textTransform: 'uppercase',
@@ -807,7 +806,7 @@ export default function VerticalScrollLayout({
                       }}
                     >
                       RSVP
-                    </Button>
+                    </ActionButton>
                   </motion.div>
                   {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
                     <Typography

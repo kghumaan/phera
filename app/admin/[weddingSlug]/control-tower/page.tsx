@@ -178,7 +178,7 @@ export default function ControlTowerPage() {
             Add guests to start tracking outreach, RSVPs, and coordination.
           </Typography>
           <Typography sx={{ fontSize: 11, color: '#9a9a9a', mt: 2 }}>
-            Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If Guest Responses shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
+            Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If RSVPs shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
           </Typography>
         </Paper>
       </Box>

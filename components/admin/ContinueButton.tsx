@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, CircularProgress, Dialog, DialogContent, TextField, IconButton, Stack, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogContent, TextField, IconButton, Stack, Typography } from '@mui/material';
 import { ArrowForward, Publish, ContentCopy, Check, Close, OpenInNew } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { groups } from '@/components/admin/OnboardingSidebar';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
+import { PrimaryActionButton } from './ActionButton';
 
 const websiteItems = groups.find(g => g.id === 'wedding-website')!.items;
 
@@ -64,25 +65,24 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
     <>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, mb: 2 }}>
         {nextItem ? (
-          <Button
-            variant="contained"
-            endIcon={navigating ? <CircularProgress size={18} color="inherit" /> : <ArrowForward />}
+          <PrimaryActionButton
+            endIcon={<ArrowForward />}
             sx={PRIMARY_BUTTON_SX}
-            disabled={navigating}
+            loading={navigating}
             onClick={() => { if (!checkGuard()) return; setNavigating(true); router.push(`/admin/${weddingSlug}${nextItem.path}`); }}
           >
             Continue: {nextItem.label}
-          </Button>
+          </PrimaryActionButton>
         ) : (
-          <Button
-            variant="contained"
-            startIcon={publishing ? <CircularProgress size={18} color="inherit" /> : <Publish />}
+          <PrimaryActionButton
+            startIcon={<Publish />}
             sx={PRIMARY_BUTTON_SX}
             onClick={handlePublish}
-            disabled={publishing || !weddingId}
+            loading={publishing}
+            disabled={!weddingId}
           >
-            {publishing ? 'Publishing...' : 'Publish Website'}
-          </Button>
+            Publish Website
+          </PrimaryActionButton>
         )}
       </Box>
 

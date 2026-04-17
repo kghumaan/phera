@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, Button, alpha } from '@mui/material';
+import { Box, Typography, alpha } from '@mui/material';
 import { Check } from '@mui/icons-material';
 import { FRAME_UI_OPTIONS } from '@/lib/constants/images';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatFrameSelectionFormProps {
   onSave: (frameUrl: string | null) => void;
@@ -102,17 +103,14 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
 
       {/* Action buttons */}
       <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
-        <Button
+        <SecondaryActionButton
           onClick={onCancel}
           size="small"
-          variant="outlined"
           fullWidth
           sx={{
             color: '#666',
             fontSize: '0.85rem',
-            fontWeight: 700,
             py: 1,
-            textTransform: 'none',
             borderRadius: '16px',
             flex: 1,
             border: '2px solid',
@@ -121,25 +119,20 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           }}
         >
           Skip
-        </Button>
-        <Button
-          variant="contained"
+        </SecondaryActionButton>
+        <PrimaryActionButton
           onClick={() => onSave(selected)}
           size="small"
           fullWidth
           sx={{
-            bgcolor: '#DE3F5E',
             borderRadius: '16px',
             fontSize: '0.85rem',
-            fontWeight: 700,
             py: 1,
-            textTransform: 'none',
             flex: 1,
-            '&:hover': { bgcolor: '#c73552' },
           }}
         >
           Save Frame
-        </Button>
+        </PrimaryActionButton>
       </Box>
     </Box>
   );

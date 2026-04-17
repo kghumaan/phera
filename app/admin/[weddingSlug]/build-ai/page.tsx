@@ -4,6 +4,7 @@ import React, { useState, useRef, use } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Container,
   Typography,
   Stack,
@@ -22,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import Bubble from '@/components/admin/build-ai/Bubble';
 import TypingIndicator from '@/components/admin/build-ai/TypingIndicator';
 import ChatInput from '@/components/admin/build-ai/ChatInput';
@@ -69,14 +71,13 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                 Answer a few questions and watch your wedding website come to life
               </Typography>
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<AutoAwesome />}
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}
+              sx={{ px: 3, py: 1.25, borderRadius: '16px', fontSize: '0.9rem', flexShrink: 0 }}
             >
               Upgrade to Pro
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
           <Box sx={{ maxWidth: 640 }}>
@@ -119,14 +120,13 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
               <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 startIcon={<AutoAwesome />}
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
+                sx={{ px: 3.5, py: 1.5, borderRadius: '16px', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)' }}
               >
                 Unlock AI Builder
-              </Button>
+              </PrimaryActionButton>
             </Box>
           </Box>
         </Stack>
@@ -161,24 +161,23 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
             Answer a few questions and watch your wedding website come to life
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<Check />}
-          disabled
+        <Chip
+          icon={<Check sx={{ fontSize: 18, color: 'white !important' }} />}
+          label="All Changes Saved"
           sx={{
-            bgcolor: '#10B981 !important',
-            color: 'white !important',
-            borderRadius: '12px',
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
+            bgcolor: '#10B981',
+            color: 'white',
             fontWeight: 600,
-            opacity: '0.9 !important',
+            fontSize: '0.875rem',
+            px: 1.5,
+            py: 2.5,
+            height: 'auto',
+            borderRadius: '12px',
             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+            '& .MuiChip-label': { px: 1 },
           }}
-        >
-          All Changes Saved
-        </Button>
+        />
+
       </Box>
 
       <Box

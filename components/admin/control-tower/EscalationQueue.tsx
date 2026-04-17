@@ -8,6 +8,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CloseIcon from '@mui/icons-material/Close';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 interface Escalation {
   id: string;
@@ -84,7 +85,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
 
   const categories = [...new Set(active.map((e) => e.category))];
 
-  const handleResolve = async (id: string) => {
+  const handleResolve = async (id: string): Promise<void> => {
     try {
       await fetch('/api/outreach/escalations', {
         method: 'PATCH',
@@ -234,10 +235,10 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                       sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'white', fontSize: 12, color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' } } }}
                     />
                     <Stack direction="row" spacing={1}>
-                      <Button size="small" variant="contained" onClick={() => handleResolve(esc.id)}
+                      <ActionButton size="small" variant="contained" onClick={() => handleResolve(esc.id)}
                         sx={{ bgcolor: '#22c55e', borderRadius: '8px', textTransform: 'none', fontSize: 11, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
                         Confirm
-                      </Button>
+                      </ActionButton>
                       <Button size="small" onClick={() => { setResolvingId(null); setResolveNotes(''); }}
                         sx={{ textTransform: 'none', fontSize: 11, color: '#6a6a6a' }}>
                         Cancel
@@ -300,12 +301,12 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                 {/* Actions */}
                 {!isResolving && (
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                    <Button size="small" variant="outlined" startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
+                    <ActionButton size="small" variant="outlined" startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => setResolvingId(esc.id)}
                       sx={{ borderRadius: '8px', textTransform: 'none', fontSize: 11, fontWeight: 600, color: '#22c55e', borderColor: '#22c55e40', '&:hover': { borderColor: '#22c55e', bgcolor: '#22c55e08' } }}>
                       Resolve
-                    </Button>
-                    <Button size="small" variant="outlined"
+                    </ActionButton>
+                    <ActionButton size="small" variant="outlined"
                       startIcon={isViewingConvo ? <CloseIcon sx={{ fontSize: 14 }} /> : <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => handleViewConversation(esc.id, esc.guest_id)}
                       sx={{ borderRadius: '8px', textTransform: 'none', fontSize: 11, fontWeight: 600,
@@ -313,7 +314,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                         borderColor: isViewingConvo ? '#DE3F5E40' : 'rgba(0,0,0,0.12)',
                         '&:hover': { borderColor: isViewingConvo ? '#DE3F5E' : 'rgba(0,0,0,0.3)', bgcolor: isViewingConvo ? '#DE3F5E08' : '#FAFAFA' } }}>
                       {isViewingConvo ? 'Hide' : 'View Conversation'}
-                    </Button>
+                    </ActionButton>
                   </Stack>
                 )}
               </Paper>

@@ -25,6 +25,7 @@ import {
     DialogContent,
     DialogActions,
 } from '@mui/material';
+import { PrimaryActionButton, ActionButton } from './ActionButton';
 import {
     Menu as MenuIcon,
     SettingsOutlined,
@@ -66,6 +67,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
     const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
     const [homeModalOpen, setHomeModalOpen] = React.useState(false);
+    const [signOutModalOpen, setSignOutModalOpen] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -78,9 +80,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
     const isDemo = isDemoUser();
 
-    const handleSignOut = async () => {
+    const handleSignOut = () => {
         handleMenuClose();
-        await signOut();
+        setSignOutModalOpen(true);
+    };
+
+    const confirmSignOut = () => {
+        setSignOutModalOpen(false);
+        signOut();
         router.push('/');
     };
 
@@ -361,7 +368,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Dev Tools - Only visible to super admins */}
-                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com') && (
+                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'simran@simmetrystudios.com') && (
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
@@ -374,7 +381,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     </Box>
                                     <Switch
                                         checked={isPro}
-                                        onChange={togglePlan}
+                                        onChange={(e) => { e.stopPropagation(); togglePlan(); }}
                                         size="small"
                                         sx={{
                                             '& .MuiSwitch-switchBase': { color: '#999' },
@@ -388,10 +395,9 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         }}
                                     />
                                 </Box>
-                                <Button
+                                <ActionButton
                                     fullWidth
                                     variant="outlined"
-                                    color="error"
                                     size="small"
                                     onClick={handleClearData}
                                     sx={{
@@ -400,15 +406,18 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         textTransform: 'none',
                                         fontWeight: 600,
                                         fontSize: '0.8rem',
-                                        borderWidth: '2px',
+                                        borderWidth: '1.5px',
+                                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                                        color: '#4a4a4a',
                                         '&:hover': {
-                                            borderWidth: '2px',
-                                            bgcolor: alpha(theme.palette.error.main, 0.05)
-                                        }
+                                            borderWidth: '1.5px',
+                                            borderColor: '#1a1a1a',
+                                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                                        },
                                     }}
                                 >
                                     Clear Local Data
-                                </Button>
+                                </ActionButton>
                             </Box>
                         )}
 
@@ -528,7 +537,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
-                    <Button
+                    <PrimaryActionButton
                         onClick={() => {
                             setHomeModalOpen(false);
                             if (isDemo) {
@@ -539,25 +548,15 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             }
                             router.push('/');
                         }}
-                        variant="contained"
                         sx={{
-                            bgcolor: '#DE3F5E',
-                            color: 'white',
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            fontWeight: 700,
                             fontSize: '0.95rem',
                             px: 4,
                             py: 1,
                             boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                            '&:hover': {
-                                bgcolor: '#C8365A',
-                                boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                            },
                         }}
                     >
                         Go Home
-                    </Button>
+                    </PrimaryActionButton>
                     <Button
                         onClick={() => setHomeModalOpen(false)}
                         sx={{
@@ -572,6 +571,58 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             '&:hover': {
                                 bgcolor: 'rgba(0, 0, 0, 0.08)',
                             }
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Sign Out confirmation */}
+            <Dialog
+                open={signOutModalOpen}
+                onClose={() => setSignOutModalOpen(false)}
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        p: { xs: 2, md: 3 },
+                        textAlign: 'center',
+                        maxWidth: '400px'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ fontWeight: 600, fontSize: '1.8rem', color: '#1a1a1a', pb: 1 }}>
+                    Sign Out?
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                        You will be signed out and taken to the home page.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
+                    <PrimaryActionButton
+                        onClick={confirmSignOut}
+                        sx={{
+                            fontSize: '0.95rem',
+                            px: 4,
+                            py: 1,
+                            boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                        }}
+                    >
+                        Sign Out
+                    </PrimaryActionButton>
+                    <Button
+                        onClick={() => setSignOutModalOpen(false)}
+                        sx={{
+                            color: '#666',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            borderRadius: '12px',
+                            px: 3,
+                            py: 1,
+                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' },
                         }}
                     >
                         Cancel

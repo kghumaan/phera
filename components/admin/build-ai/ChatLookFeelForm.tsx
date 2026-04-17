@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, alpha, Tooltip, Button, Tabs, Tab } from '@mui/material';
+import { Box, Typography, alpha, Tooltip, Tabs, Tab } from '@mui/material';
 import { Check, ViewModule, ViewStream } from '@mui/icons-material';
 import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 const COLOR_OPTIONS = [
   { name: 'Rose', value: '#DE3F5E' },
@@ -303,17 +304,14 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
 
       <Box sx={{ display: 'flex', gap: 1.5, mt: 2, width: '100%' }}>
         {onCancel && (
-          <Button
+          <SecondaryActionButton
             onClick={onCancel}
             size="small"
-            variant="outlined"
             fullWidth
             sx={{
               color: '#666',
               fontSize: '0.85rem',
-              fontWeight: 700,
               py: 1,
-              textTransform: 'none',
               borderRadius: '16px',
               flex: 1,
               border: '2px solid',
@@ -322,26 +320,21 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
             }}
           >
             Skip
-          </Button>
+          </SecondaryActionButton>
         )}
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={handleSave}
           size="small"
           fullWidth
           sx={{
-            bgcolor: '#DE3F5E',
             borderRadius: '16px',
             fontSize: '0.85rem',
-            fontWeight: 700,
             py: 1,
-            textTransform: 'none',
             flex: 1,
-            '&:hover': { bgcolor: '#c73552' }
           }}
         >
           Save Design
-        </Button>
+        </PrimaryActionButton>
       </Box>
     </Box>
   );

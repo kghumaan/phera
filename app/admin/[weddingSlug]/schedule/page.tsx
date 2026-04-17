@@ -1,9 +1,9 @@
 'use client';
 
-import { Box, Typography, Stack, Button } from '@mui/material';
+import { Box, Typography, Stack } from '@mui/material';
 import { useState, useEffect, use, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { DragEndEvent } from '@dnd-kit/core';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { arrayMove } from '@dnd-kit/sortable';
 import { weddingService, ScheduleItem } from '@/lib/supabase/wedding-service';
 import { parseISO, eachDayOfInterval, format } from 'date-fns';
@@ -36,7 +36,6 @@ const EXAMPLES_DISMISSED_KEY = 'schedule-examples-dismissed';
 
 export default function SchedulePage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
-  const router = useRouter();
   const { isViewOnly } = useAdminRole();
   const { setStatus: setGlobalSaveStatus } = useAutoSaveStatus();
 
@@ -376,21 +375,15 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
                 We need your wedding dates to auto-generate your schedule days.
                 Head to Wedding Details to set them.
               </Typography>
-              <Button
-                variant="contained"
-                onClick={() => router.push(`/admin/${weddingSlug}/details`)}
+              <PrimaryActionButton
+                href={`/admin/${weddingSlug}/details`}
                 sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
                   px: 4, py: 1.5,
-                  borderRadius: '12px',
-                  textTransform: 'none',
                   fontWeight: 700,
-                  '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
                 Add Wedding Dates
-              </Button>
+              </PrimaryActionButton>
             </Stack>
           </Box>
         </Stack>

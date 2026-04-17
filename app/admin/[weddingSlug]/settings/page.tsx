@@ -16,8 +16,8 @@ import {
   ListItemIcon,
   Divider,
   alpha,
-  CircularProgress,
 } from '@mui/material';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { useState, useEffect, use, useCallback } from 'react';
 import { CheckCircle, Cancel, Launch, ContentCopy } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -281,27 +281,22 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
             {/* Action Buttons */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={handlePublishToggle}
-                disabled={updatingStatus}
+                loading={updatingStatus}
                 sx={{
                   bgcolor: status === 'live' ? '#6a6a6a' : '#DE3F5E',
-                  color: 'white',
                   py: 1.5,
                   px: 4,
-                  borderRadius: '12px',
                   fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
                   flex: 1,
                   '&:hover': {
                     bgcolor: status === 'live' ? '#4a4a4a' : '#C8365A',
                   },
                 }}
               >
-                {updatingStatus ? <CircularProgress size={20} color="inherit" /> : (status === 'live' ? 'Deactivate Website' : 'Publish Website')}
-              </Button>
+                {status === 'live' ? 'Deactivate Website' : 'Publish Website'}
+              </PrimaryActionButton>
 
               <Button
                 variant="outlined"

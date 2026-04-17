@@ -46,6 +46,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -448,25 +449,19 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     </Select>
                   </FormControl>
 
-                  <Button
-                    variant="contained"
-                    startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <Send />}
+                  <PrimaryActionButton
+                    startIcon={<Send />}
                     onClick={handleSendInvite}
-                    disabled={sending || !inviteEmail.trim()}
+                    loading={sending}
+                    disabled={!inviteEmail.trim()}
                     sx={{
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      textTransform: 'none',
                       px: 3,
                       py: 1.75,
-                      '&:hover': { bgcolor: '#C8365A' },
                       '&:disabled': { bgcolor: alpha('#DE3F5E', 0.5), color: 'white' },
                     }}
                   >
-                    {sending ? 'Sending...' : 'Send Invite'}
-                  </Button>
+                    Send Invite
+                  </PrimaryActionButton>
                 </Stack>
 
                 <Divider />
@@ -580,14 +575,15 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
             sx: {
               borderRadius: '24px',
               p: 2,
+              bgcolor: 'white',
             },
           }}
         >
-          <DialogTitle sx={{ fontWeight: 600 }}>
+          <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
             {itemToDelete?.type === 'invite' ? 'Cancel Invite?' : 'Remove Team Member?'}
           </DialogTitle>
           <DialogContent>
-            <DialogContentText>
+            <DialogContentText sx={{ color: '#4a4a4a' }}>
               {itemToDelete?.type === 'invite'
                 ? `Are you sure you want to cancel the invite sent to ${itemToDelete?.email}?`
                 : `Are you sure you want to remove ${itemToDelete?.email} from your team? They will no longer have access to this wedding.`}
@@ -605,23 +601,12 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
             >
               Cancel
             </Button>
-            <Button
+            <PrimaryActionButton
               onClick={handleConfirmDelete}
-              disabled={deleting}
-              variant="contained"
-              sx={{
-                bgcolor: '#EF4444',
-                color: 'white',
-                textTransform: 'none',
-                fontWeight: 600,
-                borderRadius: '12px',
-                '&:hover': {
-                  bgcolor: '#DC2626',
-                },
-              }}
+              loading={deleting}
             >
-              {deleting ? <CircularProgress size={20} color="inherit" /> : (itemToDelete?.type === 'invite' ? 'Cancel Invite' : 'Remove')}
-            </Button>
+              {itemToDelete?.type === 'invite' ? 'Cancel Invite' : 'Remove'}
+            </PrimaryActionButton>
           </DialogActions>
         </Dialog>
 

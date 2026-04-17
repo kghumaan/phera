@@ -14,6 +14,7 @@ import {
   alpha,
   Collapse,
 } from '@mui/material';
+import { PrimaryActionButton, ActionButton } from './ActionButton';
 import { Mic, Stop, Close, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import VoiceWaveform from './VoiceWaveform';
 
@@ -178,7 +179,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
     <>
       {/* Main button */}
       {state === 'idle' && !pendingTasks && (
-        <Button
+        <ActionButton
           variant="outlined"
           startIcon={<Mic />}
           onClick={startRecording}
@@ -195,7 +196,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
           }}
         >
           Voice Input
-        </Button>
+        </ActionButton>
       )}
 
       {/* Recording state */}
@@ -222,24 +223,17 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
             {formatTime(elapsed)}
           </Typography>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             startIcon={<Stop />}
             onClick={stopRecording}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
               px: 2.5,
               py: 1,
-              borderRadius: '12px',
-              fontWeight: 600,
-              textTransform: 'none',
               fontSize: '0.9rem',
-              '&:hover': { bgcolor: '#c73552' },
             }}
           >
             Stop
-          </Button>
+          </PrimaryActionButton>
         </Box>
       )}
 
@@ -370,21 +364,15 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
           >
             Cancel
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleConfirmTasks}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 600,
               px: 3,
               borderRadius: '10px',
-              '&:hover': { bgcolor: '#c73552' },
             }}
           >
             Add {pendingTasks?.length} Task{pendingTasks?.length !== 1 ? 's' : ''}
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </>

@@ -18,6 +18,7 @@ import {
   alpha,
   TextField,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { Add, AutoAwesome } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -216,23 +217,17 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             My Weddings
           </Typography>
           {weddings.length > 0 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<Add />}
               onClick={() => setDialogOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 borderRadius: '24px',
-                textTransform: 'none',
-                fontWeight: 700,
                 fontSize: '0.9rem',
                 px: 3,
-                '&:hover': { bgcolor: '#C8365A' },
               }}
             >
               Create New Wedding
-            </Button>
+            </PrimaryActionButton>
           )}
         </Stack>
 
@@ -273,23 +268,17 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                   Get unlimited client weddings with all Pro features included — $249/year.
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => setUpgradeModalOpen(true)}
                 sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
                   borderRadius: '24px',
-                  textTransform: 'none',
-                  fontWeight: 700,
                   fontSize: '0.9rem',
                   px: 3,
                   whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
                 Subscribe Now
-              </Button>
+              </PrimaryActionButton>
             </Stack>
           </Paper>
         )}
@@ -314,22 +303,16 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             <Typography variant="h6" sx={{ color: '#666', mb: 2 }}>
               No weddings yet
             </Typography>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<Add />}
               onClick={() => setDialogOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 borderRadius: 1,
-                textTransform: 'none',
-                fontWeight: 700,
                 px: 4,
-                '&:hover': { bgcolor: '#C8365A' },
               }}
             >
               Create your first wedding
-            </Button>
+            </PrimaryActionButton>
           </Paper>
         ) : (
           <Paper
@@ -544,23 +527,18 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           >
             Cancel
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleCreateWedding}
-            disabled={!partner1Name || !partner2Name || creating}
+            loading={creating}
+            disabled={!partner1Name || !partner2Name}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
               borderRadius: 1,
-              textTransform: 'none',
-              fontWeight: 700,
               px: 4,
               opacity: (!partner1Name || !partner2Name) ? 0.6 : 1,
-              '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            {creating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Create Wedding'}
-          </Button>
+            Create Wedding
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
 

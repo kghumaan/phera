@@ -4,7 +4,6 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Grid,
   Card,
   CardContent,
@@ -17,6 +16,7 @@ import {
   IconButton,
   alpha,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -422,31 +422,23 @@ const AdminDashboard = () => {
                             >
                               {option.description}
                             </Typography>
-                            <Button
-                              variant="contained"
-                              startIcon={exportLoading === option.key ? <CircularProgress size={16} /> : <DownloadIcon />}
+                            <PrimaryActionButton
+                              startIcon={<DownloadIcon />}
                               onClick={() => exportTableToCSV(option.key, option.name)}
-                              disabled={exportLoading === option.key || loading}
+                              loading={exportLoading === option.key}
+                              disabled={loading}
                               sx={{
-                                bgcolor: option.color === '#DE3F5E' ? option.color : '#DE3F5E',
-                                color: 'white',
                                 py: 1.2,
                                 borderRadius: '32px',
                                 fontSize: '1rem',
-                                fontWeight: 600,
-                                textTransform: 'none',
                                 boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                                '&:hover': {
-                                  bgcolor: '#C8365A',
-                                  boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                                },
                                 '&:disabled': {
                                   bgcolor: alpha('#DE3F5E', 0.5),
                                 },
                               }}
                             >
-                              {exportLoading === option.key ? 'Exporting...' : 'Export CSV'}
-                            </Button>
+                              Export CSV
+                            </PrimaryActionButton>
                           </Box>
                         </Stack>
                       </CardContent>

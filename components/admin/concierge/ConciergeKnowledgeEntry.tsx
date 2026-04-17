@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Paper,
-  IconButton,
   Switch,
   Chip,
   TextField,
@@ -14,10 +13,10 @@ import {
   InputLabel,
   Button,
   Stack,
-  CircularProgress,
 } from '@mui/material';
 import { Delete, AutoAwesome } from '@mui/icons-material';
 import { useState } from 'react';
+import { PrimaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -156,20 +155,15 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             >
               Cancel
             </Button>
-            <Button
+            <PrimaryActionButton
               size="small"
-              variant="contained"
               onClick={handleSave}
-              disabled={!editTitle.trim() || !editContent.trim() || saving}
-              sx={{
-                textTransform: 'none',
-                bgcolor: '#DE3F5E',
-                borderRadius: '10px',
-                '&:hover': { bgcolor: '#c73552' },
-              }}
+              disabled={!editTitle.trim() || !editContent.trim()}
+              loading={saving}
+              sx={{ borderRadius: '10px' }}
             >
-              {saving ? <CircularProgress size={18} color="inherit" /> : 'Save'}
-            </Button>
+              Save
+            </PrimaryActionButton>
           </Box>
         </Stack>
       </Paper>
@@ -249,17 +243,18 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
                 '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
               }}
             />
-            <IconButton
+            <IconActionButton
               size="small"
-              disabled={deleting}
+              loading={deleting}
+              spinnerColor="#6a6a6a"
               onClick={async (e) => {
                 e.stopPropagation();
                 setDeleting(true);
                 try { await onDelete(entry.id); } finally { setDeleting(false); }
               }}
             >
-              {deleting ? <CircularProgress size={18} sx={{ color: '#6a6a6a' }} /> : <Delete sx={{ fontSize: 18, color: '#6a6a6a' }} />}
-            </IconButton>
+              <Delete sx={{ fontSize: 18, color: '#6a6a6a' }} />
+            </IconActionButton>
           </Box>
         )}
       </Box>

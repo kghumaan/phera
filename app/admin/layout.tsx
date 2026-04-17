@@ -1,9 +1,9 @@
 'use client';
 
-import { Box, Typography, Button, Container, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Typography, Container, useMediaQuery, useTheme } from '@mui/material';
 import { Monitor, Home } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 export default function AdminRootLayout({
     children,
@@ -12,7 +12,6 @@ export default function AdminRootLayout({
 }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const router = useRouter();
 
     if (isMobile) {
         return (
@@ -53,29 +52,23 @@ export default function AdminRootLayout({
                             The admin dashboard is optimized for larger screens to provide the best editing experience for your wedding website.
                         </Typography>
 
-                        <Button
-                            variant="contained"
+                        <PrimaryActionButton
                             size="large"
                             startIcon={<Home />}
-                            onClick={() => router.push('/')}
+                            href="/"
                             sx={{
-                                bgcolor: '#DE3F5E',
-                                color: 'white',
                                 borderRadius: '32px',
                                 px: 4,
                                 py: 1.5,
-                                textTransform: 'none',
-                                fontWeight: 600,
                                 fontSize: '1rem',
                                 boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                                 '&:hover': {
-                                    bgcolor: '#C8365A',
                                     boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                                 },
                             }}
                         >
                             Return to Home
-                        </Button>
+                        </PrimaryActionButton>
                     </Box>
                 </Container>
             </OptimizedBackground>

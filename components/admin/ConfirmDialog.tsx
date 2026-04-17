@@ -7,8 +7,8 @@ import {
   DialogActions,
   Typography,
   Button,
-  CircularProgress,
 } from '@mui/material';
+import { ActionButton } from './ActionButton';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -64,10 +64,10 @@ export default function ConfirmDialog({
         >
           {cancelLabel}
         </Button>
-        <Button
+        <ActionButton
           variant="contained"
           onClick={onConfirm}
-          disabled={isLoading}
+          loading={isLoading}
           sx={{
             bgcolor: confirmColor,
             color: 'white',
@@ -81,8 +81,8 @@ export default function ConfirmDialog({
             },
           }}
         >
-          {isLoading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : confirmLabel}
-        </Button>
+          {confirmLabel}
+        </ActionButton>
       </DialogActions>
     </Dialog>
   );

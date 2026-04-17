@@ -50,6 +50,7 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import VoiceRecorder from '@/components/admin/VoiceRecorder';
 import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -217,19 +218,16 @@ function TaskCard({
               <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: '#6a6a6a' }}>
                 <Close sx={{ fontSize: 16 }} />
               </IconButton>
-              <Button
+              <PrimaryActionButton
                 size="small"
-                variant="contained"
                 onClick={onEditSave}
                 disabled={!editDraft.title.trim()}
                 sx={{
-                  bgcolor: '#DE3F5E', color: 'white', textTransform: 'none',
                   fontSize: '0.8rem', py: 0.5, px: 2, borderRadius: '8px',
-                  '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
                 Save
-              </Button>
+              </PrimaryActionButton>
             </Stack>
           </Stack>
         </Paper>
@@ -411,7 +409,7 @@ function KanbanColumn({
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: 'white', textTransform: 'none', fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px', '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</Button>
+              <ActionButton size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: 'white', fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px', '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</ActionButton>
               <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}><Close sx={{ fontSize: 16 }} /></IconButton>
             </Box>
           </Paper>
@@ -636,7 +634,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Task Manager</Typography>
               <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Voice-to-tasks — speak your to-do list, we turn it into an organised board</Typography>
             </Box>
-            <Button variant="contained" startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}>Upgrade to Pro</Button>
+            <PrimaryActionButton startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ px: 3, py: 1.25, fontSize: '0.9rem', flexShrink: 0 }}>Upgrade to Pro</PrimaryActionButton>
           </Box>
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
@@ -662,7 +660,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
               </Box>
-              <Button variant="contained" startIcon={<ViewKanban />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}>Unlock Task Manager</Button>
+              <PrimaryActionButton startIcon={<ViewKanban />} onClick={() => setUpgradeModalOpen(true)} sx={{ px: 3.5, py: 1.5, fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)' }}>Unlock Task Manager</PrimaryActionButton>
             </Box>
           </Box>
         </Stack>

@@ -68,6 +68,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -896,22 +897,14 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                       />
                       {!isViewOnly && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button
+                          <PrimaryActionButton
                             onClick={(e) => { e.stopPropagation(); handleSaveConfirmationMessages(); }}
-                            variant="contained"
-                            disabled={savingMessages}
+                            loading={savingMessages}
                             size="small"
-                            sx={{
-                              bgcolor: '#DE3F5E',
-                              textTransform: 'none',
-                              fontWeight: 600,
-                              borderRadius: '12px',
-                              px: 3,
-                              '&:hover': { bgcolor: '#C8365A' },
-                            }}
+                            sx={{ px: 3 }}
                           >
-                            {savingMessages ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'Save'}
-                          </Button>
+                            Save
+                          </PrimaryActionButton>
                         </Box>
                       )}
                     </Stack>
@@ -1157,21 +1150,13 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           >
             Cancel
           </Button>
-          <Button
+          <PrimaryActionButton
             onClick={handleSaveStep}
-            variant="contained"
-            disabled={saving}
-            sx={{
-              bgcolor: '#DE3F5E',
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: '12px',
-              px: 4,
-              '&:hover': { bgcolor: '#C8365A' },
-            }}
+            loading={saving}
+            sx={{ px: 4 }}
           >
-            {saving ? <CircularProgress size={20} sx={{ color: '#DE3F5E' }} /> : editingStep ? 'Update' : 'Add Step'}
-          </Button>
+            {editingStep ? 'Update' : 'Add Step'}
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
 

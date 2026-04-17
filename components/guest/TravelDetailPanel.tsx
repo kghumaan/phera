@@ -5,7 +5,6 @@ import {
   Modal,
   Box,
   Typography,
-  Button,
   IconButton,
   useMediaQuery,
   useTheme,
@@ -13,6 +12,7 @@ import {
 import { Close } from '@mui/icons-material';
 import { useMemo } from 'react';
 import type { TravelSectionData } from './TravelSectionsDisplay';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 interface TravelDetailPanelProps {
   section: TravelSectionData | null;
@@ -120,11 +120,10 @@ export default function TravelDetailPanel({
 
         {ctaText && ctaUrl && (
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Button
-              component="a"
-              href={ctaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ActionButton
+              onClick={() => {
+                window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+              }}
               variant="contained"
               sx={{
                 bgcolor: primaryColor,
@@ -139,7 +138,7 @@ export default function TravelDetailPanel({
               }}
             >
               {ctaText}
-            </Button>
+            </ActionButton>
           </Box>
         )}
       </Box>

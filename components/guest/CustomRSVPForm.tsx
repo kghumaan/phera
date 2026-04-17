@@ -54,6 +54,7 @@ import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { guestTextFieldSx } from '@/lib/constants/form-styles';
+import { ActionButton } from '@/components/admin/ActionButton';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -1344,7 +1345,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     pt: { xs: 1, sm: 1.5 },
                     flexShrink: 0,
                   }}>
-                    <Button
+                    <ActionButton
                       onClick={async () => {
                         await checkRSVPStatus(true);
                         router.push(`/${weddingId}`);
@@ -1368,7 +1369,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       }}
                     >
                       Done
-                    </Button>
+                    </ActionButton>
                   </Box>
                 </Box>
               </Paper>
@@ -1825,11 +1826,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   sx={guestTextFieldSx(themeColor)}
                 />
 
-                <Button
+                <ActionButton
                   variant="contained"
                   fullWidth
                   onClick={handleEmailPasswordAuth}
-                  disabled={isAuthenticating}
+                  loading={isAuthenticating}
                   sx={{
                     bgcolor: themeColor,
                     color: 'white',
@@ -1848,12 +1849,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     },
                   }}
                 >
-                  {isAuthenticating ? (
-                    <CircularProgress size={24} sx={{ color: 'white' }} />
-                  ) : (
-                    'Sign In / Sign Up'
-                  )}
-                </Button>
+                  Sign In / Sign Up
+                </ActionButton>
               </>
             )}
           </Stack>
@@ -2850,9 +2847,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
 
           {/* Hide Next/Submit on Account Creation — auth buttons handle progression */}
           {getStepName(mergedSteps[currentStep]) === 'Account Creation' && !isAuthenticated ? null : (currentStep === mergedSteps.length - 1 || (getStepName(mergedSteps[currentStep]) === 'RSVP' && formData.attending === 'no')) ? (
-            <Button
+            <ActionButton
               onClick={handleSubmit}
               variant="contained"
+              loading={isSubmitting}
               sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
@@ -2871,12 +2869,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   color: '#999',
                 },
               }}
-              disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
-            </Button>
+              Submit RSVP
+            </ActionButton>
           ) : (
-            <Button
+            <ActionButton
               onClick={handleNext}
               variant="contained"
               sx={{
@@ -2900,7 +2897,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               disabled={false}
             >
               Next
-            </Button>
+            </ActionButton>
           )}
         </Box>
       </FullScreenFormContainer>
@@ -2925,9 +2922,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Button onClick={handleCancelExit} variant="outlined" sx={{ color: '#000', borderColor: '#000', '&:hover': { borderColor: '#000', background: '#222' } }}>
             Cancel
           </Button>
-          <Button onClick={handleConfirmExit} color="error" variant="contained" sx={{ color: '#fff', background: themeColor, '&:hover': { background: '#C8365A' } }}>
+          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: '#fff', background: themeColor, '&:hover': { background: '#C8365A' } }}>
             Leave
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
 

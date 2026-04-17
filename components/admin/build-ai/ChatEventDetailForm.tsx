@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   Box,
-  Button,
   TextField,
   Typography,
   alpha,
@@ -16,6 +15,7 @@ import {
 import { Delete, Add } from '@mui/icons-material';
 import { EVENT_TEMPLATES, EventTemplate } from '@/components/admin/EventTemplates';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatEventDetailFormProps {
   onSave: (event: {
@@ -166,25 +166,24 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
 
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           {onCancel && (
-            <Button onClick={onCancel} variant="outlined" fullWidth sx={{
-              color: '#666', fontSize: '0.85rem', fontWeight: 700, py: 1, textTransform: 'none',
+            <SecondaryActionButton onClick={onCancel} fullWidth sx={{
+              color: '#666', fontSize: '0.85rem', py: 1,
               borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
               '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
             }}>
               Cancel
-            </Button>
+            </SecondaryActionButton>
           )}
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleCustom}
             fullWidth
             sx={{
-              bgcolor: '#DE3F5E', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700,
-              py: 1, textTransform: 'none', flex: 1, '&:hover': { bgcolor: '#c73552' }
+              borderRadius: '16px', fontSize: '0.85rem',
+              py: 1, flex: 1,
             }}
           >
             Custom Event
-          </Button>
+          </PrimaryActionButton>
         </Box>
       </Box>
     );
@@ -255,39 +254,37 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
-            <Button onClick={() => setPhase('template')} variant="outlined" fullWidth sx={{
-              color: '#666', fontSize: '0.85rem', fontWeight: 700, py: 1, textTransform: 'none',
+            <SecondaryActionButton onClick={() => setPhase('template')} fullWidth sx={{
+              color: '#666', fontSize: '0.85rem', py: 1,
               borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
               '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
             }}>
               Back
-            </Button>
+            </SecondaryActionButton>
             {slides.length > 0 ? (
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => setPhase('carousel')}
                 disabled={!formData.name}
                 fullWidth
                 sx={{
-                  bgcolor: '#DE3F5E', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700,
-                  py: 1, textTransform: 'none', flex: 1, '&:hover': { bgcolor: '#c73552' }
+                  borderRadius: '16px', fontSize: '0.85rem',
+                  py: 1, flex: 1,
                 }}
               >
                 Edit Slides ({slides.length})
-              </Button>
+              </PrimaryActionButton>
             ) : (
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={handleSave}
                 disabled={!formData.name}
                 fullWidth
                 sx={{
-                  bgcolor: '#DE3F5E', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700,
-                  py: 1, textTransform: 'none', flex: 1, '&:hover': { bgcolor: '#c73552' }
+                  borderRadius: '16px', fontSize: '0.85rem',
+                  py: 1, flex: 1,
                 }}
               >
                 Add Event
-              </Button>
+              </PrimaryActionButton>
             )}
           </Box>
         </Box>
@@ -436,25 +433,24 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1.5 }}>
-        <Button onClick={() => setPhase('basic')} variant="outlined" fullWidth sx={{
-          color: '#666', fontSize: '0.85rem', fontWeight: 700, py: 1, textTransform: 'none',
+        <SecondaryActionButton onClick={() => setPhase('basic')} fullWidth sx={{
+          color: '#666', fontSize: '0.85rem', py: 1,
           borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
           '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
         }}>
           Back
-        </Button>
-        <Button
-          variant="contained"
+        </SecondaryActionButton>
+        <PrimaryActionButton
           onClick={handleSave}
           disabled={!formData.name}
           fullWidth
           sx={{
-            bgcolor: '#DE3F5E', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700,
-            py: 1, textTransform: 'none', flex: 1, '&:hover': { bgcolor: '#c73552' }
+            borderRadius: '16px', fontSize: '0.85rem',
+            py: 1, flex: 1,
           }}
         >
           Save Event
-        </Button>
+        </PrimaryActionButton>
       </Box>
     </Box>
   );

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, Button, IconButton, CircularProgress, alpha } from '@mui/material';
+import { Box, Typography, IconButton, alpha } from '@mui/material';
 import { Add, Delete, Check } from '@mui/icons-material';
 import { uploadImage } from '@/lib/utils/image-upload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
+import { ActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatCoupleImagesFormProps {
   onSave: (images: string[]) => void;
@@ -139,11 +140,12 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
 
       {/* Add button */}
       {images.length < 6 && (
-        <Button
+        <ActionButton
           variant="outlined"
-          startIcon={uploading ? <CircularProgress size={16} /> : <Add />}
+          startIcon={<Add />}
+          loading={uploading}
           onClick={handleAddPhoto}
-          disabled={uploading || !weddingId}
+          disabled={!weddingId}
           sx={{
             borderColor: '#DE3F5E',
             color: '#DE3F5E',
@@ -154,23 +156,20 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
             '&:hover': { borderColor: '#c73552', bgcolor: 'rgba(222,63,94,0.04)' },
           }}
         >
-          {uploading ? 'Uploading...' : `Add Photo${images.length > 0 ? ` (${images.length}/6)` : ''}`}
-        </Button>
+          {`Add Photo${images.length > 0 ? ` (${images.length}/6)` : ''}`}
+        </ActionButton>
       )}
 
       {/* Action buttons */}
       <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
-        <Button
+        <SecondaryActionButton
           onClick={onCancel}
           size="small"
-          variant="outlined"
           fullWidth
           sx={{
             color: '#666',
             fontSize: '0.85rem',
-            fontWeight: 700,
             py: 1,
-            textTransform: 'none',
             borderRadius: '16px',
             flex: 1,
             border: '2px solid',
@@ -179,26 +178,21 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           }}
         >
           Skip
-        </Button>
-        <Button
-          variant="contained"
+        </SecondaryActionButton>
+        <PrimaryActionButton
           onClick={() => onSave(images)}
           size="small"
           fullWidth
           disabled={images.length === 0}
           sx={{
-            bgcolor: '#DE3F5E',
             borderRadius: '16px',
             fontSize: '0.85rem',
-            fontWeight: 700,
             py: 1,
-            textTransform: 'none',
             flex: 1,
-            '&:hover': { bgcolor: '#c73552' },
           }}
         >
           Save Photos
-        </Button>
+        </PrimaryActionButton>
       </Box>
     </Box>
   );

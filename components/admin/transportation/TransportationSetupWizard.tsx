@@ -22,6 +22,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import {
   Add,
   Delete,
@@ -382,19 +383,14 @@ export default function TransportationSetupWizard({
           >
             Back
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleSaveAndContinue}
-            disabled={!canContinue() || saving}
-            endIcon={saving ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
+            disabled={!canContinue()}
+            loading={saving}
+            endIcon={<ArrowForward />}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
               px: 3,
-              textTransform: 'none',
-              fontWeight: 600,
               borderRadius: 1,
-              '&:hover': { bgcolor: '#c73552' },
               '&.Mui-disabled': {
                 bgcolor: alpha('#DE3F5E', 0.3),
                 color: 'white',
@@ -402,7 +398,7 @@ export default function TransportationSetupWizard({
             }}
           >
             {isArrival ? 'Continue to Departure' : 'Complete Setup'}
-          </Button>
+          </PrimaryActionButton>
         </Box>
       </Stack>
       <Dialog

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
     Box,
-    Button,
     TextField,
     Typography,
 } from '@mui/material';
@@ -13,6 +12,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { format } from 'date-fns';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { ActionButton, PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatDateFormProps {
     label: string;
@@ -131,27 +131,21 @@ export default function ChatDateForm({
 
                     <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
                         {onSkip && (
-                            <Button
+                            <PrimaryActionButton
                                 onClick={onSkip}
                                 size="small"
-                                variant="contained"
                                 fullWidth
                                 sx={{
-                                    bgcolor: '#DE3F5E',
-                                    color: 'white',
                                     borderRadius: '16px',
                                     fontSize: '0.85rem',
-                                    fontWeight: 700,
                                     py: 1,
-                                    textTransform: 'none',
                                     flex: 1,
-                                    '&:hover': { bgcolor: '#c73552' }
                                 }}
                             >
                                 {skipLabel}
-                            </Button>
+                            </PrimaryActionButton>
                         )}
-                        <Button
+                        <ActionButton
                             variant="outlined"
                             onClick={handleSave}
                             disabled={!date}
@@ -180,7 +174,7 @@ export default function ChatDateForm({
                             }}
                         >
                             Confirm Date
-                        </Button>
+                        </ActionButton>
                     </Box>
                 </Box>
             </LocalizationProvider>

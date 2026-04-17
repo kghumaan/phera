@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Paper, Button, TextField, Select, MenuItem,
-  FormControl, InputLabel, Chip, Stack, Alert, CircularProgress,
+  FormControl, InputLabel, Chip, Stack, Alert,
   Autocomplete, Tabs, Tab, Collapse,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
@@ -11,6 +11,7 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupsIcon from '@mui/icons-material/Groups';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface Guest {
   id: string;
@@ -375,20 +376,20 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
 
             {/* Send button */}
             <Collapse in={!!templateKey}>
-              <Button
-                variant="contained"
-                startIcon={sending ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <SendIcon sx={{ fontSize: 16 }} />}
-                disabled={sending || (!useCustomSelection && !targetFilter) || (useCustomSelection && selectedGuests.length === 0)}
+              <PrimaryActionButton
+                startIcon={<SendIcon sx={{ fontSize: 16 }} />}
+                loading={sending}
+                disabled={(!useCustomSelection && !targetFilter) || (useCustomSelection && selectedGuests.length === 0)}
                 onClick={handleSendCampaign}
                 fullWidth
                 sx={{
-                  bgcolor: '#DE3F5E', borderRadius: '10px', textTransform: 'none', fontSize: 13,
-                  fontWeight: 600, py: 1, '&:hover': { bgcolor: '#c13550' },
+                  borderRadius: '10px', fontSize: 13,
+                  py: 1,
                   '&.Mui-disabled': { bgcolor: '#F5F5F5', color: '#9a9a9a' },
                 }}
               >
-                {sending ? 'Sending...' : `Send ${selectedTemplate?.label || 'Template'}${useCustomSelection ? ` to ${selectedGuests.length} guests` : ''}`}
-              </Button>
+                {`Send ${selectedTemplate?.label || 'Template'}${useCustomSelection ? ` to ${selectedGuests.length} guests` : ''}`}
+              </PrimaryActionButton>
             </Collapse>
           </Box>
         )}
@@ -436,20 +437,20 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
             />
 
             {/* Send button */}
-            <Button
-              variant="contained"
-              startIcon={sending ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <SendIcon sx={{ fontSize: 16 }} />}
-              disabled={sending || !directGuest || !directMessage.trim()}
+            <PrimaryActionButton
+              startIcon={<SendIcon sx={{ fontSize: 16 }} />}
+              loading={sending}
+              disabled={!directGuest || !directMessage.trim()}
               onClick={handleSendDirect}
               fullWidth
               sx={{
-                bgcolor: '#DE3F5E', borderRadius: '10px', textTransform: 'none', fontSize: 13,
-                fontWeight: 600, py: 1, '&:hover': { bgcolor: '#c13550' },
+                borderRadius: '10px', fontSize: 13,
+                py: 1,
                 '&.Mui-disabled': { bgcolor: '#F5F5F5', color: '#9a9a9a' },
               }}
             >
-              {sending ? 'Sending...' : directGuest ? `Send to ${directGuest.name}` : 'Send Message'}
-            </Button>
+              {directGuest ? `Send to ${directGuest.name}` : 'Send Message'}
+            </PrimaryActionButton>
           </Box>
         )}
 

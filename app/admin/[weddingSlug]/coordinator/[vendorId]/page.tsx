@@ -55,6 +55,7 @@ import MembersTab from '@/components/admin/coordinator/MembersTab';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser, DEMO_VENDOR_DETAILS, DEMO_MEMBERS, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface Message {
   id: string;
@@ -990,20 +991,13 @@ export default function VendorDetailPage({
           >
             Cancel
           </Button>
-          <Button
+          <PrimaryActionButton
             onClick={handleDeleteVendor}
-            disabled={deleting}
-            variant="contained"
-            startIcon={deleting ? <CircularProgress size={14} /> : <Delete />}
-            sx={{
-              textTransform: 'none',
-              borderRadius: '12px',
-              bgcolor: '#DE3F5E',
-              '&:hover': { bgcolor: '#c73552' },
-            }}
+            loading={deleting}
+            startIcon={<Delete />}
           >
-            {deleting ? 'Removing...' : 'Remove'}
-          </Button>
+            Remove
+          </PrimaryActionButton>
         </DialogActions>
       </Dialog>
     </Box>

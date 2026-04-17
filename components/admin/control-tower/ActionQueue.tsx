@@ -15,6 +15,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 interface ActionQueueProps {
   pendingSequences: any[];
@@ -95,7 +96,7 @@ export default function ActionQueue({
   // Unique categories in the data for filter chips
   const categories = [...new Set(issueItems.map((i) => i._category).filter(Boolean))];
 
-  const handleResolve = async (issueId: string) => {
+  const handleResolve = async (issueId: string): Promise<void> => {
     const realId = issueId.replace('issue-', '');
     try {
       const res = await fetch(`/api/outreach/escalations`, {
@@ -297,7 +298,7 @@ export default function ActionQueue({
                       }}
                     />
                     <Stack direction="row" spacing={1}>
-                      <Button
+                      <ActionButton
                         size="small"
                         variant="contained"
                         onClick={() => handleResolve(item.id)}
@@ -311,7 +312,7 @@ export default function ActionQueue({
                         }}
                       >
                         Confirm Resolve
-                      </Button>
+                      </ActionButton>
                       <Button
                         size="small"
                         onClick={() => { setResolvingId(null); setResolveNotes(''); }}
@@ -326,7 +327,7 @@ export default function ActionQueue({
                 {/* Actions */}
                 {!isResolving && (
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                    <Button
+                    <ActionButton
                       size="small"
                       variant="outlined"
                       startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
@@ -342,8 +343,8 @@ export default function ActionQueue({
                       }}
                     >
                       Resolve
-                    </Button>
-                    <Button
+                    </ActionButton>
+                    <ActionButton
                       size="small"
                       variant="outlined"
                       startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
@@ -359,7 +360,7 @@ export default function ActionQueue({
                       }}
                     >
                       View Conversation
-                    </Button>
+                    </ActionButton>
                   </Stack>
                 )}
               </Paper>

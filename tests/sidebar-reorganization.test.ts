@@ -74,10 +74,10 @@ describe('Sidebar Reorganization', () => {
       expect(guests!.items[0].path).toBe('/guest-list');
     });
 
-    it('should have Guest Responses', () => {
+    it('should have RSVPs', () => {
       const item = guests!.items.find((i) => i.id === 'guests');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('Guest Responses');
+      expect(item!.label).toBe('RSVPs');
       expect(item!.path).toBe('/guests');
     });
 

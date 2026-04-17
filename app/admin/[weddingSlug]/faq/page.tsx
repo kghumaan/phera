@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
   Switch,
   FormControlLabel,
   ClickAwayListener,
@@ -44,6 +43,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 const SWITCH_SX = {
   '& .MuiSwitch-switchBase': { color: '#999' },
@@ -638,24 +638,18 @@ function InlineFaqForm({
                     <Delete fontSize="small" />
                   </IconButton>
                 )}
-                <Button
-                  variant="contained"
+                <PrimaryActionButton
                   onClick={onSave}
-                  disabled={!canSave || saving}
+                  loading={saving}
+                  disabled={!canSave}
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
                     px: 3,
                     minWidth: 80,
-                    '&:hover': { bgcolor: '#C8365A' },
                     '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
                   }}
                 >
-                  {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-                </Button>
+                  Save
+                </PrimaryActionButton>
               </Stack>
             )}
           </Stack>
@@ -692,24 +686,18 @@ function InlineFaqForm({
                     <Delete fontSize="small" />
                   </IconButton>
                 )}
-                <Button
-                  variant="contained"
+                <PrimaryActionButton
                   onClick={onSave}
-                  disabled={!canSave || saving}
+                  loading={saving}
+                  disabled={!canSave}
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
                     px: 3,
                     minWidth: 80,
-                    '&:hover': { bgcolor: '#C8365A' },
                     '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
                   }}
                 >
-                  {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-                </Button>
+                  Save
+                </PrimaryActionButton>
               </Stack>
             </>
           )}

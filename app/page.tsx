@@ -1057,6 +1057,40 @@ function LandingPageContent() {
           ])
         }}
       />
+      {/* Decorative marigolds — match PIN entry screen */}
+      <Box
+        component="img"
+        src="/images/overlays/entry-topleft.png"
+        alt=""
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1,
+          width: { xs: '120px', sm: '160px', md: '200px' },
+          height: 'auto',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      />
+      <Box
+        component="img"
+        src="/images/overlays/entry-topright.png"
+        alt=""
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          zIndex: 1,
+          width: { xs: '120px', sm: '160px', md: '200px' },
+          height: 'auto',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      />
+
       <AppHeader
         variant="transparent"
       />

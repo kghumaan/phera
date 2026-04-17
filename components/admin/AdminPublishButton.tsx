@@ -5,6 +5,7 @@ import { Box, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextFi
 import { Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface AdminPublishButtonProps {
     weddingSlug: string;
@@ -316,21 +317,15 @@ export default function AdminPublishButton({
                                 >
                                     Cancel
                                 </Button>
-                                <Button
+                                <PrimaryActionButton
                                     size="small"
-                                    variant="contained"
                                     onClick={handleSlugUpdate}
+                                    loading={savingSlug}
                                     disabled={customSlug === weddingSlug || !customSlug}
                                     sx={{
                                         borderRadius: '8px',
-                                        textTransform: 'none',
-                                        bgcolor: '#DE3F5E',
-                                        color: 'white',
                                         minWidth: 'auto',
                                         px: 2,
-                                        '&:hover': {
-                                            bgcolor: '#C8365A',
-                                        },
                                         '&.Mui-disabled': {
                                             bgcolor: alpha('#DE3F5E', 0.5),
                                             color: 'rgba(255, 255, 255, 0.7)',
@@ -338,7 +333,7 @@ export default function AdminPublishButton({
                                     }}
                                 >
                                     Save
-                                </Button>
+                                </PrimaryActionButton>
                             </Box>
                         )}
                     </Box>
@@ -349,40 +344,30 @@ export default function AdminPublishButton({
                     <Box>
                         <Box sx={{ display: 'flex', gap: 1.5 }}>
                             {/* Publish Button - Primary Style */}
-                            <Button
+                            <PrimaryActionButton
                                 fullWidth
-                                variant="contained"
-                                startIcon={savingStatus && weddingStatus === 'draft' ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Publish />}
+                                startIcon={<Publish />}
                                 onClick={() => handleStatusUpdate('live')}
-                                disabled={savingStatus}
+                                loading={savingStatus && weddingStatus === 'draft'}
+                                disabled={savingStatus && weddingStatus !== 'draft'}
                                 sx={{
-                                    bgcolor: '#DE3F5E',
-                                    color: 'white',
                                     py: 1.5,
-                                    borderRadius: '12px',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    '&:hover': {
-                                        bgcolor: '#C8365A',
-                                    },
                                     '&.Mui-disabled': {
                                         bgcolor: alpha('#DE3F5E', 0.5),
                                         color: 'rgba(255, 255, 255, 0.7)',
                                     },
                                 }}
                             >
-                                {savingStatus && weddingStatus === 'draft' ? 'Publishing...' : 'Publish'}
-                            </Button>
+                                Publish
+                            </PrimaryActionButton>
 
                             {/* Unpublish Button - Secondary Style */}
-                            <Button
+                            <SecondaryActionButton
                                 fullWidth
-                                variant="outlined"
-                                startIcon={savingStatus && weddingStatus === 'live' ? <CircularProgress size={16} sx={{ color: 'black' }} /> : null}
                                 onClick={() => handleStatusUpdate('draft')}
-                                disabled={savingStatus}
+                                loading={savingStatus && weddingStatus === 'live'}
+                                disabled={savingStatus && weddingStatus !== 'live'}
                                 sx={{
-                                    ...SECONDARY_BUTTON_SX,
                                     py: 1.5,
                                     '&.Mui-disabled': {
                                         bgcolor: 'rgba(255, 255, 255, 0.5)',
@@ -391,8 +376,8 @@ export default function AdminPublishButton({
                                     },
                                 }}
                             >
-                                {savingStatus && weddingStatus === 'live' ? 'Unpublishing...' : 'Unpublish'}
-                            </Button>
+                                Unpublish
+                            </SecondaryActionButton>
                         </Box>
                     </Box>
                 </Stack>

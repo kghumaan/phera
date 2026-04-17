@@ -13,9 +13,9 @@ import {
   DialogContent,
   DialogActions,
   Grid,
-  CircularProgress,
   ClickAwayListener,
 } from '@mui/material';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { useState, useEffect, use, useCallback } from 'react';
 import { Delete } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -454,17 +454,17 @@ function InlineShopForm({ draft, setDraft, onSave, onCancel, onDelete, saving, i
                 <Delete fontSize="small" />
               </IconButton>
             )}
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={onSave}
-              disabled={!canSave || saving}
+              loading={saving}
+              disabled={!canSave}
               sx={{
-                bgcolor: '#DE3F5E', color: 'white', borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, minWidth: 80,
-                '&:hover': { bgcolor: '#C8365A' }, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                px: 3, minWidth: 80,
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
               }}
             >
-              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-            </Button>
+              Save
+            </PrimaryActionButton>
           </Stack>
         </Stack>
       </Paper>

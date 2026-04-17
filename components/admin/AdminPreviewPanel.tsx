@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress, Menu, MenuItem } from '@mui/material';
+import { ActionButton, PrimaryActionButton } from './ActionButton';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
@@ -407,14 +408,13 @@ export default function AdminPreviewPanel({
                                 exit={{ opacity: 0, x: 20, scale: 0.9 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                             >
-                                <Button
+                                <ActionButton
                                     variant="contained"
                                     onClick={handlePublish}
-                                    disabled={isPublishing || publishSuccess}
+                                    loading={isPublishing}
+                                    disabled={publishSuccess}
                                     startIcon={
-                                        isPublishing ? (
-                                            <CircularProgress size={16} color="inherit" />
-                                        ) : publishSuccess ? (
+                                        publishSuccess ? (
                                             <Check sx={{ fontSize: 18 }} />
                                         ) : (
                                             <Publish sx={{ fontSize: 18 }} />
@@ -443,8 +443,8 @@ export default function AdminPreviewPanel({
                                         whiteSpace: 'nowrap',
                                     }}
                                 >
-                                    {isPublishing ? 'Publishing...' : publishSuccess ? 'Published!' : 'Publish'}
-                                </Button>
+                                    {publishSuccess ? 'Published!' : 'Publish'}
+                                </ActionButton>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -798,25 +798,20 @@ export default function AdminPreviewPanel({
                                     />
                                 </Box>
                                 <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
+                                    <PrimaryActionButton
                                         fullWidth
-                                        disabled={isSaving || (wedding?.status === 'live' && isPublished) || (wedding?.status === 'draft' && !isPublished)}
+                                        loading={isSaving}
+                                        disabled={(wedding?.status === 'live' && isPublished) || (wedding?.status === 'draft' && !isPublished)}
                                         onClick={handleSavePublish}
                                         sx={{
-                                            bgcolor: '#DE3F5E',
-                                            color: 'white',
                                             borderRadius: '100px',
                                             py: 2,
-                                            fontWeight: 700,
                                             fontSize: '1.1rem',
-                                            textTransform: 'none',
-                                            '&:hover': { bgcolor: '#c23450' },
                                             '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' }
                                         }}
                                     >
-                                        {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save'}
-                                    </Button>
+                                        Save
+                                    </PrimaryActionButton>
                                 </Box>
                                 {wedding && (
                                     <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#666' }}>

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
     Box,
-    Button,
     TextField,
     FormControl,
     Select,
@@ -21,6 +20,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Stack from '@mui/material/Stack';
 import { EVENT_TEMPLATES } from '@/components/admin/EventTemplates';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 
 interface ChatEventFormProps {
     onSave: (event: any) => void;
@@ -345,17 +345,14 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
 
                 <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
                     {onCancel && (
-                        <Button
+                        <SecondaryActionButton
                             onClick={onCancel}
                             size="small"
-                            variant="outlined"
                             fullWidth
                             sx={{
                                 color: '#666',
                                 fontSize: '0.85rem',
-                                fontWeight: 700,
                                 py: 1,
-                                textTransform: 'none',
                                 borderRadius: '16px',
                                 flex: 1,
                                 border: '2px solid',
@@ -368,27 +365,22 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                             }}
                         >
                             Cancel
-                        </Button>
+                        </SecondaryActionButton>
                     )}
-                    <Button
-                        variant="contained"
+                    <PrimaryActionButton
                         onClick={handleSave}
                         disabled={!formData.name}
                         size="small"
                         fullWidth
                         sx={{
-                            bgcolor: '#DE3F5E',
                             borderRadius: '16px',
                             fontSize: '0.85rem',
-                            fontWeight: 700,
                             py: 1,
-                            textTransform: 'none',
                             flex: 1,
-                            '&:hover': { bgcolor: '#c73552' }
                         }}
                     >
                         Add Event
-                    </Button>
+                    </PrimaryActionButton>
                 </Box>
             </Box>
         </Box>

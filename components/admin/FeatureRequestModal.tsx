@@ -16,6 +16,7 @@ import {
 import { Close, CheckCircleOutline } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface FeatureRequestModalProps {
     open: boolean;
@@ -164,29 +165,26 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 }}
                             />
 
-                            <Button
-                                variant="contained"
+                            <PrimaryActionButton
                                 fullWidth
                                 onClick={handleSubmit}
-                                disabled={isSubmitting || !content.trim()}
+                                loading={isSubmitting}
+                                disabled={!content.trim()}
                                 sx={{
-                                    bgcolor: '#DE3F5E',
-                                    color: 'white',
                                     borderRadius: '100px',
                                     py: 2,
                                     fontWeight: 700,
                                     fontSize: '1.1rem',
-                                    textTransform: 'none',
                                     boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
                                     '&:hover': {
                                         bgcolor: '#c23450',
                                         boxShadow: '0 10px 20px rgba(222, 63, 94, 0.3)',
                                     },
-                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' }
+                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
                                 }}
                             >
-                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
-                            </Button>
+                                Submit Request
+                            </PrimaryActionButton>
                         </Stack>
                     ) : (
                         <Stack spacing={3} alignItems="center" sx={{ py: 4 }}>

@@ -28,6 +28,7 @@ import { ScheduleItem, CarouselSlide, weddingService } from '@/lib/supabase/wedd
 import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailCarousel';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 // Curated background options — 3 rows of 5
 const BACKGROUNDS = [
@@ -848,26 +849,22 @@ function BackgroundPicker({
       </Stack>
 
       {hasSlides && (
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onStartEditing}
           endIcon={<ArrowForward sx={{ fontSize: 20 }} />}
           sx={{
-            bgcolor: '#DE3F5E',
             borderRadius: '8px',
-            textTransform: 'none',
-            fontWeight: 600,
             fontSize: '16px',
             pl: 2,
             pr: 1.5,
             py: 1,
             alignSelf: 'flex-start',
             boxShadow: 'none',
-            '&:hover': { bgcolor: '#C8365A', boxShadow: 'none' },
+            '&:hover': { boxShadow: 'none' },
           }}
         >
           Start Editing
-        </Button>
+        </PrimaryActionButton>
       )}
     </Stack>
   );
@@ -993,25 +990,21 @@ function SlideEditor({
             {saving ? 'Saving...' : 'Save'}
           </Button>
           {slideIndex < totalSlides - 1 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={onNextSlide}
               endIcon={<ArrowForward sx={{ fontSize: 20 }} />}
               sx={{
-                bgcolor: '#DE3F5E',
                 borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 600,
                 fontSize: '16px',
                 pl: 2,
                 pr: 1.5,
                 py: 1,
                 boxShadow: 'none',
-                '&:hover': { bgcolor: '#C8365A', boxShadow: 'none' },
+                '&:hover': { boxShadow: 'none' },
               }}
             >
               Next Slide
-            </Button>
+            </PrimaryActionButton>
           )}
         </Box>
         <IconButton

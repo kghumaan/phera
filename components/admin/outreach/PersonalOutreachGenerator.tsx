@@ -6,7 +6,6 @@ import {
   Paper,
   Typography,
   TextField,
-  Button,
   Stack,
   Chip,
   Alert,
@@ -15,6 +14,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
 import { generateBulkWaLinks, generateBroadcastMessage, GuestContact } from '@/lib/whatsapp/deep-links';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 interface PersonalOutreachGeneratorProps {
   coupleName: string;
@@ -89,7 +89,7 @@ export default function PersonalOutreachGenerator({
       />
 
       <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <Button
+        <ActionButton
           variant="contained"
           startIcon={<ContentCopyIcon />}
           onClick={handleCopyMessage}
@@ -101,8 +101,8 @@ export default function PersonalOutreachGenerator({
           }}
         >
           {copied ? 'Copied!' : 'Copy message'}
-        </Button>
-        <Button
+        </ActionButton>
+        <ActionButton
           variant="outlined"
           startIcon={<DownloadIcon />}
           onClick={handleDownloadContacts}
@@ -114,7 +114,7 @@ export default function PersonalOutreachGenerator({
           }}
         >
           Download contact list
-        </Button>
+        </ActionButton>
       </Stack>
 
       {guests.length > 0 && (

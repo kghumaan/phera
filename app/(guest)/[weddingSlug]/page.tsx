@@ -37,6 +37,7 @@ import { useWedding } from '@/lib/contexts/WeddingContext';
 import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -1109,15 +1110,11 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{ width: '100%' }}
               >
-                <Button
-                  onClick={() => {
-                    setIsNavigating(true);
-                    router.push(`/${weddingSlug}/details`);
-                  }}
+                <ActionButton
+                  href={`/${weddingSlug}/details`}
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={isNavigating}
                   sx={{
                     backgroundColor: wedding?.primary_color || '#DE3F5E',
                     color: 'white',
@@ -1132,8 +1129,8 @@ export default function HomePage() {
                     },
                   }}
                 >
-                  {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
-                </Button>
+                  View Details
+                </ActionButton>
               </motion.div>
             </Box>
           )}
@@ -1466,15 +1463,14 @@ export default function HomePage() {
               {(!user || !hasRSVPed) ? (
                 <>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                    <Button
-                      component={Link}
+                    <ActionButton
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       fullWidth
-                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 2, borderRadius: '80px' }}
+                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', color: 'white', py: 2, borderRadius: '80px' }}
                     >
                       RSVP
-                    </Button>
+                    </ActionButton>
                   </motion.div>
                   {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
                     <Typography variant="body2" color="#777">
@@ -1484,15 +1480,14 @@ export default function HomePage() {
                 </>
               ) : (
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                  <Button
-                    onClick={() => { setIsNavigating(true); router.push(`/${weddingSlug}/details`); }}
+                  <ActionButton
+                    href={`/${weddingSlug}/details`}
                     variant="contained"
                     fullWidth
-                    disabled={isNavigating}
-                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '80px' }}
+                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', color: 'white', py: 1.5, borderRadius: '80px' }}
                   >
-                    {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
-                  </Button>
+                    View Details
+                  </ActionButton>
                 </motion.div>
               )}
             </Stack>
