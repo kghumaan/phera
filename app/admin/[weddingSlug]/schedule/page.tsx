@@ -14,6 +14,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 import ExamplesSection from './components/ExamplesSection';
 import DayCard from './components/DayCard';
 import MoreDetailsModal from './components/MoreDetailsModal';
@@ -353,14 +354,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={ENHANCED_SECTION_SPACING}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
-              Wedding Schedule
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              Plan the timeline for your celebration
-            </Typography>
-          </Box>
+          <PageHeading
+            title="Wedding Schedule"
+            subtitle="Plan the timeline for your celebration"
+          />
           <Box sx={{
             bgcolor: COLORS.brand.primaryWash,
             borderRadius: RADII.lg,
@@ -396,15 +393,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
-            Wedding Schedule
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Plan the timeline for your celebration
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Wedding Schedule"
+          subtitle="Plan the timeline for your celebration"
+        />
 
         {/* Examples Section */}
         {showExamples && <ExamplesSection onDismiss={handleDismissExamples} />}
