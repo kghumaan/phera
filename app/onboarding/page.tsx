@@ -122,7 +122,7 @@ const features: Feature[] = [
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
     borderRadius: RADII.md,
-    backgroundColor: '#f8f9fa !important',
+    backgroundColor: `${COLORS.bg.muted} !important`,
     fontSize: '0.9rem',
     '& fieldset': {
       borderColor: 'rgba(222, 63, 94, 0.2) !important',
@@ -132,28 +132,28 @@ const StyledTextField = styled(TextField)({
       borderColor: 'rgba(222, 63, 94, 0.4) !important',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E !important',
+      borderColor: `${COLORS.brand.primary} !important`,
       borderWidth: '2px !important',
     },
     '& input': {
-      color: '#1a1a1a !important',
-      WebkitTextFillColor: '#1a1a1a !important',
+      color: `${COLORS.text.strong} !important`,
+      WebkitTextFillColor: `${COLORS.text.strong} !important`,
       padding: '10px 14px',
       fontSize: '0.9rem',
     },
     '& .MuiPickersSectionList-selectableSection': {
-      color: '#1a1a1a !important',
+      color: `${COLORS.text.strong} !important`,
     },
     '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-      color: '#666 !important',
+      color: `${COLORS.text.subtle} !important`,
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#666 !important',
-    fontSize: '0.85rem',
+    color: `${COLORS.text.subtle} !important`,
+    fontSize: '0.875rem',
   },
   '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E !important',
+    color: `${COLORS.brand.primary} !important`,
   },
 });
 
@@ -959,7 +959,7 @@ export default function OnboardingPage() {
                               >
                                 <Favorite sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Couple</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own wedding</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>Planning my own wedding</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -981,7 +981,7 @@ export default function OnboardingPage() {
                               >
                                 <Work sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Planner</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>Managing multiple weddings</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -1138,7 +1138,7 @@ export default function OnboardingPage() {
                                         >
                                           <path
                                             d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                            fill="#999"
+                                            fill={COLORS.text.faint}
                                           />
                                         </Box>
                                       )}
@@ -1194,7 +1194,7 @@ export default function OnboardingPage() {
                                         >
                                           <path
                                             d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                            fill="#999"
+                                            fill={COLORS.text.faint}
                                           />
                                         </Box>
                                       )}
