@@ -39,6 +39,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import FeatureRequestModal from '@/components/admin/FeatureRequestModal';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -355,21 +356,15 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              Look & Feel
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              Customize the colors, backgrounds, and overall design of your wedding website
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexShrink: 0 }}>
+        <PageHeading
+          title="Look & Feel"
+          subtitle="Customize the colors, backgrounds, and overall design of your wedding website"
+          actions={
             <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
               Want something custom?
             </Button>
-          </Box>
-        </Box>
+          }
+        />
 
         <Stack spacing={3}>
           {/* Desktop Layout Selection */}
