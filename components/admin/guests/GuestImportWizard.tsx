@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -50,6 +49,7 @@ import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { ErrorAlert, InfoAlert } from '@/components/shared/Alert';
 import { PheraChip } from '@/components/shared/Chip';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import {
   parseCsv,
@@ -269,7 +269,7 @@ export default function GuestImportWizard({
   // ─── Render ──────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth={step === 'done' ? 'sm' : 'md'} fullWidth>
+    <PheraDialog open={open} onClose={handleClose} maxWidth={step === 'done' ? 'sm' : 'md'} fullWidth>
       <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         {step === 'done' ? '' : step === 'confirm' ? 'Confirm Import' : 'Import Guests'}
         <IconButton onClick={handleClose} size="small" sx={{ ml: 'auto' }}>
@@ -787,6 +787,6 @@ export default function GuestImportWizard({
         </DialogActions>
       )}
 
-    </Dialog>
+    </PheraDialog>
   );
 }

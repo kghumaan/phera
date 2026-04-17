@@ -1,14 +1,13 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
   Button,
 } from '@mui/material';
 import { ActionButton } from './ActionButton';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConfirmDialogProps {
@@ -29,25 +28,19 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
-  confirmColor = COLORS.accent.danger,
+  confirmColor = COLORS.brand.primary,
   isLoading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onCancel}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: RADII.lg,
-          bgcolor: COLORS.bg.white,
-        },
-      }}
     >
-      <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>{title}</DialogTitle>
+      <PheraDialogTitle onClose={onCancel}>{title}</PheraDialogTitle>
       <DialogContent>
         <Typography variant="body1" sx={{ color: COLORS.text.muted }}>
           {message}
@@ -85,6 +78,6 @@ export default function ConfirmDialog({
           {confirmLabel}
         </ActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }
