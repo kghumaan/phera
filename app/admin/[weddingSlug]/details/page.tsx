@@ -32,6 +32,7 @@ import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -455,16 +456,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              Wedding Details
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              Basic information about your wedding
-            </Typography>
-          </Box>
-        </Box>
+        <PageHeading
+          title="Wedding Details"
+          subtitle="Basic information about your wedding"
+        />
 
         {/* Form Content */}
         <Stack spacing={3}>
