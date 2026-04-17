@@ -27,6 +27,10 @@ import ConciergeBroadcasts from '@/components/admin/concierge/ConciergeBroadcast
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
+import { PheraCard } from '@/components/shared/Card';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { StatCard } from '@/components/shared/StatCard';
+import { PheraChip } from '@/components/shared/Chip';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -173,24 +177,30 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                 <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
                   Guest Concierge
                 </Typography>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 2,
-                    py: 0.75,
-                    bgcolor: COLORS.bg.subtle,
-                    borderRadius: 1,
-                    border: '1px solid rgba(0,0,0,0.07)',
-                  }}
+                <Tooltip
+                  title="This is the WhatsApp number your guests message. Phera's Concierge answers from this line 24/7."
+                  arrow
                 >
-                  <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
-                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
-                    {conciergePhone}
-                  </Typography>
-                </Paper>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 0.75,
+                      bgcolor: COLORS.bg.subtle,
+                      borderRadius: 1,
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      cursor: 'help',
+                    }}
+                  >
+                    <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                    <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
+                      {conciergePhone}
+                    </Typography>
+                  </Paper>
+                </Tooltip>
                 <Tooltip title={phoneCopied ? 'Copied!' : 'Copy Concierge number — this is our business number that guests can contact'} arrow>
                   <IconButton
                     size="small"
@@ -288,24 +298,12 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              Guest Concierge
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              24/7 WhatsApp assistant for your guests — powered by your wedding details
-            </Typography>
-          </Box>
+          <PageHeading
+            title="Guest Concierge"
+            subtitle="24/7 WhatsApp assistant for your guests — powered by your wedding details"
+          />
 
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 3, md: 5 },
-              borderRadius: RADII.lg,
-              bgcolor: COLORS.bg.white,
-              border: '1px solid rgba(0,0,0,0.07)',
-            }}
-          >
+          <PheraCard variant="default" sx={{ p: { xs: 3, md: 5 } }}>
             <Stack spacing={3} alignItems="flex-start">
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 2, flexWrap: 'wrap' }}>
                 <Box
@@ -411,7 +409,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                 </Typography>
               </Box>
             </Stack>
-          </Paper>
+          </PheraCard>
         </Stack>
       </Box>
     );
@@ -423,29 +421,19 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       <Stack spacing={3}>
 
         {/* Header row */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              Guest Concierge
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              24/7 WhatsApp concierge for your guests — powered by your wedding details
-            </Typography>
-          </Box>
-          <PrimaryActionButton
-            startIcon={<WhatsApp />}
-            onClick={() => setUpgradeModalOpen(true)}
-            sx={{
-              px: 3,
-              py: 1.25,
-              borderRadius: 2,
-              fontSize: '0.9rem',
-              flexShrink: 0,
-            }}
-          >
-            Upgrade to Pro
-          </PrimaryActionButton>
-        </Box>
+        <PageHeading
+          title="Guest Concierge"
+          subtitle="24/7 WhatsApp concierge for your guests — powered by your wedding details"
+          actions={
+            <PrimaryActionButton
+              startIcon={<WhatsApp />}
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{ px: 3, py: 1.25, fontSize: '0.9rem' }}
+            >
+              Upgrade to Pro
+            </PrimaryActionButton>
+          }
+        />
 
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
@@ -482,10 +470,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             {/* Stats row */}
             <Box sx={{ display: 'flex', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
               {mockStats.map((stat) => (
-                <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white }}>
-                  <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>{stat.value}</Typography>
-                  <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>{stat.label}</Typography>
-                </Paper>
+                <StatCard key={stat.label} value={stat.value} label={stat.label} />
               ))}
             </Box>
 
@@ -493,59 +478,53 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
 
               {/* Guest chat list */}
-              <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: COLORS.bg.white }}>
-                <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
+              <PheraCard variant="default" sx={{ flex: 1.4, overflow: 'hidden' }}>
+                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {mockChats.map((chat) => (
                     <Box key={chat.name} sx={{ px: 2.5, py: 1.75, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#DE3F5E15', color: COLORS.brand.primary, fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: COLORS.brand.primarySubtle, color: COLORS.brand.primary, fontSize: '0.875rem', fontWeight: 700, flexShrink: 0 }}>
                         {chat.avatar}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>{chat.name}</Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{chat.name}</Typography>
+                          <Typography variant="caption" sx={{ color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {chat.message}
                         </Typography>
                       </Box>
-                      <Chip
+                      <PheraChip
                         label={chat.status}
                         size="small"
-                        sx={{
-                          fontSize: '0.7rem',
-                          height: 20,
-                          flexShrink: 0,
-                          bgcolor: chat.status === 'answered' ? '#E8F5E9' : '#FFF3E0',
-                          color: chat.status === 'answered' ? '#2E7D32' : '#E65100',
-                          fontWeight: 600,
-                        }}
+                        tone={chat.status === 'answered' ? 'success' : 'warning'}
+                        sx={{ flexShrink: 0 }}
                       />
                     </Box>
                   ))}
                 </Stack>
-              </Paper>
+              </PheraCard>
 
               {/* Notification toggles */}
-              <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white, alignSelf: 'flex-start' }}>
-                <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Guest Notifications</Typography>
+              <PheraCard variant="default" sx={{ flex: 1, alignSelf: 'flex-start' }}>
+                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Guest Notifications</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {notifications.map((n) => (
                     <Box key={n.label} sx={{ px: 2.5, py: 1.75, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                       <Box>
-                        <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: COLORS.text.strong }}>{n.label}</Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, mt: 0.25 }}>{n.desc}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: n.bold ? 700 : 500, color: COLORS.text.strong }}>{n.label}</Typography>
+                        <Typography variant="caption" sx={{ color: COLORS.text.faint, mt: 0.25, display: 'block' }}>{n.desc}</Typography>
                       </Box>
                       <PheraSwitch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0 }} />
                     </Box>
                   ))}
                 </Stack>
-              </Paper>
+              </PheraCard>
 
             </Box>
           </Box>
