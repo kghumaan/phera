@@ -24,7 +24,7 @@ import {
   Dialog,
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValueEvent, type MotionValue } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -220,6 +220,102 @@ interface FeatureItem {
   isPro?: boolean;
 }
 
+// Scroll-linked text slide — opacity crossfades continuously with scroll
+const FeatureTextSlide = ({
+  scrollYProgress,
+  idx,
+  total,
+  isActive,
+  children,
+}: {
+  scrollYProgress: MotionValue<number>;
+  idx: number;
+  total: number;
+  isActive: boolean;
+  children: React.ReactNode;
+}) => {
+  const opacity = useTransform(
+    scrollYProgress,
+    [
+      (idx - 0.15) / total,
+      (idx + 0.15) / total,
+      (idx + 0.85) / total,
+      (idx + 1.15) / total,
+    ],
+    [0, 1, 1, 0]
+  );
+  return (
+    <motion.div
+      style={{
+        opacity,
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: isActive ? 'auto' : 'none',
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Scroll-linked image slide — opacity + y continuously tied to scroll
+const FeatureImageSlide = ({
+  scrollYProgress,
+  idx,
+  total,
+  frameType,
+  isActive,
+  children,
+}: {
+  scrollYProgress: MotionValue<number>;
+  idx: number;
+  total: number;
+  frameType?: FeatureItem['frameType'];
+  isActive: boolean;
+  children: React.ReactNode;
+}) => {
+  const opacity = useTransform(
+    scrollYProgress,
+    [
+      (idx - 0.15) / total,
+      (idx + 0.15) / total,
+      (idx + 0.85) / total,
+      (idx + 1.15) / total,
+    ],
+    [0, 1, 1, 0]
+  );
+  const y = useTransform(
+    scrollYProgress,
+    [
+      (idx - 0.15) / total,
+      (idx + 0.15) / total,
+      (idx + 0.85) / total,
+      (idx + 1.15) / total,
+    ],
+    ['40%', '0%', '0%', '-40%']
+  );
+  return (
+    <motion.div
+      style={{
+        opacity,
+        y,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: frameType === 'mobile' ? 'center' : 'flex-start',
+        pointerEvents: isActive ? 'auto' : 'none',
+        willChange: 'transform, opacity',
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -259,8 +355,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
     }
   });
 
-  // Calculate container height (60vh per item)
-  const containerHeight = items.length * 60;
+  // Calculate container height (80vh per item — breathing room for scroll-linked crossfade)
+  const containerHeight = items.length * 80;
 
   // Click handler to scroll to a specific feature
   const scrollToFeature = (index: number) => {
@@ -363,16 +459,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 {items.map((item, idx) => {
                   const isActive = idx === activeIndex;
                   return (
-                    <motion.div
+                    <FeatureTextSlide
                       key={item.id}
-                      initial={false}
-                      animate={{ opacity: isActive ? 1 : 0 }}
-                      transition={{ duration: 0.35, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        pointerEvents: isActive ? 'auto' : 'none',
-                      }}
+                      scrollYProgress={scrollYProgress}
+                      idx={idx}
+                      total={items.length}
+                      isActive={isActive}
                     >
                       <Typography
                         variant="h5"
@@ -411,7 +503,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         </Box>{' '}
                         {item.solution}
                       </Typography>
-                    </motion.div>
+                    </FeatureTextSlide>
                   );
                 })}
               </Box>
@@ -461,27 +553,15 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               }}
             >
               {items.map((item, idx) => {
-                const position = idx - activeIndex; // -n = above/past, 0 = active, +n = below/upcoming
+                const isActive = idx === activeIndex;
                 return (
-                  <motion.div
+                  <FeatureImageSlide
                     key={item.id}
-                    initial={false}
-                    animate={{
-                      opacity: position === 0 ? 1 : 0,
-                      y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
-                    }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
-                      pointerEvents: position === 0 ? 'auto' : 'none',
-                    }}
+                    scrollYProgress={scrollYProgress}
+                    idx={idx}
+                    total={items.length}
+                    frameType={item.frameType}
+                    isActive={isActive}
                   >
                     {item.featureImage && item.frameType === 'desktop' && (
                       /* Browser Frame — extends past viewport right edge */
@@ -654,7 +734,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       </IPhoneMockup>
                     )}
 
-                  </motion.div>
+                  </FeatureImageSlide>
                 );
               })}
             </Box>

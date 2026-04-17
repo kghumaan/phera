@@ -10,7 +10,6 @@ import {
   Button,
   Stack,
   Paper,
-  Alert,
   alpha,
   CircularProgress,
 } from '@mui/material';
@@ -23,6 +22,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { toast } from 'sonner';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { WarningAlert, ErrorAlert } from '@/components/shared/Alert';
 
 function LoginContent() {
   const router = useRouter();
@@ -310,16 +310,9 @@ function LoginContent() {
               {step === 'form' ? (
                 <>
                   {error && (
-                    <Alert
-                      severity="warning"
-                      onClose={() => setError(null)}
-                      sx={{
-                        borderRadius: RADII.lg,
-                        '& .MuiAlert-icon': { color: 'white', display: 'flex', alignItems: 'center' },
-                      }}
-                    >
+                    <WarningAlert onClose={() => setError(null)}>
                       {error}
-                    </Alert>
+                    </WarningAlert>
                   )}
 
                   <Button
@@ -539,13 +532,9 @@ function LoginContent() {
                 /* OTP Verification Step */
                 <Stack spacing={2.5}>
                   {otpError && (
-                    <Alert
-                      severity="error"
-                      onClose={() => setOtpError(null)}
-                      sx={{ borderRadius: RADII.lg }}
-                    >
+                    <ErrorAlert onClose={() => setOtpError(null)}>
                       {otpError}
-                    </Alert>
+                    </ErrorAlert>
                   )}
 
                   <OtpInput
