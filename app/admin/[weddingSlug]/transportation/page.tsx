@@ -476,12 +476,12 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
           p: 6,
           textAlign: 'center',
           border: '2px solid',
-          borderColor: '#4CAF50',
+          borderColor: COLORS.accent.success,
           borderRadius: 2,
-          bgcolor: alpha('#4CAF50', 0.02),
+          bgcolor: alpha(COLORS.accent.success, 0.02),
         }}
       >
-        <CheckCircle sx={{ fontSize: 64, color: '#4CAF50', mb: 2 }} />
+        <CheckCircle sx={{ fontSize: 64, color: COLORS.accent.success, mb: 2 }} />
         <Typography variant="h4" sx={{ color: COLORS.text.strong, mb: 1 }}>
           You're all set!
         </Typography>

@@ -108,7 +108,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <WhatsAppIcon sx={{ color: '#25D366', mr: 1 }} />
+                <WhatsAppIcon sx={{ color: COLORS.accent.success, mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
                   Total Opt-ins
                 </Typography>

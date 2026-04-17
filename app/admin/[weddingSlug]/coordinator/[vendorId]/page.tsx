@@ -108,16 +108,16 @@ const INSIGHT_ICONS: Record<string, React.ReactNode> = {
 };
 
 const INSIGHT_COLORS: Record<string, string> = {
-  summary: '#2196F3',
-  action_item: '#FF9800',
-  decision: '#4CAF50',
-  price_quote: '#9C27B0',
+  summary: COLORS.accent.info,
+  action_item: COLORS.accent.warning,
+  decision: COLORS.accent.success,
+  price_quote: COLORS.side.both,
   deadline: '#F44336',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: COLORS.text.faint,
-  medium: '#FF9800',
+  medium: COLORS.accent.warning,
   high: '#F44336',
   urgent: '#D32F2F',
 };
@@ -125,17 +125,17 @@ const PRIORITY_COLORS: Record<string, string> = {
 const STATUS_OPTIONS = ['active', 'booked', 'declined', 'paid'];
 
 const STATUS_COLORS: Record<string, string> = {
-  active: '#2196F3',
-  booked: '#4CAF50',
+  active: COLORS.accent.info,
+  booked: COLORS.accent.success,
   declined: COLORS.text.faint,
   paid: '#8BC34A',
 };
 
 const SENDER_COLORS: Record<string, string> = {
-  vendor: '#9C27B0',
+  vendor: COLORS.side.both,
   couple: COLORS.brand.primary,
-  planner: '#2196F3',
-  coordinator: '#4CAF50',
+  planner: COLORS.accent.info,
+  coordinator: COLORS.accent.success,
   unknown: '#757575',
 };
 
@@ -145,7 +145,7 @@ const SENDER_COLORS: Record<string, string> = {
  * so each participant keeps the same color across renders and reloads.
  */
 const MEMBER_PALETTE = [
-  COLORS.brand.primary, '#2196F3', '#9C27B0', '#4CAF50', '#FF9800',
+  COLORS.brand.primary, COLORS.accent.info, COLORS.side.both, COLORS.accent.success, COLORS.accent.warning,
   '#00BCD4', '#F06292', '#795548', '#5E35B1', '#00897B',
   '#FB8C00', '#3949AB', '#8BC34A', '#E53935', '#546E7A',
 ];
@@ -746,7 +746,7 @@ export default function VendorDetailPage({
                                 icon={<ViewKanban sx={{ fontSize: 12 }} />}
                                 label="In Tasks"
                                 size="small"
-                                sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600, bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50', '& .MuiChip-icon': { color: '#4CAF50' } }}
+                                sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600, bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success, '& .MuiChip-icon': { color: COLORS.accent.success } }}
                               />
                             ) : (
                               <Tooltip title="Import to Task Manager">
@@ -914,10 +914,10 @@ export default function VendorDetailPage({
                   <Stack key={member.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 0.5 }}>
                     <Box sx={{
                       width: 32, height: 32, borderRadius: '50%',
-                      bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.12) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.12) : alpha('#2196F3', 0.12),
+                      bgcolor: member.role === 'vendor' ? alpha(COLORS.side.both, 0.12) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.12) : alpha(COLORS.accent.info, 0.12),
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.75rem', fontWeight: 700,
-                      color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? COLORS.brand.primary : '#2196F3',
+                      color: member.role === 'vendor' ? COLORS.side.both : member.role === 'admin' ? COLORS.brand.primary : COLORS.accent.info,
                     }}>
                       {member.name.charAt(0).toUpperCase()}
                     </Box>
@@ -930,8 +930,8 @@ export default function VendorDetailPage({
                       size="small"
                       sx={{
                         fontSize: '0.68rem', height: 20, borderRadius: '4px', textTransform: 'capitalize',
-                        bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.1) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.1) : alpha('#2196F3', 0.1),
-                        color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? COLORS.brand.primary : '#2196F3',
+                        bgcolor: member.role === 'vendor' ? alpha(COLORS.side.both, 0.1) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.1) : alpha(COLORS.accent.info, 0.1),
+                        color: member.role === 'vendor' ? COLORS.side.both : member.role === 'admin' ? COLORS.brand.primary : COLORS.accent.info,
                       }}
                     />
                   </Stack>

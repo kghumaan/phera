@@ -131,7 +131,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                 sx={{
                   width: 64,
                   height: 64,
-                  backgroundColor: '#25D366',
+                  backgroundColor: COLORS.accent.success,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -192,7 +192,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                       sx={{
                         width: 6,
                         height: 6,
-                        backgroundColor: '#25D366',
+                        backgroundColor: COLORS.accent.success,
                         borderRadius: '50%',
                         flexShrink: 0,
                       }}
@@ -281,7 +281,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   variant="contained"
                   onClick={handleChannelClick}
                   sx={{
-                    backgroundColor: '#25D366',
+                    backgroundColor: COLORS.accent.success,
                     color: COLORS.text.inverse,
                     borderRadius: RADII.lg,
                     px: 4,

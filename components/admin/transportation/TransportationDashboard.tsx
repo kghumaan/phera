@@ -829,11 +829,11 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                   height: 30,
                   '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
-                  bgcolor: alpha('#4CAF50', 0.1),
+                  bgcolor: alpha(COLORS.accent.success, 0.1),
                   color: '#2E7D32',
                   fontWeight: 600,
                   border: '1px solid',
-                  borderColor: alpha('#4CAF50', 0.2),
+                  borderColor: alpha(COLORS.accent.success, 0.2),
                 }}
               />
             )}

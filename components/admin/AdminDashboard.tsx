@@ -166,28 +166,28 @@ const AdminDashboard = () => {
       name: 'All Guests',
       description: 'Complete guest information including contact details',
       icon: <PeopleIcon />,
-      color: '#2196F3'
+      color: COLORS.accent.info
     },
     {
       key: 'rsvps',
       name: 'Raw RSVPs',
       description: 'Raw RSVP data with guest IDs',
       icon: <EventIcon />,
-      color: '#4CAF50'
+      color: COLORS.accent.success
     },
     {
       key: 'rsvps_complete',
       name: 'Complete RSVPs',
       description: 'RSVPs with guest names and all details (recommended)',
       icon: <EventIcon />,
-      color: '#FF9800'
+      color: COLORS.accent.warning
     },
     {
       key: 'rsvps_with_names',
       name: 'RSVPs with Names',
       description: 'Simple RSVPs with guest names',
       icon: <EventIcon />,
-      color: '#9C27B0'
+      color: COLORS.side.both
     },
     {
       key: 'comments',
@@ -201,7 +201,7 @@ const AdminDashboard = () => {
       name: 'WhatsApp Clicks',
       description: 'WhatsApp channel engagement tracking',
       icon: <WhatsAppIcon />,
-      color: '#25D366'
+      color: COLORS.accent.success
     },
   ];
 
@@ -290,10 +290,10 @@ const AdminDashboard = () => {
           >
             <Grid spacing={3} sx={{ mb: 4 }}>
               {[
-                { label: 'Total Guests', value: stats.guests, color: '#2196F3', icon: <PeopleIcon /> },
-                { label: 'RSVPs Received', value: stats.rsvps, color: '#4CAF50', icon: <EventIcon /> },
+                { label: 'Total Guests', value: stats.guests, color: COLORS.accent.info, icon: <PeopleIcon /> },
+                { label: 'RSVPs Received', value: stats.rsvps, color: COLORS.accent.success, icon: <EventIcon /> },
                 { label: 'Comments Posted', value: stats.comments, color: '#FF5722', icon: <ChatIcon /> },
-                { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: '#25D366', icon: <WhatsAppIcon /> },
+                { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: COLORS.accent.success, icon: <WhatsAppIcon /> },
               ].map((stat, index) => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.label}>
                   <Card
@@ -406,7 +406,7 @@ const AdminDashboard = () => {
                                   label="Recommended"
                                   size="small"
                                   sx={{
-                                    backgroundColor: '#4CAF50',
+                                    backgroundColor: COLORS.accent.success,
                                     color: COLORS.text.inverse,
                                     fontSize: '0.7rem',
                                     height: 20,

@@ -14,11 +14,11 @@ const STATUS_CONFIG: {
   label: string;
   color: string;
 }[] = [
-  { key: 'not_contacted', label: 'Not Contacted', color: '#94a3b8' },
+  { key: 'not_contacted', label: 'Not Contacted', color: COLORS.text.faint },
   { key: 'save_the_date_sent', label: 'Save the Date', color: COLORS.accent.warning },
   { key: 'rsvp_requested', label: 'RSVP Requested', color: COLORS.accent.info },
   { key: 'rsvp_confirmed', label: 'RSVP Confirmed', color: COLORS.accent.success },
-  { key: 'travel_collected', label: 'Travel Collected', color: '#8b5cf6' },
+  { key: 'travel_collected', label: 'Travel Collected', color: COLORS.side.both },
   { key: 'logistics_complete', label: 'Logistics Complete', color: '#06b6d4' },
   { key: 'unresponsive', label: 'Unresponsive', color: COLORS.accent.danger },
 ];

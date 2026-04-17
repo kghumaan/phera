@@ -97,7 +97,7 @@ export default function PersonalOutreachGenerator({
           sx={{
             borderRadius: RADII.md,
             textTransform: 'none',
-            bgcolor: copied ? '#4CAF50' : COLORS.brand.primary,
+            bgcolor: copied ? COLORS.accent.success : COLORS.brand.primary,
             '&:hover': { bgcolor: copied ? '#45a049' : '#c13550' },
           }}
         >

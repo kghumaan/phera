@@ -194,14 +194,14 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     width: 80,
                                     height: 80,
                                     borderRadius: '50%',
-                                    bgcolor: alpha('#28c840', 0.1),
+                                    bgcolor: alpha(COLORS.accent.success, 0.1),
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     mb: 1
                                 }}
                             >
-                                <CheckCircleOutline sx={{ fontSize: 48, color: '#28c840' }} />
+                                <CheckCircleOutline sx={{ fontSize: 48, color: COLORS.accent.success }} />
                             </Box>
                             <Box>
                                 <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>

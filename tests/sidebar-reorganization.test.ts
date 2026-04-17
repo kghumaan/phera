@@ -143,11 +143,12 @@ describe('Sidebar Reorganization', () => {
       expect(ids).toContain('rsvp-form');
       expect(ids).toContain('faq');
       expect(ids).toContain('registry');
+      expect(ids).toContain('shopping');
       expect(ids).toContain('pins');
     });
 
-    it('should have 8 items (incl. Event Access)', () => {
-      expect(website!.items).toHaveLength(8);
+    it('should have 9 items (incl. Where to Shop + Event Access)', () => {
+      expect(website!.items).toHaveLength(9);
     });
 
     it('Event Access should be the last item and labeled "Event Access"', () => {

@@ -339,7 +339,7 @@ export default function TravelDetailEditor({
                         '&:hover fieldset': { borderColor: COLORS.brand.primary },
                         '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+                      '& .MuiInputLabel-root': { color: COLORS.text.muted, fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiInputBase-input': { fontSize: '0.875rem' },
                     }}
                   />
@@ -357,7 +357,7 @@ export default function TravelDetailEditor({
                         '&:hover fieldset': { borderColor: COLORS.brand.primary },
                         '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+                      '& .MuiInputLabel-root': { color: COLORS.text.muted, fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiInputBase-input': { fontSize: '0.875rem' },
                     }}
                   />

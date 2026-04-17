@@ -58,6 +58,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
 
@@ -333,12 +334,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   fontStyle: 'italic',
                   fontSize: { md: '3rem', lg: '3.5rem' },
                   lineHeight: 1.1,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   mb: { sm: 2, md: 3, lg: 3 },
                 }}
               >
                 Everything you need,{' '}
-                <Box component="span" sx={{ color: '#DE3F5E' }}>
+                <Box component="span" sx={{ color: COLORS.brand.primary }}>
                   simplified
                 </Box>
               </Typography>
@@ -367,7 +368,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Typography
                           sx={{
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             fontSize: isActive ? { md: '1.5rem', lg: '2rem' } : { md: '1rem', lg: '1.25rem' },
                             transition: 'all 0.3s ease',
                             fontWeight: 500,
@@ -383,10 +384,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               alignItems: 'center',
                               gap: 0.4,
                               bgcolor: alpha('#DE3F5E', 0.08),
-                              color: '#DE3F5E',
+                              color: COLORS.brand.primary,
                               px: isActive ? 1.2 : 0.8,
                               py: isActive ? 0.4 : 0.2,
-                              borderRadius: '20px',
+                              borderRadius: RADII.xl,
                               transition: 'all 0.3s ease',
                             }}
                           >
@@ -424,7 +425,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               mb: 1.5,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               The problem:
                             </Box>{' '}
                             {item.problem}
@@ -436,7 +437,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               lineHeight: 1.6,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               Our solution:
                             </Box>{' '}
                             {item.solution}
@@ -500,7 +501,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           height: { md: 36, lg: 42 },
-                          bgcolor: '#f1f1f1',
+                          bgcolor: COLORS.border.faint,
                           borderBottom: '1px solid',
                           borderColor: alpha('#000', 0.08),
                           display: 'flex',
@@ -509,9 +510,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           gap: 1,
                         }}
                       >
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                       </Box>
                       {/* Screenshot */}
                       <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
@@ -542,7 +543,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '40px',
                         overflow: 'hidden',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '12px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -556,7 +557,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '100px',
                           height: '24px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '18px',
                           borderBottomRightRadius: '18px',
                           zIndex: 20,
@@ -607,11 +608,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               fontStyle: 'italic',
               fontSize: '2rem',
               lineHeight: 1.15,
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
             }}
           >
             Everything you need,{' '}
-            <Box component="span" sx={{ color: '#DE3F5E' }}>
+            <Box component="span" sx={{ color: COLORS.brand.primary }}>
               simplified
             </Box>
           </Typography>
@@ -634,7 +635,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   <Box
                     onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
                     sx={{
-                      borderRadius: '10px',
+                      borderRadius: RADII.sm,
                       overflow: 'hidden',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                       bgcolor: 'white',
@@ -647,7 +648,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     <Box
                       sx={{
                         height: 24,
-                        bgcolor: '#f1f1f1',
+                        bgcolor: COLORS.border.faint,
                         borderBottom: '1px solid',
                         borderColor: alpha('#000', 0.08),
                         display: 'flex',
@@ -656,9 +657,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         gap: 0.5,
                       }}
                     >
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
@@ -672,7 +673,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '28px',
                         overflow: 'hidden',
                         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '8px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -685,13 +686,13 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '70px',
                           height: '18px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '10px',
                           borderBottomRightRadius: '10px',
                           zIndex: 20,
                         }}
                       />
-                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0, height: '100%' }}>
+                      <Box sx={{ borderRadius: RADII.xl, overflow: 'hidden', lineHeight: 0, height: '100%' }}>
                         {item.customComponent ? (
                           item.customComponent
                         ) : (
@@ -713,7 +714,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Typography
                     sx={{
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       fontSize: '1.35rem',
                       fontWeight: 400,
                       lineHeight: 1.3,
@@ -728,10 +729,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         alignItems: 'center',
                         gap: 0.3,
                         bgcolor: alpha('#DE3F5E', 0.08),
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                         px: 0.8,
                         py: 0.25,
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                       }}
                     >
                       <AutoAwesome sx={{ fontSize: '0.65rem' }} />
@@ -756,7 +757,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     mb: 1.5,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     The problem:
                   </Box>{' '}
                   {item.problem}
@@ -768,7 +769,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     lineHeight: 1.6,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     Our solution:
                   </Box>{' '}
                   {item.solution}
@@ -811,11 +812,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           <Close />
         </IconButton>
         {expandedImage && (
-          <Box sx={{ borderRadius: '8px', overflow: 'hidden', bgcolor: 'white' }}>
+          <Box sx={{ borderRadius: RADII.sm, overflow: 'hidden', bgcolor: 'white' }}>
             <Box
               sx={{
                 height: 24,
-                bgcolor: '#f1f1f1',
+                bgcolor: COLORS.border.faint,
                 borderBottom: '1px solid',
                 borderColor: alpha('#000', 0.08),
                 display: 'flex',
@@ -824,9 +825,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 gap: 0.5,
               }}
             >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
             </Box>
             <Image
               src={expandedImage.src}
@@ -969,12 +970,12 @@ function PricingPageContent() {
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
                   fontSize: { xs: '1.5rem', md: '3rem' },
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                 }}
               >
                 Simple, Transparent Pricing
               </Typography>
-              <Typography variant="h6" sx={{ color: '#4a4a4a', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
                 Start free, upgrade for power features.
               </Typography>
             </Stack>
@@ -988,16 +989,16 @@ function PricingPageContent() {
                   onClick={() => setSelectedPricingTier(idx)}
                   sx={{
                     flex: 1,
-                    borderRadius: '20px',
+                    borderRadius: RADII.xl,
                     py: 1,
                     fontSize: '0.8rem',
                     fontWeight: 'bold',
                     bgcolor: selectedPricingTier === idx ? '#DE3F5E' : 'transparent',
-                    borderColor: '#DE3F5E',
+                    borderColor: COLORS.brand.primary,
                     color: selectedPricingTier === idx ? 'white' : '#DE3F5E',
                     '&:hover': {
                       bgcolor: selectedPricingTier === idx ? COLORS.brand.primaryHover : alpha('#DE3F5E', 0.05),
-                      borderColor: '#DE3F5E',
+                      borderColor: COLORS.brand.primary,
                     },
                   }}
                 >
@@ -1025,7 +1026,7 @@ function PricingPageContent() {
                       height: '100%',
                       borderRadius: { xs: '12px', md: '24px' },
                       bgcolor: 'white',
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       border: tier.highlight
                         ? '2px solid #DE3F5E'
                         : '1px solid #E0E0E0',
@@ -1046,7 +1047,7 @@ function PricingPageContent() {
                           position: 'absolute',
                           top: { xs: -8, md: -12 },
                           right: { xs: 8, md: 24 },
-                          bgcolor: '#DE3F5E',
+                          bgcolor: COLORS.brand.primary,
                           color: 'white',
                           fontWeight: 'bold',
                           fontSize: { xs: '0.6rem', md: '0.8rem' },
@@ -1056,7 +1057,7 @@ function PricingPageContent() {
                     )}
                     <Typography
                       variant="overline"
-                      sx={{ fontWeight: 'bold', opacity: 0.7, color: '#DE3F5E', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                      sx={{ fontWeight: 'bold', opacity: 0.7, color: COLORS.brand.primary, fontSize: { xs: '0.6rem', md: '0.75rem' } }}
                     >
                       {tier.name}
                     </Typography>
@@ -1065,12 +1066,12 @@ function PricingPageContent() {
                         {tier.price}
                       </Typography>
                       {'priceSuffix' in tier && tier.priceSuffix && (
-                        <Typography component="span" sx={{ fontSize: { xs: '0.85rem', md: '1.25rem' }, color: '#6a6a6a', fontWeight: 400 }}>
+                        <Typography component="span" sx={{ fontSize: { xs: '0.85rem', md: '1.25rem' }, color: COLORS.text.subtle, fontWeight: 400 }}>
                           {tier.priceSuffix}
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: '#4a4a4a', fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
+                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
                       {tier.description}
                     </Typography>
 
@@ -1081,7 +1082,7 @@ function PricingPageContent() {
                             <StreamlineIcon
                               name="check-circle"
                               sx={{
-                                color: '#DE3F5E',
+                                color: COLORS.brand.primary,
                                 width: { xs: 22, md: 28 },
                                 height: { xs: 22, md: 28 },
                               }}
@@ -1091,7 +1092,7 @@ function PricingPageContent() {
                             primary={feature.replace('WhatsApp Concierge Agent', 'WhatsApp Agent')}
                             primaryTypographyProps={{
                               sx: {
-                                color: '#1a1a1a',
+                                color: COLORS.text.strong,
                                 fontWeight: 400,
                                 fontSize: { xs: '0.8rem', md: '.9rem' },
                                 lineHeight: 1.4
@@ -1102,36 +1103,51 @@ function PricingPageContent() {
                       ))}
                     </List>
 
-                    <Button
-                      fullWidth
-                      onClick={(e: React.MouseEvent) => {
-                        if (tier.name === 'PRO') {
-                          handleProAction(e);
-                        } else if (tier.name === 'PLANNER') {
-                          handlePlannerAction(e);
-                        }
-                      }}
-                      component={tier.name === 'PRO' || tier.name === 'PLANNER' ? 'button' : Link}
-                      href={tier.name === 'PRO' || tier.name === 'PLANNER' ? undefined : ('buttonHref' in tier && tier.buttonHref ? tier.buttonHref : "/auth/login")}
-                      variant={tier.highlight ? 'contained' : 'outlined'}
-                      size="small"
-                      sx={{
+                    {(() => {
+                      const ctaSx = {
                         borderRadius: { xs: '16px', md: '32px' },
                         py: { xs: 0.75, md: 1.5 },
                         fontSize: { xs: '0.7rem', md: '1rem' },
                         bgcolor: tier.highlight ? '#DE3F5E' : 'transparent',
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         color: tier.highlight ? 'white' : '#DE3F5E',
                         '&:hover': {
                           bgcolor: tier.highlight
                             ? COLORS.brand.primaryHover
                             : alpha('#DE3F5E', 0.05),
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
-                      }}
-                    >
-                      {tier.buttonText.replace('Upgrade to Pro', 'Go Pro')}
-                    </Button>
+                      };
+                      const label = tier.buttonText.replace('Upgrade to Pro', 'Go Pro');
+                      if (tier.name === 'PRO' || tier.name === 'PLANNER') {
+                        return (
+                          <Button
+                            fullWidth
+                            onClick={tier.name === 'PRO' ? handleProAction : handlePlannerAction}
+                            variant={tier.highlight ? 'contained' : 'outlined'}
+                            size="small"
+                            sx={ctaSx}
+                          >
+                            {label}
+                          </Button>
+                        );
+                      }
+                      const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
+                        ? tier.buttonHref
+                        : '/auth/login';
+                      return (
+                        <Button
+                          fullWidth
+                          component={Link}
+                          href={href}
+                          variant={tier.highlight ? 'contained' : 'outlined'}
+                          size="small"
+                          sx={ctaSx}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })()}
                   </Paper>
                 </Grid>
               ))}
@@ -1153,7 +1169,7 @@ function PricingPageContent() {
                   <Grid size={{ xs: 12, md: 5 }}>
                     <Typography
                       variant="overline"
-                      sx={{ color: '#DE3F5E', fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                      sx={{ color: COLORS.brand.primary, fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
                     >
                       FOR WEDDING PLANNERS
                     </Typography>
@@ -1162,7 +1178,7 @@ function PricingPageContent() {
                         fontFamily: 'var(--font-instrument-serif)',
                         fontStyle: 'italic',
                         fontSize: { xs: '1.5rem', md: '2rem' },
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         lineHeight: 1.2,
                         mt: 0.5,
                       }}
@@ -1173,30 +1189,30 @@ function PricingPageContent() {
                   <Grid size={{ xs: 12, md: 7 }}>
                     <Grid container spacing={{ xs: 2, md: 3 }}>
                       <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
                           Per-Wedding
                         </Typography>
-                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
                           $199
-                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
                             /wedding
                           </Box>
                         </Typography>
-                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
                           Resell to couples at your own rate. No commitment.
                         </Typography>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: '#6a6a6a', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
                           Studio Plan
                         </Typography>
-                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: '#1a1a1a', fontWeight: 700, lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
                           $299
-                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#6a6a6a', fontWeight: 400, ml: 0.5 }}>
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
                             /month
                           </Box>
                         </Typography>
-                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: '#4a4a4a', mt: 1, lineHeight: 1.5 }}>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
                           Up to 20 active weddings. White-label, team seats.
                         </Typography>
                       </Grid>
@@ -1207,8 +1223,8 @@ function PricingPageContent() {
                       variant="outlined"
                       sx={{
                         mt: { xs: 2, md: 3 },
-                        borderColor: '#DE3F5E',
-                        color: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
+                        color: COLORS.brand.primary,
                         borderRadius: '32px',
                         px: 3,
                         py: 1,

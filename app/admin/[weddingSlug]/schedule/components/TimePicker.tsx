@@ -179,7 +179,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
             px: 0.5,
             lineHeight: 1,
           }}>
-            <Typography sx={{ fontSize: '0.75rem', color: '#524344', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.muted, lineHeight: 1 }}>
               {label}
             </Typography>
           </Box>

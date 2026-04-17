@@ -240,7 +240,7 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
         };
       });
     if (itemsToInsert.length) {
-      dependentInserts.push(supabase.from('schedule_items').insert(itemsToInsert as any));
+      dependentInserts.push((supabase as any).from('schedule_items').insert(itemsToInsert as any));
     }
   }
 
@@ -564,7 +564,7 @@ async function cloneTransportationData(
 
   if (grps?.length) {
     dependent.push(
-      supabase.from('transportation_groups').insert(
+      (supabase as any).from('transportation_groups').insert(
         grps.map(({ id, created_at, updated_at, wedding_id, ...rest }: any) => ({
           ...rest,
           wedding_id: newId,
@@ -586,7 +586,7 @@ async function cloneTransportationData(
         guest_id: rest.guest_id ? guestIdMapping[rest.guest_id] : null,
       }));
     if (toInsert.length) {
-      dependent.push(supabase.from('transportation_reservations').insert(toInsert));
+      dependent.push((supabase as any).from('transportation_reservations').insert(toInsert));
     }
   }
 

@@ -173,7 +173,7 @@ export default function ControlTowerPage() {
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>Control Tower</Typography>
         <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: COLORS.bg.white }}>
-          <PeopleAltIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
+          <PeopleAltIcon sx={{ fontSize: 48, color: COLORS.text.faint, mb: 2 }} />
           <Typography sx={{ fontWeight: 600, fontSize: 16, color: COLORS.text.strong, mb: 1 }}>No guests yet</Typography>
           <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, maxWidth: 400, mx: 'auto' }}>
             Add guests to start tracking outreach, RSVPs, and coordination.
@@ -203,7 +203,7 @@ export default function ControlTowerPage() {
       <Grid container spacing={2} sx={{ mb: 2.5 }}>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            icon={<CalendarTodayIcon sx={{ fontSize: 20, color: '#8b5cf6' }} />}
+            icon={<CalendarTodayIcon sx={{ fontSize: 20, color: COLORS.side.both }} />}
             label="Days to Wedding"
             value={daysLeft !== null ? daysLeft : '—'}
             subtitle={weddingDate ? new Date(weddingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined}
@@ -336,7 +336,7 @@ export default function ControlTowerPage() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: COLORS.text.subtle }} />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SmartToyIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />
+            <SmartToyIcon sx={{ fontSize: 16, color: COLORS.side.both }} />
             <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong }}>
               Concierge Insights
             </Typography>

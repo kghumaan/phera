@@ -279,7 +279,7 @@ const fieldSx = {
     '&:hover fieldset': { borderColor: COLORS.text.faint },
     '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+  '& .MuiInputLabel-root': { color: COLORS.text.muted, fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
   '& .MuiInputBase-input': { color: COLORS.text.strong, fontSize: '0.9rem' },
 };
 

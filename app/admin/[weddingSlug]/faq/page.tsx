@@ -530,7 +530,7 @@ const inlineFieldSx = {
     '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
-    color: '#524344',
+    color: COLORS.text.muted,
     fontSize: '0.875rem',
     '&.Mui-focused': { color: COLORS.brand.primary },
   },

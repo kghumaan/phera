@@ -195,7 +195,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   <IconButton
                     size="small"
                     onClick={handleCopyPhone}
-                    sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
+                    sx={{ color: phoneCopied ? COLORS.accent.success : COLORS.text.subtle }}
                   >
                     {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                   </IconButton>

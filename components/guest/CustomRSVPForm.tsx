@@ -1200,7 +1200,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     width: { xs: '4px', sm: '6px' },
                   },
                   '&::-webkit-scrollbar-track': {
-                    background: '#f1f1f1',
+                    background: COLORS.border.faint,
                     borderRadius: '3px',
                   },
                   '&::-webkit-scrollbar-thumb': {
@@ -2791,7 +2791,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             width: { xs: '4px', sm: '6px' },
           },
           '&::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
+            background: COLORS.border.faint,
             borderRadius: '3px',
           },
           '&::-webkit-scrollbar-thumb': {

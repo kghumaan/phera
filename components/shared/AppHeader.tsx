@@ -184,7 +184,9 @@ export default function AppHeader({
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: isLandingPage
+                ? { xs: 'center', md: 'space-between' }
+                : 'space-between',
               alignItems: 'center',
               width: '100%',
               gap: { xs: 2, md: 3 },
@@ -234,7 +236,13 @@ export default function AppHeader({
               </Link>
             </Box>
 
-            {/* Right side - WhatsApp + RSVP Status / User Avatar / Login Button */}
+            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below. */}
+            <Box
+              sx={{
+                display: isLandingPage ? { xs: 'none', md: 'flex' } : 'flex',
+                alignItems: 'center',
+              }}
+            >
             {isLoading ? (
               <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
             ) : user ? (
@@ -375,9 +383,99 @@ export default function AppHeader({
                 </Button>
               </Box>
             )}
+            </Box>
           </Box>
         </Container>
       </Box>
+
+      {/* Landing + mobile: floating auth control at bottom-right, slides in from the right. */}
+      {isLandingPage && !isLoading && (
+        <Box
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            position: 'fixed',
+            right: 16,
+            bottom: 16,
+            zIndex: 1200,
+            alignItems: 'center',
+            '@keyframes slideInFromRight': {
+              from: { transform: 'translateX(120%)', opacity: 0 },
+              to: { transform: 'translateX(0)', opacity: 1 },
+            },
+            animation: 'slideInFromRight 0.35s ease-out',
+          }}
+        >
+          {user ? (
+            <Avatar
+              onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+              sx={{
+                width: 52,
+                height: 52,
+                backgroundColor: user.avatar_color,
+                color: COLORS.text.inverse,
+                fontWeight: 600,
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {user.avatar_svg ? (
+                <Box
+                  dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '& svg': { width: '100%', height: '100%' },
+                  }}
+                />
+              ) : (
+                user.initials
+              )}
+            </Avatar>
+          ) : (
+            <Button
+              component={Link}
+              href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+              onClick={() => setIsNavigatingToLogin(true)}
+              disabled={isNavigatingToLogin}
+              variant="contained"
+              sx={{
+                backgroundColor: COLORS.text.strong,
+                color: COLORS.text.inverse,
+                borderRadius: '28px',
+                px: 3.5,
+                py: 1.25,
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                textTransform: 'none',
+                minWidth: 96,
+                minHeight: 48,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                '&:hover': {
+                  backgroundColor: COLORS.text.strong,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                },
+                '&.Mui-disabled': { backgroundColor: COLORS.text.strong },
+              }}
+            >
+              <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box component="span" sx={{ visibility: isNavigatingToLogin ? 'hidden' : 'visible' }}>Login</Box>
+                {isNavigatingToLogin && (
+                  <CircularProgress size={20} sx={{ color: COLORS.text.inverse, position: 'absolute' }} />
+                )}
+              </Box>
+            </Button>
+          )}
+        </Box>
+      )}
 
       {/* User Menu */}
       {user && (

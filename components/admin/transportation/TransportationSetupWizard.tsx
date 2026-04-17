@@ -317,8 +317,8 @@ export default function TransportationSetupWizard({
                 icon={directionIcon}
                 label={directionLabel}
                 sx={{
-                  bgcolor: isArrival ? alpha('#4CAF50', 0.1) : alpha('#2196F3', 0.1),
-                  color: isArrival ? '#4CAF50' : '#2196F3',
+                  bgcolor: isArrival ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.accent.info, 0.1),
+                  color: isArrival ? COLORS.accent.success : COLORS.accent.info,
                   fontWeight: 600,
                 }}
               /> */}
@@ -678,13 +678,13 @@ function FlexibleSetup({
                     p: 1.5,
                     display: 'flex',
                     alignItems: 'center',
-                    bgcolor: alpha('#4CAF50', 0.05),
+                    bgcolor: alpha(COLORS.accent.success, 0.05),
                     border: '1px solid',
-                    borderColor: alpha('#4CAF50', 0.2),
+                    borderColor: alpha(COLORS.accent.success, 0.2),
                     borderRadius: 1,
                   }}
                 >
-                  <LocationOn sx={{ color: '#4CAF50', mr: 1 }} />
+                  <LocationOn sx={{ color: COLORS.accent.success, mr: 1 }} />
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.9rem' }}>
                       {location.name}
@@ -717,7 +717,7 @@ function FlexibleSetup({
           )}
 
           {locations.length >= 5 && (
-            <Typography variant="body2" sx={{ color: '#FF9800', mt: 1 }}>
+            <Typography variant="body2" sx={{ color: COLORS.accent.warning, mt: 1 }}>
               Maximum 5 locations reached
             </Typography>
           )}

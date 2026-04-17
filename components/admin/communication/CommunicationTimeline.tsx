@@ -8,10 +8,10 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Template Sent', color: COLORS.accent.info },
   message_received: { label: 'Message Received', color: COLORS.accent.success },
-  conversation_started: { label: 'Conversation Started', color: '#8b5cf6' },
+  conversation_started: { label: 'Conversation Started', color: COLORS.side.both },
   info_collected: { label: 'Info Collected', color: '#06b6d4' },
   escalated: { label: 'Escalated', color: COLORS.accent.danger },
-  opted_out: { label: 'Opted Out', color: '#94a3b8' },
+  opted_out: { label: 'Opted Out', color: COLORS.text.faint },
   status_changed: { label: 'Status Changed', color: COLORS.accent.warning },
 };
 
@@ -34,7 +34,7 @@ export default function CommunicationTimeline({ events, onGuestClick }: Communic
   return (
     <Box>
       {events.map((event, i) => {
-        const typeInfo = EVENT_TYPE_LABELS[event.event_type] || { label: event.event_type, color: '#94a3b8' };
+        const typeInfo = EVENT_TYPE_LABELS[event.event_type] || { label: event.event_type, color: COLORS.text.faint };
         const time = new Date(event.created_at).toLocaleString();
 
         return (
@@ -82,7 +82,7 @@ export default function CommunicationTimeline({ events, onGuestClick }: Communic
                   </Typography>
                 )}
               </Stack>
-              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
                 {time}
               </Typography>
             </Box>

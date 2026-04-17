@@ -87,7 +87,7 @@ function UpgradeSuccessContent({ params }: { params: Promise<{ weddingSlug: stri
 
       {status === 'success' && (
         <>
-          <CheckCircle sx={{ fontSize: 64, color: '#4CAF50' }} />
+          <CheckCircle sx={{ fontSize: 64, color: COLORS.accent.success }} />
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
               {tier === 'planner' ? 'Welcome, Planner!' : 'Welcome to Pro!'}

@@ -16,7 +16,7 @@ const fieldSx = {
     '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
-    color: '#524344',
+    color: COLORS.text.muted,
     fontSize: '0.875rem',
     transform: 'translate(14px, 12.5px) scale(1)',
     '&.MuiInputLabel-shrink': {

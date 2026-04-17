@@ -84,8 +84,8 @@ interface Vendor {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  active: '#2196F3',
-  booked: '#4CAF50',
+  active: COLORS.accent.info,
+  booked: COLORS.accent.success,
   declined: COLORS.text.faint,
   paid: '#8BC34A',
 };
@@ -836,7 +836,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <IconButton
                         size="small"
                         onClick={handleCopyPhone}
-                        sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
+                        sx={{ color: phoneCopied ? COLORS.accent.success : COLORS.text.subtle }}
                       >
                         {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                       </IconButton>
@@ -849,7 +849,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         sx={{
                           textTransform: 'none',
                           borderRadius: RADII.md,
-                          color: '#25D366',
+                          color: COLORS.accent.success,
                           fontWeight: 600,
                           fontSize: '0.8rem',
                         }}
@@ -1038,7 +1038,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <IconButton
                         size="small"
                         onClick={isDemo ? undefined : handleCopyPhone}
-                        sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
+                        sx={{ color: phoneCopied ? COLORS.accent.success : COLORS.text.subtle }}
                       >
                         {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                       </IconButton>

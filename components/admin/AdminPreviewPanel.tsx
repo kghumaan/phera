@@ -491,7 +491,7 @@ export default function AdminPreviewPanel({
                             <Box
                                 sx={{
                                     height: 32,
-                                    bgcolor: '#f1f1f1',
+                                    bgcolor: COLORS.border.faint,
                                     borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -500,9 +500,9 @@ export default function AdminPreviewPanel({
                                 }}
                             >
                                 <Box sx={{ display: 'flex', gap: 0.75 }}>
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                                 </Box>
                             </Box>
                             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -760,7 +760,7 @@ export default function AdminPreviewPanel({
                                             <IconButton
                                                 size="small"
                                                 onClick={() => copyToClipboard(pin.pin, `pin-${index}`)}
-                                                sx={{ color: copiedStates[`pin-${index}`] ? '#28c840' : COLORS.brand.primary }}
+                                                sx={{ color: copiedStates[`pin-${index}`] ? COLORS.accent.success : COLORS.brand.primary }}
                                             >
                                                 {copiedStates[`pin-${index}`] ? <Check sx={{ fontSize: 16 }} /> : <ContentCopy sx={{ fontSize: 16 }} />}
                                             </IconButton>

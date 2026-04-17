@@ -28,8 +28,8 @@ interface ActionQueueProps {
 const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
-  high: '#FF9800',
-  medium: '#2196F3',
+  high: COLORS.accent.warning,
+  medium: COLORS.accent.info,
   low: COLORS.text.faint,
 };
 const CATEGORY_LABELS: Record<string, string> = {

@@ -502,7 +502,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         <Box
                           sx={{
                             height: { md: 36, lg: 42 },
-                            bgcolor: '#f1f1f1',
+                            bgcolor: COLORS.border.faint,
                             borderBottom: '1px solid',
                             borderColor: alpha('#000', 0.08),
                             display: 'flex',
@@ -511,9 +511,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                             gap: 1,
                           }}
                         >
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                         </Box>
                         {/* Screenshot */}
                         <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
@@ -558,7 +558,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           <Box
                             sx={{
                               height: { md: 36, lg: 42 },
-                              bgcolor: '#f1f1f1',
+                              bgcolor: COLORS.border.faint,
                               borderBottom: '1px solid',
                               borderColor: alpha('#000', 0.08),
                               display: 'flex',
@@ -567,9 +567,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               gap: 1,
                             }}
                           >
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                           </Box>
                           <Box sx={{ width: '100%', lineHeight: 0 }}>
                             <Image
@@ -603,7 +603,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           <Box
                             sx={{
                               height: { md: 36, lg: 42 },
-                              bgcolor: '#f1f1f1',
+                              bgcolor: COLORS.border.faint,
                               borderBottom: '1px solid',
                               borderColor: alpha('#000', 0.08),
                               display: 'flex',
@@ -612,9 +612,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               gap: 1,
                             }}
                           >
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                           </Box>
                           <Box sx={{ width: '100%', lineHeight: 0 }}>
                             <Image
@@ -714,7 +714,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     <Box
                       sx={{
                         height: 24,
-                        bgcolor: '#f1f1f1',
+                        bgcolor: COLORS.border.faint,
                         borderBottom: '1px solid',
                         borderColor: alpha('#000', 0.08),
                         display: 'flex',
@@ -723,9 +723,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         gap: 0.5,
                       }}
                     >
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
@@ -883,7 +883,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             <Box
               sx={{
                 height: 24,
-                bgcolor: '#f1f1f1',
+                bgcolor: COLORS.border.faint,
                 borderBottom: '1px solid',
                 borderColor: alpha('#000', 0.08),
                 display: 'flex',
@@ -892,9 +892,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 gap: 0.5,
               }}
             >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
             </Box>
             <Image
               src={expandedImage.src}
@@ -1316,7 +1316,7 @@ function LandingPageContent() {
                     variant="contained"
                     size="large"
                     sx={{
-                      bgcolor: '#25D366',
+                      bgcolor: COLORS.accent.success,
                       color: 'white',
                       px: { xs: 3, md: 5 },
                       py: { xs: 1, md: 2 },
@@ -1325,7 +1325,7 @@ function LandingPageContent() {
                       fontWeight: 'bold',
                       textTransform: 'none',
                       mt: { xs: 1.5, md: 2 },
-                      '&:hover': { bgcolor: '#128C7E' },
+                      '&:hover': { bgcolor: COLORS.accent.success },
                     }}
                   >
                     Get Guest Concierge
@@ -1472,7 +1472,7 @@ function LandingPageContent() {
                     <Box
                       sx={{
                         height: { xs: 24, md: 36 },
-                        bgcolor: '#f1f1f1',
+                        bgcolor: COLORS.border.faint,
                         borderBottom: '1px solid',
                         borderColor: alpha('#000', 0.08),
                         display: 'flex',
@@ -1481,9 +1481,9 @@ function LandingPageContent() {
                         gap: 0.8,
                       }}
                     >
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     {/* Screenshot */}
                     <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
@@ -1855,20 +1855,8 @@ function LandingPageContent() {
                       ))}
                     </List>
 
-                    <Button
-                      fullWidth
-                      onClick={(e: React.MouseEvent) => {
-                        if (tier.name === 'PRO') {
-                          handleProAction(e);
-                        } else if (tier.name === 'PLANNER') {
-                          handlePlannerAction(e);
-                        }
-                      }}
-                      component={tier.name === 'PRO' || tier.name === 'PLANNER' ? 'button' : Link}
-                      href={tier.name === 'PRO' || tier.name === 'PLANNER' ? undefined : ('buttonHref' in tier && tier.buttonHref ? tier.buttonHref : "/auth/login")}
-                      variant={tier.highlight ? 'contained' : 'outlined'}
-                      size="small"
-                      sx={{
+                    {(() => {
+                      const ctaSx = {
                         borderRadius: { xs: '16px', md: '32px' },
                         py: { xs: 0.75, md: 1.5 },
                         fontSize: { xs: '0.7rem', md: '1rem' },
@@ -1881,10 +1869,37 @@ function LandingPageContent() {
                             : alpha('#DE3F5E', 0.05),
                           borderColor: COLORS.brand.primary,
                         },
-                      }}
-                    >
-                      {tier.buttonText.replace('Upgrade to Pro', 'Go Pro')}
-                    </Button>
+                      };
+                      const label = tier.buttonText.replace('Upgrade to Pro', 'Go Pro');
+                      if (tier.name === 'PRO' || tier.name === 'PLANNER') {
+                        return (
+                          <Button
+                            fullWidth
+                            onClick={tier.name === 'PRO' ? handleProAction : handlePlannerAction}
+                            variant={tier.highlight ? 'contained' : 'outlined'}
+                            size="small"
+                            sx={ctaSx}
+                          >
+                            {label}
+                          </Button>
+                        );
+                      }
+                      const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
+                        ? tier.buttonHref
+                        : '/auth/login';
+                      return (
+                        <Button
+                          fullWidth
+                          component={Link}
+                          href={href}
+                          variant={tier.highlight ? 'contained' : 'outlined'}
+                          size="small"
+                          sx={ctaSx}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })()}
                   </Paper>
                 </Grid>
               ))}
@@ -2224,7 +2239,7 @@ function LandingPageContent() {
             <Box
               sx={{
                 height: 24,
-                bgcolor: '#f1f1f1',
+                bgcolor: COLORS.border.faint,
                 borderBottom: '1px solid',
                 borderColor: alpha('#000', 0.08),
                 display: 'flex',
@@ -2233,9 +2248,9 @@ function LandingPageContent() {
                 gap: 0.5,
               }}
             >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
             </Box>
             <Image
               src={expandedImage.src}

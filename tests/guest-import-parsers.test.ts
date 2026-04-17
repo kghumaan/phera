@@ -213,16 +213,12 @@ describe('autoMapColumns', () => {
     expect(map['Mobile']).toBe('phone');
   });
 
-  it('maps Tag aliases to group field', () => {
+  it('maps first Tag alias to group field (first header wins)', () => {
+    // Dedup: the first header that resolves to a given field wins so we
+    // don't overwrite ourselves when a spreadsheet has two near-duplicate
+    // tag columns. Subsequent Tag aliases are skipped.
     const map = autoMapColumns(['Tag', 'Tags', 'Label', 'Category', 'Group', 'Family']);
-    expect(map).toEqual({
-      Tag: 'group',
-      Tags: 'group',
-      Label: 'group',
-      Category: 'group',
-      Group: 'group',
-      Family: 'group',
-    });
+    expect(map).toEqual({ Tag: 'group' });
   });
 
   it('omits unrecognized headers', () => {

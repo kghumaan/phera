@@ -486,7 +486,7 @@ export default function ReserveTransportation({
                 <Chip
                   label="Previously submitted"
                   size="small"
-                  sx={{ bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }}
+                  sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}
                 />
               )}
             </Stack>
@@ -543,7 +543,7 @@ export default function ReserveTransportation({
                 <Chip
                   label="Previously submitted"
                   size="small"
-                  sx={{ bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }}
+                  sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}
                 />
               )}
             </Stack>

@@ -4,6 +4,7 @@ import { Box, Typography, Paper, Stack, Avatar, Chip, Divider } from '@mui/mater
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useState, memo } from 'react';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Helper function to get initials from name
 const getInitials = (name: string): string => {
@@ -18,7 +19,7 @@ const getInitials = (name: string): string => {
 // Helper function to generate avatar color
 const getAvatarColor = (name: string, index: number): string => {
   const colors = [
-    '#E91E63', '#2196F3', '#FF9800', '#4CAF50', '#9C27B0',
+    '#E91E63', COLORS.accent.info, COLORS.accent.warning, COLORS.accent.success, COLORS.side.both,
     '#00BCD4', '#FF5722', '#607D8B', '#795548', '#3F51B5',
     '#F44336', '#009688', '#FFC107', '#E91E63', '#673AB7',
   ];
@@ -42,7 +43,7 @@ const mockComments = [
     guest: {
       name: 'Rahul Patel',
       initials: 'RP',
-      avatar_color: '#2196F3',
+      avatar_color: COLORS.accent.info,
     },
     message: "So excited to celebrate with you both! Can't wait for the festivities! 🎉",
     created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
@@ -52,7 +53,7 @@ const mockComments = [
     guest: {
       name: 'Anjali Desai',
       initials: 'AD',
-      avatar_color: '#FF9800',
+      avatar_color: COLORS.accent.warning,
     },
     message: 'This is going to be the wedding of the year! Already planning my outfit 💃',
     created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
@@ -204,7 +205,7 @@ function ReadOnlyComments() {
             <Typography
               sx={{
                 fontSize: '14px',
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
                 textAlign: 'center',
               }}
             >
@@ -295,7 +296,7 @@ function ReadOnlyComments() {
                           <Box
                             sx={{
                               mt: comment.message ? 1 : 0,
-                              borderRadius: '16px',
+                              borderRadius: RADII.lg,
                               overflow: 'hidden',
                               maxWidth: '280px',
                               border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -321,7 +322,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all comments except the last one */}
                     {index < mockComments.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>
@@ -363,7 +364,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all guests except the last one */}
                     {index < mockGoingGuests.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>
@@ -405,7 +406,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all guests except the last one */}
                     {index < mockMaybeGuests.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>

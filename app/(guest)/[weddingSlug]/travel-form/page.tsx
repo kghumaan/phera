@@ -190,7 +190,7 @@ export default function TravelFormPage() {
               <CheckCircle
                 sx={{
                   fontSize: { xs: 60, md: 80 },
-                  color: '#4CAF50',
+                  color: COLORS.accent.success,
                   mb: 2,
                 }}
               />
@@ -715,14 +715,14 @@ export default function TravelFormPage() {
                           variant="outlined"
                           size="small"
                           sx={{
-                            borderColor: '#25D366',
-                            color: '#25D366',
+                            borderColor: COLORS.accent.success,
+                            color: COLORS.accent.success,
                             borderRadius: RADII.md,
                             textTransform: 'none',
                             fontSize: { xs: '0.9rem', md: '1rem' },
                             '&:hover': {
                               borderColor: '#1ead54',
-                              bgcolor: alpha('#25D366', 0.05),
+                              bgcolor: alpha(COLORS.accent.success, 0.05),
                             },
                           }}
                         >

@@ -32,10 +32,10 @@ interface RecentActivityProps {
 const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 16, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 16, color: COLORS.accent.success }} />,
-  conversation_started: <ChatIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />,
+  conversation_started: <ChatIcon sx={{ fontSize: 16, color: COLORS.side.both }} />,
   info_collected: <InfoIcon sx={{ fontSize: 16, color: '#06b6d4' }} />,
   escalated: <ErrorOutlineIcon sx={{ fontSize: 16, color: COLORS.accent.danger }} />,
-  opted_out: <BlockIcon sx={{ fontSize: 16, color: '#94a3b8' }} />,
+  opted_out: <BlockIcon sx={{ fontSize: 16, color: COLORS.text.faint }} />,
   status_changed: <SyncAltIcon sx={{ fontSize: 16, color: COLORS.accent.warning }} />,
   issue_created: <WarningAmberIcon sx={{ fontSize: 16, color: COLORS.accent.danger }} />,
   rsvp_received: <CheckCircleIcon sx={{ fontSize: 16, color: COLORS.accent.success }} />,
@@ -55,8 +55,8 @@ const EVENT_LABELS: Record<string, string> = {
 
 const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
-  high: '#FF9800',
-  medium: '#2196F3',
+  high: COLORS.accent.warning,
+  medium: COLORS.accent.info,
   low: COLORS.text.faint,
 };
 
@@ -174,7 +174,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                       flexShrink: 0,
                     }}
                   >
-                    {EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 16, color: '#94a3b8' }} />}
+                    {EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 16, color: COLORS.text.faint }} />}
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
@@ -196,7 +196,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                   </Box>
                   <Typography
                     variant="caption"
-                    sx={{ color: '#94a3b8', flexShrink: 0, whiteSpace: 'nowrap' }}
+                    sx={{ color: COLORS.text.faint, flexShrink: 0, whiteSpace: 'nowrap' }}
                   >
                     {formatRelativeTime(event.created_at)}
                   </Typography>
@@ -291,7 +291,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                               fontSize: 10,
                               fontWeight: 600,
                               mt: 0.5,
-                              bgcolor: details.urgency === 'urgent' ? '#EF5350' : '#FF9800',
+                              bgcolor: details.urgency === 'urgent' ? '#EF5350' : COLORS.accent.warning,
                               color: COLORS.text.inverse,
                             }}
                           />

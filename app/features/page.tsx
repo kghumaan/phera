@@ -58,6 +58,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
 
@@ -333,12 +334,12 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   fontStyle: 'italic',
                   fontSize: { md: '3rem', lg: '3.5rem' },
                   lineHeight: 1.1,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   mb: { sm: 2, md: 3, lg: 3 },
                 }}
               >
                 Everything you need,{' '}
-                <Box component="span" sx={{ color: '#DE3F5E' }}>
+                <Box component="span" sx={{ color: COLORS.brand.primary }}>
                   simplified
                 </Box>
               </Typography>
@@ -367,7 +368,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Typography
                           sx={{
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             fontSize: isActive ? { md: '1.5rem', lg: '2rem' } : { md: '1rem', lg: '1.25rem' },
                             transition: 'all 0.3s ease',
                             fontWeight: 500,
@@ -383,10 +384,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               alignItems: 'center',
                               gap: 0.4,
                               bgcolor: alpha('#DE3F5E', 0.08),
-                              color: '#DE3F5E',
+                              color: COLORS.brand.primary,
                               px: isActive ? 1.2 : 0.8,
                               py: isActive ? 0.4 : 0.2,
-                              borderRadius: '20px',
+                              borderRadius: RADII.xl,
                               transition: 'all 0.3s ease',
                             }}
                           >
@@ -424,7 +425,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               mb: 1.5,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               The problem:
                             </Box>{' '}
                             {item.problem}
@@ -436,7 +437,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               lineHeight: 1.6,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               Our solution:
                             </Box>{' '}
                             {item.solution}
@@ -500,7 +501,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           height: { md: 36, lg: 42 },
-                          bgcolor: '#f1f1f1',
+                          bgcolor: COLORS.border.faint,
                           borderBottom: '1px solid',
                           borderColor: alpha('#000', 0.08),
                           display: 'flex',
@@ -509,9 +510,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           gap: 1,
                         }}
                       >
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                       </Box>
                       {/* Screenshot */}
                       <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
@@ -542,7 +543,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '40px',
                         overflow: 'hidden',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '12px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -556,7 +557,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '100px',
                           height: '24px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '18px',
                           borderBottomRightRadius: '18px',
                           zIndex: 20,
@@ -607,11 +608,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               fontStyle: 'italic',
               fontSize: '2rem',
               lineHeight: 1.15,
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
             }}
           >
             Everything you need,{' '}
-            <Box component="span" sx={{ color: '#DE3F5E' }}>
+            <Box component="span" sx={{ color: COLORS.brand.primary }}>
               simplified
             </Box>
           </Typography>
@@ -634,7 +635,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   <Box
                     onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
                     sx={{
-                      borderRadius: '10px',
+                      borderRadius: RADII.sm,
                       overflow: 'hidden',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                       bgcolor: 'white',
@@ -647,7 +648,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     <Box
                       sx={{
                         height: 24,
-                        bgcolor: '#f1f1f1',
+                        bgcolor: COLORS.border.faint,
                         borderBottom: '1px solid',
                         borderColor: alpha('#000', 0.08),
                         display: 'flex',
@@ -656,9 +657,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         gap: 0.5,
                       }}
                     >
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
@@ -672,7 +673,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '28px',
                         overflow: 'hidden',
                         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '8px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -685,13 +686,13 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '70px',
                           height: '18px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '10px',
                           borderBottomRightRadius: '10px',
                           zIndex: 20,
                         }}
                       />
-                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0, height: '100%' }}>
+                      <Box sx={{ borderRadius: RADII.xl, overflow: 'hidden', lineHeight: 0, height: '100%' }}>
                         {item.customComponent ? (
                           item.customComponent
                         ) : (
@@ -713,7 +714,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Typography
                     sx={{
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       fontSize: '1.35rem',
                       fontWeight: 400,
                       lineHeight: 1.3,
@@ -728,10 +729,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         alignItems: 'center',
                         gap: 0.3,
                         bgcolor: alpha('#DE3F5E', 0.08),
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                         px: 0.8,
                         py: 0.25,
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                       }}
                     >
                       <AutoAwesome sx={{ fontSize: '0.65rem' }} />
@@ -756,7 +757,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     mb: 1.5,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     The problem:
                   </Box>{' '}
                   {item.problem}
@@ -768,7 +769,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     lineHeight: 1.6,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     Our solution:
                   </Box>{' '}
                   {item.solution}
@@ -811,11 +812,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           <Close />
         </IconButton>
         {expandedImage && (
-          <Box sx={{ borderRadius: '8px', overflow: 'hidden', bgcolor: 'white' }}>
+          <Box sx={{ borderRadius: RADII.sm, overflow: 'hidden', bgcolor: 'white' }}>
             <Box
               sx={{
                 height: 24,
-                bgcolor: '#f1f1f1',
+                bgcolor: COLORS.border.faint,
                 borderBottom: '1px solid',
                 borderColor: alpha('#000', 0.08),
                 display: 'flex',
@@ -824,9 +825,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 gap: 0.5,
               }}
             >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
             </Box>
             <Image
               src={expandedImage.src}

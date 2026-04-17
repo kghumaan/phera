@@ -225,7 +225,7 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Circle sx={{ fontSize: 10, color: '#4CAF50' }} />
+          <Circle sx={{ fontSize: 10, color: COLORS.accent.success }} />
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>
             Concierge Active
           </Typography>

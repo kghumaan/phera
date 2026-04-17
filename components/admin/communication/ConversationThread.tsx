@@ -60,7 +60,7 @@ export default function ConversationThread({ guestName, events }: ConversationTh
                 <Typography variant="body2" sx={{ color: COLORS.text.strong, fontSize: '0.85rem' }}>
                   {(event.details as any)?.message || (event.details as any)?.delivery_status || event.event_type}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5, display: 'block', textAlign: 'right' }}>
+                <Typography variant="caption" sx={{ color: COLORS.text.faint, mt: 0.5, display: 'block', textAlign: 'right' }}>
                   {time}
                 </Typography>
               </Box>

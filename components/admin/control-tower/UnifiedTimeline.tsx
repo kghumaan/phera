@@ -34,10 +34,10 @@ interface UnifiedTimelineProps {
 const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 14, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 14, color: COLORS.accent.success }} />,
-  conversation_started: <ChatIcon sx={{ fontSize: 14, color: '#8b5cf6' }} />,
+  conversation_started: <ChatIcon sx={{ fontSize: 14, color: COLORS.side.both }} />,
   info_collected: <InfoIcon sx={{ fontSize: 14, color: '#06b6d4' }} />,
   escalated: <ErrorOutlineIcon sx={{ fontSize: 14, color: COLORS.accent.danger }} />,
-  opted_out: <BlockIcon sx={{ fontSize: 14, color: '#94a3b8' }} />,
+  opted_out: <BlockIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />,
   status_changed: <SyncAltIcon sx={{ fontSize: 14, color: COLORS.accent.warning }} />,
   issue_created: <WarningAmberIcon sx={{ fontSize: 14, color: COLORS.accent.danger }} />,
   rsvp_received: <CheckCircleIcon sx={{ fontSize: 14, color: COLORS.accent.success }} />,
@@ -58,10 +58,10 @@ const EVENT_LABELS: Record<string, string> = {
 const EVENT_TYPE_COLORS: Record<string, string> = {
   template_sent: COLORS.accent.info,
   message_received: COLORS.accent.success,
-  conversation_started: '#8b5cf6',
+  conversation_started: COLORS.side.both,
   info_collected: '#06b6d4',
   escalated: COLORS.accent.danger,
-  opted_out: '#94a3b8',
+  opted_out: COLORS.text.faint,
   status_changed: COLORS.accent.warning,
   issue_created: COLORS.accent.danger,
   rsvp_received: COLORS.accent.success,
@@ -69,8 +69,8 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
 
 const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
-  high: '#FF9800',
-  medium: '#2196F3',
+  high: COLORS.accent.warning,
+  medium: COLORS.accent.info,
   low: COLORS.text.faint,
 };
 
@@ -175,7 +175,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
             const eventType = event.event_type || 'status_changed';
             const isFuture = new Date(event.created_at).getTime() > Date.now();
             const isExpanded = expandedId === event.id;
-            const dotColor = EVENT_TYPE_COLORS[eventType] || '#94a3b8';
+            const dotColor = EVENT_TYPE_COLORS[eventType] || COLORS.text.faint;
             const details = event.details || {};
 
             let displayName = details.guest_name || details.title || 'Guest';
@@ -214,8 +214,8 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                   {/* Icon + text */}
                   <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: COLORS.bg.subtle, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {isFuture
-                      ? <ScheduleIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
-                      : (EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 14, color: '#94a3b8' }} />)
+                      ? <ScheduleIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />
+                      : (EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />)
                     }
                   </Box>
 
@@ -233,7 +233,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                     {isFuture && (
                       <Chip label="SCHEDULED" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 700, bgcolor: COLORS.bg.subtle, color: COLORS.text.subtle }} />
                     )}
-                    <Typography sx={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                    <Typography sx={{ fontSize: 10, color: COLORS.text.faint, whiteSpace: 'nowrap' }}>
                       {formatRelativeTime(event.created_at)}
                     </Typography>
                     {isExpanded
@@ -291,7 +291,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                     )}
 
                     {event.channel && (
-                      <Typography sx={{ fontSize: 11, color: '#94a3b8', mt: 0.5 }}>Channel: {event.channel}</Typography>
+                      <Typography sx={{ fontSize: 11, color: COLORS.text.faint, mt: 0.5 }}>Channel: {event.channel}</Typography>
                     )}
 
                     {weddingSlug && event.guest_id && (

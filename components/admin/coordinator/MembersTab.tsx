@@ -16,8 +16,8 @@ interface Member {
 }
 
 const ROLE_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  vendor: { color: '#9C27B0', icon: <Storefront sx={{ fontSize: 14 }} />, label: 'Vendor' },
-  admin: { color: '#2196F3', icon: <AdminPanelSettings sx={{ fontSize: 14 }} />, label: 'Admin' },
+  vendor: { color: COLORS.side.both, icon: <Storefront sx={{ fontSize: 14 }} />, label: 'Vendor' },
+  admin: { color: COLORS.accent.info, icon: <AdminPanelSettings sx={{ fontSize: 14 }} />, label: 'Admin' },
   member: { color: COLORS.text.faint, icon: <Person sx={{ fontSize: 14 }} />, label: 'Member' },
 };
 
