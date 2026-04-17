@@ -2,19 +2,15 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
-  Paper,
-  TextField,
   Chip,
   IconButton,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemSecondaryAction,
   Divider,
   alpha,
   Avatar,
@@ -22,35 +18,31 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import {
-  PersonAdd,
   Delete,
   Send,
   Star,
   Visibility,
   Edit as EditIcon,
   HourglassEmpty,
-  CheckCircle,
 } from '@mui/icons-material';
 import { weddingService, WeddingInvite, TeamMember } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { PheraCard } from '@/components/shared/Card';
+import { PheraTextField } from '@/components/shared/TextField';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraChip } from '@/components/shared/Chip';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
-
-// Use enhanced TextField styling
-const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 const selectSx = {
   mt: 1,
@@ -323,6 +315,8 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
   const getRoleChip = (role: string, isOwner: boolean) => {
     if (isOwner) {
+      // Owner = unique gold accent; not covered by the standard chip tones
+      // so it stays inline. Every other chip goes through PheraChip.
       return (
         <Chip
           icon={<Star sx={{ fontSize: 24 }} />}
@@ -342,34 +336,22 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       );
     }
 
-    const roleConfig = {
-      admin: {
-        icon: <EditIcon sx={{ fontSize: 16 }} />,
-        label: 'Can Edit',
-        bgcolor: alpha(COLORS.brand.primary, 0.1),
-        color: COLORS.brand.primary,
-      },
-      viewer: {
-        icon: <Visibility sx={{ fontSize: 16 }} />,
-        label: 'View Only',
-        bgcolor: alpha(COLORS.text.subtle, 0.1),
-        color: COLORS.text.subtle,
-      },
-    };
-
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.viewer;
-
+    if (role === 'admin') {
+      return (
+        <PheraChip
+          tone="brand"
+          size="small"
+          icon={<EditIcon sx={{ fontSize: 16 }} />}
+          label="Can Edit"
+        />
+      );
+    }
     return (
-      <Chip
-        icon={config.icon}
-        label={config.label}
+      <PheraChip
+        tone="neutral"
         size="small"
-        sx={{
-          bgcolor: config.bgcolor,
-          color: config.color,
-          fontWeight: 600,
-          '& .MuiChip-icon': { color: config.color },
-        }}
+        icon={<Visibility sx={{ fontSize: 16 }} />}
+        label="View Only"
       />
     );
   };
@@ -396,18 +378,13 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Collaborators
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Manage who can access and edit your wedding website
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Collaborators"
+          subtitle="Manage who can access and edit your wedding website"
+        />
 
         {/* Single combined section */}
-        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3, boxShadow: 'none' }}>
+        <PheraCard variant="muted" sx={{ p: 3 }}>
           <Stack spacing={3}>
             {/* Invite form */}
             {isOwner && (
@@ -418,14 +395,14 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                 </Typography>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'flex-start' }}>
-                  <TextField
+                  <PheraTextField
                     label="Email Address"
                     type="email"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="partner@example.com"
                     fullWidth
-                    sx={{ ...textFieldSx, flex: 2 }}
+                    sx={{ flex: 2 }}
                   />
 
                   <FormControl sx={{ ...selectSx, minWidth: 160 }}>
@@ -566,23 +543,17 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
               </Typography>
             </Box>
           </Stack>
-        </Paper>
+        </PheraCard>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog
+        <PheraDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
-          PaperProps={{
-            sx: {
-              borderRadius: RADII.dialog,
-              p: 2,
-              bgcolor: COLORS.bg.white,
-            },
-          }}
+          PaperProps={{ sx: { p: 2 } }}
         >
-          <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+          <PheraDialogTitle>
             {itemToDelete?.type === 'invite' ? 'Cancel Invite?' : 'Remove Team Member?'}
-          </DialogTitle>
+          </PheraDialogTitle>
           <DialogContent>
             <DialogContentText sx={{ color: COLORS.text.muted }}>
               {itemToDelete?.type === 'invite'
@@ -609,7 +580,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
               {itemToDelete?.type === 'invite' ? 'Cancel Invite' : 'Remove'}
             </PrimaryActionButton>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
 
       </Stack>
     </Box>
