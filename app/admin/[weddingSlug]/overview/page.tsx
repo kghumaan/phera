@@ -13,8 +13,6 @@ import {
   IconButton,
   Chip,
   Divider,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Card,
@@ -38,6 +36,7 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -674,7 +673,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
         <QuickLinks weddingSlug={weddingSlug} weddingId={weddingId} weddingData={weddingData} />
 
         {/* Edit Wedding ID Modal */}
-        <Dialog
+        <PheraDialog
           open={editSlugModalOpen}
           onClose={() => {
             setEditSlugModalOpen(false);
@@ -682,26 +681,17 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           }}
           maxWidth="sm"
           fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: RADII.dialog,
-              bgcolor: COLORS.bg.white,
-              p: { xs: 3, sm: 5 },
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            },
-          }}
+          PaperProps={{ sx: { p: { xs: 3, sm: 5 } } }}
         >
-          <DialogTitle
-            sx={{
-              fontFamily: FONTS.display,
-              fontWeight: 700,
-              color: COLORS.text.strong,
-              pb: 2,
-              px: 0,
+          <PheraDialogTitle
+            onClose={() => {
+              setEditSlugModalOpen(false);
+              setCustomSlug('');
             }}
+            sx={{ pb: 2, px: 0 }}
           >
             Customize Wedding ID
-          </DialogTitle>
+          </PheraDialogTitle>
           <DialogContent sx={{ px: 0, pt: 4, overflow: 'visible' }}>
             <Stack spacing={3} sx={{ mt: 0.5 }}>
               <TextField
@@ -756,7 +746,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               Update
             </PrimaryActionButton>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
       </Stack>
 
       <ConfirmDialog
