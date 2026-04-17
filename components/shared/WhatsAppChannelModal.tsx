@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Dialog,
   DialogContent,
   Box,
   Typography,
@@ -11,6 +10,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -78,18 +78,16 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: RADII.lg,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           m: 2,
           maxHeight: 'calc(100vh - 64px)',
         },
@@ -303,7 +301,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
           </motion.div>
         </Box>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 };
 
