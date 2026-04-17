@@ -9,10 +9,9 @@ import {
   useMediaQuery,
   Stack,
   IconButton,
-  Menu,
-  MenuItem,
   CircularProgress,
 } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -1442,17 +1441,17 @@ export default function HomePage() {
       {renderLayout()}
 
       {/* Shared Modals and Menus */}
-      <Menu
+      <PheraMenu
         anchorEl={userMenuAnchor}
         open={Boolean(userMenuAnchor)}
         onClose={() => setUserMenuAnchor(null)}
         PaperProps={{ sx: { mt: 1, minWidth: 150, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } }}
       >
-        <MenuItem onClick={handleSignOut}>
+        <PheraMenuItem onClick={handleSignOut}>
           <LogoutIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
           Sign Out
-        </MenuItem>
-      </Menu>
+        </PheraMenuItem>
+      </PheraMenu>
 
       <LoginModal open={loginDialogOpen} onClose={() => setLoginDialogOpen(false)} />
 

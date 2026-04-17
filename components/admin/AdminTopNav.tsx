@@ -12,8 +12,6 @@ import {
     alpha,
     useTheme,
     useMediaQuery,
-    Menu,
-    MenuItem,
     Divider,
     ListItemButton,
     ListItemIcon,
@@ -26,6 +24,7 @@ import {
     DialogActions,
 } from '@mui/material';
 import { PrimaryActionButton, ActionButton } from './ActionButton';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import {
     Menu as MenuIcon,
     SettingsOutlined,
@@ -282,7 +281,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </Box>
 
                     {/* User Menu */}
-                    <Menu
+                    <PheraMenu
                         anchorEl={anchorEl}
                         open={open}
                         onClose={handleMenuClose}
@@ -500,7 +499,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 />
                             </ListItemButton>
                         )}
-                    </Menu>
+                    </PheraMenu>
                 </Box>
             </Toolbar>
             <FeatureRequestModal

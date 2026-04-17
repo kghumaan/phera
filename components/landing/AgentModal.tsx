@@ -16,11 +16,11 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Alert,
 } from '@mui/material';
 import { CheckCircle, Close as CloseIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { trackAgentModalOpen, trackWaitlistSignup, trackPreorderSignup } from '@/lib/utils/analytics';
 
 interface AgentModalProps {
@@ -170,15 +170,11 @@ export default function AgentModal({
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
-          {error}
-        </Alert>
+        <ErrorAlert onClose={() => setError('')}>{error}</ErrorAlert>
       )}
 
       {success && (
-        <Alert severity="success">
-          🎉 You're on the list! Check your email for confirmation.
-        </Alert>
+        <SuccessAlert>🎉 You're on the list! Check your email for confirmation.</SuccessAlert>
       )}
 
       <TextField
@@ -287,15 +283,11 @@ export default function AgentModal({
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
-          {error}
-        </Alert>
+        <ErrorAlert onClose={() => setError('')}>{error}</ErrorAlert>
       )}
 
       {success && (
-        <Alert severity="success">
-          🎉 Pre-order confirmed! Check your email for next steps.
-        </Alert>
+        <SuccessAlert>🎉 Pre-order confirmed! Check your email for next steps.</SuccessAlert>
       )}
 
       <TextField

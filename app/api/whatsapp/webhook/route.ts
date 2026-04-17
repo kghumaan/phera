@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingMessage, logChatMessage } from '@/lib/whatsapp/webhooks';
 import { createClient } from '@supabase/supabase-js';
-import { whatsappClient } from '@/lib/whatsapp/client';
+import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
 import { recordBroadcastReplyForGuest } from '@/lib/whatsapp/broadcast-replies';
 
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
 
         if (guests.length === 0) {
           console.log(`⚠️ No guest found for phone ${msg.from}`);
-          await whatsappClient.sendMessage(msg.from, `Hi there! I couldn't find your number in our guest list. Please make sure you RSVP with this phone number first, or contact the couple directly.`);
+          await sendWhapiText(msg.from, `Hi there! I couldn't find your number in our guest list. Please make sure you RSVP with this phone number first, or contact the couple directly.`);
           continue;
         }
 
@@ -181,9 +181,9 @@ export async function POST(request: NextRequest) {
             const weddingList = guests
               .map((g: any, i: number) => `${i + 1}. ${g.weddings?.couple_name || 'Wedding'}`)
               .join('\n');
-            await whatsappClient.sendMessage(
+            await sendWhapiText(
               msg.from,
-              `Hi! It looks like you're a guest at multiple weddings:\n\n${weddingList}\n\nPlease reply with the number of the wedding you'd like to ask about.`
+              `Hi! It looks like you're a guest at multiple weddings:\n\n${weddingList}\n\nPlease reply with the number of the wedding you'd like to ask about.`,
             );
 
             // Store the pending selection so we can resolve it on next message
@@ -243,9 +243,9 @@ export async function POST(request: NextRequest) {
                 metadata: { active_wedding_id: selectedWeddingId }
               });
 
-              await whatsappClient.sendMessage(
+              await sendWhapiText(
                 msg.from,
-                `Got it! I'll help you with ${meta.wedding_names[choice]}'s wedding. What would you like to know?`
+                `Got it! I'll help you with ${meta.wedding_names[choice]}'s wedding. What would you like to know?`,
               );
               continue;
             }
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
             responseText = `Hi ${guestName}, thanks for your interest! You can find everything you need here: ${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`;
           }
 
-          await whatsappClient.sendMessage(msg.from, responseText);
+          await sendWhapiText(msg.from, responseText);
 
           // 📝 Log response to history (button branch — not routed through ai-handler)
           await logChatMessage({
@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
             userMessage: msg.text || '',
           });
 
-          await whatsappClient.sendMessage(msg.from, aiResponse);
+          await sendWhapiText(msg.from, aiResponse);
         }
       }
       console.log(`✅ Processed ${incomingMessages.length} incoming messages`);

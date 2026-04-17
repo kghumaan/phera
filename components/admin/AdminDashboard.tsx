@@ -9,7 +9,6 @@ import {
   CardContent,
   Stack,
   Chip,
-  Alert,
   CircularProgress,
   AppBar,
   Toolbar,
@@ -28,6 +27,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface TableStats {
   guests: number;
@@ -277,9 +277,9 @@ const AdminDashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+              <ErrorAlert sx={{ mb: 3 }} onClose={() => setError(null)}>
                 {error}
-              </Alert>
+              </ErrorAlert>
             </motion.div>
           )}
 

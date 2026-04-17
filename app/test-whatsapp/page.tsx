@@ -8,7 +8,6 @@ import {
   Stack,
   Paper,
   TextField,
-  Alert,
   CircularProgress,
   IconButton,
   Card,
@@ -20,6 +19,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import AppHeader from '@/components/shared/AppHeader';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 export default function WhatsAppTestPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -165,42 +165,26 @@ export default function WhatsAppTestPage() {
                 />
               </Box>
 
-              <Alert 
-                severity="info" 
-                icon={<InfoOutlined sx={{ color: '#000' }} />}
-                sx={{ 
-                  borderRadius: RADII.md, 
-                  bgcolor: '#fff', 
-                  border: '1px solid #000',
-                  color: '#000',
-                  '& .MuiAlert-icon': { color: '#000' }
-                }}
-              >
-                <Typography variant="body2">
-                  <strong>Important:</strong> During development, you must add the recipient's phone number as a 
-                  verified test recipient in your <strong>Meta App Dashboard</strong> under WhatsApp &gt; API Setup.
-                </Typography>
-              </Alert>
+              <InfoAlert title="Important">
+                During development, you must add the recipient's phone number as a
+                verified test recipient in your <strong>Meta App Dashboard</strong> under WhatsApp &gt; API Setup.
+              </InfoAlert>
 
               {status.type && (
-                <Alert 
-                  severity={status.type} 
-                  icon={status.type === 'success' ? <CheckCircle sx={{ color: '#000' }} /> : undefined}
-                  sx={{ 
-                    borderRadius: RADII.md,
-                    bgcolor: '#fff',
-                    border: '1px solid #000',
-                    color: '#000',
-                    '& .MuiAlert-icon': { color: '#000' }
-                  }}
-                >
-                  <Typography variant="body2">{status.message}</Typography>
-                  {status.messageId && (
-                    <Typography variant="caption" sx={{ mt: 1, display: 'block', opacity: 0.8 }}>
-                      Message ID: {status.messageId}
-                    </Typography>
-                  )}
-                </Alert>
+                status.type === 'success' ? (
+                  <SuccessAlert>
+                    {status.message}
+                    {status.messageId && (
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', opacity: 0.8 }}>
+                        Message ID: {status.messageId}
+                      </Typography>
+                    )}
+                  </SuccessAlert>
+                ) : (
+                  <ErrorAlert>
+                    {status.message}
+                  </ErrorAlert>
+                )
               )}
 
               <Button

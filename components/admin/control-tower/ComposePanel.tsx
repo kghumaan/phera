@@ -3,9 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Paper, Button, TextField, Select, MenuItem,
-  FormControl, InputLabel, Chip, Stack, Alert,
+  FormControl, InputLabel, Chip, Stack,
   Autocomplete, Tabs, Tab, Collapse,
 } from '@mui/material';
+import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import SendIcon from '@mui/icons-material/Send';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import PersonIcon from '@mui/icons-material/Person';
@@ -187,9 +188,9 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
         </Box>
 
         {isWhapi && (
-          <Alert severity="info" sx={{ borderRadius: RADII.sm, fontSize: 11, mb: 1, py: 0.5 }}>
+          <InfoAlert sx={{ mb: 1 }}>
             Sending via Whapi (personal number). Messages are free-form text, not templates. Sent gradually (~1 every 30s).
-          </Alert>
+          </InfoAlert>
         )}
 
         <Tabs
@@ -457,14 +458,15 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
 
         {/* Result feedback */}
         {result && (
-          <Alert
-            severity={result.type === 'success' ? 'success' : 'error'}
-            icon={result.type === 'success' ? <CheckCircleIcon sx={{ fontSize: 18 }} /> : undefined}
-            onClose={() => setResult(null)}
-            sx={{ mt: 2, borderRadius: RADII.sm, fontSize: 12 }}
-          >
-            {result.message}
-          </Alert>
+          result.type === 'success' ? (
+            <SuccessAlert sx={{ mt: 2 }} onClose={() => setResult(null)}>
+              {result.message}
+            </SuccessAlert>
+          ) : (
+            <ErrorAlert sx={{ mt: 2 }} onClose={() => setResult(null)}>
+              {result.message}
+            </ErrorAlert>
+          )
         )}
       </Box>
     </Paper>

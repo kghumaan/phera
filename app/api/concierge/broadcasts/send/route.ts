@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { whatsappClient } from '@/lib/whatsapp/client';
+import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
 
 /**
@@ -125,7 +125,8 @@ export async function POST(req: NextRequest) {
   const recipientIdByGuest = new Map<string, string>();
   (inserted || []).forEach((r: any) => recipientIdByGuest.set(r.guest_id, r.id));
 
-  // Send each message, update recipient row with result.
+  // All outbound WhatsApp goes through Whapi (our SIM-connected number).
+  // No Meta fallback — that's not our strategy.
   let sentCount = 0;
   let failedCount = 0;
 
@@ -133,14 +134,15 @@ export async function POST(req: NextRequest) {
     const recipientId = recipientIdByGuest.get(g.id);
     if (!recipientId) continue;
 
-    const resp = await whatsappClient.sendMessage(g.phone, message.trim());
-    if (resp && (resp as any).messages?.[0]?.id) {
+    const result = await sendWhapiText(g.phone, message.trim());
+
+    if (result.id) {
       sentCount += 1;
       await supabase
         .from('concierge_broadcast_recipients')
         .update({
           delivery_status: 'sent',
-          whatsapp_message_id: (resp as any).messages[0].id,
+          whatsapp_message_id: result.id,
         })
         .eq('id', recipientId);
     } else {
@@ -149,7 +151,7 @@ export async function POST(req: NextRequest) {
         .from('concierge_broadcast_recipients')
         .update({
           delivery_status: 'failed',
-          error_message: 'Send failed (no message id returned)',
+          error_message: result.error || 'Send failed (no message id returned)',
         })
         .eq('id', recipientId);
     }

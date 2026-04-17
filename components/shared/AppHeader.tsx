@@ -7,8 +7,6 @@ import {
   Chip,
   Avatar,
   IconButton,
-  Menu,
-  MenuItem,
   CircularProgress,
   Typography
 } from '@mui/material';
@@ -22,6 +20,7 @@ import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
@@ -479,7 +478,7 @@ export default function AppHeader({
 
       {/* User Menu */}
       {user && (
-        <Menu
+        <PheraMenu
           anchorEl={userMenuAnchor}
           open={Boolean(userMenuAnchor)}
           onClose={() => setUserMenuAnchor(null)}
@@ -544,7 +543,7 @@ export default function AppHeader({
 
           {/* Admin Dashboard - Show if user is admin */}
           {isAdmin && adminWeddingSlug && (
-            <MenuItem
+            <PheraMenuItem
               onClick={handleAdminDashboardClick}
               disabled={isNavigatingToAdmin}
               sx={{
@@ -561,10 +560,10 @@ export default function AppHeader({
                 <DashboardIcon fontSize="small" />
               )}
               <Typography sx={{ fontSize: '0.85rem' }}>Admin Dashboard</Typography>
-            </MenuItem>
+            </PheraMenuItem>
           )}
 
-          <MenuItem
+          <PheraMenuItem
             onClick={handleSignOut}
             disabled={isSigningOut}
             sx={{
@@ -581,13 +580,13 @@ export default function AppHeader({
               <LogoutIcon fontSize="small" />
             )}
             <Typography sx={{ fontSize: '0.85rem' }}>Sign Out</Typography>
-          </MenuItem>
-        </Menu>
+          </PheraMenuItem>
+        </PheraMenu>
       )}
 
       {/* RSVP Menu */}
       {user && hasRSVPed && rsvpResponse && (
-        <Menu
+        <PheraMenu
           anchorEl={rsvpMenuAnchor}
           open={Boolean(rsvpMenuAnchor)}
           onClose={() => setRsvpMenuAnchor(null)}
@@ -610,7 +609,7 @@ export default function AppHeader({
             },
           }}
         >
-          <MenuItem
+          <PheraMenuItem
             component={Link}
             href={`/${weddingSlug}/rsvp`}
             onClick={() => setRsvpMenuAnchor(null)}
@@ -624,8 +623,8 @@ export default function AppHeader({
           >
             <EditIcon fontSize="small" />
             Change RSVP?
-          </MenuItem>
-        </Menu>
+          </PheraMenuItem>
+        </PheraMenu>
       )}
 
       {/* WhatsApp Channel Modal */}

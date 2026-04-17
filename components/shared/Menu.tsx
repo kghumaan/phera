@@ -76,8 +76,8 @@ export function PheraMenu({ PaperProps, MenuListProps, ...rest }: MenuProps) {
  * (`@/components/shared/Menu`) instead of reaching back into MUI for
  * the item. Styling comes from the parent PheraMenu.
  */
-export function PheraMenuItem(props: MenuItemProps) {
-  return <MenuItem {...props} />;
+export function PheraMenuItem(props: MenuItemProps & { component?: React.ElementType; href?: string }) {
+  return <MenuItem {...(props as any)} />;
 }
 
 export default PheraMenu;

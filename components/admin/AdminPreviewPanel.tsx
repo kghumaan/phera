@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress, Menu, MenuItem } from '@mui/material';
+import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { ActionButton, PrimaryActionButton } from './ActionButton';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -584,7 +585,7 @@ export default function AdminPreviewPanel({
                 >
                     View Site
                 </Button>
-                <Menu
+                <PheraMenu
                     anchorEl={viewSiteAnchor}
                     open={Boolean(viewSiteAnchor)}
                     onClose={() => setViewSiteAnchor(null)}
@@ -592,7 +593,7 @@ export default function AdminPreviewPanel({
                     transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                     slotProps={{ paper: { sx: { borderRadius: RADII.md, mt: -1 } } }}
                 >
-                    <MenuItem onClick={() => {
+                    <PheraMenuItem onClick={() => {
                         const url = sectionSlug === 'pins'
                             ? `${previewUrl}?view=pin_entry`
                             : `${previewUrl}/${sectionSlug}`;
@@ -600,11 +601,11 @@ export default function AdminPreviewPanel({
                         setViewSiteAnchor(null);
                     }}>
                         {sectionLabel}
-                    </MenuItem>
-                    <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
+                    </PheraMenuItem>
+                    <PheraMenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
                         Home
-                    </MenuItem>
-                </Menu>
+                    </PheraMenuItem>
+                </PheraMenu>
                 <Typography
                     variant="caption"
                     sx={{

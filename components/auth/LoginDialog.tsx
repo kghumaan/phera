@@ -10,10 +10,10 @@ import {
   Stack,
   Typography,
   Divider,
-  Alert,
   IconButton,
   Box,
 } from '@mui/material';
+import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
 import {
   Google as GoogleIcon,
   Close as CloseIcon,
@@ -147,9 +147,7 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
         {step === 'login' ? (
           <Stack spacing={3}>
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {error}
-              </Alert>
+              <ErrorAlert>{error}</ErrorAlert>
             )}
             
             {/* Google Sign In */}
@@ -227,14 +225,12 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
         ) : (
           <Stack spacing={3}>
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {error}
-              </Alert>
+              <ErrorAlert>{error}</ErrorAlert>
             )}
             
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
+            <InfoAlert>
               We've sent a 6-digit verification code to {formatPhoneForDisplay(phone)}
-            </Alert>
+            </InfoAlert>
             
             <TextField
               label="Verification Code"

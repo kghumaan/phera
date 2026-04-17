@@ -16,8 +16,8 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Alert,
 } from '@mui/material';
+import { InfoAlert } from '@/components/shared/Alert';
 import { motion } from 'framer-motion';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import QrCodeIcon from '@mui/icons-material/QrCode';
@@ -291,12 +291,9 @@ export default function LapseIntegration() {
             </ListItem>
           </List>
 
-          <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-            <Typography variant="body2">
-              <strong>Pro Tip:</strong> Set reveal times 2-3 hours after each ceremony ends to build excitement 
-              and ensure all guests have time to take photos before the reveal!
-            </Typography>
-          </Alert>
+          <InfoAlert title="Pro Tip" sx={{ mt: 2 }}>
+            Set reveal times 2-3 hours after each ceremony ends to build excitement and ensure all guests have time to take photos before the reveal!
+          </InfoAlert>
         </CardContent>
       </Card>
     </Box>

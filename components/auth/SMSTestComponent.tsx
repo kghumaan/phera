@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Button, TextField, Typography, Alert } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { supabase } from '@/lib/supabase/client';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 export default function SMSTestComponent() {
   const [phone, setPhone] = useState('');
@@ -143,15 +144,15 @@ export default function SMSTestComponent() {
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <ErrorAlert sx={{ mt: 2 }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mt: 2 }}>
+        <SuccessAlert sx={{ mt: 2 }}>
           {success}
-        </Alert>
+        </SuccessAlert>
       )}
 
       <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>

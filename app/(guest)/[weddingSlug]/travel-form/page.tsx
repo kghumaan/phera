@@ -10,7 +10,6 @@ import {
   Paper,
   FormControlLabel,
   Checkbox,
-  Alert,
   CircularProgress,
   Stack,
   Divider,
@@ -21,6 +20,7 @@ import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface TravelFormData {
   name: string;
@@ -667,9 +667,9 @@ export default function TravelFormPage() {
                   </Stack>
 
                   {errors.return_trip && (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: RADII.md }}>
+                    <ErrorAlert sx={{ mt: 2 }}>
                       {errors.return_trip}
-                    </Alert>
+                    </ErrorAlert>
                   )}
                 </Box>
 
@@ -779,9 +779,9 @@ export default function TravelFormPage() {
 
                 {/* Error Alert */}
                 {error && (
-                  <Alert severity="error" sx={{ borderRadius: RADII.md }}>
+                  <ErrorAlert>
                     {error}
-                  </Alert>
+                  </ErrorAlert>
                 )}
 
                 {/* Submit Button */}

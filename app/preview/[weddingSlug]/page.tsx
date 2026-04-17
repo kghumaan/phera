@@ -2,7 +2,8 @@
 
 import { use, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, ListItemIcon, ListItemText } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { Visibility, Lock, PersonOff, HowToReg } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -386,7 +387,7 @@ function PreviewContent() {
       >
         {PREVIEW_VIEW_OPTIONS.find(o => o.value === previewView)?.label || 'Change View'}
       </Button>
-      <Menu
+      <PheraMenu
         anchorEl={viewMenuAnchor}
         open={Boolean(viewMenuAnchor)}
         onClose={() => setViewMenuAnchor(null)}
@@ -406,7 +407,7 @@ function PreviewContent() {
         }}
       >
         {PREVIEW_VIEW_OPTIONS.map((option) => (
-          <MenuItem
+          <PheraMenuItem
             key={option.value}
             selected={previewView === option.value}
             onClick={() => { setPreviewView(option.value); setViewMenuAnchor(null); }}
@@ -419,9 +420,9 @@ function PreviewContent() {
           >
             <ListItemIcon>{option.icon}</ListItemIcon>
             <ListItemText>{option.label}</ListItemText>
-          </MenuItem>
+          </PheraMenuItem>
         ))}
-      </Menu>
+      </PheraMenu>
     </>
   );
 

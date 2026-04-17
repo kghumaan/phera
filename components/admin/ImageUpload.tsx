@@ -8,12 +8,12 @@ import {
   Stack,
   IconButton,
   CircularProgress,
-  Alert,
 } from '@mui/material';
 import { CloudUpload, Delete, Image as ImageIcon } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { uploadImage, validateImageFile, deleteImage } from '@/lib/utils/image-upload';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface ImageUploadProps {
   value?: string | null;
@@ -220,9 +220,9 @@ export default function ImageUpload({
       />
 
       {error && (
-        <Alert severity="error" onClose={() => setError(null)}>
+        <ErrorAlert onClose={() => setError(null)}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       {/* Show upload button when no preview */}

@@ -8,13 +8,13 @@ import {
   TextField,
   Stack,
   Chip,
-  Alert,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
 import { generateBulkWaLinks, generateBroadcastMessage, GuestContact } from '@/lib/whatsapp/deep-links';
 import { ActionButton } from '@/components/admin/ActionButton';
+import { InfoAlert } from '@/components/shared/Alert';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface PersonalOutreachGeneratorProps {
@@ -145,9 +145,9 @@ export default function PersonalOutreachGenerator({
       )}
 
       {guests.length > 256 && (
-        <Alert severity="info" sx={{ mt: 2 }}>
+        <InfoAlert sx={{ mt: 2 }}>
           WhatsApp broadcast lists support max 256 contacts. You may need to create multiple lists.
-        </Alert>
+        </InfoAlert>
       )}
     </Paper>
   );

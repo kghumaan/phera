@@ -10,11 +10,11 @@ import {
   Box,
   Typography,
   Stack,
-  Alert,
   IconButton
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { ArrowBack } from '@mui/icons-material';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface PaymentFormProps {
   amount: string;
@@ -127,9 +127,7 @@ export default function PaymentForm({
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
           {error && (
-            <Alert severity="error" sx={{ borderRadius: '16px' }}>
-              {error}
-            </Alert>
+            <ErrorAlert>{error}</ErrorAlert>
           )}
 
           <Box

@@ -14,13 +14,13 @@ import {
   Radio,
   TextField,
   CircularProgress,
-  Alert,
   Divider,
   Chip,
   Tooltip,
   alpha,
 } from '@mui/material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
 import {
   DirectionsBus,
   AccessTime,
@@ -326,20 +326,9 @@ export default function ReserveTransportation({
         >
           Your transportation request has been submitted.
         </Typography>
-        <Alert
-          severity="info"
-          icon={<Info />}
-          sx={{
-            maxWidth: 400,
-            borderRadius: 2,
-            color: COLORS.text.strong,
-            bgcolor: alpha(primaryColor, 0.05),
-            border: `1px solid ${alpha(primaryColor, 0.2)}`,
-            '& .MuiAlert-icon': { color: primaryColor },
-          }}
-        >
+        <InfoAlert sx={{ maxWidth: 400 }}>
           This reservation is not final until confirmed by the hosts. Please stay tuned for a confirmation alert.
-        </Alert>
+        </InfoAlert>
         {onClose && (
           <Button
             onClick={onClose}
@@ -456,9 +445,9 @@ export default function ReserveTransportation({
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+        <ErrorAlert sx={{ mb: 3 }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       <Stack spacing={4}>

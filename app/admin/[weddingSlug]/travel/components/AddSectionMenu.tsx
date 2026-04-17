@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Typography, ListItemIcon, ListItemText } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { TRAVEL_ICON_MAP, TRAVEL_TYPE_LABELS } from './travel-utils';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
@@ -40,7 +41,7 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
           Travel, flight, hotel, and more
         </Typography>
       </Box>
-      <Menu
+      <PheraMenu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
@@ -51,7 +52,7 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
         {SECTION_TYPES.map((type) => {
           const Icon = TRAVEL_ICON_MAP[type];
           return (
-            <MenuItem
+            <PheraMenuItem
               key={type}
               onClick={() => {
                 onAdd(type);
@@ -60,10 +61,10 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
             >
               <ListItemIcon>{Icon && <Icon fontSize="small" />}</ListItemIcon>
               <ListItemText>{TRAVEL_TYPE_LABELS[type]}</ListItemText>
-            </MenuItem>
+            </PheraMenuItem>
           );
         })}
-      </Menu>
+      </PheraMenu>
     </>
   );
 }

@@ -12,7 +12,6 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
-  Alert,
   CircularProgress,
   useTheme,
   useMediaQuery,
@@ -33,6 +32,7 @@ import {
 } from '@/lib/supabase/travel-service';
 import type { GuestFlight, GuestChecklistItem } from '@/lib/supabase/types';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 interface FlightFormData {
   airline: string;
@@ -531,13 +531,15 @@ export default function TravelDetailsPage() {
               </Button>
 
               {saveMessage && (
-                <Alert 
-                  severity={saveMessage.type} 
-                  sx={{ borderRadius: 2 }}
-                  onClose={() => setSaveMessage(null)}
-                >
-                  {saveMessage.text}
-                </Alert>
+                saveMessage.type === 'success' ? (
+                  <SuccessAlert onClose={() => setSaveMessage(null)}>
+                    {saveMessage.text}
+                  </SuccessAlert>
+                ) : (
+                  <ErrorAlert onClose={() => setSaveMessage(null)}>
+                    {saveMessage.text}
+                  </ErrorAlert>
+                )
               )}
 
               {/* Checklist Card - Only for "yes" RSVPs */}

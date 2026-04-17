@@ -11,8 +11,8 @@ import {
   alpha,
   CircularProgress,
   Snackbar,
-  Alert,
 } from '@mui/material';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { useState } from 'react';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -194,9 +194,9 @@ export default function ContactPage() {
         onClose={() => setSuccess(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSuccess(false)} severity="success" sx={{ width: '100%', borderRadius: RADII.md }}>
+        <SuccessAlert onClose={() => setSuccess(false)} sx={{ width: '100%' }}>
           Message sent successfully! We'll get back to you soon.
-        </Alert>
+        </SuccessAlert>
       </Snackbar>
 
       <Snackbar
@@ -205,9 +205,9 @@ export default function ContactPage() {
         onClose={() => setError(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%', borderRadius: RADII.md }}>
+        <ErrorAlert onClose={() => setError(null)} sx={{ width: '100%' }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       </Snackbar>
       <AppFooter />
     </OptimizedBackground>
