@@ -8,8 +8,6 @@ import {
   Paper,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
     FormControlLabel,
@@ -46,6 +44,7 @@ import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const SWITCH_SX = {
 };
@@ -450,19 +449,15 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
         </Stack>
 
         {/* Template Selection Dialog */}
-        <Dialog
+        <PheraDialog
           open={templateDialogOpen}
           onClose={() => setTemplateDialogOpen(false)}
           maxWidth="sm"
           fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: RADII.dialog,
-              bgcolor: COLORS.bg.white,
-            }
-          }}
         >
-          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>Choose a Template</DialogTitle>
+          <PheraDialogTitle onClose={() => setTemplateDialogOpen(false)}>
+            Choose a Template
+          </PheraDialogTitle>
           <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
             <Stack spacing={1.5} sx={{ mt: 1 }}>
               {FAQ_TEMPLATES.map((template) => {
@@ -497,7 +492,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           <DialogActions sx={{ bgcolor: COLORS.bg.white, px: 3, pb: 2 }}>
             <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: COLORS.text.subtle }}>Cancel</Button>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
 
         <ConfirmDialog
           open={confirmDialog.open}
