@@ -15,12 +15,13 @@
  * ```
  */
 
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import {
   InfoOutlined,
   CheckCircleOutline,
   WarningAmberOutlined,
   ErrorOutline,
+  Close,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -34,6 +35,8 @@ export interface PheraAlertProps {
   children: ReactNode;
   /** Override leading icon. Pass `null` to hide. */
   icon?: ReactNode | null;
+  /** Show a trailing close button that invokes this handler. */
+  onClose?: () => void;
   /** Extra sx for outer container — use sparingly. */
   sx?: object;
 }
@@ -65,7 +68,7 @@ const TONE_STYLES: Record<AlertTone, { bg: string; border: string; fg: string; i
   },
 };
 
-export function PheraAlert({ tone = 'info', title, children, icon, sx }: PheraAlertProps) {
+export function PheraAlert({ tone = 'info', title, children, icon, onClose, sx }: PheraAlertProps) {
   const style = TONE_STYLES[tone];
   const resolvedIcon = icon === null ? null : icon ?? style.icon;
 
@@ -96,7 +99,7 @@ export function PheraAlert({ tone = 'info', title, children, icon, sx }: PheraAl
             component="div"
             sx={{
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: '0.875rem',
               color: COLORS.text.strong,
               mb: 0.25,
             }}
@@ -107,7 +110,7 @@ export function PheraAlert({ tone = 'info', title, children, icon, sx }: PheraAl
         <Typography
           component="div"
           sx={{
-            fontSize: 13,
+            fontSize: '0.875rem',
             lineHeight: 1.55,
             color: COLORS.text.muted,
           }}
@@ -115,6 +118,16 @@ export function PheraAlert({ tone = 'info', title, children, icon, sx }: PheraAl
           {children}
         </Typography>
       </Box>
+      {onClose && (
+        <IconButton
+          aria-label="Close"
+          onClick={onClose}
+          size="small"
+          sx={{ flexShrink: 0, color: style.fg, ml: 1 }}
+        >
+          <Close fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 }

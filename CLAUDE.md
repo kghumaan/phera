@@ -7,9 +7,16 @@ Before writing or editing ANY UI code, follow these non-negotiable rules. Migrat
 **1. Tokens are the source of truth.** All colors, radii, fonts, shadows come from `@/lib/theme/tokens` (`COLORS`, `RADII`, `FONTS`, `SHADOWS`, `TEXT`). Never inline hex (`#DE3F5E`, `#1a1a1a`), raw rgba, or magic numbers for radii/shadows.
 
 **2. Shared primitives over raw MUI.** For common UI, use the wrappers in `components/shared/` and `components/admin/`:
-   - Alerts → `InfoAlert`, `SuccessAlert`, `WarningAlert`, `ErrorAlert` from `components/shared/Alert`. Never import MUI's `Alert` directly in app code.
+   - Alerts → `InfoAlert`, `SuccessAlert`, `WarningAlert`, `ErrorAlert` from `components/shared/Alert` (pass `onClose` for dismissible). Never import MUI's `Alert` directly in app code.
    - Buttons → `PrimaryActionButton`, `SecondaryActionButton`, `IconActionButton` from `components/admin/ActionButton`. Never hand-roll a `<Button>` with pink sx.
    - Dropdown menus → `PheraMenu`, `PheraMenuItem` from `components/shared/Menu`. Never import MUI's `Menu` directly — all dropdowns in Phera are white-bg with dark text.
+   - Text inputs → `PheraTextField` from `components/shared/TextField`. Never spread `ENHANCED_TEXT_FIELD_SX` on a raw `<TextField>` in new code.
+   - Cards / paper surfaces → `PheraCard` from `components/shared/Card` with `variant="default" | "muted" | "feature" | "hero"`. Never hand-roll a `<Paper>` with borderRadius + border inline.
+   - Page / section headings → `PageHeading`, `SectionHeading` from `components/shared/PageHeading`. Replaces the `h6 + body2` opening pair every admin page repeats.
+   - Empty states → `EmptyState` from `components/shared/EmptyState` (icon + title + subtitle + action).
+   - Stat cards → `StatCard` from `components/shared/StatCard` (icon + value + label, clickable + selected).
+   - Chips → `PheraChip` from `components/shared/Chip` with `tone="neutral" | "brand" | "success" | "warning" | "danger" | "info" | "side-bride" | "side-groom" | "side-both"`.
+   - Dialogs → `PheraDialog`, `PheraDialogTitle` from `components/shared/Dialog` (serif title + optional close button built-in).
    - If a primitive for your need doesn't exist, ADD IT to `components/shared/` first, then use it — don't inline.
 
 **3. Typography = variants, not inline fontSize.** Use `<Typography variant="body2">`, `subtitleCaps`, `h1`, etc. Never set `fontSize` inline unless it's a one-off ornament (tiny badge, numeric indicator). **14px (0.875rem) is the absolute minimum** for any readable text.
