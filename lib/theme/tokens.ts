@@ -68,6 +68,11 @@ export const COLORS = {
     groom: '#3b82f6',   // blue
     both:  '#8b5cf6',   // purple
   },
+  // Platform brand colors (logos, channel accents).
+  platform: {
+    whatsapp: '#25D366',
+    whatsappDark: '#128C7E',
+  },
 } as const;
 
 // ─── Radii ──────────────────────────────────────────────────────────
