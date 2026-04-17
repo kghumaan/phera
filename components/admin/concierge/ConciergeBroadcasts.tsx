@@ -8,12 +8,11 @@ import {
   Typography,
   Chip,
   CircularProgress,
-  LinearProgress,
   Divider,
   Tooltip,
 } from '@mui/material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
-import { Campaign, Add, Send, Reply, PendingOutlined, OpenInNew } from '@mui/icons-material';
+import { Campaign, Add, Reply, OpenInNew } from '@mui/icons-material';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import BroadcastComposer from './BroadcastComposer';
 import BroadcastDetailDrawer from './BroadcastDetailDrawer';
@@ -26,6 +25,47 @@ interface ConciergeBroadcastsProps {
   weddingId: string;
   weddingSlug: string;
   isViewOnly: boolean;
+}
+
+// Compact reply-rate doughnut shown per broadcast row. Total = replies over recipients.
+function RepliesDoughnut({ replied, total }: { replied: number; total: number }) {
+  const pct = total > 0 ? Math.min(1, replied / total) : 0;
+  const size = 44;
+  const stroke = 5;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - pct);
+  return (
+    <Box sx={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(0,0,0,0.08)" strokeWidth={stroke} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={COLORS.brand.primary}
+          strokeWidth={stroke}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
+          {replied}/{total}
+        </Typography>
+      </Box>
+    </Box>
+  );
 }
 
 function formatRelative(iso: string | null): string {
@@ -78,7 +118,7 @@ export default function ConciergeBroadcasts({
       >
         <Box>
           <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem' }}>
-            Broadcasts
+            Broadcast Messages
           </Typography>
           <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.25 }}>
             Send WhatsApp messages to your guests. Optionally collect structured replies.
@@ -215,27 +255,16 @@ export default function ConciergeBroadcasts({
 
                 <Divider sx={{ borderColor: 'rgba(0,0,0,0.05)' }} />
 
-                <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                    <Send sx={{ fontSize: 14, color: COLORS.text.subtle }} />
-                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
-                      {b.sent_count} / {b.recipient_count} sent
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <RepliesDoughnut replied={b.replied_count} total={b.recipient_count} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.88rem', lineHeight: 1.2 }}>
+                      {b.replied_count} {b.replied_count === 1 ? 'reply' : 'replies'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '0.72rem' }}>
+                      of {b.recipient_count} {b.recipient_count === 1 ? 'guest' : 'guests'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                    <Reply sx={{ fontSize: 14, color: COLORS.text.subtle }} />
-                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
-                      {b.replied_count} replied
-                    </Typography>
-                  </Box>
-                  {b.recipient_count > b.replied_count && (
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                      <PendingOutlined sx={{ fontSize: 14, color: COLORS.text.subtle }} />
-                      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
-                        {b.recipient_count - b.replied_count} pending
-                      </Typography>
-                    </Box>
-                  )}
                   <Box sx={{ flex: 1 }} />
                   <Typography
                     variant="caption"
@@ -244,19 +273,6 @@ export default function ConciergeBroadcasts({
                     View details <OpenInNew sx={{ fontSize: 12 }} />
                   </Typography>
                 </Stack>
-
-                {b.recipient_count > 0 && (
-                  <LinearProgress
-                    variant="determinate"
-                    value={(b.replied_count / b.recipient_count) * 100}
-                    sx={{
-                      height: 5,
-                      borderRadius: 999,
-                      bgcolor: 'rgba(0,0,0,0.05)',
-                      '& .MuiLinearProgress-bar': { bgcolor: COLORS.brand.primary, borderRadius: 999 },
-                    }}
-                  />
-                )}
               </Stack>
             </Paper>
           ))}

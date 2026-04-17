@@ -34,17 +34,17 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  dining: '#FF6B35',
-  activities: COLORS.accent.success,
-  transportation: COLORS.accent.info,
-  accommodation: COLORS.side.both,
-  local_tips: COLORS.accent.warning,
-  weather: '#0288D1',
-  emergency: '#D32F2F',
-  nightlife: '#7B1FA2',
-  shopping: '#E91E63',
-  cultural_etiquette: '#795548',
-  other: '#607D8B',
+  dining: COLORS.brand.primary,
+  activities: COLORS.brand.primary,
+  transportation: COLORS.brand.primary,
+  accommodation: COLORS.brand.primary,
+  local_tips: COLORS.brand.primary,
+  weather: COLORS.brand.primary,
+  emergency: COLORS.brand.primary,
+  nightlife: COLORS.brand.primary,
+  shopping: COLORS.brand.primary,
+  cultural_etiquette: COLORS.brand.primary,
+  other: COLORS.brand.primary,
 };
 
 interface KnowledgeEntry {
