@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GoogleGenAI } from '@google/genai';
-import OpenAI from 'openai';
 
 interface SchemaField {
   key: string;
@@ -11,16 +11,11 @@ const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
 
-const deepseek = process.env.DEEPSEEK_API_KEY
-  ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' })
-  : null;
-
 /**
  * Map a guest's free-form broadcast reply to the structured data_schema
  * the admin asked for. Returns null if extraction fails or no fields found.
  *
- * Uses Gemini 2.5 Flash primary, DeepSeek Chat fallback. Both are cheap
- * text-only calls — no tools needed.
+ * Uses Gemini 2.5 Flash — cheap text-only call, no tools needed.
  */
 export async function extractBroadcastData(
   replyText: string,
@@ -50,28 +45,11 @@ Example output: {"flight_number": "AA123", "arrival_date": "Jan 5"}`;
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: { temperature: 0, responseMimeType: 'application/json' } as any,
       });
-      const text = (resp as any)?.text?.() || (resp as any)?.response?.text?.() || '';
+      const text = (resp as any)?.text || '';
       const parsed = tryParseJson(text);
       if (parsed) return filterToSchema(parsed, schema);
     } catch (err) {
       console.warn('[broadcast-extract] Gemini failed:', err);
-    }
-  }
-
-  // Fallback: DeepSeek
-  if (deepseek) {
-    try {
-      const resp = await deepseek.chat.completions.create({
-        model: 'deepseek-chat',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0,
-        response_format: { type: 'json_object' },
-      });
-      const text = resp.choices?.[0]?.message?.content || '';
-      const parsed = tryParseJson(text);
-      if (parsed) return filterToSchema(parsed, schema);
-    } catch (err) {
-      console.warn('[broadcast-extract] DeepSeek failed:', err);
     }
   }
 

@@ -1,6 +1,7 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,8 +15,6 @@ import {
   Chip,
   ToggleButton,
   ToggleButtonGroup,
-  Switch,
-  FormControlLabel,
   Autocomplete,
   Divider,
   Tooltip,
@@ -77,6 +76,13 @@ export default function BroadcastComposer({
     | null
   >(null);
 
+  // AI field detection — we watch the message text and ask the server what
+  // data the admin is asking the guest for, so they don't have to declare
+  // fields by hand.
+  const [detecting, setDetecting] = useState(false);
+  const [manualOverride, setManualOverride] = useState(false);
+  const detectReqId = useRef(0);
+
   const resetState = useCallback(() => {
     setMessage('');
     setTargetType('all');
@@ -85,6 +91,8 @@ export default function BroadcastComposer({
     setCollectsData(false);
     setDataSchema([]);
     setSendResult(null);
+    setManualOverride(false);
+    setDetecting(false);
   }, []);
 
   useEffect(() => {
@@ -105,6 +113,49 @@ export default function BroadcastComposer({
       );
     })();
   }, [open, weddingSlug, resetState]);
+
+  // Debounced AI field-detection on the message text. Skipped once the
+  // admin has manually edited the field list (so we don't clobber their edits).
+  useEffect(() => {
+    if (!open) return;
+    if (manualOverride) return;
+    const trimmed = message.trim();
+    if (trimmed.length < 8) {
+      // Too short to bother — clear any pending suggestion.
+      setDataSchema([]);
+      setCollectsData(false);
+      setDetecting(false);
+      return;
+    }
+
+    const reqId = ++detectReqId.current;
+    setDetecting(true);
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/concierge/broadcasts/suggest-fields', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: trimmed }),
+        });
+        const data = await res.json();
+        if (reqId !== detectReqId.current) return; // stale response
+        const fields: BroadcastDataField[] = Array.isArray(data?.fields) ? data.fields : [];
+        if (fields.length > 0) {
+          setDataSchema(fields);
+          setCollectsData(true);
+        } else {
+          setDataSchema([]);
+          setCollectsData(false);
+        }
+      } catch {
+        // ignore — field detection is best-effort
+      } finally {
+        if (reqId === detectReqId.current) setDetecting(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(handle);
+  }, [message, open, manualOverride]);
 
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
@@ -307,33 +358,115 @@ export default function BroadcastComposer({
 
           <Divider />
 
-          <Box>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={collectsData}
-                  onChange={(e) => setCollectsData(e.target.checked)}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
-                  }}
-                />
-              }
-              label={
-                <Box>
-                  <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9rem' }}>
-                    Collect replies as data
+          {/* Auto-detected collection — driven by AI suggest-fields call. */}
+          {!manualOverride ? (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: RADII.md,
+                bgcolor: collectsData && dataSchema.length > 0 ? 'rgba(222,63,94,0.05)' : COLORS.bg.subtle,
+                border: '1px solid',
+                borderColor: collectsData && dataSchema.length > 0 ? 'rgba(222,63,94,0.2)' : 'rgba(0,0,0,0.06)',
+              }}
+            >
+              {detecting ? (
+                <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+                  Scanning your message for info you&apos;re asking for…
+                </Typography>
+              ) : collectsData && dataSchema.length > 0 ? (
+                <Stack spacing={1}>
+                  <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: COLORS.text.strong }}>
+                    We&apos;ll track these replies for you
                   </Typography>
-                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-                    Tag replies with a name so you can view responses as a structured column.
+                  <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ gap: 0.75 }}>
+                    {dataSchema.map((f) => (
+                      <Chip
+                        key={f.key}
+                        label={f.label}
+                        size="small"
+                        sx={{
+                          bgcolor: 'white',
+                          color: COLORS.brand.primary,
+                          fontWeight: 600,
+                          border: '1px solid rgba(222,63,94,0.3)',
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                  <Typography
+                    component="button"
+                    onClick={() => setManualOverride(true)}
+                    sx={{
+                      alignSelf: 'flex-start',
+                      border: 'none',
+                      bgcolor: 'transparent',
+                      p: 0,
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      color: COLORS.text.muted,
+                      textDecoration: 'underline',
+                      '&:hover': { color: COLORS.brand.primary },
+                    }}
+                  >
+                    Edit fields manually
                   </Typography>
-                </Box>
-              }
-            />
-          </Box>
-
-          {collectsData && (
+                </Stack>
+              ) : (
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+                    Not collecting data. If your broadcast asks a question, we&apos;ll auto-detect what to track.
+                  </Typography>
+                  <Typography
+                    component="button"
+                    onClick={() => {
+                      setManualOverride(true);
+                      setCollectsData(true);
+                      if (dataSchema.length === 0) addField();
+                    }}
+                    sx={{
+                      border: 'none',
+                      bgcolor: 'transparent',
+                      p: 0,
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      color: COLORS.brand.primary,
+                      fontWeight: 600,
+                      textDecoration: 'underline',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Track manually
+                  </Typography>
+                </Stack>
+              )}
+            </Box>
+          ) : (
             <Stack spacing={1.25}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: COLORS.text.strong }}>
+                  Data fields to collect
+                </Typography>
+                <Typography
+                  component="button"
+                  onClick={() => {
+                    setManualOverride(false);
+                    setDataSchema([]);
+                    setCollectsData(false);
+                  }}
+                  sx={{
+                    border: 'none',
+                    bgcolor: 'transparent',
+                    p: 0,
+                    cursor: 'pointer',
+                    fontSize: '0.78rem',
+                    color: COLORS.text.muted,
+                    textDecoration: 'underline',
+                    '&:hover': { color: COLORS.brand.primary },
+                  }}
+                >
+                  Back to auto-detect
+                </Typography>
+              </Stack>
               {dataSchema.length === 0 && (
                 <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                   Add at least one field to name the data you&apos;re collecting.

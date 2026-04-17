@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -202,12 +203,32 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                   <TableHead>
                     <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
                       <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Guest</TableCell>
+                      {b.data_schema.map((f) => {
+                        const filled = rows.filter((r) => {
+                          const v = r.collected_data?.[f.key];
+                          return v != null && String(v).trim() !== '';
+                        }).length;
+                        return (
+                          <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
+                            <Stack direction="row" spacing={0.75} alignItems="center">
+                              <span>{f.label}</span>
+                              <Chip
+                                label={`${filled}/${rows.length}`}
+                                size="small"
+                                sx={{
+                                  height: 18,
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  bgcolor: filled === rows.length ? 'rgba(16,185,129,0.1)' : 'rgba(222,63,94,0.08)',
+                                  color: filled === rows.length ? COLORS.accent.success : COLORS.brand.primary,
+                                  '& .MuiChip-label': { px: 0.75 },
+                                }}
+                              />
+                            </Stack>
+                          </TableCell>
+                        );
+                      })}
                       <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Reply</TableCell>
-                      {b.data_schema.map((f) => (
-                        <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
-                          {f.label}
-                        </TableCell>
-                      ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -221,18 +242,61 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                             {r.guests?.phone || '—'}
                           </Typography>
                         </TableCell>
+                        {b.data_schema.map((f) => {
+                          const val = r.collected_data?.[f.key];
+                          const isUrl = typeof val === 'string' && /^https?:\/\//.test(val);
+                          const fieldHint = `${f.key} ${f.label} ${f.type}`.toLowerCase();
+                          const expectsImage = /image|photo|picture|passport|scan|id|visa|ticket/.test(fieldHint);
+                          return (
+                            <TableCell key={f.key}>
+                              {val == null || val === '' ? (
+                                <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.faint }}>—</Typography>
+                              ) : isUrl && expectsImage ? (
+                                <Box
+                                  component="a"
+                                  href={val}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  sx={{
+                                    display: 'inline-block',
+                                    width: 56,
+                                    height: 56,
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                    border: '1px solid rgba(0,0,0,0.08)',
+                                    bgcolor: COLORS.bg.muted,
+                                  }}
+                                >
+                                  <Box
+                                    component="img"
+                                    src={val}
+                                    alt={f.label}
+                                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  />
+                                </Box>
+                              ) : isUrl ? (
+                                <Typography
+                                  component="a"
+                                  href={val}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  sx={{ fontSize: '0.82rem', color: COLORS.brand.primary, fontWeight: 500, textDecoration: 'underline' }}
+                                >
+                                  Open
+                                </Typography>
+                              ) : (
+                                <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong, fontWeight: 500 }}>
+                                  {String(val)}
+                                </Typography>
+                              )}
+                            </TableCell>
+                          );
+                        })}
                         <TableCell>
                           <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap' }}>
                             {r.reply_text || '—'}
                           </Typography>
                         </TableCell>
-                        {b.data_schema.map((f) => (
-                          <TableCell key={f.key}>
-                            <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong }}>
-                              {r.collected_data?.[f.key] ?? '—'}
-                            </Typography>
-                          </TableCell>
-                        ))}
                       </TableRow>
                     ))}
                   </TableBody>

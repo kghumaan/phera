@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { whapiClient } from '@/lib/vendors/whapi-client';
@@ -51,13 +52,31 @@ export async function POST(request: NextRequest) {
 
       const senderPhone = msg.from?.replace('@s.whatsapp.net', '') || '';
       const senderName = msg.from_name || senderPhone;
-      const content = msg.text?.body || msg.body || '';
+
+      // Extract media (image / document / video) — Whapi fields vary by type.
+      const mediaSource =
+        msg.image || msg.document || msg.video || msg.audio || null;
+      const mediaUrl: string | null =
+        mediaSource?.link || mediaSource?.url || mediaSource?.id || null;
+      const mediaType: string | null = msg.image
+        ? 'image'
+        : msg.document
+        ? 'document'
+        : msg.video
+        ? 'video'
+        : msg.audio
+        ? 'audio'
+        : null;
+
+      const textContent = msg.text?.body || msg.body || msg.caption || mediaSource?.caption || '';
+      const content = textContent || (mediaType ? `[${mediaType}]` : '');
       const messageId = msg.id;
       const timestamp = msg.timestamp
         ? new Date(msg.timestamp * 1000).toISOString()
         : new Date().toISOString();
 
-      if (!content) continue;
+      // Nothing to work with — no text and no media.
+      if (!content && !mediaUrl) continue;
 
       // 1. Find or create conversation by group ID or chat ID
       let { data: conversation } = isGroup
@@ -105,7 +124,7 @@ export async function POST(request: NextRequest) {
           // No vendor match. If this is a direct chat, try Concierge:
           // look up sender as a guest and run the AI response flow.
           if (isDirect) {
-            const handled = await tryConciergeFlow(senderPhone, content, msg);
+            const handled = await tryConciergeFlow(senderPhone, content, msg, { mediaUrl, mediaType });
             if (handled) continue;
           }
           console.log(`⚠️ No wedding or guest match for chat ${chatId}, skipping`);
@@ -227,7 +246,12 @@ export async function POST(request: NextRequest) {
  * same Whapi number powers both Coordinator (vendor groups) and Concierge
  * (guest DMs). Returns true if the flow handled the message.
  */
-async function tryConciergeFlow(senderPhone: string, content: string, msg: any): Promise<boolean> {
+async function tryConciergeFlow(
+  senderPhone: string,
+  content: string,
+  msg: any,
+  media?: { mediaUrl: string | null; mediaType: string | null },
+): Promise<boolean> {
   try {
     const rawDigits = senderPhone.replace(/\D/g, '');
     const phoneVariants = [`+${rawDigits}`, rawDigits, `+${rawDigits.slice(-10)}`];
@@ -263,7 +287,10 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
     // message to that broadcast (reply text + optional structured data).
     // Non-blocking: AI flow still runs below.
     try {
-      await recordBroadcastReplyForGuest(guest.id, content);
+      await recordBroadcastReplyForGuest(guest.id, content, {
+        mediaUrl: media?.mediaUrl ?? null,
+        mediaType: media?.mediaType ?? null,
+      });
     } catch (err) {
       console.error('[concierge] broadcast reply record error:', err);
     }
