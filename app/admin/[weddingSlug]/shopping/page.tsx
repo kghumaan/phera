@@ -28,6 +28,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -202,14 +203,10 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Shopping Guide
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Recommend online stores for Indian outfits
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Shopping Guide"
+          subtitle="Recommend online stores for Indian outfits"
+        />
 
         <Stack spacing={2}>
           {shops.map((shop) => (
