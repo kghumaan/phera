@@ -9,7 +9,6 @@ import {
   Stack,
   InputAdornment,
   Snackbar,
-  Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -18,6 +17,8 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoginModal from '@/components/auth/LoginModal';
+import { InfoAlert } from '@/components/shared/Alert';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface PinEntryProps {
   onPinVerified: () => void;
@@ -506,40 +507,41 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
             src="/logo-stacked.svg"
             alt="Phera Logo"
             sx={{
-              height: { xs: 42, sm: 60, md: 80, lg: 100, xl: 100 },
+              height: { xs: 96, sm: 112, md: 128, lg: 140, xl: 152 },
               width: 'auto',
               filter: 'brightness(0)',
             }}
           />
 
-          {/* Heading */}
-          <Typography
-            variant="h3"
-            sx={{
-              color: pinEntryFontColor,
-              lineHeight: 1.25,
-              textAlign: 'center',
-              fontSize: { xs: '1.4rem', sm: '2rem', md: '2.5rem', lg: '3rem' },
-            }}
-          >
-            {displayText}
-          </Typography>
+          {/* Heading + Subtitle — tighter gap between these two */}
+          <Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
+            <Typography
+              variant="h1"
+              sx={{
+                color: pinEntryFontColor,
+                lineHeight: 1.1,
+                textAlign: 'center',
+                fontSize: { xs: '2.25rem', sm: '3rem', md: '3.5rem', lg: '4rem' },
+              }}
+            >
+              {displayText}
+            </Typography>
 
-          {/* Subtitle */}
-          <Typography
-            variant="body2"
-            sx={{
-              color: pinEntryFontColor,
-              lineHeight: 1.45,
-              maxWidth: { xs: 300, sm: 400, lg: 800, xl: 800 },
-              mx: 'auto',
-              textAlign: 'center',
-              px: 1.5,
-              fontSize: { xs: '0.75rem', sm: '0.95rem', md: '1rem', lg: '1.125rem' },
-            }}
-          >
-            {displaySubtitle}
-          </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: pinEntryFontColor,
+                lineHeight: 1.45,
+                maxWidth: { xs: 300, sm: 400, lg: 800, xl: 800 },
+                mx: 'auto',
+                textAlign: 'center',
+                px: 1.5,
+                fontSize: { xs: '0.875rem', sm: '0.95rem', md: '1rem', lg: '1.125rem' },
+              }}
+            >
+              {displaySubtitle}
+            </Typography>
+          </Stack>
         </motion.div>
 
         {/* Middle Section - PIN Input (Centered) */}
@@ -573,19 +575,19 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                 sx={{
                   width: { xs: 48, sm: 72, md: 73, lg: 80, xl: 88 },
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: COLORS.bg.white,
                     borderRadius: '50%', // Perfect circle
                     height: { xs: 48, sm: 72, md: 73, lg: 80, xl: 88 },
                     fontSize: { xs: '1.1rem', sm: '1.5rem', md: '1.5rem', lg: '1.75rem', xl: '2rem' },
                     fontWeight: 700,
                     textAlign: 'center',
-                    border: error ? `1px solid ${pinEntryPrimaryColor}` : '1px solid #D6D6D6',
+                    border: `1px solid ${error ? pinEntryPrimaryColor : COLORS.border.default}`,
                     boxShadow: 'none',
                     '&:hover': {
-                      border: error ? `1px solid ${pinEntryPrimaryColor}` : `1px solid ${pinEntryPrimaryColor}`,
+                      border: `1px solid ${pinEntryPrimaryColor}`,
                     },
                     '&.Mui-focused': {
-                      border: error ? `1px solid ${pinEntryPrimaryColor}` : `1px solid ${pinEntryPrimaryColor}`,
+                      border: `1px solid ${pinEntryPrimaryColor}`,
                       boxShadow: 'none',
                     },
                     transition: 'all 0.2s ease-in-out',
@@ -607,7 +609,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                     textAlign: 'center',
                     fontSize: 'inherit',
                     fontWeight: 'inherit',
-                    color: pin[index] ? '#000' : 'rgba(0, 0, 0, 0.2)',
+                    color: pin[index] ? COLORS.text.strong : 'rgba(0, 0, 0, 0.2)',
                   }
                 }}
                 placeholder="0"
@@ -653,15 +655,15 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#e65100',
+                  color: COLORS.accent.warningText,
                   fontWeight: 600,
                   fontSize: { xs: '0.9rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                   textAlign: 'center',
-                  backgroundColor: '#fff3e0',
+                  backgroundColor: COLORS.accent.warningBg,
                   px: { xs: 3, lg: 3.5, xl: 4 },
                   py: { xs: 1, lg: 1.25, xl: 1.5 },
-                  borderRadius: '20px',
-                  border: '1px solid #ffcc80',
+                  borderRadius: RADII.xl,
+                  border: `1px solid ${COLORS.accent.warning}`,
                 }}
               >
                 {rateLimitMessage}
@@ -685,33 +687,34 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         >
           {/* Or Divider */}
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '354px' }}>
-            <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
-            <Typography variant="body2" sx={{ px: 2, color: '#6a6a6a', fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 500 }}>
+            <Box sx={{ flex: 1, height: '1px', bgcolor: COLORS.border.default }} />
+            <Typography variant="body2" sx={{ px: 2, color: COLORS.text.subtle, fontSize: { xs: '0.875rem', sm: '0.875rem' }, fontWeight: 500 }}>
               or
             </Typography>
-            <Box sx={{ flex: 1, height: '1px', bgcolor: '#D6D6D6' }} />
+            <Box sx={{ flex: 1, height: '1px', bgcolor: COLORS.border.default }} />
           </Box>
 
           {/* Login Button */}
           <Button
             onClick={handleLogin}
             sx={{
-              backgroundColor: '#FFFFFF',
-              color: '#141414',
-              borderRadius: '16px',
-              px: { xs: '14px', sm: '20px', lg: '22px', xl: '24px' },
-              py: { xs: '8px', sm: '12px', lg: '13px', xl: '14px' },
-              fontSize: { xs: '0.8rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
+              backgroundColor: COLORS.bg.white,
+              color: COLORS.text.strong,
+              borderRadius: RADII.lg,
+              px: { xs: 2.5, sm: 3 },
+              py: 1.5,
+              minHeight: { xs: 48, sm: 52 },
+              fontSize: { xs: '0.875rem', sm: '1rem', lg: '1.0625rem', xl: '1.125rem' },
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '6.25%',
               width: '100%',
               maxWidth: { xs: '354px', lg: '380px', xl: '400px' },
-              border: '1px solid #D6D6D6',
+              border: `1px solid ${COLORS.border.default}`,
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#F5F5F5',
-                border: '1px solid #B0B0B0',
+                backgroundColor: COLORS.bg.subtle,
+                border: `1px solid ${COLORS.border.strong}`,
                 boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
@@ -735,13 +738,11 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         onClose={() => setShowPreviewToast(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert
-          onClose={() => setShowPreviewToast(false)}
-          severity="info"
-          sx={{ width: '100%', borderRadius: '12px', fontWeight: 500 }}
-        >
-          In the live site, this would redirect you to the wedding website if the invitation code matches.
-        </Alert>
+        <Box sx={{ maxWidth: 520 }}>
+          <InfoAlert>
+            In the live site, this would redirect you to the wedding website if the invitation code matches.
+          </InfoAlert>
+        </Box>
       </Snackbar>
     </OptimizedBackground>
   );
