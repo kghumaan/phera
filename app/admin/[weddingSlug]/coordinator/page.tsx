@@ -9,8 +9,6 @@ import {
   Chip,
   IconButton,
   CircularProgress,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   alpha,
@@ -35,7 +33,6 @@ import {
   ContentCopy,
   PhoneAndroid,
   LockOutlined,
-  Close,
   WhatsApp,
   Sync,
   CloudSync,
@@ -1072,16 +1069,14 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {renderSyncDialog()}
 
           {/* Delete confirmation */}
-          <Dialog
+          <PheraDialog
             open={!!deleteConfirmId}
             onClose={() => !deleting && setDeleteConfirmId(null)}
-            PaperProps={{ sx: { borderRadius: 1, maxWidth: 380 } }}
+            PaperProps={{ sx: { maxWidth: 380 } }}
           >
-            <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 0.5 }}>
-              Remove vendor?
-            </DialogTitle>
+            <PheraDialogTitle>Remove vendor?</PheraDialogTitle>
             <DialogContent>
-              <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.muted }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                 This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
               </Typography>
             </DialogContent>
@@ -1097,12 +1092,11 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 onClick={handleDeleteVendor}
                 loading={deleting}
                 startIcon={<Delete />}
-                sx={{ borderRadius: RADII.md }}
               >
                 Remove
               </PrimaryActionButton>
             </DialogActions>
-          </Dialog>
+          </PheraDialog>
         </Box>
       </Box>
 
@@ -1130,14 +1124,15 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
   function renderImportChatDialog() {
     return (
-      <Dialog
+      <PheraDialog
         open={importDialogOpen}
         onClose={() => setImportDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: COLORS.bg.white, color: COLORS.text.strong, borderRadius: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>Import WhatsApp Chat</DialogTitle>
+        <PheraDialogTitle onClose={() => setImportDialogOpen(false)}>
+          Import WhatsApp Chat
+        </PheraDialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 2 }}>
             Export a WhatsApp chat as .txt (without media) and upload it here.
@@ -1185,7 +1180,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
             Import
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     );
   }
 
@@ -1195,16 +1190,15 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     const currentTabChatIds = currentTabChats.map(c => c.id);
 
     return (
-      <Dialog
+      <PheraDialog
         open={syncDialogOpen}
         onClose={() => !syncing && setSyncDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: COLORS.bg.white, color: COLORS.text.strong, borderRadius: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong, pb: 0 }}>
+        <PheraDialogTitle onClose={syncing ? undefined : () => setSyncDialogOpen(false)}>
           Connect WhatsApp Chat
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent sx={{ px: 0 }}>
           {discoveringGroups ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, gap: 2 }}>
@@ -1320,7 +1314,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
             Connect {selectedChatIds.size} chat{selectedChatIds.size !== 1 ? 's' : ''}
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     );
   }
 }
