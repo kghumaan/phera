@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Button,
   Typography,
   Stack,
   Paper,
@@ -15,7 +14,6 @@ import {
   TextField,
   IconButton,
   CircularProgress,
-  Alert,
   Tooltip,
   Chip,
 } from '@mui/material';
@@ -32,13 +30,21 @@ import {
   Image as ImageIcon,
   Description,
   LockOutlined,
+  People,
 } from '@mui/icons-material';
 import { use, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { roomsService, type WeddingRoom, type RoomDraft } from '@/lib/supabase/rooms-service';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { supabase } from '@/lib/supabase/client';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
+import { ErrorAlert, SuccessAlert } from '@/components/shared/Alert';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+
+const MIN_GUESTS_FOR_ROOMS = 5;
 
 interface ParsedRoom {
   room_number: string;
@@ -67,6 +73,9 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
   const [addDraft, setAddDraft] = useState<RoomDraft>({ room_number: '' });
   const { isPro } = usePlan();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const router = useRouter();
+  const [guestCount, setGuestCount] = useState<number | null>(null);
+  const [navigatingToGuestList, setNavigatingToGuestList] = useState(false);
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -79,6 +88,16 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     loadRooms();
   }, [loadRooms]);
 
+  useEffect(() => {
+    (async () => {
+      const { count } = await (supabase as any)
+        .from('guests')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_id', weddingSlug);
+      setGuestCount(count ?? 0);
+    })();
+  }, [weddingSlug]);
+
   // Pull the wedding's primary venue as a hint for hotel_name when none is provided
   useEffect(() => {
     (async () => {
@@ -89,41 +108,63 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
   // ─── Upload + Parse ──────────────────────────────────────────
 
-  const handleFile = async (file: File) => {
+  const handleFiles = async (files: File[]) => {
     setParseError(null);
     setParseStatus(null);
 
-    const ext = file.name.split('.').pop()?.toLowerCase();
     const allowed = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'csv', 'tsv', 'txt', 'xlsx', 'xls'];
-    if (!ext || !allowed.includes(ext)) {
-      setParseError('Unsupported file. Use PDF, PNG, JPG, WEBP, CSV, or XLSX.');
+    const valid = files.filter((f) => {
+      const ext = f.name.split('.').pop()?.toLowerCase();
+      return ext && allowed.includes(ext);
+    });
+    const skipped = files.length - valid.length;
+
+    if (valid.length === 0) {
+      setParseError('Unsupported file(s). Use PDF, PNG, JPG, WEBP, CSV, or XLSX.');
       return;
     }
 
     setParsing(true);
-    setParseStatus('Reading floorplan…');
+    let totalImported = 0;
+    const failed: string[] = [];
+
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/rooms/parse', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || `Request failed (${res.status})`);
+      for (let i = 0; i < valid.length; i++) {
+        const file = valid[i];
+        setParseStatus(`Reading ${file.name} (${i + 1}/${valid.length})…`);
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          const res = await fetch('/api/rooms/parse', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+          const parsed: ParsedRoom[] = data.rooms || [];
+          if (parsed.length > 0) {
+            setParseStatus(`Saving ${parsed.length} room${parsed.length === 1 ? '' : 's'} from ${file.name}…`);
+            await roomsService.insertMany(weddingSlug, parsed);
+            totalImported += parsed.length;
+          } else {
+            failed.push(file.name);
+          }
+        } catch (err: any) {
+          failed.push(file.name);
+        }
       }
 
-      const parsed: ParsedRoom[] = data.rooms || [];
-      if (parsed.length === 0) {
-        setParseError('No rooms detected in this file. Try a clearer floorplan or list.');
-        return;
-      }
-
-      setParseStatus(`Saving ${parsed.length} room${parsed.length === 1 ? '' : 's'}…`);
-      await roomsService.insertMany(weddingSlug, parsed);
       await loadRooms();
-      setParseStatus(`Imported ${parsed.length} room${parsed.length === 1 ? '' : 's'}.`);
-      setTimeout(() => setParseStatus(null), 3500);
-    } catch (err: any) {
-      setParseError(err.message || 'Failed to parse file');
+
+      if (totalImported === 0) {
+        setParseError('No rooms detected in the uploaded file(s). Try clearer floorplans or lists.');
+      } else {
+        const parts = [
+          `Imported ${totalImported} room${totalImported === 1 ? '' : 's'} from ${valid.length - failed.length} file${valid.length - failed.length === 1 ? '' : 's'}.`,
+        ];
+        if (failed.length) parts.push(`Skipped: ${failed.join(', ')}.`);
+        if (skipped) parts.push(`${skipped} unsupported file${skipped === 1 ? '' : 's'} ignored.`);
+        setParseStatus(parts.join(' '));
+        setTimeout(() => setParseStatus(null), 4500);
+      }
     } finally {
       setParsing(false);
     }
@@ -132,8 +173,8 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length) handleFiles(files);
   };
 
   // ─── Inline edit ─────────────────────────────────────────────
@@ -192,9 +233,9 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
   const fileTypeIcon = (
     <Stack direction="row" spacing={0.5} alignItems="center">
-      <PictureAsPdf sx={{ fontSize: 14, color: '#9a9a9a' }} />
-      <ImageIcon sx={{ fontSize: 14, color: '#9a9a9a' }} />
-      <Description sx={{ fontSize: 14, color: '#9a9a9a' }} />
+      <PictureAsPdf sx={{ fontSize: 14, color: COLORS.text.faint }} />
+      <ImageIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />
+      <Description sx={{ fontSize: 14, color: COLORS.text.faint }} />
     </Stack>
   );
 
@@ -205,38 +246,26 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Room Assignments
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Upload a floorplan and place guests into hotel rooms.
               </Typography>
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#c73552' },
-              }}
+              sx={{ px: 3, py: 1, whiteSpace: 'nowrap' }}
             >
               Upgrade to Pro
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
-          <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.8, maxWidth: 680 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.8, maxWidth: 680 }}>
             Assign your guests to hotel rooms by uploading a floorplan or a room list. We parse the document, extract every room, and let you drag-and-drop guests into place. Share a live view with family members so everyone knows who's where.
           </Typography>
 
-          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', borderRadius: RADII.md, overflow: 'hidden' }}>
             <Box
               sx={{
                 position: 'absolute',
@@ -251,26 +280,16 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                 gap: 2,
               }}
             >
-              <LockOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
-              <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+              <LockOutlined sx={{ fontSize: 32, color: COLORS.brand.primary }} />
+              <Typography variant="subtitle1" sx={{ color: COLORS.text.strong }}>
                 Upgrade to unlock Room Assignments
               </Typography>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
+                sx={{ px: 3, py: 1 }}
               >
                 Upgrade to Pro
-              </Button>
+              </PrimaryActionButton>
             </Box>
 
             <Box sx={{ pointerEvents: 'none', userSelect: 'none', p: 4 }}>
@@ -280,16 +299,16 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                   p: 4,
                   textAlign: 'center',
                   border: '2px dashed',
-                  borderColor: 'rgba(0,0,0,0.1)',
-                  borderRadius: 3,
-                  bgcolor: 'white',
+                  borderColor: COLORS.border.light,
+                  borderRadius: RADII.md,
+                  bgcolor: COLORS.bg.white,
                 }}
               >
-                <Hotel sx={{ fontSize: 40, color: '#DE3F5E', mb: 1 }} />
-                <Typography sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                <Hotel sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1 }} />
+                <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
                   Drop a floorplan or room list
                 </Typography>
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   PDF, PNG, JPG, CSV, or XLSX — we'll extract every room for you.
                 </Typography>
               </Paper>
@@ -302,14 +321,59 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     );
   }
 
+  if (guestCount !== null && guestCount < MIN_GUESTS_FOR_ROOMS) {
+    return (
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
+            Room Assignments
+          </Typography>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5 }}>
+            Upload your hotel floorplan or room list and we&apos;ll parse it into a clean table you can edit.
+          </Typography>
+        </Box>
+
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: RADII.md,
+            border: '1px solid rgba(0,0,0,0.07)',
+            bgcolor: COLORS.bg.white,
+            p: { xs: 4, md: 6 },
+            textAlign: 'center',
+          }}
+        >
+          <People sx={{ fontSize: 44, color: COLORS.brand.primary, mb: 1.5 }} />
+          <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.75 }}>
+            Upload your guest list first
+          </Typography>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, maxWidth: 460, mx: 'auto', mb: 2.5 }}>
+            Once your guests are in — tagged by family, side, or group — we&apos;ll analyze your floorplan and place everyone thoughtfully.
+          </Typography>
+          <PrimaryActionButton
+            startIcon={<People />}
+            loading={navigatingToGuestList}
+            onClick={() => {
+              setNavigatingToGuestList(true);
+              router.push(`/admin/${weddingSlug}/guest-list`);
+            }}
+            sx={{ px: 2.5, py: 1, minWidth: 180 }}
+          >
+            Go to Guest List
+          </PrimaryActionButton>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       {/* Header — matches other admin pages */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
           Room Assignments
         </Typography>
-        <Typography sx={{ fontSize: 13, color: '#6a6a6a', mt: 0.5 }}>
+        <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5 }}>
           Upload your hotel floorplan or room list and we&apos;ll parse it into a clean table you can edit.
         </Typography>
       </Box>
@@ -319,9 +383,9 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '12px',
+          borderRadius: RADII.md,
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           p: 0,
           overflow: 'hidden',
         }}
@@ -335,31 +399,31 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
             p: 4,
             textAlign: 'center',
             cursor: parsing ? 'default' : 'pointer',
-            bgcolor: dragOver ? 'rgba(222,63,94,0.04)' : '#FAFAFA',
-            border: `2px dashed ${dragOver ? '#DE3F5E' : 'rgba(0,0,0,0.12)'}`,
-            borderRadius: '12px',
+            bgcolor: dragOver ? 'rgba(222,63,94,0.04)' : COLORS.bg.muted,
+            border: `2px dashed ${dragOver ? COLORS.brand.primary : 'rgba(0,0,0,0.12)'}`,
+            borderRadius: RADII.md,
             m: 2,
             transition: 'all 0.2s',
-            '&:hover': !parsing ? { borderColor: '#DE3F5E', bgcolor: 'rgba(222,63,94,0.02)' } : {},
+            '&:hover': !parsing ? { borderColor: COLORS.brand.primary, bgcolor: 'rgba(222,63,94,0.02)' } : {},
           }}
         >
           {parsing ? (
             <Stack spacing={1.5} alignItems="center">
-              <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
-              <Typography sx={{ fontSize: 13, color: '#4a4a4a' }}>{parseStatus}</Typography>
+              <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
+              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>{parseStatus}</Typography>
             </Stack>
           ) : (
             <>
-              <CloudUpload sx={{ fontSize: 44, color: dragOver ? '#DE3F5E' : '#9a9a9a', mb: 1 }} />
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
-                Drag & drop your floorplan or room list
+              <CloudUpload sx={{ fontSize: 44, color: dragOver ? COLORS.brand.primary : COLORS.text.faint, mb: 1 }} />
+              <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
+                Drag & drop your floorplans or room lists
               </Typography>
-              <Typography sx={{ fontSize: 12, color: '#6a6a6a', mb: 1.5 }}>
-                or click to browse — PDF, PNG, JPG, CSV, or XLSX
+              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mb: 1.5 }}>
+                or click to browse — multiple files supported (PDF, PNG, JPG, CSV, or XLSX)
               </Typography>
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: '#9a9a9a' }}>
-                <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />
-                <Typography sx={{ fontSize: 11, color: '#6a6a6a' }}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: COLORS.text.faint }}>
+                <AutoAwesome sx={{ fontSize: 14, color: COLORS.brand.primary }} />
+                <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>
                   AI extracts every room, floor, and hotel into the table below
                 </Typography>
               </Box>
@@ -367,21 +431,22 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                 ref={fileInputRef}
                 type="file"
                 hidden
+                multiple
                 accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.tsv,.txt,.xlsx,.xls"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleFile(f); e.target.value = ''; } }}
+                onChange={(e) => { const arr = Array.from(e.target.files || []); if (arr.length) { handleFiles(arr); e.target.value = ''; } }}
               />
             </>
           )}
         </Box>
         {parseError && (
-          <Alert severity="error" sx={{ mx: 2, mb: 2, borderRadius: '10px' }} onClose={() => setParseError(null)}>
-            {parseError}
-          </Alert>
+          <Box sx={{ mx: 2, mb: 2 }}>
+            <ErrorAlert>{parseError}</ErrorAlert>
+          </Box>
         )}
         {!parsing && parseStatus && !parseError && (
-          <Alert severity="success" sx={{ mx: 2, mb: 2, borderRadius: '10px' }} onClose={() => setParseStatus(null)}>
-            {parseStatus}
-          </Alert>
+          <Box sx={{ mx: 2, mb: 2 }}>
+            <SuccessAlert>{parseStatus}</SuccessAlert>
+          </Box>
         )}
       </Paper>
 
@@ -389,54 +454,45 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
       <Paper
         elevation={0}
         sx={{
-          borderRadius: '12px',
+          borderRadius: RADII.md,
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           overflow: 'hidden',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Hotel sx={{ fontSize: 20, color: '#1a1a1a' }} />
-            <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#1a1a1a' }}>
+            <Hotel sx={{ fontSize: 20, color: COLORS.text.strong }} />
+            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong }}>
               Available Rooms
             </Typography>
             <Chip
               label={loading ? '…' : rooms.length}
               size="small"
-              sx={{ height: 20, fontSize: 11, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: '#4a4a4a' }}
+              sx={{ height: 20, fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
             />
           </Box>
-          <Button
-            variant="outlined"
+          <SecondaryActionButton
             size="small"
             startIcon={<Add />}
             onClick={startAdd}
             disabled={adding}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              borderColor: 'rgba(0,0,0,0.15)',
-              color: '#1a1a1a',
-              '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222,63,94,0.04)', color: '#DE3F5E' },
-            }}
           >
             Add Room
-          </Button>
+          </SecondaryActionButton>
         </Box>
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+            <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
           </Box>
         ) : rooms.length === 0 && !adding ? (
           <Box sx={{ py: 6, textAlign: 'center', px: 3 }}>
-            <Hotel sx={{ fontSize: 40, color: '#cbd5e1', mb: 1.5 }} />
-            <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#1a1a1a', mb: 0.5 }}>
+            <Hotel sx={{ fontSize: 40, color: COLORS.border.default, mb: 1.5 }} />
+            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
               No rooms yet
             </Typography>
-            <Typography sx={{ fontSize: 13, color: '#6a6a6a', maxWidth: 380, mx: 'auto' }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, maxWidth: 380, mx: 'auto' }}>
               Upload a floorplan or list above, or add rooms manually one at a time.
             </Typography>
           </Box>
@@ -444,12 +500,12 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#FAFAFA' }}>
-                  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#1a1a1a' }}>Room</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#1a1a1a' }}>Floor</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#1a1a1a' }}>Hotel</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#1a1a1a' }}>Capacity</TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#1a1a1a' }}>Notes</TableCell>
+                <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Room</TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Floor</TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Hotel</TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Notes</TableCell>
                   <TableCell sx={{ width: 110 }} />
                 </TableRow>
               </TableHead>
@@ -507,13 +563,13 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Save">
-                        <IconButton size="small" onClick={saveAdd} disabled={!addDraft.room_number?.trim()}>
-                          <Check sx={{ fontSize: 18, color: '#22c55e' }} />
-                        </IconButton>
+                        <IconActionButton size="small" onClick={saveAdd} disabled={!addDraft.room_number?.trim()}>
+                          <Check sx={{ fontSize: 18, color: COLORS.accent.success }} />
+                        </IconActionButton>
                       </Tooltip>
                       <Tooltip title="Cancel">
                         <IconButton size="small" onClick={cancelAdd}>
-                          <Close sx={{ fontSize: 18, color: '#9a9a9a' }} />
+                          <Close sx={{ fontSize: 18, color: COLORS.text.faint }} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -533,7 +589,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                             sx={inlineFieldSx}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
                             {room.room_number}
                           </Typography>
                         )}
@@ -547,7 +603,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                             sx={inlineFieldSx}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 13, color: '#4a4a4a' }}>{room.floor || '—'}</Typography>
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>{room.floor || '—'}</Typography>
                         )}
                       </TableCell>
                       <TableCell>
@@ -559,8 +615,8 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                             sx={inlineFieldSx}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 13, color: '#4a4a4a' }}>
-                            {room.hotel_name || (defaultHotel ? <span style={{ color: '#9a9a9a' }}>{defaultHotel}</span> : '—')}
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>
+                            {room.hotel_name || (defaultHotel ? <span style={{ color: COLORS.text.faint }}>{defaultHotel}</span> : '—')}
                           </Typography>
                         )}
                       </TableCell>
@@ -574,7 +630,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                             sx={inlineFieldSx}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 13, color: '#4a4a4a' }}>{room.capacity ?? '—'}</Typography>
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted }}>{room.capacity ?? '—'}</Typography>
                         )}
                       </TableCell>
                       <TableCell>
@@ -586,20 +642,20 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                             sx={inlineFieldSx}
                           />
                         ) : (
-                          <Typography sx={{ fontSize: 13, color: '#6a6a6a' }}>{room.notes || '—'}</Typography>
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>{room.notes || '—'}</Typography>
                         )}
                       </TableCell>
                       <TableCell align="right">
                         {isEditing ? (
                           <Stack direction="row" spacing={0} justifyContent="flex-end">
                             <Tooltip title="Save">
-                              <IconButton size="small" onClick={saveEdit}>
-                                <Check sx={{ fontSize: 18, color: '#22c55e' }} />
-                              </IconButton>
+                              <IconActionButton size="small" onClick={saveEdit}>
+                                <Check sx={{ fontSize: 18, color: COLORS.accent.success }} />
+                              </IconActionButton>
                             </Tooltip>
                             <Tooltip title="Cancel">
                               <IconButton size="small" onClick={cancelEdit}>
-                                <Close sx={{ fontSize: 18, color: '#9a9a9a' }} />
+                                <Close sx={{ fontSize: 18, color: COLORS.text.faint }} />
                               </IconButton>
                             </Tooltip>
                           </Stack>
@@ -607,13 +663,13 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                           <Box className="row-actions" sx={{ opacity: 0, transition: 'opacity 0.15s' }}>
                             <Tooltip title="Edit">
                               <IconButton size="small" onClick={() => startEdit(room)}>
-                                <Edit sx={{ fontSize: 16, color: '#6a6a6a' }} />
+                                <Edit sx={{ fontSize: 16, color: COLORS.text.subtle }} />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Remove">
-                              <IconButton size="small" onClick={() => removeRoom(room.id)}>
-                                <Delete sx={{ fontSize: 16, color: '#9a9a9a' }} />
-                              </IconButton>
+                              <IconActionButton size="small" onClick={() => removeRoom(room.id)} spinnerColor={COLORS.text.faint}>
+                                <Delete sx={{ fontSize: 16, color: COLORS.text.faint }} />
+                              </IconActionButton>
                             </Tooltip>
                           </Box>
                         )}
@@ -633,12 +689,12 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    fontSize: '0.85rem',
-    '& input': { py: 0.75, fontSize: '0.85rem', color: '#1a1a1a' },
-    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.15)' },
-    '&:hover fieldset': { borderColor: '#DE3F5E' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '1.5px' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    fontSize: '0.875rem',
+    '& input': { py: 0.75, fontSize: '0.875rem', color: COLORS.text.strong },
+    '& fieldset': { borderColor: COLORS.border.default },
+    '&:hover fieldset': { borderColor: COLORS.brand.primary },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '1.5px' },
   },
 };
