@@ -45,6 +45,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 const SWITCH_SX = {
 };
@@ -339,14 +340,10 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
   return (
     <Box sx={{ maxWidth: 700 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Frequently Asked Questions
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Add common questions and answers for your guests
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Frequently Asked Questions"
+          subtitle="Add common questions and answers for your guests"
+        />
 
         <Stack spacing={2}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
