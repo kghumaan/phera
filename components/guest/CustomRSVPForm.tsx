@@ -22,7 +22,6 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
-  Alert,
   Collapse,
   Divider,
   IconButton,
@@ -51,6 +50,7 @@ import Confetti from 'react-confetti';
 import GifPicker from '@/components/ui/GifPicker';
 import { GifData, RSVPFormData, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
+import { ErrorAlert } from '@/components/shared/Alert';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { guestTextFieldSx } from '@/lib/constants/form-styles';
@@ -1733,13 +1733,9 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             </Typography>
 
             {authError && (
-              <Alert
-                severity="error"
-                onClose={() => setAuthError(null)}
-                sx={{ borderRadius: RADII.md, mb: 2 }}
-              >
+              <ErrorAlert onClose={() => setAuthError(null)} sx={{ mb: 2 }}>
                 {authError}
-              </Alert>
+              </ErrorAlert>
             )}
 
             {isAuthenticated ? (

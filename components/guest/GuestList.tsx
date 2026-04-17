@@ -16,8 +16,6 @@ import {
   useTheme,
   Divider,
   Collapse,
-  Menu,
-  MenuItem,
   Badge,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';

@@ -9,7 +9,6 @@ import {
   TextField,
   Stack,
   Paper,
-  Alert,
   alpha,
   CircularProgress,
 } from '@mui/material';
@@ -17,6 +16,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { ErrorAlert } from '@/components/shared/Alert';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function NewWeddingPage() {
@@ -257,13 +257,9 @@ export default function NewWeddingPage() {
                   />
 
                   {error && (
-                    <Alert
-                      severity="error"
-                      onClose={() => setError(null)}
-                      sx={{ borderRadius: RADII.md }}
-                    >
+                    <ErrorAlert onClose={() => setError(null)}>
                       {error}
-                    </Alert>
+                    </ErrorAlert>
                   )}
 
                   <PrimaryActionButton
