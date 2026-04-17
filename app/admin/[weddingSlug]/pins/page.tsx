@@ -9,8 +9,6 @@ import {
   Paper,
   Grid,
   IconButton,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
@@ -48,6 +46,7 @@ import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -662,20 +661,14 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         </Paper>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog
+        <PheraDialog
           open={!!deletePinTarget}
           onClose={() => setDeletePinTarget(null)}
-          PaperProps={{
-            sx: {
-              borderRadius: RADII.lg,
-              p: 1,
-              maxWidth: 400,
-            }
-          }}
+          PaperProps={{ sx: { p: 1, maxWidth: 400 } }}
         >
-          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+          <PheraDialogTitle onClose={() => setDeletePinTarget(null)}>
             Delete PIN?
-          </DialogTitle>
+          </PheraDialogTitle>
           <DialogContent>
             <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
               Are you sure you want to delete PIN <strong>{deletePinTarget}</strong>? This action cannot be undone.
@@ -692,7 +685,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               Delete
             </PrimaryActionButton>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
 
         {/* Pro Selections Modal */}
         <ProSelectionsModal
