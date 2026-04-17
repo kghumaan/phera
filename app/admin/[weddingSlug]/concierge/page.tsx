@@ -89,7 +89,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     const guestParam = searchParams.get('guest');
     if (guestParam) {
       setSelectedGuestId(guestParam);
-      setActiveTab(1); // Switch to Conversations tab
+      setActiveTab(2); // Switch to Conversations tab (index 2)
     }
   }, [searchParams]);
 
@@ -256,7 +256,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               value={activeTab}
               onChange={(_, val) => {
                 setActiveTab(val);
-                if (val !== 1) setSelectedGuestId(null);
+                if (val !== 2) setSelectedGuestId(null);
               }}
               sx={{
                 '& .MuiTab-root': {
@@ -271,8 +271,8 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               }}
             >
               <Tab label="Knowledge Bank" />
+              <Tab label="Broadcast Messages" />
               <Tab label="Conversations" />
-              <Tab label="Broadcasts" />
             </Tabs>
 
             {weddingId ? (
@@ -284,16 +284,16 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   />
                 )}
                 {activeTab === 1 && (
-                  <ConciergeConversations
-                    weddingId={weddingId}
-                    initialGuestId={selectedGuestId}
-                  />
-                )}
-                {activeTab === 2 && (
                   <ConciergeBroadcasts
                     weddingId={weddingId}
                     weddingSlug={weddingSlug}
                     isViewOnly={isViewOnly}
+                  />
+                )}
+                {activeTab === 2 && (
+                  <ConciergeConversations
+                    weddingId={weddingId}
+                    initialGuestId={selectedGuestId}
                   />
                 )}
               </>

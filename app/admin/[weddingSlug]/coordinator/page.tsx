@@ -585,28 +585,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
 
-          {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-                Vendor Management
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
-              </Typography>
-            </Box>
-          </Box>
+          <PageHeading
+            title="Vendor Management"
+            subtitle="Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place"
+          />
 
           {/* Getting Started card */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 1,
-              border: '1px solid rgba(0,0,0,0.07)',
-              bgcolor: COLORS.bg.white,
-            }}
-          >
+          <PheraCard variant="default" sx={{ p: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong }}>
               Get Started
             </Typography>
@@ -800,7 +785,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               </Box>
 
             </Stack>
-          </Paper>
+          </PheraCard>
 
         </Stack>
 
