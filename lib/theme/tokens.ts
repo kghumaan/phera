@@ -66,7 +66,7 @@ export const COLORS = {
   side: {
     bride: '#DE3F5E',   // brand pink
     groom: '#3b82f6',   // blue
-    both:  '#8b5cf6',   // purple
+    both: '#8b5cf6',   // purple
   },
 } as const;
 

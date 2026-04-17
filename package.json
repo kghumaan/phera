@@ -13,7 +13,13 @@
     "test:coverage": "vitest run --coverage",
     "setup-gif": "node scripts/download-wedding-gif.js",
     "gif-help": "node scripts/download-wedding-gif.js --manual",
-    "optimize-images": "node scripts/optimize-images.mjs"
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings=9999"
+    ]
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.3",
@@ -91,7 +97,9 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.11",
     "happy-dom": "^16.6.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.0.1",
+    "lint-staged": "^16.4.0",
     "react-grab": "^0.1.24",
     "sharp": "^0.34.3",
     "tailwindcss": "^4",

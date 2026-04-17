@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { sendEmailOTP, verifyEmailOTP, signInWithGoogle, signInWithPhone, verifyOTP } from '@/lib/supabase/auth-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { FONTS } from '@/lib/theme/tokens';
 
 interface LoginModalProps {
   open: boolean;
@@ -489,7 +490,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       fontSize: '24px',
                       letterSpacing: '8px',
                       fontWeight: 'bold',
-                      fontFamily: 'monospace'
+                      fontFamily: FONTS.body
                     }
                   }}
                   sx={{
@@ -497,7 +498,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       borderRadius: '8px',
                       backgroundColor: '#F5F5F5',
                       fontSize: '24px',
-                      fontFamily: 'monospace',
+                      fontFamily: FONTS.body,
                       color: '#141414',
                       '& fieldset': {
                         borderColor: 'transparent',

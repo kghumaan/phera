@@ -27,7 +27,7 @@ import {
 } from '@mui/icons-material';
 import { getOptInStats, getMessageStats, getRecentMessages } from '@/lib/whatsapp/analytics';
 import type { OptInStats, MessageStats, RecentMessage } from '@/lib/whatsapp/analytics';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WhatsAppAnalyticsProps {
   weddingId: string;
@@ -225,7 +225,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        <Typography variant="body2" sx={{ fontFamily: FONTS.body }}>
                           {message.template_name}
                         </Typography>
                       </TableCell>

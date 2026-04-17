@@ -6,7 +6,7 @@ import { Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AdminPublishButtonProps {
     weddingSlug: string;
@@ -234,7 +234,7 @@ export default function AdminPublishButton({
                                         sx={{
                                             color: COLORS.text.strong,
                                             fontWeight: 600,
-                                            fontFamily: 'monospace',
+                                            fontFamily: FONTS.body,
                                             fontSize: '0.9rem',
                                         }}
                                     >

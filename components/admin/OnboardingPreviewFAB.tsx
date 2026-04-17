@@ -6,7 +6,7 @@ import { Visibility, Close, DesktopWindows, PhoneAndroid, Publish, ContentCopy, 
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton, ActionButton } from './ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface OnboardingPreviewFABProps {
   weddingSlug: string;
@@ -269,7 +269,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                     sx={{
                       color: COLORS.text.strong,
                       fontWeight: 600,
-                      fontFamily: 'monospace',
+                      fontFamily: FONTS.body,
                       fontSize: '0.9rem',
                     }}
                   >

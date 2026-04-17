@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Box } from '@mui/material';
+import { FONTS } from '@/lib/theme/tokens';
 
 interface OtpInputProps {
   length?: number;
@@ -106,7 +107,7 @@ export default function OtpInput({ length = 6, value, onChange, disabled = false
             textAlign: 'center',
             fontSize: { xs: '22px', sm: '28px' },
             fontWeight: 600,
-            fontFamily: 'monospace',
+            fontFamily: FONTS.body,
             color: '#1a1a1a',
             outline: 'none',
             caretColor: '#DE3F5E',

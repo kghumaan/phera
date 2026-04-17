@@ -24,7 +24,7 @@ import QrCodeIcon from '@mui/icons-material/QrCode';
 import ShareIcon from '@mui/icons-material/Share';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface LapseEvent {
   id: string;
@@ -197,7 +197,7 @@ export default function LapseIntegration() {
                         value={event.code}
                         size="small"
                         InputProps={{ readOnly: true }}
-                        sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace', fontSize: '1.1rem' } }}
+                        sx={{ '& .MuiInputBase-input': { fontFamily: FONTS.body, fontSize: '1.1rem' } }}
                       />
                       <Button
                         size="small"

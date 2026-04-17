@@ -22,7 +22,7 @@ import { Send as SendIcon } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface BroadcastFormProps {
   open: boolean;
@@ -196,7 +196,7 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
               <Typography variant="caption" color="text.secondary">
                 Template Preview:
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
+              <Typography variant="body2" sx={{ mt: 1, fontFamily: FONTS.body }}>
                 {selectedTemplateData.content}
               </Typography>
             </Box>
