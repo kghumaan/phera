@@ -20,8 +20,7 @@ import {
   InputLabel,
   Divider,
   Checkbox,
-  Switch,
-  Tooltip,
+    Tooltip,
   Tabs,
   Tab,
   Collapse,
@@ -58,6 +57,7 @@ import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOL
 import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 interface Vendor {
   id: string;
@@ -979,16 +979,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 Force onboarding view
               </Typography>
             </Box>
-            <Switch
+            <PheraSwitch
               checked={forceOnboarding}
               onChange={() => setForceOnboarding((p) => !p)}
               size="small"
-              sx={{
-                '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.brand.primary },
-              }}
             />
           </Box>
         )}
@@ -1241,16 +1235,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   Force onboarding view
                 </Typography>
               </Box>
-              <Switch
+              <PheraSwitch
                 checked={forceOnboarding}
                 onChange={() => setForceOnboarding((p) => !p)}
                 size="small"
-                sx={{
-                  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.brand.primary },
-                }}
               />
             </Box>
           )}

@@ -16,8 +16,7 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Switch,
-    Chip,
+        Chip,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -48,6 +47,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import AutoSaveIndicator from './AutoSaveIndicator';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -379,20 +379,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                             Toggle plan for testing
                                         </Typography>
                                     </Box>
-                                    <Switch
+                                    <PheraSwitch
                                         checked={isPro}
                                         onChange={(e) => { e.stopPropagation(); togglePlan(); }}
                                         size="small"
-                                        sx={{
-                                            '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                                            '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                                            '& .MuiSwitch-switchBase.Mui-checked': {
-                                                color: COLORS.brand.primary,
-                                            },
-                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                backgroundColor: COLORS.brand.primary,
-                                            },
-                                        }}
                                     />
                                 </Box>
                                 <ActionButton

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress } from '@mui/material';
+import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, TextField, CircularProgress } from '@mui/material';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { ActionButton, PrimaryActionButton } from './ActionButton';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
@@ -11,6 +11,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import MobileBrowserShell from '@/components/ui/MobileBrowserShell';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const SECTION_MAP: Record<string, string> = {
     '/schedule': 'Schedule',
@@ -788,14 +789,10 @@ export default function AdminPreviewPanel({
                                             Keep your site unpublished while you're building it. Publish it when you're ready for guests to visit.
                                         </Typography>
                                     </Box>
-                                    <Switch
+                                    <PheraSwitch
                                         checked={isPublished}
                                         onChange={(e) => setIsPublished(e.target.checked)}
                                         sx={{
-                                            '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                                            '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                                            '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
                                         }}
                                     />
                                 </Box>

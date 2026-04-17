@@ -1,6 +1,5 @@
 import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
-import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 import { buildSystemPrompt, CONCIERGE_TOOLS } from '@/lib/whatsapp/concierge-system-prompt';
 import type { WeddingContext, GuestContext } from '@/lib/whatsapp/concierge-system-prompt';
@@ -20,10 +19,6 @@ const gemini = process.env.GEMINI_API_KEY
 
 const groq = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
-  : null;
-
-const deepseek = process.env.DEEPSEEK_API_KEY
-  ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' })
   : null;
 
 const MAX_TOOL_ROUNDS = 5;
@@ -415,24 +410,7 @@ export async function generateAIResponse(params: {
         );
         if (finalMessage) lastProvider = 'groq-llama-3.3';
       } catch (err: any) {
-        console.warn('[ai-handler] Groq failed, falling back to DeepSeek:', err.message);
-      }
-    }
-
-    // Fallback to DeepSeek
-    if (!finalMessage && deepseek) {
-      try {
-        console.log('[ai-handler] Trying DeepSeek...');
-        finalMessage = await callOpenAICompatible(
-          deepseek as any,
-          'deepseek-chat',
-          messages,
-          guestId,
-          weddingId,
-        );
-        if (finalMessage) lastProvider = 'deepseek-chat';
-      } catch (err: any) {
-        console.error('[ai-handler] DeepSeek also failed:', err.message);
+        console.error('[ai-handler] Groq also failed:', err.message);
       }
     }
 
@@ -569,7 +547,7 @@ async function callGemini(
 }
 
 // ---------------------------------------------------------------------------
-// LLM Provider: OpenAI-compatible (Groq / DeepSeek)
+// LLM Provider: OpenAI-compatible (Groq)
 // ---------------------------------------------------------------------------
 
 async function callOpenAICompatible(

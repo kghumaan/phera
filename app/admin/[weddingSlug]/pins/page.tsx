@@ -18,8 +18,7 @@ import {
   alpha,
   Divider,
   FormControlLabel,
-  Switch,
-  Select,
+    Select,
   MenuItem,
   FormControl,
   InputLabel,
@@ -47,6 +46,7 @@ import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectio
 import ContinueButton from '@/components/admin/ContinueButton';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -727,12 +727,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 // Reuse the standard enhanced text field style from the page-level constant
 const pinFieldSx = textFieldSx;
 
-const SWITCH_SX = {
-  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-  '& .Mui-checked': { color: COLORS.brand.primary },
-  '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
-};
+// Kept for backwards compat only — PheraSwitch already styles itself.
+// Callers can drop `sx={SWITCH_SX}` entirely.
+const SWITCH_SX = {};
 
 interface InlinePinFormProps {
   pin: { pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] };
@@ -796,7 +793,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
           <Stack direction="row" spacing={2} flexWrap="wrap">
             <FormControlLabel
               control={
-                <Switch
+                <PheraSwitch
                   checked={pin.skip_rsvp}
                   onChange={(e) => setPin({ ...pin, skip_rsvp: e.target.checked, allows_plus_one: e.target.checked ? false : pin.allows_plus_one })}
                   size="small"
@@ -808,7 +805,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
             {!pin.skip_rsvp && (
               <FormControlLabel
                 control={
-                  <Switch
+                  <PheraSwitch
                     checked={pin.allows_plus_one}
                     onChange={(e) => setPin({ ...pin, allows_plus_one: e.target.checked })}
                     size="small"
@@ -821,7 +818,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
             {events.length > 0 && (
               <FormControlLabel
                 control={
-                  <Switch
+                  <PheraSwitch
                     checked={showHideEvents}
                     onChange={(e) => {
                       setShowHideEvents(e.target.checked);

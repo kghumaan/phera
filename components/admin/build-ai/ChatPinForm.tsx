@@ -6,8 +6,7 @@ import {
   TextField,
   Typography,
   alpha,
-  Switch,
-  FormControlLabel,
+    FormControlLabel,
   Checkbox,
   Tooltip,
 } from '@mui/material';
@@ -15,6 +14,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 interface ChatPinFormProps {
   onSave: (pin: {
@@ -139,10 +139,10 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <FormControlLabel
             control={
-              <Switch
+              <PheraSwitch
                 checked={formData.allows_plus_one}
                 onChange={(e) => setFormData({ ...formData, allows_plus_one: e.target.checked })}
-                sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
+                
               />
             }
             label={
@@ -156,10 +156,10 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
           />
           <FormControlLabel
             control={
-              <Switch
+              <PheraSwitch
                 checked={formData.skip_rsvp}
                 onChange={(e) => setFormData({ ...formData, skip_rsvp: e.target.checked })}
-                sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
+                
               />
             }
             label={
@@ -177,10 +177,10 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
           <Box>
             <FormControlLabel
               control={
-                <Switch
+                <PheraSwitch
                   checked={formData.restrictEvents}
                   onChange={(e) => setFormData({ ...formData, restrictEvents: e.target.checked, hidden_events: e.target.checked ? formData.hidden_events : [] })}
-                  sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
+                  
                 />
               }
               label={

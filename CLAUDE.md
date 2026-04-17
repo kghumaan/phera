@@ -17,6 +17,7 @@ Before writing or editing ANY UI code, follow these non-negotiable rules. Migrat
    - Stat cards → `StatCard` from `components/shared/StatCard` (icon + value + label, clickable + selected).
    - Chips → `PheraChip` from `components/shared/Chip` with `tone="neutral" | "brand" | "success" | "warning" | "danger" | "info" | "side-bride" | "side-groom" | "side-both"`.
    - Dialogs → `PheraDialog`, `PheraDialogTitle` from `components/shared/Dialog` (serif title + optional close button built-in).
+   - Switches / toggles → `PheraSwitch` from `components/shared/Switch`. Never import MUI's `Switch` directly. Off = neutral track, on = brand pink track — baked in. Don't override via sx unless truly one-off.
    - If a primitive for your need doesn't exist, ADD IT to `components/shared/` first, then use it — don't inline.
 
 **3. Typography = variants, not inline fontSize.** Use `<Typography variant="body2">`, `subtitleCaps`, `h1`, etc. Never set `fontSize` inline unless it's a one-off ornament (tiny badge, numeric indicator). **14px (0.875rem) is the absolute minimum** for any readable text.

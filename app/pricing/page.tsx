@@ -127,45 +127,45 @@ const features = [
 
 const pricingTiers = [
   {
-    name: 'PHERA BASE',
-    price: '$349',
-    priceSuffix: '/wedding',
-    description: 'Up to 200 guests',
+    name: 'PHERA FREE',
+    price: '$0',
+    priceSuffix: '',
+    description: 'Website + RSVPs',
     features: [
       'Custom wedding website',
       'Guest list & RSVP collection',
+      'PIN-gated event access',
+      'Design it yourself or with AI',
+    ],
+    buttonText: 'Get Started',
+    highlight: false,
+    buttonHref: '/auth/signup',
+  },
+  {
+    name: 'PHERA BASE',
+    price: '$349',
+    priceSuffix: '',
+    description: 'Up to 200 guests',
+    features: [
+      'Everything in Free',
       'Proactive WhatsApp outreach',
       'Travel, rooms & shuttle coordination',
       '24/7 WhatsApp Concierge for guests',
       'Control Tower dashboard',
     ],
     buttonText: 'Get Started',
-    highlight: false,
+    highlight: true,
   },
   {
     name: 'PHERA PREMIUM',
     price: '$599',
-    priceSuffix: '/wedding',
+    priceSuffix: '',
     description: 'Up to 400 guests',
     features: [
       'Everything in Base',
       'Vendor Coordinator Agent',
       'Reverse-destination cultural guides',
       'Priority escalation support',
-    ],
-    buttonText: 'Get Started',
-    highlight: true,
-  },
-  {
-    name: 'PHERA GRAND',
-    price: '$999',
-    priceSuffix: '/wedding',
-    description: '400+ guests',
-    features: [
-      'Everything in Premium',
-      'Dedicated human coordinator hours',
-      'Custom outreach sequences',
-      'White-glove onboarding',
     ],
     buttonText: 'Get Started',
     highlight: false,
@@ -894,8 +894,8 @@ function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeTier, setUpgradeTier] = useState<'pro' | 'planner'>('pro');
-  const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
+  const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
+  const [selectedPricingTier, setSelectedPricingTier] = useState(1);
   const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
 
@@ -908,14 +908,15 @@ function PricingPageContent() {
   // Auto-open UpgradeModal when redirected back with tier param
   useEffect(() => {
     const tier = searchParams.get('tier');
-    if (tier && (tier === 'pro' || tier === 'planner') && user) {
-      setUpgradeTier(tier);
+    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
+    if (tier && valid.includes(tier) && user) {
+      setUpgradeTier(tier as typeof upgradeTier);
       setUpgradeModalOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [searchParams, user]);
 
-  const handleTierAction = (targetTier: 'pro' | 'planner', e?: React.MouseEvent) => {
+  const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -928,8 +929,8 @@ function PricingPageContent() {
     }
   };
 
-  const handleProAction = (e?: React.MouseEvent) => handleTierAction('pro', e);
-  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner', e);
+  const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
+  const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
 
   useEffect(() => {
     const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
@@ -1118,12 +1119,12 @@ function PricingPageContent() {
                           borderColor: COLORS.brand.primary,
                         },
                       };
-                      const label = tier.buttonText.replace('Upgrade to Pro', 'Go Pro');
-                      if (tier.name === 'PRO' || tier.name === 'PLANNER') {
+                      const label = tier.buttonText;
+                      if (tier.name === 'PHERA BASE' || tier.name === 'PHERA PREMIUM') {
                         return (
                           <Button
                             fullWidth
-                            onClick={tier.name === 'PRO' ? handleProAction : handlePlannerAction}
+                            onClick={tier.name === 'PHERA BASE' ? handleBaseAction : handlePremiumAction}
                             variant={tier.highlight ? 'contained' : 'outlined'}
                             size="small"
                             sx={ctaSx}
@@ -1134,7 +1135,7 @@ function PricingPageContent() {
                       }
                       const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
                         ? tier.buttonHref
-                        : '/auth/login';
+                        : '/auth/signup';
                       return (
                         <Button
                           fullWidth
@@ -1185,6 +1186,25 @@ function PricingPageContent() {
                     >
                       Wholesale pricing for planners.
                     </Typography>
+                    <Button
+                      component={Link}
+                      href="/auth/login?role=planner"
+                      variant="outlined"
+                      sx={{
+                        mt: { xs: 2, md: 3 },
+                        borderColor: COLORS.brand.primary,
+                        color: COLORS.brand.primary,
+                        borderRadius: '32px',
+                        px: 3,
+                        py: 1,
+                        fontSize: { xs: '0.85rem', md: '0.95rem' },
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
+                      }}
+                    >
+                      Start as a Planner
+                    </Button>
                   </Grid>
                   <Grid size={{ xs: 12, md: 7 }}>
                     <Grid container spacing={{ xs: 2, md: 3 }}>
@@ -1217,25 +1237,6 @@ function PricingPageContent() {
                         </Typography>
                       </Grid>
                     </Grid>
-                    <Button
-                      component={Link}
-                      href="/auth/login?role=planner"
-                      variant="outlined"
-                      sx={{
-                        mt: { xs: 2, md: 3 },
-                        borderColor: COLORS.brand.primary,
-                        color: COLORS.brand.primary,
-                        borderRadius: '32px',
-                        px: 3,
-                        py: 1,
-                        fontSize: { xs: '0.85rem', md: '0.95rem' },
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
-                      }}
-                    >
-                      Start as a Planner
-                    </Button>
                   </Grid>
                 </Grid>
               </Paper>

@@ -16,8 +16,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Switch,
-  FormControlLabel,
+    FormControlLabel,
   Chip,
   CircularProgress,
   alpha,
@@ -70,6 +69,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -1089,15 +1089,11 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                           <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem' }}>
                             Required
                           </Typography>
-                          <Switch
+                          <PheraSwitch
                             checked={q.required}
                             onChange={e => handleQuestionChange(qIndex, 'required', e.target.checked)}
                             size="small"
                             sx={{
-                              '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                              '& .MuiSwitch-track': { bgcolor: COLORS.border.default, opacity: 1 },
-                              '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary, opacity: 0.5 },
                             }}
                           />
                         </Stack>

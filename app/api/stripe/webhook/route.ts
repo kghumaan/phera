@@ -38,15 +38,17 @@ export async function POST(request: NextRequest) {
 
     if (session.payment_status === 'paid') {
       const userId = session.metadata?.userId;
-      const tier = session.metadata?.tier || 'pro';
+      const tier = session.metadata?.tier || 'base';
+      // Any paid non-planner tier grants Pro access; planner tiers grant Planner access.
+      const accountType = session.metadata?.accountType || 'pro';
 
       if (userId) {
         const upsertData: Record<string, string> = {
           user_id: userId,
-          subscription_tier: tier,
+          subscription_tier: accountType,
           updated_at: new Date().toISOString(),
         };
-        if (tier === 'planner') {
+        if (accountType === 'planner') {
           upsertData.account_type = 'planner';
         }
 
@@ -55,11 +57,11 @@ export async function POST(request: NextRequest) {
           .upsert(upsertData, { onConflict: 'user_id' });
 
         if (error) {
-          console.error(`Error upgrading user to ${tier}:`, error);
+          console.error(`Error upgrading user (tier=${tier}, accountType=${accountType}):`, error);
           return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
         }
 
-        console.log(`User ${userId} upgraded to ${tier} via webhook`);
+        console.log(`User ${userId} upgraded via webhook: tier=${tier}, accountType=${accountType}`);
 
         // Fire-and-forget: auto-generate KB if wedding has location data
         autoGenerateForUser(userId, supabase).catch(err =>

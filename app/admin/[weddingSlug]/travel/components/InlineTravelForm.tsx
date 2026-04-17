@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Box, TextField, Stack, Button, Typography, Switch, CircularProgress, ClickAwayListener } from '@mui/material';
+import { Box, TextField, Stack, Button, Typography, CircularProgress, ClickAwayListener } from '@mui/material';
 import { AttachMoney } from '@mui/icons-material';
 import { TravelSection } from '@/lib/supabase/wedding-service';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -108,15 +109,11 @@ export default function InlineTravelForm({
               sx={{ ...fieldSx, flex: 1 }}
             />
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
-              <Switch
+              <PheraSwitch
                 checked={visible}
                 onChange={(e) => setVisible(e.target.checked)}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
                 }}
               />
               <Typography variant="caption" sx={{ color: COLORS.text.subtle, whiteSpace: 'nowrap' }}>

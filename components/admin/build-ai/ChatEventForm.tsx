@@ -9,8 +9,7 @@ import {
     MenuItem,
     Typography,
     alpha,
-    Switch,
-    FormControlLabel,
+        FormControlLabel,
     Tooltip,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -22,6 +21,7 @@ import Stack from '@mui/material/Stack';
 import { EVENT_TEMPLATES } from '@/components/admin/EventTemplates';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 interface ChatEventFormProps {
     onSave: (event: any) => void;
@@ -328,10 +328,10 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                 {/* Major Event Toggle */}
                 <FormControlLabel
                     control={
-                        <Switch
+                        <PheraSwitch
                             checked={formData.is_major_event}
                             onChange={(e) => setFormData({ ...formData, is_major_event: e.target.checked })}
-                            sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
+                            
                         />
                     }
                     label={

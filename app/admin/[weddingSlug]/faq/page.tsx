@@ -12,8 +12,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
-  FormControlLabel,
+    FormControlLabel,
   ClickAwayListener,
 } from '@mui/material';
 import { useState, useEffect, use, useRef, useCallback } from 'react';
@@ -45,12 +44,9 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const SWITCH_SX = {
-  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
 };
 
 const FAQ_TEMPLATES = [
@@ -613,7 +609,7 @@ function InlineFaqForm({
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <FormControlLabel
               control={
-                <Switch
+                <PheraSwitch
                   checked={showLinkFields}
                   onChange={(e) => {
                     setShowLinkFields(e.target.checked);

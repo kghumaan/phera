@@ -546,7 +546,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
-        tier="planner"
+        tier="planner_perwedding"
       />
     </Box>
   );

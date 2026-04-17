@@ -24,7 +24,7 @@ import {
   Dialog,
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent, type MotionValue } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -119,45 +119,45 @@ const features = [
 
 const pricingTiers = [
   {
-    name: 'PHERA BASE',
-    price: '$349',
-    priceSuffix: '/wedding',
-    description: 'Up to 200 guests',
+    name: 'PHERA FREE',
+    price: '$0',
+    priceSuffix: '',
+    description: 'Website + RSVPs',
     features: [
       'Custom wedding website',
       'Guest list & RSVP collection',
+      'PIN-gated event access',
+      'Design it yourself or with AI',
+    ],
+    buttonText: 'Get Started',
+    highlight: false,
+    buttonHref: '/auth/signup',
+  },
+  {
+    name: 'PHERA BASE',
+    price: '$349',
+    priceSuffix: '',
+    description: 'Up to 200 guests',
+    features: [
+      'Everything in Free',
       'Proactive WhatsApp outreach',
       'Travel, rooms & shuttle coordination',
       '24/7 WhatsApp Concierge for guests',
       'Control Tower dashboard',
     ],
     buttonText: 'Get Started',
-    highlight: false,
+    highlight: true,
   },
   {
     name: 'PHERA PREMIUM',
     price: '$599',
-    priceSuffix: '/wedding',
+    priceSuffix: '',
     description: 'Up to 400 guests',
     features: [
       'Everything in Base',
       'Vendor Coordinator Agent',
       'Reverse-destination cultural guides',
       'Priority escalation support',
-    ],
-    buttonText: 'Get Started',
-    highlight: true,
-  },
-  {
-    name: 'PHERA GRAND',
-    price: '$999',
-    priceSuffix: '/wedding',
-    description: '400+ guests',
-    features: [
-      'Everything in Premium',
-      'Dedicated human coordinator hours',
-      'Custom outreach sequences',
-      'White-glove onboarding',
     ],
     buttonText: 'Get Started',
     highlight: false,
@@ -220,102 +220,6 @@ interface FeatureItem {
   isPro?: boolean;
 }
 
-// Scroll-linked text slide — opacity crossfades continuously with scroll
-const FeatureTextSlide = ({
-  scrollYProgress,
-  idx,
-  total,
-  isActive,
-  children,
-}: {
-  scrollYProgress: MotionValue<number>;
-  idx: number;
-  total: number;
-  isActive: boolean;
-  children: React.ReactNode;
-}) => {
-  const opacity = useTransform(
-    scrollYProgress,
-    [
-      (idx - 0.15) / total,
-      (idx + 0.15) / total,
-      (idx + 0.85) / total,
-      (idx + 1.15) / total,
-    ],
-    [0, 1, 1, 0]
-  );
-  return (
-    <motion.div
-      style={{
-        opacity,
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: isActive ? 'auto' : 'none',
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-// Scroll-linked image slide — opacity + y continuously tied to scroll
-const FeatureImageSlide = ({
-  scrollYProgress,
-  idx,
-  total,
-  frameType,
-  isActive,
-  children,
-}: {
-  scrollYProgress: MotionValue<number>;
-  idx: number;
-  total: number;
-  frameType?: FeatureItem['frameType'];
-  isActive: boolean;
-  children: React.ReactNode;
-}) => {
-  const opacity = useTransform(
-    scrollYProgress,
-    [
-      (idx - 0.15) / total,
-      (idx + 0.15) / total,
-      (idx + 0.85) / total,
-      (idx + 1.15) / total,
-    ],
-    [0, 1, 1, 0]
-  );
-  const y = useTransform(
-    scrollYProgress,
-    [
-      (idx - 0.15) / total,
-      (idx + 0.15) / total,
-      (idx + 0.85) / total,
-      (idx + 1.15) / total,
-    ],
-    ['40%', '0%', '0%', '-40%']
-  );
-  return (
-    <motion.div
-      style={{
-        opacity,
-        y,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: frameType === 'mobile' ? 'center' : 'flex-start',
-        pointerEvents: isActive ? 'auto' : 'none',
-        willChange: 'transform, opacity',
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
 const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -355,8 +259,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
     }
   });
 
-  // Calculate container height (80vh per item — breathing room for scroll-linked crossfade)
-  const containerHeight = items.length * 80;
+  // Calculate container height (60vh per item)
+  const containerHeight = items.length * 60;
 
   // Click handler to scroll to a specific feature
   const scrollToFeature = (index: number) => {
@@ -459,12 +363,16 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 {items.map((item, idx) => {
                   const isActive = idx === activeIndex;
                   return (
-                    <FeatureTextSlide
+                    <motion.div
                       key={item.id}
-                      scrollYProgress={scrollYProgress}
-                      idx={idx}
-                      total={items.length}
-                      isActive={isActive}
+                      initial={false}
+                      animate={{ opacity: isActive ? 1 : 0 }}
+                      transition={{ duration: 0.35, ease: 'easeOut' }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        pointerEvents: isActive ? 'auto' : 'none',
+                      }}
                     >
                       <Typography
                         variant="h5"
@@ -503,7 +411,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         </Box>{' '}
                         {item.solution}
                       </Typography>
-                    </FeatureTextSlide>
+                    </motion.div>
                   );
                 })}
               </Box>
@@ -545,7 +453,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             {/* Right Side - Feature Images */}
             <Box
               sx={{
-                flex: 1.4,
+                flex: 1.8,
                 height: '90vh',
                 position: 'relative',
                 overflow: 'visible',
@@ -553,22 +461,34 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               }}
             >
               {items.map((item, idx) => {
-                const isActive = idx === activeIndex;
+                const position = idx - activeIndex; // -n = above/past, 0 = active, +n = below/upcoming
                 return (
-                  <FeatureImageSlide
+                  <motion.div
                     key={item.id}
-                    scrollYProgress={scrollYProgress}
-                    idx={idx}
-                    total={items.length}
-                    frameType={item.frameType}
-                    isActive={isActive}
+                    initial={false}
+                    animate={{
+                      opacity: position === 0 ? 1 : 0,
+                      y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
+                    }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
+                      pointerEvents: position === 0 ? 'auto' : 'none',
+                    }}
                   >
                     {item.featureImage && item.frameType === 'desktop' && (
                       /* Browser Frame — extends past viewport right edge */
                       <Box
                         sx={{
-                          width: 'calc(100% + 8vw)', // Extends past the right edge of the viewport
-                          minWidth: { md: '700px', lg: '900px' },
+                          width: 'calc(100% + 14vw)', // Extends past the right edge of the viewport
+                          minWidth: { md: '820px', lg: '1080px' },
                           borderRadius: '12px 0 0 12px',
                           overflow: 'hidden',
                           boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
@@ -619,8 +539,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           position: 'relative',
-                          width: 'calc(100% + 8vw)',
-                          minWidth: { md: '700px', lg: '900px' },
+                          width: 'calc(100% + 14vw)',
+                          minWidth: { md: '820px', lg: '1080px' },
                         }}
                       >
                         {/* Base frame (coordinator1) — exact same position as regular desktop frames */}
@@ -734,7 +654,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       </IPhoneMockup>
                     )}
 
-                  </FeatureImageSlide>
+                  </motion.div>
                 );
               })}
             </Box>
@@ -1041,7 +961,7 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeTier, setUpgradeTier] = useState<'pro' | 'planner'>('pro');
+  const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
@@ -1056,14 +976,15 @@ function LandingPageContent() {
   // Auto-open UpgradeModal when redirected back with tier param
   useEffect(() => {
     const tier = searchParams.get('tier');
-    if (tier && (tier === 'pro' || tier === 'planner') && user) {
-      setUpgradeTier(tier);
+    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
+    if (tier && valid.includes(tier) && user) {
+      setUpgradeTier(tier as typeof upgradeTier);
       setUpgradeModalOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [searchParams, user]);
 
-  const handleTierAction = (targetTier: 'pro' | 'planner', e?: React.MouseEvent) => {
+  const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1076,8 +997,8 @@ function LandingPageContent() {
     }
   };
 
-  const handleProAction = (e?: React.MouseEvent) => handleTierAction('pro', e);
-  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner', e);
+  const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
+  const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
 
   useEffect(() => {
     const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
@@ -1392,7 +1313,7 @@ function LandingPageContent() {
                   </List>
 
                   <Button
-                    onClick={handleProAction}
+                    onClick={handleBaseAction}
                     variant="contained"
                     size="large"
                     sx={{
@@ -1950,12 +1871,12 @@ function LandingPageContent() {
                           borderColor: COLORS.brand.primary,
                         },
                       };
-                      const label = tier.buttonText.replace('Upgrade to Pro', 'Go Pro');
-                      if (tier.name === 'PRO' || tier.name === 'PLANNER') {
+                      const label = tier.buttonText;
+                      if (tier.name === 'PHERA BASE' || tier.name === 'PHERA PREMIUM') {
                         return (
                           <Button
                             fullWidth
-                            onClick={tier.name === 'PRO' ? handleProAction : handlePlannerAction}
+                            onClick={tier.name === 'PHERA BASE' ? handleBaseAction : handlePremiumAction}
                             variant={tier.highlight ? 'contained' : 'outlined'}
                             size="small"
                             sx={ctaSx}
@@ -1966,7 +1887,7 @@ function LandingPageContent() {
                       }
                       const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
                         ? tier.buttonHref
-                        : '/auth/login';
+                        : '/auth/signup';
                       return (
                         <Button
                           fullWidth
@@ -2017,6 +1938,25 @@ function LandingPageContent() {
                   >
                     Wholesale pricing for planners.
                   </Typography>
+                  <Button
+                    component={Link}
+                    href="/auth/login?role=planner"
+                    variant="outlined"
+                    sx={{
+                      mt: { xs: 2, md: 3 },
+                      borderColor: COLORS.brand.primary,
+                      color: COLORS.brand.primary,
+                      borderRadius: '32px',
+                      px: 3,
+                      py: 1,
+                      fontSize: { xs: '0.85rem', md: '0.95rem' },
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
+                    }}
+                  >
+                    Start as a Planner
+                  </Button>
                 </Grid>
                 <Grid size={{ xs: 12, md: 7 }}>
                   <Grid container spacing={{ xs: 2, md: 3 }}>
@@ -2049,25 +1989,6 @@ function LandingPageContent() {
                       </Typography>
                     </Grid>
                   </Grid>
-                  <Button
-                    component={Link}
-                    href="/auth/login?role=planner"
-                    variant="outlined"
-                    sx={{
-                      mt: { xs: 2, md: 3 },
-                      borderColor: COLORS.brand.primary,
-                      color: COLORS.brand.primary,
-                      borderRadius: '32px',
-                      px: 3,
-                      py: 1,
-                      fontSize: { xs: '0.85rem', md: '0.95rem' },
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
-                    }}
-                  >
-                    Start as a Planner
-                  </Button>
                 </Grid>
               </Grid>
             </Paper>

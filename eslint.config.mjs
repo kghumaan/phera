@@ -78,9 +78,19 @@ const designSystemRules = {
             "Use PheraMenu from components/shared/Menu instead of raw MUI Menu.",
         },
         {
+          name: "@mui/material",
+          importNames: ["Switch"],
+          message:
+            "Use PheraSwitch from components/shared/Switch instead of raw MUI Switch.",
+        },
+        {
           name: "@mui/material/Alert",
           message:
             "Use InfoAlert / SuccessAlert / WarningAlert / ErrorAlert from components/shared/Alert.",
+        },
+        {
+          name: "@mui/material/Switch",
+          message: "Use PheraSwitch from components/shared/Switch.",
         },
         {
           name: "@mui/material/Menu",

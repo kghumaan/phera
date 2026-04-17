@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -891,7 +891,6 @@ function FeaturesPageContent() {
   ];
 
   const { user } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
@@ -907,23 +906,12 @@ function FeaturesPageContent() {
   // Auto-open UpgradeModal when redirected back with tier param
   useEffect(() => {
     const tier = searchParams.get('tier');
-    if (tier === 'pro' && user) {
+    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
+    if (tier && valid.includes(tier) && user) {
       setUpgradeModalOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [searchParams, user]);
-
-  const handleProAction = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (user) {
-      setUpgradeModalOpen(true);
-    } else {
-      router.push('/auth/login?redirect=/features?tier=pro');
-    }
-  };
 
   useEffect(() => {
     const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {

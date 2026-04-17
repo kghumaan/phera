@@ -7,8 +7,7 @@ import {
   Paper,
   Avatar,
   Chip,
-  Switch,
-  Divider,
+    Divider,
   Tabs,
   Tab,
   CircularProgress,
@@ -27,6 +26,7 @@ import ConciergeKnowledgeBase from '@/components/admin/concierge/ConciergeKnowle
 import ConciergeBroadcasts from '@/components/admin/concierge/ConciergeBroadcasts';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -541,7 +541,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                         <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: COLORS.text.strong }}>{n.label}</Typography>
                         <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, mt: 0.25 }}>{n.desc}</Typography>
                       </Box>
-                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }} />
+                      <PheraSwitch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0 }} />
                     </Box>
                   ))}
                 </Stack>

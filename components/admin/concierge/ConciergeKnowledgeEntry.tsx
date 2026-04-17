@@ -4,8 +4,7 @@ import {
   Box,
   Typography,
   Paper,
-  Switch,
-  Chip,
+    Chip,
   TextField,
   Select,
   MenuItem,
@@ -18,6 +17,7 @@ import { Delete, AutoAwesome } from '@mui/icons-material';
 import { useState } from 'react';
 import { PrimaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -233,15 +233,11 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         </Box>
         {!isViewOnly && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-            <Switch
+            <PheraSwitch
               size="small"
               checked={entry.is_active}
               onChange={(e) => onUpdate(entry.id, { is_active: e.target.checked })}
               sx={{
-                '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
-                '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
-                '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
-                '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
               }}
             />
             <IconActionButton

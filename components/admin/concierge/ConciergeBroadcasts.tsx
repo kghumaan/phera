@@ -100,37 +100,6 @@ export default function ConciergeBroadcasts({
         </PrimaryActionButton>
       </Box>
 
-      {/* Stats strip */}
-      {broadcasts.length > 0 && (
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Broadcasts sent', value: stats.count },
-            { label: 'Messages delivered', value: stats.totalSent },
-            { label: 'Replies received', value: stats.totalReplies },
-          ].map((s) => (
-            <Paper
-              key={s.label}
-              elevation={0}
-              sx={{
-                flex: '1 1 160px',
-                minWidth: 160,
-                p: 2,
-                borderRadius: 1,
-                border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: COLORS.bg.white,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
-                {s.value}
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
-                {s.label}
-              </Typography>
-            </Paper>
-          ))}
-        </Box>
-      )}
-
       {/* List */}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
