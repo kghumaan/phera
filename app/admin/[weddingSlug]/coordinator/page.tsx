@@ -707,10 +707,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
-                    Add to a Vendor Group Chat
+                    Add to Vendor Group Chats
                   </Typography>
                   <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
-                    Open any vendor WhatsApp group chat, tap the group name at the top, select <strong>Add Participant</strong>, and add the Coordinator number. Phera tracks <strong style={{ color: COLORS.text.strong }}>future messages</strong> automatically and extracts insights — use Step 3 below to bring in any existing history.
+                    Add the Coordinator number to each vendor group <strong style={{ color: COLORS.text.strong }}>before you start messaging</strong> so Phera captures everything from day one. Already chatting? Use Step 3 to import the history.
                   </Typography>
                   <Button
                     size="small"
@@ -1135,7 +1135,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         </PheraDialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 2 }}>
-            Export a WhatsApp chat as .txt (without media) and upload it here.
+            Export a WhatsApp chat as .txt (without media) and upload it here. Only this file&apos;s messages are imported — add the Coordinator to the group to keep tracking new ones.
           </Typography>
           <Stack spacing={2}>
             <Button
@@ -1210,7 +1210,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           ) : (
             <>
               <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5, px: 3 }}>
-                Select the chats you want to import. We&apos;ll pull in message history and run AI analysis.
+                Select the chats you want to connect. Only messages from now on will be tracked — upload a WhatsApp export to pull in older history.
               </Typography>
 
               <Tabs
