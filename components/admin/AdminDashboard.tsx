@@ -82,8 +82,9 @@ const AdminDashboard = () => {
 
       // Fetch data based on table name
       if (tableName === 'rsvps_complete') {
-        // Use the view for complete RSVP data
-        const { data: viewData, error } = await supabase
+        // Use the view for complete RSVP data. Cast to any because
+        // Supabase types split Tables vs Views into separate overloads.
+        const { data: viewData, error } = await (supabase as any)
           .from('rsvps_complete')
           .select('*');
 

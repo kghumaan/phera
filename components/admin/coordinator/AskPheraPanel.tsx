@@ -82,54 +82,66 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
   return (
     <Box
       sx={{
-        width: 380,
-        flexShrink: 0,
+        position: 'fixed',
+        right: { xs: 12, md: 24 },
+        bottom: { xs: 12, md: 24 },
+        width: { xs: 'calc(100vw - 24px)', sm: 380 },
+        height: { xs: 'calc(100vh - 120px)', sm: 560 },
+        maxHeight: 'calc(100vh - 40px)',
+        zIndex: 1300,
         display: 'flex',
         flexDirection: 'column',
-        borderLeft: '1px solid rgba(0,0,0,0.07)',
         bgcolor: COLORS.bg.white,
-        // Anchor to the viewport so switching admin tabs doesn't re-flow the
-        // panel. Sticky + height: 100vh was resetting the top offset whenever
-        // the sibling column's height changed (e.g. Members tab is taller).
-        position: 'sticky',
-        top: 0,
-        alignSelf: 'flex-start',
-        height: '100vh',
-        maxHeight: '100vh',
+        borderRadius: RADII.lg,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)',
+        border: '1px solid rgba(0,0,0,0.07)',
         overflow: 'hidden',
-        pt: 'calc(34px + 32px)',
+        '@keyframes askPheraSlideIn': {
+          from: { transform: 'translateY(16px)', opacity: 0 },
+          to: { transform: 'translateY(0)', opacity: 1 },
+        },
+        animation: 'askPheraSlideIn 0.22s ease-out',
       }}
     >
-      {/* Header */}
+      {/* Header — dark bar with title + close, matches reference design */}
       <Box
         sx={{
-          px: 2.5,
+          px: 2,
           py: 1.5,
-          borderBottom: '1px solid rgba(0,0,0,0.07)',
+          bgcolor: COLORS.text.strong,
+          color: COLORS.text.inverse,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexShrink: 0,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
             sx={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               borderRadius: '50%',
-              bgcolor: alpha(COLORS.brand.primary, 0.1),
+              bgcolor: 'rgba(255,255,255,0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AutoAwesome sx={{ fontSize: 16, color: COLORS.brand.primary }} />
+            <AutoAwesome sx={{ fontSize: 15, color: COLORS.text.inverse }} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.inverse }}>
             Ask Phera
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: COLORS.text.subtle }}>
+        <IconButton
+          size="small"
+          onClick={onClose}
+          sx={{
+            color: 'rgba(255,255,255,0.85)',
+            '&:hover': { color: COLORS.text.inverse, bgcolor: 'rgba(255,255,255,0.1)' },
+          }}
+        >
           <Close sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>

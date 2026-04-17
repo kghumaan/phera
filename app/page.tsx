@@ -1225,7 +1225,7 @@ function LandingPageContent() {
                       },
                     }}
                   >
-                    Try the Demo
+                    See how it works
                   </Button>
                 </Stack>
               </Stack>

@@ -88,17 +88,18 @@ export const outreachService = {
       .update({
         outreach_status: status,
         outreach_last_contacted_at: new Date().toISOString(),
-        outreach_attempt_count: supabase.rpc ? undefined : undefined, // increment handled below
       })
       .eq('id', guestId);
 
     if (updateError) throw new Error(`Failed to update guest status: ${updateError.message}`);
 
-    // Increment attempt count via raw update
-    const { error: incError } = await supabase.rpc('increment_outreach_attempt', { guest_id_input: guestId }).catch(() => {
-      // If RPC doesn't exist, do a manual select + update
-      return { error: null };
-    });
+    // Increment attempt count via raw update. The RPC may not exist in every
+    // environment so we swallow errors here — it's a best-effort counter.
+    try {
+      await (supabase as any).rpc('increment_outreach_attempt', { guest_id_input: guestId });
+    } catch {
+      // ignore
+    }
 
     // Fetch wedding_id for the event log
     const { data: guest } = await supabase

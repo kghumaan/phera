@@ -1003,9 +1003,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   // ─── STATE C: Pro user, has vendors (dashboard) ─────────────────────
   return (
     <Box sx={{ display: 'flex', gap: 0, mt: { md: 'calc(-56px - 32px)' }, mr: { md: -4 }, mb: { md: -4 } }}>
-      {/* Main content — shrinks when panel is open */}
-      <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s', pt: { md: 'calc(56px + 32px)' } }}>
-        <Box sx={{ pr: askPheraOpen ? 3 : 0 }}>
+      {/* Main content — Ask Phera panel is now a floating overlay, no layout reservation needed */}
+      <Box sx={{ flex: 1, minWidth: 0, pt: { md: 'calc(56px + 32px)' } }}>
+        <Box>
+
           <Stack spacing={3}>
 
             {/* Header */}
