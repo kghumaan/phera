@@ -37,6 +37,7 @@ import AddSectionMenu from './components/AddSectionMenu';
 import { DEFAULT_SECTIONS, TRAVEL_TYPE_LABELS } from './components/travel-utils';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 export default function TravelPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -305,14 +306,10 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Travel & Stay
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Add travel information, flight details, accommodation, and hotel recommendations for your guests
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Travel & Stay"
+          subtitle="Add travel information, flight details, accommodation, and hotel recommendations for your guests"
+        />
 
         {showSetupNotice && (
           <Fade in={showSetupNotice} timeout={400}>
