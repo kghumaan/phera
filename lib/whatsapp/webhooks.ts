@@ -201,6 +201,16 @@ export async function updateMessageStatus(
       return false;
     }
 
+    // Mirror status to broadcast recipient row if this message was a broadcast.
+    const broadcastUpdate: any = { delivery_status: status };
+    if (status === 'delivered') broadcastUpdate.delivered_at = timestamp;
+    if (status === 'read') broadcastUpdate.read_at = timestamp;
+    if (status === 'failed' && error) broadcastUpdate.error_message = `${error.title}: ${error.message}`;
+    await supabase
+      .from('concierge_broadcast_recipients')
+      .update(broadcastUpdate)
+      .eq('whatsapp_message_id', waMessageId);
+
     console.log(`✅ Updated message ${waMessageId} to status: ${status}`);
     return true;
   } catch (error) {

@@ -3,6 +3,7 @@ import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingM
 import { createClient } from '@supabase/supabase-js';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
+import { recordBroadcastReplyForGuest } from '@/lib/whatsapp/broadcast-replies';
 
 // Use service role client to bypass RLS for server-side webhook processing
 const supabase = createClient(
@@ -297,6 +298,11 @@ export async function POST(request: NextRequest) {
 
         } else if (msg.type === 'text') {
           console.log(`💬 Text message: ${msg.text}`);
+
+          // If the guest has a pending broadcast awaiting reply, attribute
+          // this message to that broadcast (reply text + optional
+          // structured data). Non-blocking: AI reply still runs.
+          await recordBroadcastReplyForGuest(guest.id, msg.text || '');
 
           // generateAIResponse logs both the user message and its reply to
           // whatsapp_chat_history internally — no explicit log calls here.

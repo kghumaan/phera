@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 
 interface BroadcastFormProps {
   open: boolean;
@@ -252,14 +253,14 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={handleSend}
-          disabled={!selectedTemplate || loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+          loading={loading}
+          disabled={!selectedTemplate}
+          startIcon={<SendIcon />}
         >
-          {loading ? 'Sending...' : 'Send Broadcast'}
-        </Button>
+          Send Broadcast
+        </PrimaryActionButton>
       </DialogActions>
     </Dialog>
   );
