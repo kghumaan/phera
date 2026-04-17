@@ -25,8 +25,6 @@ import {
   Collapse,
   Divider,
   IconButton,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   FormHelperText,
@@ -51,6 +49,7 @@ import GifPicker from '@/components/ui/GifPicker';
 import { GifData, RSVPFormData, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import FullScreenFormContainer from '@/components/shared/FullScreenFormContainer';
 import { ErrorAlert } from '@/components/shared/Alert';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { guestTextFieldSx } from '@/lib/constants/form-styles';
@@ -2900,16 +2899,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       </FullScreenFormContainer>
 
       {/* Exit Confirmation Dialog */}
-      <Dialog open={showExitConfirmation} onClose={handleCancelExit}
-        PaperProps={{
-          sx: {
-            backgroundColor: COLORS.bg.white,
-            color: COLORS.text.strong,
-            boxShadow: 8,
-          },
-        }}
-      >
-        <DialogTitle sx={{ color: COLORS.text.strong, background: 'transparent' }}>Leave RSVP?</DialogTitle>
+      <PheraDialog open={showExitConfirmation} onClose={handleCancelExit}>
+        <PheraDialogTitle onClose={handleCancelExit}>Leave RSVP?</PheraDialogTitle>
         <DialogContent sx={{ color: COLORS.text.strong, background: 'transparent' }}>
           <Typography variant="body1" sx={{ color: COLORS.text.strong }}>
             Are you sure you want to exit? Your changes will not be saved.
@@ -2923,7 +2914,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             Leave
           </ActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       {/* GIF Picker Modal */}
       <GifPicker

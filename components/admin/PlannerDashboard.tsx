@@ -10,8 +10,6 @@ import {
   Paper,
   Stack,
   Chip,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   CircularProgress,
@@ -30,6 +28,7 @@ import { usePlan } from '@/lib/contexts/PlanContext';
 import AdminTopNav from './AdminTopNav';
 import UpgradeModal from './UpgradeModal';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -418,25 +417,19 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
       </Container>
 
       {/* Create Wedding Dialog*/}
-      <Dialog
+      <PheraDialog
         open={dialogOpen}
         onClose={() => { setDialogOpen(false); resetForm(); }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: RADII.dialog, p: 1 },
-        }}
+        PaperProps={{ sx: { p: 1 } }}
       >
-        <DialogTitle sx={{
-          fontFamily: FONTS.display,
-          fontStyle: 'italic',
-          fontWeight: 700,
-          fontSize: '1.4rem',
-          color: COLORS.text.strong,
-          textAlign: 'center',
-        }}>
+        <PheraDialogTitle
+          onClose={() => { setDialogOpen(false); resetForm(); }}
+          sx={{ justifyContent: 'center', fontStyle: 'italic' }}
+        >
           Create New Wedding
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
             <Box>
@@ -541,7 +534,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             Create Wedding
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       <UpgradeModal
         open={upgradeModalOpen}

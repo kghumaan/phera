@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, TextField, CircularProgress } from '@mui/material';
+import { Box, IconButton, alpha, Typography, Button, DialogContent, Stack, TextField, CircularProgress } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { ActionButton, PrimaryActionButton } from './ActionButton';
 import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
@@ -642,18 +643,12 @@ export default function AdminPreviewPanel({
             </Box>
 
             {/* Share Modal */}
-            <Dialog
+            <PheraDialog
                 open={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: RADII.dialog,
-                        p: 1,
-                        bgcolor: COLORS.bg.white,
-                    }
-                }}
+                PaperProps={{ sx: { p: 1 } }}
             >
                 <DialogContent>
                     <IconButton
@@ -821,21 +816,15 @@ export default function AdminPreviewPanel({
                         </Stack>
                     )}
                 </DialogContent>
-            </Dialog>
+            </PheraDialog>
 
             {/* Published Modal */}
-            <Dialog
+            <PheraDialog
                 open={showPublishedModal}
                 onClose={() => setShowPublishedModal(false)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: RADII.dialog,
-                        p: 1,
-                        bgcolor: COLORS.bg.white,
-                    }
-                }}
+                PaperProps={{ sx: { p: 1 } }}
             >
                 <DialogContent>
                     <IconButton
@@ -900,7 +889,7 @@ export default function AdminPreviewPanel({
                         </Stack>
                     </Stack>
                 </DialogContent>
-            </Dialog>
+            </PheraDialog>
         </Box>
     );
 }

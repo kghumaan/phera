@@ -3,8 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Box,
@@ -22,6 +20,7 @@ import {
 import { Close, Add, Delete } from '@mui/icons-material';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { supabase } from '@/lib/supabase/client';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -224,19 +223,15 @@ export default function BroadcastComposer({
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={sending ? undefined : onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: RADII.lg, bgcolor: COLORS.bg.white } }}
     >
-      <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
+      <PheraDialogTitle onClose={sending ? undefined : onClose}>
         New Broadcast
-        <IconButton size="small" onClick={onClose} disabled={sending} sx={{ color: COLORS.text.subtle }}>
-          <Close fontSize="small" />
-        </IconButton>
-      </DialogTitle>
+      </PheraDialogTitle>
 
       <DialogContent sx={{ pt: '8px !important' }}>
         <Stack spacing={2.5}>
@@ -538,6 +533,6 @@ export default function BroadcastComposer({
           Send to {targetCount || 0}
         </PrimaryActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }

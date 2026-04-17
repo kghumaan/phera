@@ -12,8 +12,6 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
@@ -29,6 +27,7 @@ import ConciergeKnowledgeEntry from './ConciergeKnowledgeEntry';
 import VoiceWaveform from '@/components/admin/VoiceWaveform';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -698,14 +697,14 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
       )}
 
       {/* Regeneration confirmation dialog */}
-      <Dialog
+      <PheraDialog
         open={confirmRegenerate}
         onClose={() => setConfirmRegenerate(false)}
-        PaperProps={{ sx: { borderRadius: RADII.lg, p: 1 } }}
+        PaperProps={{ sx: { p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+        <PheraDialogTitle onClose={() => setConfirmRegenerate(false)}>
           Regenerate with AI?
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent>
           <DialogContentText sx={{ color: COLORS.text.muted }}>
             This will replace all AI-generated entries. Manual entries won't be affected.
@@ -726,7 +725,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
             Regenerate
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Stack>
   );
 }

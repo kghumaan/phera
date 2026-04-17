@@ -8,8 +8,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
@@ -45,6 +43,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface Guest {
   id: string;
@@ -417,20 +416,15 @@ export default function GuestHierarchy() {
       </Card>
 
       {/* Guest Dialog */}
-      <Dialog 
-        open={isDialogOpen} 
+      <PheraDialog
+        open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
       >
-        <DialogTitle>
-          <Typography variant="h5" component="div">
-            {editingGuest ? 'Edit Guest' : 'Add New Guest'}
-          </Typography>
-        </DialogTitle>
+        <PheraDialogTitle onClose={() => setIsDialogOpen(false)}>
+          {editingGuest ? 'Edit Guest' : 'Add New Guest'}
+        </PheraDialogTitle>
         
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
@@ -527,7 +521,7 @@ export default function GuestHierarchy() {
             {editingGuest ? 'Update Guest' : 'Add Guest'}
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Box>
   );
 } 
