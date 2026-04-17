@@ -1,14 +1,14 @@
 'use client';
 
-import { 
-  Box, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Button,
   TextField,
   Stack,
-  Dialog,
   DialogContent,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { sendEmailOTP, verifyEmailOTP, signInWithGoogle, signInWithPhone, verifyOTP } from '@/lib/supabase/auth-service';
@@ -178,15 +178,13 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={handleCloseDialog}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          backgroundColor: '#FFFFFF',
           margin: { xs: 2, sm: 3 },
           maxWidth: { xs: '321px', sm: '400px' },
         }
@@ -609,7 +607,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
           </Stack>
         </Stack>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 };
 

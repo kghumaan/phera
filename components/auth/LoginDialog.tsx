@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   Button,
   TextField,
@@ -14,6 +12,7 @@ import {
   Box,
 } from '@mui/material';
 import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
+import { PheraDialog } from '@/components/shared/Dialog';
 import {
   Google as GoogleIcon,
   Close as CloseIcon,
@@ -120,28 +119,21 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: 1,
-        }
-      }}
+      PaperProps={{ sx: { p: 1 } }}
     >
-      <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            {step === 'login' ? 'Welcome Back' : 'Enter Verification Code'}
-          </Typography>
-          <IconButton onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 3, pb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          {step === 'login' ? 'Welcome Back' : 'Enter Verification Code'}
+        </Typography>
+        <IconButton onClick={handleClose}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
       
       <DialogContent sx={{ pt: 2 }}>
         {step === 'login' ? (
@@ -290,6 +282,6 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
           </Stack>
         )}
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
-} 
+}

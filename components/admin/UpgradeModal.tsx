@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Dialog,
   DialogContent,
   Box,
   Typography,
   IconButton,
   CircularProgress,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close, AutoAwesome } from '@mui/icons-material';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
@@ -95,19 +95,12 @@ export default function UpgradeModal({ open, onClose, tier = 'base', returnPath 
   }, [open]);
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: RADII.dialog,
-          bgcolor: COLORS.bg.white,
-          overflow: 'hidden',
-          minHeight: 300,
-        },
-      }}
+      PaperProps={{ sx: { overflow: 'hidden', minHeight: 300 } }}
     >
       <IconButton
         onClick={onClose}
@@ -184,6 +177,6 @@ export default function UpgradeModal({ open, onClose, tier = 'base', returnPath 
           )}
         </Box>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 }
