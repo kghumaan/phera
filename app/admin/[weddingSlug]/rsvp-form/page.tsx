@@ -8,8 +8,6 @@ import {
   Paper,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Select,
@@ -71,6 +69,7 @@ import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog } from '@/components/shared/Dialog';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -919,12 +918,12 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       </Stack>
 
       {/* Add/Edit Dialog — Google Forms style */}
-      <Dialog
+      <PheraDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: RADII.lg, bgcolor: COLORS.bg.subtle } }}
+        PaperProps={{ sx: { bgcolor: COLORS.bg.subtle } }}
       >
         <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: COLORS.bg.subtle }}>
           <Stack spacing={2.5}>
@@ -1151,7 +1150,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
             {editingStep ? 'Update' : 'Add Step'}
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       <ConfirmDialog
         open={confirmDialog.open}
