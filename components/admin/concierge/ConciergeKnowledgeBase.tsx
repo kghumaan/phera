@@ -28,6 +28,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import ConciergeKnowledgeEntry from './ConciergeKnowledgeEntry';
 import VoiceWaveform from '@/components/admin/VoiceWaveform';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -359,7 +360,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -367,7 +368,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
   return (
     <Stack spacing={2}>
       {/* Description */}
-      <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.6 }}>
         Your concierge AI already knows how to answer most questions using your wedding details. Add specific information here that you want to prioritize — local recommendations, insider tips, or anything unique your guests should know. This knowledge will be used first when answering guest questions.
       </Typography>
 
@@ -381,13 +382,13 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                 onClick={() => setShowAddForm(true)}
                 sx={{
                   textTransform: 'none',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
-                  borderRadius: '12px',
+                  borderRadius: RADII.md,
                   border: '1px dashed #DE3F5E40',
                   px: 2.5,
                   py: 1,
-                  '&:hover': { bgcolor: '#DE3F5E08', borderColor: '#DE3F5E' },
+                  '&:hover': { bgcolor: '#DE3F5E08', borderColor: COLORS.brand.primary },
                 }}
               >
                 Add Knowledge
@@ -409,15 +410,15 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
               {venueLoaded && venueLocation && hasAutoEntries && (
                 <Button
                   size="small"
-                  startIcon={generating ? <CircularProgress size={14} sx={{ color: '#6a6a6a' }} /> : <AutoAwesome sx={{ fontSize: 16 }} />}
+                  startIcon={generating ? <CircularProgress size={14} sx={{ color: COLORS.text.subtle }} /> : <AutoAwesome sx={{ fontSize: 16 }} />}
                   onClick={() => setConfirmRegenerate(true)}
                   disabled={generating}
                   sx={{
                     textTransform: 'none',
-                    color: '#6a6a6a',
+                    color: COLORS.text.subtle,
                     fontWeight: 500,
                     fontSize: '0.8rem',
-                    '&:hover': { color: '#DE3F5E', bgcolor: '#DE3F5E08' },
+                    '&:hover': { color: COLORS.brand.primary, bgcolor: '#DE3F5E08' },
                   }}
                 >
                   {generating ? 'Regenerating...' : 'Regenerate with AI'}
@@ -431,7 +432,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                 p: 2.5,
                 borderRadius: 1,
                 border: '1px solid rgba(0,0,0,0.15)',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
               }}
             >
               <Stack spacing={2}>
@@ -445,18 +446,18 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     sx={ENHANCED_TEXT_FIELD_SX}
                   />
                   <FormControl sx={{ minWidth: 160, flexShrink: 0, mt: 1 }}>
-                    <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Category</InputLabel>
+                    <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>Category</InputLabel>
                     <Select
                       value={newCategory}
                       label="Category"
                       onChange={(e) => setNewCategory(e.target.value)}
                       sx={{
-                        bgcolor: 'white',
-                        borderRadius: '12px',
-                        color: '#1a1a1a',
+                        bgcolor: COLORS.bg.white,
+                        borderRadius: RADII.md,
+                        color: COLORS.text.strong,
                         '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.brand.primary },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
                         '& .MuiSelect-select': {
                           py: { xs: 1.5, md: 1.75, lg: 2 },
                           fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
@@ -490,12 +491,12 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                           <IconButton
                             onClick={startRecording}
                             sx={{
-                              color: '#6a6a6a',
+                              color: COLORS.text.subtle,
                               border: '1px solid rgba(0,0,0,0.15)',
-                              borderRadius: '12px',
+                              borderRadius: RADII.md,
                               width: 48,
                               height: 48,
-                              '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
+                              '&:hover': { color: COLORS.brand.primary, borderColor: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.04) },
                             }}
                           >
                             <Mic sx={{ fontSize: 28 }} />
@@ -506,12 +507,12 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
                             sx={{
-                              color: '#6a6a6a',
+                              color: COLORS.text.subtle,
                               border: '1px solid rgba(0,0,0,0.15)',
-                              borderRadius: '12px',
+                              borderRadius: RADII.md,
                               width: 48,
                               height: 48,
-                              '&:hover': { color: '#DE3F5E', borderColor: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.04) },
+                              '&:hover': { color: COLORS.brand.primary, borderColor: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.04) },
                             }}
                           >
                             {uploading ? <CircularProgress size={24} /> : <UploadFile sx={{ fontSize: 28 }} />}
@@ -529,11 +530,11 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                             label={uploadedFileName}
                             size="small"
                             onDelete={() => setUploadedFileName(null)}
-                            sx={{ bgcolor: '#F8F8F8', color: '#4a4a4a', fontWeight: 500 }}
+                            sx={{ bgcolor: COLORS.bg.subtle, color: COLORS.text.muted, fontWeight: 500 }}
                           />
                         )}
                         {!uploadedFileName && (
-                          <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
                             Speak or upload a file
                           </Typography>
                         )}
@@ -547,7 +548,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                             width: 10,
                             height: 10,
                             borderRadius: '50%',
-                            bgcolor: '#DE3F5E',
+                            bgcolor: COLORS.brand.primary,
                             flexShrink: 0,
                             animation: 'pulse 1.2s ease-in-out infinite',
                             '@keyframes pulse': {
@@ -561,7 +562,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                             <VoiceWaveform stream={activeStream} isActive={voiceState === 'recording'} barCount={30} />
                           </Box>
                         )}
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
                           {formatTime(voiceElapsed)}
                         </Typography>
                         <PrimaryActionButton
@@ -569,7 +570,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                           startIcon={<Stop sx={{ fontSize: 16 }} />}
                           onClick={stopRecording}
                           sx={{
-                            borderRadius: '8px',
+                            borderRadius: RADII.sm,
                             fontSize: '0.8rem',
                             py: 0.5,
                             px: 1.5,
@@ -583,8 +584,8 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
 
                     {voiceState === 'transcribing' && (
                       <>
-                        <CircularProgress size={16} sx={{ color: '#DE3F5E' }} />
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 500, color: '#6a6a6a' }}>
+                        <CircularProgress size={16} sx={{ color: COLORS.brand.primary }} />
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 500, color: COLORS.text.subtle }}>
                           Transcribing...
                         </Typography>
                       </>
@@ -595,7 +596,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                   {voiceError && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                       <Typography sx={{ fontSize: '0.75rem', color: '#d32f2f' }}>{voiceError}</Typography>
-                      <IconButton size="small" onClick={() => setVoiceError(null)} sx={{ color: '#999', p: 0.25 }}>
+                      <IconButton size="small" onClick={() => setVoiceError(null)} sx={{ color: COLORS.text.faint, p: 0.25 }}>
                         <Close sx={{ fontSize: 14 }} />
                       </IconButton>
                     </Box>
@@ -612,7 +613,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                       setNewCategory('other');
                       setVoiceError(null);
                     }}
-                    sx={{ textTransform: 'none', color: '#6a6a6a', borderRadius: '10px' }}
+                    sx={{ textTransform: 'none', color: COLORS.text.subtle, borderRadius: RADII.sm }}
                   >
                     Cancel
                   </Button>
@@ -621,7 +622,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     onClick={handleAdd}
                     disabled={!newTitle.trim() || !newContent.trim()}
                     loading={saving}
-                    sx={{ borderRadius: '10px' }}
+                    sx={{ borderRadius: RADII.sm }}
                   >
                     Add
                   </PrimaryActionButton>
@@ -646,14 +647,14 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
             gap: 2,
           }}
         >
-          <CircularProgress size={22} sx={{ color: '#DE3F5E' }} />
-          <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500 }}>
+          <CircularProgress size={22} sx={{ color: COLORS.brand.primary }} />
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 500 }}>
             Generating city guide for {venueLocation}...
           </Typography>
         </Paper>
       )}
       {!isViewOnly && venueLoaded && !generating && !venueLocation && (
-        <Typography variant="body2" sx={{ color: '#9a9a9a', fontStyle: 'italic' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.faint, fontStyle: 'italic' }}>
           Add your venue location in the Details tab to auto-generate a city guide for your guests.
         </Typography>
       )}
@@ -671,14 +672,14 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
             p: 4,
             borderRadius: 1,
             border: '1px solid rgba(0,0,0,0.07)',
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             textAlign: 'center',
           }}
         >
-          <Typography variant="body2" sx={{ color: '#9a9a9a', mb: 1 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.faint, mb: 1 }}>
             No knowledge bank entries yet.
           </Typography>
-          <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
             Add restaurant recommendations, local tips, and more to help your concierge answer guest questions.
           </Typography>
         </Paper>
@@ -700,27 +701,27 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
       <Dialog
         open={confirmRegenerate}
         onClose={() => setConfirmRegenerate(false)}
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+        PaperProps={{ sx: { borderRadius: RADII.lg, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>
           Regenerate with AI?
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ color: '#4a4a4a' }}>
+          <DialogContentText sx={{ color: COLORS.text.muted }}>
             This will replace all AI-generated entries. Manual entries won't be affected.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => setConfirmRegenerate(false)}
-            sx={{ textTransform: 'none', color: '#6a6a6a', borderRadius: '10px' }}
+            sx={{ textTransform: 'none', color: COLORS.text.subtle, borderRadius: RADII.sm }}
           >
             Cancel
           </Button>
           <PrimaryActionButton
             onClick={handleGenerate}
             loading={generating}
-            sx={{ borderRadius: '10px' }}
+            sx={{ borderRadius: RADII.sm }}
           >
             Regenerate
           </PrimaryActionButton>

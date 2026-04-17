@@ -17,6 +17,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WhatsAppChannelModalProps {
   open: boolean;
@@ -84,7 +85,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
+          borderRadius: RADII.lg,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -201,7 +202,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                       sx={{
                         fontWeight: 400,
                         fontSize: 14,
-                        color: '#666',
+                        color: COLORS.text.subtle,
                       }}
                     >
                       {benefit}
@@ -218,7 +219,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     sx={{
                       width: 180,
                       height: 180,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: COLORS.bg.white,
                       borderRadius: 2,
                       display: 'flex',
                       alignItems: 'center',
@@ -239,7 +240,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     variant="caption"
                     sx={{
                       fontSize: 12,
-                      color: '#666',
+                      color: COLORS.text.subtle,
                     }}
                   >
                     Scan with phone to join community
@@ -250,9 +251,9 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   variant="outlined"
                   onClick={handleAppStoreClick}
                   sx={{
-                    borderColor: '#000',
-                    color: '#000',
-                    borderRadius: '12px',
+                    borderColor: COLORS.text.strong,
+                    color: COLORS.text.strong,
+                    borderRadius: RADII.md,
                     px: 3,
                     py: 1.5,
                     fontSize: '0.9rem',
@@ -262,7 +263,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     maxWidth: 320,
                     '&:hover': {
                       backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                      borderColor: '#000',
+                      borderColor: COLORS.text.strong,
                     },
                   }}
                 >
@@ -281,8 +282,8 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   onClick={handleChannelClick}
                   sx={{
                     backgroundColor: '#25D366',
-                    color: '#fff',
-                    borderRadius: '16px',
+                    color: COLORS.text.inverse,
+                    borderRadius: RADII.lg,
                     px: 4,
                     py: 2,
                     fontSize: '1rem',

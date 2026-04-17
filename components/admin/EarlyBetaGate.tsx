@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 type Status = 'idle' | 'checking' | 'submitting' | 'success' | 'error';
 
@@ -97,10 +98,10 @@ export default function EarlyBetaGate({ featureName, description, when, children
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Stack spacing={3} sx={{ mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
             {featureName}
           </Typography>
-          <Typography sx={{ fontSize: 13, color: '#6a6a6a', mt: 0.5 }}>
+          <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, mt: 0.5 }}>
             {description}
           </Typography>
         </Box>
@@ -111,7 +112,7 @@ export default function EarlyBetaGate({ featureName, description, when, children
         sx={{
           p: { xs: 4, md: 8 },
           borderRadius: '32px',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           border: '1px solid rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
@@ -125,7 +126,7 @@ export default function EarlyBetaGate({ featureName, description, when, children
           sx={{
             width: 64,
             height: 64,
-            borderRadius: '20px',
+            borderRadius: RADII.xl,
             bgcolor: 'rgba(222, 63, 94, 0.08)',
             display: 'flex',
             alignItems: 'center',
@@ -133,20 +134,20 @@ export default function EarlyBetaGate({ featureName, description, when, children
             mb: 3,
           }}
         >
-          <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+          <InfoOutlined sx={{ fontSize: 32, color: COLORS.brand.primary }} />
         </Box>
 
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.text.strong }}>
           Early Preview Mode
         </Typography>
 
-        <Typography sx={{ fontSize: 14, color: '#4a4a4a', maxWidth: 520, mb: 4, lineHeight: 1.6 }}>
+        <Typography sx={{ fontSize: 14, color: COLORS.text.muted, maxWidth: 520, mb: 4, lineHeight: 1.6 }}>
           {featureName} is currently in early beta. We&apos;re rolling it out in batches to ensure
           the best experience. Request access below and we&apos;ll set you up as soon as a slot opens.
         </Typography>
 
         {status === 'checking' ? (
-          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
         ) : status === 'success' ? (
           <Box
             sx={{
@@ -156,7 +157,7 @@ export default function EarlyBetaGate({ featureName, description, when, children
               gap: 1.5,
               p: 3,
               bgcolor: '#F1F8E9',
-              borderRadius: '16px',
+              borderRadius: RADII.lg,
               border: '1px solid #C5E1A5',
               maxWidth: 460,
             }}

@@ -28,6 +28,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -154,7 +155,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         open: true,
         message: 'Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.',
         confirmLabel: 'Publish',
-        confirmColor: '#DE3F5E',
+        confirmColor: COLORS.brand.primary,
         onConfirm: async () => {
           setConfirmDialog(prev => ({ ...prev, open: false }));
           await doUpdateStatus('live');
@@ -183,7 +184,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         open: true,
         message: 'Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.',
         confirmLabel: 'Publish',
-        confirmColor: '#DE3F5E',
+        confirmColor: COLORS.brand.primary,
         onConfirm: async () => {
           setConfirmDialog(prev => ({ ...prev, open: false }));
           await doUpdateStatus('live');
@@ -211,10 +212,10 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Settings & Publish
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Manage your wedding website settings and publish when ready
           </Typography>
         </Box>
@@ -222,8 +223,8 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         {/* Publish Control Section */}
         <Paper sx={{
           p: 4,
-          borderRadius: '16px',
-          bgcolor: status === 'live' ? alpha('#DE3F5E', 0.03) : '#fafafa',
+          borderRadius: RADII.lg,
+          bgcolor: status === 'live' ? alpha(COLORS.brand.primary, 0.03) : COLORS.bg.muted,
           boxShadow: 'none',
           border: status === 'live' ? '2px solid #DE3F5E' : 'none',
           '&:hover': {
@@ -234,10 +235,10 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
             {/* Current Status Display */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
                   Website Status
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   {status === 'draft' ? 'Your wedding website is in draft mode' : 'Your wedding website is live'}
                 </Typography>
               </Box>
@@ -245,8 +246,8 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 label={status.toUpperCase()}
                 icon={status === 'live' ? <CheckCircle sx={{ fontSize: 18 }} /> : undefined}
                 sx={{
-                  bgcolor: status === 'live' ? '#DE3F5E' : '#6a6a6a',
-                  color: 'white',
+                  bgcolor: status === 'live' ? COLORS.brand.primary : COLORS.text.subtle,
+                  color: COLORS.text.inverse,
                   fontWeight: 700,
                   fontSize: '0.875rem',
                   px: 2,
@@ -263,14 +264,14 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
             <Alert
               severity={status === 'live' ? 'success' : 'info'}
               sx={{
-                borderRadius: '12px',
-                bgcolor: status === 'live' ? alpha('#10B981', 0.1) : alpha('#3B82F6', 0.1),
-                border: `1px solid ${status === 'live' ? alpha('#10B981', 0.3) : alpha('#3B82F6', 0.3)}`,
+                borderRadius: RADII.md,
+                bgcolor: status === 'live' ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.accent.info, 0.1),
+                border: `1px solid ${status === 'live' ? alpha(COLORS.accent.success, 0.3) : alpha(COLORS.accent.info, 0.3)}`,
                 '& .MuiAlert-icon': {
-                  color: status === 'live' ? '#10B981' : '#3B82F6',
+                  color: status === 'live' ? COLORS.accent.success : COLORS.accent.info,
                 },
                 '& .MuiAlert-message': {
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   fontWeight: 500,
                 }
               }}
@@ -285,13 +286,13 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 onClick={handlePublishToggle}
                 loading={updatingStatus}
                 sx={{
-                  bgcolor: status === 'live' ? '#6a6a6a' : '#DE3F5E',
+                  bgcolor: status === 'live' ? COLORS.text.subtle : COLORS.brand.primary,
                   py: 1.5,
                   px: 4,
                   fontSize: '1rem',
                   flex: 1,
                   '&:hover': {
-                    bgcolor: status === 'live' ? '#4a4a4a' : '#C8365A',
+                    bgcolor: status === 'live' ? COLORS.text.muted : '#C8365A',
                   },
                 }}
               >
@@ -303,18 +304,18 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 onClick={() => handleUpdateStatus(status === 'live' ? 'draft' : 'live')}
                 disabled={updatingStatus}
                 sx={{
-                  borderColor: '#6a6a6a',
-                  color: '#6a6a6a',
+                  borderColor: COLORS.text.subtle,
+                  color: COLORS.text.subtle,
                   py: 1.5,
                   px: 4,
-                  borderRadius: '12px',
+                  borderRadius: RADII.md,
                   fontSize: '1rem',
                   fontWeight: 600,
                   textTransform: 'none',
                   borderWidth: 2,
                   '&:hover': {
-                    borderColor: '#4a4a4a',
-                    bgcolor: alpha('#6a6a6a', 0.05),
+                    borderColor: COLORS.text.muted,
+                    bgcolor: alpha(COLORS.text.subtle, 0.05),
                     borderWidth: 2,
                   },
                 }}
@@ -328,21 +329,21 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         {/* Website Links Section */}
         <Paper sx={{
           p: 4,
-          borderRadius: '16px',
-          bgcolor: '#fafafa',
+          borderRadius: RADII.lg,
+          bgcolor: COLORS.bg.muted,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
           }
         }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: COLORS.text.strong }}>
             Website Links
           </Typography>
 
           <Stack spacing={3}>
             {/* Main Wedding URL */}
             <Box>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1.5 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1.5 }}>
                 Your Wedding URL
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'stretch' }}>
@@ -356,17 +357,17 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                     ...textFieldSx,
                     '& .MuiOutlinedInput-root': {
                       ...textFieldSx['& .MuiOutlinedInput-root'],
-                      bgcolor: 'white',
+                      bgcolor: COLORS.bg.white,
                     }
                   }}
                 />
                 <IconButton
                   onClick={() => copyToClipboard(weddingUrl)}
                   sx={{
-                    bgcolor: alpha('#DE3F5E', 0.1),
-                    color: '#DE3F5E',
+                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                    color: COLORS.brand.primary,
                     '&:hover': {
-                      bgcolor: alpha('#DE3F5E', 0.2),
+                      bgcolor: alpha(COLORS.brand.primary, 0.2),
                     },
                   }}
                 >
@@ -378,9 +379,9 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   href={weddingUrl}
                   target="_blank"
                   sx={{
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
-                    borderRadius: '12px',
+                    borderColor: COLORS.brand.primary,
+                    color: COLORS.brand.primary,
+                    borderRadius: RADII.md,
                     textTransform: 'none',
                     fontWeight: 600,
                     px: 3,
@@ -401,8 +402,8 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         {/* Integrations (Optional) */}
         <Paper sx={{
           p: 4,
-          borderRadius: '16px',
-          bgcolor: '#fafafa',
+          borderRadius: RADII.lg,
+          bgcolor: COLORS.bg.muted,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
@@ -410,10 +411,10 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
                 Integrations
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Optional integrations to enhance your wedding website
               </Typography>
             </Box>
@@ -430,7 +431,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   ...textFieldSx,
                   '& .MuiOutlinedInput-root': {
                     ...textFieldSx['& .MuiOutlinedInput-root'],
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                   }
                 }}
               />
@@ -446,7 +447,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   ...textFieldSx,
                   '& .MuiOutlinedInput-root': {
                     ...textFieldSx['& .MuiOutlinedInput-root'],
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                   }
                 }}
               />
@@ -457,8 +458,8 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         {/* Pre-Publish Checklist */}
         <Paper sx={{
           p: 4,
-          borderRadius: '16px',
-          bgcolor: '#fafafa',
+          borderRadius: RADII.lg,
+          bgcolor: COLORS.bg.muted,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
@@ -466,51 +467,51 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
         }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
                 Pre-Publish Checklist
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Make sure everything is ready before going live
               </Typography>
             </Box>
 
-            <List sx={{ bgcolor: 'white', borderRadius: '12px', p: 2 }}>
+            <List sx={{ bgcolor: COLORS.bg.white, borderRadius: RADII.md, p: 2 }}>
               <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
+                  <CheckCircle sx={{ color: COLORS.accent.success, fontSize: 24 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Wedding overview completed"
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
+                  primaryTypographyProps={{ color: COLORS.text.strong, fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
               <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
+                  <CheckCircle sx={{ color: COLORS.accent.success, fontSize: 24 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="At least one event added"
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
+                  primaryTypographyProps={{ color: COLORS.text.strong, fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
               <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
-                  <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
+                  <CheckCircle sx={{ color: COLORS.accent.success, fontSize: 24 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Schedule configured"
-                  primaryTypographyProps={{ color: '#1a1a1a', fontSize: '1rem', fontWeight: 500 }}
+                  primaryTypographyProps={{ color: COLORS.text.strong, fontSize: '1rem', fontWeight: 500 }}
                 />
               </ListItem>
               <Divider />
               <ListItem sx={{ py: 1.5 }}>
                 <ListItemIcon>
                   {(settings?.pin_codes?.length || 0) > 0 ? (
-                    <CheckCircle sx={{ color: '#10B981', fontSize: 24 }} />
+                    <CheckCircle sx={{ color: COLORS.accent.success, fontSize: 24 }} />
                   ) : (
-                    <Cancel sx={{ color: '#EF4444', fontSize: 24 }} />
+                    <Cancel sx={{ color: COLORS.accent.danger, fontSize: 24 }} />
                   )}
                 </ListItemIcon>
                 <ListItemText
@@ -519,12 +520,12 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                     ? `${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
                     : 'Add at least one PIN code for guests'}
                   primaryTypographyProps={{
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     fontSize: '1rem',
                     fontWeight: 500
                   }}
                   secondaryTypographyProps={{
-                    color: (settings?.pin_codes?.length || 0) > 0 ? '#10B981' : '#EF4444',
+                    color: (settings?.pin_codes?.length || 0) > 0 ? COLORS.accent.success : COLORS.accent.danger,
                     fontSize: '0.875rem',
                     fontWeight: 500,
                     mt: 0.5

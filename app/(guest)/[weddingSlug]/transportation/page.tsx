@@ -19,6 +19,7 @@ import { supabase } from '@/lib/supabase/client';
 import AppHeader from '@/components/shared/AppHeader';
 import ReserveTransportation from '@/components/guest/ReserveTransportation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function TransportationPage() {
   const params = useParams();
@@ -35,7 +36,7 @@ export default function TransportationPage() {
   const [guestId, setGuestId] = useState<string | null>(null);
 
   const isLoading = authLoading || weddingLoading;
-  const primaryColor = wedding?.primary_color || '#DE3F5E';
+  const primaryColor = wedding?.primary_color || COLORS.brand.primary;
 
   // Look up the guest record ID by email + wedding slug
   // The guests table stores wedding_id as the slug (text), not UUID
@@ -88,7 +89,7 @@ export default function TransportationPage() {
           sx={{
             fontFamily: 'var(--font-instrument-serif)',
             fontStyle: 'italic',
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             mb: 2,
             textAlign: 'center',
           }}
@@ -97,7 +98,7 @@ export default function TransportationPage() {
         </Typography>
         <Typography
           variant="body2"
-          sx={{ color: '#666', textAlign: 'center', maxWidth: 400 }}
+          sx={{ color: COLORS.text.subtle, textAlign: 'center', maxWidth: 400 }}
         >
           You need to RSVP to the wedding before reserving transportation.
         </Typography>
@@ -113,7 +114,7 @@ export default function TransportationPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: COLORS.bg.subtle,
         }}
       >
         <LoadingSpinner />
@@ -192,7 +193,7 @@ export default function TransportationPage() {
             <IconButton
               onClick={handleBack}
               sx={{
-                color: '#000',
+                color: COLORS.text.strong,
                 backgroundColor: 'rgba(255, 255, 255, 0.5)',
                 backdropFilter: 'blur(10px)',
                 width: 40,

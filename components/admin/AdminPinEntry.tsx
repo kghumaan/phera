@@ -11,6 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AdminPinEntryProps {
   onPinVerified: () => void;
@@ -236,7 +237,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
             sx={{
               fontFamily: 'var(--font-instrument-serif), serif',
               fontWeight: 400,
-              color: '#000',
+              color: COLORS.text.strong,
               mb: { xs: 1, sm: 1.5 },
               fontSize: { xs: '2.5rem', sm: '2.75rem', md: '3rem' },
               lineHeight: 1.4,
@@ -251,7 +252,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
           <Typography
             variant="body2"
             sx={{
-              color: '#000',
+              color: COLORS.text.strong,
               fontSize: { xs: '1.125rem', sm: '1.125rem', md: '1.125rem' },
               lineHeight: 1.5,
               maxWidth: { xs: 355, sm: 400 },
@@ -297,7 +298,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
                 sx={{
                   width: { xs: 72, sm: 72, md: 73 },
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: COLORS.bg.white,
                     borderRadius: '50%',
                     height: { xs: 72, sm: 72, md: 73 },
                     fontSize: { xs: '1.5rem', sm: '1.5rem', md: '1.5rem' },
@@ -331,7 +332,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
                     textAlign: 'center',
                     fontSize: 'inherit',
                     fontWeight: 'inherit',
-                    color: pin[index] ? '#000' : 'rgba(0, 0, 0, 0.2)',
+                    color: pin[index] ? COLORS.text.strong : 'rgba(0, 0, 0, 0.2)',
                   }
                 }}
                 placeholder="0"
@@ -357,7 +358,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   px: 3,
                   py: 1,
-                  borderRadius: '20px',
+                  borderRadius: RADII.xl,
                   border: '1px solid rgba(244, 67, 54, 0.2)',
                 }}
               >
@@ -386,8 +387,8 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
             disabled={!isPinComplete}
             sx={{
               backgroundColor: '#141414',
-              color: '#FFFFFF',
-              borderRadius: '16px',
+              color: COLORS.text.inverse,
+              borderRadius: RADII.lg,
               px: '20px',
               py: '12px',
               fontSize: '1rem',

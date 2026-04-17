@@ -14,6 +14,7 @@ import { useWedding } from '@/lib/contexts/WeddingContext';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { weddingService, WeddingFAQ } from '@/lib/supabase/wedding-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function FAQPage() {
   const params = useParams();
@@ -84,7 +85,7 @@ export default function FAQPage() {
               <IconButton
                 onClick={() => router.back()}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   '&:hover': {
@@ -114,8 +115,8 @@ export default function FAQPage() {
                   sx={{
                     width: 32,
                     height: 32,
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
                       backgroundColor: '#333',
                       transform: 'scale(1.05)',
@@ -175,7 +176,7 @@ export default function FAQPage() {
                   }}
                 >
                   <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: '#000' }} />}
+                    expandIcon={<ExpandMore sx={{ color: COLORS.text.strong }} />}
                     sx={{
                       '& .MuiAccordionSummary-content': {
                         margin: { xs: '12px 0', md: '18px 0' },
@@ -198,7 +199,7 @@ export default function FAQPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#666',
+                        color: COLORS.text.subtle,
                         lineHeight: 1.6,
                       }}
                     >
@@ -211,9 +212,9 @@ export default function FAQPage() {
                         fullWidth={true}
                         sx={{
                           mt: 2,
-                          borderRadius: '16px',
-                          borderColor: wedding?.primary_color || '#DE3F5E',
-                          color: wedding?.primary_color || '#DE3F5E',
+                          borderRadius: RADII.lg,
+                          borderColor: wedding?.primary_color || COLORS.brand.primary,
+                          color: wedding?.primary_color || COLORS.brand.primary,
                           textTransform: 'uppercase',
                           fontWeight: 700,
                           letterSpacing: '6.25%',
@@ -231,7 +232,7 @@ export default function FAQPage() {
 
             {faqs.length === 0 && (
               <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="body1" sx={{ color: '#666' }}>
+                <Typography variant="body1" sx={{ color: COLORS.text.subtle }}>
                   No FAQs available yet.
                 </Typography>
               </Box>

@@ -16,6 +16,7 @@ import { Delete, Add } from '@mui/icons-material';
 import { EVENT_TEMPLATES, EventTemplate } from '@/components/admin/EventTemplates';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatEventDetailFormProps {
   onSave: (event: {
@@ -98,9 +99,9 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
 
   const commonFieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
+      borderRadius: RADII.md,
       fontSize: '1rem',
-      bgcolor: '#f5f5f5',
+      bgcolor: COLORS.bg.subtle,
       fontWeight: 600,
       '& input, & textarea': {
         py: 1.5,
@@ -114,7 +115,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
   };
 
   const labelSx = {
-    color: '#666',
+    color: COLORS.text.subtle,
     mb: 1,
     display: 'block',
     fontWeight: 500,
@@ -125,20 +126,20 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
   if (phase === 'template') {
     return (
       <Box sx={{
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         p: 4,
-        borderRadius: '16px',
+        borderRadius: RADII.lg,
         border: '2px solid',
-        borderColor: alpha('#000', 0.12),
+        borderColor: alpha(COLORS.text.strong, 0.12),
         width: '100%',
         maxWidth: 640,
         mt: 1,
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
       }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: '#000000' }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: COLORS.text.strong }}>
           Choose an Event Template
         </Typography>
-        <Typography variant="body2" sx={{ mb: 3, color: '#666' }}>
+        <Typography variant="body2" sx={{ mb: 3, color: COLORS.text.subtle }}>
           Pick a template to pre-fill details, or start from scratch.
         </Typography>
 
@@ -154,11 +155,11 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
               label={template.name}
               onClick={() => handleTemplateSelect(template)}
               sx={{
-                bgcolor: alpha('#DE3F5E', 0.08),
-                color: '#DE3F5E',
+                bgcolor: alpha(COLORS.brand.primary, 0.08),
+                color: COLORS.brand.primary,
                 fontWeight: 600,
                 fontSize: '0.8rem',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.15) },
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.15) },
               }}
             />
           ))}
@@ -167,8 +168,8 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           {onCancel && (
             <SecondaryActionButton onClick={onCancel} fullWidth sx={{
-              color: '#666', fontSize: '0.85rem', py: 1,
-              borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
+              color: COLORS.text.subtle, fontSize: '0.85rem', py: 1,
+              borderRadius: RADII.lg, flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
               '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
             }}>
               Cancel
@@ -178,7 +179,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
             onClick={handleCustom}
             fullWidth
             sx={{
-              borderRadius: '16px', fontSize: '0.85rem',
+              borderRadius: RADII.lg, fontSize: '0.85rem',
               py: 1, flex: 1,
             }}
           >
@@ -193,17 +194,17 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
   if (phase === 'basic') {
     return (
       <Box sx={{
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         p: 4,
-        borderRadius: '16px',
+        borderRadius: RADII.lg,
         border: '2px solid',
-        borderColor: alpha('#000', 0.12),
+        borderColor: alpha(COLORS.text.strong, 0.12),
         width: '100%',
         maxWidth: 640,
         mt: 1,
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
       }}>
-        <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#000000' }}>
+        <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
           {selectedTemplate ? `${selectedTemplate.name} Details` : 'Event Details'}
         </Typography>
 
@@ -255,8 +256,8 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
 
           <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
             <SecondaryActionButton onClick={() => setPhase('template')} fullWidth sx={{
-              color: '#666', fontSize: '0.85rem', py: 1,
-              borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
+              color: COLORS.text.subtle, fontSize: '0.85rem', py: 1,
+              borderRadius: RADII.lg, flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
               '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
             }}>
               Back
@@ -267,7 +268,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
                 disabled={!formData.name}
                 fullWidth
                 sx={{
-                  borderRadius: '16px', fontSize: '0.85rem',
+                  borderRadius: RADII.lg, fontSize: '0.85rem',
                   py: 1, flex: 1,
                 }}
               >
@@ -279,7 +280,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
                 disabled={!formData.name}
                 fullWidth
                 sx={{
-                  borderRadius: '16px', fontSize: '0.85rem',
+                  borderRadius: RADII.lg, fontSize: '0.85rem',
                   py: 1, flex: 1,
                 }}
               >
@@ -295,20 +296,20 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
   // ── Phase 3: Carousel Slides ────────────────────────────────────────────────
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 4,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 640,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: '#000000' }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: COLORS.text.strong }}>
         Carousel Slides
       </Typography>
-      <Typography variant="body2" sx={{ mb: 3, color: '#666' }}>
+      <Typography variant="body2" sx={{ mb: 3, color: COLORS.text.subtle }}>
         These slides appear when guests tap on the event. Edit or remove pre-filled slides.
       </Typography>
 
@@ -316,14 +317,14 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
         {slides.map((slide, idx) => (
           <Box key={idx} sx={{
             p: 2,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             bgcolor: '#f9f9f9',
             border: '1px solid',
-            borderColor: alpha('#000', 0.08),
+            borderColor: alpha(COLORS.text.strong, 0.08),
           }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Chip label={slide.type} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }} />
-              <IconButton size="small" onClick={() => removeSlide(idx)} sx={{ color: '#999' }}>
+              <Chip label={slide.type} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }} />
+              <IconButton size="small" onClick={() => removeSlide(idx)} sx={{ color: COLORS.text.faint }}>
                 <Delete fontSize="small" />
               </IconButton>
             </Box>
@@ -416,26 +417,26 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
           icon={<Add sx={{ fontSize: 16 }} />}
           label="Text Slide"
           onClick={() => addSlide('three_lines')}
-          sx={{ cursor: 'pointer', bgcolor: alpha('#DE3F5E', 0.06), '&:hover': { bgcolor: alpha('#DE3F5E', 0.12) } }}
+          sx={{ cursor: 'pointer', bgcolor: alpha(COLORS.brand.primary, 0.06), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.12) } }}
         />
         <Chip
           icon={<Add sx={{ fontSize: 16 }} />}
           label="Outfit Slide"
           onClick={() => addSlide('two_sections')}
-          sx={{ cursor: 'pointer', bgcolor: alpha('#DE3F5E', 0.06), '&:hover': { bgcolor: alpha('#DE3F5E', 0.12) } }}
+          sx={{ cursor: 'pointer', bgcolor: alpha(COLORS.brand.primary, 0.06), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.12) } }}
         />
         <Chip
           icon={<Add sx={{ fontSize: 16 }} />}
           label="Image Slide"
           onClick={() => addSlide('image')}
-          sx={{ cursor: 'pointer', bgcolor: alpha('#DE3F5E', 0.06), '&:hover': { bgcolor: alpha('#DE3F5E', 0.12) } }}
+          sx={{ cursor: 'pointer', bgcolor: alpha(COLORS.brand.primary, 0.06), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.12) } }}
         />
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1.5 }}>
         <SecondaryActionButton onClick={() => setPhase('basic')} fullWidth sx={{
-          color: '#666', fontSize: '0.85rem', py: 1,
-          borderRadius: '16px', flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
+          color: COLORS.text.subtle, fontSize: '0.85rem', py: 1,
+          borderRadius: RADII.lg, flex: 1, border: '2px solid', borderColor: 'rgba(0,0,0,0.1)',
           '&:hover': { border: '2px solid', borderColor: 'rgba(0,0,0,0.2)', bgcolor: 'rgba(0,0,0,0.02)' }
         }}>
           Back
@@ -445,7 +446,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
           disabled={!formData.name}
           fullWidth
           sx={{
-            borderRadius: '16px', fontSize: '0.85rem',
+            borderRadius: RADII.lg, fontSize: '0.85rem',
             py: 1, flex: 1,
           }}
         >

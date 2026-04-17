@@ -3,9 +3,10 @@
 import React from 'react';
 import { Box, Typography, Chip, Stack } from '@mui/material';
 import { OutreachEvent } from '@/lib/types/outreach';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  template_sent: { label: 'Template Sent', color: '#3b82f6' },
+  template_sent: { label: 'Template Sent', color: COLORS.accent.info },
   message_received: { label: 'Message Received', color: '#22c55e' },
   conversation_started: { label: 'Conversation Started', color: '#8b5cf6' },
   info_collected: { label: 'Info Collected', color: '#06b6d4' },
@@ -23,7 +24,7 @@ export default function CommunicationTimeline({ events, onGuestClick }: Communic
   if (events.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
           No communications yet. Start your outreach to see activity here.
         </Typography>
       </Box>
@@ -76,7 +77,7 @@ export default function CommunicationTimeline({ events, onGuestClick }: Communic
                   }}
                 />
                 {event.template_name && (
-                  <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                     {event.template_name}
                   </Typography>
                 )}

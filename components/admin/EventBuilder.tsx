@@ -31,6 +31,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WeddingEvent {
   id: string;
@@ -256,7 +257,7 @@ export default function EventBuilder() {
                       <IconButton onClick={() => handleEditEvent(event)} size="small">
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: '#6a6a6a', '&:hover': { color: '#DE3F5E' } }}>
+                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.brand.primary } }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>

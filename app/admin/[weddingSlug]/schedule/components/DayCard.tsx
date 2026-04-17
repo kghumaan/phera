@@ -20,6 +20,7 @@ import SortableEventWrapper from './SortableEventWrapper';
 import InlineMinorForm from './InlineMinorForm';
 import InlineMajorForm from './InlineMajorForm';
 import { format, parseISO } from 'date-fns';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ActiveForm {
   dayId: string;
@@ -87,7 +88,7 @@ export default function DayCard({
   const isSavingThisDay = !!(savingForm && activeForm?.dayId === dayId);
 
   return (
-    <Box sx={{ bgcolor: '#FAFAFA', borderRadius: '16px', p: 2.5 }}>
+    <Box sx={{ bgcolor: COLORS.bg.muted, borderRadius: RADII.lg, p: 2.5 }}>
       {/* Day Header */}
       <Typography sx={{
         fontWeight: 600,
@@ -193,19 +194,19 @@ export default function DayCard({
             onClick={() => onSetActiveForm({ dayId, type: 'minor' })}
             sx={{
               flex: 1,
-              bgcolor: '#EBEBEB',
+              bgcolor: COLORS.border.light,
               border: '1px dashed #BCBCBC',
-              borderRadius: '8px',
+              borderRadius: RADII.sm,
               px: 2, py: 1.5,
               cursor: 'pointer',
               textAlign: 'center',
-              '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+              '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
             }}
           >
             <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
               Add Minor Event
             </Typography>
-            <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
               Events like breakfast, lunch, high-tea
             </Typography>
           </Box>
@@ -213,19 +214,19 @@ export default function DayCard({
             onClick={() => onSetActiveForm({ dayId, type: 'major' })}
             sx={{
               flex: 1,
-              bgcolor: '#EBEBEB',
+              bgcolor: COLORS.border.light,
               border: '1px dashed #BCBCBC',
-              borderRadius: '8px',
+              borderRadius: RADII.sm,
               px: 2, py: 1.5,
               cursor: 'pointer',
               textAlign: 'center',
-              '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+              '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
             }}
           >
             <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
               Add Major Event
             </Typography>
-            <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
               {'Events with descriptions & dress codes'}
             </Typography>
           </Box>

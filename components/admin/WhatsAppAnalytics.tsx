@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { getOptInStats, getMessageStats, getRecentMessages } from '@/lib/whatsapp/analytics';
 import type { OptInStats, MessageStats, RecentMessage } from '@/lib/whatsapp/analytics';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WhatsAppAnalyticsProps {
   weddingId: string;

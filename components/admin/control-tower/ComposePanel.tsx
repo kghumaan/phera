@@ -12,6 +12,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import GroupsIcon from '@mui/icons-material/Groups';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Guest {
   id: string;
@@ -175,18 +176,18 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
   };
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white', overflow: 'hidden' }}>
+    <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', bgcolor: COLORS.bg.white, overflow: 'hidden' }}>
       {/* Header */}
       <Box sx={{ px: 2.5, pt: 2, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <CampaignIcon sx={{ fontSize: 20, color: '#DE3F5E' }} />
-          <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+          <CampaignIcon sx={{ fontSize: 20, color: COLORS.brand.primary }} />
+          <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong }}>
             Compose & Send
           </Typography>
         </Box>
 
         {isWhapi && (
-          <Alert severity="info" sx={{ borderRadius: '8px', fontSize: 11, mb: 1, py: 0.5 }}>
+          <Alert severity="info" sx={{ borderRadius: RADII.sm, fontSize: 11, mb: 1, py: 0.5 }}>
             Sending via Whapi (personal number). Messages are free-form text, not templates. Sent gradually (~1 every 30s).
           </Alert>
         )}
@@ -196,9 +197,9 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
           onChange={(_, v) => { setTab(v); setResult(null); }}
           sx={{
             minHeight: 36,
-            '& .MuiTab-root': { textTransform: 'none', fontSize: 12, fontWeight: 600, minHeight: 36, py: 0.5, color: '#6a6a6a' },
+            '& .MuiTab-root': { textTransform: 'none', fontSize: 12, fontWeight: 600, minHeight: 36, py: 0.5, color: COLORS.text.subtle },
             '& .Mui-selected': { color: '#DE3F5E !important' },
-            '& .MuiTabs-indicator': { bgcolor: '#DE3F5E' },
+            '& .MuiTabs-indicator': { bgcolor: COLORS.brand.primary },
           }}
         >
           <Tab label={isWhapi ? 'Message Campaign' : 'Template Campaign'} />
@@ -212,33 +213,33 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
           <Box>
             {/* Template selector */}
             <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Choose Template</InputLabel>
+              <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500 }}>Choose Template</InputLabel>
               <Select
                 value={templateKey}
                 label="Choose Template"
                 onChange={(e) => { setTemplateKey(e.target.value); setResult(null); }}
-                sx={{ bgcolor: 'white', borderRadius: '8px', fontSize: 13, color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                sx={{ bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 13, color: COLORS.text.strong, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
               >
                 <MenuItem value="" disabled><em>Select a template...</em></MenuItem>
-                <MenuItem disabled sx={{ opacity: 1, fontWeight: 700, fontSize: 11, color: '#6a6a6a', py: 0.5 }}>
+                <MenuItem disabled sx={{ opacity: 1, fontWeight: 700, fontSize: 11, color: COLORS.text.subtle, py: 0.5 }}>
                   MARKETING (paid)
                 </MenuItem>
                 {TEMPLATE_OPTIONS.filter((t) => t.category === 'MARKETING').map((t) => (
                   <MenuItem key={t.key} value={t.key} sx={{ fontSize: 13 }}>
                     <Box>
                       <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{t.label}</Typography>
-                      <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>{t.description}</Typography>
+                      <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>{t.description}</Typography>
                     </Box>
                   </MenuItem>
                 ))}
-                <MenuItem disabled sx={{ opacity: 1, fontWeight: 700, fontSize: 11, color: '#6a6a6a', py: 0.5, mt: 0.5 }}>
+                <MenuItem disabled sx={{ opacity: 1, fontWeight: 700, fontSize: 11, color: COLORS.text.subtle, py: 0.5, mt: 0.5 }}>
                   UTILITY (low cost)
                 </MenuItem>
                 {TEMPLATE_OPTIONS.filter((t) => t.category === 'UTILITY').map((t) => (
                   <MenuItem key={t.key} value={t.key} sx={{ fontSize: 13 }}>
                     <Box>
                       <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{t.label}</Typography>
-                      <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>{t.description}</Typography>
+                      <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>{t.description}</Typography>
                     </Box>
                   </MenuItem>
                 ))}
@@ -262,14 +263,14 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                     <Chip
                       label={selectedTemplate.category === 'MARKETING' ? '~$0.01/msg' : '~$0.002/msg'}
                       size="small"
-                      sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#6a6a6a' }}
+                      sx={{ height: 20, fontSize: 10, bgcolor: COLORS.bg.subtle, color: COLORS.text.subtle }}
                     />
                   </Box>
 
                   {/* Preview */}
-                  <Box sx={{ p: 1.5, bgcolor: '#F5F5F0', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                    <Typography sx={{ fontSize: 10, color: '#6a6a6a', mb: 0.5, fontWeight: 600 }}>PREVIEW</Typography>
-                    <Typography sx={{ fontSize: 12, color: '#1a1a1a', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                  <Box sx={{ p: 1.5, bgcolor: '#F5F5F0', borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <Typography sx={{ fontSize: 10, color: COLORS.text.subtle, mb: 0.5, fontWeight: 600 }}>PREVIEW</Typography>
+                    <Typography sx={{ fontSize: 12, color: COLORS.text.strong, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                       {previewText}
                     </Typography>
                   </Box>
@@ -281,12 +282,12 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
             <Collapse in={!!templateKey}>
               <Stack direction="row" spacing={1.5} sx={{ mb: 2, alignItems: 'flex-start' }}>
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500 }}>Language</InputLabel>
+                  <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500 }}>Language</InputLabel>
                   <Select
                     value={languageCode}
                     label="Language"
                     onChange={(e) => setLanguageCode(e.target.value)}
-                    sx={{ bgcolor: 'white', borderRadius: '8px', fontSize: 13, color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
+                    sx={{ bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 13, color: COLORS.text.strong, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' } }}
                   >
                     <MenuItem value="en">English</MenuItem>
                     {templateKey !== 'CULTURAL_GUIDE' && <MenuItem value="hi">Hindi</MenuItem>}
@@ -300,7 +301,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                     onChange={(e) => setImageUrl(e.target.value)}
                     sx={{
                       flex: 1,
-                      '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '8px', fontSize: 12, color: '#1a1a1a' },
+                      '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 12, color: COLORS.text.strong },
                       '& .MuiInputBase-input::placeholder': { fontSize: 11 },
                     }}
                   />
@@ -311,7 +312,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
             {/* Target audience */}
             <Collapse in={!!templateKey}>
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a', mb: 1 }}>Send to</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>Send to</Typography>
 
                 {!useCustomSelection ? (
                   <Box>
@@ -324,8 +325,8 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                           onClick={() => setTargetFilter(f.value)}
                           sx={{
                             height: 26, fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                            bgcolor: targetFilter === f.value ? '#1a1a1a' : '#F5F5F5',
-                            color: targetFilter === f.value ? 'white' : '#4a4a4a',
+                            bgcolor: targetFilter === f.value ? COLORS.text.strong : COLORS.bg.subtle,
+                            color: targetFilter === f.value ? COLORS.bg.white : COLORS.text.muted,
                             '&:hover': { bgcolor: targetFilter === f.value ? '#333' : '#EEEEEE' },
                           }}
                         />
@@ -334,7 +335,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                     <Button
                       size="small"
                       onClick={() => setUseCustomSelection(true)}
-                      sx={{ textTransform: 'none', fontSize: 11, color: '#DE3F5E', p: 0, minWidth: 0 }}
+                      sx={{ textTransform: 'none', fontSize: 11, color: COLORS.brand.primary, p: 0, minWidth: 0 }}
                     >
                       Or select specific guests...
                     </Button>
@@ -352,7 +353,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                         <TextField
                           {...params}
                           placeholder="Search guests..."
-                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '8px', fontSize: 12 } }}
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 12 } }}
                         />
                       )}
                       renderTags={(value, getTagProps) =>
@@ -365,7 +366,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                     <Button
                       size="small"
                       onClick={() => { setUseCustomSelection(false); setSelectedGuests([]); }}
-                      sx={{ textTransform: 'none', fontSize: 11, color: '#6a6a6a', p: 0, minWidth: 0 }}
+                      sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.subtle, p: 0, minWidth: 0 }}
                     >
                       Back to filter selection
                     </Button>
@@ -383,9 +384,9 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                 onClick={handleSendCampaign}
                 fullWidth
                 sx={{
-                  borderRadius: '10px', fontSize: 13,
+                  borderRadius: RADII.sm, fontSize: 13,
                   py: 1,
-                  '&.Mui-disabled': { bgcolor: '#F5F5F5', color: '#9a9a9a' },
+                  '&.Mui-disabled': { bgcolor: COLORS.bg.subtle, color: COLORS.text.faint },
                 }}
               >
                 {`Send ${selectedTemplate?.label || 'Template'}${useCustomSelection ? ` to ${selectedGuests.length} guests` : ''}`}
@@ -397,7 +398,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
         {/* ═══ Tab 1: Direct Message ═══ */}
         {tab === 1 && (
           <Box>
-            <Typography sx={{ fontSize: 12, color: '#6a6a6a', mb: 1.5 }}>
+            <Typography sx={{ fontSize: 12, color: COLORS.text.subtle, mb: 1.5 }}>
               Send a personal message to a specific guest. Free within 24hr service window (after they reply), otherwise uses a utility message.
             </Typography>
 
@@ -414,8 +415,8 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                   label="Select Guest"
                   sx={{
                     mb: 2,
-                    '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '8px', fontSize: 13 },
-                    '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
+                    '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 13 },
+                    '& .MuiInputLabel-root': { color: COLORS.text.muted, fontWeight: 500 },
                   }}
                 />
               )}
@@ -432,7 +433,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
               onChange={(e) => setDirectMessage(e.target.value)}
               sx={{
                 mb: 2,
-                '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '8px', fontSize: 13, color: '#1a1a1a' },
+                '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, fontSize: 13, color: COLORS.text.strong },
               }}
             />
 
@@ -444,9 +445,9 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
               onClick={handleSendDirect}
               fullWidth
               sx={{
-                borderRadius: '10px', fontSize: 13,
+                borderRadius: RADII.sm, fontSize: 13,
                 py: 1,
-                '&.Mui-disabled': { bgcolor: '#F5F5F5', color: '#9a9a9a' },
+                '&.Mui-disabled': { bgcolor: COLORS.bg.subtle, color: COLORS.text.faint },
               }}
             >
               {directGuest ? `Send to ${directGuest.name}` : 'Send Message'}
@@ -460,7 +461,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
             severity={result.type === 'success' ? 'success' : 'error'}
             icon={result.type === 'success' ? <CheckCircleIcon sx={{ fontSize: 18 }} /> : undefined}
             onClose={() => setResult(null)}
-            sx={{ mt: 2, borderRadius: '8px', fontSize: 12 }}
+            sx={{ mt: 2, borderRadius: RADII.sm, fontSize: 12 }}
           >
             {result.message}
           </Alert>

@@ -34,6 +34,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Countdown hook
 const useCountdown = (targetDate: string) => {
@@ -93,7 +94,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8, // 64px from Figma converted to MUI scale
         px: { xs: 4, lg: 4.25, xl: 4.5 },
         py: { xs: 1.5, lg: 1.625, xl: 1.75 },
@@ -121,7 +122,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontSize: { xs: '1.5rem', sm: '1.5rem', lg: '1.75rem', xl: '2rem' }, // 24px from Figma
                 lineHeight: 1.2,
                 // Match Figma font
@@ -132,7 +133,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 fontSize: { xs: '0.85rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' }, // 12px from Figma
                 lineHeight: 1.4,
@@ -410,10 +411,10 @@ export default function HomePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: COLORS.bg.subtle,
         }}
       >
-        <Typography variant="h6" sx={{ color: '#666' }}>
+        <Typography variant="h6" sx={{ color: COLORS.text.subtle }}>
           Loading...
         </Typography>
       </Box>
@@ -499,7 +500,7 @@ export default function HomePage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
                   letterSpacing: '0.5px',
                 }}
@@ -512,7 +513,7 @@ export default function HomePage() {
                 variant="h2"
                 sx={{
                   fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.25rem', xl: '3.5rem' },
-                  color: '#000',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
                   fontFamily: 'var(--font-instrument-serif)',
                   fontStyle: 'italic',
@@ -543,14 +544,14 @@ export default function HomePage() {
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="center" mb={2}>
                   {/* <LocationOnOutlined 
                     sx={{ 
-                      color: '#000', 
+                      color: COLORS.text.strong, 
                       fontSize: '1.2rem' 
                     }} 
                   /> */}
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
                       textDecoration: 'underline',
                     }}
@@ -662,8 +663,8 @@ export default function HomePage() {
                   size="large"
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
-                    color: 'white',
+                    backgroundColor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     py: { xs: 2, lg: 2.25, xl: 2.5 },
                     fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
                     fontWeight: 600,
@@ -740,12 +741,12 @@ export default function HomePage() {
                   size="large"
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
-                    color: 'white',
+                    backgroundColor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     py: { xs: 1.5, lg: 1.75, xl: 2 },
                     fontSize: { xs: '1rem', lg: '1.0625rem', xl: '1.125rem' },
                     fontWeight: 700,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {

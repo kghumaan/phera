@@ -17,6 +17,7 @@ import { Close, CheckCircleOutline } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface FeatureRequestModalProps {
     open: boolean;
@@ -90,9 +91,9 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
             fullWidth
             PaperProps={{
                 sx: {
-                    borderRadius: '24px',
+                    borderRadius: RADII.dialog,
                     p: { xs: 1, md: 2 },
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     overflow: 'visible'
                 }
             }}
@@ -103,7 +104,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                     position: 'absolute',
                     right: 16,
                     top: 16,
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     bgcolor: 'rgba(0,0,0,0.03)',
                     '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' }
                 }}
@@ -120,7 +121,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     variant="h4"
                                     sx={{
                                         fontWeight: 800,
-                                        color: '#1a1a1a',
+                                        color: COLORS.text.strong,
                                         mb: 1.5,
                                         fontSize: { xs: '1.75rem', md: '2.25rem' }
                                     }}
@@ -129,7 +130,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 </Typography>
                                 <Typography
                                     sx={{
-                                        color: '#666',
+                                        color: COLORS.text.subtle,
                                         fontSize: '1.05rem',
                                         lineHeight: 1.6,
                                         maxWidth: '450px',
@@ -150,16 +151,16 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 disabled={isSubmitting}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
-                                        borderRadius: '16px',
+                                        borderRadius: RADII.lg,
                                         bgcolor: '#f8f9fa',
                                         fontSize: '1.1rem',
-                                        color: '#1a1a1a',
+                                        color: COLORS.text.strong,
                                         '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
                                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.12)' },
-                                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                        '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                                     },
                                     '& ::placeholder': {
-                                        color: '#666',
+                                        color: COLORS.text.subtle,
                                         opacity: 1,
                                     }
                                 }}
@@ -180,7 +181,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                         bgcolor: '#c23450',
                                         boxShadow: '0 10px 20px rgba(222, 63, 94, 0.3)',
                                     },
-                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
                                 }}
                             >
                                 Submit Request
@@ -203,10 +204,10 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 <CheckCircleOutline sx={{ fontSize: 48, color: '#28c840' }} />
                             </Box>
                             <Box>
-                                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
                                     Thank you!
                                 </Typography>
-                                <Typography sx={{ color: '#666' }}>
+                                <Typography sx={{ color: COLORS.text.subtle }}>
                                     {copy.success}
                                 </Typography>
                             </Box>
@@ -218,7 +219,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     px: 4,
                                     py: 1.5,
                                     mt: 2,
-                                    color: '#1a1a1a',
+                                    color: COLORS.text.strong,
                                     borderColor: 'rgba(0,0,0,0.1)',
                                     textTransform: 'none',
                                     fontWeight: 600,

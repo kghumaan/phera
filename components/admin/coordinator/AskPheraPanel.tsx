@@ -6,6 +6,7 @@ import { Close, AutoAwesome } from '@mui/icons-material';
 import ChatInput from '@/components/admin/build-ai/ChatInput';
 import TypingIndicator from '@/components/admin/build-ai/TypingIndicator';
 import { parseAIResponse } from '@/lib/vendors/format-ai-response';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatMessage {
   id: string;
@@ -86,7 +87,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         display: 'flex',
         flexDirection: 'column',
         borderLeft: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         // Anchor to the viewport so switching admin tabs doesn't re-flow the
         // panel. Sticky + height: 100vh was resetting the top offset whenever
         // the sibling column's height changed (e.g. Members tab is taller).
@@ -116,19 +117,19 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
               width: 28,
               height: 28,
               borderRadius: '50%',
-              bgcolor: alpha('#DE3F5E', 0.1),
+              bgcolor: alpha(COLORS.brand.primary, 0.1),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AutoAwesome sx={{ fontSize: 16, color: '#DE3F5E' }} />
+            <AutoAwesome sx={{ fontSize: 16, color: COLORS.brand.primary }} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>
             Ask Phera
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#6a6a6a' }}>
+        <IconButton size="small" onClick={onClose} sx={{ color: COLORS.text.subtle }}>
           <Close sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
@@ -136,16 +137,16 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
       {/* Disabled overlay for demo */}
       {disabled && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 3, textAlign: 'center', gap: 2 }}>
-          <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: alpha('#DE3F5E', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AutoAwesome sx={{ fontSize: 24, color: '#DE3F5E' }} />
+          <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: alpha(COLORS.brand.primary, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AutoAwesome sx={{ fontSize: 24, color: COLORS.brand.primary }} />
           </Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#1a1a1a' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
             AI Vendor Assistant
           </Typography>
-          <Typography sx={{ fontSize: '0.82rem', color: '#6a6a6a', lineHeight: 1.6 }}>
+          <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.subtle, lineHeight: 1.6 }}>
             Ask questions about your vendor conversations, get quote comparisons, and receive suggestions — all powered by your actual vendor data.
           </Typography>
-          <Typography sx={{ fontSize: '0.75rem', color: '#999', mt: 1 }}>
+          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, mt: 1 }}>
             Disabled in demo mode
           </Typography>
         </Box>
@@ -170,7 +171,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
-                    bgcolor: alpha('#DE3F5E', 0.1),
+                    bgcolor: alpha(COLORS.brand.primary, 0.1),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -178,7 +179,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                     mt: 0.25,
                   }}
                 >
-                  <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />
+                  <AutoAwesome sx={{ fontSize: 14, color: COLORS.brand.primary }} />
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   {parseAIResponse(msg.text)}
@@ -203,7 +204,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                   sx={{
                     fontSize: '0.85rem',
                     lineHeight: 1.5,
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     whiteSpace: 'pre-line',
                   }}
                 >

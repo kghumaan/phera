@@ -4,6 +4,7 @@ import { useEffect, useState, use, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ErrorOutline } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function UpgradeSuccessPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   return (
@@ -72,13 +73,13 @@ function UpgradeSuccessContent({ params }: { params: Promise<{ weddingSlug: stri
         alignItems: 'center',
         justifyContent: 'center',
         gap: 3,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       {status === 'loading' && (
         <>
-          <CircularProgress sx={{ color: '#DE3F5E' }} size={48} />
-          <Typography sx={{ color: '#4a4a4a', fontWeight: 500, fontSize: '1.1rem' }}>
+          <CircularProgress sx={{ color: COLORS.brand.primary }} size={48} />
+          <Typography sx={{ color: COLORS.text.muted, fontWeight: 500, fontSize: '1.1rem' }}>
             Activating your {tier === 'planner' ? 'Planner' : 'Pro'} plan...
           </Typography>
         </>
@@ -88,10 +89,10 @@ function UpgradeSuccessContent({ params }: { params: Promise<{ weddingSlug: stri
         <>
           <CheckCircle sx={{ fontSize: 64, color: '#4CAF50' }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
               {tier === 'planner' ? 'Welcome, Planner!' : 'Welcome to Pro!'}
             </Typography>
-            <Typography sx={{ color: '#6a6a6a' }}>
+            <Typography sx={{ color: COLORS.text.subtle }}>
               Your account has been upgraded. Taking you back to the dashboard...
             </Typography>
           </Box>
@@ -100,12 +101,12 @@ function UpgradeSuccessContent({ params }: { params: Promise<{ weddingSlug: stri
 
       {status === 'error' && (
         <>
-          <ErrorOutline sx={{ fontSize: 64, color: '#DE3F5E' }} />
+          <ErrorOutline sx={{ fontSize: 64, color: COLORS.brand.primary }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
               Something went wrong
             </Typography>
-            <Typography sx={{ color: '#6a6a6a' }}>
+            <Typography sx={{ color: COLORS.text.subtle }}>
               If your payment succeeded, your plan will be updated shortly. Redirecting...
             </Typography>
           </Box>

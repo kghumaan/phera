@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface RsvpDonutChartProps {
   breakdown: {
@@ -31,13 +32,13 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
   const responded = breakdown.yes + breakdown.no + breakdown.maybe;
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', p: 2.5, bgcolor: 'white', height: '100%' }}>
-      <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a', mb: 1 }}>
+    <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 2.5, bgcolor: COLORS.bg.white, height: '100%' }}>
+      <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong, mb: 1 }}>
         RSVP Status
       </Typography>
       {totalGuests === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: '#9a9a9a' }}>No guests yet</Typography>
+          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>No guests yet</Typography>
         </Box>
       ) : (
         <Box sx={{ position: 'relative' }}>
@@ -65,10 +66,10 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
           </ResponsiveContainer>
           {/* Center label */}
           <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-            <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
               {responded}
             </Typography>
-            <Typography sx={{ fontSize: 10, color: '#9a9a9a' }}>
+            <Typography sx={{ fontSize: 10, color: COLORS.text.faint }}>
               of {totalGuests}
             </Typography>
           </Box>
@@ -80,7 +81,7 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
               return (
                 <Box key={s.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: s.color }} />
-                  <Typography sx={{ fontSize: 11, color: '#4a4a4a' }}>
+                  <Typography sx={{ fontSize: 11, color: COLORS.text.muted }}>
                     {s.label} ({val})
                   </Typography>
                 </Box>

@@ -17,6 +17,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function NewWeddingPage() {
   const router = useRouter();
@@ -143,7 +144,7 @@ export default function NewWeddingPage() {
         status: 'draft',
         created_by: userId,
         background_image: '/images/backgrounds/blue-clouds.webp',
-        primary_color: '#DE3F5E',
+        primary_color: COLORS.brand.primary,
       });
 
       if (wedding) {
@@ -171,7 +172,7 @@ export default function NewWeddingPage() {
             justifyContent: 'center',
           }}
         >
-          <CircularProgress size={48} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={48} sx={{ color: COLORS.brand.primary }} />
         </Box>
       </OptimizedBackground>
     );
@@ -194,7 +195,7 @@ export default function NewWeddingPage() {
             sx={{
               p: { xs: 3, sm: 5 },
               borderRadius: '32px',
-              bgcolor: alpha('#fff', 0.95),
+              bgcolor: alpha(COLORS.bg.white, 0.95),
               backdropFilter: 'blur(10px)',
             }}
           >
@@ -206,7 +207,7 @@ export default function NewWeddingPage() {
                     fontFamily: 'var(--font-instrument-serif)',
                     mb: 1,
                     fontSize: { xs: '2rem', sm: '2.5rem' },
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                   }}
                 >
                   Create Your Wedding
@@ -214,7 +215,7 @@ export default function NewWeddingPage() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     fontSize: { xs: '0.95rem', sm: '1.05rem' },
                   }}
                 >
@@ -238,7 +239,7 @@ export default function NewWeddingPage() {
                     autoFocus
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         '& fieldset': {
                           borderColor: 'rgba(0, 0, 0, 0.23)',
                         },
@@ -246,11 +247,11 @@ export default function NewWeddingPage() {
                           borderColor: 'rgba(0, 0, 0, 0.4)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
                       },
                       '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                     }}
                   />
@@ -259,7 +260,7 @@ export default function NewWeddingPage() {
                     <Alert
                       severity="error"
                       onClose={() => setError(null)}
-                      sx={{ borderRadius: '12px' }}
+                      sx={{ borderRadius: RADII.md }}
                     >
                       {error}
                     </Alert>
@@ -271,11 +272,11 @@ export default function NewWeddingPage() {
                     loading={loading}
                     disabled={!coupleName.trim()}
                     sx={{
-                      borderRadius: '16px',
+                      borderRadius: RADII.lg,
                       py: 1.5,
                       fontSize: '1.1rem',
                       '&:disabled': {
-                        bgcolor: '#ccc',
+                        bgcolor: COLORS.border.default,
                       },
                     }}
                   >
@@ -288,7 +289,7 @@ export default function NewWeddingPage() {
                 variant="caption"
                 sx={{
                   textAlign: 'center',
-                  color: '#999',
+                  color: COLORS.text.faint,
                   fontSize: '0.85rem',
                 }}
               >

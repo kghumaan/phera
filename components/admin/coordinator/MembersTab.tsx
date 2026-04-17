@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Stack, CircularProgress, alpha, Select, MenuItem } from '@mui/material';
 import { AdminPanelSettings, Person, Storefront } from '@mui/icons-material';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Member {
   id: string;
@@ -17,7 +18,7 @@ interface Member {
 const ROLE_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
   vendor: { color: '#9C27B0', icon: <Storefront sx={{ fontSize: 14 }} />, label: 'Vendor' },
   admin: { color: '#2196F3', icon: <AdminPanelSettings sx={{ fontSize: 14 }} />, label: 'Admin' },
-  member: { color: '#9E9E9E', icon: <Person sx={{ fontSize: 14 }} />, label: 'Member' },
+  member: { color: COLORS.text.faint, icon: <Person sx={{ fontSize: 14 }} />, label: 'Member' },
 };
 
 interface MembersTabProps {
@@ -76,7 +77,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -84,7 +85,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
   if (members.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: '#888', fontSize: '0.85rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.faint, fontSize: '0.85rem' }}>
           No members found for this conversation.
         </Typography>
       </Box>
@@ -108,7 +109,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
               px: 1.5,
               py: 1.25,
               borderRadius: 1,
-              '&:hover': { bgcolor: alpha('#000', 0.02) },
+              '&:hover': { bgcolor: alpha(COLORS.text.strong, 0.02) },
             }}
           >
             {/* Avatar circle */}
@@ -136,7 +137,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 sx={{
                   fontSize: '0.85rem',
                   fontWeight: 600,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -146,14 +147,14 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 {member.is_whatsapp_admin && (
                   <Typography
                     component="span"
-                    sx={{ fontSize: '0.7rem', color: '#999', ml: 0.5, fontWeight: 400 }}
+                    sx={{ fontSize: '0.7rem', color: COLORS.text.faint, ml: 0.5, fontWeight: 400 }}
                   >
                     (WA admin)
                   </Typography>
                 )}
               </Typography>
               {member.name && (
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#6a6a6a' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: COLORS.text.subtle }}>
                   {member.phone}
                 </Typography>
               )}
@@ -171,7 +172,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 fontWeight: 600,
                 bgcolor: alpha(config.color, 0.08),
                 color: config.color,
-                borderRadius: '8px',
+                borderRadius: RADII.sm,
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.25) },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.5) },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: config.color },

@@ -36,6 +36,7 @@ import TravelHeaderImage from './components/TravelHeaderImage';
 import AddSectionMenu from './components/AddSectionMenu';
 import { DEFAULT_SECTIONS, TRAVEL_TYPE_LABELS } from './components/travel-utils';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function TravelPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -305,10 +306,10 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Travel & Stay
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Add travel information, flight details, accommodation, and hotel recommendations for your guests
           </Typography>
         </Box>
@@ -320,17 +321,17 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
               alignItems="center"
               spacing={0.75}
               sx={{
-                bgcolor: 'rgba(222, 63, 94, 0.06)',
-                color: '#DE3F5E',
+                bgcolor: COLORS.brand.primaryWash,
+                color: COLORS.brand.primary,
                 px: 2,
                 py: 1,
-                borderRadius: '12px',
-                fontSize: '0.85rem',
+                borderRadius: RADII.md,
+                fontSize: '0.875rem',
                 fontWeight: 500,
               }}
             >
               <AutoAwesome sx={{ fontSize: 16 }} />
-              <Typography variant="body2" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+              <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                 We&apos;ve generated some default sections for you — feel free to update or delete as you wish!
               </Typography>
             </Stack>
@@ -350,9 +351,9 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
         {/* AI generation shimmer */}
         {aiGenerating && (
           <Stack spacing={1.5}>
-            <Skeleton variant="rounded" height={20} width={180} sx={{ borderRadius: '8px' }} />
-            <Skeleton variant="rounded" height={60} sx={{ borderRadius: '12px' }} />
-            <Skeleton variant="rounded" height={60} sx={{ borderRadius: '12px' }} />
+            <Skeleton variant="rounded" height={20} width={180} sx={{ borderRadius: RADII.sm }} />
+            <Skeleton variant="rounded" height={60} sx={{ borderRadius: RADII.md }} />
+            <Skeleton variant="rounded" height={60} sx={{ borderRadius: RADII.md }} />
           </Stack>
         )}
 
@@ -395,8 +396,8 @@ export default function TravelPage({ params }: { params: Promise<{ weddingSlug: 
         </DndContext>
 
         {sections.length === 0 && !aiGenerating && (
-          <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'white', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <Typography sx={{ color: '#6a6a6a' }}>
+          <Box sx={{ p: 4, textAlign: 'center', bgcolor: COLORS.bg.white, borderRadius: RADII.lg, border: `1px solid ${COLORS.border.faint}` }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               No travel sections yet. Click &ldquo;Add Section&rdquo; to get started.
             </Typography>
           </Box>

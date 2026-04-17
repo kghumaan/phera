@@ -4,6 +4,7 @@ import { Box, Typography, Container, useMediaQuery, useTheme } from '@mui/materi
 import { Monitor, Home } from '@mui/icons-material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function AdminRootLayout({
     children,
@@ -41,14 +42,14 @@ export default function AdminRootLayout({
                                 mb: 1
                             }}
                         >
-                            <Monitor sx={{ fontSize: 40, color: '#DE3F5E' }} />
+                            <Monitor sx={{ fontSize: 40, color: COLORS.brand.primary }} />
                         </Box>
 
-                        <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a1a1a' }}>
+                        <Typography variant="h4" sx={{ fontWeight: 800, color: COLORS.text.strong }}>
                             Desktop Experience Required
                         </Typography>
 
-                        <Typography sx={{ color: '#666', fontSize: '1.1rem', lineHeight: 1.6 }}>
+                        <Typography sx={{ color: COLORS.text.subtle, fontSize: '1.1rem', lineHeight: 1.6 }}>
                             The admin dashboard is optimized for larger screens to provide the best editing experience for your wedding website.
                         </Typography>
 

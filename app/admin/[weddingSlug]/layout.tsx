@@ -16,6 +16,7 @@ import { AdminRoleProvider, AdminRole } from '@/lib/contexts/AdminRoleContext';
 import { NavigationGuardProvider } from '@/lib/contexts/NavigationGuardContext';
 import { AutoSaveProvider } from '@/lib/contexts/AutoSaveContext';
 import ViewerBanner from '@/components/admin/ViewerBanner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function OnboardingLayout({
   children,
@@ -213,7 +214,7 @@ function OnboardingLayoutContent({
                     return currentGroup?.id === 'wedding-website' ? '0 0 55%' : 1;
                   })()
                 },
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 p: { xs: 2, md: 4 },
                 pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 24px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` }, // Shift internal content down to clear fixed Top Nav + extra spacing
                 height: '100%',
@@ -234,7 +235,7 @@ function OnboardingLayoutContent({
                   backdropFilter: 'blur(4px)',
                 }}
               >
-                <CircularProgress sx={{ color: '#DE3F5E' }} />
+                <CircularProgress sx={{ color: COLORS.brand.primary }} />
               </Backdrop>
             </Box>
 
@@ -288,9 +289,9 @@ function OnboardingLayoutContent({
       <Backdrop
         open={isLoadingPlan}
         sx={{
-          color: '#DE3F5E',
+          color: COLORS.brand.primary,
           zIndex: (theme) => theme.zIndex.drawer + 2, // Highest priority
-          bgcolor: 'white', // Solid white background for initial load
+          bgcolor: COLORS.bg.white, // Solid white background for initial load
         }}
       >
         <CircularProgress color="inherit" />

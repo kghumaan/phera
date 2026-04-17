@@ -15,6 +15,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
 import { generateBulkWaLinks, generateBroadcastMessage, GuestContact } from '@/lib/whatsapp/deep-links';
 import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface PersonalOutreachGeneratorProps {
   coupleName: string;
@@ -66,10 +67,10 @@ export default function PersonalOutreachGenerator({
         border: '1px solid rgba(0,0,0,0.07)',
       }}
     >
-      <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600, mb: 1 }}>
+      <Typography variant="h6" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 1 }}>
         Send your first save-the-date personally
       </Typography>
-      <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3 }}>
         Your guests will trust a message from you more than from a new number. Send this personally, and Phera will handle everything after.
       </Typography>
 
@@ -82,8 +83,8 @@ export default function PersonalOutreachGenerator({
         sx={{
           mb: 2,
           '& .MuiOutlinedInput-root': {
-            bgcolor: 'white',
-            borderRadius: '12px',
+            bgcolor: COLORS.bg.white,
+            borderRadius: RADII.md,
           },
         }}
       />
@@ -94,9 +95,9 @@ export default function PersonalOutreachGenerator({
           startIcon={<ContentCopyIcon />}
           onClick={handleCopyMessage}
           sx={{
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             textTransform: 'none',
-            bgcolor: copied ? '#4CAF50' : '#DE3F5E',
+            bgcolor: copied ? '#4CAF50' : COLORS.brand.primary,
             '&:hover': { bgcolor: copied ? '#45a049' : '#c13550' },
           }}
         >
@@ -107,10 +108,10 @@ export default function PersonalOutreachGenerator({
           startIcon={<DownloadIcon />}
           onClick={handleDownloadContacts}
           sx={{
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             textTransform: 'none',
-            borderColor: '#DE3F5E',
-            color: '#DE3F5E',
+            borderColor: COLORS.brand.primary,
+            color: COLORS.brand.primary,
           }}
         >
           Download contact list
@@ -119,7 +120,7 @@ export default function PersonalOutreachGenerator({
 
       {guests.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" sx={{ color: '#4a4a4a', mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ color: COLORS.text.muted, mb: 1 }}>
             Quick send links ({guests.length} guests)
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

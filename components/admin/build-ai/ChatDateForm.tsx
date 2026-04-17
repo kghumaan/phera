@@ -13,6 +13,7 @@ import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { format } from 'date-fns';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { ActionButton, PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatDateFormProps {
     label: string;
@@ -42,7 +43,7 @@ export default function ChatDateForm({
 
     return (
         <Box sx={{
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             p: 2.5,
             borderRadius: 1.5,
             border: '1px solid',
@@ -72,9 +73,9 @@ export default function ChatDateForm({
                                     ...ENHANCED_TEXT_FIELD_SX,
                                     '& .MuiOutlinedInput-root': {
                                         ...ENHANCED_TEXT_FIELD_SX['& .MuiOutlinedInput-root'],
-                                        borderRadius: '12px',
+                                        borderRadius: RADII.md,
                                         fontSize: '0.9rem',
-                                        bgcolor: 'white',
+                                        bgcolor: COLORS.bg.white,
                                         '& input': {
                                             py: 1.5,
                                             fontSize: '0.9rem',
@@ -89,14 +90,14 @@ export default function ChatDateForm({
                                         fontSize: '0.9rem',
                                         color: '#000000 !important',
                                     },
-                                    '& .MuiInputAdornment-root .MuiSvgIcon-root': { color: '#DE3F5E' },
+                                    '& .MuiInputAdornment-root .MuiSvgIcon-root': { color: COLORS.brand.primary },
                                 }
                             },
                             actionBar: {
                                 actions: ['cancel', 'accept'],
                                 sx: {
                                     '& .MuiButton-root': {
-                                        color: '#DE3F5E',
+                                        color: COLORS.brand.primary,
                                         fontWeight: 700,
                                         fontSize: '0.9rem',
                                     }
@@ -104,8 +105,8 @@ export default function ChatDateForm({
                             },
                             calendarHeader: {
                                 sx: {
-                                    '& .MuiPickersCalendarHeader-label': { color: '#000000', fontWeight: 700 },
-                                    '& .MuiSvgIcon-root': { color: '#000000' }
+                                    '& .MuiPickersCalendarHeader-label': { color: COLORS.text.strong, fontWeight: 700 },
+                                    '& .MuiSvgIcon-root': { color: COLORS.text.strong }
                                 }
                             },
                             day: {
@@ -122,7 +123,7 @@ export default function ChatDateForm({
                                     },
                                     '&.MuiPickersDay-today': {
                                         borderColor: '#DE3F5E !important',
-                                        color: '#DE3F5E',
+                                        color: COLORS.brand.primary,
                                     }
                                 }
                             }
@@ -136,7 +137,7 @@ export default function ChatDateForm({
                                 size="small"
                                 fullWidth
                                 sx={{
-                                    borderRadius: '16px',
+                                    borderRadius: RADII.lg,
                                     fontSize: '0.85rem',
                                     py: 1,
                                     flex: 1,
@@ -152,9 +153,9 @@ export default function ChatDateForm({
                             size="small"
                             fullWidth
                             sx={{
-                                borderRadius: '16px',
-                                borderColor: '#DE3F5E',
-                                color: '#DE3F5E',
+                                borderRadius: RADII.lg,
+                                borderColor: COLORS.brand.primary,
+                                color: COLORS.brand.primary,
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
                                 py: 1,

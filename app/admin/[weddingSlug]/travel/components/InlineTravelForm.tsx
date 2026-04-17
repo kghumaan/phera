@@ -5,14 +5,15 @@ import { Box, TextField, Stack, Button, Typography, Switch, CircularProgress, Cl
 import { AttachMoney } from '@mui/icons-material';
 import { TravelSection } from '@/lib/supabase/wedding-service';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
     color: '#524344',
@@ -22,11 +23,11 @@ const fieldSx = {
       transform: 'translate(14px, -9px) scale(0.75)',
     },
     '&.Mui-focused': {
-      color: '#DE3F5E',
+      color: COLORS.brand.primary,
     },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
     padding: '12.5px 14px',
   },
@@ -80,9 +81,9 @@ export default function InlineTravelForm({
   return (
     <ClickAwayListener onClickAway={handleClickAway}>
       <Box sx={{
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         border: '1px solid #EEE',
-        borderRadius: '12px',
+        borderRadius: RADII.md,
         px: 1.5, py: 2,
         position: 'relative',
         opacity: isSaving ? 0.6 : 1,
@@ -91,7 +92,7 @@ export default function InlineTravelForm({
       }}>
         {isSaving && (
           <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-            <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+            <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
           </Box>
         )}
 
@@ -112,13 +113,13 @@ export default function InlineTravelForm({
                 onChange={(e) => setVisible(e.target.checked)}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase': { color: '#999' },
-                  '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
+                  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+                  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
                 }}
               />
-              <Typography variant="caption" sx={{ color: '#6a6a6a', whiteSpace: 'nowrap' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, whiteSpace: 'nowrap' }}>
                 {visible ? 'Show title' : 'Hide title'}
               </Typography>
             </Stack>
@@ -162,7 +163,7 @@ export default function InlineTravelForm({
           {/* Price Level with dollar signs (hotel only) */}
           {isHotel && (
             <Box>
-              <Typography variant="body2" sx={{ color: '#4a4a4a', fontWeight: 500, mb: 0.5 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 500, mb: 0.5 }}>
                 Price Level
               </Typography>
               <Stack direction="row" spacing={0.5}>
@@ -179,18 +180,18 @@ export default function InlineTravelForm({
                       justifyContent: 'center',
                       cursor: 'pointer',
                       border: '1px solid',
-                      borderColor: priceLevel && level <= priceLevel ? '#DE3F5E' : '#ddd',
+                      borderColor: priceLevel && level <= priceLevel ? COLORS.brand.primary : COLORS.border.default,
                       bgcolor: priceLevel && level <= priceLevel ? 'rgba(222,63,94,0.08)' : 'transparent',
                       transition: 'all 0.15s',
                       '&:hover': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         bgcolor: 'rgba(222,63,94,0.04)',
                       },
                     }}
                   >
                     <AttachMoney sx={{
                       fontSize: 18,
-                      color: priceLevel && level <= priceLevel ? '#DE3F5E' : '#bbb',
+                      color: priceLevel && level <= priceLevel ? COLORS.brand.primary : COLORS.text.faint,
                     }} />
                   </Box>
                 ))}
@@ -204,9 +205,9 @@ export default function InlineTravelForm({
               variant="outlined"
               onClick={handleSubmit}
               sx={{
-                borderColor: '#DE3F5E',
-                color: '#DE3F5E',
-                borderRadius: '8px',
+                borderColor: COLORS.brand.primary,
+                color: COLORS.brand.primary,
+                borderRadius: RADII.sm,
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
@@ -224,7 +225,7 @@ export default function InlineTravelForm({
                   onMoreDetails();
                 }}
                 sx={{
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   fontSize: '1rem',
                   px: 2, py: 0.75,
                 }}

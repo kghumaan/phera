@@ -13,6 +13,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import ExamplesSection from './components/ExamplesSection';
 import DayCard from './components/DayCard';
 import MoreDetailsModal from './components/MoreDetailsModal';
@@ -353,25 +354,25 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={ENHANCED_SECTION_SPACING}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
               Wedding Schedule
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Plan the timeline for your celebration
             </Typography>
           </Box>
           <Box sx={{
-            bgcolor: 'rgba(222, 63, 94, 0.04)',
-            borderRadius: '16px',
+            bgcolor: COLORS.brand.primaryWash,
+            borderRadius: RADII.lg,
             p: 6,
-            border: '1px dashed #DE3F5E',
+            border: `1px dashed ${COLORS.brand.primary}`,
             textAlign: 'center',
           }}>
             <Stack spacing={3} alignItems="center">
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
                 Set your wedding dates first
               </Typography>
-              <Typography variant="body2" sx={{ color: '#666', maxWidth: 400 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle, maxWidth: 400 }}>
                 We need your wedding dates to auto-generate your schedule days.
                 Head to Wedding Details to set them.
               </Typography>
@@ -397,10 +398,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         {/* Header */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
             Wedding Schedule
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Plan the timeline for your celebration
           </Typography>
         </Box>

@@ -24,6 +24,7 @@ import QrCodeIcon from '@mui/icons-material/QrCode';
 import ShareIcon from '@mui/icons-material/Share';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface LapseEvent {
   id: string;

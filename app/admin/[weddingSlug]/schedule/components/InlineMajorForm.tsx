@@ -6,9 +6,10 @@ import { Add } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_PALETTE = [
-  '#DE3F5E',
+  COLORS.brand.primary,
   '#FA9A00',
   '#941C28',
   '#59114D',
@@ -19,11 +20,11 @@ const COLOR_PALETTE = [
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
     color: '#524344',
@@ -34,7 +35,7 @@ const fieldSx = {
     },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
     padding: '12.5px 14px',
   },
@@ -94,9 +95,9 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       border: '1px solid #EEE',
-      borderRadius: '12px',
+      borderRadius: RADII.md,
       px: 1.5, py: 2,
       display: 'flex',
       alignItems: 'stretch',
@@ -108,7 +109,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
     }}>
       {isSaving && (
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
         </Box>
       )}
       {/* Color bar on the left */}
@@ -201,10 +202,10 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                '&:hover': { borderColor: !COLOR_PALETTE.includes(color) ? '#DE3F5E' : '#999' },
+                '&:hover': { borderColor: !COLOR_PALETTE.includes(color) ? COLORS.brand.primary : COLORS.text.faint },
               }}
             >
-              {COLOR_PALETTE.includes(color) && <Add sx={{ fontSize: 16, color: '#999' }} />}
+              {COLOR_PALETTE.includes(color) && <Add sx={{ fontSize: 16, color: COLORS.text.faint }} />}
               <input
                 ref={colorInputRef}
                 type="color"
@@ -222,15 +223,15 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
               disabled={!canSubmit}
               onClick={handleSubmit}
               sx={{
-                borderColor: '#DE3F5E',
-                color: '#DE3F5E',
-                borderRadius: '8px',
+                borderColor: COLORS.brand.primary,
+                color: COLORS.brand.primary,
+                borderRadius: RADII.sm,
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
                 '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
-                '&:disabled': { borderColor: '#ddd', color: '#ccc' },
+                '&:disabled': { borderColor: COLORS.border.default, color: COLORS.border.default },
               }}
             >
               Done
@@ -253,10 +254,10 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 }
               }}
               sx={{
-                borderRadius: '8px',
+                borderRadius: RADII.sm,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
-                '&:disabled': { bgcolor: '#f0c0ca', color: 'white' },
+                '&:disabled': { bgcolor: '#f0c0ca', color: COLORS.text.inverse },
               }}
             >
               Add More Details

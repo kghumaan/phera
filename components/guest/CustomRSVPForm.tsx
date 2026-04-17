@@ -57,6 +57,7 @@ import { guestTextFieldSx } from '@/lib/constants/form-styles';
 import { ActionButton } from '@/components/admin/ActionButton';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 
 const initialFormData: RSVPFormData = {
@@ -102,7 +103,7 @@ const PHONE_MAX_LENGTH = 15;
 
 // Custom date input for react-datepicker styled to match guest form fields
 const GuestDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; label?: string; error?: boolean; helperText?: string; themeColor?: string }>(
-  ({ value, onClick, label, error, helperText, themeColor = '#DE3F5E' }, ref) => (
+  ({ value, onClick, label, error, helperText, themeColor = COLORS.brand.primary }, ref) => (
     <TextField
       ref={ref as any}
       value={value}
@@ -119,7 +120,7 @@ const GuestDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
           cursor: 'pointer',
           '& input': {
             cursor: 'pointer',
-            color: value ? '#000' : '#888',
+            color: value ? COLORS.text.strong : COLORS.text.faint,
           },
         },
       }}
@@ -338,7 +339,7 @@ interface CustomRSVPFormProps {
 }
 
 export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryColor, isPreview }: CustomRSVPFormProps) {
-  const themeColor = primaryColor || '#DE3F5E';
+  const themeColor = primaryColor || COLORS.brand.primary;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -1037,7 +1038,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 const body = msgs?.[key]?.body || defaults[key].body;
                 return (
                   <>
-                    <Typography variant="h4" sx={{ color: '#000', lineHeight: 1.5, fontWeight: 400, fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>
+                    <Typography variant="h4" sx={{ color: COLORS.text.strong, lineHeight: 1.5, fontWeight: 400, fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>
                       {heading}
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#474747', lineHeight: 1.5, fontSize: { xs: '1.1rem', sm: '1.2rem' } }}>
@@ -1114,7 +1115,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   border: '1px solid #000',
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
-                  color: '#000000',
+                  color: COLORS.text.strong,
                   flex: 'none',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1273,7 +1274,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                         {/* Define common Typography styles */}
                         {(() => {
                           const headingStyle = {
-                            color: '#000',
+                            color: COLORS.text.strong,
                             lineHeight: 1.5,
                             textAlign: 'center' as const,
                             fontWeight: 400,
@@ -1355,10 +1356,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       fullWidth
                       sx={{
                         backgroundColor: themeColor,
-                        color: 'white',
+                        color: COLORS.text.inverse,
                         py: { xs: 1.5, sm: 1.5 },
                         fontWeight: 700,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         textTransform: 'uppercase',
                         letterSpacing: '6.25%',
                         boxShadow: 'none',
@@ -1403,7 +1404,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Typography
             variant="h4"
             sx={{
-              color: '#000',
+              color: COLORS.text.strong,
               fontWeight: 400,
               lineHeight: 1.3,
             }}
@@ -1476,14 +1477,14 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     displayEmpty
                     sx={{
                       borderRadius: { xs: '8px', md: '10px' },
-                      bgcolor: 'white',
-                      color: value ? '#000' : '#999',
+                      bgcolor: COLORS.bg.white,
+                      color: value ? COLORS.text.strong : COLORS.text.faint,
                       '& fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0, 0, 0, 0.4)' },
                       '&:hover fieldset': { borderColor: hasError ? '#d32f2f' : 'rgba(0,0,0,0.5)' },
                     }}
                   >
                     <MenuItem value="" disabled>
-                      <Typography sx={{ color: '#999' }}>
+                      <Typography sx={{ color: COLORS.text.faint }}>
                         {q.label}{q.required ? ' *' : ''}
                       </Typography>
                     </MenuItem>
@@ -1543,7 +1544,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             <Typography
               variant="h4"
               sx={{
-                color: '#000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
@@ -1590,7 +1591,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   border: '1px solid rgba(0, 0, 0, 0.4)',
                   borderRadius: { xs: '8px', md: '10px' },
                   padding: { xs: '12px 12px', md: '14px 16px' },
-                  backgroundColor: 'white',
+                  backgroundColor: COLORS.bg.white,
                   cursor: 'text',
                   height: { xs: '40px', md: '52px' },
                   display: 'flex',
@@ -1615,7 +1616,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       disableUnderline
                       sx={{
                         height: '24px',
-                        color: '#000',
+                        color: COLORS.text.strong,
                         fontSize: '1rem',
                         '& .MuiSelect-select': {
                           padding: '0px 4px 0px 0px',
@@ -1624,13 +1625,13 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                           gap: 0.5,
                           fontSize: '1rem',
                           border: 'none',
-                          color: '#000',
+                          color: COLORS.text.strong,
                           '&:focus': {
                             backgroundColor: 'transparent',
                           },
                         },
                         '& .MuiSelect-icon': {
-                          color: '#666',
+                          color: COLORS.text.subtle,
                           fontSize: '1rem',
                           right: 0,
                         },
@@ -1638,7 +1639,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       MenuProps={{
                         PaperProps: {
                           sx: {
-                            backgroundColor: '#fff',
+                            backgroundColor: COLORS.bg.white,
                             boxShadow: 3,
                             // borderRadius: 2,
                             height: '300px',
@@ -1652,7 +1653,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       }}
                     >
                       {countryCodes.map((country) => (
-                        <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
+                        <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: COLORS.text.strong, minHeight: '32px' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <span style={{ fontSize: '1rem' }}>{country.flag}</span>
                             <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
@@ -1678,7 +1679,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     outline: 'none',
                     flex: 1,
                     fontSize: 'inherit',
-                    color: formData.phone ? '#000' : '#888888',
+                    color: formData.phone ? COLORS.text.strong : '#888888',
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
                   }}
@@ -1694,7 +1695,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             <Typography
               variant="body2"
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 mt: 2,
                 mb: 2,
                 lineHeight: 1.4,
@@ -1711,7 +1712,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             <Typography
               variant="h4"
               sx={{
-                color: '#000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 lineHeight: 1.3,
                 mb: 2,
@@ -1735,7 +1736,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               <Alert
                 severity="error"
                 onClose={() => setAuthError(null)}
-                sx={{ borderRadius: '12px', mb: 2 }}
+                sx={{ borderRadius: RADII.md, mb: 2 }}
               >
                 {authError}
               </Alert>
@@ -1744,10 +1745,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             {isAuthenticated ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <CheckCircleOutlined sx={{ fontSize: 64, color: themeColor, mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#000', mb: 1 }}>
+                <Typography variant="h6" sx={{ color: COLORS.text.strong, mb: 1 }}>
                   You're all set!
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   Logged in as {formData.email || user?.email}
                 </Typography>
               </Box>
@@ -1760,7 +1761,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   disabled={isAuthenticating}
                   startIcon={
                     isAuthenticating ? (
-                      <CircularProgress size={18} sx={{ color: '#1a1a1a' }} />
+                      <CircularProgress size={18} sx={{ color: COLORS.text.strong }} />
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                         <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4" />
@@ -1773,21 +1774,21 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   sx={{
                     borderRadius: '32px',
                     py: 1.5,
-                    borderColor: '#1a1a1a',
-                    color: '#1a1a1a',
+                    borderColor: COLORS.text.strong,
+                    color: COLORS.text.strong,
                     borderWidth: '1.5px',
                     textTransform: 'none',
                     fontWeight: 500,
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     '&:hover': {
                       borderColor: themeColor,
                       bgcolor: alpha(themeColor, 0.05),
                       borderWidth: '1.5px',
                     },
                     '&:disabled': {
-                      borderColor: '#1a1a1a',
-                      color: '#1a1a1a',
-                      bgcolor: 'white',
+                      borderColor: COLORS.text.strong,
+                      color: COLORS.text.strong,
+                      bgcolor: COLORS.bg.white,
                       opacity: 0.7,
                       borderWidth: '1.5px',
                     },
@@ -1797,7 +1798,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 </Button>
 
                 <Box sx={{ textAlign: 'center', my: 2 }}>
-                  <Typography variant="body2" sx={{ color: '#666' }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                     or
                   </Typography>
                 </Box>
@@ -1833,7 +1834,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   loading={isAuthenticating}
                   sx={{
                     bgcolor: themeColor,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     py: 1.5,
                     borderRadius: '32px',
                     fontSize: '1rem',
@@ -1841,7 +1842,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     textTransform: 'none',
                     boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                     '&:hover': {
-                      bgcolor: '#C8365A',
+                      bgcolor: COLORS.brand.primaryHover,
                       boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
                     },
                     '&:disabled': {
@@ -1925,7 +1926,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                             }}
                           />
                         )}
@@ -2011,7 +2012,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               <Typography
                 variant="h4"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2067,7 +2068,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.plusOne === 'yes' ? themeColor : '#000',
+                          color: formData.plusOne === 'yes' ? themeColor : COLORS.text.strong,
                           fontWeight: formData.plusOne === 'yes' ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2094,7 +2095,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                             }}
                           />
                         )}
@@ -2149,7 +2150,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               border: '1px solid rgba(0, 0, 0, 0.4)',
                               borderRadius: { xs: '8px', md: '10px' },
                               padding: '6px 8px', // smaller padding
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                               cursor: 'text',
                               height: '36px', // smaller height
                               display: 'flex',
@@ -2174,7 +2175,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                                   disableUnderline
                                   sx={{
                                     height: '24px',
-                                    color: '#000', // always black
+                                    color: COLORS.text.strong, // always black
                                     fontSize: '1rem',
                                     '& .MuiSelect-select': {
                                       padding: '0px 8px 0px 0px',
@@ -2183,20 +2184,20 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                                       gap: 0.5,
                                       fontSize: '1rem',
                                       border: 'none',
-                                      color: '#000', // always black
+                                      color: COLORS.text.strong, // always black
                                       '&:focus': {
                                         backgroundColor: 'transparent',
                                       },
                                     },
                                     '& .MuiSelect-icon': {
-                                      color: '#666',
+                                      color: COLORS.text.subtle,
                                       fontSize: '1.2rem',
                                     },
                                   }}
                                   MenuProps={{
                                     PaperProps: {
                                       sx: {
-                                        backgroundColor: '#fff',
+                                        backgroundColor: COLORS.bg.white,
                                         boxShadow: 3,
                                         height: '300px',
                                         // borderRadius: 2,
@@ -2210,7 +2211,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                                   }}
                                 >
                                   {countryCodes.map((country) => (
-                                    <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: '#000', minHeight: '32px' }}>
+                                    <MenuItem key={country.code} value={country.code} sx={{ fontSize: '1rem', height: '32px', color: COLORS.text.strong, minHeight: '32px' }}>
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span style={{ fontSize: '1rem' }}>{country.flag}</span>
                                         <span style={{ fontSize: '0.9rem' }}>{country.code}</span>
@@ -2260,7 +2261,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.plusOne === 'no' ? themeColor : '#000',
+                          color: formData.plusOne === 'no' ? themeColor : COLORS.text.strong,
                           fontWeight: formData.plusOne === 'no' ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2286,7 +2287,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                             }}
                           />
                         )}
@@ -2324,20 +2325,20 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 borderRadius: { xs: '8px', md: '10px' },
                 p: 0,
                 maxWidth: 180,
-                backgroundColor: 'white',
+                backgroundColor: COLORS.bg.white,
               }}>
                 <IconButton
                   onClick={() => handleGuestCountChange(false)}
                   disabled={formData.guestCount <= 1}
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     borderRadius: '8px 0 0 8px',
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                     '&:hover': {
                       backgroundColor: 'rgba(0, 0, 0, 0.08)',
                     },
                     '&:disabled': {
-                      color: '#ccc',
+                      color: COLORS.border.default,
                       backgroundColor: 'rgba(0, 0, 0, 0.02)',
                     }
                   }}
@@ -2349,7 +2350,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   sx={{
                     minWidth: 60,
                     textAlign: 'center',
-                    color: '#000',
+                    color: COLORS.text.strong,
                     py: 1,
                   }}
                 >
@@ -2359,14 +2360,14 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   onClick={() => handleGuestCountChange(true)}
                   disabled={formData.guestCount >= 10}
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     borderRadius: '0 8px 8px 0',
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                     '&:hover': {
                       backgroundColor: 'rgba(0, 0, 0, 0.08)',
                     },
                     '&:disabled': {
-                      color: '#ccc',
+                      color: COLORS.border.default,
                       backgroundColor: 'rgba(0, 0, 0, 0.02)',
                     }
                   }}
@@ -2385,7 +2386,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               <Typography
                 variant="h4"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2444,7 +2445,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.foodPreference.includes(option.value) ? themeColor : '#000',
+                          color: formData.foodPreference.includes(option.value) ? themeColor : COLORS.text.strong,
                           fontWeight: formData.foodPreference.includes(option.value) ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2471,7 +2472,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                             }}
                           />
                         )}
@@ -2496,7 +2497,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     border: '1px solid rgba(0, 0, 0, 0.4)',
                     borderRadius: { xs: '8px', md: '10px' },
                     padding: '16px 12px',
-                    backgroundColor: 'white',
+                    backgroundColor: COLORS.bg.white,
                     cursor: 'text',
                     minHeight: '100px',
                     '&:hover': {
@@ -2520,7 +2521,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       height: '20px',
                       resize: 'none',
                       fontSize: 'inherit',
-                      color: formData.dietaryRestrictions ? '#000' : 'rgba(0, 0, 0, 0.48)',
+                      color: formData.dietaryRestrictions ? COLORS.text.strong : 'rgba(0, 0, 0, 0.48)',
                       backgroundColor: 'transparent',
                     }}
                   />
@@ -2537,7 +2538,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               <Typography
                 variant="h4"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontWeight: 400,
                   lineHeight: 1.3,
                   mb: 2,
@@ -2584,7 +2585,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       <Typography
                         variant="body1"
                         sx={{
-                          color: formData.weddingSide === option.value ? themeColor : '#000',
+                          color: formData.weddingSide === option.value ? themeColor : COLORS.text.strong,
                           fontWeight: formData.weddingSide === option.value ? 600 : 400,
                           lineHeight: 1.3,
                           flex: 1
@@ -2611,7 +2612,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: 'white',
+                              backgroundColor: COLORS.bg.white,
                             }}
                           />
                         )}
@@ -2637,7 +2638,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
-                <Typography variant="h4" sx={{ color: '#000', fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
+                <Typography variant="h4" sx={{ color: COLORS.text.strong, fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
                   Music requests
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(0, 0, 0, 0.48)', lineHeight: 1.5 }}>
@@ -2660,7 +2661,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Stack spacing={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
-                <Typography variant="h4" sx={{ color: '#000', fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
+                <Typography variant="h4" sx={{ color: COLORS.text.strong, fontWeight: 400, lineHeight: 1.3, mb: 1 }}>
                   Share your excitement
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(0, 0, 0, 0.48)', lineHeight: 1.5 }}>
@@ -2684,8 +2685,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       onClick={() => setShowGifPicker(true)}
                       sx={{
                         width: 32, height: 32, border: '1px solid #000', borderRadius: '6px',
-                        backgroundColor: 'white', p: 1,
-                        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#000' },
+                        backgroundColor: COLORS.bg.white, p: 1,
+                        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: COLORS.text.strong },
                       }}
                     >
                       <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2699,7 +2700,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   <Box sx={{ mt: 2 }}>
                     <Box
                       sx={{
-                        position: 'relative', borderRadius: '16px', overflow: 'hidden',
+                        position: 'relative', borderRadius: RADII.lg, overflow: 'hidden',
                         border: '1px solid rgba(0, 0, 0, 0.12)', cursor: 'pointer',
                         transition: 'all 0.2s ease',
                         '&:hover': { boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', transform: 'translateY(-1px)' },
@@ -2718,7 +2719,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                         onClick={(e) => { e.stopPropagation(); handleRemoveGif(); }}
                         sx={{
                           position: 'absolute', top: 8, right: 8,
-                          backgroundColor: 'rgba(0, 0, 0, 0.6)', color: 'white',
+                          backgroundColor: 'rgba(0, 0, 0, 0.6)', color: COLORS.text.inverse,
                           width: 32, height: 32,
                           '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                         }}
@@ -2754,7 +2755,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               height: { xs: '3px', sm: '4px', md: '5px' },
               borderRadius: '2px',
               overflow: 'hidden',
-              backgroundColor: '#F5F5F5',
+              backgroundColor: COLORS.bg.subtle,
             }}
           >
             {mergedSteps.map((_, index) => (
@@ -2763,7 +2764,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 sx={{
                   flex: 1,
                   height: '100%',
-                  backgroundColor: index <= currentStep ? themeColor : '#E0E0E0',
+                  backgroundColor: index <= currentStep ? themeColor : COLORS.border.default,
                   transition: 'background-color 0.3s ease',
                   '&:first-of-type': {
                     borderTopLeftRadius: '2px',
@@ -2855,18 +2856,18 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: themeColor,
-                color: 'white',
+                color: COLORS.text.inverse,
                 fontWeight: 700,
                 fontSize: { xs: '0.9rem', md: '1.1rem' },
-                borderRadius: '16px',
+                borderRadius: RADII.lg,
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
                 '&:hover': {
                   backgroundColor: '#C8365A',
                 },
                 '&:disabled': {
-                  backgroundColor: '#ccc',
-                  color: '#999',
+                  backgroundColor: COLORS.border.default,
+                  color: COLORS.text.faint,
                 },
               }}
             >
@@ -2880,18 +2881,18 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
                 backgroundColor: themeColor,
-                color: 'white',
+                color: COLORS.text.inverse,
                 fontWeight: 700,
                 fontSize: { xs: '0.9rem', md: '1.1rem' },
-                borderRadius: '16px',
+                borderRadius: RADII.lg,
                 textTransform: 'uppercase',
                 letterSpacing: '6.25%',
                 '&:hover': {
                   backgroundColor: '#C8365A',
                 },
                 '&:disabled': {
-                  backgroundColor: '#ccc',
-                  color: '#999',
+                  backgroundColor: COLORS.border.default,
+                  color: COLORS.text.faint,
                 },
               }}
               disabled={false}
@@ -2906,23 +2907,23 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
       <Dialog open={showExitConfirmation} onClose={handleCancelExit}
         PaperProps={{
           sx: {
-            backgroundColor: '#fff',
-            color: '#000',
+            backgroundColor: COLORS.bg.white,
+            color: COLORS.text.strong,
             boxShadow: 8,
           },
         }}
       >
-        <DialogTitle sx={{ color: '#000', background: 'transparent' }}>Leave RSVP?</DialogTitle>
-        <DialogContent sx={{ color: '#000', background: 'transparent' }}>
-          <Typography variant="body1" sx={{ color: '#000' }}>
+        <DialogTitle sx={{ color: COLORS.text.strong, background: 'transparent' }}>Leave RSVP?</DialogTitle>
+        <DialogContent sx={{ color: COLORS.text.strong, background: 'transparent' }}>
+          <Typography variant="body1" sx={{ color: COLORS.text.strong }}>
             Are you sure you want to exit? Your changes will not be saved.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ background: 'transparent', pb: 2, pr: 2 }}>
-          <Button onClick={handleCancelExit} variant="outlined" sx={{ color: '#000', borderColor: '#000', '&:hover': { borderColor: '#000', background: '#222' } }}>
+          <Button onClick={handleCancelExit} variant="outlined" sx={{ color: COLORS.text.strong, borderColor: COLORS.text.strong, '&:hover': { borderColor: COLORS.text.strong, background: '#222' } }}>
             Cancel
           </Button>
-          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: '#fff', background: themeColor, '&:hover': { background: '#C8365A' } }}>
+          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: '#C8365A' } }}>
             Leave
           </ActionButton>
         </DialogActions>

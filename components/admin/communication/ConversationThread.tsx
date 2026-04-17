@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography, Paper, Chip } from '@mui/material';
 import { OutreachEvent } from '@/lib/types/outreach';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConversationThreadProps {
   guestName: string;
@@ -19,8 +20,8 @@ export default function ConversationThread({ guestName, events }: ConversationTh
         overflow: 'hidden',
       }}
     >
-      <Box sx={{ px: 2, py: 1.5, bgcolor: '#F8F8F8', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <Typography variant="subtitle2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+      <Box sx={{ px: 2, py: 1.5, bgcolor: COLORS.bg.subtle, borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
           {guestName}
         </Typography>
       </Box>
@@ -45,7 +46,7 @@ export default function ConversationThread({ guestName, events }: ConversationTh
                   px: 2,
                   py: 1,
                   borderRadius: 2,
-                  bgcolor: isIncoming ? '#F8F8F8' : '#DE3F5E10',
+                  bgcolor: isIncoming ? COLORS.bg.subtle : '#DE3F5E10',
                   border: `1px solid ${isIncoming ? 'rgba(0,0,0,0.07)' : '#DE3F5E30'}`,
                 }}
               >
@@ -56,7 +57,7 @@ export default function ConversationThread({ guestName, events }: ConversationTh
                     sx={{ mb: 0.5, height: 20, fontSize: '0.65rem' }}
                   />
                 )}
-                <Typography variant="body2" sx={{ color: '#1a1a1a', fontSize: '0.85rem' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.strong, fontSize: '0.85rem' }}>
                   {(event.details as any)?.message || (event.details as any)?.delivery_status || event.event_type}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5, display: 'block', textAlign: 'right' }}>

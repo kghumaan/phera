@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import Image from 'next/image';
 import type { SvgIconComponent } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export interface TravelSectionData {
   id: string;
@@ -40,7 +41,7 @@ interface TravelSectionsDisplayProps {
 
 export default function TravelSectionsDisplay({
   sections,
-  primaryColor = '#DE3F5E',
+  primaryColor = COLORS.brand.primary,
   onViewDetails,
 }: TravelSectionsDisplayProps) {
   const visibleSections = sections.filter(s => {
@@ -63,7 +64,7 @@ export default function TravelSectionsDisplay({
             position: 'relative',
             width: '100%',
             height: 280,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             overflow: 'hidden',
           }}
         >
@@ -131,13 +132,13 @@ function TextSection({
       )}
 
       {section.type === 'hotel' && section.address && (
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 0.5 }}>
           {section.address}
         </Typography>
       )}
 
       {section.type === 'hotel' && section.phone && (
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 0.5 }}>
           {section.phone}
         </Typography>
       )}

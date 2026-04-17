@@ -12,6 +12,7 @@ import {
   Divider,
   Tooltip,
 } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { Campaign, Add, Send, Reply, PendingOutlined, OpenInNew } from '@mui/icons-material';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import BroadcastComposer from './BroadcastComposer';
@@ -82,10 +83,10 @@ export default function ConciergeBroadcasts({
         }}
       >
         <Box>
-          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+          <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem' }}>
             Broadcasts
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.25 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.25 }}>
             Send WhatsApp messages to your guests. Optionally collect structured replies.
           </Typography>
         </Box>
@@ -116,13 +117,13 @@ export default function ConciergeBroadcasts({
                 p: 2,
                 borderRadius: 1,
                 border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
               }}
             >
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
                 {s.value}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
                 {s.label}
               </Typography>
             </Paper>
@@ -133,7 +134,7 @@ export default function ConciergeBroadcasts({
       {/* List */}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-          <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
         </Box>
       ) : broadcasts.length === 0 ? (
         <Paper
@@ -142,7 +143,7 @@ export default function ConciergeBroadcasts({
             p: { xs: 4, md: 6 },
             borderRadius: 1,
             border: '1px solid rgba(0,0,0,0.07)',
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             textAlign: 'center',
           }}
         >
@@ -151,19 +152,19 @@ export default function ConciergeBroadcasts({
               sx={{
                 width: 52,
                 height: 52,
-                borderRadius: '14px',
+                borderRadius: RADII.md,
                 bgcolor: '#DE3F5E12',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Campaign sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <Campaign sx={{ fontSize: 26, color: COLORS.brand.primary }} />
             </Box>
-            <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+            <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem' }}>
               No broadcasts yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 440, lineHeight: 1.55 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, maxWidth: 440, lineHeight: 1.55 }}>
               Send your first update, reminder, or data-collection prompt. You can target everyone, specific tags, or hand-picked guests.
             </Typography>
           </Stack>
@@ -179,7 +180,7 @@ export default function ConciergeBroadcasts({
                 p: 2.5,
                 borderRadius: 1,
                 border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 cursor: 'pointer',
                 transition: 'all 0.18s',
                 '&:hover': {
@@ -193,7 +194,7 @@ export default function ConciergeBroadcasts({
                   <Typography
                     sx={{
                       fontSize: '0.95rem',
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       lineHeight: 1.5,
                       overflow: 'hidden',
                       display: '-webkit-box',
@@ -213,11 +214,11 @@ export default function ConciergeBroadcasts({
                           size="small"
                           sx={{
                             bgcolor: 'rgba(222,63,94,0.1)',
-                            color: '#DE3F5E',
+                            color: COLORS.brand.primary,
                             fontWeight: 600,
                             fontSize: '0.7rem',
                             height: 22,
-                            '& .MuiChip-icon': { color: '#DE3F5E' },
+                            '& .MuiChip-icon': { color: COLORS.brand.primary },
                           }}
                         />
                       </Tooltip>
@@ -239,8 +240,8 @@ export default function ConciergeBroadcasts({
                             ? 'rgba(222,63,94,0.1)'
                             : b.status === 'sending'
                             ? 'rgba(0,0,0,0.05)'
-                            : '#F8F8F8',
-                        color: b.status === 'failed' ? '#DE3F5E' : '#4a4a4a',
+                            : COLORS.bg.subtle,
+                        color: b.status === 'failed' ? COLORS.brand.primary : COLORS.text.muted,
                         fontWeight: 600,
                         fontSize: '0.7rem',
                         height: 22,
@@ -253,21 +254,21 @@ export default function ConciergeBroadcasts({
 
                 <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                   <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                    <Send sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                    <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8rem' }}>
+                    <Send sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
                       {b.sent_count} / {b.recipient_count} sent
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                    <Reply sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                    <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8rem' }}>
+                    <Reply sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
                       {b.replied_count} replied
                     </Typography>
                   </Box>
                   {b.recipient_count > b.replied_count && (
                     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                      <PendingOutlined sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                      <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8rem' }}>
+                      <PendingOutlined sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
                         {b.recipient_count - b.replied_count} pending
                       </Typography>
                     </Box>
@@ -275,7 +276,7 @@ export default function ConciergeBroadcasts({
                   <Box sx={{ flex: 1 }} />
                   <Typography
                     variant="caption"
-                    sx={{ color: '#9a9a9a', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
+                    sx={{ color: COLORS.text.faint, fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
                   >
                     View details <OpenInNew sx={{ fontSize: 12 }} />
                   </Typography>
@@ -289,7 +290,7 @@ export default function ConciergeBroadcasts({
                       height: 5,
                       borderRadius: 999,
                       bgcolor: 'rgba(0,0,0,0.05)',
-                      '& .MuiLinearProgress-bar': { bgcolor: '#DE3F5E', borderRadius: 999 },
+                      '& .MuiLinearProgress-bar': { bgcolor: COLORS.brand.primary, borderRadius: 999 },
                     }}
                   />
                 )}

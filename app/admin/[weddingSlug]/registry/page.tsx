@@ -22,22 +22,23 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
     color: '#524344',
     fontSize: '0.875rem',
-    '&.Mui-focused': { color: '#DE3F5E' },
+    '&.Mui-focused': { color: COLORS.brand.primary },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
   },
 };
@@ -215,10 +216,10 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Registry Integration
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Accept contributions seamlessly with integrated payment links
               </Typography>
             </Box>
@@ -238,7 +239,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           </Box>
 
           <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
               Stop juggling multiple registry platforms. <strong>Registry Integration</strong> lets you add payment links from Stripe, Zola, Amazon, or any other registry — all displayed beautifully on your wedding website.
             </Typography>
             <Stack spacing={0.6}>
@@ -249,8 +250,8 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                 <><strong>Secure payments</strong> handled entirely by your chosen platform</>,
               ] as React.ReactNode[]).map((content, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
                 </Box>
               ))}
             </Stack>
@@ -264,18 +265,18 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                   { name: 'New Home Contribution', url: 'https://zola.com/registry/couple-name' },
                   { name: 'Adventure Fund', url: 'https://honeyfund.com/couple' },
                 ].map((item, idx) => (
-                  <Paper key={idx} sx={{ p: 3, borderRadius: '16px', bgcolor: '#fafafa', boxShadow: 'none' }}>
+                  <Paper key={idx} sx={{ p: 3, borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, boxShadow: 'none' }}>
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>{item.name}</Typography>
-                      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>{item.url}</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{item.name}</Typography>
+                      <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>{item.url}</Typography>
                     </Box>
                   </Paper>
                 ))}
               </Stack>
             </Box>
             <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)' }}>
-              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: COLORS.bg.white, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
               </Box>
               <PrimaryActionButton
                 startIcon={<CardGiftcard />}
@@ -298,10 +299,10 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Registry Links
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Link to your external registry sites (Stripe Payment Link, Zola, Amazon, etc.)
           </Typography>
         </Box>
@@ -337,22 +338,22 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                 key={item.id}
                 sx={{
                   p: 3,
-                  borderRadius: '16px',
-                  bgcolor: 'white',
+                  borderRadius: RADII.lg,
+                  bgcolor: COLORS.bg.white,
                   border: '1px solid #EEE',
                   boxShadow: 'none',
                   cursor: 'pointer',
-                  '&:hover': { borderColor: '#ddd', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
+                  '&:hover': { borderColor: COLORS.border.default, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
                 }}
                 onClick={() => startEditing(item)}
               >
                 <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
                   <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem', mb: item.external_url ? 0.5 : 0 }}>
+                    <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1.1rem', mb: item.external_url ? 0.5 : 0 }}>
                       {item.fund_name}
                     </Typography>
                     {item.external_url && (
-                      <Typography variant="body2" sx={{ color: '#6a6a6a', wordBreak: 'break-all' }}>
+                      <Typography variant="body2" sx={{ color: COLORS.text.subtle, wordBreak: 'break-all' }}>
                         {item.external_url}
                       </Typography>
                     )}
@@ -361,7 +362,7 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                     <IconButton
                       size="small"
                       onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                      sx={{ color: '#1a1a1a', flexShrink: 0 }}
+                      sx={{ color: COLORS.text.strong, flexShrink: 0 }}
                     >
                       <Delete fontSize="small" />
                     </IconButton>
@@ -383,8 +384,8 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           )}
 
           {registry.length === 0 && !isAddingNew && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white', boxShadow: 'none' }}>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No registry links yet. Add your first registry link below.
               </Typography>
             </Paper>
@@ -394,19 +395,19 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
             <Box
               onClick={startNew}
               sx={{
-                bgcolor: '#EBEBEB',
+                bgcolor: COLORS.border.light,
                 border: '1px dashed #BCBCBC',
-                borderRadius: '8px',
+                borderRadius: RADII.sm,
                 px: 2, py: 1.5,
                 cursor: 'pointer',
                 textAlign: 'center',
-                '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
               }}
             >
               <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                 Add Registry Link
               </Typography>
-              <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                 Stripe, Zola, Amazon, Honeyfund, etc.
               </Typography>
             </Box>
@@ -424,14 +425,14 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
 
 const inFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
-  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+  '& .MuiInputBase-input': { color: COLORS.text.strong, fontSize: '1rem' },
 };
 
 interface InlineRegistryFormProps {
@@ -453,7 +454,7 @@ function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, savin
 
   return (
     <ClickAwayListener onClickAway={onCancel}>
-      <Paper sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'white', border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+      <Paper sx={{ p: 2.5, borderRadius: RADII.lg, bgcolor: COLORS.bg.white, border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
         <Stack spacing={2}>
           <TextField
             label="Registry Name"
@@ -478,7 +479,7 @@ function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, savin
           />
           <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
             {!isNew && onDelete && (
-              <IconButton size="small" onClick={onDelete} sx={{ color: '#1a1a1a' }}>
+              <IconButton size="small" onClick={onDelete} sx={{ color: COLORS.text.strong }}>
                 <Delete fontSize="small" />
               </IconButton>
             )}
@@ -488,7 +489,7 @@ function InlineRegistryForm({ draft, setDraft, onSave, onCancel, onDelete, savin
               disabled={!canSave}
               sx={{
                 px: 3, minWidth: 80,
-                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
               }}
             >
               Save

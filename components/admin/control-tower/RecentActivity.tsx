@@ -22,6 +22,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface RecentActivityProps {
   events: any[];
@@ -29,7 +30,7 @@ interface RecentActivityProps {
 }
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
-  template_sent: <SendIcon sx={{ fontSize: 16, color: '#3b82f6' }} />,
+  template_sent: <SendIcon sx={{ fontSize: 16, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 16, color: '#22c55e' }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />,
   info_collected: <InfoIcon sx={{ fontSize: 16, color: '#06b6d4' }} />,
@@ -56,7 +57,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
   high: '#FF9800',
   medium: '#2196F3',
-  low: '#9E9E9E',
+  low: COLORS.text.faint,
 };
 
 function formatRelativeTime(date: Date): string {
@@ -109,16 +110,16 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
         p: 3,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 2 }}>
         Recent Activity ({sorted.length})
       </Typography>
 
       {sorted.length === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             No activity yet.
           </Typography>
         </Box>
@@ -158,7 +159,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                     gap: 1.5,
                     cursor: 'pointer',
                     borderRadius: 1,
-                    '&:hover': { bgcolor: '#FAFAFA' },
+                    '&:hover': { bgcolor: COLORS.bg.muted },
                   }}
                 >
                   <Box
@@ -166,7 +167,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                       width: 28,
                       height: 28,
                       borderRadius: '50%',
-                      bgcolor: '#F8F8F8',
+                      bgcolor: COLORS.bg.subtle,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -179,7 +180,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
@@ -200,8 +201,8 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                     {formatRelativeTime(event.created_at)}
                   </Typography>
                   {isExpanded
-                    ? <ExpandLessIcon sx={{ fontSize: 16, color: '#9a9a9a', flexShrink: 0 }} />
-                    : <ExpandMoreIcon sx={{ fontSize: 16, color: '#9a9a9a', flexShrink: 0 }} />
+                    ? <ExpandLessIcon sx={{ fontSize: 16, color: COLORS.text.faint, flexShrink: 0 }} />
+                    : <ExpandMoreIcon sx={{ fontSize: 16, color: COLORS.text.faint, flexShrink: 0 }} />
                   }
                 </ListItem>
 
@@ -209,7 +210,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                 <Collapse in={isExpanded}>
                   <Box sx={{ pl: 5.5, pr: 1, pb: 1.5, pt: 0.5 }}>
                     {/* Full timestamp */}
-                    <Typography sx={{ fontSize: 11, color: '#6a6a6a', mb: 1 }}>
+                    <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, mb: 1 }}>
                       {formatFullTimestamp(event.created_at)}
                     </Typography>
 
@@ -226,8 +227,8 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                                 fontSize: 10,
                                 fontWeight: 600,
                                 textTransform: 'uppercase',
-                                bgcolor: PRIORITY_COLORS[details.priority] || '#9E9E9E',
-                                color: 'white',
+                                bgcolor: PRIORITY_COLORS[details.priority] || COLORS.text.faint,
+                                color: COLORS.text.inverse,
                               }}
                             />
                           )}
@@ -236,19 +237,19 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                               label={details.category}
                               size="small"
                               variant="outlined"
-                              sx={{ height: 20, fontSize: 10, color: '#4a4a4a', borderColor: 'rgba(0,0,0,0.2)' }}
+                              sx={{ height: 20, fontSize: 10, color: COLORS.text.muted, borderColor: 'rgba(0,0,0,0.2)' }}
                             />
                           )}
                           {details.status && (
                             <Chip
                               label={details.status}
                               size="small"
-                              sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#6a6a6a' }}
+                              sx={{ height: 20, fontSize: 10, bgcolor: COLORS.bg.subtle, color: COLORS.text.subtle }}
                             />
                           )}
                         </Box>
                         {details.description && (
-                          <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>
+                          <Typography sx={{ fontSize: 12, color: COLORS.text.muted, lineHeight: 1.5 }}>
                             {details.description}
                           </Typography>
                         )}
@@ -270,7 +271,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                           }}
                         />
                         {details.guest_count > 1 && (
-                          <Chip label={`${details.guest_count} guests`} size="small" sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#4a4a4a' }} />
+                          <Chip label={`${details.guest_count} guests`} size="small" sx={{ height: 20, fontSize: 10, bgcolor: COLORS.bg.subtle, color: COLORS.text.muted }} />
                         )}
                       </Box>
                     )}
@@ -278,7 +279,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                     {/* Escalation details */}
                     {eventType === 'escalated' && details.reason && (
                       <Box sx={{ mb: 0.5 }}>
-                        <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>
+                        <Typography sx={{ fontSize: 12, color: COLORS.text.muted, lineHeight: 1.5 }}>
                           {details.reason}
                         </Typography>
                         {details.urgency && (
@@ -291,7 +292,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                               fontWeight: 600,
                               mt: 0.5,
                               bgcolor: details.urgency === 'urgent' ? '#EF5350' : '#FF9800',
-                              color: 'white',
+                              color: COLORS.text.inverse,
                             }}
                           />
                         )}
@@ -300,7 +301,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
 
                     {/* Generic details fallback */}
                     {!['issue_created', 'rsvp_received', 'escalated'].includes(eventType) && details.template && (
-                      <Typography sx={{ fontSize: 11, color: '#6a6a6a' }}>
+                      <Typography sx={{ fontSize: 11, color: COLORS.text.subtle }}>
                         Template: {details.template}
                       </Typography>
                     )}
@@ -310,7 +311,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                       <Typography
                         component="a"
                         href={`/admin/${weddingSlug}/guests`}
-                        sx={{ fontSize: 11, color: '#DE3F5E', textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
+                        sx={{ fontSize: 11, color: COLORS.brand.primary, textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
                       >
                         View guest in Guest List
                       </Typography>

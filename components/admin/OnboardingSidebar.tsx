@@ -39,6 +39,7 @@ import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProBadge from './ProBadge';
 import { CheckCircle } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface SidebarItem {
   id: string;
@@ -318,7 +319,7 @@ export default function OnboardingSidebar({
                 sx={{
                   px: 2.25,
                   py: 0.5,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   fontWeight: 600,
                   fontSize: '0.95rem',
                 }}
@@ -333,9 +334,9 @@ export default function OnboardingSidebar({
                 py: 0.75,
                 mx: 0.75,
                 mb: 0.25,
-                borderRadius: '10px',
-                color: '#1a1a1a',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                borderRadius: RADII.sm,
+                color: COLORS.text.strong,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
               }}
             >
               <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>
@@ -366,14 +367,14 @@ export default function OnboardingSidebar({
                   py: 0.75,
                   mx: 0.75,
                   mb: 0.25,
-                  borderRadius: '10px',
-                  color: isActive ? 'white' : '#1a1a1a',
-                  '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                  borderRadius: RADII.sm,
+                  color: isActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
                   '&.Mui-selected': {
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    '&:hover': { bgcolor: '#C8365A' },
-                    '& .MuiListItemIcon-root': { color: 'white' },
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
                   },
                 }}
               >
@@ -402,14 +403,14 @@ export default function OnboardingSidebar({
                   py: 0.75,
                   mx: 0.75,
                   mb: 0.25,
-                  borderRadius: '10px',
-                  color: isGroupActive ? 'white' : '#1a1a1a',
-                  '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha('#000', 0.02) },
+                  borderRadius: RADII.sm,
+                  color: isGroupActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha(COLORS.text.strong, 0.02) },
                   '&.Mui-selected': {
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    '&:hover': { bgcolor: '#C8365A' },
-                    '& .MuiListItemIcon-root': { color: 'white' },
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
                   },
                 }}
               >
@@ -449,7 +450,7 @@ export default function OnboardingSidebar({
                           <path
                             d={`M 0 0 L 0 ${curveEndY - 8} Q 0 ${curveEndY} 8 ${curveEndY} L 14 ${curveEndY}`}
                             fill="none"
-                            stroke={alpha('#000', 0.15)}
+                            stroke={alpha(COLORS.text.strong, 0.15)}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                           />
@@ -459,7 +460,7 @@ export default function OnboardingSidebar({
                           <path
                             d={`M 10 ${curveEndY - 3} L 14 ${curveEndY} L 10 ${curveEndY + 3}`}
                             fill="none"
-                            stroke={alpha('#000', 0.15)}
+                            stroke={alpha(COLORS.text.strong, 0.15)}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -486,13 +487,13 @@ export default function OnboardingSidebar({
                             py: 0.5,
                             pr: 1,
                             borderRadius: '6px',
-                            color: '#6a6a6a',
+                            color: COLORS.text.subtle,
                             minHeight: 30,
-                            '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+                            '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
                             '&.Mui-selected': {
                               bgcolor: 'transparent',
-                              color: '#DE3F5E',
-                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+                              color: COLORS.brand.primary,
+                              '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
                             },
                           }}
                         >
@@ -515,7 +516,7 @@ export default function OnboardingSidebar({
                             }}
                           />
                           {group.id === 'wedding-website' && sectionComplete[item.id] && (
-                            <CheckCircle sx={{ fontSize: 14, color: '#DE3F5E', ml: 0.5, flexShrink: 0 }} />
+                            <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}
                         </ListItemButton>
@@ -546,7 +547,7 @@ export default function OnboardingSidebar({
             '& .MuiDrawer-paper': {
               width: 220,
               boxSizing: 'border-box',
-              bgcolor: 'white', // Solid white
+              bgcolor: COLORS.bg.white, // Solid white
             },
           }}
         >
@@ -562,8 +563,8 @@ export default function OnboardingSidebar({
             '& .MuiDrawer-paper': {
               width: 220,
               boxSizing: 'border-box',
-              bgcolor: 'white', // Solid white
-              borderRight: `1px solid ${alpha('#000', 0.1)}`,
+              bgcolor: COLORS.bg.white, // Solid white
+              borderRight: `1px solid ${alpha(COLORS.text.strong, 0.1)}`,
               top: { xs: 48, md: 56 }, // Offset by Top Nav height
               height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
             },

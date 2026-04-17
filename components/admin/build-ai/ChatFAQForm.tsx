@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatFAQFormProps {
     onSave: (faq: any) => void;
@@ -32,9 +33,9 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
 
     const commonFieldSx = {
         '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             fontSize: '1rem',
-            bgcolor: '#f5f5f5',
+            bgcolor: COLORS.bg.subtle,
             fontWeight: 600,
             '& input, & textarea': {
                 py: 1.5,
@@ -48,7 +49,7 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
     };
 
     const labelSx = {
-        color: '#666',
+        color: COLORS.text.subtle,
         mb: 1,
         display: 'block',
         fontWeight: 500,
@@ -57,17 +58,17 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
 
     return (
         <Box sx={{
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             p: 4,
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             border: '2px solid',
-            borderColor: alpha('#000', 0.12),
+            borderColor: alpha(COLORS.text.strong, 0.12),
             width: '100%',
             maxWidth: 640,
             mt: 1,
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
         }}>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#000000' }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
                 New FAQ Item
             </Typography>
 
@@ -136,10 +137,10 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
                             size="small"
                             fullWidth
                             sx={{
-                                color: '#666',
+                                color: COLORS.text.subtle,
                                 fontSize: '0.85rem',
                                 py: 1,
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 flex: 1,
                                 border: '2px solid',
                                 borderColor: 'rgba(0,0,0,0.1)',
@@ -159,7 +160,7 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
                         size="small"
                         fullWidth
                         sx={{
-                            borderRadius: '16px',
+                            borderRadius: RADII.lg,
                             fontSize: '0.85rem',
                             py: 1,
                             flex: 1,

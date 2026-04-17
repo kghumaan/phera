@@ -25,6 +25,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TiptapLink from '@tiptap/extension-link';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Parse CTA from HTML — stored as <div class="phera-cta" data-text="..." data-url="..."></div>
 function parseCta(html: string): { body: string; ctaText: string; ctaUrl: string } {
@@ -147,13 +148,13 @@ export default function TravelDetailEditor({
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{ sx: { borderRadius: '24px', bgcolor: 'white' } }}
+      PaperProps={{ sx: { borderRadius: RADII.dialog, bgcolor: COLORS.bg.white } }}
     >
-      <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600, pb: 0 }}>
+      <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600, pb: 0 }}>
         More Details
       </DialogTitle>
-      <DialogContent sx={{ bgcolor: 'white' }}>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+      <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
           Add additional notes that you&apos;d like to share with your guests
         </Typography>
         <Stack spacing={1}>
@@ -171,7 +172,7 @@ export default function TravelDetailEditor({
               onClick={() => editor.chain().focus().toggleBold().run()}
               sx={{
                 bgcolor: editor.isActive('bold') ? 'rgba(222,63,94,0.1)' : 'transparent',
-                color: editor.isActive('bold') ? '#DE3F5E' : '#4a4a4a',
+                color: editor.isActive('bold') ? COLORS.brand.primary : COLORS.text.muted,
               }}
             >
               <FormatBold fontSize="small" />
@@ -181,7 +182,7 @@ export default function TravelDetailEditor({
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               sx={{
                 bgcolor: editor.isActive('bulletList') ? 'rgba(222,63,94,0.1)' : 'transparent',
-                color: editor.isActive('bulletList') ? '#DE3F5E' : '#4a4a4a',
+                color: editor.isActive('bulletList') ? COLORS.brand.primary : COLORS.text.muted,
               }}
             >
               <FormatListBulleted fontSize="small" />
@@ -191,7 +192,7 @@ export default function TravelDetailEditor({
               onClick={handleLinkClick}
               sx={{
                 bgcolor: editor.isActive('link') ? 'rgba(222,63,94,0.1)' : 'transparent',
-                color: editor.isActive('link') ? '#DE3F5E' : '#4a4a4a',
+                color: editor.isActive('link') ? COLORS.brand.primary : COLORS.text.muted,
               }}
             >
               <LinkIcon fontSize="small" />
@@ -204,7 +205,7 @@ export default function TravelDetailEditor({
               onClose={() => setLinkAnchorEl(null)}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-              PaperProps={{ sx: { borderRadius: '12px', p: 1.5, minWidth: 320, bgcolor: 'white' } }}
+              PaperProps={{ sx: { borderRadius: RADII.md, p: 1.5, minWidth: 320, bgcolor: COLORS.bg.white } }}
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <TextField
@@ -222,18 +223,18 @@ export default function TravelDetailEditor({
                     flex: 1,
                     mt: 0,
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      bgcolor: 'white',
+                      borderRadius: RADII.md,
+                      bgcolor: COLORS.bg.white,
                       '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                      '&:hover fieldset': { borderColor: '#DE3F5E' },
-                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                      '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
                     },
                     '& .MuiInputLabel-root': {
-                      color: '#4a4a4a',
+                      color: COLORS.text.muted,
                       fontWeight: 500,
                       transform: 'translate(14px, 9px) scale(1)',
                       '&.MuiInputLabel-shrink': { transform: 'translate(14px, -9px) scale(0.75)' },
-                      '&.Mui-focused': { color: '#DE3F5E' },
+                      '&.Mui-focused': { color: COLORS.brand.primary },
                     },
                     '& .MuiInputBase-input': { fontSize: '0.875rem' },
                   }}
@@ -249,7 +250,7 @@ export default function TravelDetailEditor({
                   Apply
                 </PrimaryActionButton>
                 {editor.isActive('link') && (
-                  <IconButton size="small" onClick={handleLinkRemove} sx={{ color: '#6a6a6a' }}>
+                  <IconButton size="small" onClick={handleLinkRemove} sx={{ color: COLORS.text.subtle }}>
                     <Delete fontSize="small" />
                   </IconButton>
                 )}
@@ -261,24 +262,24 @@ export default function TravelDetailEditor({
           <Box
             sx={{
               border: '1px solid rgba(0,0,0,0.23)',
-              borderRadius: '12px',
+              borderRadius: RADII.md,
               overflow: 'hidden',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               '& .ProseMirror': {
                 minHeight: 200,
                 p: 1.5,
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 '& p': { margin: '0 0 8px 0' },
                 '& ul': { paddingLeft: '20px', margin: '0 0 8px 0', listStyleType: 'disc' },
                 '& li': { display: 'list-item', marginBottom: '4px' },
                 '& li p': { margin: 0 },
-                '& a': { color: '#DE3F5E', textDecoration: 'underline' },
+                '& a': { color: COLORS.brand.primary, textDecoration: 'underline' },
               },
               '& .ProseMirror:focus': {
                 outline: 'none',
               },
               '& .ProseMirror-focused': {
-                borderColor: '#DE3F5E',
+                borderColor: COLORS.brand.primary,
               },
             }}
           >
@@ -292,10 +293,10 @@ export default function TravelDetailEditor({
                 startIcon={<SmartButton />}
                 onClick={() => setShowCtaFields(true)}
                 sx={{
-                  color: '#6a6a6a',
+                  color: COLORS.text.subtle,
                   textTransform: 'none',
                   fontWeight: 500,
-                  borderRadius: '12px',
+                  borderRadius: RADII.md,
                   '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
                 }}
               >
@@ -304,11 +305,11 @@ export default function TravelDetailEditor({
             ) : (
               <Box sx={{
                 border: '1px solid rgba(0,0,0,0.12)',
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 p: 2,
               }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                     CTA Button
                   </Typography>
                   <IconButton
@@ -318,7 +319,7 @@ export default function TravelDetailEditor({
                       setCtaText('');
                       setCtaUrl('');
                     }}
-                    sx={{ color: '#6a6a6a' }}
+                    sx={{ color: COLORS.text.subtle }}
                   >
                     <Delete fontSize="small" />
                   </IconButton>
@@ -333,12 +334,12 @@ export default function TravelDetailEditor({
                     sx={{
                       flex: 1,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '& fieldset': { borderColor: '#BCBCBC' },
-                        '&:hover fieldset': { borderColor: '#DE3F5E' },
-                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                        borderRadius: RADII.sm,
+                        '& fieldset': { borderColor: COLORS.text.faint },
+                        '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                        '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
+                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiInputBase-input': { fontSize: '0.875rem' },
                     }}
                   />
@@ -351,32 +352,32 @@ export default function TravelDetailEditor({
                     sx={{
                       flex: 2,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '& fieldset': { borderColor: '#BCBCBC' },
-                        '&:hover fieldset': { borderColor: '#DE3F5E' },
-                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                        borderRadius: RADII.sm,
+                        '& fieldset': { borderColor: COLORS.text.faint },
+                        '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                        '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
+                      '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiInputBase-input': { fontSize: '0.875rem' },
                     }}
                   />
                 </Stack>
                 {ctaText && ctaUrl && (
                   <Box sx={{ mt: 1.5 }}>
-                    <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 0.5, display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 0.5, display: 'block' }}>
                       Preview
                     </Typography>
                     <Button
                       variant="contained"
                       size="small"
                       sx={{
-                        bgcolor: '#DE3F5E',
+                        bgcolor: COLORS.brand.primary,
                         borderRadius: '32px',
                         textTransform: 'none',
                         fontWeight: 600,
                         px: 3,
                         pointerEvents: 'none',
-                        '&:hover': { bgcolor: '#DE3F5E' },
+                        '&:hover': { bgcolor: COLORS.brand.primary },
                       }}
                     >
                       {ctaText}
@@ -388,8 +389,8 @@ export default function TravelDetailEditor({
           </Box>
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-        <Button onClick={onClose} sx={{ color: '#6a6a6a', borderRadius: '12px', textTransform: 'none' }}>Cancel</Button>
+      <DialogActions sx={{ bgcolor: COLORS.bg.white, px: 3, pb: 2 }}>
+        <Button onClick={onClose} sx={{ color: COLORS.text.subtle, borderRadius: RADII.md, textTransform: 'none' }}>Cancel</Button>
         <PrimaryActionButton
           onClick={handleSave}
           loading={saving}

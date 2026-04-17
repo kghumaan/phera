@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ProBadgeProps {
   size?: 'tiny' | 'small' | 'medium';
@@ -21,8 +22,8 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
           position: 'absolute',
           top: 8,
           right: 8,
-          bgcolor: 'white',
-          color: '#DE3F5E',
+          bgcolor: COLORS.bg.white,
+          color: COLORS.brand.primary,
           borderRadius: '6px',
           px: 0.75,
           py: 0.25,
@@ -34,8 +35,8 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
           zIndex: 1,
         }}
       >
-        <AutoAwesome sx={{ fontSize: 12, color: '#DE3F5E' }} />
-        <Typography variant="inherit" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.5px', color: '#DE3F5E' }}>
+        <AutoAwesome sx={{ fontSize: 12, color: COLORS.brand.primary }} />
+        <Typography variant="inherit" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.5px', color: COLORS.brand.primary }}>
           PRO
         </Typography>
       </Box>
@@ -48,8 +49,8 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
         display: 'inline-flex',
         alignItems: 'center',
         gap: isTiny ? 0.2 : 0.5,
-        bgcolor: 'white',
-        color: '#DE3F5E',
+        bgcolor: COLORS.bg.white,
+        color: COLORS.brand.primary,
         borderRadius: isTiny ? '3px' : isSmall ? '4px' : '6px',
         px: isTiny ? 0.4 : isSmall ? 0.75 : 1,
         py: isTiny ? 0 : isSmall ? 0.25 : 0.5,
@@ -58,14 +59,14 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
         flexShrink: 0,
       }}
     >
-      <AutoAwesome sx={{ fontSize: isTiny ? 7 : isSmall ? 12 : 14, color: '#DE3F5E' }} />
+      <AutoAwesome sx={{ fontSize: isTiny ? 7 : isSmall ? 12 : 14, color: COLORS.brand.primary }} />
       <Typography
         variant="inherit"
         sx={{
           fontSize: isTiny ? '0.5rem' : isSmall ? '0.65rem' : '0.75rem',
           fontWeight: 700,
           letterSpacing: '0.5px',
-          color: '#DE3F5E',
+          color: COLORS.brand.primary,
           lineHeight: 1,
         }}
       >

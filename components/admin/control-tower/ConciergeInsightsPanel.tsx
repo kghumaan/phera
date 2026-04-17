@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConciergeInsightsPanelProps {
   guestsReached: number;
@@ -25,36 +26,36 @@ export default function ConciergeInsightsPanel({ guestsReached, messagesHandled,
   const hasTopics = topicData.length > 0;
 
   return (
-    <Box sx={{ bgcolor: 'white' }}>
+    <Box sx={{ bgcolor: COLORS.bg.white }}>
       {/* Mini stats */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
             {guestsReached}
           </Typography>
-          <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>Guests Reached</Typography>
+          <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>Guests Reached</Typography>
         </Box>
         <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
             {messagesHandled}
           </Typography>
-          <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>Messages</Typography>
+          <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>Messages</Typography>
         </Box>
         <Box sx={{ textAlign: 'center', flex: 1 }}>
           <Typography sx={{ fontSize: 20, fontWeight: 700, color: avgResponseTimeSec > 30 ? '#f59e0b' : '#22c55e', lineHeight: 1.2 }}>
             {avgResponseTimeSec > 0 ? `${avgResponseTimeSec}s` : '—'}
           </Typography>
-          <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>Avg Response</Typography>
+          <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>Avg Response</Typography>
         </Box>
       </Stack>
 
       {/* Topic breakdown chart */}
       {hasTopics ? (
         <>
-          <Typography sx={{ fontSize: 11, color: '#6a6a6a', mb: 1 }}>What guests are asking about</Typography>
+          <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, mb: 1 }}>What guests are asking about</Typography>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={topicData} margin={{ left: 0, right: 10, top: 0, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#4a4a4a' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: COLORS.text.muted }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
                 formatter={((value: number) => [`${value} guests`, '']) as any}
@@ -66,7 +67,7 @@ export default function ConciergeInsightsPanel({ guestsReached, messagesHandled,
         </>
       ) : (
         <Box sx={{ py: 2, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 12, color: '#9a9a9a' }}>
+          <Typography sx={{ fontSize: 12, color: COLORS.text.faint }}>
             {guestsReached > 0 ? 'Topic data not available yet' : 'No concierge conversations yet'}
           </Typography>
         </Box>

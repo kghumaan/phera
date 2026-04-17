@@ -6,6 +6,7 @@ import { Add, Delete, Check } from '@mui/icons-material';
 import { uploadImage } from '@/lib/utils/image-upload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import { ActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatCoupleImagesFormProps {
   onSave: (images: string[]) => void;
@@ -57,20 +58,20 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 3,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 640,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
     }}>
-      <Typography variant="h6" sx={{ mb: 1, fontWeight: 700, color: '#000', fontSize: '1rem' }}>
+      <Typography variant="h6" sx={{ mb: 1, fontWeight: 700, color: COLORS.text.strong, fontSize: '1rem' }}>
         Couple Photos
       </Typography>
-      <Typography variant="caption" sx={{ color: '#666', mb: 2, display: 'block' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block' }}>
         Upload up to 6 photos of the couple. These appear on your wedding website homepage.
       </Typography>
 
@@ -89,7 +90,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
                 position: 'relative',
                 width: 90,
                 height: 90,
-                borderRadius: '10px',
+                borderRadius: RADII.sm,
                 overflow: 'hidden',
                 border: index === 0 ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
                 flexShrink: 0,
@@ -106,8 +107,8 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
                   position: 'absolute',
                   top: 4,
                   left: 4,
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
+                  bgcolor: COLORS.brand.primary,
+                  color: COLORS.text.inverse,
                   fontSize: '0.6rem',
                   fontWeight: 700,
                   px: 0.75,
@@ -125,7 +126,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
                   top: 2,
                   right: 2,
                   bgcolor: 'rgba(0,0,0,0.6)',
-                  color: 'white',
+                  color: COLORS.text.inverse,
                   width: 22,
                   height: 22,
                   '&:hover': { bgcolor: 'rgba(222,63,94,0.9)' },
@@ -147,9 +148,9 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           onClick={handleAddPhoto}
           disabled={!weddingId}
           sx={{
-            borderColor: '#DE3F5E',
-            color: '#DE3F5E',
-            borderRadius: '12px',
+            borderColor: COLORS.brand.primary,
+            color: COLORS.brand.primary,
+            borderRadius: RADII.md,
             textTransform: 'none',
             fontWeight: 600,
             mb: 2,
@@ -167,10 +168,10 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           size="small"
           fullWidth
           sx={{
-            color: '#666',
+            color: COLORS.text.subtle,
             fontSize: '0.85rem',
             py: 1,
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             flex: 1,
             border: '2px solid',
             borderColor: 'rgba(0,0,0,0.1)',
@@ -185,7 +186,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           fullWidth
           disabled={images.length === 0}
           sx={{
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             fontSize: '0.85rem',
             py: 1,
             flex: 1,

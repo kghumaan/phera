@@ -14,6 +14,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useParams } from 'next/navigation';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -80,8 +81,8 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '24px',
-          bgcolor: 'white',
+          borderRadius: RADII.dialog,
+          bgcolor: COLORS.bg.white,
           overflow: 'hidden',
           minHeight: 300,
         },
@@ -94,7 +95,7 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
           right: 16,
           top: 16,
           zIndex: 10,
-          color: '#666',
+          color: COLORS.text.subtle,
           bgcolor: 'rgba(255,255,255,0.9)',
           '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' },
         }}
@@ -118,15 +119,15 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
               mb: 2,
             }}
           >
-            <AutoAwesome sx={{ fontSize: 28, color: '#DE3F5E' }} />
+            <AutoAwesome sx={{ fontSize: 28, color: COLORS.brand.primary }} />
           </Box>
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}
+            sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 0.5 }}
           >
             {tier === 'planner' ? 'Start as a Planner' : 'Upgrade to Pro'}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.95rem', lineHeight: 1.6 }}>
             {tier === 'planner'
               ? 'Manage unlimited weddings with all Pro features included.'
               : 'Unlock Travel Coordination, Guest Concierge, and all premium themes.'}
@@ -137,7 +138,7 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
         <Box sx={{ px: 2, pb: 3, minHeight: 200 }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: '#DE3F5E' }} />
+              <CircularProgress sx={{ color: COLORS.brand.primary }} />
             </Box>
           )}
 
@@ -147,7 +148,7 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
               <Typography
                 component="span"
                 onClick={fetchClientSecret}
-                sx={{ color: '#DE3F5E', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                sx={{ color: COLORS.brand.primary, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
               >
                 Try again
               </Typography>

@@ -12,6 +12,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { Close, Reply, Send, PendingOutlined, CheckCircleOutline } from '@mui/icons-material';
 import {
   broadcastsService,
@@ -54,7 +55,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 480 }, bgcolor: 'white' } }}
+      PaperProps={{ sx: { width: { xs: '100%', sm: 480 }, bgcolor: COLORS.bg.white } }}
     >
       <Box
         sx={{
@@ -66,15 +67,15 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
           borderBottom: '1px solid rgba(0,0,0,0.07)',
         }}
       >
-        <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>Broadcast detail</Typography>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#6a6a6a' }}>
+        <Typography sx={{ fontWeight: 600, color: COLORS.text.strong }}>Broadcast detail</Typography>
+        <IconButton size="small" onClick={onClose} sx={{ color: COLORS.text.subtle }}>
           <Close fontSize="small" />
         </IconButton>
       </Box>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-          <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
         </Box>
       ) : broadcast ? (
         <Box sx={{ p: 3, overflowY: 'auto', flex: 1 }}>
@@ -84,18 +85,18 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
               sx={{
                 p: 2,
                 borderRadius: 1,
-                bgcolor: '#F8F8F8',
+                bgcolor: COLORS.bg.subtle,
                 border: '1px solid rgba(0,0,0,0.06)',
               }}
             >
-              <Typography sx={{ fontSize: '0.95rem', color: '#1a1a1a', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              <Typography sx={{ fontSize: '0.95rem', color: COLORS.text.strong, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
                 {broadcast.message}
               </Typography>
               <Stack direction="row" spacing={1} mt={1.5} flexWrap="wrap">
                 <Chip
                   label={broadcast.target_type === 'all' ? 'All guests' : broadcast.target_type === 'tags' ? `Tags: ${broadcast.target_tags.join(', ')}` : 'Specific guests'}
                   size="small"
-                  sx={{ bgcolor: 'white', border: '1px solid rgba(0,0,0,0.1)', color: '#4a4a4a', fontWeight: 600, fontSize: '0.72rem' }}
+                  sx={{ bgcolor: COLORS.bg.white, border: '1px solid rgba(0,0,0,0.1)', color: COLORS.text.muted, fontWeight: 600, fontSize: '0.72rem' }}
                 />
                 {broadcast.collects_data && (
                   <Chip
@@ -104,10 +105,10 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                     size="small"
                     sx={{
                       bgcolor: 'rgba(222,63,94,0.1)',
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       fontWeight: 600,
                       fontSize: '0.72rem',
-                      '& .MuiChip-icon': { color: '#DE3F5E' },
+                      '& .MuiChip-icon': { color: COLORS.brand.primary },
                     }}
                   />
                 )}
@@ -124,7 +125,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
 
             {replied.length > 0 && (
               <Box>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a1a', mb: 1.25 }}>
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
                   Replies
                 </Typography>
                 <Stack spacing={1}>
@@ -137,7 +138,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
 
             {pending.length > 0 && (
               <Box>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a1a', mb: 1.25 }}>
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
                   Awaiting reply
                 </Typography>
                 <Stack spacing={0.75}>
@@ -151,14 +152,14 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                         p: 1.25,
                         borderRadius: 1,
                         border: '1px solid rgba(0,0,0,0.06)',
-                        bgcolor: 'white',
+                        bgcolor: COLORS.bg.white,
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: 500 }}>
+                        <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, fontWeight: 500 }}>
                           {r.guest_name || 'Unnamed guest'}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#9a9a9a' }}>
+                        <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
                           {r.guest_phone || '—'}
                         </Typography>
                       </Box>
@@ -171,13 +172,13 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                               ? 'rgba(222,63,94,0.1)'
                               : r.delivery_status === 'read' || r.delivery_status === 'delivered'
                               ? 'rgba(16,185,129,0.1)'
-                              : '#F8F8F8',
+                              : COLORS.bg.subtle,
                           color:
                             r.delivery_status === 'failed'
-                              ? '#DE3F5E'
+                              ? COLORS.brand.primary
                               : r.delivery_status === 'read' || r.delivery_status === 'delivered'
-                              ? '#10B981'
-                              : '#4a4a4a',
+                              ? COLORS.accent.success
+                              : COLORS.text.muted,
                           fontWeight: 600,
                           fontSize: '0.7rem',
                           height: 20,
@@ -205,14 +206,14 @@ function StatChip({ icon, label }: { icon: React.ReactNode; label: string }) {
         p: 1.25,
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         display: 'flex',
         alignItems: 'center',
         gap: 0.75,
       }}
     >
-      <Box sx={{ color: '#6a6a6a', display: 'inline-flex' }}>{icon}</Box>
-      <Typography sx={{ fontSize: '0.82rem', color: '#1a1a1a', fontWeight: 600 }}>{label}</Typography>
+      <Box sx={{ color: COLORS.text.subtle, display: 'inline-flex' }}>{icon}</Box>
+      <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong, fontWeight: 600 }}>{label}</Typography>
     </Paper>
   );
 }
@@ -231,22 +232,22 @@ function ReplyRow({
         p: 1.5,
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       <Stack spacing={1}>
         <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography sx={{ fontSize: '0.88rem', color: '#1a1a1a', fontWeight: 600 }}>
+            <Typography sx={{ fontSize: '0.88rem', color: COLORS.text.strong, fontWeight: 600 }}>
               {recipient.guest_name || 'Unnamed guest'}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#9a9a9a' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
               {recipient.guest_phone || '—'}
             </Typography>
           </Box>
-          <CheckCircleOutline sx={{ fontSize: 18, color: '#10B981' }} />
+          <CheckCircleOutline sx={{ fontSize: 18, color: COLORS.accent.success }} />
         </Stack>
-        <Typography sx={{ fontSize: '0.82rem', color: '#4a4a4a', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+        <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
           {recipient.reply_text}
         </Typography>
         {schema.length > 0 && recipient.collected_data && (
@@ -258,7 +259,7 @@ function ReplyRow({
                 size="small"
                 sx={{
                   bgcolor: 'rgba(222,63,94,0.08)',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
                   fontSize: '0.7rem',
                 }}

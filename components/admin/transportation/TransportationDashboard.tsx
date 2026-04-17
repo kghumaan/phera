@@ -21,6 +21,7 @@ import {
   DialogActions,
   TextField,
 } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import {
@@ -204,7 +205,7 @@ export default function TransportationDashboard({
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -214,10 +215,10 @@ export default function TransportationDashboard({
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Transportation
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Manage guest reservations and finalize bookings
           </Typography>
         </Box>
@@ -226,10 +227,10 @@ export default function TransportationDashboard({
             startIcon={<Settings />}
             onClick={onEditSetup}
             sx={{
-              borderColor: '#6a6a6a',
+              borderColor: COLORS.text.subtle,
               fontWeight: 500,
               borderRadius: 1,
-              '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' },
+              '&:hover': { borderColor: COLORS.brand.primary, color: COLORS.brand.primary },
             }}
           >
             Edit Setup
@@ -264,14 +265,14 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
+          <Avatar sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }}>
             <AccessTime />
           </Avatar>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
               {totalPendingCount}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Pending
             </Typography>
           </Box>
@@ -290,14 +291,14 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
+          <Avatar sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }}>
             <CheckCircle />
           </Avatar>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
               {totalConfirmedCount}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Confirmed
             </Typography>
           </Box>
@@ -316,14 +317,14 @@ export default function TransportationDashboard({
             bgcolor: '#f3f3f3ff',
           }}
         >
-          <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
+          <Avatar sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }}>
             <DirectionsBus />
           </Avatar>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
               {vehicles.length}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Vehicles
             </Typography>
           </Box>
@@ -337,7 +338,7 @@ export default function TransportationDashboard({
           border: '1px solid',
           borderColor: 'divider',
           borderRadius: 1,
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           overflow: 'hidden',
         }}
       >
@@ -351,13 +352,13 @@ export default function TransportationDashboard({
             '& .MuiTab-root': {
               textTransform: 'none',
               fontWeight: 500,
-              color: '#6a6a6a',
+              color: COLORS.text.subtle,
             },
             '& .Mui-selected': {
               color: '#DE3F5E !important',
             },
             '& .MuiTabs-indicator': {
-              bgcolor: '#DE3F5E',
+              bgcolor: COLORS.brand.primary,
             },
           }}
         >
@@ -450,9 +451,9 @@ export default function TransportationDashboard({
                   gap: 2,
                   transition: 'all 0.2s',
                   '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                    '& .add-icon-bg': { bgcolor: alpha('#DE3F5E', 0.2) }
+                    borderColor: COLORS.brand.primary,
+                    bgcolor: alpha(COLORS.brand.primary, 0.02),
+                    '& .add-icon-bg': { bgcolor: alpha(COLORS.brand.primary, 0.2) }
                   },
                 }}
               >
@@ -462,19 +463,19 @@ export default function TransportationDashboard({
                     width: 56,
                     height: 56,
                     borderRadius: '50%',
-                    bgcolor: alpha('#DE3F5E', 0.1),
+                    bgcolor: alpha(COLORS.brand.primary, 0.1),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     transition: 'all 0.2s',
                   }}
                 >
-                  <Settings sx={{ color: '#DE3F5E', fontSize: 28 }} />
+                  <Settings sx={{ color: COLORS.brand.primary, fontSize: 28 }} />
                 </Box>
-                <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', textAlign: 'center' }}>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong, textAlign: 'center' }}>
                   Add transportation option?
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', textAlign: 'center', maxWidth: 250 }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle, textAlign: 'center', maxWidth: 250 }}>
                   Click to add more vehicles, edit capacities, or manage locations.
                 </Typography>
               </Paper>
@@ -499,7 +500,7 @@ export default function TransportationDashboard({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ color: '#6a6a6a', borderRadius: 1 }}>
+          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ color: COLORS.text.subtle, borderRadius: 1 }}>
             Cancel
           </Button>
           <PrimaryActionButton
@@ -571,10 +572,10 @@ function VehicleColumn({
       sx={{
         p: 2,
         border: '2px solid',
-        // borderColor: isOver ? '#e8e8e8ff' : '#DE3F5E',
+        // borderColor: isOver ? '#e8e8e8ff' : COLORS.brand.primary,
         borderColor: '#e8e8e8ff',
         borderRadius: 1,
-        bgcolor: isOver ? alpha('#DE3F5E', 0.02) : vehicle ? 'white' : alpha('#DE3F5E', 0.04),
+        bgcolor: isOver ? alpha(COLORS.brand.primary, 0.02) : vehicle ? COLORS.bg.white : alpha(COLORS.brand.primary, 0.04),
         transition: 'all 0.2s',
         minHeight: 200,
         width: 400,
@@ -590,16 +591,16 @@ function VehicleColumn({
             mb: 2,
             height: 6,
             borderRadius: 3,
-            bgcolor: alpha('#DE3F5E', 0.1),
+            bgcolor: alpha(COLORS.brand.primary, 0.1),
             '& .MuiLinearProgress-bar': {
-              bgcolor: '#DE3F5E',
+              bgcolor: COLORS.brand.primary,
               borderRadius: 3,
             },
           }}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <DirectionsBus sx={{ color: '#DE3F5E' }} />
-          <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+          <DirectionsBus sx={{ color: COLORS.brand.primary }} />
+          <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
             {vehicle ? vehicle.vehicle_name || 'Vehicle' : 'Unassigned'}
           </Typography>
           {vehicle && (
@@ -607,8 +608,8 @@ function VehicleColumn({
               label={`${vehicle.booked}/${vehicle.capacity}`}
               sx={{
                 height: 28,
-                bgcolor: alpha('#DE3F5E', 0.1),
-                color: '#1a1a1a',
+                bgcolor: alpha(COLORS.brand.primary, 0.1),
+                color: COLORS.text.strong,
                 fontWeight: 700,
                 fontSize: '0.85rem',
                 px: 0.5
@@ -620,15 +621,15 @@ function VehicleColumn({
         {vehicle && (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-              <AccessTime sx={{ fontSize: 14, color: '#6a6a6a' }} />
-              <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+              <AccessTime sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                 {formatDateTime(vehicle.departure_datetime)}
               </Typography>
             </Box>
             {(vehicle.pickup_location || vehicle.pickup_location_coordinates) && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
-                <LocationOn sx={{ fontSize: 16, color: '#DE3F5E' }} />
-                <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500 }}>
+                <LocationOn sx={{ fontSize: 16, color: COLORS.brand.primary }} />
+                <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500 }}>
                   {vehicle.pickup_location || 'Location set (name missing)'}
                 </Typography>
               </Box>
@@ -647,7 +648,7 @@ function VehicleColumn({
           {reservations.length === 0 ? (
             <Typography
               variant="body2"
-              sx={{ color: '#9a9a9a', textAlign: 'center', py: 2 }}
+              sx={{ color: COLORS.text.faint, textAlign: 'center', py: 2 }}
             >
               {vehicle
                 ? mode === 'flexible' ? 'Drag guests here' : 'No reservations yet'
@@ -669,7 +670,7 @@ function VehicleColumn({
                     p: 1.5,
                     border: '1px solid #DE3F5E',
                     borderRadius: 1,
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                   }}
                 >
                   <TextField
@@ -694,7 +695,7 @@ function VehicleColumn({
                     <Button
                       size="small"
                       onClick={() => setIsAdding(false)}
-                      sx={{ color: '#6a6a6a', fontSize: '0.75rem' }}
+                      sx={{ color: COLORS.text.subtle, fontSize: '0.75rem' }}
                     >
                       Cancel
                     </Button>
@@ -723,12 +724,12 @@ function VehicleColumn({
                     py: 1,
                     border: '1px dashed #e8e8e8',
                     borderRadius: 1,
-                    color: '#6a6a6a',
+                    color: COLORS.text.subtle,
                     fontSize: '0.8rem',
                     '&:hover': {
                       border: '1px dashed #DE3F5E',
-                      color: '#DE3F5E',
-                      bgcolor: alpha('#DE3F5E', 0.02),
+                      color: COLORS.brand.primary,
+                      bgcolor: alpha(COLORS.brand.primary, 0.02),
                     },
                   }}
                 >
@@ -795,10 +796,10 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
       {...listeners}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <DragIndicator sx={{ color: '#000', fontSize: 18 }} />
+        <DragIndicator sx={{ color: COLORS.text.strong, fontSize: 18 }} />
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: COLORS.text.strong }}>
               {reservation.guest?.name || reservation.notes || 'Guest'}
             </Typography>
             <Chip
@@ -807,14 +808,14 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
               sx={{
                 height: 28,
                 '& .MuiChip-label': { px: 0.8, fontSize: '0.875rem' },
-                '& .MuiChip-icon': { color: '#1a1a1a', mr: 0.5 },
+                '& .MuiChip-icon': { color: COLORS.text.strong, mr: 0.5 },
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
               }}
             />
           </Box>
           {reservation.guest?.email && (
-            <Typography variant="caption" sx={{ color: '#9a9a9a', display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.faint, display: 'block' }}>
               {reservation.guest.email}
             </Typography>
           )}
@@ -845,8 +846,8 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                   height: 26,
                   '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                  color: '#1a1a1a',
+                  bgcolor: alpha(COLORS.brand.primary, 0.08),
+                  color: COLORS.text.strong,
                 }}
               />
             )}
@@ -857,9 +858,9 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
               sx={{
                 mt: 1,
                 display: 'block',
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 fontStyle: 'italic',
-                bgcolor: alpha('#000', 0.03),
+                bgcolor: alpha(COLORS.text.strong, 0.03),
                 p: 0.75,
                 borderRadius: 0.5,
                 borderLeft: '2px solid #DE3F5E'
@@ -875,8 +876,8 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
           sx={{
             height: 24,
             '& .MuiChip-label': { px: 1, fontSize: '0.8rem' },
-            bgcolor: alpha('#DE3F5E', 0.1),
-            color: '#1a1a1a',
+            bgcolor: alpha(COLORS.brand.primary, 0.1),
+            color: COLORS.text.strong,
             fontWeight: 500,
           }}
         /> */}
@@ -893,17 +894,17 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
       sx={{
         p: 1.5,
         border: '2px solid',
-        borderColor: '#DE3F5E',
+        borderColor: COLORS.brand.primary,
         borderRadius: 1,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         cursor: 'grabbing',
         width: 380,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <DragIndicator sx={{ color: '#DE3F5E', fontSize: 18 }} />
+        <DragIndicator sx={{ color: COLORS.brand.primary, fontSize: 18 }} />
         <Box sx={{ flex: 1 }}>
-          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#1a1a1a' }}>
+          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: COLORS.text.strong }}>
             {reservation.guest?.name || 'Guest'}
           </Typography>
           {/* Guest preferences */}
@@ -916,8 +917,8 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
                   height: 30,
                   '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                  color: '#1a1a1a',
+                  bgcolor: alpha(COLORS.brand.primary, 0.08),
+                  color: COLORS.text.strong,
                   fontWeight: 600,
                 }}
               />
@@ -931,8 +932,8 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
                   height: 26,
                   '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
-                  bgcolor: alpha('#DE3F5E', 0.08),
-                  color: '#1a1a1a',
+                  bgcolor: alpha(COLORS.brand.primary, 0.08),
+                  color: COLORS.text.strong,
                 }}
               />
             )}
@@ -943,11 +944,11 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
           label={reservation.party_size || 1}
           sx={{
             height: 28,
-            bgcolor: alpha('#DE3F5E', 0.1),
-            color: '#1a1a1a',
+            bgcolor: alpha(COLORS.brand.primary, 0.1),
+            color: COLORS.text.strong,
             fontWeight: 700,
             fontSize: '0.875rem',
-            '& .MuiChip-icon': { color: '#1a1a1a' },
+            '& .MuiChip-icon': { color: COLORS.text.strong },
           }}
         />
       </Box>

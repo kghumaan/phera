@@ -9,12 +9,13 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 interface OutreachTimelineProps {
   events: any[];
 }
 
 const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
-  template_sent: { label: 'Message Sent', color: '#3b82f6' },
+  template_sent: { label: 'Message Sent', color: COLORS.accent.info },
   message_received: { label: 'Reply Received', color: '#22c55e' },
   conversation_started: { label: 'Conversation', color: '#8b5cf6' },
   info_collected: { label: 'Info Collected', color: '#06b6d4' },
@@ -57,16 +58,16 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
         p: 3,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 2 }}>
         Outreach Timeline
       </Typography>
 
       {sorted.length === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             No outreach events yet. Start by sending save-the-dates.
           </Typography>
         </Box>
@@ -129,7 +130,7 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                   slotProps={{ primary: { component: 'span' }, secondary: { component: 'span' } }}
                   primary={
                     <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" component="span" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" component="span" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {config.label}
                       </Typography>
                       {future && (
@@ -137,8 +138,8 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                           variant="caption"
                           component="span"
                           sx={{
-                            color: '#6a6a6a',
-                            bgcolor: '#F8F8F8',
+                            color: COLORS.text.subtle,
+                            bgcolor: COLORS.bg.subtle,
                             px: 0.75,
                             py: 0.25,
                             borderRadius: '4px',
@@ -152,11 +153,11 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                   }
                   secondary={
                     <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-                      <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                      <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                         {formatTimestamp(event.created_at)}
                       </Typography>
                       {event.template_name && (
-                        <Typography variant="caption" sx={{ color: '#4a4a4a' }}>
+                        <Typography variant="caption" sx={{ color: COLORS.text.muted }}>
                           &middot; {event.template_name}
                         </Typography>
                       )}

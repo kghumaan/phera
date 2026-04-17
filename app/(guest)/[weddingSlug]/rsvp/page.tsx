@@ -7,6 +7,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { useParams } from 'next/navigation';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function RSVPPage() {
   const params = useParams();

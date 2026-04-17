@@ -50,6 +50,7 @@ import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -120,7 +121,7 @@ const features: Feature[] = [
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
+    borderRadius: RADII.md,
     backgroundColor: '#f8f9fa !important',
     fontSize: '0.9rem',
     '& fieldset': {
@@ -173,18 +174,18 @@ const DateRangeInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
       style={{
         width: '100%',
         padding: '10px 14px',
-        borderRadius: '12px',
+        borderRadius: RADII.md,
         border: '1px solid rgba(222, 63, 94, 0.2)',
         backgroundColor: '#f8f9fa',
         fontSize: '0.9rem',
-        color: '#1a1a1a',
+        color: COLORS.text.strong,
         fontFamily: 'inherit',
         outline: 'none',
         cursor: disabled ? 'default' : 'pointer',
         boxSizing: 'border-box',
         opacity: disabled ? 0.5 : 1,
       }}
-      onFocus={(e) => { e.target.style.borderColor = '#DE3F5E'; e.target.style.borderWidth = '2px'; e.target.style.padding = '9px 13px'; }}
+      onFocus={(e) => { e.target.style.borderColor = COLORS.brand.primary; e.target.style.borderWidth = '2px'; e.target.style.padding = '9px 13px'; }}
       onBlur={(e) => { e.target.style.borderColor = 'rgba(222, 63, 94, 0.2)'; e.target.style.borderWidth = '1px'; e.target.style.padding = '10px 14px'; }}
     />
   )
@@ -580,7 +581,7 @@ export default function OnboardingPage() {
               status: 'draft',
               created_by: data.userId,
               background_image: '/images/backgrounds/blue-clouds.webp',
-              primary_color: '#DE3F5E',
+              primary_color: COLORS.brand.primary,
               couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
               couple_image_url: '/images/couple/placeholder1.png',
             });
@@ -724,11 +725,11 @@ export default function OnboardingPage() {
         bgcolor: '#f8f9fa',
         gap: 3
       }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
         <Typography
           variant="h6"
           sx={{
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             fontWeight: 400,
             fontFamily: 'var(--font-instrument-serif)',
             fontStyle: 'italic',
@@ -767,8 +768,8 @@ export default function OnboardingPage() {
               <Paper elevation={0} sx={{
                 py: { xs: 2.5, md: 4 },
                 px: { xs: 1.5, md: 3 },
-                borderRadius: '24px',
-                bgcolor: alpha('#fff', 0.9),
+                borderRadius: RADII.dialog,
+                bgcolor: alpha(COLORS.bg.white, 0.9),
                 backdropFilter: 'blur(10px)',
                 textAlign: 'center',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
@@ -795,8 +796,8 @@ export default function OnboardingPage() {
                     zIndex: 10,
                     gap: 3
                   }}>
-                    <CircularProgress sx={{ color: '#DE3F5E' }} />
-                    <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 800 }}>
+                    <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                    <Typography variant="h6" sx={{ color: COLORS.text.strong, fontWeight: 800 }}>
                       Preparing your workspace...
                     </Typography>
                   </Box>
@@ -810,7 +811,7 @@ export default function OnboardingPage() {
                         sx={{
                           position: 'absolute',
                           left: 0,
-                          color: '#666',
+                          color: COLORS.text.subtle,
                           p: { xs: 0.5, md: 1 }
                         }}
                       >
@@ -820,7 +821,7 @@ export default function OnboardingPage() {
                         variant="h5"
                         sx={{
                           fontWeight: 700,
-                          color: '#1a1a1a',
+                          color: COLORS.text.strong,
                           fontSize: { xs: '1.2rem', md: '1.5rem' },
                           px: 5 // Add padding to avoid overlapping with absolute icon
                         }}
@@ -835,25 +836,25 @@ export default function OnboardingPage() {
                         <Box sx={{
                           textAlign: 'left',
                           p: { xs: 2, md: 4 },
-                          bgcolor: alpha('#DE3F5E', 0.05),
-                          borderRadius: '24px',
+                          bgcolor: alpha(COLORS.brand.primary, 0.05),
+                          borderRadius: RADII.dialog,
                           border: '1px solid',
-                          borderColor: alpha('#DE3F5E', 0.1),
+                          borderColor: alpha(COLORS.brand.primary, 0.1),
                           display: 'flex',
                           flexDirection: 'column'
                         }}>
                           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: { xs: 2, md: 4 } }}>
-                            <Box sx={{ bgcolor: '#DE3F5E', color: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '12px', display: 'flex' }}>
+                            <Box sx={{ bgcolor: COLORS.brand.primary, color: COLORS.text.inverse, p: { xs: 1, md: 1.5 }, borderRadius: RADII.md, display: 'flex' }}>
                               <CreditCard sx={{ fontSize: { xs: 20, md: 28 } }} />
                             </Box>
                             <Box>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a1a1a', lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, color: '#DE3F5E', fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: COLORS.text.strong, lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
+                              <Typography variant="h4" sx={{ fontWeight: 800, color: COLORS.brand.primary, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
                             </Box>
                           </Stack>
 
                           {/* Desktop Feature Title */}
-                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: '#1a1a1a', mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', opacity: 0.7 }}>
+                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: COLORS.text.strong, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', opacity: 0.7 }}>
                             What's included:
                           </Typography>
 
@@ -865,7 +866,7 @@ export default function OnboardingPage() {
                             endIcon={<ArrowForward sx={{ transform: showAllFeatures ? 'rotate(90deg)' : 'none', transition: '0.2s', fontSize: 16 }} />}
                             sx={{
                               display: { xs: 'flex', md: 'none' },
-                              color: '#DE3F5E',
+                              color: COLORS.brand.primary,
                               fontWeight: 700,
                               p: 0,
                               mb: showAllFeatures ? 2 : 0,
@@ -890,14 +891,14 @@ export default function OnboardingPage() {
                               ].map((item, i) => (
                                 <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
                                   {React.cloneElement(item.icon as React.ReactElement<any>, {
-                                    sx: { color: '#DE3F5E', fontSize: { xs: 16, md: 20 }, mt: 0.3 }
+                                    sx: { color: COLORS.brand.primary, fontSize: { xs: 16, md: 20 }, mt: 0.3 }
                                   })}
                                   <Typography variant="body2" sx={{ color: '#333', fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
                                     {item.text}
                                   </Typography>
                                 </Stack>
                               ))}
-                              <Typography variant="caption" sx={{ color: '#888', fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.8rem' }}>
+                              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.8rem' }}>
                                 + even more features coming soon
                               </Typography>
                             </Stack>
@@ -910,8 +911,8 @@ export default function OnboardingPage() {
                         <Box id="checkout" sx={{
                           width: '100%',
                           minHeight: 'auto',
-                          bgcolor: 'white',
-                          borderRadius: '24px',
+                          bgcolor: COLORS.bg.white,
+                          borderRadius: RADII.dialog,
                           p: { xs: 1, md: 2 },
                           '& iframe': {
                             width: '100% !important',
@@ -932,10 +933,10 @@ export default function OnboardingPage() {
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           How do you plan to use our platform?
                         </Typography>
 
@@ -944,10 +945,10 @@ export default function OnboardingPage() {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 border: '2px solid',
-                                borderColor: role === 'couple' ? '#DE3F5E' : 'transparent',
-                                bgcolor: role === 'couple' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
+                                borderColor: role === 'couple' ? COLORS.brand.primary : 'transparent',
+                                bgcolor: role === 'couple' ? alpha(COLORS.brand.primary, 0.05) : '#f8f9fa',
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
@@ -956,8 +957,8 @@ export default function OnboardingPage() {
                                 sx={{ p: 3, height: '100%' }}
                                 onClick={() => { setRole('couple'); setStep(2); }}
                               >
-                                <Favorite sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Couple</Typography>
+                                <Favorite sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Couple</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own wedding</Typography>
                               </CardActionArea>
                             </Card>
@@ -966,10 +967,10 @@ export default function OnboardingPage() {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 border: '2px solid',
-                                borderColor: role === 'planner' ? '#DE3F5E' : 'transparent',
-                                bgcolor: role === 'planner' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
+                                borderColor: role === 'planner' ? COLORS.brand.primary : 'transparent',
+                                bgcolor: role === 'planner' ? alpha(COLORS.brand.primary, 0.05) : '#f8f9fa',
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
@@ -978,8 +979,8 @@ export default function OnboardingPage() {
                                 sx={{ p: 3, height: '100%' }}
                                 onClick={() => { setRole('planner'); setStep(2); }}
                               >
-                                <Work sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Planner</Typography>
+                                <Work sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Planner</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings</Typography>
                               </CardActionArea>
                             </Card>
@@ -991,10 +992,10 @@ export default function OnboardingPage() {
                     {/* STEP 2: NAMES, VENUE, DATE (Moved from step 4) */}
                     {step === 2 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           {role === 'planner' ? 'Tell us about your business' : "Let's get your wedding set up"}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
                         </Typography>
 
@@ -1003,7 +1004,7 @@ export default function OnboardingPage() {
                             {role === 'planner' && (
                               <>
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Company / Business Name</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Company / Business Name</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1015,7 +1016,7 @@ export default function OnboardingPage() {
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Where are you based?</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Where are you based?</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1031,7 +1032,7 @@ export default function OnboardingPage() {
                               <>
                                 <Stack direction="row" spacing={2}>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Your First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -1042,7 +1043,7 @@ export default function OnboardingPage() {
                                     />
                                   </Box>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Partner's First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Partner's First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -1055,14 +1056,14 @@ export default function OnboardingPage() {
 
                                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
-                                  <Typography variant="caption" sx={{ color: '#999', fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                  <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                     Optionally provide details below
                                   </Typography>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
                                 </Stack>
 
                                 <Box ref={venueContainerRef} sx={{ position: 'relative' }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Event Venue</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Event Venue</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1073,7 +1074,7 @@ export default function OnboardingPage() {
                                     onFocus={() => { if (venueSuggestions.length > 0) setShowVenueSuggestions(true); }}
                                     InputProps={{
                                       endAdornment: venueSearchLoading ? (
-                                        <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
+                                        <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} />
                                       ) : null,
                                     }}
                                     sx={{ mb: 1 }}
@@ -1089,7 +1090,7 @@ export default function OnboardingPage() {
                                         right: 0,
                                         zIndex: 1000,
                                         borderRadius: 1,
-                                        bgcolor: 'white',
+                                        bgcolor: COLORS.bg.white,
                                         overflow: 'hidden',
                                         maxHeight: 240,
                                         overflowY: 'auto',
@@ -1100,14 +1101,14 @@ export default function OnboardingPage() {
                                           <ListItemButton
                                             key={s.id}
                                             onClick={() => handleSelectVenue(s)}
-                                            sx={{ py: 1, '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) } }}
+                                            sx={{ py: 1, '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) } }}
                                           >
                                             <ListItemIcon sx={{ minWidth: 36 }}>
-                                              <LocationOn sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                                              <LocationOn sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
                                             </ListItemIcon>
                                             <ListItemText
-                                              primary={<Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.85rem' }}>{s.name}</Typography>}
-                                              secondary={<Typography variant="caption" sx={{ color: '#6a6a6a' }}>{s.place_name}</Typography>}
+                                              primary={<Typography sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.85rem' }}>{s.name}</Typography>}
+                                              secondary={<Typography variant="caption" sx={{ color: COLORS.text.subtle }}>{s.place_name}</Typography>}
                                             />
                                           </ListItemButton>
                                         ))}
@@ -1121,7 +1122,7 @@ export default function OnboardingPage() {
                                         height: 15,
                                         borderRadius: '3px',
                                         border: '1.5px solid',
-                                        borderColor: venueTbd ? '#999' : 'rgba(0,0,0,0.2)',
+                                        borderColor: venueTbd ? COLORS.text.faint : 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -1142,14 +1143,14 @@ export default function OnboardingPage() {
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.7rem' }}>
                                       Venue TBD
                                     </Typography>
                                   </Stack>
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Dates</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Wedding Dates</Typography>
                                   <DatePicker
                                     selectsRange
                                     startDate={weddingDate ? new Date(weddingDate) : undefined}
@@ -1177,7 +1178,7 @@ export default function OnboardingPage() {
                                         height: 15,
                                         borderRadius: '3px',
                                         border: '1.5px solid',
-                                        borderColor: dateTbd ? '#999' : 'rgba(0,0,0,0.2)',
+                                        borderColor: dateTbd ? COLORS.text.faint : 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -1198,7 +1199,7 @@ export default function OnboardingPage() {
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.7rem' }}>
                                       Dates TBD
                                     </Typography>
                                   </Stack>
@@ -1214,10 +1215,10 @@ export default function OnboardingPage() {
                     {/* STEP 3: ONBOARDING GOALS — multi-select topics */}
                     {step === 3 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           What do you want to get done?
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           Pick everything that sounds useful — we'll tailor your setup around it. You can change this later.
                         </Typography>
 
@@ -1229,10 +1230,10 @@ export default function OnboardingPage() {
                                 <Card
                                   elevation={0}
                                   sx={{
-                                    borderRadius: '14px',
+                                    borderRadius: RADII.md,
                                     border: '2px solid',
-                                    borderColor: selected ? '#DE3F5E' : 'transparent',
-                                    bgcolor: selected ? alpha('#DE3F5E', 0.06) : '#f8f9fa',
+                                    borderColor: selected ? COLORS.brand.primary : 'transparent',
+                                    bgcolor: selected ? alpha(COLORS.brand.primary, 0.06) : '#f8f9fa',
                                     transition: 'all 0.2s ease',
                                     height: '100%',
                                   }}
@@ -1253,7 +1254,7 @@ export default function OnboardingPage() {
                                         fontWeight: 700,
                                         mb: 0.25,
                                         fontSize: '0.9rem',
-                                        color: selected ? '#DE3F5E' : '#1a1a1a',
+                                        color: selected ? COLORS.brand.primary : COLORS.text.strong,
                                         transition: 'color 0.2s ease',
                                       }}
                                     >
@@ -1262,7 +1263,7 @@ export default function OnboardingPage() {
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color: '#666',
+                                        color: COLORS.text.subtle,
                                         fontSize: '0.72rem',
                                         lineHeight: 1.4,
                                         display: 'block',
@@ -1280,7 +1281,7 @@ export default function OnboardingPage() {
                         {selectedGoals.length > 0 && (
                           <Typography
                             variant="caption"
-                            sx={{ display: 'block', color: '#DE3F5E', mt: 2, fontWeight: 600, textAlign: 'center' }}
+                            sx={{ display: 'block', color: COLORS.brand.primary, mt: 2, fontWeight: 600, textAlign: 'center' }}
                           >
                             {selectedGoals.length} selected — you can skip or select more.
                           </Typography>
@@ -1294,13 +1295,13 @@ export default function OnboardingPage() {
                         <Button
                           variant="text"
                           onClick={handleBack}
-                          sx={{ color: '#666', fontWeight: 700, fontSize: '0.9rem' }}
+                          sx={{ color: COLORS.text.subtle, fontWeight: 700, fontSize: '0.9rem' }}
                         >
                           Back
                         </Button>
                         <Button
                           variant="contained"
-                          endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
+                          endIcon={submitting ? <CircularProgress size={18} sx={{ color: COLORS.text.inverse }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
                           title={
                             (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ? "Please fill in all celebration details" :
                               (step === 2 && role === 'planner' && !companyName) ? "Please enter your company name" :
@@ -1312,11 +1313,11 @@ export default function OnboardingPage() {
                             handleNext();
                           }}
                           sx={{
-                            bgcolor: '#DE3F5E',
-                            color: 'white',
+                            bgcolor: COLORS.brand.primary,
+                            color: COLORS.text.inverse,
                             px: 4,
                             py: 1,
-                            borderRadius: '24px',
+                            borderRadius: RADII.dialog,
                             textTransform: 'none',
                             fontSize: '0.95rem',
                             fontWeight: 700,
@@ -1325,7 +1326,7 @@ export default function OnboardingPage() {
                               (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
                               (step === 2 && role === 'planner' && !companyName)
                             ) ? 0.6 : 1,
-                            '&:hover': { bgcolor: '#C8365A' },
+                            '&:hover': { bgcolor: COLORS.brand.primaryHover },
                           }}
                         >
                           {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
@@ -1348,7 +1349,7 @@ export default function OnboardingPage() {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: step >= s ? '#DE3F5E' : alpha('#DE3F5E', 0.15),
+                    bgcolor: step >= s ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.15),
                     transition: 'background-color 0.3s ease',
                   }}
                 />

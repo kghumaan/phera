@@ -27,17 +27,18 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
-  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+  '& .MuiInputBase-input': { color: COLORS.text.strong, fontSize: '1rem' },
 };
 
 interface ShopDraft {
@@ -202,10 +203,10 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Shopping Guide
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Recommend online stores for Indian outfits
           </Typography>
         </Box>
@@ -227,27 +228,27 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                 key={shop.id}
                 sx={{
                   p: 3,
-                  borderRadius: '16px',
-                  bgcolor: 'white',
+                  borderRadius: RADII.lg,
+                  bgcolor: COLORS.bg.white,
                   border: '1px solid #EEE',
                   boxShadow: 'none',
                   cursor: 'pointer',
-                  '&:hover': { borderColor: '#ddd', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
+                  '&:hover': { borderColor: COLORS.border.default, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
                 }}
                 onClick={() => startEditing(shop)}
               >
                 <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
                   <Box sx={{ flex: 1, mr: 2 }}>
-                    <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1.1rem', mb: 0.5 }}>
                       {shop.name}
                     </Typography>
                     {shop.details && (
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: '#6a6a6a', mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: COLORS.text.subtle, mb: 0.5 }}>
                         {shop.details}
                       </Typography>
                     )}
                     {shop.url && (
-                      <Typography variant="caption" sx={{ color: '#DE3F5E', wordBreak: 'break-all' }}>
+                      <Typography variant="caption" sx={{ color: COLORS.brand.primary, wordBreak: 'break-all' }}>
                         {shop.url}
                       </Typography>
                     )}
@@ -256,7 +257,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                     <IconButton
                       size="small"
                       onClick={(e) => { e.stopPropagation(); handleDelete(shop.id); }}
-                      sx={{ color: '#1a1a1a', flexShrink: 0 }}
+                      sx={{ color: COLORS.text.strong, flexShrink: 0 }}
                     >
                       <Delete fontSize="small" />
                     </IconButton>
@@ -278,8 +279,8 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           )}
 
           {shops.length === 0 && !isAddingNew && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white', boxShadow: 'none' }}>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No stores yet. Add one below.
               </Typography>
             </Paper>
@@ -292,19 +293,19 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                 onClick={startNew}
                 sx={{
                   flex: 1,
-                  bgcolor: '#EBEBEB',
+                  bgcolor: COLORS.border.light,
                   border: '1px dashed #BCBCBC',
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   px: 2, py: 1.5,
                   cursor: 'pointer',
                   textAlign: 'center',
-                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                  '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
                 <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                   Add Custom Store
                 </Typography>
-                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   Enter your own store details
                 </Typography>
               </Box>
@@ -312,19 +313,19 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                 onClick={startFromTemplate}
                 sx={{
                   flex: 1,
-                  bgcolor: '#EBEBEB',
+                  bgcolor: COLORS.border.light,
                   border: '1px dashed #BCBCBC',
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   px: 2, py: 1.5,
                   cursor: 'pointer',
                   textAlign: 'center',
-                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                  '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
                 <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                   Add Recommended Shop
                 </Typography>
-                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   Choose from popular stores
                 </Typography>
               </Box>
@@ -338,10 +339,10 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           onClose={() => setTemplateDialogOpen(false)}
           maxWidth="md"
           fullWidth
-          PaperProps={{ sx: { borderRadius: '24px', bgcolor: 'white' } }}
+          PaperProps={{ sx: { borderRadius: RADII.dialog, bgcolor: COLORS.bg.white } }}
         >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>Choose a Recommended Shop</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
+          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>Choose a Recommended Shop</DialogTitle>
+          <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
             <Grid container spacing={2} sx={{ mt: 1 }}>
               {SHOP_TEMPLATES.map((template) => (
                 <Grid size={{ xs: 12, sm: 6 }} key={template.name}>
@@ -349,17 +350,17 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                     sx={{
                       p: 2,
                       cursor: 'pointer',
-                      borderRadius: '12px',
-                      bgcolor: 'white',
+                      borderRadius: RADII.md,
+                      bgcolor: COLORS.bg.white,
                       boxShadow: 'none',
                       '&:hover': { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' },
                     }}
                     onClick={() => handleSelectTemplate(template)}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: COLORS.text.strong }}>
                       {template.name}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#6a6a6a', whiteSpace: 'pre-line' }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, whiteSpace: 'pre-line' }}>
                       {template.details.split('\n')[0]}
                     </Typography>
                   </Paper>
@@ -367,8 +368,8 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
               ))}
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          <DialogActions sx={{ bgcolor: COLORS.bg.white, px: 3, pb: 2 }}>
+            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: COLORS.text.subtle }}>Cancel</Button>
           </DialogActions>
         </Dialog>
 
@@ -383,14 +384,14 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
 
 const inFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
-  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '1rem' },
+  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+  '& .MuiInputBase-input': { color: COLORS.text.strong, fontSize: '1rem' },
 };
 
 interface InlineShopFormProps {
@@ -412,7 +413,7 @@ function InlineShopForm({ draft, setDraft, onSave, onCancel, onDelete, saving, i
 
   return (
     <ClickAwayListener onClickAway={onCancel}>
-      <Paper sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'white', border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+      <Paper sx={{ p: 2.5, borderRadius: RADII.lg, bgcolor: COLORS.bg.white, border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
         <Stack spacing={2}>
           <TextField
             label="Store Name"
@@ -450,7 +451,7 @@ function InlineShopForm({ draft, setDraft, onSave, onCancel, onDelete, saving, i
           />
           <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
             {!isNew && onDelete && (
-              <IconButton size="small" onClick={onDelete} sx={{ color: '#1a1a1a' }}>
+              <IconButton size="small" onClick={onDelete} sx={{ color: COLORS.text.strong }}>
                 <Delete fontSize="small" />
               </IconButton>
             )}
@@ -460,7 +461,7 @@ function InlineShopForm({ draft, setDraft, onSave, onCancel, onDelete, saving, i
               disabled={!canSave}
               sx={{
                 px: 3, minWidth: 80,
-                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
               }}
             >
               Save

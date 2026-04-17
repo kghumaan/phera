@@ -48,6 +48,7 @@ import UpgradeModal from './UpgradeModal';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import AutoSaveIndicator from './AutoSaveIndicator';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -126,9 +127,9 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
             sx={{
                 zIndex: (theme) => theme.zIndex.drawer + 1,
                 backgroundColor: '#ffffff !important',
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 borderBottom: '1px solid',
-                borderColor: alpha('#000', 0.08),
+                borderColor: alpha(COLORS.text.strong, 0.08),
                 boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
             }}
         >
@@ -140,8 +141,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             size="small"
                             onClick={onMenuToggle}
                             sx={{
-                                color: '#1a1a1a',
-                                '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) }
+                                color: COLORS.text.strong,
+                                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) }
                             }}
                         >
                             <MenuIcon />
@@ -191,13 +192,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 textTransform: 'none',
                                 fontWeight: 600,
                                 fontSize: '0.8rem',
-                                color: '#1a1a1a',
-                                bgcolor: alpha('#DE3F5E', 0.05),
+                                color: COLORS.text.strong,
+                                bgcolor: alpha(COLORS.brand.primary, 0.05),
                                 border: '1px solid',
-                                borderColor: alpha('#DE3F5E', 0.1),
+                                borderColor: alpha(COLORS.brand.primary, 0.1),
                                 '&:hover': {
-                                    bgcolor: alpha('#DE3F5E', 0.1),
-                                    borderColor: alpha('#DE3F5E', 0.2),
+                                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                    borderColor: alpha(COLORS.brand.primary, 0.2),
                                 }
                             }}
                         >
@@ -212,27 +213,27 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             alignItems: 'center',
                             gap: 1,
                             height: 34,
-                            bgcolor: alpha('#DE3F5E', 0.05),
+                            bgcolor: alpha(COLORS.brand.primary, 0.05),
                             px: 1.5,
                             py: 0,
                             borderRadius: 1,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                             border: '1px solid',
-                            borderColor: alpha('#DE3F5E', 0.1),
+                            borderColor: alpha(COLORS.brand.primary, 0.1),
                             '&:hover': {
-                                bgcolor: alpha('#DE3F5E', 0.1),
-                                borderColor: alpha('#DE3F5E', 0.2),
+                                bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                borderColor: alpha(COLORS.brand.primary, 0.2),
                             },
                         }}
                     >
-                        <SettingsOutlined sx={{ fontSize: 20, color: '#1a1a1a' }} />
+                        <SettingsOutlined sx={{ fontSize: 20, color: COLORS.text.strong }} />
                         <Avatar
                             sx={{
                                 width: 28,
                                 height: 28,
-                                bgcolor: user?.avatar_color || '#DE3F5E',
-                                color: 'white',
+                                bgcolor: user?.avatar_color || COLORS.brand.primary,
+                                color: COLORS.text.inverse,
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
                                 border: '2px solid white',
@@ -268,14 +269,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             sx={{
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
-                                color: isPro ? '#DE3F5E' : '#666',
+                                color: isPro ? COLORS.brand.primary : COLORS.text.subtle,
                                 cursor: isPro ? 'default' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 0.5,
                             }}
                         >
-                            {isPro && <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />}
+                            {isPro && <AutoAwesome sx={{ fontSize: 14, color: COLORS.brand.primary }} />}
                             {isPro ? 'Pro' : 'Basic'}
                         </Typography>
                     </Box>
@@ -292,10 +293,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 overflow: 'visible',
                                 filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
                                 mt: 1.5,
-                                borderRadius: '24px',
+                                borderRadius: RADII.dialog,
                                 minWidth: 280,
                                 p: 1,
-                                bgcolor: 'white',
+                                bgcolor: COLORS.bg.white,
                                 '& .MuiAvatar-root': {
                                     width: 64,
                                     height: 64,
@@ -310,8 +311,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         <Box sx={{ p: 2.5, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Avatar
                                 sx={{
-                                    bgcolor: user?.avatar_color || '#DE3F5E',
-                                    color: 'white',
+                                    bgcolor: user?.avatar_color || COLORS.brand.primary,
+                                    color: COLORS.text.inverse,
                                     fontSize: '1.5rem',
                                     fontWeight: 700,
                                     mb: 1,
@@ -350,16 +351,16 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 onClick={() => !isPro && setUpgradeModalOpen(true)}
                                 sx={{
                                     mt: 1.5,
-                                    bgcolor: isPro ? '#DE3F5E' : '#f0f0f0',
-                                    color: isPro ? 'white' : '#666',
+                                    bgcolor: isPro ? COLORS.brand.primary : '#f0f0f0',
+                                    color: isPro ? COLORS.bg.white : COLORS.text.subtle,
                                     fontWeight: 600,
                                     fontSize: '0.8rem',
                                     cursor: isPro ? 'default' : 'pointer',
                                     '&:hover': {
-                                        bgcolor: isPro ? '#DE3F5E' : '#e5e5e5',
+                                        bgcolor: isPro ? COLORS.brand.primary : '#e5e5e5',
                                     },
                                     '& .MuiChip-icon': {
-                                        color: 'white',
+                                        color: COLORS.text.inverse,
                                     },
                                 }}
                             />
@@ -372,10 +373,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
                                             Test Mode
                                         </Typography>
-                                        <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                        <Typography variant="caption" sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
                                             Toggle plan for testing
                                         </Typography>
                                     </Box>
@@ -384,13 +385,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         onChange={(e) => { e.stopPropagation(); togglePlan(); }}
                                         size="small"
                                         sx={{
-                                            '& .MuiSwitch-switchBase': { color: '#999' },
-                                            '& .MuiSwitch-track': { bgcolor: '#bbb' },
+                                            '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+                                            '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
                                             '& .MuiSwitch-switchBase.Mui-checked': {
-                                                color: '#DE3F5E',
+                                                color: COLORS.brand.primary,
                                             },
                                             '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                backgroundColor: '#DE3F5E',
+                                                backgroundColor: COLORS.brand.primary,
                                             },
                                         }}
                                     />
@@ -408,10 +409,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         fontSize: '0.8rem',
                                         borderWidth: '1.5px',
                                         borderColor: 'rgba(0, 0, 0, 0.3)',
-                                        color: '#4a4a4a',
+                                        color: COLORS.text.muted,
                                         '&:hover': {
                                             borderWidth: '1.5px',
-                                            borderColor: '#1a1a1a',
+                                            borderColor: COLORS.text.strong,
                                             bgcolor: 'rgba(0, 0, 0, 0.04)',
                                         },
                                     }}
@@ -424,7 +425,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Menu Items */}
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
                                 <SettingsOutlined sx={{ color: '#111111', fontSize: 22 }} />
                             </ListItemIcon>
@@ -434,7 +435,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             />
                         </ListItemButton>
 
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
                                 <ChatBubbleOutline sx={{ color: '#111111', fontSize: 22 }} />
                             </ListItemIcon>
@@ -444,7 +445,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             />
                         </ListItemButton>
 
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
                                 <HelpOutline sx={{ color: '#111111', fontSize: 22 }} />
                             </ListItemIcon>
@@ -460,17 +461,17 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <ListItemButton
                                 onClick={handleExitDemo}
                                 sx={{
-                                    borderRadius: '12px',
+                                    borderRadius: RADII.md,
                                     py: 1.2,
                                     mx: 0.5,
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     '&:hover': {
-                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
                                     },
                                 }}
                             >
                                 <ListItemIcon sx={{ minWidth: 40 }}>
-                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                    <Logout sx={{ color: COLORS.brand.primary, fontSize: 22 }} />
                                 </ListItemIcon>
                                 <ListItemText
                                     primary="Exit Demo"
@@ -481,17 +482,17 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <ListItemButton
                                 onClick={handleSignOut}
                                 sx={{
-                                    borderRadius: '12px',
+                                    borderRadius: RADII.md,
                                     py: 1.2,
                                     mx: 0.5,
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     '&:hover': {
-                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
                                     },
                                 }}
                             >
                                 <ListItemIcon sx={{ minWidth: 40 }}>
-                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                    <Logout sx={{ color: COLORS.brand.primary, fontSize: 22 }} />
                                 </ListItemIcon>
                                 <ListItemText
                                     primary="Sign Out"
@@ -516,7 +517,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 onClose={() => setHomeModalOpen(false)}
                 PaperProps={{
                     sx: {
-                        borderRadius: '24px',
+                        borderRadius: RADII.dialog,
                         p: { xs: 2, md: 3 },
                         textAlign: 'center',
                         maxWidth: '400px'
@@ -526,13 +527,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 <DialogTitle sx={{
                     fontWeight: 600,
                     fontSize: '1.8rem',
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     pb: 1
                 }}>
                     Leave Admin Dashboard?
                 </DialogTitle>
                 <DialogContent>
-                    <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                    <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
                         You are about to be taken to the Home page. Any unsaved data may be lost.
                     </Typography>
                 </DialogContent>
@@ -560,11 +561,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     <Button
                         onClick={() => setHomeModalOpen(false)}
                         sx={{
-                            color: '#666',
+                            color: COLORS.text.subtle,
                             fontWeight: 600,
                             textTransform: 'none',
                             fontSize: '0.95rem',
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             px: 3,
                             py: 1,
                             bgcolor: 'rgba(0, 0, 0, 0.04)',
@@ -584,18 +585,18 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 onClose={() => setSignOutModalOpen(false)}
                 PaperProps={{
                     sx: {
-                        borderRadius: '24px',
+                        borderRadius: RADII.dialog,
                         p: { xs: 2, md: 3 },
                         textAlign: 'center',
                         maxWidth: '400px'
                     }
                 }}
             >
-                <DialogTitle sx={{ fontWeight: 600, fontSize: '1.8rem', color: '#1a1a1a', pb: 1 }}>
+                <DialogTitle sx={{ fontWeight: 600, fontSize: '1.8rem', color: COLORS.text.strong, pb: 1 }}>
                     Sign Out?
                 </DialogTitle>
                 <DialogContent>
-                    <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                    <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
                         You will be signed out and taken to the home page.
                     </Typography>
                 </DialogContent>
@@ -614,11 +615,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     <Button
                         onClick={() => setSignOutModalOpen(false)}
                         sx={{
-                            color: '#666',
+                            color: COLORS.text.subtle,
                             fontWeight: 600,
                             textTransform: 'none',
                             fontSize: '0.95rem',
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             px: 3,
                             py: 1,
                             bgcolor: 'rgba(0, 0, 0, 0.04)',

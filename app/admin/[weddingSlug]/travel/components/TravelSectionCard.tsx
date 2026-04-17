@@ -4,6 +4,7 @@ import { Box, Typography, Stack, IconButton } from '@mui/material';
 import { Delete, DragIndicator, VisibilityOff } from '@mui/icons-material';
 import { TravelSection } from '@/lib/supabase/wedding-service';
 import { TRAVEL_ICON_MAP } from './travel-utils';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface TravelSectionCardProps {
   section: TravelSection;
@@ -29,8 +30,8 @@ export default function TravelSectionCard({
     <Box
       onClick={onEdit}
       sx={{
-        borderRadius: '16px',
-        bgcolor: 'white',
+        borderRadius: RADII.lg,
+        bgcolor: COLORS.bg.white,
         border: '1px solid rgba(0,0,0,0.07)',
         cursor: 'pointer',
         '&:hover': {
@@ -48,9 +49,9 @@ export default function TravelSectionCard({
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               sx={{
                 cursor: 'grab',
-                color: '#ccc',
+                color: COLORS.border.default,
                 display: 'flex',
-                '&:hover': { color: '#999' },
+                '&:hover': { color: COLORS.text.faint },
               }}
             >
               <DragIndicator fontSize="small" />
@@ -58,14 +59,14 @@ export default function TravelSectionCard({
           )}
 
           {/* Icon */}
-          <Box sx={{ color: '#6a6a6a', display: 'flex' }}>
+          <Box sx={{ color: COLORS.text.subtle, display: 'flex' }}>
             {IconComponent && <IconComponent fontSize="small" />}
           </Box>
 
           {/* Content */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong, lineHeight: 1.3 }}>
                 {section.title || 'Untitled'}
               </Typography>
               {section.visible === false && (
@@ -77,7 +78,7 @@ export default function TravelSectionCard({
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#6a6a6a',
+                  color: COLORS.text.subtle,
                   mt: 0.5,
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
@@ -90,7 +91,7 @@ export default function TravelSectionCard({
             )}
 
             {section.type === 'hotel' && section.address && (
-              <Typography variant="caption" sx={{ color: '#6a6a6a', display: 'block', mt: 0.5 }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mt: 0.5 }}>
                 {section.address}
               </Typography>
             )}
@@ -103,7 +104,7 @@ export default function TravelSectionCard({
                   onEditDetails?.();
                 }}
                 sx={{
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   mt: 0.5,
                   display: 'inline-block',
                   cursor: 'pointer',
@@ -124,7 +125,7 @@ export default function TravelSectionCard({
                 e.stopPropagation();
                 onDelete();
               }}
-              sx={{ color: '#6a6a6a', p: 0, flexShrink: 0 }}
+              sx={{ color: COLORS.text.subtle, p: 0, flexShrink: 0 }}
             >
               <Delete fontSize="small" />
             </IconButton>

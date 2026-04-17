@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Box, Typography, alpha, Tooltip } from '@mui/material';
 import { Check } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
-  { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Rose', value: COLORS.brand.primary },
   { name: 'Plum', value: '#59114D' },
   { name: 'Purple', value: '#AC3FBA' },
   { name: 'Ocean', value: '#004550' },
@@ -25,21 +26,21 @@ interface ChatColorPickerProps {
 }
 
 export default function ChatColorPicker({ onSave, currentValue }: ChatColorPickerProps) {
-  const [selected, setSelected] = useState<string>(currentValue || '#DE3F5E');
+  const [selected, setSelected] = useState<string>(currentValue || COLORS.brand.primary);
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 3,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 480,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="caption" sx={{ color: '#666', mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
         Choose Your Accent Color
       </Typography>
 
@@ -72,7 +73,7 @@ export default function ChatColorPicker({ onSave, currentValue }: ChatColorPicke
               }}
             >
               {selected === color.value && (
-                <Check sx={{ fontSize: 18, color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                <Check sx={{ fontSize: 18, color: COLORS.text.inverse, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
               )}
             </Box>
           </Tooltip>

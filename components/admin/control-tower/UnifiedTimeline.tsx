@@ -24,6 +24,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface UnifiedTimelineProps {
   events: any[];
@@ -31,7 +32,7 @@ interface UnifiedTimelineProps {
 }
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
-  template_sent: <SendIcon sx={{ fontSize: 14, color: '#3b82f6' }} />,
+  template_sent: <SendIcon sx={{ fontSize: 14, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 14, color: '#22c55e' }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 14, color: '#8b5cf6' }} />,
   info_collected: <InfoIcon sx={{ fontSize: 14, color: '#06b6d4' }} />,
@@ -55,7 +56,7 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  template_sent: '#3b82f6',
+  template_sent: COLORS.accent.info,
   message_received: '#22c55e',
   conversation_started: '#8b5cf6',
   info_collected: '#06b6d4',
@@ -70,7 +71,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
   high: '#FF9800',
   medium: '#2196F3',
-  low: '#9E9E9E',
+  low: COLORS.text.faint,
 };
 
 function formatRelativeTime(date: Date): string {
@@ -138,9 +139,9 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
   }).slice(0, MAX_ITEMS);
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', p: 2.5, bgcolor: 'white' }}>
+    <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 2.5, bgcolor: COLORS.bg.white }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-        <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+        <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong }}>
           Activity Timeline ({filtered.length})
         </Typography>
       </Box>
@@ -151,7 +152,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
         exclusive
         onChange={(_, v) => { if (v) setFilter(v); }}
         size="small"
-        sx={{ mb: 2, '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 11, px: 1.5, py: 0.25, borderRadius: '8px !important', border: '1px solid rgba(0,0,0,0.1)', '&.Mui-selected': { bgcolor: '#1a1a1a', color: 'white', '&:hover': { bgcolor: '#333' } } } }}
+        sx={{ mb: 2, '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 11, px: 1.5, py: 0.25, borderRadius: '8px !important', border: '1px solid rgba(0,0,0,0.1)', '&.Mui-selected': { bgcolor: COLORS.text.strong, color: COLORS.text.inverse, '&:hover': { bgcolor: '#333' } } } }}
       >
         <ToggleButton value="all">All</ToggleButton>
         <ToggleButton value="sent">Sent</ToggleButton>
@@ -161,7 +162,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
 
       {filtered.length === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: '#9a9a9a' }}>
+          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>
             No activity yet. Start by sending save-the-dates.
           </Typography>
         </Box>
@@ -198,7 +199,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                   sx={{
                     display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75, pl: 0, pr: 1,
                     cursor: 'pointer', borderRadius: 1, opacity: isFuture ? 0.6 : 1,
-                    '&:hover': { bgcolor: '#FAFAFA' },
+                    '&:hover': { bgcolor: COLORS.bg.muted },
                   }}
                 >
                   {/* Timeline dot */}
@@ -211,7 +212,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                   </Box>
 
                   {/* Icon + text */}
-                  <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: '#F8F8F8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: COLORS.bg.subtle, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {isFuture
                       ? <ScheduleIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
                       : (EVENT_ICONS[eventType] || <SyncAltIcon sx={{ fontSize: 14, color: '#94a3b8' }} />)
@@ -219,25 +220,25 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                   </Box>
 
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: 12, color: '#1a1a1a', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <Typography sx={{ fontSize: 12, color: COLORS.text.strong, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       <Typography component="span" sx={{ fontSize: 12, fontWeight: 600 }}>{displayName}</Typography>{' '}
                       {displayLabel}
                     </Typography>
                     {event.template_name && (
-                      <Typography sx={{ fontSize: 10, color: '#6a6a6a' }}>{event.template_name}</Typography>
+                      <Typography sx={{ fontSize: 10, color: COLORS.text.subtle }}>{event.template_name}</Typography>
                     )}
                   </Box>
 
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
                     {isFuture && (
-                      <Chip label="SCHEDULED" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 700, bgcolor: '#F8F8F8', color: '#6a6a6a' }} />
+                      <Chip label="SCHEDULED" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 700, bgcolor: COLORS.bg.subtle, color: COLORS.text.subtle }} />
                     )}
                     <Typography sx={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
                       {formatRelativeTime(event.created_at)}
                     </Typography>
                     {isExpanded
-                      ? <ExpandLessIcon sx={{ fontSize: 14, color: '#9a9a9a' }} />
-                      : <ExpandMoreIcon sx={{ fontSize: 14, color: '#9a9a9a' }} />
+                      ? <ExpandLessIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />
+                      : <ExpandMoreIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />
                     }
                   </Stack>
                 </Box>
@@ -245,7 +246,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                 {/* Expanded details */}
                 <Collapse in={isExpanded}>
                   <Box sx={{ pl: 7.5, pr: 1, pb: 1.5, pt: 0.5 }}>
-                    <Typography sx={{ fontSize: 11, color: '#6a6a6a', mb: 1 }}>
+                    <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, mb: 1 }}>
                       {formatFullTimestamp(event.created_at)}
                     </Typography>
 
@@ -253,14 +254,14 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                       <Box sx={{ mb: 1 }}>
                         <Box sx={{ display: 'flex', gap: 0.5, mb: 0.75, flexWrap: 'wrap' }}>
                           {details.priority && (
-                            <Chip label={details.priority} size="small" sx={{ height: 20, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', bgcolor: PRIORITY_COLORS[details.priority] || '#9E9E9E', color: 'white' }} />
+                            <Chip label={details.priority} size="small" sx={{ height: 20, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', bgcolor: PRIORITY_COLORS[details.priority] || COLORS.text.faint, color: COLORS.text.inverse }} />
                           )}
                           {details.category && (
-                            <Chip label={details.category} size="small" variant="outlined" sx={{ height: 20, fontSize: 10, color: '#4a4a4a', borderColor: 'rgba(0,0,0,0.2)' }} />
+                            <Chip label={details.category} size="small" variant="outlined" sx={{ height: 20, fontSize: 10, color: COLORS.text.muted, borderColor: 'rgba(0,0,0,0.2)' }} />
                           )}
                         </Box>
                         {details.description && (
-                          <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>{details.description}</Typography>
+                          <Typography sx={{ fontSize: 12, color: COLORS.text.muted, lineHeight: 1.5 }}>{details.description}</Typography>
                         )}
                       </Box>
                     )}
@@ -276,17 +277,17 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                           }}
                         />
                         {details.guest_count > 1 && (
-                          <Chip label={`${details.guest_count} guests`} size="small" sx={{ height: 20, fontSize: 10, bgcolor: '#F5F5F5', color: '#4a4a4a' }} />
+                          <Chip label={`${details.guest_count} guests`} size="small" sx={{ height: 20, fontSize: 10, bgcolor: COLORS.bg.subtle, color: COLORS.text.muted }} />
                         )}
                       </Box>
                     )}
 
                     {eventType === 'escalated' && details.reason && (
-                      <Typography sx={{ fontSize: 12, color: '#4a4a4a', lineHeight: 1.5 }}>{details.reason}</Typography>
+                      <Typography sx={{ fontSize: 12, color: COLORS.text.muted, lineHeight: 1.5 }}>{details.reason}</Typography>
                     )}
 
                     {!['issue_created', 'rsvp_received', 'escalated'].includes(eventType) && details.template && (
-                      <Typography sx={{ fontSize: 11, color: '#6a6a6a' }}>Template: {details.template}</Typography>
+                      <Typography sx={{ fontSize: 11, color: COLORS.text.subtle }}>Template: {details.template}</Typography>
                     )}
 
                     {event.channel && (
@@ -297,7 +298,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                       <Typography
                         component="a"
                         href={`/admin/${weddingSlug}/guests`}
-                        sx={{ fontSize: 11, color: '#DE3F5E', textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
+                        sx={{ fontSize: 11, color: COLORS.brand.primary, textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
                       >
                         View guest
                       </Typography>

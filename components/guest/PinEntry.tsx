@@ -41,8 +41,8 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
   const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.webp');
   const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState('#141414');
-  const [pinEntryFontColor, setPinEntryFontColor] = useState('#000');
-  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState('#FFFFFF');
+  const [pinEntryFontColor, setPinEntryFontColor] = useState<string>(COLORS.text.strong);
+  const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState<string>(COLORS.bg.white);
   const [coupleName, setCoupleName] = useState('');
 
   const { refreshAuth, user, isLoading: authLoading } = useAuth();
@@ -144,8 +144,8 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text || '');
         setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.webp');
         setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
-        setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
-        setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
+        setPinEntryFontColor(contextWedding.pin_entry_font_color || COLORS.text.strong);
+        setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || COLORS.bg.white);
         setIsLoadingSettings(false);
         return;
       }
@@ -176,8 +176,8 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
         setPinEntryBackground(wedding.pin_entry_background || '/images/backgrounds/pearl.webp');
         setPinEntryPrimaryColor(wedding.pin_entry_primary_color || '#141414');
-        setPinEntryFontColor(wedding.pin_entry_font_color || '#000');
-        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || '#FFFFFF');
+        setPinEntryFontColor(wedding.pin_entry_font_color || COLORS.text.strong);
+        setPinEntryButtonFontColor(wedding.pin_entry_button_font_color || COLORS.bg.white);
       } catch (error) {
         console.error('Unexpected error fetching settings:', error);
       } finally {
@@ -196,8 +196,8 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
       setPinEntrySubtitleText(contextWedding.pin_entry_subtitle_text);
       setPinEntryBackground(contextWedding.pin_entry_background || '/images/backgrounds/pearl.webp');
       setPinEntryPrimaryColor(contextWedding.pin_entry_primary_color || '#141414');
-      setPinEntryFontColor(contextWedding.pin_entry_font_color || '#000');
-      setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || '#FFFFFF');
+      setPinEntryFontColor(contextWedding.pin_entry_font_color || COLORS.text.strong);
+      setPinEntryButtonFontColor(contextWedding.pin_entry_button_font_color || COLORS.bg.white);
     }
   }, [contextWedding]);
 
@@ -635,7 +635,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
                   backgroundColor: `${pinEntryPrimaryColor}15`,
                   px: { xs: 3, lg: 3.5, xl: 4 },
                   py: { xs: 1, lg: 1.25, xl: 1.5 },
-                  borderRadius: '20px',
+                  borderRadius: RADII.xl,
                   border: `1px solid ${pinEntryPrimaryColor}33`,
                 }}
               >

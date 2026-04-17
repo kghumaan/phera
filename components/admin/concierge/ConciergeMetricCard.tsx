@@ -2,6 +2,7 @@
 
 import { Box, Paper, Typography } from '@mui/material';
 import { ReactNode } from 'react';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConciergeMetricCardProps {
   icon: ReactNode;
@@ -20,22 +21,22 @@ export default function ConciergeMetricCard({ icon, label, value, subtitle }: Co
         p: 2.5,
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-        <Box sx={{ color: '#DE3F5E', display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ color: COLORS.brand.primary, display: 'flex', alignItems: 'center' }}>
           {icon}
         </Box>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 500 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500 }}>
           {label}
         </Typography>
       </Box>
-      <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>
+      <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
         {value}
       </Typography>
       {subtitle && (
-        <Typography variant="caption" sx={{ color: '#9a9a9a', mt: 0.5, display: 'block' }}>
+        <Typography variant="caption" sx={{ color: COLORS.text.faint, mt: 0.5, display: 'block' }}>
           {subtitle}
         </Typography>
       )}

@@ -69,6 +69,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -156,27 +157,27 @@ function SortableStepRow({
       style={style}
       onClick={onClick}
       sx={{
-        bgcolor: 'white',
-        borderRadius: '12px',
+        bgcolor: COLORS.bg.white,
+        borderRadius: RADII.md,
         p: 2,
         border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
         boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : 'none',
         cursor: 'pointer',
-        '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
+        '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default, bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.02) : COLORS.bg.muted },
       }}
     >
       <Stack direction="row" alignItems="center" spacing={2}>
         {isCustom ? (
-          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#999', display: 'flex' }}>
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: COLORS.text.faint, display: 'flex' }}>
             <DragIndicator />
           </Box>
         ) : !isOptionalFixed ? (
-          <Lock sx={{ color: '#DE3F5E', fontSize: 20, opacity: 0.6 }} />
+          <Lock sx={{ color: COLORS.brand.primary, fontSize: 20, opacity: 0.6 }} />
         ) : null}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ fontWeight: isCustom ? 600 : 500, color: '#1a1a1a' }}>
+            <Typography variant="body2" sx={{ fontWeight: isCustom ? 600 : 500, color: COLORS.text.strong }}>
               {isCustom ? item.step.step_title : item.name}
             </Typography>
             {isCustom && (
@@ -186,8 +187,8 @@ function SortableStepRow({
                 sx={{
                   height: 22,
                   fontSize: '0.7rem',
-                  bgcolor: alpha('#DE3F5E', 0.1),
-                  color: '#DE3F5E',
+                  bgcolor: alpha(COLORS.brand.primary, 0.1),
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
                 }}
               />
@@ -195,7 +196,7 @@ function SortableStepRow({
           </Stack>
           {/* Subtext description for fixed steps when selected */}
           {!isCustom && isSelected && description && (
-            <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
               {description}
             </Typography>
           )}
@@ -208,7 +209,7 @@ function SortableStepRow({
             onClick={e => { e.stopPropagation(); onPinNavigate(); }}
             variant="caption"
             sx={{
-              color: '#DE3F5E',
+              color: COLORS.brand.primary,
               textDecoration: 'none',
               whiteSpace: 'nowrap',
               flexShrink: 0,
@@ -226,7 +227,7 @@ function SortableStepRow({
             <IconButton
               size="medium"
               onClick={onEdit}
-              sx={{ color: '#4a4a4a', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.text.muted, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
               <Edit fontSize="small" />
             </IconButton>
@@ -234,9 +235,9 @@ function SortableStepRow({
               size="medium"
               onClick={onDelete}
               disabled={isDeleting}
-              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.brand.primary, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
-              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+              {isDeleting ? <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} /> : <Delete fontSize="small" />}
             </IconButton>
           </Stack>
         )}
@@ -248,9 +249,9 @@ function SortableStepRow({
               size="medium"
               onClick={onDelete}
               disabled={isDeleting}
-              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.brand.primary, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
-              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+              {isDeleting ? <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} /> : <Delete fontSize="small" />}
             </IconButton>
           </Box>
         )}
@@ -262,27 +263,27 @@ function SortableStepRow({
 // Consistent disabled field preview styling
 const PREVIEW_FIELD_SX = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
+    borderRadius: RADII.md,
     bgcolor: '#f0f0f0',
     '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
     '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   },
   '& .Mui-disabled': {
-    WebkitTextFillColor: '#888',
+    WebkitTextFillColor: COLORS.text.faint,
   },
   '& .MuiOutlinedInput-input::placeholder': {
-    color: '#888',
-    WebkitTextFillColor: '#888',
+    color: COLORS.text.faint,
+    WebkitTextFillColor: COLORS.text.faint,
     opacity: 1,
   },
 };
 
 const PREVIEW_SELECT_SX = {
-  borderRadius: '12px',
+  borderRadius: RADII.md,
   bgcolor: '#f0f0f0',
   '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
   '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-  '& .Mui-disabled': { WebkitTextFillColor: '#888' },
+  '& .Mui-disabled': { WebkitTextFillColor: COLORS.text.faint },
 };
 
 // Field preview for each question type (disabled inputs)
@@ -328,7 +329,7 @@ function FieldPreview({ type, options }: { type: CustomQuestion['type']; options
           value=""
           size="small"
           sx={{ ...PREVIEW_SELECT_SX, maxWidth: 280 }}
-          renderValue={() => <Typography sx={{ color: '#888', fontSize: '0.875rem' }}>Select an option</Typography>}
+          renderValue={() => <Typography sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>Select an option</Typography>}
         >
           {(options || []).map((opt, i) => (
             <MenuItem key={i} value={opt}>{opt}</MenuItem>
@@ -342,7 +343,7 @@ function FieldPreview({ type, options }: { type: CustomQuestion['type']; options
           placeholder="Month, day, year"
           size="small"
           InputProps={{
-            endAdornment: <CalendarToday sx={{ color: '#888', fontSize: 18 }} />,
+            endAdornment: <CalendarToday sx={{ color: COLORS.text.faint, fontSize: 18 }} />,
           }}
           sx={{ ...PREVIEW_FIELD_SX, maxWidth: 240 }}
         />
@@ -746,16 +747,16 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             RSVP Form
           </Typography>
-          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
             Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it.
           </Typography>
         </Box>
 
         {/* Step List */}
-        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3 }}>
+        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3 }}>
           <Stack spacing={1.5}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
@@ -791,11 +792,11 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               disabled={saving || !!deletingStepId}
               sx={{
                 mt: 2,
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
                 textTransform: 'none',
                 fontWeight: 600,
-                borderRadius: '12px',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                borderRadius: RADII.md,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
               }}
             >
               Add Custom Step
@@ -805,19 +806,19 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
 
         {/* Confirmation Messages */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Confirmation Messages
           </Typography>
-          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
             Customize the messages guests see after submitting their RSVP. Click a response to preview it.
           </Typography>
         </Box>
 
-        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3 }}>
+        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3 }}>
           <Stack spacing={1.5}>
             {[
-              { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: '#DE3F5E' },
-              { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: '#1a1a1a' },
+              { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: COLORS.brand.primary },
+              { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: COLORS.text.strong },
               { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: '#9e9e9e' },
             ].map(({ key, label, description, icon: Icon, color }) => {
               const isSelected = selectedConfirmation === key;
@@ -836,22 +837,22 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                     }
                   }}
                   sx={{
-                    bgcolor: 'white',
-                    borderRadius: '12px',
+                    bgcolor: COLORS.bg.white,
+                    borderRadius: RADII.md,
                     p: 2,
                     border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
                     cursor: 'pointer',
-                    '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
+                    '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default, bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.02) : COLORS.bg.muted },
                   }}
                 >
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Icon sx={{ color, fontSize: 20 }} />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {label}
                       </Typography>
                       {isSelected && (
-                        <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+                        <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
                           {description}
                         </Typography>
                       )}
@@ -927,18 +928,18 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         onClose={() => setDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', bgcolor: '#F8F8F8' } }}
+        PaperProps={{ sx: { borderRadius: RADII.lg, bgcolor: COLORS.bg.subtle } }}
       >
-        <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#F8F8F8' }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: COLORS.bg.subtle }}>
           <Stack spacing={2.5}>
             {/* Title & Description */}
             <Paper
               elevation={0}
               sx={{
                 p: 3,
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
               }}
             >
               <Stack spacing={2.5}>
@@ -974,9 +975,9 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   onClick={() => setActiveQuestionIndex(qIndex)}
                   sx={{
                     p: isActive ? 3 : 2.5,
-                    borderRadius: '12px',
+                    borderRadius: RADII.md,
                     border: isActive ? '1.5px solid #DE3F5E' : '1px solid rgba(0,0,0,0.07)',
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     cursor: isActive ? 'default' : 'pointer',
                     transition: 'all 0.15s ease',
                     '&:hover': isActive ? {} : { borderColor: 'rgba(0,0,0,0.15)' },
@@ -999,17 +1000,17 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                         </Box>
                         <Box sx={{ minWidth: 180 }}>
                           <FormControl fullWidth>
-                            <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Type *</InputLabel>
+                            <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary, fontWeight: 600 } }}>Type *</InputLabel>
                             <Select
                               value={q.type}
                               onChange={e => handleQuestionChange(qIndex, 'type', e.target.value)}
                               label="Type *"
                               sx={{
-                                borderRadius: '12px',
-                                bgcolor: 'white',
+                                borderRadius: RADII.md,
+                                bgcolor: COLORS.bg.white,
                                 '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                                '&:hover fieldset': { borderColor: '#DE3F5E' },
-                                '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                                '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                                '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
                               }}
                             >
                               {QUESTION_TYPES.map(t => (
@@ -1043,13 +1044,13 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                   variant="standard"
                                   placeholder={`Option ${optIndex + 1}`}
                                   InputProps={{
-                                    sx: { fontSize: '0.875rem', color: '#1a1a1a' },
+                                    sx: { fontSize: '0.875rem', color: COLORS.text.strong },
                                   }}
                                 />
                                 <IconButton
                                   size="small"
                                   onClick={() => handleRemoveOption(qIndex, optIndex)}
-                                  sx={{ color: '#999', '&:hover': { color: '#d32f2f' } }}
+                                  sx={{ color: COLORS.text.faint, '&:hover': { color: '#d32f2f' } }}
                                 >
                                   <Close fontSize="small" />
                                 </IconButton>
@@ -1058,7 +1059,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                             <Button
                               size="small"
                               onClick={() => handleAddOption(qIndex)}
-                              sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start', ml: 3.5 }}
+                              sx={{ color: COLORS.brand.primary, textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start', ml: 3.5 }}
                             >
                               + Add option
                             </Button>
@@ -1078,14 +1079,14 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                   setDialogQuestions(prev => prev.filter((_, i) => i !== qIndex));
                                   setActiveQuestionIndex(null);
                                 }}
-                                sx={{ color: '#6a6a6a', '&:hover': { color: '#d32f2f' } }}
+                                sx={{ color: COLORS.text.subtle, '&:hover': { color: '#d32f2f' } }}
                               >
                                 <Delete fontSize="small" />
                               </IconButton>
                               <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.12)', mx: 1 }} />
                             </>
                           )}
-                          <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8125rem' }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem' }}>
                             Required
                           </Typography>
                           <Switch
@@ -1093,10 +1094,10 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                             onChange={e => handleQuestionChange(qIndex, 'required', e.target.checked)}
                             size="small"
                             sx={{
-                              '& .MuiSwitch-switchBase': { color: '#999' },
-                              '& .MuiSwitch-track': { bgcolor: '#ccc', opacity: 1 },
-                              '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E', opacity: 0.5 },
+                              '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+                              '& .MuiSwitch-track': { bgcolor: COLORS.border.default, opacity: 1 },
+                              '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary, opacity: 0.5 },
                             }}
                           />
                         </Stack>
@@ -1105,7 +1106,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   ) : (
                     /* ===== INACTIVE CARD ===== */
                     <Stack spacing={1.5}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                         {q.label || 'Untitled question'}
                       </Typography>
                       <FieldPreview type={q.type} options={q.options} />
@@ -1125,28 +1126,28 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                     setActiveQuestionIndex(dialogQuestions.length);
                   }}
                   sx={{
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     border: '1px solid rgba(0,0,0,0.12)',
                     borderRadius: '50%',
                     width: 48,
                     height: 48,
-                    '&:hover': { bgcolor: alpha('#DE3F5E', 0.04), borderColor: '#DE3F5E' },
+                    '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.04), borderColor: COLORS.brand.primary },
                   }}
                 >
-                  <AddCircleOutline sx={{ color: '#DE3F5E', fontSize: 28 }} />
+                  <AddCircleOutline sx={{ color: COLORS.brand.primary, fontSize: 28 }} />
                 </IconButton>
               </Box>
             ) : (
-              <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontStyle: 'italic', textAlign: 'center' }}>
                 Each step supports up to 3 questions. To add more, create another step.
               </Typography>
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, bgcolor: '#F8F8F8' }}>
+        <DialogActions sx={{ px: 3, pb: 3, bgcolor: COLORS.bg.subtle }}>
           <Button
             onClick={() => setDialogOpen(false)}
-            sx={{ color: '#6a6a6a', textTransform: 'none', fontWeight: 600, borderRadius: '12px' }}
+            sx={{ color: COLORS.text.subtle, textTransform: 'none', fontWeight: 600, borderRadius: RADII.md }}
           >
             Cancel
           </Button>
@@ -1164,7 +1165,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         open={confirmDialog.open}
         message={confirmDialog.message}
         confirmLabel={confirmDialog.confirmLabel || 'Delete'}
-        confirmColor={confirmDialog.confirmLabel ? '#DE3F5E' : '#d32f2f'}
+        confirmColor={confirmDialog.confirmLabel ? COLORS.brand.primary : '#d32f2f'}
         isLoading={navigatingToPin}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setNavigatingToPin(false); }}

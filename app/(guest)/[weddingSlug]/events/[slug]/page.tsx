@@ -21,9 +21,10 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import { WeddingEvent, CarouselSlide } from '@/lib/supabase/wedding-service';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Diamond indicators component
-const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
+const DiamondIndicators = ({ total, current, activeColor = COLORS.brand.primary }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -89,9 +90,9 @@ const EventCard = ({
           width: '100%',
           maxWidth: { xs: 361, md: 600, lg: 700 },
           height: { xs: '100%', md: '96vh', lg: '96vh' },
-          backgroundColor: isGradientSlide ? 'transparent' : isImageSlide ? '#FFFFFF' : 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: isGradientSlide ? 'transparent' : isImageSlide ? COLORS.bg.white : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: isGradientSlide ? 'none' : isImageSlide ? 'none' : 'blur(10px)',
-          borderRadius: '16px',
+          borderRadius: RADII.lg,
           boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
           border: isGradientSlide || isImageSlide ? '2px solid #FFFFFF' : 'none',
           overflow: 'hidden',
@@ -126,7 +127,7 @@ const EventCard = ({
               fill
               style={{
                 objectFit: 'cover',
-                borderRadius: '16px',
+                borderRadius: RADII.lg,
               }}
               sizes="(max-width: 768px) 100vw, 361px"
               priority={isActive}
@@ -142,7 +143,7 @@ const EventCard = ({
                   letterSpacing: '0.0625em',
                   textTransform: 'uppercase',
                   color: textColor,
-                  opacity: textColor === '#FFFFFF' ? 0.7 : 0.4,
+                  opacity: textColor === COLORS.bg.white ? 0.7 : 0.4,
                   textAlign: 'center',
                 }}
               >
@@ -192,7 +193,7 @@ const EventCard = ({
                       letterSpacing: '0.0625em',
                       textTransform: 'uppercase',
                       color: textColor,
-                      opacity: textColor === '#FFFFFF' ? 0.7 : 0.4,
+                      opacity: textColor === COLORS.bg.white ? 0.7 : 0.4,
                       textAlign: 'center',
                       mb: 2,
                     }}
@@ -232,7 +233,7 @@ const EventCard = ({
                       letterSpacing: '0.0625em',
                       textTransform: 'uppercase',
                       color: textColor,
-                      opacity: textColor === '#FFFFFF' ? 0.7 : 0.4,
+                      opacity: textColor === COLORS.bg.white ? 0.7 : 0.4,
                       textAlign: 'center',
                       mb: 2,
                     }}
@@ -271,7 +272,7 @@ const EventCard = ({
                   letterSpacing: '0.0625em',
                   textTransform: 'uppercase',
                   color: textColor,
-                  opacity: textColor === '#FFFFFF' ? 0.7 : 0.4,
+                  opacity: textColor === COLORS.bg.white ? 0.7 : 0.4,
                   textAlign: 'center',
                 }}
               >
@@ -326,7 +327,7 @@ export default function EventDetailPage() {
 
   // Use WeddingContext to get events (already loaded)
   const { wedding, events, isLoading: loading, error: contextError } = useWedding();
-  const primaryColor = wedding?.primary_color || '#DE3F5E';
+  const primaryColor = wedding?.primary_color || COLORS.brand.primary;
 
   // Find the event by slug from the context
   const event = events.find(e => e.slug === eventSlug) || null;
@@ -448,7 +449,7 @@ export default function EventDetailPage() {
                 <IconButton
                   onClick={() => router.push(`/${weddingSlug}/events`)}
                   sx={{
-                    color: '#000',
+                    color: COLORS.text.strong,
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(10px)',
                     '&:hover': {
@@ -514,7 +515,7 @@ export default function EventDetailPage() {
                   slide={slide}
                   isActive={index === currentSlide}
                   index={index}
-                  textColor={event.text_color || '#FFFFFF'}
+                  textColor={event.text_color || COLORS.bg.white}
                   gradientBackground={event.gradient_background}
                 />
               </Box>
@@ -542,7 +543,7 @@ export default function EventDetailPage() {
               width: 48,
               height: 48,
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 1)',
               },
@@ -562,7 +563,7 @@ export default function EventDetailPage() {
               width: 48,
               height: 48,
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 1)',
               },

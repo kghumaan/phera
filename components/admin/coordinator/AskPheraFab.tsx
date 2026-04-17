@@ -3,6 +3,7 @@
 import React from 'react';
 import { Fab } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AskPheraFabProps {
   onClick: () => void;
@@ -21,8 +22,8 @@ export default function AskPheraFab({ onClick, visible }: AskPheraFabProps) {
         right: 24,
         width: 56,
         height: 56,
-        bgcolor: '#DE3F5E',
-        color: 'white',
+        bgcolor: COLORS.brand.primary,
+        color: COLORS.text.inverse,
         boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
         '&:hover': { bgcolor: '#c73552' },
         zIndex: 1200,

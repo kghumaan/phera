@@ -27,6 +27,7 @@ import EventIcon from '@mui/icons-material/Event';
 import ChatIcon from '@mui/icons-material/Chat';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface TableStats {
   guests: number;
@@ -208,7 +209,7 @@ const AdminDashboard = () => {
     <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
       <Box sx={{ flexGrow: 1, minHeight: '100vh' }}>
         {/* Header */}
-        <AppBar position="static" sx={{ bgcolor: alpha('#1a1a1a', 0.95), backdropFilter: 'blur(10px)', boxShadow: 'none' }}>
+        <AppBar position="static" sx={{ bgcolor: alpha(COLORS.text.strong, 0.95), backdropFilter: 'blur(10px)', boxShadow: 'none' }}>
           <Toolbar>
             <Box
               component="img"
@@ -251,7 +252,7 @@ const AdminDashboard = () => {
               variant="h4"
               sx={{
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1,
               }}
             >
@@ -260,7 +261,7 @@ const AdminDashboard = () => {
             <Typography
               variant="body2"
               sx={{
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 mb: 4,
               }}
             >
@@ -298,8 +299,8 @@ const AdminDashboard = () => {
                   <Card
                     sx={{
                       height: '100%',
-                      borderRadius: '24px',
-                      bgcolor: alpha('#fff', 0.95),
+                      borderRadius: RADII.dialog,
+                      bgcolor: alpha(COLORS.bg.white, 0.95),
                       backdropFilter: 'blur(10px)',
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
                       border: `2px solid ${alpha(stat.color, 0.2)}`,
@@ -322,7 +323,7 @@ const AdminDashboard = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: '#4a4a4a',
+                          color: COLORS.text.muted,
                           fontWeight: 500,
                         }}
                       >
@@ -345,7 +346,7 @@ const AdminDashboard = () => {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 3,
               }}
             >
@@ -363,8 +364,8 @@ const AdminDashboard = () => {
                     <Card
                       sx={{
                         height: '100%',
-                        borderRadius: '24px',
-                        bgcolor: alpha('#fff', 0.95),
+                        borderRadius: RADII.dialog,
+                        bgcolor: alpha(COLORS.bg.white, 0.95),
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
                         transition: 'all 0.3s ease-in-out',
@@ -379,7 +380,7 @@ const AdminDashboard = () => {
                           <Box
                             sx={{
                               p: 1.5,
-                              borderRadius: '12px',
+                              borderRadius: RADII.md,
                               backgroundColor: `${option.color}15`,
                               color: option.color,
                               display: 'flex',
@@ -395,7 +396,7 @@ const AdminDashboard = () => {
                                 variant="h6"
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#1a1a1a',
+                                  color: COLORS.text.strong,
                                 }}
                               >
                                 {option.name}
@@ -406,7 +407,7 @@ const AdminDashboard = () => {
                                   size="small"
                                   sx={{
                                     backgroundColor: '#4CAF50',
-                                    color: 'white',
+                                    color: COLORS.text.inverse,
                                     fontSize: '0.7rem',
                                     height: 20,
                                   }}
@@ -416,7 +417,7 @@ const AdminDashboard = () => {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#4a4a4a',
+                                color: COLORS.text.muted,
                                 mb: 2,
                               }}
                             >
@@ -433,7 +434,7 @@ const AdminDashboard = () => {
                                 fontSize: '1rem',
                                 boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                                 '&:disabled': {
-                                  bgcolor: alpha('#DE3F5E', 0.5),
+                                  bgcolor: alpha(COLORS.brand.primary, 0.5),
                                 },
                               }}
                             >
@@ -454,7 +455,7 @@ const AdminDashboard = () => {
             <Typography
               variant="body2"
               sx={{
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
               }}
             >
               Phera Wedding Platform - Admin Dashboard

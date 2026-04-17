@@ -13,9 +13,10 @@ import { ChevronLeft, ChevronRight, Close } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Diamond indicators component — exported for reuse in admin preview
-export const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
+export const DiamondIndicators = ({ total, current, activeColor = COLORS.brand.primary }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -62,7 +63,7 @@ export const SlideContent = ({
           fill
           style={{
             objectFit: 'cover',
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
           }}
           sizes="(max-width: 768px) 100vw, 600px"
           priority
@@ -91,7 +92,7 @@ export const SlideContent = ({
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: textColor,
-                opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+                opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
                 textAlign: 'center',
                 mb: 2,
               }}
@@ -130,7 +131,7 @@ export const SlideContent = ({
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: textColor,
-                opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+                opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
                 textAlign: 'center',
                 mb: 2,
               }}
@@ -175,7 +176,7 @@ export const SlideContent = ({
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               color: textColor,
-              opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+              opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
               textAlign: 'center',
             }}
           >
@@ -233,7 +234,7 @@ export const SlideContent = ({
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: textColor,
-            opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+            opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
             textAlign: 'center',
           }}
         >
@@ -349,7 +350,7 @@ export default function EventDetailCarousel({
             top: 24,
             right: 24,
             backgroundColor: 'rgba(254, 249, 242, 0.9)',
-            color: '#000',
+            color: COLORS.text.strong,
             zIndex: 20,
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 1)',
@@ -366,7 +367,7 @@ export default function EventDetailCarousel({
             fontSize: 14,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#000',
+            color: COLORS.text.strong,
             mb: 3,
             textAlign: 'center',
           }}
@@ -382,7 +383,7 @@ export default function EventDetailCarousel({
             height: '75vh',
             maxHeight: 750,
             backgroundColor: 'transparent',
-            borderRadius: '24px',
+            borderRadius: RADII.dialog,
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
             border: '2px solid #FEF9F2',
             overflow: 'hidden',
@@ -438,7 +439,7 @@ export default function EventDetailCarousel({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
                 backgroundColor: '#FEF9F2',
               },
@@ -458,7 +459,7 @@ export default function EventDetailCarousel({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
                 backgroundColor: '#FEF9F2',
               },

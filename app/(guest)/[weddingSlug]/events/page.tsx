@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function GuestEventsPage() {
   const params = useParams();
@@ -91,7 +92,7 @@ export default function GuestEventsPage() {
               <IconButton
                 onClick={() => router.push(`/${weddingSlug}/details`)}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   '&:hover': {
@@ -122,8 +123,8 @@ export default function GuestEventsPage() {
                   sx={{
                     width: 32,
                     height: 32,
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
                       backgroundColor: '#333',
                       transform: 'scale(1.05)',
@@ -156,7 +157,7 @@ export default function GuestEventsPage() {
         {/* Loading State - Only show if loading AND no events yet */}
         {loading && weddingEvents.length === 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-            <CircularProgress sx={{ color: wedding?.primary_color || '#DE3F5E' }} />
+            <CircularProgress sx={{ color: wedding?.primary_color || COLORS.brand.primary }} />
           </Box>
         )}
 
@@ -166,7 +167,7 @@ export default function GuestEventsPage() {
             <Typography variant="h6" color="error" gutterBottom>
               {error}
             </Typography>
-            <Button onClick={() => window.location.reload()} variant="contained" sx={{ mt: 2, backgroundColor: wedding?.primary_color || '#DE3F5E' }}>
+            <Button onClick={() => window.location.reload()} variant="contained" sx={{ mt: 2, backgroundColor: wedding?.primary_color || COLORS.brand.primary }}>
               Retry
             </Button>
           </Box>
@@ -191,7 +192,7 @@ export default function GuestEventsPage() {
                   <Link href={`/${weddingSlug}/events/${event.slug}`} style={{ textDecoration: 'none' }}>
                     <Box
                       sx={{
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         overflow: 'hidden',
                         boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
                         cursor: 'pointer',
@@ -221,7 +222,7 @@ export default function GuestEventsPage() {
                             alignItems: 'center',
                             px: 2,
                             py: 2,
-                            backgroundColor: '#fff'
+                            backgroundColor: COLORS.bg.white
                           }}
                         >
                           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -251,7 +252,7 @@ export default function GuestEventsPage() {
                                 fontSize: 22,
                                 lineHeight: 1.3,
                                 // color: getDressCodeColor(event.name),
-                                color: '#000',
+                                color: COLORS.text.strong,
                                 mb: 0.5,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -267,7 +268,7 @@ export default function GuestEventsPage() {
                                 fontWeight: 300,
                                 fontSize: 16,
                                 lineHeight: 1.5,
-                                color: '#858585',
+                                color: COLORS.text.subtle,
                               }}
                             >
                               {event.date} @ {event.time}
@@ -326,8 +327,8 @@ export default function GuestEventsPage() {
                 size="large"
                 fullWidth
                 sx={{
-                  backgroundColor: wedding?.primary_color || '#DE3F5E',
-                  color: 'white',
+                  backgroundColor: wedding?.primary_color || COLORS.brand.primary,
+                  color: COLORS.text.inverse,
                   py: 2,
                   fontSize: '1.1rem',
                   fontWeight: 600,

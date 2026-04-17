@@ -38,6 +38,7 @@ import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
 import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -102,7 +103,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8, // 64px from Figma converted to MUI scale
         px: { xs: 4, sm: 4.5, md: 4, lg: 5.2, xl: 6.4 },
         py: { xs: 1.5, sm: 1.75, md: 1.6, lg: 2, xl: 2.4 },
@@ -130,7 +131,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
-                color: '#000000',
+                color: COLORS.text.strong,
                 // Smoother font size progression to prevent overflow on small desktop
                 fontSize: {
                   xs: '1.5rem',   // 360px+ (mobile)
@@ -148,7 +149,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 // Smoother label size progression
                 fontSize: {
@@ -666,7 +667,7 @@ export default function HomePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: COLORS.bg.subtle,
         }}
       >
         <LoadingSpinner />
@@ -808,7 +809,7 @@ export default function HomePage() {
                 variant="h2"
                 sx={{
                   fontSize: { md: '2.8rem', lg: '3.6rem', xl: '4.4rem' },
-                  color: '#000',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
                   fontFamily: getCoupleFont(coupleNameFontId).cssVar,
                   fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
@@ -823,7 +824,7 @@ export default function HomePage() {
                   <Typography
                     variant="subtitleCaps"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                     }}
                   >
@@ -837,7 +838,7 @@ export default function HomePage() {
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 38, lg: 45, xl: 51 },
                       height: { md: 38, lg: 45, xl: 51 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -854,7 +855,7 @@ export default function HomePage() {
                       window.open(googleCalUrl, '_blank');
                     }}
                   >
-                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' }, color: '#000' }} />
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' }, color: COLORS.text.strong }} />
                   </IconButton>
                   <IconButton
                     sx={{
@@ -862,7 +863,7 @@ export default function HomePage() {
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 38, lg: 45, xl: 51 },
                       height: { md: 38, lg: 45, xl: 51 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -886,7 +887,7 @@ export default function HomePage() {
                       sx={{
                         width: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                         height: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
-                        color: '#000',
+                        color: COLORS.text.strong,
                       }}
                     >
                       <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -912,13 +913,13 @@ export default function HomePage() {
                   '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
                 }}
               >
-                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }} />
+                <LocationOnOutlined sx={{ color: COLORS.text.subtle, fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }} />
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#000',
+                        color: COLORS.text.strong,
                         fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                         textDecoration: 'underline',
                       }}
@@ -933,7 +934,7 @@ export default function HomePage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
                     }}
                   >
@@ -975,8 +976,8 @@ export default function HomePage() {
                       size="large"
                       fullWidth
                       sx={{
-                        backgroundColor: wedding?.primary_color || '#DE3F5E',
-                        color: 'white',
+                        backgroundColor: wedding?.primary_color || COLORS.brand.primary,
+                        color: COLORS.text.inverse,
                         py: 1.6,
                         fontSize: { md: '1rem', lg: '1.2rem' },
                         fontWeight: 600,
@@ -1116,12 +1117,12 @@ export default function HomePage() {
                   size="large"
                   fullWidth
                   sx={{
-                    backgroundColor: wedding?.primary_color || '#DE3F5E',
-                    color: 'white',
+                    backgroundColor: wedding?.primary_color || COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     py: { md: 1.6, lg: 1.8, xl: 2 },
                     fontSize: { md: '0.9rem', lg: '1rem', xl: '1.1rem' },
                     fontWeight: 700,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
@@ -1249,7 +1250,7 @@ export default function HomePage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontSize: { xs: '1rem', sm: '1.125rem' },
                   letterSpacing: '0.5px',
                 }}
@@ -1262,7 +1263,7 @@ export default function HomePage() {
                 variant="h2"
                 sx={{
                   fontSize: { xs: '2.5rem', sm: '3rem' },
-                  color: '#000',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
                   fontFamily: getCoupleFont(coupleNameFontId).cssVar,
                   fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
@@ -1294,7 +1295,7 @@ export default function HomePage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '1.1rem', sm: '1.2rem' },
                       textDecoration: 'underline',
                     }}
@@ -1467,7 +1468,7 @@ export default function HomePage() {
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       fullWidth
-                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', color: 'white', py: 2, borderRadius: '80px' }}
+                      sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 2, borderRadius: '80px' }}
                     >
                       RSVP
                     </ActionButton>
@@ -1484,7 +1485,7 @@ export default function HomePage() {
                     href={`/${weddingSlug}/details`}
                     variant="contained"
                     fullWidth
-                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', color: 'white', py: 1.5, borderRadius: '80px' }}
+                    sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 1.5, borderRadius: '80px' }}
                   >
                     View Details
                   </ActionButton>

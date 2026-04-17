@@ -21,6 +21,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
@@ -172,7 +173,11 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
-            px: { xs: 2, md: 4 },
+            // Landing page marigolds sit in the corners, so inset the header
+            // content past them at each breakpoint (marigold widths: 120/160/200).
+            px: isLandingPage
+              ? { xs: '150px', sm: '200px', md: '250px' }
+              : { xs: 2, md: 4 },
             pt: { xs: 2, md: 4 },
           }}
         >
@@ -192,8 +197,8 @@ export default function AppHeader({
                   component={Link}
                   href={backHref}
                   sx={{
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
                       backgroundColor: '#333',
                     },
@@ -242,8 +247,8 @@ export default function AppHeader({
                     sx={{
                       width: { xs: 32, md: 45 },
                       height: { xs: 32, md: 45 },
-                      backgroundColor: '#000',
-                      color: '#fff',
+                      backgroundColor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
                       '&:hover': {
                         backgroundColor: '#333',
                         transform: 'scale(1.05)',
@@ -271,8 +276,8 @@ export default function AppHeader({
                     variant="contained"
                     onClick={(e) => setRsvpMenuAnchor(e.currentTarget)}
                     sx={{
-                      backgroundColor: '#000',
-                      color: '#fff',
+                      backgroundColor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
                       borderRadius: { xs: '20px', md: '28px' },
                       px: { xs: 2.5, md: 3.6 },
                       py: { xs: 0.5, md: 1.2 },
@@ -297,7 +302,7 @@ export default function AppHeader({
                     width: { xs: 32, md: 45 },
                     height: { xs: 32, md: 45 },
                     backgroundColor: user.avatar_color,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     fontWeight: 600,
                     fontSize: { xs: '0.9rem', md: '1.04rem' },
                     cursor: 'pointer',
@@ -341,8 +346,8 @@ export default function AppHeader({
                   disabled={isNavigatingToLogin}
                   variant="contained"
                   sx={{
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     borderRadius: { xs: '24px', md: '28px' },
                     px: { xs: 3, md: 4 },
                     py: { xs: 1, md: 1.2 },
@@ -357,14 +362,14 @@ export default function AppHeader({
                       boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
                     },
                     '&.Mui-disabled': {
-                      backgroundColor: '#000',
+                      backgroundColor: COLORS.text.strong,
                     },
                   }}
                 >
                   <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Box component="span" sx={{ visibility: isNavigatingToLogin ? 'hidden' : 'visible' }}>Login</Box>
                     {isNavigatingToLogin && (
-                      <CircularProgress size={20} sx={{ color: '#fff', position: 'absolute' }} />
+                      <CircularProgress size={20} sx={{ color: COLORS.text.inverse, position: 'absolute' }} />
                     )}
                   </Box>
                 </Button>
@@ -414,7 +419,7 @@ export default function AppHeader({
           >
             {/* <Box
               sx={{
-                color: '#999',
+                color: COLORS.text.faint,
                 fontSize: '10px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
@@ -445,7 +450,7 @@ export default function AppHeader({
               onClick={handleAdminDashboardClick}
               disabled={isNavigatingToAdmin}
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 gap: 1,
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -453,7 +458,7 @@ export default function AppHeader({
               }}
             >
               {isNavigatingToAdmin ? (
-                <CircularProgress size={18} sx={{ color: '#666' }} />
+                <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
               ) : (
                 <DashboardIcon fontSize="small" />
               )}
@@ -465,7 +470,7 @@ export default function AppHeader({
             onClick={handleSignOut}
             disabled={isSigningOut}
             sx={{
-              color: '#666',
+              color: COLORS.text.subtle,
               gap: 1,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -473,7 +478,7 @@ export default function AppHeader({
             }}
           >
             {isSigningOut ? (
-              <CircularProgress size={18} sx={{ color: '#666' }} />
+              <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
             ) : (
               <LogoutIcon fontSize="small" />
             )}
@@ -512,7 +517,7 @@ export default function AppHeader({
             href={`/${weddingSlug}/rsvp`}
             onClick={() => setRsvpMenuAnchor(null)}
             sx={{
-              color: '#666',
+              color: COLORS.text.subtle,
               gap: 1,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.05)',

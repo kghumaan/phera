@@ -10,6 +10,7 @@ import { groups } from '@/components/admin/OnboardingSidebar';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import { PrimaryActionButton } from './ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const websiteItems = groups.find(g => g.id === 'wedding-website')!.items;
 
@@ -94,16 +95,16 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '24px',
+            borderRadius: RADII.dialog,
             p: 1,
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
           }
         }}
       >
         <DialogContent>
           <IconButton
             onClick={() => setShowPublishedModal(false)}
-            sx={{ position: 'absolute', right: 16, top: 16, color: '#666' }}
+            sx={{ position: 'absolute', right: 16, top: 16, color: COLORS.text.subtle }}
           >
             <Close />
           </IconButton>
@@ -111,12 +112,12 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
           <Stack spacing={3} sx={{ mt: 2, pb: 2, textAlign: 'center' }}>
             <Typography variant="h4" sx={{
               fontWeight: 700,
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
               fontSize: { xs: '1.75rem', md: '2.5rem' }
             }}>
               Your website is published!
             </Typography>
-            <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+            <Typography variant="body1" sx={{ color: COLORS.text.muted }}>
               Start sharing this with your friends and family — we&apos;ll collect your RSVPs.
             </Typography>
             <TextField
@@ -126,11 +127,11 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
               InputProps={{
                 readOnly: true,
                 sx: {
-                  borderRadius: '12px',
+                  borderRadius: RADII.md,
                   bgcolor: '#f8f9fa',
                   '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                   '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
-                  color: '#666',
+                  color: COLORS.text.subtle,
                 }
               }}
             />
@@ -140,7 +141,7 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
                 onClick={copyLiveUrl}
                 sx={{
                   textTransform: 'none',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
                   '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
                 }}
@@ -153,7 +154,7 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
                 target="_blank"
                 sx={{
                   textTransform: 'none',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
                   '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
                 }}

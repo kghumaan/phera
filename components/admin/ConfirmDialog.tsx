@@ -9,6 +9,7 @@ import {
   Button,
 } from '@mui/material';
 import { ActionButton } from './ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -41,14 +42,14 @@ export default function ConfirmDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          bgcolor: 'white',
+          borderRadius: RADII.lg,
+          bgcolor: COLORS.bg.white,
         },
       }}
     >
-      <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{title}</DialogTitle>
+      <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>{title}</DialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+        <Typography variant="body1" sx={{ color: COLORS.text.muted }}>
           {message}
         </Typography>
       </DialogContent>
@@ -56,10 +57,10 @@ export default function ConfirmDialog({
         <Button
           onClick={onCancel}
           sx={{
-            color: '#6a6a6a',
+            color: COLORS.text.subtle,
             textTransform: 'none',
             fontWeight: 600,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
           }}
         >
           {cancelLabel}
@@ -70,10 +71,10 @@ export default function ConfirmDialog({
           loading={isLoading}
           sx={{
             bgcolor: confirmColor,
-            color: 'white',
+            color: COLORS.text.inverse,
             textTransform: 'none',
             fontWeight: 600,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             minWidth: 80,
             '&:hover': {
               bgcolor: confirmColor,

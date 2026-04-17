@@ -26,6 +26,7 @@ import ConciergeConversations from '@/components/admin/concierge/ConciergeConver
 import ConciergeKnowledgeBase from '@/components/admin/concierge/ConciergeKnowledgeBase';
 import ConciergeBroadcasts from '@/components/admin/concierge/ConciergeBroadcasts';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -157,7 +158,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     if (conciergeEnabled === null) {
       return (
         <Box sx={{ maxWidth: 1000, display: 'flex', justifyContent: 'center', p: 8 }}>
-          <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
         </Box>
       );
     }
@@ -169,7 +170,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
           <Stack spacing={3}>
             <Box>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
                   Guest Concierge
                 </Typography>
                 <Paper
@@ -180,13 +181,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                     gap: 1,
                     px: 2,
                     py: 0.75,
-                    bgcolor: '#F8F8F8',
+                    bgcolor: COLORS.bg.subtle,
                     borderRadius: 1,
                     border: '1px solid rgba(0,0,0,0.07)',
                   }}
                 >
-                  <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
+                  <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
                     {conciergePhone}
                   </Typography>
                 </Paper>
@@ -194,13 +195,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   <IconButton
                     size="small"
                     onClick={handleCopyPhone}
-                    sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
+                    sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
                   >
                     {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                   </IconButton>
                 </Tooltip>
               </Stack>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 24/7 WhatsApp concierge for your guests — powered by your wedding details
               </Typography>
             </Box>
@@ -216,11 +217,11 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   textTransform: 'none',
                   fontWeight: 600,
                   fontSize: '0.9rem',
-                  color: '#6a6a6a',
+                  color: COLORS.text.subtle,
                   minHeight: 42,
-                  '&.Mui-selected': { color: '#DE3F5E' },
+                  '&.Mui-selected': { color: COLORS.brand.primary },
                 },
-                '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+                '& .MuiTabs-indicator': { backgroundColor: COLORS.brand.primary },
               }}
             >
               <Tab label="Knowledge Bank" />
@@ -252,7 +253,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               </>
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-                <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+                <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
               </Box>
             )}
           </Stack>
@@ -288,10 +289,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
               Guest Concierge
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               24/7 WhatsApp assistant for your guests — powered by your wedding details
             </Typography>
           </Box>
@@ -300,8 +301,8 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             elevation={0}
             sx={{
               p: { xs: 3, md: 5 },
-              borderRadius: '16px',
-              bgcolor: 'white',
+              borderRadius: RADII.lg,
+              bgcolor: COLORS.bg.white,
               border: '1px solid rgba(0,0,0,0.07)',
             }}
           >
@@ -311,14 +312,14 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   sx={{
                     width: 56,
                     height: 56,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     bgcolor: '#DE3F5E12',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <WhatsApp sx={{ fontSize: 28, color: '#DE3F5E' }} />
+                  <WhatsApp sx={{ fontSize: 28, color: COLORS.brand.primary }} />
                 </Box>
                 <PrimaryActionButton
                   startIcon={<WhatsApp />}
@@ -338,10 +339,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               </Box>
 
               <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
                   Give every guest a personal concierge
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>
+                <Typography variant="body1" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>
                   Guests always have the same handful of questions — shuttle times, dress code, where to park. Concierge answers all of it over WhatsApp, 24/7, so you don&apos;t have to. When you&apos;re ready, flip it on and we&apos;ll do the rest.
                 </Typography>
               </Box>
@@ -365,7 +366,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                       p: 2,
                       borderRadius: 1,
                       border: '1px solid rgba(0,0,0,0.07)',
-                      bgcolor: '#F8F8F8',
+                      bgcolor: COLORS.bg.subtle,
                     }}
                   >
                     <Box
@@ -373,7 +374,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                         width: 32,
                         height: 32,
                         borderRadius: 1,
-                        bgcolor: 'white',
+                        bgcolor: COLORS.bg.white,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -381,13 +382,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                         border: '1px solid rgba(0,0,0,0.06)',
                       }}
                     >
-                      <Icon sx={{ fontSize: 18, color: '#DE3F5E' }} />
+                      <Icon sx={{ fontSize: 18, color: COLORS.brand.primary }} />
                     </Box>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.9rem', mb: 0.25 }}>
+                      <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9rem', mb: 0.25 }}>
                         {title}
                       </Typography>
-                      <Typography sx={{ color: '#4a4a4a', fontSize: '0.82rem', lineHeight: 1.55 }}>
+                      <Typography sx={{ color: COLORS.text.muted, fontSize: '0.82rem', lineHeight: 1.55 }}>
                         {body}
                       </Typography>
                     </Box>
@@ -405,8 +406,8 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                   width: '100%',
                 }}
               >
-                <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
-                  <strong style={{ color: '#1a1a1a' }}>How it works:</strong> Click Enable. We spin up a dedicated WhatsApp line for your wedding. You fill your Knowledge Bank (or let AI draft it from your wedding details), send broadcasts to your guests, and review every conversation from this page.
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+                  <strong style={{ color: COLORS.text.strong }}>How it works:</strong> Click Enable. We spin up a dedicated WhatsApp line for your wedding. You fill your Knowledge Bank (or let AI draft it from your wedding details), send broadcasts to your guests, and review every conversation from this page.
                 </Typography>
               </Box>
             </Stack>
@@ -424,10 +425,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         {/* Header row */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
               Guest Concierge
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               24/7 WhatsApp concierge for your guests — powered by your wedding details
             </Typography>
           </Box>
@@ -448,7 +449,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
 
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
-          <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
             Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
           </Typography>
           <Stack spacing={0.6} sx={{ pl: 0 }}>
@@ -461,13 +462,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               <>Instantly <strong>broadcast a message to your entire guest list</strong> — urgent news, last-minute changes, or anything exciting</>,
             ] as React.ReactNode[]).map((content, i) => (
               <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
               </Box>
             ))}
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-              <Typography variant="body2" sx={{ color: '#9a9a9a', lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.text.faint, lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
             </Box>
           </Stack>
         </Box>
@@ -481,9 +482,9 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             {/* Stats row */}
             <Box sx={{ display: 'flex', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
               {mockStats.map((stat) => (
-                <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white' }}>
-                  <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>{stat.value}</Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>{stat.label}</Typography>
+                <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white }}>
+                  <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>{stat.value}</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>{stat.label}</Typography>
                 </Paper>
               ))}
             </Box>
@@ -492,22 +493,22 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
 
               {/* Guest chat list */}
-              <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: 'white' }}>
+              <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: COLORS.bg.white }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Recent Guest Inquiries</Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {mockChats.map((chat) => (
                     <Box key={chat.name} sx={{ px: 2.5, py: 1.75, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#DE3F5E15', color: '#DE3F5E', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#DE3F5E15', color: COLORS.brand.primary, fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
                         {chat.avatar}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>{chat.name}</Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
+                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>{chat.name}</Typography>
+                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '0.8rem', color: '#6a6a6a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {chat.message}
                         </Typography>
                       </Box>
@@ -529,18 +530,18 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               </Paper>
 
               {/* Notification toggles */}
-              <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white', alignSelf: 'flex-start' }}>
+              <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white, alignSelf: 'flex-start' }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Guest Notifications</Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Guest Notifications</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {notifications.map((n) => (
                     <Box key={n.label} sx={{ px: 2.5, py: 1.75, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                       <Box>
-                        <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: '#1a1a1a' }}>{n.label}</Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', mt: 0.25 }}>{n.desc}</Typography>
+                        <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: COLORS.text.strong }}>{n.label}</Typography>
+                        <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, mt: 0.25 }}>{n.desc}</Typography>
                       </Box>
-                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }} />
+                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }} />
                     </Box>
                   ))}
                 </Stack>
@@ -568,14 +569,14 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
             </Box>
             <PrimaryActionButton
               startIcon={<WhatsApp />}

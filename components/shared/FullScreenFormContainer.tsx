@@ -4,6 +4,7 @@ import { Box, Container, IconButton, Paper, Typography, useTheme, useMediaQuery 
 import { motion } from 'framer-motion';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { ReactNode, useState, useEffect } from 'react';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface FullScreenFormContainerProps {
   title: string;
@@ -71,7 +72,7 @@ export default function FullScreenFormContainer({
           <IconButton
             onClick={onClose}
             sx={{
-              color: '#000',
+              color: COLORS.text.strong,
               backgroundColor: 'transparent',
               p: { xs: 1, sm: 1.5 },
               '&:hover': {
@@ -134,7 +135,7 @@ export default function FullScreenFormContainer({
               border: '1px solid #000',
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
-              color: '#000000',
+              color: COLORS.text.strong,
               display: 'flex',
               flexDirection: 'column',
               flex: 'none',

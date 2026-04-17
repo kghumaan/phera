@@ -57,6 +57,7 @@ import { InfoOutlined } from '@mui/icons-material';
 import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Vendor {
   id: string;
@@ -85,7 +86,7 @@ interface Vendor {
 const STATUS_COLORS: Record<string, string> = {
   active: '#2196F3',
   booked: '#4CAF50',
-  declined: '#9E9E9E',
+  declined: COLORS.text.faint,
   paid: '#8BC34A',
 };
 
@@ -470,10 +471,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Vendor Management
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
               </Typography>
             </Box>
@@ -488,7 +489,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
 
           {/* Description + bullet points */}
           <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
               Add your Phera Coordinator number to vendor WhatsApp group chats. Messages flow in
               automatically and Phera extracts key decisions, action items, and quotes. <strong>Your vendor management on autopilot.</strong>
             </Typography>
@@ -501,8 +502,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 <><strong>At-a-glance dashboard</strong> with statuses, deadlines, and open items</>,
               ] as React.ReactNode[]).map((content, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
                 </Box>
               ))}
             </Stack>
@@ -517,10 +518,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               {/* Stats row */}
               <Box sx={{ display: 'flex', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
                 {mockStats.map((stat) => (
-                  <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white' }}>
-                    <Box sx={{ color: '#DE3F5E', mb: 0.5 }}>{stat.icon}</Box>
-                    <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>{stat.value}</Typography>
-                    <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>{stat.label}</Typography>
+                  <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white }}>
+                    <Box sx={{ color: COLORS.brand.primary, mb: 0.5 }}>{stat.icon}</Box>
+                    <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>{stat.value}</Typography>
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>{stat.label}</Typography>
                   </Paper>
                 ))}
               </Box>
@@ -529,19 +530,19 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
 
                 {/* Vendor list */}
-                <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: 'white' }}>
+                <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: COLORS.bg.white }}>
                   <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Your Vendors</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Your Vendors</Typography>
                   </Box>
                   <Stack divider={<Divider />}>
                     {mockVendors.map((v) => (
                       <Box key={v.name} sx={{ px: 2.5, py: 1.75, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box>
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>{v.name}</Typography>
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>{v.name}</Typography>
                             <Chip label={v.category} size="small" sx={{ fontSize: '0.7rem', height: 20, borderRadius: '4px' }} />
                           </Stack>
-                          <Typography sx={{ fontSize: '0.75rem', color: '#6a6a6a' }}>{v.messages} messages</Typography>
+                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.subtle }}>{v.messages} messages</Typography>
                         </Box>
                         <Chip
                           label={v.status}
@@ -551,8 +552,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             height: 20,
                             borderRadius: '4px',
                             textTransform: 'capitalize',
-                            bgcolor: alpha(STATUS_COLORS[v.status] || '#9E9E9E', 0.1),
-                            color: STATUS_COLORS[v.status] || '#9E9E9E',
+                            bgcolor: alpha(STATUS_COLORS[v.status] || COLORS.text.faint, 0.1),
+                            color: STATUS_COLORS[v.status] || COLORS.text.faint,
                           }}
                         />
                       </Box>
@@ -561,20 +562,20 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 </Paper>
 
                 {/* Ask Phera mock */}
-                <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white', alignSelf: 'flex-start' }}>
+                <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: COLORS.bg.white, alignSelf: 'flex-start' }}>
                   <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Ask Phera</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>Ask Phera</Typography>
                   </Box>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography sx={{ fontSize: '0.8rem', color: '#6a6a6a', mb: 1.5 }}>
+                    <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.subtle, mb: 1.5 }}>
                       Ask a question across all your vendor conversations
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Box sx={{ flex: 1, height: 36, borderRadius: 1, border: '1px solid rgba(0,0,0,0.15)', bgcolor: '#fafafa' }} />
-                      <Box sx={{ width: 36, height: 36, borderRadius: 1, bgcolor: alpha('#DE3F5E', 0.1) }} />
+                      <Box sx={{ flex: 1, height: 36, borderRadius: 1, border: '1px solid rgba(0,0,0,0.15)', bgcolor: COLORS.bg.muted }} />
+                      <Box sx={{ width: 36, height: 36, borderRadius: 1, bgcolor: alpha(COLORS.brand.primary, 0.1) }} />
                     </Box>
-                    <Paper elevation={0} sx={{ mt: 1.5, p: 2, bgcolor: alpha('#DE3F5E', 0.03), borderRadius: 1 }}>
-                      <Typography sx={{ fontSize: '0.8rem', color: '#4a4a4a', lineHeight: 1.6 }}>
+                    <Paper elevation={0} sx={{ mt: 1.5, p: 2, bgcolor: alpha(COLORS.brand.primary, 0.03), borderRadius: 1 }}>
+                      <Typography sx={{ fontSize: '0.8rem', color: COLORS.text.muted, lineHeight: 1.6 }}>
                         Based on your conversations, Priya Catering quoted ₹1,200 per plate for 300 guests. The venue confirmed availability for Dec 15.
                       </Typography>
                     </Paper>
@@ -603,14 +604,14 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   width: 56,
                   height: 56,
                   borderRadius: '50%',
-                  bgcolor: 'white',
+                  bgcolor: COLORS.bg.white,
                   boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+                <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
               </Box>
               <PrimaryActionButton
                 startIcon={<SupportAgent />}
@@ -643,10 +644,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
               Coordinator
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
             </Typography>
           </Box>
@@ -656,7 +657,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
             sx={{
               p: { xs: 4, md: 8 },
               borderRadius: '32px',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               border: '1px solid rgba(0, 0, 0, 0.08)',
               display: 'flex',
               flexDirection: 'column',
@@ -670,7 +671,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               sx={{
                 width: 64,
                 height: 64,
-                borderRadius: '20px',
+                borderRadius: RADII.xl,
                 bgcolor: '#DE3F5E10',
                 display: 'flex',
                 alignItems: 'center',
@@ -678,19 +679,19 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 mb: 3,
               }}
             >
-              <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
+              <InfoOutlined sx={{ fontSize: 32, color: COLORS.brand.primary }} />
             </Box>
 
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.text.strong }}>
               Early Preview Mode
             </Typography>
 
-            <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
               Phera Coordinator is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your vendors.
             </Typography>
 
             {betaRequestStatus === 'checking' ? (
-              <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+              <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
             ) : betaRequestStatus === 'success' ? (
               <Box
                 sx={{
@@ -700,7 +701,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   gap: 1.5,
                   p: 3,
                   bgcolor: '#F1F8E9',
-                  borderRadius: '16px',
+                  borderRadius: RADII.lg,
                   border: '1px solid #C5E1A5',
                 }}
               >
@@ -717,7 +718,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   sx={{
                     px: 4,
                     py: 1.5,
-                    borderRadius: '14px',
+                    borderRadius: RADII.md,
                     fontWeight: 700,
                     fontSize: '1rem',
                     boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
@@ -743,7 +744,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -757,10 +758,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Vendor Management
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
               </Typography>
             </Box>
@@ -773,13 +774,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               p: 3,
               borderRadius: 1,
               border: '1px solid rgba(0,0,0,0.07)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
             }}
           >
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong }}>
               Get Started
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3 }}>
               Three steps to start tracking your vendor conversations automatically.
             </Typography>
 
@@ -792,8 +793,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -806,10 +807,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   1
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
                     Save the Coordinator Number
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, lineHeight: 1.6 }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5, lineHeight: 1.6 }}>
                     Save this number to your contacts so you can easily add it to vendor group chats.
                   </Typography>
                   {phoneConfigured ? (
@@ -822,20 +823,20 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                           gap: 1,
                           px: 2,
                           py: 1,
-                          bgcolor: '#F8F8F8',
+                          bgcolor: COLORS.bg.subtle,
                           borderRadius: 1,
                           border: '1px solid rgba(0,0,0,0.07)',
                         }}
                       >
-                        <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                        <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
+                        <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                        <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
                           {coordinatorPhone}
                         </Typography>
                       </Paper>
                       <IconButton
                         size="small"
                         onClick={handleCopyPhone}
-                        sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
+                        sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
                       >
                         {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                       </IconButton>
@@ -847,7 +848,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         rel="noopener noreferrer"
                         sx={{
                           textTransform: 'none',
-                          borderRadius: '12px',
+                          borderRadius: RADII.md,
                           color: '#25D366',
                           fontWeight: 600,
                           fontSize: '0.8rem',
@@ -857,7 +858,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       </Button>
                     </Stack>
                   ) : (
-                    <Typography variant="body2" sx={{ color: '#9a9a9a', fontStyle: 'italic' }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.faint, fontStyle: 'italic' }}>
                       Coordinator number not yet configured
                     </Typography>
                   )}
@@ -873,8 +874,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -887,26 +888,26 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   2
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
                     Add to a Vendor Group Chat
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
                     Open any vendor WhatsApp group chat, tap the group name at the top, select <strong>Add Participant</strong>, and add the Coordinator number. Phera will automatically start tracking messages and extracting insights.
                   </Typography>
                   <Button
                     size="small"
-                    startIcon={discoveringGroups ? <CircularProgress size={14} sx={{ color: '#DE3F5E' }} /> : <Sync />}
+                    startIcon={discoveringGroups ? <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} /> : <Sync />}
                     onClick={handleDiscoverGroups}
                     disabled={!phoneConfigured || discoveringGroups}
                     sx={{
                       mt: 1.5,
                       textTransform: 'none',
-                      borderRadius: '12px',
-                      color: '#DE3F5E',
+                      borderRadius: RADII.md,
+                      color: COLORS.brand.primary,
                       border: '1px solid',
-                      borderColor: alpha('#DE3F5E', 0.3),
+                      borderColor: alpha(COLORS.brand.primary, 0.3),
                       fontSize: '0.8rem',
-                      '&:hover': { bgcolor: alpha('#DE3F5E', 0.04) },
+                      '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.04) },
                     }}
                   >
                     {discoveringGroups ? 'Discovering...' : 'Connect WhatsApp Chats'}
@@ -923,8 +924,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -937,10 +938,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   3
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#1a1a1a', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
                     Or Import Existing Chats
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, lineHeight: 1.6 }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5, lineHeight: 1.6 }}>
                     Already have vendor conversations going? Import a WhatsApp chat export or add a vendor manually.
                   </Typography>
                   <Stack direction="row" spacing={1}>
@@ -950,8 +951,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       onClick={() => setImportDialogOpen(true)}
                       sx={{
                         textTransform: 'none',
-                        borderRadius: '12px',
-                        color: '#1a1a1a',
+                        borderRadius: RADII.md,
+                        color: COLORS.text.strong,
                         border: '1px solid rgba(0,0,0,0.15)',
                         fontSize: '0.8rem',
                       }}
@@ -971,10 +972,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         {isSuperAdmin && forceOnboarding && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
                 Test Mode
               </Typography>
-              <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+              <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
                 Force onboarding view
               </Typography>
             </Box>
@@ -983,10 +984,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               onChange={() => setForceOnboarding((p) => !p)}
               size="small"
               sx={{
-                '& .MuiSwitch-switchBase': { color: '#999' },
-                '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
+                '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+                '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
+                '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.brand.primary },
               }}
             />
           </Box>
@@ -1010,7 +1011,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
             {/* Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                   Coordinator
                 </Typography>
                 {phoneConfigured && (
@@ -1023,13 +1024,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         gap: 1,
                         px: 2,
                         py: 0.75,
-                        bgcolor: '#F8F8F8',
+                        bgcolor: COLORS.bg.subtle,
                         borderRadius: 1,
                         border: '1px solid rgba(0,0,0,0.07)',
                       }}
                     >
-                      <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                      <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
+                      <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                      <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
                         {coordinatorPhone}
                       </Typography>
                     </Paper>
@@ -1037,7 +1038,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <IconButton
                         size="small"
                         onClick={isDemo ? undefined : handleCopyPhone}
-                        sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
+                        sx={{ color: phoneCopied ? '#4CAF50' : COLORS.text.subtle }}
                       >
                         {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
                       </IconButton>
@@ -1050,21 +1051,21 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   <>
                     <Tooltip title={DEMO_BUTTON_TOOLTIPS.connectChat}>
                       <span>
-                        <Button size="small" startIcon={<Sync />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                        <Button size="small" startIcon={<Sync />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}>
                           Connect new Chat
                         </Button>
                       </span>
                     </Tooltip>
                     <Tooltip title={DEMO_BUTTON_TOOLTIPS.uploadChat}>
                       <span>
-                        <Button size="small" startIcon={<Upload />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                        <Button size="small" startIcon={<Upload />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}>
                           Upload Chat Manually
                         </Button>
                       </span>
                     </Tooltip>
                     <Tooltip title={DEMO_BUTTON_TOOLTIPS.refreshAll}>
                       <span>
-                        <Button size="small" startIcon={<CloudSync />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}>
+                        <Button size="small" startIcon={<CloudSync />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}>
                           Refresh all Chats
                         </Button>
                       </span>
@@ -1077,7 +1078,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       startIcon={discoveringGroups ? <CircularProgress size={14} /> : <Sync />}
                       onClick={handleDiscoverGroups}
                       disabled={discoveringGroups}
-                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}
                     >
                       {discoveringGroups ? 'Discovering...' : 'Connect new Chat'}
                     </Button>
@@ -1086,7 +1087,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       startIcon={importing ? <CircularProgress size={14} /> : <Upload />}
                       onClick={() => setImportDialogOpen(true)}
                       disabled={importing}
-                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}
                     >
                       Upload Chat Manually
                     </Button>
@@ -1095,7 +1096,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       startIcon={syncingAll ? <CircularProgress size={14} /> : <CloudSync />}
                       onClick={handleSyncAll}
                       disabled={syncingAll}
-                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#1a1a1a' }}
+                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.strong }}
                     >
                       {syncingAll && syncAllLabel ? syncAllLabel : 'Refresh all Chats'}
                     </Button>
@@ -1134,7 +1135,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       cursor: 'pointer',
                       borderRadius: 1,
                       border: '1px solid rgba(0,0,0,0.07)',
-                      bgcolor: 'white',
+                      bgcolor: COLORS.bg.white,
                       transition: 'all 0.15s',
                       display: 'flex',
                       flexDirection: 'column',
@@ -1143,21 +1144,21 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       minHeight: 260,
                       minWidth: 0,
                       '&:hover': {
-                        borderColor: alpha('#DE3F5E', 0.3),
-                        bgcolor: alpha('#DE3F5E', 0.02),
+                        borderColor: alpha(COLORS.brand.primary, 0.3),
+                        bgcolor: alpha(COLORS.brand.primary, 0.02),
                       },
                     }}
                   >
                     {/* Top: Vendor name + delete */}
                     <Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: COLORS.text.strong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                           {vendor.name}
                         </Typography>
                         <IconButton
                           size="small"
                           onClick={(e) => { e.stopPropagation(); if (!isDemo) setDeleteConfirmId(vendor.id); }}
-                          sx={{ ml: 0.5, color: '#6a6a6a', p: 0.5, '&:hover': { bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E' } }}
+                          sx={{ ml: 0.5, color: COLORS.text.subtle, p: 0.5, '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary } }}
                         >
                           <Delete sx={{ fontSize: 18 }} />
                         </IconButton>
@@ -1167,7 +1168,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <Typography
                         sx={{
                           fontSize: '0.5rem',
-                          color: '#6a6a6a',
+                          color: COLORS.text.subtle,
                           lineHeight: 1.5,
                           display: '-webkit-box',
                           WebkitLineClamp: 5,
@@ -1184,13 +1185,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <Chip
                         label={`${totalMessages} msgs`}
                         size="small"
-                        sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha('#000', 0.06), color: '#4a4a4a' }}
+                        sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
                       />
                       {vendor.category && (
                         <Chip
                           label={vendor.category}
                           size="small"
-                          sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha('#000', 0.06), color: '#4a4a4a' }}
+                          sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
                         />
                       )}
                       <Chip
@@ -1201,8 +1202,8 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                           height: 22,
                           borderRadius: '6px',
                           textTransform: 'capitalize',
-                          bgcolor: alpha('#000', 0.06),
-                          color: '#4a4a4a',
+                          bgcolor: alpha(COLORS.text.strong, 0.06),
+                          color: COLORS.text.muted,
                         }}
                       />
                       {actionItems.length > 0 && (
@@ -1214,9 +1215,9 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             fontSize: '0.7rem',
                             height: 22,
                             borderRadius: '6px',
-                            bgcolor: alpha('#000', 0.06),
-                            color: '#4a4a4a',
-                            '& .MuiChip-icon': { color: '#4a4a4a' },
+                            bgcolor: alpha(COLORS.text.strong, 0.06),
+                            color: COLORS.text.muted,
+                            '& .MuiChip-icon': { color: COLORS.text.muted },
                           }}
                         />
                       )}
@@ -1232,10 +1233,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {isSuperAdmin && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
               <Box>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
                   Test Mode
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#999' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
                   Force onboarding view
                 </Typography>
               </Box>
@@ -1244,10 +1245,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 onChange={() => setForceOnboarding((p) => !p)}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase': { color: '#999' },
-                  '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#DE3F5E' },
+                  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+                  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.brand.primary },
                 }}
               />
             </Box>
@@ -1267,7 +1268,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               Remove vendor?
             </DialogTitle>
             <DialogContent>
-              <Typography sx={{ fontSize: '0.85rem', color: '#4a4a4a' }}>
+              <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.muted }}>
                 This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
               </Typography>
             </DialogContent>
@@ -1275,7 +1276,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               <Button
                 onClick={() => setDeleteConfirmId(null)}
                 disabled={deleting}
-                sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+                sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle }}
               >
                 Cancel
               </Button>
@@ -1283,7 +1284,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 onClick={handleDeleteVendor}
                 loading={deleting}
                 startIcon={<Delete />}
-                sx={{ borderRadius: '12px' }}
+                sx={{ borderRadius: RADII.md }}
               >
                 Remove
               </PrimaryActionButton>
@@ -1321,11 +1322,11 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         onClose={() => setImportDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: '#ffffff', color: '#1a1a1a', borderRadius: 1 } }}
+        PaperProps={{ sx: { bgcolor: COLORS.bg.white, color: COLORS.text.strong, borderRadius: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>Import WhatsApp Chat</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>Import WhatsApp Chat</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 2 }}>
             Export a WhatsApp chat as .txt (without media) and upload it here.
           </Typography>
           <Stack spacing={2}>
@@ -1333,7 +1334,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               variant="outlined"
               component="label"
               startIcon={<Upload />}
-              sx={{ textTransform: 'none', color: '#1a1a1a', borderColor: 'rgba(0,0,0,0.23)', borderRadius: 1 }}
+              sx={{ textTransform: 'none', color: COLORS.text.strong, borderColor: 'rgba(0,0,0,0.23)', borderRadius: 1 }}
             >
               {importFile ? importFile.name : 'Choose .txt file'}
               <input
@@ -1344,13 +1345,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               />
             </Button>
             {vendors.length > 0 && (
-              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' } }, '& .MuiInputLabel-root': { color: '#6a6a6a', '&.Mui-focused': { color: '#DE3F5E' } } }}>
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' } }, '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } } }}>
                 <InputLabel>Link to vendor (optional)</InputLabel>
                 <Select
                   value={importVendorId}
                   label="Link to vendor (optional)"
                   onChange={(e) => setImportVendorId(e.target.value)}
-                  sx={{ color: '#1a1a1a' }}
+                  sx={{ color: COLORS.text.strong }}
                 >
                   <MenuItem value="">None — auto-detect</MenuItem>
                   {vendors.map((v) => (
@@ -1362,7 +1363,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setImportDialogOpen(false)} sx={{ color: '#1a1a1a' }}>Cancel</Button>
+          <Button onClick={() => setImportDialogOpen(false)} sx={{ color: COLORS.text.strong }}>Cancel</Button>
           <PrimaryActionButton
             onClick={handleImportChat}
             loading={importing}
@@ -1386,22 +1387,22 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         onClose={() => !syncing && setSyncDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: '#ffffff', color: '#1a1a1a', borderRadius: 1 } }}
+        PaperProps={{ sx: { bgcolor: COLORS.bg.white, color: COLORS.text.strong, borderRadius: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a', pb: 0 }}>
+        <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong, pb: 0 }}>
           Connect WhatsApp Chat
         </DialogTitle>
         <DialogContent sx={{ px: 0 }}>
           {discoveringGroups ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, gap: 2 }}>
-              <CircularProgress sx={{ color: '#DE3F5E' }} size={32} />
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <CircularProgress sx={{ color: COLORS.brand.primary }} size={32} />
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 Discovering your WhatsApp chats...
               </Typography>
             </Box>
           ) : (
             <>
-              <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 1.5, px: 3 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5, px: 3 }}>
                 Select the chats you want to import. We&apos;ll pull in message history and run AI analysis.
               </Typography>
 
@@ -1417,10 +1418,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     fontWeight: 600,
                     fontSize: '0.8rem',
                     minHeight: 36,
-                    color: '#6a6a6a',
-                    '&.Mui-selected': { color: '#DE3F5E' },
+                    color: COLORS.text.subtle,
+                    '&.Mui-selected': { color: COLORS.brand.primary },
                   },
-                  '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+                  '& .MuiTabs-indicator': { backgroundColor: COLORS.brand.primary },
                 }}
               >
                 <Tab label={`Group Chats (${discoveredGroups.length})`} />
@@ -1430,13 +1431,13 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
               <Box sx={{ px: 3 }}>
                 {currentTabLoading ? (
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, gap: 1.5 }}>
-                    <CircularProgress sx={{ color: '#DE3F5E' }} size={24} />
-                    <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.8rem' }}>
+                    <CircularProgress sx={{ color: COLORS.brand.primary }} size={24} />
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.8rem' }}>
                       {syncDialogTab === 0 ? 'Loading group chats...' : 'Loading direct chats...'}
                     </Typography>
                   </Box>
                 ) : currentTabChats.length === 0 ? (
-                  <Typography variant="body2" sx={{ color: '#6a6a6a', py: 2 }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.subtle, py: 2 }}>
                     {syncDialogTab === 0
                       ? 'No group chats found. Make sure the Coordinator number has been added to at least one WhatsApp group.'
                       : 'No direct chats found.'}
@@ -1465,7 +1466,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             return next;
                           })}
                           disabled={syncing}
-                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
+                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: COLORS.text.subtle }}
                         >
                           Select all
                         </Button>
@@ -1477,7 +1478,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             return next;
                           })}
                           disabled={syncing}
-                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#6a6a6a' }}
+                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: COLORS.text.subtle }}
                         >
                           Clear
                         </Button>
@@ -1493,7 +1494,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           <Button
             onClick={() => setSyncDialogOpen(false)}
             disabled={syncing}
-            sx={{ color: '#1a1a1a' }}
+            sx={{ color: COLORS.text.strong }}
           >
             Cancel
           </Button>
@@ -1535,11 +1536,11 @@ function ChatPickerItem({
         py: 1,
         borderRadius: 1,
         border: '1px solid',
-        borderColor: selected ? alpha('#DE3F5E', 0.4) : 'rgba(0,0,0,0.07)',
-        bgcolor: selected ? alpha('#DE3F5E', 0.03) : 'white',
+        borderColor: selected ? alpha(COLORS.brand.primary, 0.4) : 'rgba(0,0,0,0.07)',
+        bgcolor: selected ? alpha(COLORS.brand.primary, 0.03) : COLORS.bg.white,
         cursor: disabled ? 'default' : 'pointer',
         transition: 'all 0.15s',
-        '&:hover': disabled ? {} : { borderColor: alpha('#DE3F5E', 0.3) },
+        '&:hover': disabled ? {} : { borderColor: alpha(COLORS.brand.primary, 0.3) },
       }}
     >
       <Checkbox
@@ -1547,8 +1548,8 @@ function ChatPickerItem({
         disabled={disabled}
         size="small"
         sx={{
-          color: '#ccc',
-          '&.Mui-checked': { color: '#DE3F5E' },
+          color: COLORS.border.default,
+          '&.Mui-checked': { color: COLORS.brand.primary },
           p: 0.5,
         }}
       />
@@ -1557,7 +1558,7 @@ function ChatPickerItem({
           variant="body2"
           sx={{
             fontWeight: 600,
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -1566,7 +1567,7 @@ function ChatPickerItem({
           {chat.name}
         </Typography>
         {chat.participantCount > 0 && (
-          <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
             {chat.participantCount} participants
           </Typography>
         )}
@@ -1605,14 +1606,14 @@ function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) 
         }}
       >
         <InfoOutlined sx={{ fontSize: 18, color: '#B35D00' }} />
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
           How to add a new vendor chat
         </Typography>
-        {open ? <ExpandLess sx={{ fontSize: 20, color: '#6a6a6a' }} /> : <ExpandMore sx={{ fontSize: 20, color: '#6a6a6a' }} />}
+        {open ? <ExpandLess sx={{ fontSize: 20, color: COLORS.text.subtle }} /> : <ExpandMore sx={{ fontSize: 20, color: COLORS.text.subtle }} />}
       </Box>
       <Collapse in={open}>
         <Box sx={{ px: 2.5, pb: 2, pt: 0.5 }}>
-          <Stack spacing={1} sx={{ color: '#4a4a4a', fontSize: '0.85rem', lineHeight: 1.6 }}>
+          <Stack spacing={1} sx={{ color: COLORS.text.muted, fontSize: '0.85rem', lineHeight: 1.6 }}>
             <Typography sx={{ fontSize: '0.85rem' }}>
               <strong>1.</strong> Open WhatsApp on your phone, pick a vendor group chat, tap the group name, and add
               <strong> {coordinatorPhone || '+66 98 048 2140'} </strong>
@@ -1625,7 +1626,7 @@ function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) 
               <strong>3.</strong> Click <strong>Connect new Chat</strong> above. Phera will list every group it&apos;s
               a member of — pick the ones that belong to this wedding and confirm.
             </Typography>
-            <Typography sx={{ fontSize: '0.85rem', mt: 1, color: '#6a6a6a' }}>
+            <Typography sx={{ fontSize: '0.85rem', mt: 1, color: COLORS.text.subtle }}>
               Phera can only see messages sent <em>after</em> it joined a group. To pull older history, open that
               vendor and use the <strong>Upload older messages</strong> button with a WhatsApp chat export (
               Chat → ⋯ → Export chat → Without Media).

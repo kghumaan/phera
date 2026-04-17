@@ -44,6 +44,7 @@ import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Guest {
   id: string;

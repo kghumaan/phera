@@ -47,6 +47,7 @@ import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -54,28 +55,28 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 const selectSx = {
   mt: 1,
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    bgcolor: 'white',
+    borderRadius: RADII.md,
+    bgcolor: COLORS.bg.white,
     '& fieldset': {
       borderColor: 'rgba(0, 0, 0, 0.23)',
     },
     '&:hover fieldset': {
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
       borderWidth: '2px',
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#4a4a4a',
+    color: COLORS.text.muted,
     fontWeight: 500,
     '&.Mui-focused': {
-      color: '#DE3F5E',
+      color: COLORS.brand.primary,
     },
   },
   '& .MuiSelect-select': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     py: { xs: 1.5, md: 1.75, lg: 2 },
   },
@@ -345,14 +346,14 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       admin: {
         icon: <EditIcon sx={{ fontSize: 16 }} />,
         label: 'Can Edit',
-        bgcolor: alpha('#DE3F5E', 0.1),
-        color: '#DE3F5E',
+        bgcolor: alpha(COLORS.brand.primary, 0.1),
+        color: COLORS.brand.primary,
       },
       viewer: {
         icon: <Visibility sx={{ fontSize: 16 }} />,
         label: 'View Only',
-        bgcolor: alpha('#6a6a6a', 0.1),
-        color: '#6a6a6a',
+        bgcolor: alpha(COLORS.text.subtle, 0.1),
+        color: COLORS.text.subtle,
       },
     };
 
@@ -397,21 +398,21 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       <Stack spacing={3} sx={{ pt: { xs: 6, lg: 0 } }}>
         {/* Header */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Collaborators
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Manage who can access and edit your wedding website
           </Typography>
         </Box>
 
         {/* Single combined section */}
-        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3, boxShadow: 'none' }}>
+        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3, boxShadow: 'none' }}>
           <Stack spacing={3}>
             {/* Invite form */}
             {isOwner && (
               <>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   Invite your partner or wedding planner to help manage your wedding website.
                   They&apos;ll get access when they sign up or log in with this email.
                 </Typography>
@@ -436,13 +437,13 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     >
                       <MenuItem value="admin">
                         <Box display="flex" alignItems="center" gap={1}>
-                          <EditIcon sx={{ fontSize: 18, color: '#DE3F5E' }} />
+                          <EditIcon sx={{ fontSize: 18, color: COLORS.brand.primary }} />
                           Can Edit
                         </Box>
                       </MenuItem>
                       <MenuItem value="viewer">
                         <Box display="flex" alignItems="center" gap={1}>
-                          <Visibility sx={{ fontSize: 18, color: '#6a6a6a' }} />
+                          <Visibility sx={{ fontSize: 18, color: COLORS.text.subtle }} />
                           View Only
                         </Box>
                       </MenuItem>
@@ -457,7 +458,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     sx={{
                       px: 3,
                       py: 1.75,
-                      '&:disabled': { bgcolor: alpha('#DE3F5E', 0.5), color: 'white' },
+                      '&:disabled': { bgcolor: alpha(COLORS.brand.primary, 0.5), color: COLORS.text.inverse },
                     }}
                   >
                     Send Invite
@@ -477,8 +478,8 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemIcon>
                       <Avatar
                         sx={{
-                          bgcolor: member.is_owner ? alpha('#FFB800', 0.15) : alpha('#DE3F5E', 0.1),
-                          color: member.is_owner ? '#B38600' : '#DE3F5E',
+                          bgcolor: member.is_owner ? alpha('#FFB800', 0.15) : alpha(COLORS.brand.primary, 0.1),
+                          color: member.is_owner ? '#B38600' : COLORS.brand.primary,
                           fontWeight: 600,
                           width: 40,
                           height: 40,
@@ -490,8 +491,8 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemText
                       primary={member.email}
                       secondary={member.is_owner ? 'Wedding creator' : `Added ${new Date(member.created_at).toLocaleDateString()}`}
-                      primaryTypographyProps={{ fontWeight: 600, color: '#1a1a1a' }}
-                      secondaryTypographyProps={{ color: '#6a6a6a' }}
+                      primaryTypographyProps={{ fontWeight: 600, color: COLORS.text.strong }}
+                      secondaryTypographyProps={{ color: COLORS.text.subtle }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       {getRoleChip(member.role, member.is_owner)}
@@ -499,7 +500,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteClick('member', member.id, member.email)}
-                          sx={{ color: '#1a1a1a', '&:hover': { color: '#DE3F5E' } }}
+                          sx={{ color: COLORS.text.strong, '&:hover': { color: COLORS.brand.primary } }}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
@@ -528,7 +529,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                     <ListItemText
                       primary={invite.email}
                       secondary="Invite pending — waiting for them to sign up or log in"
-                      primaryTypographyProps={{ fontWeight: 600, color: '#1a1a1a' }}
+                      primaryTypographyProps={{ fontWeight: 600, color: COLORS.text.strong }}
                       secondaryTypographyProps={{ color: '#B38600', fontStyle: 'italic' }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -537,7 +538,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteClick('invite', invite.id, invite.email)}
-                          sx={{ color: '#1a1a1a', '&:hover': { color: '#DE3F5E' } }}
+                          sx={{ color: COLORS.text.strong, '&:hover': { color: COLORS.brand.primary } }}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
@@ -550,10 +551,10 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
             {/* About access */}
             <Divider />
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
               About Team Access
             </Typography>
-            <Box component="ul" sx={{ m: 0, pl: 2.5, color: '#4a4a4a' }}>
+            <Box component="ul" sx={{ m: 0, pl: 2.5, color: COLORS.text.muted }}>
               <Typography component="li" variant="body2" sx={{ mb: 1 }}>
                 <strong>Owner</strong> — The person who created the wedding. Has full control including deleting the wedding.
               </Typography>
@@ -573,17 +574,17 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           onClose={() => setDeleteDialogOpen(false)}
           PaperProps={{
             sx: {
-              borderRadius: '24px',
+              borderRadius: RADII.dialog,
               p: 2,
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
             },
           }}
         >
-          <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+          <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong }}>
             {itemToDelete?.type === 'invite' ? 'Cancel Invite?' : 'Remove Team Member?'}
           </DialogTitle>
           <DialogContent>
-            <DialogContentText sx={{ color: '#4a4a4a' }}>
+            <DialogContentText sx={{ color: COLORS.text.muted }}>
               {itemToDelete?.type === 'invite'
                 ? `Are you sure you want to cancel the invite sent to ${itemToDelete?.email}?`
                 : `Are you sure you want to remove ${itemToDelete?.email} from your team? They will no longer have access to this wedding.`}
@@ -593,10 +594,10 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
             <Button
               onClick={() => setDeleteDialogOpen(false)}
               sx={{
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 textTransform: 'none',
                 fontWeight: 600,
-                borderRadius: '12px',
+                borderRadius: RADII.md,
               }}
             >
               Cancel

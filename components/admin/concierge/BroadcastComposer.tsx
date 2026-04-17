@@ -25,6 +25,7 @@ import { Close, Add, Delete } from '@mui/icons-material';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import { supabase } from '@/lib/supabase/client';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface BroadcastComposerProps {
   open: boolean;
@@ -43,15 +44,15 @@ interface GuestOption {
 
 const FIELD_SX = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    bgcolor: 'white',
+    borderRadius: RADII.md,
+    bgcolor: COLORS.bg.white,
     '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-    '&:hover fieldset': { borderColor: '#DE3F5E' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+    '&:hover fieldset': { borderColor: COLORS.brand.primary },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
   },
-  '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500 },
-  '& .MuiInputLabel-root.Mui-focused': { color: '#DE3F5E' },
-  '& .MuiInputBase-input': { color: '#1a1a1a' },
+  '& .MuiInputLabel-root': { color: COLORS.text.muted, fontWeight: 500 },
+  '& .MuiInputLabel-root.Mui-focused': { color: COLORS.brand.primary },
+  '& .MuiInputBase-input': { color: COLORS.text.strong },
 };
 
 export default function BroadcastComposer({
@@ -177,11 +178,11 @@ export default function BroadcastComposer({
       onClose={sending ? undefined : onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: '16px', bgcolor: 'white' } }}
+      PaperProps={{ sx: { borderRadius: RADII.lg, bgcolor: COLORS.bg.white } }}
     >
-      <DialogTitle sx={{ fontWeight: 600, color: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
+      <DialogTitle sx={{ fontWeight: 600, color: COLORS.text.strong, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
         New Broadcast
-        <IconButton size="small" onClick={onClose} disabled={sending} sx={{ color: '#6a6a6a' }}>
+        <IconButton size="small" onClick={onClose} disabled={sending} sx={{ color: COLORS.text.subtle }}>
           <Close fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -201,7 +202,7 @@ export default function BroadcastComposer({
           />
 
           <Box>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
               Target
             </Typography>
             <ToggleButtonGroup
@@ -213,12 +214,12 @@ export default function BroadcastComposer({
                 '& .MuiToggleButton-root': {
                   textTransform: 'none',
                   fontWeight: 600,
-                  color: '#4a4a4a',
+                  color: COLORS.text.muted,
                   borderColor: 'rgba(0,0,0,0.12)',
                   '&.Mui-selected': {
                     bgcolor: 'rgba(222,63,94,0.08)',
-                    color: '#DE3F5E',
-                    borderColor: '#DE3F5E',
+                    color: COLORS.brand.primary,
+                    borderColor: COLORS.brand.primary,
                     '&:hover': { bgcolor: 'rgba(222,63,94,0.12)' },
                   },
                 },
@@ -251,7 +252,7 @@ export default function BroadcastComposer({
                     key={tag}
                     label={tag}
                     size="small"
-                    sx={{ bgcolor: 'rgba(222,63,94,0.1)', color: '#DE3F5E', fontWeight: 600 }}
+                    sx={{ bgcolor: 'rgba(222,63,94,0.1)', color: COLORS.brand.primary, fontWeight: 600 }}
                   />
                 ))
               }
@@ -281,7 +282,7 @@ export default function BroadcastComposer({
                     key={guest.id}
                     label={guest.name}
                     size="small"
-                    sx={{ bgcolor: 'rgba(222,63,94,0.1)', color: '#DE3F5E', fontWeight: 600 }}
+                    sx={{ bgcolor: 'rgba(222,63,94,0.1)', color: COLORS.brand.primary, fontWeight: 600 }}
                   />
                 ))
               }
@@ -295,12 +296,12 @@ export default function BroadcastComposer({
               justifyContent: 'space-between',
               p: 1.5,
               borderRadius: 1,
-              bgcolor: '#F8F8F8',
+              bgcolor: COLORS.bg.subtle,
               border: '1px solid rgba(0,0,0,0.06)',
             }}
           >
-            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-              This will reach <strong style={{ color: '#1a1a1a' }}>{targetCount}</strong> guest{targetCount === 1 ? '' : 's'} with a phone number.
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+              This will reach <strong style={{ color: COLORS.text.strong }}>{targetCount}</strong> guest{targetCount === 1 ? '' : 's'} with a phone number.
             </Typography>
           </Box>
 
@@ -313,17 +314,17 @@ export default function BroadcastComposer({
                   checked={collectsData}
                   onChange={(e) => setCollectsData(e.target.checked)}
                   sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
+                    '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
                   }}
                 />
               }
               label={
                 <Box>
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.9rem' }}>
+                  <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9rem' }}>
                     Collect replies as data
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                     Tag replies with a name so you can view responses as a structured column.
                   </Typography>
                 </Box>
@@ -334,7 +335,7 @@ export default function BroadcastComposer({
           {collectsData && (
             <Stack spacing={1.25}>
               {dataSchema.length === 0 && (
-                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                   Add at least one field to name the data you&apos;re collecting.
                 </Typography>
               )}
@@ -353,7 +354,7 @@ export default function BroadcastComposer({
                     sx={{ ...FIELD_SX, flex: 1 }}
                   />
                   <Tooltip title="Remove field">
-                    <IconButton size="small" onClick={() => removeField(i)} sx={{ color: '#6a6a6a' }}>
+                    <IconButton size="small" onClick={() => removeField(i)} sx={{ color: COLORS.text.subtle }}>
                       <Delete fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -367,16 +368,16 @@ export default function BroadcastComposer({
                   sx={{
                     textTransform: 'none',
                     fontWeight: 600,
-                    borderRadius: '12px',
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
-                    '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222,63,94,0.04)' },
+                    borderRadius: RADII.md,
+                    borderColor: COLORS.brand.primary,
+                    color: COLORS.brand.primary,
+                    '&:hover': { borderColor: COLORS.brand.primary, bgcolor: 'rgba(222,63,94,0.04)' },
                   }}
                 >
                   Add field
                 </ActionButton>
               </Box>
-              <Alert severity="info" sx={{ borderRadius: 1, bgcolor: 'rgba(222,63,94,0.05)', color: '#4a4a4a', '& .MuiAlert-icon': { color: '#DE3F5E' } }}>
+              <Alert severity="info" sx={{ borderRadius: 1, bgcolor: 'rgba(222,63,94,0.05)', color: COLORS.text.muted, '& .MuiAlert-icon': { color: COLORS.brand.primary } }}>
                 Replies will be attributed to this broadcast and shown in the Broadcasts detail + RSVPs &rsaquo; Collected Data.
               </Alert>
             </Stack>
@@ -401,7 +402,7 @@ export default function BroadcastComposer({
           onClick={handleSend}
           loading={sending}
           disabled={!canSend}
-          sx={{ px: 3, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' } }}
+          sx={{ px: 3, '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint } }}
         >
           Send to {targetCount || 0}
         </PrimaryActionButton>

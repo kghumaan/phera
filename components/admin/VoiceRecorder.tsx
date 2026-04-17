@@ -17,6 +17,7 @@ import {
 import { PrimaryActionButton, ActionButton } from './ActionButton';
 import { Mic, Stop, Close, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import VoiceWaveform from './VoiceWaveform';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ExtractedTask {
   title: string;
@@ -184,15 +185,15 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
           startIcon={<Mic />}
           onClick={startRecording}
           sx={{
-            borderColor: '#DE3F5E',
-            color: '#DE3F5E',
+            borderColor: COLORS.brand.primary,
+            color: COLORS.brand.primary,
             px: 2.5,
             py: 1,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             fontWeight: 600,
             textTransform: 'none',
             fontSize: '0.9rem',
-            '&:hover': { borderColor: '#c73552', bgcolor: alpha('#DE3F5E', 0.04) },
+            '&:hover': { borderColor: '#c73552', bgcolor: alpha(COLORS.brand.primary, 0.04) },
           }}
         >
           Voice Input
@@ -207,7 +208,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
               width: 10,
               height: 10,
               borderRadius: '50%',
-              bgcolor: '#DE3F5E',
+              bgcolor: COLORS.brand.primary,
               animation: 'pulse 1.2s ease-in-out infinite',
               '@keyframes pulse': {
                 '0%, 100%': { opacity: 1, transform: 'scale(1)' },
@@ -220,7 +221,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
               <VoiceWaveform stream={activeStream} isActive={state === 'recording'} />
             </Box>
           )}
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#DE3F5E', fontVariantNumeric: 'tabular-nums' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
             {formatTime(elapsed)}
           </Typography>
           <PrimaryActionButton
@@ -240,8 +241,8 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       {/* Processing state */}
       {isProcessing && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#6a6a6a' }}>
+          <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} />
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.subtle }}>
             {state === 'uploading' ? 'Transcribing...' : 'Extracting tasks...'}
           </Typography>
         </Box>
@@ -251,7 +252,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       {error && state === 'idle' && !pendingTasks && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontSize: '0.8rem', color: '#d32f2f' }}>{error}</Typography>
-          <IconButton size="small" onClick={() => setError(null)} sx={{ color: '#999' }}>
+          <IconButton size="small" onClick={() => setError(null)} sx={{ color: COLORS.text.faint }}>
             <Close sx={{ fontSize: 14 }} />
           </IconButton>
         </Box>
@@ -264,12 +265,12 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: '16px', p: 1 },
+          sx: { borderRadius: RADII.lg, p: 1 },
         }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem', pb: 0.5 }}>
           Voice Tasks
-          <Typography variant="body2" sx={{ color: '#6a6a6a', fontWeight: 400, mt: 0.5 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 400, mt: 0.5 }}>
             {pendingTasks?.length} task{pendingTasks?.length !== 1 ? 's' : ''} extracted from your voice note
           </Typography>
         </DialogTitle>
@@ -285,8 +286,8 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                   alignItems: 'center',
                   gap: 0.5,
                   cursor: 'pointer',
-                  color: '#999',
-                  '&:hover': { color: '#666' },
+                  color: COLORS.text.faint,
+                  '&:hover': { color: COLORS.text.subtle },
                 }}
               >
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -302,8 +303,8 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                     lineHeight: 1.7,
                     mt: 1,
                     p: 1.5,
-                    bgcolor: '#f5f5f5',
-                    borderRadius: '8px',
+                    bgcolor: COLORS.bg.subtle,
+                    borderRadius: RADII.sm,
                     fontStyle: 'italic',
                   }}
                 >
@@ -320,13 +321,13 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                 key={i}
                 sx={{
                   p: 1.5,
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   border: '1px solid rgba(0,0,0,0.07)',
-                  bgcolor: 'white',
+                  bgcolor: COLORS.bg.white,
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a' }}>
+                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.strong }}>
                     {task.title}
                   </Typography>
                   {task.tag && (
@@ -335,12 +336,12 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                         px: 1,
                         py: 0.2,
                         borderRadius: '6px',
-                        bgcolor: alpha('#DE3F5E', 0.08),
-                        color: '#DE3F5E',
+                        bgcolor: alpha(COLORS.brand.primary, 0.08),
+                        color: COLORS.brand.primary,
                         fontSize: '0.65rem',
                         fontWeight: 600,
                         flexShrink: 0,
-                        border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
+                        border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`,
                       }}
                     >
                       {task.tag}
@@ -360,7 +361,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
           <Button
             onClick={handleDismiss}
-            sx={{ color: '#999', textTransform: 'none', fontWeight: 600, borderRadius: '10px' }}
+            sx={{ color: COLORS.text.faint, textTransform: 'none', fontWeight: 600, borderRadius: RADII.sm }}
           >
             Cancel
           </Button>
@@ -368,7 +369,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
             onClick={handleConfirmTasks}
             sx={{
               px: 3,
-              borderRadius: '10px',
+              borderRadius: RADII.sm,
             }}
           >
             Add {pendingTasks?.length} Task{pendingTasks?.length !== 1 ? 's' : ''}

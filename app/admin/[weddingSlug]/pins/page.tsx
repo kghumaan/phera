@@ -46,13 +46,14 @@ import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 const sectionPaperSx = {
   p: 3,
-  borderRadius: '16px',
-  bgcolor: '#F8F8F8',
+  borderRadius: RADII.lg,
+  bgcolor: COLORS.bg.subtle,
   boxShadow: 'none',
   border: '1px solid rgba(0,0,0,0.07)',
 };
@@ -391,10 +392,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
               PIN Management
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Create and manage unique PIN codes for your guests to access the wedding website
             </Typography>
           </Box>
@@ -402,10 +403,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
         {/* PIN Codes Section */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
             Guest PIN Codes
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
             {(settings?.pin_codes?.length || 0) > 0
               ? `You have ${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
               : 'Add unique PIN codes for your guests to access the wedding website'}
@@ -431,26 +432,26 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                 key={index}
                 sx={{
                   p: 3,
-                  borderRadius: '16px',
-                  bgcolor: 'white',
+                  borderRadius: RADII.lg,
+                  bgcolor: COLORS.bg.white,
                   border: '1px solid #EEE',
                   boxShadow: 'none',
                   cursor: 'pointer',
-                  '&:hover': { borderColor: '#ddd', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
+                  '&:hover': { borderColor: COLORS.border.default, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
                 }}
                 onClick={() => handleEditPin(pinData, index)}
               >
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                   <Box sx={{ flex: 1 }}>
                     <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
-                      <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.2rem' }}>
+                      <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1.2rem' }}>
                         {pinData.pin}
                       </Typography>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         <Chip
                           label={pinData.name || pinData.type || 'Guest'}
                           size="small"
-                          sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 600 }}
+                          sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary, fontWeight: 600 }}
                         />
                         {pinData.hidden_events?.length > 0 && (
                           <Tooltip
@@ -467,17 +468,17 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                             <Chip
                               label={`${pinData.hidden_events.length} hidden`}
                               size="small"
-                              sx={{ bgcolor: alpha('#1a1a1a', 0.08), color: '#4a4a4a', fontWeight: 600, cursor: 'pointer' }}
+                              sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.muted, fontWeight: 600, cursor: 'pointer' }}
                             />
                           </Tooltip>
                         )}
                         {pinData.skip_rsvp ? (
-                          <Chip label="Skip RSVP" size="small" sx={{ bgcolor: alpha('#1a1a1a', 0.08), color: '#4a4a4a', fontWeight: 600 }} />
+                          <Chip label="Skip RSVP" size="small" sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.muted, fontWeight: 600 }} />
                         ) : (
                           <Chip
                             label={pinData.allows_plus_one ? 'Plus One' : 'No Plus One'}
                             size="small"
-                            sx={{ bgcolor: alpha('#1a1a1a', 0.08), color: '#6a6a6a', fontWeight: 600 }}
+                            sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.subtle, fontWeight: 600 }}
                           />
                         )}
                       </Stack>
@@ -487,7 +488,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                     <IconButton
                       size="small"
                       onClick={(e) => { e.stopPropagation(); setDeletePinTarget(pinData.pin); }}
-                      sx={{ color: '#1a1a1a', flexShrink: 0 }}
+                      sx={{ color: COLORS.text.strong, flexShrink: 0 }}
                     >
                       <Delete fontSize="small" />
                     </IconButton>
@@ -510,8 +511,8 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           )}
 
           {(!settings?.pin_codes || settings.pin_codes.length === 0) && editingPinIndex !== -1 && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '16px', bgcolor: 'white', boxShadow: 'none' }}>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No PIN codes yet. Add your first PIN below.
               </Typography>
             </Paper>
@@ -522,19 +523,19 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             <Box
               onClick={startNewPin}
               sx={{
-                bgcolor: '#EBEBEB',
+                bgcolor: COLORS.border.light,
                 border: '1px dashed #BCBCBC',
-                borderRadius: '8px',
+                borderRadius: RADII.sm,
                 px: 2, py: 1.5,
                 cursor: 'pointer',
                 textAlign: 'center',
-                '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
               }}
             >
               <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                 Add PIN Code
               </Typography>
-              <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                 Create a new access code for your guests
               </Typography>
             </Box>
@@ -543,17 +544,17 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
         {/* Lock Screen Design Section */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Lock Screen Design
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
             Customize the appearance of the PIN entry screen your guests see
           </Typography>
         </Box>
 
         {/* Welcome Text */}
         <Paper sx={sectionPaperSx}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Welcome Text
           </Typography>
 
@@ -586,7 +587,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 
         {/* Background Selection */}
         <Paper sx={sectionPaperSx}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Background Image
           </Typography>
 
@@ -610,11 +611,11 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                       borderRadius: 1,
                       cursor: 'pointer',
                       border: 3,
-                      borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? '#DE3F5E' : 'transparent',
+                      borderColor: pinEntryBackground === bg.url && !customPinEntryBackground ? COLORS.brand.primary : 'transparent',
                       transition: 'all 0.2s',
                       position: 'relative',
                       '&:hover': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         transform: 'scale(1.05)',
                       },
                     }}
@@ -634,7 +635,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               <Button
                 onClick={() => setVisiblePinBgs((prev: number) => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
                 variant="outlined"
-                sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
+                sx={{ color: COLORS.brand.primary, borderColor: COLORS.brand.primary, '&:hover': { borderColor: COLORS.brand.primary, bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
               >
                 Show More
               </Button>
@@ -643,7 +644,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               <Button
                 onClick={() => setVisiblePinBgs(8)}
                 variant="text"
-                sx={{ color: '#666' }}
+                sx={{ color: COLORS.text.subtle }}
               >
                 Show Less
               </Button>
@@ -672,22 +673,22 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           onClose={() => setDeletePinTarget(null)}
           PaperProps={{
             sx: {
-              borderRadius: '16px',
+              borderRadius: RADII.lg,
               p: 1,
               maxWidth: 400,
             }
           }}
         >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
             Delete PIN?
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
               Are you sure you want to delete PIN <strong>{deletePinTarget}</strong>? This action cannot be undone.
             </Typography>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setDeletePinTarget(null)} sx={{ color: '#6a6a6a', borderRadius: '12px', textTransform: 'none' }}>
+            <Button onClick={() => setDeletePinTarget(null)} sx={{ color: COLORS.text.subtle, borderRadius: RADII.md, textTransform: 'none' }}>
               Cancel
             </Button>
             <PrimaryActionButton
@@ -727,10 +728,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
 const pinFieldSx = textFieldSx;
 
 const SWITCH_SX = {
-  '& .MuiSwitch-switchBase': { color: '#999' },
-  '& .MuiSwitch-track': { bgcolor: '#bbb' },
-  '& .Mui-checked': { color: '#DE3F5E' },
-  '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
+  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
+  '& .Mui-checked': { color: COLORS.brand.primary },
+  '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
 };
 
 interface InlinePinFormProps {
@@ -761,7 +762,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
 
   return (
     <ClickAwayListener onClickAway={handleClickAway}>
-      <Paper sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'white', border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+      <Paper sx={{ p: 2.5, borderRadius: RADII.lg, bgcolor: COLORS.bg.white, border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1.5}>
             <TextField
@@ -802,7 +803,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                   sx={SWITCH_SX}
                 />
               }
-              label={<Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.875rem' }}>Skip RSVP</Typography>}
+              label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Skip RSVP</Typography>}
             />
             {!pin.skip_rsvp && (
               <FormControlLabel
@@ -814,7 +815,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                     sx={SWITCH_SX}
                   />
                 }
-                label={<Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.875rem' }}>Plus One</Typography>}
+                label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Plus One</Typography>}
               />
             )}
             {events.length > 0 && (
@@ -832,7 +833,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                     sx={SWITCH_SX}
                   />
                 }
-                label={<Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.875rem' }}>Hide Events</Typography>}
+                label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Hide Events</Typography>}
               />
             )}
           </Stack>
@@ -840,7 +841,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
           {showHideEvents && events.length > 0 && (
             <>
               <FormControl fullWidth size="small">
-                <InputLabel shrink sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Select events to hide</InputLabel>
+                <InputLabel shrink sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>Select events to hide</InputLabel>
                 <Select
                   value=""
                   open={selectOpen}
@@ -855,12 +856,12 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                   label="Select events to hide"
                   displayEmpty
                   notched
-                  renderValue={() => <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Select an event</Typography>}
+                  renderValue={() => <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Select an event</Typography>}
                   sx={{
-                    borderRadius: '8px', bgcolor: 'white',
-                    '& fieldset': { borderColor: '#BCBCBC' },
-                    '&:hover fieldset': { borderColor: '#999' },
-                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                    borderRadius: RADII.sm, bgcolor: COLORS.bg.white,
+                    '& fieldset': { borderColor: COLORS.text.faint },
+                    '&:hover fieldset': { borderColor: COLORS.text.faint },
+                    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                   }}
                 >
                   {events
@@ -879,7 +880,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
                       label={event.name}
                       size="small"
                       onDelete={() => setPin({ ...pin, hidden_events: pin.hidden_events.filter((id: string) => id !== eventId) })}
-                      sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#DE3F5E' } }}
+                      sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary, fontWeight: 600, '& .MuiChip-deleteIcon': { color: COLORS.brand.primary } }}
                     />
                   ) : null;
                 })}
@@ -887,15 +888,15 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
             </>
           )}
 
-          <Box sx={{ p: 1.5, borderRadius: '8px', bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8rem' }}>
+          <Box sx={{ p: 1.5, borderRadius: RADII.sm, bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
               {generatePinSummary(pin, events)}
             </Typography>
           </Box>
 
           <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
             {isEditing && onDelete && (
-              <IconButton size="small" onClick={onDelete} sx={{ color: '#1a1a1a' }}>
+              <IconButton size="small" onClick={onDelete} sx={{ color: COLORS.text.strong }}>
                 <Delete fontSize="small" />
               </IconButton>
             )}
@@ -905,7 +906,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
               disabled={!canSave}
               sx={{
                 px: 3, minWidth: 80,
-                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
               }}
             >
               Save

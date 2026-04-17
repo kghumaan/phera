@@ -19,6 +19,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import { supabase } from '@/lib/supabase/client';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface CollectedDataTabProps {
   weddingSlug: string;
@@ -88,7 +89,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -101,15 +102,15 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
           p: { xs: 4, md: 6 },
           borderRadius: 1,
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           textAlign: 'center',
           m: 3,
         }}
       >
-        <Typography sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+        <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
           No collected data yet
         </Typography>
-        <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 480, mx: 'auto' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.muted, maxWidth: 480, mx: 'auto' }}>
           When you send a Concierge broadcast with data collection enabled, replies show up here.
         </Typography>
       </Paper>
@@ -121,15 +122,15 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
       <Stack spacing={2.5}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" flexWrap="wrap">
           <Box>
-            <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.95rem' }}>
+            <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.95rem' }}>
               Collected data
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Replies to your broadcasts with data collection enabled.
             </Typography>
           </Box>
           <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>
+            <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>
               Broadcast
             </InputLabel>
             <Select
@@ -137,11 +138,11 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
               onChange={(e) => setSelectedBroadcastId(e.target.value as string)}
               label="Broadcast"
               sx={{
-                bgcolor: 'white',
-                borderRadius: '12px',
+                bgcolor: COLORS.bg.white,
+                borderRadius: RADII.md,
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#DE3F5E' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.brand.primary },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.brand.primary },
               }}
             >
               <MenuItem value="all">All broadcasts</MenuItem>
@@ -164,12 +165,12 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
               sx={{
                 borderRadius: 1,
                 border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 overflow: 'hidden',
               }}
             >
-              <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid rgba(0,0,0,0.06)', bgcolor: '#FAFAFA' }}>
-                <Typography sx={{ fontSize: '0.88rem', color: '#1a1a1a', fontWeight: 600, mb: 0.5 }}>
+              <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid rgba(0,0,0,0.06)', bgcolor: COLORS.bg.muted }}>
+                <Typography sx={{ fontSize: '0.88rem', color: COLORS.text.strong, fontWeight: 600, mb: 0.5 }}>
                   {b.message.slice(0, 120)}
                   {b.message.length > 120 ? '…' : ''}
                 </Typography>
@@ -181,7 +182,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                       size="small"
                       sx={{
                         bgcolor: 'rgba(222,63,94,0.08)',
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                         fontWeight: 600,
                         fontSize: '0.7rem',
                         height: 20,
@@ -192,18 +193,18 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
               </Box>
               {rows.length === 0 ? (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                  <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                     No replies yet for this broadcast.
                   </Typography>
                 </Box>
               ) : (
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#FAFAFA' }}>
-                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Guest</TableCell>
-                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Reply</TableCell>
+                    <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Guest</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Reply</TableCell>
                       {b.data_schema.map((f) => (
-                        <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>
+                        <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
                           {f.label}
                         </TableCell>
                       ))}
@@ -213,21 +214,21 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                     {rows.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>
-                          <Typography sx={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: 600 }}>
+                          <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, fontWeight: 600 }}>
                             {r.guests?.name || 'Unnamed'}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#9a9a9a' }}>
+                          <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
                             {r.guests?.phone || '—'}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: '0.82rem', color: '#4a4a4a', whiteSpace: 'pre-wrap' }}>
+                          <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap' }}>
                             {r.reply_text || '—'}
                           </Typography>
                         </TableCell>
                         {b.data_schema.map((f) => (
                           <TableCell key={f.key}>
-                            <Typography sx={{ fontSize: '0.82rem', color: '#1a1a1a' }}>
+                            <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong }}>
                               {r.collected_data?.[f.key] ?? '—'}
                             </Typography>
                           </TableCell>

@@ -21,6 +21,7 @@ import NeedsAttentionPanel from '@/components/admin/control-tower/NeedsAttention
 import ConciergeInsightsPanel from '@/components/admin/control-tower/ConciergeInsightsPanel';
 import ComposePanel from '@/components/admin/control-tower/ComposePanel';
 import UnifiedTimeline from '@/components/admin/control-tower/UnifiedTimeline';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -60,15 +61,15 @@ function StatCard({ icon, label, value, subtitle, color }: {
   icon: React.ReactNode; label: string; value: string | number; subtitle?: string; color: string;
 }) {
   return (
-    <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', p: 2, bgcolor: 'white', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-      <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+    <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 2, bgcolor: COLORS.bg.white, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ width: 36, height: 36, borderRadius: RADII.sm, bgcolor: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </Box>
       <Box>
-        <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.1 }}>{value}</Typography>
-        <Typography sx={{ fontSize: 11, color: '#6a6a6a', fontWeight: 500 }}>{label}</Typography>
+        <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.1 }}>{value}</Typography>
+        <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, fontWeight: 500 }}>{label}</Typography>
         {subtitle && (
-          <Typography sx={{ fontSize: 9, color: '#9a9a9a' }}>{subtitle}</Typography>
+          <Typography sx={{ fontSize: 9, color: COLORS.text.faint }}>{subtitle}</Typography>
         )}
       </Box>
     </Paper>
@@ -143,7 +144,7 @@ export default function ControlTowerPage() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-        <CircularProgress size={32} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={32} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -151,8 +152,8 @@ export default function ControlTowerPage() {
   if (fetchError) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>Control Tower</Typography>
-        <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(220,38,38,0.2)', p: 4, bgcolor: '#fef2f2' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>Control Tower</Typography>
+        <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(220,38,38,0.2)', p: 4, bgcolor: '#fef2f2' }}>
           <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#b91c1c', mb: 0.5 }}>
             Could not load dashboard
           </Typography>
@@ -170,14 +171,14 @@ export default function ControlTowerPage() {
   if (!data || data.summary.total_guests === 0) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>Control Tower</Typography>
-        <Paper elevation={0} sx={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: 'white' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>Control Tower</Typography>
+        <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: COLORS.bg.white }}>
           <PeopleAltIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
-          <Typography sx={{ fontWeight: 600, fontSize: 16, color: '#1a1a1a', mb: 1 }}>No guests yet</Typography>
-          <Typography sx={{ fontSize: 13, color: '#6a6a6a', maxWidth: 400, mx: 'auto' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: 16, color: COLORS.text.strong, mb: 1 }}>No guests yet</Typography>
+          <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, maxWidth: 400, mx: 'auto' }}>
             Add guests to start tracking outreach, RSVPs, and coordination.
           </Typography>
-          <Typography sx={{ fontSize: 11, color: '#9a9a9a', mt: 2 }}>
+          <Typography sx={{ fontSize: 11, color: COLORS.text.faint, mt: 2 }}>
             Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If RSVPs shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
           </Typography>
         </Paper>
@@ -192,8 +193,8 @@ export default function ControlTowerPage() {
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>Control Tower</Typography>
-        <Typography sx={{ fontSize: 13, color: '#6a6a6a', mt: 0.5 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>Control Tower</Typography>
+        <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, mt: 0.5 }}>
           Outreach, RSVPs, escalations, and messaging — all in one place.
         </Typography>
       </Box>
@@ -229,7 +230,7 @@ export default function ControlTowerPage() {
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            icon={<SendIcon sx={{ fontSize: 20, color: '#3b82f6' }} />}
+            icon={<SendIcon sx={{ fontSize: 20, color: COLORS.accent.info }} />}
             label="Sent This Week"
             value={summary.messages_sent_this_week}
             color="#3b82f6"
@@ -296,26 +297,26 @@ export default function ControlTowerPage() {
         sx={{
           borderRadius: '12px !important',
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           mb: 1.5,
           '&::before': { display: 'none' },
           '& .MuiAccordionSummary-root': { minHeight: 48 },
         }}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#6a6a6a' }} />}>
-          <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: COLORS.text.subtle }} />}>
+          <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong }}>
             Activity Timeline
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{ pt: 0 }}>
           {activityLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+              <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
             </Box>
           ) : activityEvents ? (
             <UnifiedTimeline events={activityEvents} weddingSlug={weddingSlug} />
           ) : (
-            <Typography sx={{ fontSize: 13, color: '#9a9a9a', py: 2, textAlign: 'center' }}>
+            <Typography sx={{ fontSize: 13, color: COLORS.text.faint, py: 2, textAlign: 'center' }}>
               No activity data available.
             </Typography>
           )}
@@ -328,19 +329,19 @@ export default function ControlTowerPage() {
         sx={{
           borderRadius: '12px !important',
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           '&::before': { display: 'none' },
           '& .MuiAccordionSummary-root': { minHeight: 48 },
         }}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#6a6a6a' }} />}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: COLORS.text.subtle }} />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <SmartToyIcon sx={{ fontSize: 16, color: '#8b5cf6' }} />
-            <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+            <Typography sx={{ fontWeight: 600, fontSize: 14, color: COLORS.text.strong }}>
               Concierge Insights
             </Typography>
             {concierge.guestsReached > 0 && (
-              <Typography sx={{ fontSize: 11, color: '#6a6a6a', ml: 0.5 }}>
+              <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, ml: 0.5 }}>
                 ({concierge.guestsReached} guests reached, {concierge.messagesHandled} messages)
               </Typography>
             )}

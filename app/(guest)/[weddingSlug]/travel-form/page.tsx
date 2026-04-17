@@ -20,6 +20,7 @@ import { DirectionsBus, CheckCircle, WhatsApp, Add, Remove } from '@mui/icons-ma
 import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface TravelFormData {
   name: string;
@@ -179,7 +180,7 @@ export default function TravelFormPage() {
           sx={{
             p: { xs: 3, md: 5 },
             borderRadius: '32px',
-            bgcolor: alpha('#fff', 0.95),
+            bgcolor: alpha(COLORS.bg.white, 0.95),
             backdropFilter: 'blur(10px)',
             width: '100%',
           }}
@@ -199,7 +200,7 @@ export default function TravelFormPage() {
                   fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
-                  color: '#000000',
+                  color: COLORS.text.strong,
                   fontWeight: 400,
                 }}
               >
@@ -224,7 +225,7 @@ export default function TravelFormPage() {
                   <DirectionsBus
                     sx={{
                       fontSize: { xs: 40, md: 50 },
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       mb: 1,
                     }}
                   />
@@ -234,7 +235,7 @@ export default function TravelFormPage() {
                       fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       fontWeight: 400,
                     }}
                   >
@@ -263,9 +264,9 @@ export default function TravelFormPage() {
                   required
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '16px',
+                      borderRadius: RADII.lg,
                       fontSize: { xs: '1rem', md: '1.125rem' },
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       '& fieldset': {
                         borderColor: '#999999',
                       },
@@ -273,22 +274,22 @@ export default function TravelFormPage() {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                     },
                     '& .MuiInputBase-input': {
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       '&:-webkit-autofill': {
                         WebkitBoxShadow: '0 0 0 1000px white inset !important',
                         WebkitTextFillColor: '#000000 !important',
-                        caretColor: '#000000',
+                        caretColor: COLORS.text.strong,
                         borderRadius: 'inherit',
                         transition: 'background-color 5000s ease-in-out 0s',
                       },
@@ -321,9 +322,9 @@ export default function TravelFormPage() {
                   required
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '16px',
+                      borderRadius: RADII.lg,
                       fontSize: { xs: '1rem', md: '1.125rem' },
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       '& fieldset': {
                          borderColor: '#999999',
                       },
@@ -331,22 +332,22 @@ export default function TravelFormPage() {
                         borderColor: '#666666',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: { xs: '1rem', md: '1.125rem' },
                       color: '#666666',
                       '&.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                     },
                     '& .MuiInputBase-input': {
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       '&:-webkit-autofill': {
                         WebkitBoxShadow: '0 0 0 1000px white inset !important',
                         WebkitTextFillColor: '#000000 !important',
-                        caretColor: '#000000',
+                        caretColor: COLORS.text.strong,
                         borderRadius: 'inherit',
                         transition: 'background-color 5000s ease-in-out 0s',
                       },
@@ -368,7 +369,7 @@ export default function TravelFormPage() {
 
                 {/* Party Size */}
                 <Box>
-                    <Typography gutterBottom sx={{ color: '#666' }}>
+                    <Typography gutterBottom sx={{ color: COLORS.text.subtle }}>
                         Party Size
                     </Typography>
                     <Stack direction="row" alignItems="center" spacing={2}>
@@ -378,10 +379,10 @@ export default function TravelFormPage() {
                                 minWidth: '48px', 
                                 width: '48px', 
                                 height: '48px',
-                                borderRadius: '12px',
-                                borderColor: '#999',
+                                borderRadius: RADII.md,
+                                borderColor: COLORS.text.faint,
                                 color: '#333',
-                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                                '&:hover': { borderColor: COLORS.brand.primary, color: COLORS.brand.primary }
                             }}
                             onClick={() => handleInputChange('party_size', Math.max(1, formData.party_size - 1))}
                         >
@@ -391,13 +392,13 @@ export default function TravelFormPage() {
                             sx={{
                                 width: '80px',
                                 '& .MuiOutlinedInput-root': {
-                                    borderRadius: '12px',
+                                    borderRadius: RADII.md,
                                     textAlign: 'center',
-                                    color: '#000000',
-                                    '& fieldset': { borderColor: '#999' },
-                                    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                    color: COLORS.text.strong,
+                                    '& fieldset': { borderColor: COLORS.text.faint },
+                                    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                                 },
-                                '& input': { textAlign: 'center', color: '#000000' }
+                                '& input': { textAlign: 'center', color: COLORS.text.strong }
                             }}
                             value={formData.party_size}
                             onChange={(e) => {
@@ -420,10 +421,10 @@ export default function TravelFormPage() {
                                 minWidth: '48px', 
                                 width: '48px', 
                                 height: '48px',
-                                borderRadius: '12px',
-                                borderColor: '#999',
+                                borderRadius: RADII.md,
+                                borderColor: COLORS.text.faint,
                                 color: '#333',
-                                '&:hover': { borderColor: '#DE3F5E', color: '#DE3F5E' }
+                                '&:hover': { borderColor: COLORS.brand.primary, color: COLORS.brand.primary }
                             }}
                             onClick={() => handleInputChange('party_size', formData.party_size + 1)}
                         >
@@ -433,7 +434,7 @@ export default function TravelFormPage() {
                 </Box>
 
 
-                <Divider sx={{ my: 1, borderColor: '#E0E0E0' }} />
+                <Divider sx={{ my: 1, borderColor: COLORS.border.default }} />
 
                 {/* Bus Options */}
                 <Box>
@@ -442,7 +443,7 @@ export default function TravelFormPage() {
                     sx={{
                       fontWeight: 600,
                       mb: 2,
-                      color: '#000000',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '1.05rem', md: '1.15rem' },
                     }}
                   >
@@ -454,12 +455,12 @@ export default function TravelFormPage() {
                     <Paper
                       sx={{
                         p: 2,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         border: formData.bangkok_to_huahin
                           ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.bangkok_to_huahin
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(COLORS.brand.primary, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -484,7 +485,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: COLORS.brand.primary,
                               },
                               pointerEvents: 'none',
                             }}
@@ -497,7 +498,7 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
-                                color: '#000000',
+                                color: COLORS.text.strong,
                               }}
                             >
                               Bangkok → Hua Hin
@@ -534,12 +535,12 @@ export default function TravelFormPage() {
                     <Paper
                       sx={{
                         p: 2,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         border: formData.huahin_to_airport
                           ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_airport
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(COLORS.brand.primary, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -564,7 +565,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: COLORS.brand.primary,
                               },
                               pointerEvents: 'none',
                             }}
@@ -577,7 +578,7 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
-                                color: '#000000',
+                                color: COLORS.text.strong,
                               }}
                             >
                               Hua Hin → Bangkok Airport (Suvarnabhumi)
@@ -601,12 +602,12 @@ export default function TravelFormPage() {
                     <Paper
                       sx={{
                         p: 2,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         border: formData.huahin_to_sukhumvit
                           ? '2px solid #DE3F5E'
                           : '1px solid #999999',
                         bgcolor: formData.huahin_to_sukhumvit
-                          ? alpha('#DE3F5E', 0.05)
+                          ? alpha(COLORS.brand.primary, 0.05)
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -631,7 +632,7 @@ export default function TravelFormPage() {
                             sx={{
                               color: '#666666',
                               '&.Mui-checked': {
-                                color: '#DE3F5E',
+                                color: COLORS.brand.primary,
                               },
                               pointerEvents: 'none',
                             }}
@@ -644,7 +645,7 @@ export default function TravelFormPage() {
                               sx={{
                                 fontWeight: 600,
                                 fontSize: { xs: '1rem', md: '1.1rem' },
-                                color: '#000000',
+                                color: COLORS.text.strong,
                               }}
                             >
                               Hua Hin → Bangkok Sukhumvit
@@ -666,19 +667,19 @@ export default function TravelFormPage() {
                   </Stack>
 
                   {errors.return_trip && (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: '12px' }}>
+                    <Alert severity="error" sx={{ mt: 2, borderRadius: RADII.md }}>
                       {errors.return_trip}
                     </Alert>
                   )}
                 </Box>
 
-                <Divider sx={{ my: 1, borderColor: '#E0E0E0' }} />
+                <Divider sx={{ my: 1, borderColor: COLORS.border.default }} />
 
                 {/* Additional Options Note */}
                 <Paper
                   sx={{
                     p: 2.5,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     bgcolor: alpha('#20C997', 0.05),
                     border: '1px solid',
                     borderColor: '#20C997',
@@ -689,7 +690,7 @@ export default function TravelFormPage() {
                       variant="subtitle2"
                       sx={{
                         fontWeight: 600,
-                        color: '#000000',
+                        color: COLORS.text.strong,
                         fontSize: { xs: '0.95rem', md: '1.05rem' },
                       }}
                     >
@@ -716,7 +717,7 @@ export default function TravelFormPage() {
                           sx={{
                             borderColor: '#25D366',
                             color: '#25D366',
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             textTransform: 'none',
                             fontSize: { xs: '0.9rem', md: '1rem' },
                             '&:hover': {
@@ -751,7 +752,7 @@ export default function TravelFormPage() {
                           sx={{
                             borderColor: '#00B14F',
                             color: '#00B14F',
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                              textTransform: 'none',
                              fontSize: { xs: '0.9rem', md: '1rem' },
                              '&:hover': {
@@ -778,7 +779,7 @@ export default function TravelFormPage() {
 
                 {/* Error Alert */}
                 {error && (
-                  <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                  <Alert severity="error" sx={{ borderRadius: RADII.md }}>
                     {error}
                   </Alert>
                 )}
@@ -789,22 +790,22 @@ export default function TravelFormPage() {
                   variant="contained"
                   disabled={loading}
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    borderRadius: '16px',
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    borderRadius: RADII.lg,
                     py: 1.5,
                     fontSize: { xs: '1.05rem', md: '1.15rem' },
                     textTransform: 'none',
                     fontWeight: 600,
                     '&:hover': {
-                      bgcolor: '#C8365A',
+                      bgcolor: COLORS.brand.primaryHover,
                     },
                     '&:disabled': {
-                      bgcolor: '#ccc',
+                      bgcolor: COLORS.border.default,
                     },
                   }}
                 >
-                  {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit Registration'}
+                  {loading ? <CircularProgress size={24} sx={{ color: COLORS.text.inverse }} /> : 'Submit Registration'}
                 </Button>
 
                 <Typography

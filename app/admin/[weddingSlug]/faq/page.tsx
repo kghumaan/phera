@@ -44,12 +44,13 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const SWITCH_SX = {
-  '& .MuiSwitch-switchBase': { color: '#999' },
-  '& .MuiSwitch-track': { bgcolor: '#bbb' },
-  '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
+  '& .MuiSwitch-switchBase': { color: COLORS.text.faint },
+  '& .MuiSwitch-track': { bgcolor: COLORS.text.faint },
+  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brand.primary },
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary },
 };
 
 const FAQ_TEMPLATES = [
@@ -88,12 +89,12 @@ function SortableFaqRow({ faq, onEdit, onDelete, isViewOnly }: { faq: any; onEdi
       style={style}
       sx={{
         p: 3,
-        borderRadius: '16px',
-        bgcolor: 'white',
+        borderRadius: RADII.lg,
+        bgcolor: COLORS.bg.white,
         border: '1px solid #EEE',
         boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : 'none',
         cursor: 'pointer',
-        '&:hover': { borderColor: '#ddd', boxShadow: isDragging ? undefined : '0 2px 8px rgba(0, 0, 0, 0.06)' },
+        '&:hover': { borderColor: COLORS.border.default, boxShadow: isDragging ? undefined : '0 2px 8px rgba(0, 0, 0, 0.06)' },
       }}
       onClick={onEdit}
     >
@@ -103,20 +104,20 @@ function SortableFaqRow({ faq, onEdit, onDelete, isViewOnly }: { faq: any; onEdi
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            sx={{ cursor: 'grab', color: '#999', display: 'flex', mt: 0.5, flexShrink: 0 }}
+            sx={{ cursor: 'grab', color: COLORS.text.faint, display: 'flex', mt: 0.5, flexShrink: 0 }}
           >
             <DragIndicator />
           </Box>
         )}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '1.1rem' }}>
+          <Typography sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '1.1rem' }}>
             {faq.question}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             {faq.answer}
           </Typography>
           {faq.button_text && (
-            <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#DE3F5E' }}>
+            <Typography variant="caption" sx={{ mt: 1, display: 'block', color: COLORS.brand.primary }}>
               Button: {faq.button_text} → {faq.button_link}
             </Typography>
           )}
@@ -125,7 +126,7 @@ function SortableFaqRow({ faq, onEdit, onDelete, isViewOnly }: { faq: any; onEdi
           <IconButton
             size="small"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            sx={{ color: '#1a1a1a', flexShrink: 0 }}
+            sx={{ color: COLORS.text.strong, flexShrink: 0 }}
           >
             <Delete fontSize="small" />
           </IconButton>
@@ -343,10 +344,10 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
     <Box sx={{ maxWidth: 700 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Frequently Asked Questions
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             Add common questions and answers for your guests
           </Typography>
         </Box>
@@ -398,11 +399,11 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
             <Paper sx={{
               p: 4,
               textAlign: 'center',
-              borderRadius: '16px',
-              bgcolor: 'white',
+              borderRadius: RADII.lg,
+              bgcolor: COLORS.bg.white,
               boxShadow: 'none',
             }}>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No FAQs yet. Add your first question below.
               </Typography>
             </Paper>
@@ -415,19 +416,19 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                 onClick={startNew}
                 sx={{
                   flex: 1,
-                  bgcolor: '#EBEBEB',
+                  bgcolor: COLORS.border.light,
                   border: '1px dashed #BCBCBC',
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   px: 2, py: 1.5,
                   cursor: 'pointer',
                   textAlign: 'center',
-                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                  '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
                 <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                   Add Custom FAQ
                 </Typography>
-                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   Write your own question & answer
                 </Typography>
               </Box>
@@ -435,19 +436,19 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                 onClick={startFromTemplate}
                 sx={{
                   flex: 1,
-                  bgcolor: '#EBEBEB',
+                  bgcolor: COLORS.border.light,
                   border: '1px dashed #BCBCBC',
-                  borderRadius: '8px',
+                  borderRadius: RADII.sm,
                   px: 2, py: 1.5,
                   cursor: 'pointer',
                   textAlign: 'center',
-                  '&:hover': { bgcolor: '#E0E0E0', borderColor: '#999' },
+                  '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
                 <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
                   Add from Template
                 </Typography>
-                <Typography sx={{ color: '#858585', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   Choose from common questions
                 </Typography>
               </Box>
@@ -463,13 +464,13 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           fullWidth
           PaperProps={{
             sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
+              borderRadius: RADII.dialog,
+              bgcolor: COLORS.bg.white,
             }
           }}
         >
-          <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>Choose a Template</DialogTitle>
-          <DialogContent sx={{ bgcolor: 'white' }}>
+          <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600 }}>Choose a Template</DialogTitle>
+          <DialogContent sx={{ bgcolor: COLORS.bg.white }}>
             <Stack spacing={1.5} sx={{ mt: 1 }}>
               {FAQ_TEMPLATES.map((template) => {
                 const alreadyAdded = isTemplateAlreadyAdded(template.question);
@@ -479,8 +480,8 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                     sx={{
                       p: 2,
                       cursor: alreadyAdded ? 'default' : 'pointer',
-                      borderRadius: '12px',
-                      bgcolor: alreadyAdded ? '#f5f5f5' : 'white',
+                      borderRadius: RADII.md,
+                      bgcolor: alreadyAdded ? COLORS.bg.subtle : COLORS.bg.white,
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                       opacity: alreadyAdded ? 0.6 : 1,
                       '&:hover': alreadyAdded ? {} : {
@@ -490,8 +491,8 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
                     onClick={() => !alreadyAdded && handleSelectTemplate(template)}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                      {alreadyAdded && <Check sx={{ color: '#10B981', fontSize: 20 }} />}
-                      <Typography variant="body1" sx={{ fontWeight: 500, color: alreadyAdded ? '#6a6a6a' : '#1a1a1a' }}>
+                      {alreadyAdded && <Check sx={{ color: COLORS.accent.success, fontSize: 20 }} />}
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: alreadyAdded ? COLORS.text.subtle : COLORS.text.strong }}>
                         {template.question}
                       </Typography>
                     </Stack>
@@ -500,8 +501,8 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
               })}
             </Stack>
           </DialogContent>
-          <DialogActions sx={{ bgcolor: 'white', px: 3, pb: 2 }}>
-            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#6a6a6a' }}>Cancel</Button>
+          <DialogActions sx={{ bgcolor: COLORS.bg.white, px: 3, pb: 2 }}>
+            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: COLORS.text.subtle }}>Cancel</Button>
           </DialogActions>
         </Dialog>
 
@@ -522,19 +523,19 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
     color: '#524344',
     fontSize: '0.875rem',
-    '&.Mui-focused': { color: '#DE3F5E' },
+    '&.Mui-focused': { color: COLORS.brand.primary },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
   },
 };
@@ -578,8 +579,8 @@ function InlineFaqForm({
         ref={formRef}
         sx={{
           p: 2.5,
-          borderRadius: '16px',
-          bgcolor: 'white',
+          borderRadius: RADII.lg,
+          bgcolor: COLORS.bg.white,
           border: '1px solid #EEE',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
         }}
@@ -625,7 +626,7 @@ function InlineFaqForm({
                 />
               }
               label="Add a link?"
-              sx={{ '& .MuiFormControlLabel-label': { color: '#4a4a4a', fontWeight: 500, fontSize: '0.875rem' }, mr: 0 }}
+              sx={{ '& .MuiFormControlLabel-label': { color: COLORS.text.muted, fontWeight: 500, fontSize: '0.875rem' }, mr: 0 }}
             />
             {!showLinkFields && (
               <Stack direction="row" alignItems="center" spacing={1}>
@@ -633,7 +634,7 @@ function InlineFaqForm({
                   <IconButton
                     size="small"
                     onClick={onDelete}
-                    sx={{ color: '#1a1a1a' }}
+                    sx={{ color: COLORS.text.strong }}
                   >
                     <Delete fontSize="small" />
                   </IconButton>
@@ -645,7 +646,7 @@ function InlineFaqForm({
                   sx={{
                     px: 3,
                     minWidth: 80,
-                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
                   }}
                 >
                   Save
@@ -681,7 +682,7 @@ function InlineFaqForm({
                   <IconButton
                     size="small"
                     onClick={onDelete}
-                    sx={{ color: '#1a1a1a' }}
+                    sx={{ color: COLORS.text.strong }}
                   >
                     <Delete fontSize="small" />
                   </IconButton>
@@ -693,7 +694,7 @@ function InlineFaqForm({
                   sx={{
                     px: 3,
                     minWidth: 80,
-                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' },
+                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: COLORS.text.faint },
                   }}
                 >
                   Save

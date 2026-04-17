@@ -4,6 +4,7 @@ import { Box, Typography, Paper, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useCountdown } from '@/lib/hooks/useCountdown';
 import { animations } from '@/lib/animations/cultural';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface CountdownTimerProps {
   targetDate: string;

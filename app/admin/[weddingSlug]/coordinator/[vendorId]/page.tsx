@@ -56,6 +56,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser, DEMO_VENDOR_DETAILS, DEMO_MEMBERS, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Message {
   id: string;
@@ -115,7 +116,7 @@ const INSIGHT_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#9E9E9E',
+  low: COLORS.text.faint,
   medium: '#FF9800',
   high: '#F44336',
   urgent: '#D32F2F',
@@ -126,13 +127,13 @@ const STATUS_OPTIONS = ['active', 'booked', 'declined', 'paid'];
 const STATUS_COLORS: Record<string, string> = {
   active: '#2196F3',
   booked: '#4CAF50',
-  declined: '#9E9E9E',
+  declined: COLORS.text.faint,
   paid: '#8BC34A',
 };
 
 const SENDER_COLORS: Record<string, string> = {
   vendor: '#9C27B0',
-  couple: '#DE3F5E',
+  couple: COLORS.brand.primary,
   planner: '#2196F3',
   coordinator: '#4CAF50',
   unknown: '#757575',
@@ -144,7 +145,7 @@ const SENDER_COLORS: Record<string, string> = {
  * so each participant keeps the same color across renders and reloads.
  */
 const MEMBER_PALETTE = [
-  '#DE3F5E', '#2196F3', '#9C27B0', '#4CAF50', '#FF9800',
+  COLORS.brand.primary, '#2196F3', '#9C27B0', '#4CAF50', '#FF9800',
   '#00BCD4', '#F06292', '#795548', '#5E35B1', '#00897B',
   '#FB8C00', '#3949AB', '#8BC34A', '#E53935', '#546E7A',
 ];
@@ -439,7 +440,7 @@ export default function VendorDetailPage({
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -459,10 +460,10 @@ export default function VendorDetailPage({
     <Box sx={{ display: 'flex', gap: 0, mt: { md: 'calc(-56px - 32px)' }, mr: { md: -4 }, mb: { md: -4 } }}>
       {/* Main content */}
       <Box sx={{ flex: 1, minWidth: 0, maxWidth: askPheraOpen ? 'calc(100% - 380px)' : '100%', transition: 'max-width 0.2s', pt: { md: 'calc(56px + 32px)' } }}>
-        <Box sx={{ pr: askPheraOpen ? 3 : 0, bgcolor: 'white' }}>
+        <Box sx={{ pr: askPheraOpen ? 3 : 0, bgcolor: COLORS.bg.white }}>
           {/* Header */}
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)} sx={{ color: '#1a1a1a' }}>
+            <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)} sx={{ color: COLORS.text.strong }}>
               <ArrowBack sx={{ fontSize: 20 }} />
             </IconButton>
             <Box sx={{ flex: 1 }}>
@@ -476,14 +477,14 @@ export default function VendorDetailPage({
                     sx={{
                       width: 180,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        bgcolor: 'white',
+                        borderRadius: RADII.sm,
+                        bgcolor: COLORS.bg.white,
                         height: 36,
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
-                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                        '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiOutlinedInput-input': { color: '#1a1a1a', fontSize: '0.82rem', py: 0 },
+                      '& .MuiOutlinedInput-input': { color: COLORS.text.strong, fontSize: '0.82rem', py: 0 },
                     }}
                   />
                   <Select
@@ -495,14 +496,14 @@ export default function VendorDetailPage({
                     sx={{
                       width: 180,
                       height: 36,
-                      borderRadius: '8px',
+                      borderRadius: RADII.sm,
                       fontSize: '0.82rem',
-                      color: '#1a1a1a',
-                      bgcolor: 'white',
+                      color: COLORS.text.strong,
+                      bgcolor: COLORS.bg.white,
                       '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
                       '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
-                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                      '& .MuiSvgIcon-root': { fontSize: 18, color: '#6a6a6a' },
+                      '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
+                      '& .MuiSvgIcon-root': { fontSize: 18, color: COLORS.text.subtle },
                     }}
                   >
                     <MenuItem value="">No category</MenuItem>
@@ -518,21 +519,21 @@ export default function VendorDetailPage({
                     sx={{
                       width: 180,
                       height: 36,
-                      borderRadius: '8px',
+                      borderRadius: RADII.sm,
                       fontSize: '0.82rem',
-                      color: '#1a1a1a',
-                      bgcolor: 'white',
+                      color: COLORS.text.strong,
+                      bgcolor: COLORS.bg.white,
                       '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
                       '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
-                      '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
-                      '& .MuiSvgIcon-root': { fontSize: 18, color: '#6a6a6a' },
+                      '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
+                      '& .MuiSvgIcon-root': { fontSize: 18, color: COLORS.text.subtle },
                     }}
                   >
                     {STATUS_OPTIONS.map((s) => (
                       <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>{s}</MenuItem>
                     ))}
                   </Select>
-                  <IconButton size="small" onClick={handleSaveVendor} disabled={saving} sx={{ color: '#1a1a1a' }}>
+                  <IconButton size="small" onClick={handleSaveVendor} disabled={saving} sx={{ color: COLORS.text.strong }}>
                     {saving ? <CircularProgress size={16} /> : <Save sx={{ fontSize: 18 }} />}
                   </IconButton>
                 </Stack>
@@ -544,7 +545,7 @@ export default function VendorDetailPage({
                   <Typography sx={{
                     fontSize: '1.05rem',
                     fontWeight: 600,
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                   }}>
                     {vendor.name}
                   </Typography>
@@ -553,7 +554,7 @@ export default function VendorDetailPage({
                       <Chip
                         label={vendor.category}
                         size="small"
-                        sx={{ color: '#4a4a4a', bgcolor: alpha('#000', 0.06), fontSize: '0.7rem', height: 20, borderRadius: '4px' }}
+                        sx={{ color: COLORS.text.muted, bgcolor: alpha(COLORS.text.strong, 0.06), fontSize: '0.7rem', height: 20, borderRadius: '4px' }}
                       />
                     )}
                     <Chip
@@ -564,8 +565,8 @@ export default function VendorDetailPage({
                         height: 20,
                         borderRadius: '4px',
                         textTransform: 'capitalize',
-                        bgcolor: alpha(STATUS_COLORS[vendor.status] || '#9E9E9E', 0.1),
-                        color: STATUS_COLORS[vendor.status] || '#9E9E9E',
+                        bgcolor: alpha(STATUS_COLORS[vendor.status] || COLORS.text.faint, 0.1),
+                        color: STATUS_COLORS[vendor.status] || COLORS.text.faint,
                       }}
                     />
                   </Stack>
@@ -577,13 +578,13 @@ export default function VendorDetailPage({
                 <>
                   <Tooltip title={DEMO_BUTTON_TOOLTIPS.refreshInsights}>
                     <span>
-                      <Button size="small" startIcon={<Refresh />} disabled sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}>
+                      <Button size="small" startIcon={<Refresh />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}>
                         Refresh
                       </Button>
                     </span>
                   </Tooltip>
                   <Tooltip title={DEMO_BUTTON_TOOLTIPS.deleteVendorDetail}>
-                    <IconButton size="small" sx={{ color: '#9E9E9E' }}>
+                    <IconButton size="small" sx={{ color: COLORS.text.faint }}>
                       <Delete sx={{ fontSize: 18 }} />
                     </IconButton>
                   </Tooltip>
@@ -606,7 +607,7 @@ export default function VendorDetailPage({
                       startIcon={uploadingOlder ? <CircularProgress size={14} /> : <Upload />}
                       onClick={() => olderFileInputRef.current?.click()}
                       disabled={uploadingOlder}
-                      sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}
                     >
                       {uploadingOlder ? 'Uploading...' : 'Upload older messages'}
                     </Button>
@@ -616,14 +617,14 @@ export default function VendorDetailPage({
                     startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
                     onClick={handleReanalyze}
                     disabled={reanalyzing}
-                    sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a', fontSize: '0.78rem' }}
+                    sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}
                   >
                     Refresh
                   </Button>
                   <IconButton
                     size="small"
                     onClick={() => setDeleteConfirmOpen(true)}
-                    sx={{ color: '#DE3F5E', '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) } }}
+                    sx={{ color: COLORS.brand.primary, '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) } }}
                   >
                     <Delete sx={{ fontSize: 18 }} />
                   </IconButton>
@@ -643,11 +644,11 @@ export default function VendorDetailPage({
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '0.82rem',
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 minHeight: 40,
-                '&.Mui-selected': { color: '#DE3F5E' },
+                '&.Mui-selected': { color: COLORS.brand.primary },
               },
-              '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
+              '& .MuiTabs-indicator': { backgroundColor: COLORS.brand.primary },
             }}
           >
             <Tab label="Summary & Action Items" />
@@ -662,10 +663,10 @@ export default function VendorDetailPage({
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 {summaries.length > 0 && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#1a1a1a', mb: 1 }}>Overview</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: COLORS.text.strong, mb: 1 }}>Overview</Typography>
                     <Stack spacing={1}>
                       {summaries.map((item) => (
-                        <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#4a4a4a' }}>
+                        <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: COLORS.text.muted }}>
                           {item.content}
                         </Typography>
                       ))}
@@ -675,12 +676,12 @@ export default function VendorDetailPage({
 
                 {priceQuotes.length > 0 && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#1a1a1a', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: COLORS.text.strong, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {INSIGHT_ICONS.price_quote} Price Quotes
                     </Typography>
                     <Stack spacing={0.5}>
                       {priceQuotes.map((item) => (
-                        <Typography key={item.id} sx={{ fontSize: '0.82rem', lineHeight: 1.5, color: '#4a4a4a' }}>
+                        <Typography key={item.id} sx={{ fontSize: '0.82rem', lineHeight: 1.5, color: COLORS.text.muted }}>
                           {item.content}
                         </Typography>
                       ))}
@@ -693,12 +694,12 @@ export default function VendorDetailPage({
               {actionItems.length > 0 && (
                 <Paper
                   elevation={0}
-                  sx={{ flex: '0 0 320px', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}
+                  sx={{ flex: '0 0 320px', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: COLORS.bg.white }}
                 >
-                  <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
+                  <Box sx={{ px: 1.5, py: 1, bgcolor: COLORS.bg.subtle, borderBottom: '1px solid', borderColor: alpha(COLORS.text.strong, 0.06) }}>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
-                      <Box sx={{ color: '#6a6a6a' }}>{INSIGHT_ICONS.action_item}</Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>Action Items</Typography>
+                      <Box sx={{ color: COLORS.text.subtle }}>{INSIGHT_ICONS.action_item}</Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Action Items</Typography>
                     </Stack>
                   </Box>
                   <Stack sx={{ p: 1 }}>
@@ -712,7 +713,7 @@ export default function VendorDetailPage({
                           py: 0.75,
                           px: 0.5,
                           borderRadius: 1,
-                          '&:hover': { bgcolor: alpha('#000', 0.02) },
+                          '&:hover': { bgcolor: alpha(COLORS.text.strong, 0.02) },
                         }}
                       >
                         <Checkbox
@@ -723,8 +724,8 @@ export default function VendorDetailPage({
                           checkedIcon={<CheckCircle sx={{ fontSize: 18 }} />}
                           sx={{
                             p: 0,
-                            color: '#DE3F5E',
-                            '&.Mui-checked': { color: '#DE3F5E' },
+                            color: COLORS.brand.primary,
+                            '&.Mui-checked': { color: COLORS.brand.primary },
                           }}
                         />
                         <Box sx={{ flex: 1 }}>
@@ -734,7 +735,7 @@ export default function VendorDetailPage({
                                 fontSize: '0.78rem',
                                 lineHeight: 1.5,
                                 textDecoration: item.is_completed ? 'line-through' : 'none',
-                                color: item.is_completed ? '#aaa' : '#1a1a1a',
+                                color: item.is_completed ? '#aaa' : COLORS.text.strong,
                                 flex: 1,
                               }}
                             >
@@ -756,9 +757,9 @@ export default function VendorDetailPage({
                                     width: 32,
                                     height: 32,
                                     p: 0,
-                                    color: '#6a6a6a',
+                                    color: COLORS.text.subtle,
                                     borderRadius: 1,
-                                    '&:hover': { color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.08) },
+                                    '&:hover': { color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.08) },
                                   }}
                                 >
                                   {importingItem === item.id ? <CircularProgress size={18} /> : <ViewKanban sx={{ fontSize: 20 }} />}
@@ -800,9 +801,9 @@ export default function VendorDetailPage({
               {(vendor.vendor_insights?.length || 0) === 0 && (
                 <Paper
                   elevation={0}
-                  sx={{ p: 3, textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, bgcolor: 'white' }}
+                  sx={{ p: 3, textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, bgcolor: COLORS.bg.white }}
                 >
-                  <Typography sx={{ color: '#888', fontSize: '0.78rem' }}>
+                  <Typography sx={{ color: COLORS.text.faint, fontSize: '0.78rem' }}>
                     No insights yet. Click "Re-analyze" to extract insights from the conversation.
                   </Typography>
                 </Paper>
@@ -818,11 +819,11 @@ export default function VendorDetailPage({
                 border: '1px solid rgba(0,0,0,0.07)',
                 borderRadius: 1,
                 overflow: 'hidden',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
               }}
             >
               <Box sx={{ p: 1.5, borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.82rem', color: '#1a1a1a' }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.82rem', color: COLORS.text.strong }}>
                   Conversation ({allMessages.length} messages)
                 </Typography>
               </Box>
@@ -834,7 +835,7 @@ export default function VendorDetailPage({
                 }}
               >
                 {allMessages.length === 0 ? (
-                  <Typography sx={{ color: '#888', textAlign: 'center', py: 4, fontSize: '0.78rem' }}>
+                  <Typography sx={{ color: COLORS.text.faint, textAlign: 'center', py: 4, fontSize: '0.78rem' }}>
                     No messages yet.
                   </Typography>
                 ) : (
@@ -850,7 +851,7 @@ export default function VendorDetailPage({
                         <React.Fragment key={msg.id}>
                           {showDate && (
                             <Typography
-                              sx={{ textAlign: 'center', fontSize: '0.66rem', color: '#999', py: 0.5 }}
+                              sx={{ textAlign: 'center', fontSize: '0.66rem', color: COLORS.text.faint, py: 0.5 }}
                             >
                               {new Date(msg.message_timestamp).toLocaleDateString(undefined, {
                                 weekday: 'short',
@@ -879,14 +880,14 @@ export default function VendorDetailPage({
                               >
                                 {msg.sender_name}
                               </Typography>
-                              <Typography sx={{ fontSize: '0.64rem', color: '#999' }}>
+                              <Typography sx={{ fontSize: '0.64rem', color: COLORS.text.faint }}>
                                 {new Date(msg.message_timestamp).toLocaleTimeString(undefined, {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
                               </Typography>
                             </Stack>
-                            <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, pl: 0, color: '#1a1a1a' }}>
+                            <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, pl: 0, color: COLORS.text.strong }}>
                               {msg.content}
                             </Typography>
                           </Box>
@@ -902,9 +903,9 @@ export default function VendorDetailPage({
 
           {/* Tab 2: Members */}
           {activeTab === 2 && isDemo && (
-            <Paper elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: 'white' }}>
-              <Box sx={{ px: 1.5, py: 1, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: alpha('#000', 0.06) }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>
+            <Paper elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: COLORS.bg.white }}>
+              <Box sx={{ px: 1.5, py: 1, bgcolor: COLORS.bg.subtle, borderBottom: '1px solid', borderColor: alpha(COLORS.text.strong, 0.06) }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
                   Members ({DEMO_MEMBERS[vendorId]?.length || 0})
                 </Typography>
               </Box>
@@ -913,24 +914,24 @@ export default function VendorDetailPage({
                   <Stack key={member.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 0.5 }}>
                     <Box sx={{
                       width: 32, height: 32, borderRadius: '50%',
-                      bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.12) : member.role === 'admin' ? alpha('#DE3F5E', 0.12) : alpha('#2196F3', 0.12),
+                      bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.12) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.12) : alpha('#2196F3', 0.12),
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.75rem', fontWeight: 700,
-                      color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? '#DE3F5E' : '#2196F3',
+                      color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? COLORS.brand.primary : '#2196F3',
                     }}>
                       {member.name.charAt(0).toUpperCase()}
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1a1a1a' }}>{member.name}</Typography>
-                      {member.phone && <Typography sx={{ fontSize: '0.7rem', color: '#6a6a6a' }}>{member.phone}</Typography>}
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: COLORS.text.strong }}>{member.name}</Typography>
+                      {member.phone && <Typography sx={{ fontSize: '0.7rem', color: COLORS.text.subtle }}>{member.phone}</Typography>}
                     </Box>
                     <Chip
                       label={member.role}
                       size="small"
                       sx={{
                         fontSize: '0.68rem', height: 20, borderRadius: '4px', textTransform: 'capitalize',
-                        bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.1) : member.role === 'admin' ? alpha('#DE3F5E', 0.1) : alpha('#2196F3', 0.1),
-                        color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? '#DE3F5E' : '#2196F3',
+                        bgcolor: member.role === 'vendor' ? alpha('#9C27B0', 0.1) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.1) : alpha('#2196F3', 0.1),
+                        color: member.role === 'vendor' ? '#9C27B0' : member.role === 'admin' ? COLORS.brand.primary : '#2196F3',
                       }}
                     />
                   </Stack>
@@ -943,7 +944,7 @@ export default function VendorDetailPage({
           )}
           {activeTab === 2 && !isDemo && !conversationId && (
             <Box sx={{ py: 4, textAlign: 'center' }}>
-              <Typography sx={{ color: '#888', fontSize: '0.85rem' }}>
+              <Typography sx={{ color: COLORS.text.faint, fontSize: '0.85rem' }}>
                 No conversation linked to this vendor yet.
               </Typography>
             </Box>
@@ -979,7 +980,7 @@ export default function VendorDetailPage({
           Remove vendor?
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem', color: '#4a4a4a' }}>
+          <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.muted }}>
             This will permanently remove this vendor and all its conversations from your coordinator. This action cannot be undone.
           </Typography>
         </DialogContent>
@@ -987,7 +988,7 @@ export default function VendorDetailPage({
           <Button
             onClick={() => setDeleteConfirmOpen(false)}
             disabled={deleting}
-            sx={{ textTransform: 'none', borderRadius: '12px', color: '#6a6a6a' }}
+            sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle }}
           >
             Cancel
           </Button>
@@ -1027,7 +1028,7 @@ function CollapsibleInsightSection({
         border: '1px solid rgba(0,0,0,0.07)',
         borderRadius: 1,
         overflow: 'hidden',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       <Box
@@ -1035,9 +1036,9 @@ function CollapsibleInsightSection({
         sx={{
           px: 1.5,
           py: 1,
-          bgcolor: '#F5F5F5',
+          bgcolor: COLORS.bg.subtle,
           borderBottom: open ? '1px solid' : 'none',
-          borderColor: alpha('#000', 0.06),
+          borderColor: alpha(COLORS.text.strong, 0.06),
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -1046,18 +1047,18 @@ function CollapsibleInsightSection({
         }}
       >
         <Stack direction="row" alignItems="center" spacing={0.75}>
-          <Box sx={{ color: '#6a6a6a' }}>{icon}</Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a1a1a' }}>
+          <Box sx={{ color: COLORS.text.subtle }}>{icon}</Box>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
             {title} ({items.length})
           </Typography>
         </Stack>
-        {open ? <ExpandLess sx={{ fontSize: 18, color: '#999' }} /> : <ExpandMore sx={{ fontSize: 18, color: '#999' }} />}
+        {open ? <ExpandLess sx={{ fontSize: 18, color: COLORS.text.faint }} /> : <ExpandMore sx={{ fontSize: 18, color: COLORS.text.faint }} />}
       </Box>
       <Collapse in={open}>
         <Stack sx={{ p: 1.5 }} spacing={1}>
           {items.map((item) => (
             <Box key={item.id}>
-              <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, color: '#1a1a1a' }}>
+              <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, color: COLORS.text.strong }}>
                 {item.content}
               </Typography>
               {item.due_date && (

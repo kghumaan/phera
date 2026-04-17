@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, TextField, IconButton, alpha } from '@mui/material';
 import { ArrowUpward } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatInputProps {
   input: string;
@@ -27,12 +28,12 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
         py: compact ? 1.5 : 2.5,
         ...(!noBorder && {
           borderTop: '2px solid',
-          borderColor: alpha('#000', 0.12),
+          borderColor: alpha(COLORS.text.strong, 0.12),
         }),
         display: 'flex',
         gap: compact ? 1 : 1.5,
         alignItems: 'center',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       <TextField
@@ -52,24 +53,24 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
         variant="outlined"
         sx={{
           '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
-            bgcolor: 'white',
+            borderRadius: RADII.md,
+            bgcolor: COLORS.bg.white,
             height: isCompact ? size : undefined,
             minHeight: isCompact ? undefined : size,
             fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
             '& input': {
               py: { xs: 1.5, md: 1.75 },
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
               fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
             },
             '& textarea': {
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
               fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
             },
             '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-            '&:hover fieldset': { borderColor: '#DE3F5E' },
-            '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-            '&.Mui-disabled': { bgcolor: alpha('#000', 0.02) },
+            '&:hover fieldset': { borderColor: COLORS.brand.primary },
+            '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
+            '&.Mui-disabled': { bgcolor: alpha(COLORS.text.strong, 0.02) },
           },
         }}
       />
@@ -80,12 +81,12 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
           width: size,
           height: size,
           flexShrink: 0,
-          bgcolor: input.trim() ? '#DE3F5E' : alpha('#000', 0.06),
-          color: input.trim() ? 'white' : '#bbb',
-          borderRadius: '12px',
+          bgcolor: input.trim() ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.06),
+          color: input.trim() ? COLORS.bg.white : COLORS.text.faint,
+          borderRadius: RADII.md,
           transition: 'all 0.15s',
-          '&:hover': { bgcolor: input.trim() ? '#c73552' : alpha('#000', 0.08) },
-          '&.Mui-disabled': { bgcolor: alpha('#000', 0.04), color: '#ccc' },
+          '&:hover': { bgcolor: input.trim() ? '#c73552' : alpha(COLORS.text.strong, 0.08) },
+          '&.Mui-disabled': { bgcolor: alpha(COLORS.text.strong, 0.04), color: COLORS.border.default },
         }}
       >
         <ArrowUpward sx={{ fontSize: compact ? 20 : 22 }} />

@@ -19,6 +19,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import TravelSectionsDisplay, { TravelSectionData } from '@/components/guest/TravelSectionsDisplay';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function TravelPage() {
   const params = useParams();
@@ -27,7 +28,7 @@ export default function TravelPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { wedding } = useWedding();
-  const primaryColor = wedding?.primary_color || '#DE3F5E';
+  const primaryColor = wedding?.primary_color || COLORS.brand.primary;
 
   const [sections, setSections] = useState<TravelSectionData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,7 +145,7 @@ export default function TravelPage() {
                 <IconButton
                   onClick={handleBack}
                   sx={{
-                    color: '#000',
+                    color: COLORS.text.strong,
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(10px)',
                     '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
@@ -195,7 +196,7 @@ export default function TravelPage() {
               />
             ) : (
               <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography sx={{ color: '#6a6a6a' }}>
+                <Typography sx={{ color: COLORS.text.subtle }}>
                   Travel information coming soon.
                 </Typography>
               </Box>
@@ -220,8 +221,8 @@ export default function TravelPage() {
       >
         <Box
           sx={{
-            bgcolor: 'white',
-            borderRadius: '16px',
+            bgcolor: COLORS.bg.white,
+            borderRadius: RADII.lg,
             maxHeight: '80vh',
             width: '100%',
             maxWidth: 500,
@@ -243,7 +244,7 @@ export default function TravelPage() {
                 }}
               >
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                     {detailSection.title}
                   </Typography>
                 </Box>
@@ -253,7 +254,7 @@ export default function TravelPage() {
                     setDetailSection(null);
                   }}
                   size="small"
-                  sx={{ color: '#6a6a6a' }}
+                  sx={{ color: COLORS.text.subtle }}
                 >
                   <Close />
                 </IconButton>
@@ -264,12 +265,12 @@ export default function TravelPage() {
                 {detailSection.type === 'hotel' && (detailSection.address || detailSection.phone) && (
                   <Box sx={{ mb: 2, pb: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                     {detailSection.address && (
-                      <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 0.5 }}>
                         {detailSection.address}
                       </Typography>
                     )}
                     {detailSection.phone && (
-                      <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                      <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                         {detailSection.phone}
                       </Typography>
                     )}

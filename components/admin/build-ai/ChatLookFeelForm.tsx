@@ -5,9 +5,10 @@ import { Box, Typography, alpha, Tooltip, Tabs, Tab } from '@mui/material';
 import { Check, ViewModule, ViewStream } from '@mui/icons-material';
 import { BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_OPTIONS = [
-  { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Rose', value: COLORS.brand.primary },
   { name: 'Black', value: '#141414' },
   { name: 'Plum', value: '#59114D' },
   { name: 'Purple', value: '#AC3FBA' },
@@ -25,10 +26,10 @@ const FONT_COLOR_OPTIONS = [
   { name: 'Black', value: '#141414' },
   { name: 'Dark Gray', value: '#333333' },
   { name: 'Charcoal', value: '#555555' },
-  { name: 'White', value: '#FFFFFF' },
+  { name: 'White', value: COLORS.bg.white },
   { name: 'Ivory', value: '#FFFDD0' },
   { name: 'Cream', value: '#F5F5DC' },
-  { name: 'Rose', value: '#DE3F5E' },
+  { name: 'Rose', value: COLORS.brand.primary },
   { name: 'Plum', value: '#59114D' },
   { name: 'Ocean', value: '#004550' },
   { name: 'Forest', value: '#59814B' },
@@ -43,7 +44,7 @@ interface ChatLookFeelFormProps {
 function BackgroundPicker({ selected, onSelect, label }: { selected: string; onSelect: (url: string) => void; label: string }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: '#666', mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
         {label}
       </Typography>
       <Box sx={{
@@ -53,7 +54,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
         pb: 1.5,
         WebkitOverflowScrolling: 'touch',
         '&::-webkit-scrollbar': { height: 4 },
-        '&::-webkit-scrollbar-thumb': { bgcolor: alpha('#000', 0.15), borderRadius: 2 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: alpha(COLORS.text.strong, 0.15), borderRadius: 2 },
       }}>
         {BACKGROUND_UI_OPTIONS.map((bg) => (
           <Box
@@ -71,7 +72,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
             <Box sx={{
               width: 64,
               height: 96,
-              borderRadius: '10px',
+              borderRadius: RADII.sm,
               overflow: 'hidden',
               border: selected === bg.url ? '3px solid #DE3F5E' : '2px solid transparent',
               boxShadow: selected === bg.url ? '0 0 0 2px rgba(222,63,94,0.3)' : 'none',
@@ -81,7 +82,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
             </Box>
             <Typography sx={{
               fontSize: '0.6rem',
-              color: selected === bg.url ? '#DE3F5E' : '#666',
+              color: selected === bg.url ? COLORS.brand.primary : COLORS.text.subtle,
               fontWeight: selected === bg.url ? 700 : 500,
               mt: 0.5,
               lineHeight: 1.2,
@@ -101,7 +102,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
 function ColorPicker({ selected, onSelect, label, options }: { selected: string; onSelect: (hex: string) => void; label: string; options: typeof COLOR_OPTIONS }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: '#666', mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
         {label}
       </Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
@@ -119,14 +120,14 @@ function ColorPicker({ selected, onSelect, label, options }: { selected: string;
                 alignItems: 'center',
                 justifyContent: 'center',
                 border: selected === color.value ? '3px solid' : '2px solid',
-                borderColor: selected === color.value ? alpha(color.value, 0.4) : color.value === '#FFFFFF' || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? alpha('#000', 0.2) : 'transparent',
+                borderColor: selected === color.value ? alpha(color.value, 0.4) : color.value === COLORS.bg.white || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? alpha(COLORS.text.strong, 0.2) : 'transparent',
                 boxShadow: selected === color.value ? `0 0 0 3px ${alpha(color.value, 0.25)}` : '0 2px 4px rgba(0,0,0,0.15)',
                 transition: 'all 0.15s',
                 '&:hover': { transform: 'scale(1.1)' },
               }}
             >
               {selected === color.value && (
-                <Check sx={{ fontSize: 16, color: color.value === '#FFFFFF' || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? '#333' : 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                <Check sx={{ fontSize: 16, color: color.value === COLORS.bg.white || color.value === '#FFFDD0' || color.value === '#F5F5DC' ? '#333' : COLORS.bg.white, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
               )}
             </Box>
           </Tooltip>
@@ -144,7 +145,7 @@ function LayoutPicker({ selected, onSelect }: { selected: string; onSelect: (lay
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: '#666', mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
         Website Navigation Style
       </Typography>
       <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -158,21 +159,21 @@ function LayoutPicker({ selected, onSelect }: { selected: string; onSelect: (lay
               sx={{
                 flex: 1,
                 p: 2,
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 border: '2px solid',
-                borderColor: isSelected ? '#DE3F5E' : alpha('#000', 0.12),
-                bgcolor: isSelected ? alpha('#DE3F5E', 0.04) : 'white',
+                borderColor: isSelected ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.12),
+                bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.04) : COLORS.bg.white,
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'all 0.15s',
-                '&:hover': { borderColor: isSelected ? '#DE3F5E' : alpha('#000', 0.25) },
+                '&:hover': { borderColor: isSelected ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.25) },
               }}
             >
-              <Icon sx={{ fontSize: 28, color: isSelected ? '#DE3F5E' : '#666', mb: 0.5 }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: isSelected ? '#DE3F5E' : '#1a1a1a', mb: 0.25 }}>
+              <Icon sx={{ fontSize: 28, color: isSelected ? COLORS.brand.primary : COLORS.text.subtle, mb: 0.5 }} />
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: isSelected ? COLORS.brand.primary : COLORS.text.strong, mb: 0.25 }}>
                 {opt.label}
               </Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: '#999', lineHeight: 1.3 }}>
+              <Typography sx={{ fontSize: '0.65rem', color: COLORS.text.faint, lineHeight: 1.3 }}>
                 {opt.description}
               </Typography>
             </Box>
@@ -187,14 +188,14 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
   const [tab, setTab] = useState(0);
   const [designData, setDesignData] = useState({
     background_image: currentValues.background_image || BACKGROUND_UI_OPTIONS[0].url,
-    primary_color: currentValues.primary_color || '#DE3F5E',
+    primary_color: currentValues.primary_color || COLORS.brand.primary,
     font_color: currentValues.font_color || '#141414',
-    button_font_color: currentValues.button_font_color || '#FFFFFF',
+    button_font_color: currentValues.button_font_color || COLORS.bg.white,
     website_layout: currentValues.website_layout || 'multi_page',
     lock_screen_background: currentValues.lock_screen_background || BACKGROUND_UI_OPTIONS[0].url,
-    lock_screen_primary_color: currentValues.lock_screen_primary_color || '#DE3F5E',
+    lock_screen_primary_color: currentValues.lock_screen_primary_color || COLORS.brand.primary,
     lock_screen_font_color: currentValues.lock_screen_font_color || '#141414',
-    lock_screen_button_font_color: currentValues.lock_screen_button_font_color || '#FFFFFF',
+    lock_screen_button_font_color: currentValues.lock_screen_button_font_color || COLORS.bg.white,
   });
 
   const update = (field: string, value: string) => {
@@ -207,17 +208,17 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 3,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 640,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: '#000000', fontSize: '1rem' }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: COLORS.text.strong, fontSize: '1rem' }}>
         Look & Feel
       </Typography>
 
@@ -234,8 +235,8 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
             textTransform: 'none',
             px: 2,
           },
-          '& .Mui-selected': { color: '#DE3F5E' },
-          '& .MuiTabs-indicator': { bgcolor: '#DE3F5E' },
+          '& .Mui-selected': { color: COLORS.brand.primary },
+          '& .MuiTabs-indicator': { bgcolor: COLORS.brand.primary },
         }}
       >
         <Tab label="Main Website" />
@@ -309,10 +310,10 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
             size="small"
             fullWidth
             sx={{
-              color: '#666',
+              color: COLORS.text.subtle,
               fontSize: '0.85rem',
               py: 1,
-              borderRadius: '16px',
+              borderRadius: RADII.lg,
               flex: 1,
               border: '2px solid',
               borderColor: 'rgba(0,0,0,0.1)',
@@ -327,7 +328,7 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
           size="small"
           fullWidth
           sx={{
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             fontSize: '0.85rem',
             py: 1,
             flex: 1,

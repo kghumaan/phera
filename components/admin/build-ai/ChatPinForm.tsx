@@ -14,6 +14,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatPinFormProps {
   onSave: (pin: {
@@ -71,9 +72,9 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
 
   const commonFieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
+      borderRadius: RADII.md,
       fontSize: '1rem',
-      bgcolor: '#f5f5f5',
+      bgcolor: COLORS.bg.subtle,
       fontWeight: 600,
       '& input': {
         py: 1.5,
@@ -82,12 +83,12 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
         WebkitTextFillColor: '#1a1a1a !important',
       },
       '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
-      '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+      '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
     },
   };
 
   const labelSx = {
-    color: '#666',
+    color: COLORS.text.subtle,
     mb: 1,
     display: 'block',
     fontWeight: 500,
@@ -96,17 +97,17 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 4,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 640,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#000000' }}>
+      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
         Add Guest PIN
       </Typography>
 
@@ -141,14 +142,14 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               <Switch
                 checked={formData.allows_plus_one}
                 onChange={(e) => setFormData({ ...formData, allows_plus_one: e.target.checked })}
-                sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
               />
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>Allow Plus One</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Allow Plus One</Typography>
                 <Tooltip title="When enabled, guests using this PIN can include plus-ones in their RSVP." arrow>
-                  <InfoOutlinedIcon sx={{ fontSize: 16, color: '#999', cursor: 'help' }} />
+                  <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                 </Tooltip>
               </Box>
             }
@@ -158,14 +159,14 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               <Switch
                 checked={formData.skip_rsvp}
                 onChange={(e) => setFormData({ ...formData, skip_rsvp: e.target.checked })}
-                sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
               />
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>Skip RSVP</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Skip RSVP</Typography>
                 <Tooltip title="When enabled, guests using this PIN won't need to RSVP. They'll go straight to the wedding details." arrow>
-                  <InfoOutlinedIcon sx={{ fontSize: 16, color: '#999', cursor: 'help' }} />
+                  <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                 </Tooltip>
               </Box>
             }
@@ -179,14 +180,14 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
                 <Switch
                   checked={formData.restrictEvents}
                   onChange={(e) => setFormData({ ...formData, restrictEvents: e.target.checked, hidden_events: e.target.checked ? formData.hidden_events : [] })}
-                  sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                  sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
                 />
               }
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>Restrict Events</Typography>
+                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Restrict Events</Typography>
                   <Tooltip title="When enabled, select events this PIN should NOT have access to." arrow>
-                    <InfoOutlinedIcon sx={{ fontSize: 16, color: '#999', cursor: 'help' }} />
+                    <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                   </Tooltip>
                 </Box>
               }
@@ -200,11 +201,11 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
                       <Checkbox
                         checked={formData.hidden_events.includes(event.id)}
                         onChange={() => handleEventToggle(event.id)}
-                        sx={{ color: '#ccc', '&.Mui-checked': { color: '#DE3F5E' } }}
+                        sx={{ color: COLORS.border.default, '&.Mui-checked': { color: COLORS.brand.primary } }}
                         size="small"
                       />
                     }
-                    label={<Typography sx={{ fontSize: '0.85rem', color: '#1a1a1a' }}>{event.name}</Typography>}
+                    label={<Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong }}>{event.name}</Typography>}
                   />
                 ))}
               </Box>
@@ -219,10 +220,10 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               size="small"
               fullWidth
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 fontSize: '0.85rem',
                 py: 1,
-                borderRadius: '16px',
+                borderRadius: RADII.lg,
                 flex: 1,
                 border: '2px solid',
                 borderColor: 'rgba(0,0,0,0.1)',
@@ -242,7 +243,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
             size="small"
             fullWidth
             sx={{
-              borderRadius: '16px',
+              borderRadius: RADII.lg,
               fontSize: '0.85rem',
               py: 1,
               flex: 1,

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography, Chip, Paper, Tooltip } from '@mui/material';
 import type { OutreachSummary, OutreachStatus } from '@/lib/types/outreach';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface OutreachStatusTrackerProps {
   summary: OutreachSummary;
@@ -15,7 +16,7 @@ const STATUS_CONFIG: {
 }[] = [
   { key: 'not_contacted', label: 'Not Contacted', color: '#94a3b8' },
   { key: 'save_the_date_sent', label: 'Save the Date', color: '#f59e0b' },
-  { key: 'rsvp_requested', label: 'RSVP Requested', color: '#3b82f6' },
+  { key: 'rsvp_requested', label: 'RSVP Requested', color: COLORS.accent.info },
   { key: 'rsvp_confirmed', label: 'RSVP Confirmed', color: '#22c55e' },
   { key: 'travel_collected', label: 'Travel Collected', color: '#8b5cf6' },
   { key: 'logistics_complete', label: 'Logistics Complete', color: '#06b6d4' },
@@ -32,16 +33,16 @@ export default function OutreachStatusTracker({ summary }: OutreachStatusTracker
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
         p: 3,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
           Outreach Progress
         </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
           {total}
-          <Typography component="span" variant="body2" sx={{ color: '#6a6a6a', ml: 0.5 }}>
+          <Typography component="span" variant="body2" sx={{ color: COLORS.text.subtle, ml: 0.5 }}>
             guests
           </Typography>
         </Typography>
@@ -54,7 +55,7 @@ export default function OutreachStatusTracker({ summary }: OutreachStatusTracker
           height: 12,
           borderRadius: '6px',
           overflow: 'hidden',
-          bgcolor: '#F8F8F8',
+          bgcolor: COLORS.bg.subtle,
           mb: 2,
         }}
       >

@@ -6,6 +6,7 @@ import { Visibility, Close, DesktopWindows, PhoneAndroid, Publish, ContentCopy, 
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton, ActionButton } from './ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface OnboardingPreviewFABProps {
   weddingSlug: string;
@@ -187,8 +188,8 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
           aria-label="publish"
           onClick={handlePublishClick}
           sx={{
-            bgcolor: statusSaved ? '#10B981' : '#DE3F5E',
-            color: 'white',
+            bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primary,
+            color: COLORS.text.inverse,
             '&:hover': {
               bgcolor: statusSaved ? '#059669' : '#C8365A',
               transform: 'scale(1.05)',
@@ -234,22 +235,22 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
         PaperProps={{
           sx: {
             width: 500,
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
             p: 3,
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
           },
         }}
       >
         <Stack spacing={2.5}>
           {/* Title */}
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
             Publish Settings
           </Typography>
 
           {/* Wedding URL */}
           <Box>
-            <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1, display: 'block' }}>
               Your Wedding ID
             </Typography>
             {!editingSlug ? (
@@ -257,16 +258,16 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 <Box
                   sx={{
                     flex: 1,
-                    bgcolor: alpha('#DE3F5E', 0.05),
+                    bgcolor: alpha(COLORS.brand.primary, 0.05),
                     p: 1.5,
-                    borderRadius: '8px',
+                    borderRadius: RADII.sm,
                     border: '1px solid rgba(222, 63, 94, 0.2)',
                   }}
                 >
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       fontWeight: 600,
                       fontFamily: 'monospace',
                       fontSize: '0.9rem',
@@ -279,10 +280,10 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   size="small"
                   onClick={() => copyToClipboard(`${window.location.origin}/${weddingSlug}`)}
                   sx={{
-                    bgcolor: urlCopied ? '#10B981' : alpha('#DE3F5E', 0.1),
-                    color: urlCopied ? 'white' : '#DE3F5E',
+                    bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                    color: urlCopied ? COLORS.bg.white : COLORS.brand.primary,
                     '&:hover': {
-                      bgcolor: urlCopied ? '#059669' : alpha('#DE3F5E', 0.2),
+                      bgcolor: urlCopied ? '#059669' : alpha(COLORS.brand.primary, 0.2),
                     },
                   }}
                 >
@@ -292,10 +293,10 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   size="small"
                   onClick={() => setEditingSlug(true)}
                   sx={{
-                    bgcolor: slugSaved ? '#10B981' : alpha('#DE3F5E', 0.1),
-                    color: slugSaved ? 'white' : '#DE3F5E',
+                    bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                    color: slugSaved ? COLORS.bg.white : COLORS.brand.primary,
                     '&:hover': {
-                      bgcolor: slugSaved ? '#059669' : alpha('#DE3F5E', 0.2),
+                      bgcolor: slugSaved ? '#059669' : alpha(COLORS.brand.primary, 0.2),
                     },
                     transition: 'all 0.2s ease',
                   }}
@@ -313,19 +314,19 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   sx={{
                     flex: 1,
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '8px',
+                      borderRadius: RADII.sm,
                       '& fieldset': {
-                        borderColor: '#1a1a1a',
+                        borderColor: COLORS.text.strong,
                         borderWidth: '1px',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#1a1a1a',
+                        borderColor: COLORS.text.strong,
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                       '& input': {
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                       },
                     },
                   }}
@@ -338,15 +339,15 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                     setEditingSlug(false);
                   }}
                   sx={{
-                    borderRadius: '8px',
+                    borderRadius: RADII.sm,
                     textTransform: 'none',
-                    borderColor: '#DE3F5E',
-                    color: '#DE3F5E',
+                    borderColor: COLORS.brand.primary,
+                    color: COLORS.brand.primary,
                     minWidth: 'auto',
                     px: 2,
                     '&:hover': {
                       borderColor: '#C8365A',
-                      bgcolor: alpha('#DE3F5E', 0.05),
+                      bgcolor: alpha(COLORS.brand.primary, 0.05),
                     },
                   }}
                 >
@@ -358,11 +359,11 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                   loading={savingSlug}
                   disabled={customSlug === weddingSlug || !customSlug}
                   sx={{
-                    borderRadius: '8px',
+                    borderRadius: RADII.sm,
                     minWidth: 'auto',
                     px: 2,
                     '&.Mui-disabled': {
-                      bgcolor: alpha('#DE3F5E', 0.5),
+                      bgcolor: alpha(COLORS.brand.primary, 0.5),
                       color: 'rgba(255, 255, 255, 0.7)',
                     },
                   }}
@@ -388,7 +389,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 sx={{
                   py: 1.5,
                   '&.Mui-disabled': {
-                    bgcolor: alpha('#DE3F5E', 0.5),
+                    bgcolor: alpha(COLORS.brand.primary, 0.5),
                     color: 'rgba(255, 255, 255, 0.7)',
                   },
                 }}
@@ -442,13 +443,13 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
               alignItems: 'center',
               borderBottom: 1,
               borderColor: 'divider',
-              bgcolor: alpha('#fff', 0.95),
+              bgcolor: alpha(COLORS.bg.white, 0.95),
               backdropFilter: 'blur(10px)',
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, overflow: 'hidden' }}>
-              <Visibility sx={{ color: '#DE3F5E', fontSize: '1.25rem', flexShrink: 0 }} />
-              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <Visibility sx={{ color: COLORS.brand.primary, fontSize: '1.25rem', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 PREVIEW MODE - This is how your wedding website will look to guests
               </Typography>
             </Stack>
@@ -457,7 +458,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 setPreviewOpen(false);
                 setViewMode('desktop'); // Reset to desktop view when closing
               }} 
-              sx={{ color: '#1a1a1a' }}
+              sx={{ color: COLORS.text.strong }}
             >
               <Close />
             </IconButton>
@@ -482,7 +483,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 zIndex: 10,
                 display: 'flex',
                 gap: 1,
-                bgcolor: alpha('#fff', 0.95),
+                bgcolor: alpha(COLORS.bg.white, 0.95),
                 backdropFilter: 'blur(10px)',
                 borderRadius: 2,
                 p: 0.5,
@@ -493,10 +494,10 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 onClick={() => setViewMode('desktop')}
                 size="small"
                 sx={{
-                  bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                  color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
+                  bgcolor: viewMode === 'desktop' ? alpha(COLORS.brand.primary, 0.1) : 'transparent',
+                  color: viewMode === 'desktop' ? COLORS.brand.primary : COLORS.text.subtle,
                   '&:hover': {
-                    bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#DE3F5E', 0.05),
+                    bgcolor: viewMode === 'desktop' ? alpha(COLORS.brand.primary, 0.15) : alpha(COLORS.brand.primary, 0.05),
                   },
                 }}
                 title="Desktop View"
@@ -507,10 +508,10 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                 onClick={() => setViewMode('mobile')}
                 size="small"
                 sx={{
-                  bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                  color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
+                  bgcolor: viewMode === 'mobile' ? alpha(COLORS.brand.primary, 0.1) : 'transparent',
+                  color: viewMode === 'mobile' ? COLORS.brand.primary : COLORS.text.subtle,
                   '&:hover': {
-                    bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#DE3F5E', 0.05),
+                    bgcolor: viewMode === 'mobile' ? alpha(COLORS.brand.primary, 0.15) : alpha(COLORS.brand.primary, 0.05),
                   },
                 }}
                 title="Mobile View"

@@ -16,6 +16,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ActionQueueProps {
   pendingSequences: any[];
@@ -29,7 +30,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: '#EF5350',
   high: '#FF9800',
   medium: '#2196F3',
-  low: '#9E9E9E',
+  low: COLORS.text.faint,
 };
 const CATEGORY_LABELS: Record<string, string> = {
   visa: 'Visa',
@@ -130,12 +131,12 @@ export default function ActionQueue({
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
         p: 3,
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
       }}
     >
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
           Action Queue ({openCount} open)
         </Typography>
         {openCount > 0 && (
@@ -154,7 +155,7 @@ export default function ActionQueue({
                 onIssueResolved?.();
               } catch {}
             }}
-            sx={{ textTransform: 'none', fontSize: 11, color: '#9a9a9a', '&:hover': { color: '#ef4444' } }}
+            sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: '#ef4444' } }}
           >
             Dismiss All
           </Button>
@@ -181,7 +182,7 @@ export default function ActionQueue({
                   textTransform: 'uppercase',
                   cursor: 'pointer',
                   bgcolor: filterPriority === p ? PRIORITY_COLORS[p] : `${PRIORITY_COLORS[p]}18`,
-                  color: filterPriority === p ? 'white' : PRIORITY_COLORS[p],
+                  color: filterPriority === p ? COLORS.bg.white : PRIORITY_COLORS[p],
                   border: `1px solid ${PRIORITY_COLORS[p]}40`,
                 }}
               />
@@ -199,8 +200,8 @@ export default function ActionQueue({
                 height: 22,
                 fontSize: 10,
                 cursor: 'pointer',
-                color: filterCategory === c ? 'white' : '#4a4a4a',
-                bgcolor: filterCategory === c ? '#4a4a4a' : 'transparent',
+                color: filterCategory === c ? COLORS.bg.white : COLORS.text.muted,
+                bgcolor: filterCategory === c ? COLORS.text.muted : 'transparent',
                 borderColor: 'rgba(0,0,0,0.15)',
               }}
             />
@@ -211,7 +212,7 @@ export default function ActionQueue({
       {/* Items */}
       {sorted.length === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             {openCount === 0 ? 'No pending actions. Everything is on track.' : 'No items match the current filter.'}
           </Typography>
         </Box>
@@ -225,8 +226,8 @@ export default function ActionQueue({
                 elevation={0}
                 sx={{
                   p: 1.5,
-                  borderRadius: '10px',
-                  bgcolor: item._priority === 'urgent' ? '#FFF5F5' : item._priority === 'high' ? '#FFFBF0' : '#FAFAFA',
+                  borderRadius: RADII.sm,
+                  bgcolor: item._priority === 'urgent' ? '#FFF5F5' : item._priority === 'high' ? '#FFFBF0' : COLORS.bg.muted,
                   border: `1px solid ${item._priority === 'urgent' ? '#FFCDD2' : item._priority === 'high' ? '#FFE0B2' : 'rgba(0,0,0,0.07)'}`,
                 }}
               >
@@ -240,23 +241,23 @@ export default function ActionQueue({
                       fontSize: 9,
                       fontWeight: 700,
                       textTransform: 'uppercase',
-                      bgcolor: PRIORITY_COLORS[item._priority] || '#9E9E9E',
-                      color: 'white',
+                      bgcolor: PRIORITY_COLORS[item._priority] || COLORS.text.faint,
+                      color: COLORS.text.inverse,
                     }}
                   />
                   <Chip
                     label={CATEGORY_LABELS[item._category] || item._category}
                     size="small"
                     variant="outlined"
-                    sx={{ height: 18, fontSize: 9, color: '#4a4a4a', borderColor: 'rgba(0,0,0,0.15)' }}
+                    sx={{ height: 18, fontSize: 9, color: COLORS.text.muted, borderColor: 'rgba(0,0,0,0.15)' }}
                   />
-                  <Typography sx={{ fontSize: 10, color: '#9a9a9a', ml: 'auto !important', alignSelf: 'center' }}>
+                  <Typography sx={{ fontSize: 10, color: COLORS.text.faint, ml: 'auto !important', alignSelf: 'center' }}>
                     {formatRelativeTime(item.created_at)}
                   </Typography>
                 </Stack>
 
                 {/* Title */}
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.3, mb: 0.25 }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong, lineHeight: 1.3, mb: 0.25 }}>
                   {item._title || item.template_name || 'Untitled issue'}
                 </Typography>
 
@@ -265,7 +266,7 @@ export default function ActionQueue({
                   <Typography
                     sx={{
                       fontSize: 12,
-                      color: '#4a4a4a',
+                      color: COLORS.text.muted,
                       lineHeight: 1.4,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
@@ -289,10 +290,10 @@ export default function ActionQueue({
                       sx={{
                         mb: 1,
                         '& .MuiOutlinedInput-root': {
-                          borderRadius: '8px',
-                          bgcolor: 'white',
+                          borderRadius: RADII.sm,
+                          bgcolor: COLORS.bg.white,
                           fontSize: 12,
-                          color: '#1a1a1a',
+                          color: COLORS.text.strong,
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
                         },
                       }}
@@ -304,7 +305,7 @@ export default function ActionQueue({
                         onClick={() => handleResolve(item.id)}
                         sx={{
                           bgcolor: '#22c55e',
-                          borderRadius: '8px',
+                          borderRadius: RADII.sm,
                           textTransform: 'none',
                           fontSize: 11,
                           fontWeight: 600,
@@ -316,7 +317,7 @@ export default function ActionQueue({
                       <Button
                         size="small"
                         onClick={() => { setResolvingId(null); setResolveNotes(''); }}
-                        sx={{ textTransform: 'none', fontSize: 11, color: '#6a6a6a' }}
+                        sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.subtle }}
                       >
                         Cancel
                       </Button>
@@ -333,7 +334,7 @@ export default function ActionQueue({
                       startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => setResolvingId(item.id)}
                       sx={{
-                        borderRadius: '8px',
+                        borderRadius: RADII.sm,
                         textTransform: 'none',
                         fontSize: 11,
                         fontWeight: 600,
@@ -350,13 +351,13 @@ export default function ActionQueue({
                       startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
                       href={`/admin/${weddingSlug}/concierge`}
                       sx={{
-                        borderRadius: '8px',
+                        borderRadius: RADII.sm,
                         textTransform: 'none',
                         fontSize: 11,
                         fontWeight: 600,
-                        color: '#6a6a6a',
+                        color: COLORS.text.subtle,
                         borderColor: 'rgba(0,0,0,0.12)',
-                        '&:hover': { borderColor: 'rgba(0,0,0,0.3)', bgcolor: '#FAFAFA' },
+                        '&:hover': { borderColor: 'rgba(0,0,0,0.3)', bgcolor: COLORS.bg.muted },
                       }}
                     >
                       View Conversation

@@ -21,6 +21,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Stack from '@mui/material/Stack';
 import { EVENT_TEMPLATES } from '@/components/admin/EventTemplates';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatEventFormProps {
     onSave: (event: any) => void;
@@ -57,10 +58,10 @@ function DigitalTimePicker({
                         value={value.hour}
                         onChange={(e) => handleChange('hour', e.target.value)}
                         sx={{
-                            bgcolor: '#f5f5f5',
+                            bgcolor: COLORS.bg.subtle,
                             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                             '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-                            borderRadius: '8px',
+                            borderRadius: RADII.sm,
                             fontWeight: 600,
                             fontSize: '1.1rem',
                             textAlign: 'center'
@@ -73,17 +74,17 @@ function DigitalTimePicker({
                     </Select>
                 </FormControl>
 
-                <Typography sx={{ fontWeight: 600, color: '#999' }}>:</Typography>
+                <Typography sx={{ fontWeight: 600, color: COLORS.text.faint }}>:</Typography>
 
                 <FormControl size="small" sx={{ width: 80 }}>
                     <Select
                         value={value.minute}
                         onChange={(e) => handleChange('minute', e.target.value)}
                         sx={{
-                            bgcolor: '#f5f5f5',
+                            bgcolor: COLORS.bg.subtle,
                             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                             '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-                            borderRadius: '8px',
+                            borderRadius: RADII.sm,
                             fontWeight: 600,
                             fontSize: '1.1rem'
                         }}
@@ -106,13 +107,13 @@ function DigitalTimePicker({
                         height: 40,
                         '& .MuiToggleButton-root': {
                             border: 'none',
-                            bgcolor: '#f5f5f5',
-                            color: '#999',
+                            bgcolor: COLORS.bg.subtle,
+                            color: COLORS.text.faint,
                             px: 2,
                             '&.Mui-selected': {
-                                bgcolor: '#DE3F5E',
-                                color: 'white',
-                                '&:hover': { bgcolor: '#C8365A' }
+                                bgcolor: COLORS.brand.primary,
+                                color: COLORS.text.inverse,
+                                '&:hover': { bgcolor: COLORS.brand.primaryHover }
                             }
                         },
                         '& .MuiToggleButtonGroup-grouped': {
@@ -182,9 +183,9 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
 
     const commonFieldSx = {
         '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             fontSize: '1rem',
-            bgcolor: '#f5f5f5',
+            bgcolor: COLORS.bg.subtle,
             fontWeight: 600,
             '& input, & textarea': {
                 py: 1.5,
@@ -194,12 +195,12 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
             },
             '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
             '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-            '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+            '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
         },
     };
 
     const labelSx = {
-        color: '#666',
+        color: COLORS.text.subtle,
         mb: 1,
         display: 'block',
         fontWeight: 500,
@@ -208,17 +209,17 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
 
     return (
         <Box sx={{
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             p: 4,
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             border: '2px solid',
-            borderColor: alpha('#000', 0.12),
+            borderColor: alpha(COLORS.text.strong, 0.12),
             width: '100%',
             maxWidth: 640,
             mt: 1,
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
         }}>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: '#000000' }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
                 New Event Details
             </Typography>
 
@@ -234,7 +235,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                     pb: 1,
                     WebkitOverflowScrolling: 'touch',
                     '&::-webkit-scrollbar': { height: 3 },
-                    '&::-webkit-scrollbar-thumb': { bgcolor: alpha('#000', 0.15), borderRadius: 2 },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: alpha(COLORS.text.strong, 0.15), borderRadius: 2 },
                 }}>
                     {[...TEMPLATE_CHIPS.map(t => t.name), 'Custom'].map((name) => (
                         <Box
@@ -244,19 +245,19 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                                 flexShrink: 0,
                                 px: 2,
                                 py: 0.75,
-                                borderRadius: '20px',
+                                borderRadius: RADII.xl,
                                 border: '2px solid',
-                                borderColor: selectedTemplate === name ? '#DE3F5E' : alpha('#000', 0.12),
-                                bgcolor: selectedTemplate === name ? alpha('#DE3F5E', 0.06) : 'white',
-                                color: selectedTemplate === name ? '#DE3F5E' : '#555',
+                                borderColor: selectedTemplate === name ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.12),
+                                bgcolor: selectedTemplate === name ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.white,
+                                color: selectedTemplate === name ? COLORS.brand.primary : '#555',
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap',
                                 transition: 'all 0.15s',
                                 '&:hover': {
-                                    borderColor: selectedTemplate === name ? '#DE3F5E' : alpha('#000', 0.25),
-                                    bgcolor: selectedTemplate === name ? alpha('#DE3F5E', 0.08) : alpha('#000', 0.02),
+                                    borderColor: selectedTemplate === name ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.25),
+                                    bgcolor: selectedTemplate === name ? alpha(COLORS.brand.primary, 0.08) : alpha(COLORS.text.strong, 0.02),
                                 },
                             }}
                         >
@@ -302,7 +303,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         fullWidth
                         size="small"
                         InputProps={{
-                            startAdornment: <LocationOnIcon sx={{ color: '#666', mr: 1, fontSize: 20 }} />,
+                            startAdornment: <LocationOnIcon sx={{ color: COLORS.text.subtle, mr: 1, fontSize: 20 }} />,
                         }}
                         sx={commonFieldSx}
                     />
@@ -330,14 +331,14 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         <Switch
                             checked={formData.is_major_event}
                             onChange={(e) => setFormData({ ...formData, is_major_event: e.target.checked })}
-                            sx={{ '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }}
+                            sx={{ '& .MuiSwitch-switchBase': { color: COLORS.text.faint }, '& .MuiSwitch-track': { bgcolor: COLORS.text.faint }, '& .Mui-checked': { color: COLORS.brand.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: COLORS.brand.primary } }}
                         />
                     }
                     label={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>Major Event</Typography>
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Major Event</Typography>
                             <Tooltip title="Major events are highlighted more prominently on your wedding timeline and schedule. Use this for key moments like the ceremony or reception." arrow>
-                                <InfoOutlinedIcon sx={{ fontSize: 16, color: '#999', cursor: 'help' }} />
+                                <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                             </Tooltip>
                         </Box>
                     }
@@ -350,10 +351,10 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                             size="small"
                             fullWidth
                             sx={{
-                                color: '#666',
+                                color: COLORS.text.subtle,
                                 fontSize: '0.85rem',
                                 py: 1,
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 flex: 1,
                                 border: '2px solid',
                                 borderColor: 'rgba(0,0,0,0.1)',
@@ -373,7 +374,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         size="small"
                         fullWidth
                         sx={{
-                            borderRadius: '16px',
+                            borderRadius: RADII.lg,
                             fontSize: '0.85rem',
                             py: 1,
                             flex: 1,

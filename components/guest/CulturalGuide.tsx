@@ -31,6 +31,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PaletteIcon from '@mui/icons-material/Palette';
 import InfoIcon from '@mui/icons-material/Info';
 import { animationPresets, culturalColors } from '@/lib/animations/cultural';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface CulturalEvent {
   id: string;
@@ -297,7 +298,7 @@ export default function CulturalGuide() {
                       <Avatar
                         sx={{
                           bgcolor: index === activeStep ? ceremony.color : 'grey.300',
-                          color: 'white',
+                          color: COLORS.text.inverse,
                           width: 40,
                           height: 40,
                           fontSize: '1.2rem',
@@ -366,7 +367,7 @@ export default function CulturalGuide() {
                 <Avatar
                   sx={{
                     bgcolor: currentCeremony.color,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     mr: 2,
                     width: 56,
                     height: 56,

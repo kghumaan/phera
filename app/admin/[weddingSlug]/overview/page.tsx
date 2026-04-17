@@ -238,7 +238,7 @@ function QuickLinks({
                       fontWeight: 700,
                       color: COLORS.text.strong,
                       textDecoration: isDone ? 'line-through' : 'none',
-                      textDecorationColor: alpha('#000', 0.3),
+                      textDecorationColor: alpha(COLORS.text.strong, 0.3),
                     }}
                   >
                     {label}
@@ -271,7 +271,7 @@ function QuickLinks({
                 className="roadmap-chevron"
                 sx={{
                   flexShrink: 0,
-                  color: alpha('#000', 0.3),
+                  color: alpha(COLORS.text.strong, 0.3),
                   display: 'flex',
                   alignItems: 'center',
                   transition: 'color 0.18s ease',
@@ -508,7 +508,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 <Stack spacing={2.5}>
                   {/* Couple */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <People fontSize="small" />
                     </Avatar>
                     <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
@@ -518,7 +518,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
                   {/* Date */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <CalendarMonth fontSize="small" />
                     </Avatar>
                     <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
@@ -528,7 +528,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
                   {/* Venue */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <LocationOn fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
@@ -545,7 +545,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
                   {/* Concierge */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <WhatsApp fontSize="small" />
                     </Avatar>
                     {isPro ? (
@@ -736,7 +736,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 px: 3,
                 borderRadius: RADII.md,
                 '&:hover': {
-                  bgcolor: alpha('#000', 0.04),
+                  bgcolor: alpha(COLORS.text.strong, 0.04),
                 },
               }}
             >

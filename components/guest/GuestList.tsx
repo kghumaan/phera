@@ -41,6 +41,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import GifPicker from '@/components/ui/GifPicker';
 import { GifData } from '@/lib/supabase/types';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface GuestItem {
   id: string;
@@ -124,7 +125,7 @@ export default function GuestList({
   primaryColor: primaryColorProp,
   hideCommentInput = false,
 }: GuestListProps) {
-  const themeColor = primaryColorProp || '#DE3F5E';
+  const themeColor = primaryColorProp || COLORS.brand.primary;
   const theme = useTheme();
   const { user } = useAuth();
   const [guests, setGuests] = useState<GuestItem[]>([]);
@@ -245,7 +246,7 @@ export default function GuestList({
             id: rsvp.id || `${rsvp.guest_id}-${index}`,
             name: rsvp.guest?.name || 'Unknown Guest',
             initials: rsvp.guest?.initials || '??',
-            avatarColor: rsvp.guest?.avatar_color || '#666',
+            avatarColor: rsvp.guest?.avatar_color || COLORS.text.subtle,
             avatarStyle: rsvp.guest?.avatar_style,
             avatarSeed: rsvp.guest?.avatar_seed,
             avatarSvg: rsvp.guest?.avatar_svg,
@@ -273,7 +274,7 @@ export default function GuestList({
             timestamp: formatTimeAgo(rsvp.created_at),
             rawTimestamp: rsvp.created_at,
             initials: rsvp.guest?.initials || '??',
-            avatarColor: rsvp.guest?.avatar_color || '#666',
+            avatarColor: rsvp.guest?.avatar_color || COLORS.text.subtle,
           };
         });
 
@@ -487,7 +488,7 @@ export default function GuestList({
     return (
       <Paper
         sx={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: COLORS.bg.white,
           borderRadius: 2,
           p: 3,
           textAlign: 'center',
@@ -497,7 +498,7 @@ export default function GuestList({
         <Typography variant="body1" sx={{
           fontSize: '16px',
           lineHeight: '1.5em',
-          color: '#858585'
+          color: COLORS.text.subtle
         }}>
           Loading comments...
         </Typography>
@@ -515,7 +516,7 @@ export default function GuestList({
               width: 42,
               height: 42,
               backgroundColor: user.avatar_color || themeColor,
-              color: 'white',
+              color: COLORS.text.inverse,
               fontWeight: 600,
               fontSize: '0.9rem',
             }}
@@ -542,16 +543,16 @@ export default function GuestList({
           <Box sx={{ flex: 1 }}>
             <Paper
               sx={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: COLORS.bg.white,
                 border: '1px solid #BCBCBC',
-                borderRadius: '8px', // 8px
+                borderRadius: RADII.sm, // 8px
                 py: '8px',
                 px: '12px',
                 minHeight: '50px', // Match avatar height
                 display: 'flex',
                 alignItems: 'center',
                 '&:hover': {
-                  borderColor: '#BCBCBC',
+                  borderColor: COLORS.text.faint,
                 },
                 '&:focus-within': {
                   borderColor: themeColor,
@@ -577,7 +578,7 @@ export default function GuestList({
                       color: '#141414',
                       paddingBottom: selectedGif ? '160px' : '0px',
                       '& textarea::placeholder': {
-                        color: '#BCBCBC',
+                        color: COLORS.text.faint,
                         opacity: 1,
                       },
                     },
@@ -609,7 +610,7 @@ export default function GuestList({
                         height: 32,
                         border: '1px solid #000',
                         borderRadius: '6px',
-                        color: '#000',
+                        color: COLORS.text.strong,
                         '&:hover': {
                           backgroundColor: 'rgba(0, 0, 0, 0.04)',
                         },
@@ -656,7 +657,7 @@ export default function GuestList({
                       sx={{
                         position: 'relative',
                         width: '100%',
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                         overflow: 'hidden',
                         border: '1px solid rgba(0, 0, 0, 0.08)',
                         cursor: 'pointer',
@@ -691,7 +692,7 @@ export default function GuestList({
                           top: 8,
                           right: 8,
                           backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                          color: 'white',
+                          color: COLORS.text.inverse,
                           width: 24,
                           height: 24,
                           '&:hover': {
@@ -718,7 +719,7 @@ export default function GuestList({
         {comments.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body1" sx={{
-              color: '#858585',
+              color: COLORS.text.subtle,
               fontSize: '16px',
               lineHeight: '1.5em',
               mb: 1
@@ -726,7 +727,7 @@ export default function GuestList({
               No comments yet! 💬
             </Typography>
             <Typography variant="body2" sx={{
-              color: '#BCBCBC',
+              color: COLORS.text.faint,
               fontSize: '14px',
               lineHeight: '1.5em'
             }}>
@@ -755,7 +756,7 @@ export default function GuestList({
                           width: 40,
                           height: 40,
                           backgroundColor: comment.guest?.avatar_color || '#C4C4C4',
-                          color: 'white',
+                          color: COLORS.text.inverse,
                           fontWeight: 600,
                           fontSize: '0.9rem',
                         }}
@@ -798,7 +799,7 @@ export default function GuestList({
                             sx={{
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#858585',
+                              color: COLORS.text.subtle,
                             }}
                           >
                             {formatTimeAgo(comment.created_at)}
@@ -816,7 +817,7 @@ export default function GuestList({
                                 }}
                                 size="small"
                                 sx={{
-                                  color: '#858585',
+                                  color: COLORS.text.subtle,
                                   opacity: 0.7,
                                   '&:hover': {
                                     color: themeColor,
@@ -851,7 +852,7 @@ export default function GuestList({
                           <Box
                             sx={{
                               mt: comment.message ? 1 : 0,
-                              borderRadius: '16px',
+                              borderRadius: RADII.lg,
                               overflow: 'hidden',
                               maxWidth: '280px',
                               border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -901,7 +902,7 @@ export default function GuestList({
                     onClick={() => setVisibleCommentsCount(prev => Math.min(prev + 2, comments.length))}
                     fullWidth
                     sx={{
-                      color: '#666',
+                      color: COLORS.text.subtle,
                       textTransform: 'none',
                       fontSize: '0.95rem',
                       py: 1,
@@ -920,7 +921,7 @@ export default function GuestList({
                     onClick={() => setVisibleCommentsCount(initialMaxComments)}
                     fullWidth
                     sx={{
-                      color: '#666',
+                      color: COLORS.text.subtle,
                       textTransform: 'none',
                       fontSize: '0.95rem',
                       py: 1,
@@ -947,7 +948,7 @@ export default function GuestList({
         <Typography variant="body1" sx={{
           fontSize: '16px',
           lineHeight: '1.5em',
-          color: '#858585',
+          color: COLORS.text.subtle,
           textAlign: 'center',
           py: 4
         }}>
@@ -975,7 +976,7 @@ export default function GuestList({
                     width: 44,
                     height: 44,
                     backgroundColor: guest.avatarColor || '#F0F0F0',
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     fontWeight: 600,
                     fontSize: '16px',
                   }}
@@ -1006,7 +1007,7 @@ export default function GuestList({
                     <Typography variant="caption" sx={{
                       fontSize: '14px',
                       lineHeight: '1.5em',
-                      color: '#858585'
+                      color: COLORS.text.subtle
                     }}>
                       +{guest.guestCount - 1} guest{guest.guestCount > 2 ? 's' : ''}
                     </Typography>
@@ -1023,7 +1024,7 @@ export default function GuestList({
                   onClick={() => setVisibleRSVPCount(prev => Math.min(prev + 5, filteredGuests.length))}
                   fullWidth
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     textTransform: 'none',
                     fontSize: '0.95rem',
                     py: 1,
@@ -1040,7 +1041,7 @@ export default function GuestList({
                   onClick={() => setVisibleRSVPCount(10)}
                   fullWidth
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     textTransform: 'none',
                     fontSize: '0.95rem',
                     py: 1,
@@ -1063,7 +1064,7 @@ export default function GuestList({
   return (
     <Paper
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 1, // 16px
         overflow: 'hidden',
         boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
@@ -1102,7 +1103,7 @@ export default function GuestList({
                   fontSize: '16px',
                   lineHeight: '1.26em',
                   textAlign: 'center',
-                  color: index === activeTab ? themeColor : '#000000',
+                  color: index === activeTab ? themeColor : COLORS.text.strong,
                 }}
               >
                 {tab}
@@ -1115,7 +1116,7 @@ export default function GuestList({
                   size="small"
                   sx={{
                     backgroundColor: themeColor,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     height: 20,
                     minWidth: 20,
                     '& .MuiChip-label': {
@@ -1134,7 +1135,7 @@ export default function GuestList({
                   size="small"
                   sx={{
                     backgroundColor: '#D6D6D6',
-                    color: '#000000',
+                    color: COLORS.text.strong,
                     height: 24,
                     minWidth: 24,
                     '& .MuiChip-label': {
@@ -1153,7 +1154,7 @@ export default function GuestList({
                   size="small"
                   sx={{
                     backgroundColor: '#D6D6D6',
-                    color: '#000000',
+                    color: COLORS.text.strong,
                     height: 24,
                     minWidth: 24,
                     '& .MuiChip-label': {
@@ -1178,9 +1179,9 @@ export default function GuestList({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: COLORS.bg.white,
               border: '1px solid #BCBCBC',
-              borderRadius: '8px',
+              borderRadius: RADII.sm,
               px: 2,
               py: '8px',
               gap: 1.5,
@@ -1191,7 +1192,7 @@ export default function GuestList({
               },
             }}
           >
-            <Search sx={{ color: '#BCBCBC', fontSize: '20px' }} />
+            <Search sx={{ color: COLORS.text.faint, fontSize: '20px' }} />
             <input
               type="text"
               placeholder="Search guests..."
@@ -1210,7 +1211,7 @@ export default function GuestList({
               <IconButton
                 size="small"
                 onClick={() => setSearchQuery('')}
-                sx={{ color: '#858585', p: 0.5 }}
+                sx={{ color: COLORS.text.subtle, p: 0.5 }}
               >
                 <Close sx={{ fontSize: '18px' }} />
               </IconButton>

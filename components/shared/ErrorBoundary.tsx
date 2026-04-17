@@ -3,6 +3,7 @@
 import React from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { Box, Typography, Button, Container } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -50,7 +51,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
           <Box
             sx={{
               textAlign: 'center',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: COLORS.bg.subtle,
               borderRadius: 3,
               p: 4,
             }}
@@ -68,7 +69,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <Typography
               variant="body2"
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 mb: 3,
                 lineHeight: 1.6,
               }}
@@ -79,11 +80,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               variant="contained"
               onClick={this.resetError}
               sx={{
-                backgroundColor: '#DE3F5E',
-                color: 'white',
+                backgroundColor: COLORS.brand.primary,
+                color: COLORS.text.inverse,
                 px: 4,
                 py: 1.5,
-                borderRadius: '24px',
+                borderRadius: RADII.dialog,
                 textTransform: 'none',
                 '&:hover': {
                   backgroundColor: '#C8365A',
