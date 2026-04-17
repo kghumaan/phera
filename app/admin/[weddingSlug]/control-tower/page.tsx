@@ -22,6 +22,7 @@ import ConciergeInsightsPanel from '@/components/admin/control-tower/ConciergeIn
 import ComposePanel from '@/components/admin/control-tower/ComposePanel';
 import UnifiedTimeline from '@/components/admin/control-tower/UnifiedTimeline';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -152,7 +153,7 @@ export default function ControlTowerPage() {
   if (fetchError) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>Control Tower</Typography>
+        <PageHeading title="Control Tower" sx={{ mb: 1 }} />
         <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(220,38,38,0.2)', p: 4, bgcolor: '#fef2f2' }}>
           <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#b91c1c', mb: 0.5 }}>
             Could not load dashboard
@@ -171,7 +172,7 @@ export default function ControlTowerPage() {
   if (!data || data.summary.total_guests === 0) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>Control Tower</Typography>
+        <PageHeading title="Control Tower" sx={{ mb: 1 }} />
         <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: COLORS.bg.white }}>
           <PeopleAltIcon sx={{ fontSize: 48, color: COLORS.text.faint, mb: 2 }} />
           <Typography sx={{ fontWeight: 600, fontSize: 16, color: COLORS.text.strong, mb: 1 }}>No guests yet</Typography>
@@ -193,10 +194,10 @@ export default function ControlTowerPage() {
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>Control Tower</Typography>
-        <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, mt: 0.5 }}>
-          Outreach, RSVPs, escalations, and messaging — all in one place.
-        </Typography>
+        <PageHeading
+          title="Control Tower"
+          subtitle="Outreach, RSVPs, escalations, and messaging — all in one place."
+        />
       </Box>
 
       {/* ═══ Row 1: Actionable KPI Cards ════════════════════════ */}
