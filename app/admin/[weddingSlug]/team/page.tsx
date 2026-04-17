@@ -383,70 +383,78 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
           subtitle="Manage who can access and edit your wedding website"
         />
 
-        {/* Single combined section */}
-        <PheraCard variant="muted" sx={{ p: 3 }}>
-          <Stack spacing={3}>
-            {/* Invite form */}
-            {isOwner && (
-              <>
-                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                  Invite your partner or wedding planner to help manage your wedding website.
-                  They&apos;ll get access when they sign up or log in with this email.
+        {/* Invite form */}
+        {isOwner && (
+          <PheraCard variant="muted" sx={{ p: 4 }}>
+            <Stack spacing={3}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
+                  Invite a collaborator
                 </Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
+                  Add your partner or wedding planner. They'll get access when they sign up or log in with this email.
+                </Typography>
+              </Box>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'flex-start' }}>
-                  <PheraTextField
-                    label="Email Address"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="partner@example.com"
-                    fullWidth
-                    sx={{ flex: 2 }}
-                  />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
+                <PheraTextField
+                  label="Email Address"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="partner@example.com"
+                  fullWidth
+                  sx={{ flex: 2, mt: 0 }}
+                />
 
-                  <FormControl sx={{ ...selectSx, minWidth: 160 }}>
-                    <InputLabel>Role</InputLabel>
-                    <Select
-                      value={inviteRole}
-                      label="Role"
-                      onChange={(e) => setInviteRole(e.target.value as 'admin' | 'viewer')}
-                    >
-                      <MenuItem value="admin">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <EditIcon sx={{ fontSize: 18, color: COLORS.brand.primary }} />
-                          Can Edit
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="viewer">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Visibility sx={{ fontSize: 18, color: COLORS.text.subtle }} />
-                          View Only
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  <PrimaryActionButton
-                    startIcon={<Send />}
-                    onClick={handleSendInvite}
-                    loading={sending}
-                    disabled={!inviteEmail.trim()}
-                    sx={{
-                      px: 3,
-                      py: 1.75,
-                      '&:disabled': { bgcolor: alpha(COLORS.brand.primary, 0.5), color: COLORS.text.inverse },
-                    }}
+                <FormControl sx={{ ...selectSx, minWidth: 160, mt: 0 }}>
+                  <InputLabel>Role</InputLabel>
+                  <Select
+                    value={inviteRole}
+                    label="Role"
+                    onChange={(e) => setInviteRole(e.target.value as 'admin' | 'viewer')}
                   >
-                    Send Invite
-                  </PrimaryActionButton>
-                </Stack>
+                    <MenuItem value="admin">
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <EditIcon sx={{ fontSize: 18, color: COLORS.brand.primary }} />
+                        Can Edit
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="viewer">
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Visibility sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                        View Only
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
 
-                <Divider />
-              </>
-            )}
+                <PrimaryActionButton
+                  startIcon={<Send />}
+                  onClick={handleSendInvite}
+                  loading={sending}
+                  disabled={!inviteEmail.trim()}
+                  sx={{
+                    px: 3,
+                    py: 1.5,
+                    minHeight: 56,
+                    '&:disabled': { bgcolor: alpha(COLORS.brand.primary, 0.5), color: COLORS.text.inverse },
+                  }}
+                >
+                  Send Invite
+                </PrimaryActionButton>
+              </Stack>
+            </Stack>
+          </PheraCard>
+        )}
 
-            {/* Members list */}
+        {/* Team members + pending invites */}
+        <PheraCard variant="muted" sx={{ p: 4 }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+              Team members
+            </Typography>
+
             <List sx={{ p: 0 }}>
               {teamMembers.map((member, index) => (
                 <Box key={member.id}>
@@ -525,11 +533,14 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                 </Box>
               ))}
             </List>
+          </Stack>
+        </PheraCard>
 
-            {/* About access */}
-            <Divider />
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
-              About Team Access
+        {/* About access */}
+        <PheraCard variant="muted" sx={{ p: 4 }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+              About team access
             </Typography>
             <Box component="ul" sx={{ m: 0, pl: 2.5, color: COLORS.text.muted }}>
               <Typography component="li" variant="body2" sx={{ mb: 1 }}>
