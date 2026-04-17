@@ -49,6 +49,7 @@ import {
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { ErrorAlert, InfoAlert } from '@/components/shared/Alert';
+import { PheraChip } from '@/components/shared/Chip';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import {
   parseCsv,
@@ -268,15 +269,15 @@ export default function GuestImportWizard({
   // ─── Render ──────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth={step === 'done' ? 'sm' : 'md'} fullWidth>
       <DialogTitle sx={{ color: COLORS.text.strong, fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        {step === 'done' ? 'Import Complete' : step === 'confirm' ? 'Confirm Import' : 'Import Guests'}
-        <IconButton onClick={handleClose} size="small">
+        {step === 'done' ? '' : step === 'confirm' ? 'Confirm Import' : 'Import Guests'}
+        <IconButton onClick={handleClose} size="small" sx={{ ml: 'auto' }}>
           <Close sx={{ color: COLORS.text.subtle }} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ minHeight: 380 }}>
+      <DialogContent sx={{ minHeight: step === 'done' ? 0 : 380 }}>
         {/* ═══ Step: Select Method ════════════════════════════ */}
         {step === 'select' && (
           <>
@@ -694,29 +695,29 @@ export default function GuestImportWizard({
 
         {/* ═══ Step: Done ═════════════════════════════════════ */}
         {step === 'done' && result && (
-          <Box sx={{ textAlign: 'center', py: 5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: 3 }}>
             {result.imported > 0 ? (
               <>
-                <Celebration sx={{ fontSize: 56, color: COLORS.brand.primary, mb: 1 }} />
-                <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, mb: 0.5 }}>
-                  {result.imported} guest{result.imported !== 1 ? 's' : ''} imported!
+                <Celebration sx={{ fontSize: 48, color: COLORS.brand.primary, mb: 1.5 }} />
+                <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: COLORS.text.strong, mb: 1.5 }}>
+                  {result.imported} guest{result.imported !== 1 ? 's' : ''} imported
                 </Typography>
               </>
             ) : (
-              <Typography sx={{ fontSize: 20, fontWeight: 700, color: COLORS.text.strong, mb: 0.5 }}>
+              <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: COLORS.text.strong, mb: 1.5 }}>
                 No new guests imported
               </Typography>
             )}
 
-            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 1, mb: 3 }}>
+            <Stack direction="row" justifyContent="center" spacing={1} sx={{ mb: result.errors.length > 0 ? 2 : 3, flexWrap: 'wrap', rowGap: 1 }}>
               {result.imported > 0 && (
-                <Chip icon={<CheckCircle sx={{ fontSize: 14 }} />} label={`${result.imported} imported`} size="small" sx={{ bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 500 }} />
+                <PheraChip tone="success" size="small" icon={<CheckCircle sx={{ fontSize: 14 }} />} label={`${result.imported} imported`} />
               )}
               {result.duplicates > 0 && (
-                <Chip label={`${result.duplicates} duplicates skipped`} size="small" sx={{ bgcolor: '#FFF3E0', color: '#E65100', fontWeight: 500 }} />
+                <PheraChip tone="warning" size="small" label={`${result.duplicates} duplicates skipped`} />
               )}
               {result.errors.length > 0 && (
-                <Chip label={`${result.errors.length} errors`} size="small" sx={{ bgcolor: '#FFEBEE', color: '#C62828', fontWeight: 500 }} />
+                <PheraChip tone="danger" size="small" label={`${result.errors.length} errors`} />
               )}
             </Stack>
 
@@ -728,11 +729,11 @@ export default function GuestImportWizard({
                   border: '1px solid rgba(222, 63, 94, 0.2)',
                   borderRadius: RADII.md,
                   p: 2,
-                  mb: 2,
+                  mb: 3,
                   maxHeight: 150,
                   overflow: 'auto',
                   textAlign: 'left',
-                  mx: 'auto',
+                  width: '100%',
                   maxWidth: 500,
                 }}
               >
@@ -743,6 +744,10 @@ export default function GuestImportWizard({
                 ))}
               </Paper>
             )}
+
+            <PrimaryActionButton onClick={handleClose} sx={{ minWidth: 140, height: 40 }}>
+              Done
+            </PrimaryActionButton>
           </Box>
         )}
       </DialogContent>
@@ -782,16 +787,6 @@ export default function GuestImportWizard({
         </DialogActions>
       )}
 
-      {step === 'done' && (
-        <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'center' }}>
-          <PrimaryActionButton
-            onClick={handleClose}
-            sx={{ minWidth: 140, height: 40 }}
-          >
-            Done
-          </PrimaryActionButton>
-        </DialogActions>
-      )}
     </Dialog>
   );
 }
