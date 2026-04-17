@@ -14,7 +14,6 @@ import {
   Select,
   TextField,
   Typography,
-  Alert,
   CircularProgress,
   Chip,
   Stack,
@@ -22,6 +21,7 @@ import {
 import { Send as SendIcon } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface BroadcastFormProps {
@@ -156,13 +156,11 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
       <DialogTitle>Send WhatsApp Broadcast</DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 2 }}>
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <ErrorAlert>{error}</ErrorAlert>}
           {success && result && (
-            <Alert severity="success">
-              Broadcast sent successfully!
-              <br />
-              {result.successfulSends} sent, {result.failedSends} failed
-            </Alert>
+            <SuccessAlert>
+              Broadcast sent successfully! {result.successfulSends} sent, {result.failedSends} failed.
+            </SuccessAlert>
           )}
 
           {/* Template Selector */}

@@ -18,11 +18,11 @@ import {
   FormControlLabel,
   Autocomplete,
   Divider,
-  Alert,
   Tooltip,
 } from '@mui/material';
 import { Close, Add, Delete } from '@mui/icons-material';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
+import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { supabase } from '@/lib/supabase/client';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -377,22 +377,20 @@ export default function BroadcastComposer({
                   Add field
                 </ActionButton>
               </Box>
-              <Alert severity="info" sx={{ borderRadius: 1, bgcolor: 'rgba(222,63,94,0.05)', color: COLORS.text.muted, '& .MuiAlert-icon': { color: COLORS.brand.primary } }}>
+              <InfoAlert>
                 Replies will be attributed to this broadcast and shown in the Broadcasts detail + RSVPs &rsaquo; Collected Data.
-              </Alert>
+              </InfoAlert>
             </Stack>
           )}
 
           {sendResult?.kind === 'error' && (
-            <Alert severity="error" sx={{ borderRadius: 1 }}>
-              {sendResult.message}
-            </Alert>
+            <ErrorAlert>{sendResult.message}</ErrorAlert>
           )}
           {sendResult?.kind === 'ok' && (
-            <Alert severity="success" sx={{ borderRadius: 1 }}>
+            <SuccessAlert>
               Sent to {sendResult.sent} guest{sendResult.sent === 1 ? '' : 's'}
               {sendResult.failed > 0 ? ` (${sendResult.failed} failed)` : ''}.
-            </Alert>
+            </SuccessAlert>
           )}
         </Stack>
       </DialogContent>

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Typography, IconButton, alpha } from '@mui/material';
-import { Close, AutoAwesome } from '@mui/icons-material';
+import { Box, Typography, IconButton, alpha, Grow } from '@mui/material';
+import { Close, AutoAwesome, Remove } from '@mui/icons-material';
 import ChatInput from '@/components/admin/build-ai/ChatInput';
 import TypingIndicator from '@/components/admin/build-ai/TypingIndicator';
 import { parseAIResponse } from '@/lib/vendors/format-ai-response';
@@ -77,17 +77,22 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
     }
   };
 
-  if (!open) return null;
-
   return (
+    <Grow
+      in={open}
+      mountOnEnter
+      unmountOnExit
+      timeout={{ enter: 260, exit: 200 }}
+      style={{ transformOrigin: 'bottom right' }}
+    >
     <Box
       sx={{
         position: 'fixed',
         right: { xs: 12, md: 24 },
         bottom: { xs: 12, md: 24 },
-        width: { xs: 'calc(100vw - 24px)', sm: 380 },
-        height: { xs: 'calc(100vh - 120px)', sm: 560 },
-        maxHeight: 'calc(100vh - 40px)',
+        width: { xs: 'calc(100vw - 24px)', sm: 420 },
+        height: { xs: 'calc(100vh - 140px)', sm: 640 },
+        maxHeight: 'calc(100vh - 80px)',
         zIndex: 1300,
         display: 'flex',
         flexDirection: 'column',
@@ -96,20 +101,16 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)',
         border: '1px solid rgba(0,0,0,0.07)',
         overflow: 'hidden',
-        '@keyframes askPheraSlideIn': {
-          from: { transform: 'translateY(16px)', opacity: 0 },
-          to: { transform: 'translateY(0)', opacity: 1 },
-        },
-        animation: 'askPheraSlideIn 0.22s ease-out',
       }}
     >
-      {/* Header — dark bar with title + close, matches reference design */}
+      {/* Header — light gray bar with title + close */}
       <Box
         sx={{
           px: 2,
           py: 1.5,
-          bgcolor: COLORS.text.strong,
-          color: COLORS.text.inverse,
+          bgcolor: COLORS.bg.muted,
+          borderBottom: '1px solid rgba(0,0,0,0.07)',
+          color: COLORS.text.strong,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -122,28 +123,42 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
               width: 26,
               height: 26,
               borderRadius: '50%',
-              bgcolor: 'rgba(255,255,255,0.15)',
+              bgcolor: alpha(COLORS.brand.primary, 0.12),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AutoAwesome sx={{ fontSize: 15, color: COLORS.text.inverse }} />
+            <AutoAwesome sx={{ fontSize: 15, color: COLORS.brand.primary }} />
           </Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.inverse }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
             Ask Phera
           </Typography>
         </Box>
-        <IconButton
-          size="small"
-          onClick={onClose}
-          sx={{
-            color: 'rgba(255,255,255,0.85)',
-            '&:hover': { color: COLORS.text.inverse, bgcolor: 'rgba(255,255,255,0.1)' },
-          }}
-        >
-          <Close sx={{ fontSize: 18 }} />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            aria-label="Minimize to floating button"
+            sx={{
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' },
+            }}
+          >
+            <Remove sx={{ fontSize: 18 }} />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            aria-label="Close"
+            sx={{
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' },
+            }}
+          >
+            <Close sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Disabled overlay for demo */}
@@ -240,5 +255,6 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         noBorder
       /></>)}
     </Box>
+    </Grow>
   );
 }
