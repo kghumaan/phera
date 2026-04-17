@@ -47,6 +47,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -389,17 +390,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              PIN Management
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              Create and manage unique PIN codes for your guests to access the wedding website
-            </Typography>
-          </Box>
-        </Box>
+        <PageHeading
+          title="PIN Management"
+          subtitle="Create and manage unique PIN codes for your guests to access the wedding website"
+        />
 
         {/* PIN Codes Section */}
         <Box>
