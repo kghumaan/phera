@@ -11,7 +11,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
   IconButton,
   Chip,
   CircularProgress,
@@ -22,11 +21,13 @@ import {
   FormControl,
   Tooltip,
 } from '@mui/material';
-import { Add, People, Upload, Delete } from '@mui/icons-material';
+import { Add, People, Upload, Delete, LocalOffer } from '@mui/icons-material';
 import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 type SideValue = 'bride' | 'groom' | 'both' | null;
 
@@ -205,10 +206,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
   // ─── Render helpers ──────────────────────────────────────────
 
   const sideChipColor = (side: SideValue) => {
-    if (side === 'bride') return { bg: 'rgba(222, 63, 94, 0.1)', fg: '#DE3F5E' };
-    if (side === 'groom') return { bg: 'rgba(59, 130, 246, 0.1)', fg: '#3b82f6' };
-    if (side === 'both') return { bg: 'rgba(139, 92, 246, 0.1)', fg: '#8b5cf6' };
-    return { bg: 'rgba(0, 0, 0, 0.05)', fg: '#6a6a6a' };
+    if (side === 'bride') return { bg: 'rgba(222, 63, 94, 0.1)', fg: COLORS.side.bride };
+    if (side === 'groom') return { bg: 'rgba(59, 130, 246, 0.1)', fg: COLORS.side.groom };
+    if (side === 'both') return { bg: 'rgba(139, 92, 246, 0.1)', fg: COLORS.side.both };
+    return { bg: 'rgba(0, 0, 0, 0.05)', fg: COLORS.text.subtle };
   };
 
   const isEditing = (g: Guest, field: EditableField) =>
@@ -217,54 +218,68 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
   const EDIT_HINT = { cursor: 'pointer', userSelect: 'none' as const };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
             Guest List
           </Typography>
-          <Typography sx={{ fontSize: 13, color: '#6a6a6a', mt: 0.5 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
             Import, tag, and manage every guest invited to your wedding. Double-click any field to edit.
           </Typography>
         </Box>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           startIcon={<Upload />}
           onClick={() => setImportOpen(true)}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 2.5,
-            py: 1,
-            '&:hover': { bgcolor: '#C8365A' },
-          }}
+          sx={{ px: 2.5, py: 1 }}
         >
           Import Guests
-        </Button>
+        </PrimaryActionButton>
       </Box>
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: '12px',
-          border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          mb: 2.5,
+          borderRadius: RADII.md,
+          border: `1px solid ${COLORS.brand.primaryBorder}`,
+          bgcolor: COLORS.brand.primaryWash,
+          p: 2,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 1.5,
+        }}
+      >
+        <LocalOffer sx={{ fontSize: 18, color: COLORS.brand.primary, mt: 0.25, flexShrink: 0 }} />
+        <Box>
+          <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, mb: 0.25 }}>
+            Tag your guests as you import
+          </Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.55 }}>
+            Tags (family, bride-side, groom-side, college-friends, etc.) power smarter room assignments, targeted WhatsApp groups, and tailored concierge replies.
+          </Typography>
+        </Box>
+      </Paper>
+
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: RADII.md,
+          border: `1px solid ${COLORS.border.faint}`,
+          bgcolor: COLORS.bg.white,
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-          <People sx={{ fontSize: 20, color: '#1a1a1a' }} />
-          <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#1a1a1a' }}>All Guests</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+          <People sx={{ fontSize: 20, color: COLORS.text.strong }} />
+          <Typography variant="subtitle1" sx={{ color: COLORS.text.strong }}>All Guests</Typography>
           <Chip
             label={loading ? '…' : guests.length}
             size="small"
-            sx={{ height: 20, fontSize: 11, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: '#4a4a4a' }}
+            sx={{ fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
           />
           {existingTags.length > 0 && (
-            <Typography sx={{ fontSize: 11, color: '#9a9a9a', ml: 1 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.faint, ml: 1 }}>
               · {existingTags.length} tag{existingTags.length === 1 ? '' : 's'} in use
             </Typography>
           )}
@@ -272,37 +287,29 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+            <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
           </Box>
         ) : guests.length === 0 ? (
           <Box sx={{ py: 6, textAlign: 'center', px: 3 }}>
-            <People sx={{ fontSize: 40, color: '#cbd5e1', mb: 1.5 }} />
-            <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#1a1a1a', mb: 0.5 }}>
+            <People sx={{ fontSize: 40, color: COLORS.border.default, mb: 1.5 }} />
+            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, mb: 0.5 }}>
               No guests yet
             </Typography>
-            <Typography sx={{ fontSize: 13, color: '#6a6a6a', maxWidth: 380, mx: 'auto', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, maxWidth: 380, mx: 'auto', mb: 2 }}>
               Import a spreadsheet, vCard, or add guests manually to get started.
             </Typography>
-            <Button
-              variant="outlined"
+            <SecondaryActionButton
               startIcon={<Add />}
               onClick={() => setImportOpen(true)}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                borderColor: 'rgba(0,0,0,0.15)',
-                color: '#1a1a1a',
-                '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222,63,94,0.04)', color: '#DE3F5E' },
-              }}
             >
               Import Guests
-            </Button>
+            </SecondaryActionButton>
           </Box>
         ) : (
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#FAFAFA' }}>
+                <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
                   <TableCell sx={headerCell}>Guest</TableCell>
                   <TableCell sx={headerCell}>Email</TableCell>
                   <TableCell sx={headerCell}>Phone</TableCell>
@@ -329,12 +336,12 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               width: 30,
                               height: 30,
                               borderRadius: '50%',
-                              bgcolor: g.avatar_color || '#DE3F5E',
-                              color: 'white',
+                              bgcolor: g.avatar_color || COLORS.brand.primary,
+                              color: COLORS.text.inverse,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: 11,
+                              fontSize: '0.75rem',
                               fontWeight: 700,
                               flexShrink: 0,
                             }}
@@ -355,7 +362,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               sx={{ ...selectSx, minWidth: 180 }}
                             />
                           ) : (
-                            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{g.name}</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{g.name}</Typography>
                           )}
                         </Stack>
                       </TableCell>
@@ -381,7 +388,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             sx={{ ...selectSx, minWidth: 200 }}
                           />
                         ) : (
-                          cleanEmail || <span style={{ color: '#bbb' }}>—</span>
+                          cleanEmail || <span style={{ color: COLORS.text.faint }}>—</span>
                         )}
                       </TableCell>
 
@@ -405,7 +412,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             sx={{ ...selectSx, minWidth: 180 }}
                           />
                         ) : (
-                          g.phone || <span style={{ color: '#bbb' }}>—</span>
+                          g.phone || <span style={{ color: COLORS.text.faint }}>—</span>
                         )}
                       </TableCell>
 
@@ -440,15 +447,14 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             label={g.wedding_side[0].toUpperCase() + g.wedding_side.slice(1)}
                             size="small"
                             sx={{
-                              height: 20,
-                              fontSize: 11,
+                              fontSize: '0.875rem',
                               fontWeight: 600,
                               bgcolor: sideChipColor(g.wedding_side).bg,
                               color: sideChipColor(g.wedding_side).fg,
                             }}
                           />
                         ) : (
-                          <span style={{ color: '#bbb' }}>—</span>
+                          <span style={{ color: COLORS.text.faint }}>—</span>
                         )}
                       </TableCell>
 
@@ -489,10 +495,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                           <Chip
                             label={tag}
                             size="small"
-                            sx={{ height: 20, fontSize: 11, fontWeight: 500, bgcolor: 'rgba(0, 0, 0, 0.05)', color: '#1a1a1a' }}
+                            sx={{ fontSize: '0.875rem', fontWeight: 500, bgcolor: 'rgba(0, 0, 0, 0.05)', color: COLORS.text.strong }}
                           />
                         ) : (
-                          <span style={{ color: '#bbb' }}>—</span>
+                          <span style={{ color: COLORS.text.faint }}>—</span>
                         )}
                       </TableCell>
 
@@ -501,7 +507,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                         <Box className="row-actions" sx={{ opacity: 0, transition: 'opacity 0.15s' }}>
                           <Tooltip title="Remove">
                             <IconButton size="small" onClick={() => removeGuest(g.id)}>
-                              <Delete sx={{ fontSize: 16, color: '#9a9a9a' }} />
+                              <Delete sx={{ fontSize: 16, color: COLORS.text.faint }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -528,16 +534,16 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
   );
 }
 
-const headerCell = { fontWeight: 600, fontSize: 12, color: '#1a1a1a', bgcolor: '#FAFAFA' } as const;
-const bodyCell = { fontSize: 12, color: '#4a4a4a' } as const;
+const headerCell = { fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong, bgcolor: COLORS.bg.muted } as const;
+const bodyCell = { fontSize: '0.875rem', color: COLORS.text.muted } as const;
 const selectSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    fontSize: '0.85rem',
-    '& input': { py: 0.75, fontSize: '0.85rem', color: '#1a1a1a' },
-    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.15)' },
-    '&:hover fieldset': { borderColor: '#DE3F5E' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '1.5px' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    fontSize: '0.875rem',
+    '& input': { py: 0.75, fontSize: '0.875rem', color: COLORS.text.strong },
+    '& fieldset': { borderColor: COLORS.border.default },
+    '&:hover fieldset': { borderColor: COLORS.brand.primary },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '1.5px' },
   },
 };
