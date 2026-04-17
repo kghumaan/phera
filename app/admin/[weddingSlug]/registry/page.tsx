@@ -23,6 +23,7 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -214,29 +215,19 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-                Registry Integration
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                Accept contributions seamlessly with integrated payment links
-              </Typography>
-            </Box>
-            <PrimaryActionButton
-              startIcon={<CardGiftcard />}
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                px: 3,
-                py: 1.25,
-                borderRadius: 2,
-                fontSize: '0.9rem',
-                flexShrink: 0,
-              }}
-            >
-              Upgrade to Pro
-            </PrimaryActionButton>
-          </Box>
+          <PageHeading
+            title="Registry Integration"
+            subtitle="Accept contributions seamlessly with integrated payment links"
+            actions={
+              <PrimaryActionButton
+                startIcon={<CardGiftcard />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{ flexShrink: 0 }}
+              >
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
 
           <Box sx={{ maxWidth: 640 }}>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
@@ -298,14 +289,10 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Registry Links
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Link to your external registry sites (Stripe Payment Link, Zola, Amazon, etc.)
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Registry Links"
+          subtitle="Link to your external registry sites (Stripe Payment Link, Zola, Amazon, etc.)"
+        />
 
         <TextField
           label="Registry Description"
