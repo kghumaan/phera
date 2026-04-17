@@ -1,8 +1,9 @@
 'use client';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, Stack } from '@mui/material';
+import { DialogContent, DialogActions, Button, Box, Typography, Stack } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import { PrimaryActionButton } from './ActionButton';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export interface ProSelection {
@@ -20,22 +21,19 @@ interface ProSelectionsModalProps {
 
 export default function ProSelectionsModal({ open, selections, onCancel, onUpgrade }: ProSelectionsModalProps) {
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onCancel}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: RADII.lg,
-          p: 1,
-        },
-      }}
+      PaperProps={{ sx: { p: 1 } }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: COLORS.text.strong, fontWeight: 600 }}>
-        <AutoAwesome sx={{ color: COLORS.brand.primary, fontSize: 24 }} />
-        You have Pro selections
-      </DialogTitle>
+      <PheraDialogTitle onClose={onCancel}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+          <AutoAwesome sx={{ color: COLORS.brand.primary, fontSize: 24 }} />
+          You have Pro selections
+        </Box>
+      </PheraDialogTitle>
       <DialogContent>
         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
           The following selections require a Pro plan:
@@ -93,6 +91,6 @@ export default function ProSelectionsModal({ open, selections, onCancel, onUpgra
           Upgrade to Pro
         </PrimaryActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }

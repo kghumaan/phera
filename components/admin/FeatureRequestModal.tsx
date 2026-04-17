@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-    Dialog,
     DialogContent,
     Box,
     Typography,
@@ -13,6 +12,7 @@ import {
     Stack,
     alpha
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close, CheckCircleOutline } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -84,19 +84,12 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
     };
 
     return (
-        <Dialog
+        <PheraDialog
             open={open}
             onClose={handleClose}
             maxWidth="sm"
             fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: RADII.dialog,
-                    p: { xs: 1, md: 2 },
-                    bgcolor: COLORS.bg.white,
-                    overflow: 'visible'
-                }
-            }}
+            PaperProps={{ sx: { p: { xs: 1, md: 2 }, overflow: 'visible' } }}
         >
             <IconButton
                 onClick={handleClose}
@@ -235,6 +228,6 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                     )}
                 </Box>
             </DialogContent>
-        </Dialog>
+        </PheraDialog>
     );
 }
