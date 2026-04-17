@@ -307,15 +307,15 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
           </Box>
         ) : (
           <TableContainer>
-            <Table size="small">
+            <Table size="small" sx={{ tableLayout: 'fixed', minWidth: 960 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                  <TableCell sx={headerCell}>Guest</TableCell>
-                  <TableCell sx={headerCell}>Email</TableCell>
-                  <TableCell sx={headerCell}>Phone</TableCell>
-                  <TableCell sx={headerCell}>Side</TableCell>
-                  <TableCell sx={headerCell}>Tag</TableCell>
-                  <TableCell sx={{ width: 50 }} />
+                  <TableCell sx={{ ...headerCell, width: 220 }}>Guest</TableCell>
+                  <TableCell sx={{ ...headerCell, width: 240 }}>Email</TableCell>
+                  <TableCell sx={{ ...headerCell, width: 180 }}>Phone</TableCell>
+                  <TableCell sx={{ ...headerCell, width: 110 }}>Side</TableCell>
+                  <TableCell sx={{ ...headerCell, width: 'auto' }}>Tag</TableCell>
+                  <TableCell sx={{ width: 60 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -359,10 +359,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                                 if (e.key === 'Enter') commitEdit();
                                 if (e.key === 'Escape') cancelEdit();
                               }}
-                              sx={{ ...selectSx, minWidth: 180 }}
+                              sx={{ ...selectSx, flex: 1, minWidth: 0 }}
                             />
                           ) : (
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{g.name}</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</Typography>
                           )}
                         </Stack>
                       </TableCell>
@@ -385,10 +385,12 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               if (e.key === 'Enter') commitEdit();
                               if (e.key === 'Escape') cancelEdit();
                             }}
-                            sx={{ ...selectSx, minWidth: 200 }}
+                            sx={{ ...selectSx, width: '100%' }}
                           />
                         ) : (
-                          cleanEmail || <span style={{ color: COLORS.text.faint }}>—</span>
+                          <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {cleanEmail || <span style={{ color: COLORS.text.faint }}>—</span>}
+                          </Box>
                         )}
                       </TableCell>
 
@@ -409,10 +411,12 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               if (e.key === 'Enter') commitEdit();
                               if (e.key === 'Escape') cancelEdit();
                             }}
-                            sx={{ ...selectSx, minWidth: 180 }}
+                            sx={{ ...selectSx, width: '100%' }}
                           />
                         ) : (
-                          g.phone || <span style={{ color: COLORS.text.faint }}>—</span>
+                          <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {g.phone || <span style={{ color: COLORS.text.faint }}>—</span>}
+                          </Box>
                         )}
                       </TableCell>
 
@@ -422,7 +426,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                         sx={{ ...EDIT_HINT }}
                       >
                         {isEditing(g, 'side') ? (
-                          <FormControl size="small" sx={{ minWidth: 110 }}>
+                          <FormControl size="small" sx={{ width: '100%' }}>
                             <Select
                               autoFocus
                               open
@@ -476,7 +480,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                             }}
                             onInputChange={(_, v) => setDraft(v || '')}
                             onBlur={() => commitEdit()}
-                            sx={{ minWidth: 200 }}
+                            sx={{ width: '100%' }}
                             renderInput={(params) => (
                               <TextField
                                 {...params}
