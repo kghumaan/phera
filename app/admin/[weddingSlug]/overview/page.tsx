@@ -37,6 +37,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -481,15 +482,10 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Wedding Overview
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Your wedding website status and quick info
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Wedding Overview"
+          subtitle="Your wedding website status and quick info"
+        />
 
         {/* Wedding Details & RSVP Summary */}
         {weddingData && (
