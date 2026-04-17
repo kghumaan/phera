@@ -5,9 +5,6 @@ import {
   Typography,
   Button,
   Stack,
-  Paper,
-  Alert,
-  TextField,
   Chip,
   IconButton,
   List,
@@ -17,21 +14,21 @@ import {
   Divider,
   alpha,
 } from '@mui/material';
-import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { PheraCard } from '@/components/shared/Card';
+import { PheraTextField } from '@/components/shared/TextField';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { SuccessAlert, InfoAlert } from '@/components/shared/Alert';
 import { useState, useEffect, use, useCallback } from 'react';
 import { CheckCircle, Cancel, Launch, ContentCopy } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
-
-// Use enhanced TextField styling
-const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 export default function SettingsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -56,11 +53,9 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
       const wedding = await weddingService.getWeddingBySlug(weddingSlug);
       if (wedding) {
         setWeddingId(wedding.id);
-        // Normalize status: convert 'preview' to 'draft', default to 'draft' if invalid or missing
         const normalizedStatus = (wedding.status === 'live') ? 'live' : 'draft';
         setStatus(normalizedStatus);
 
-        // If status was 'preview' or invalid, update it in the database
         if (wedding.status !== 'live' && wedding.status !== 'draft') {
           await weddingService.updateWedding(wedding.id, { status: 'draft' });
         }
@@ -113,7 +108,6 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveSettings, enabled: !!authUser });
 
-  // Auto-save when integrations change
   useEffect(() => {
     if (initialSettings) {
       const dirty =
@@ -211,26 +205,20 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={3}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-            Settings & Publish
-          </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-            Manage your wedding website settings and publish when ready
-          </Typography>
-        </Box>
+        <PageHeading
+          title="Settings & Publish"
+          subtitle="Manage your wedding website settings and publish when ready"
+        />
 
         {/* Publish Control Section */}
-        <Paper sx={{
-          p: 4,
-          borderRadius: RADII.lg,
-          bgcolor: status === 'live' ? alpha(COLORS.brand.primary, 0.03) : COLORS.bg.muted,
-          boxShadow: 'none',
-          border: status === 'live' ? '2px solid #DE3F5E' : 'none',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          }
-        }}>
+        <PheraCard
+          variant={status === 'live' ? 'feature' : 'muted'}
+          sx={{
+            p: 4,
+            border: status === 'live' ? `2px solid ${COLORS.brand.primary}` : undefined,
+            bgcolor: status === 'live' ? alpha(COLORS.brand.primary, 0.03) : undefined,
+          }}
+        >
           <Stack spacing={3}>
             {/* Current Status Display */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
@@ -253,32 +241,22 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                   px: 2,
                   py: 2.5,
                   height: 'auto',
-                  '& .MuiChip-label': {
-                    px: 1,
-                  },
+                  '& .MuiChip-label': { px: 1 },
+                  '& .MuiChip-icon': { color: COLORS.text.inverse },
                 }}
               />
             </Box>
 
             {/* Status Description */}
-            <Alert
-              severity={status === 'live' ? 'success' : 'info'}
-              sx={{
-                borderRadius: RADII.md,
-                bgcolor: status === 'live' ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.accent.info, 0.1),
-                border: `1px solid ${status === 'live' ? alpha(COLORS.accent.success, 0.3) : alpha(COLORS.accent.info, 0.3)}`,
-                '& .MuiAlert-icon': {
-                  color: status === 'live' ? COLORS.accent.success : COLORS.accent.info,
-                },
-                '& .MuiAlert-message': {
-                  color: COLORS.text.strong,
-                  fontWeight: 500,
-                }
-              }}
-            >
-              {status === 'draft' && 'Draft mode: Your wedding is private. Only you can see it while editing.'}
-              {status === 'live' && 'Your wedding website is now live and accessible to all guests with their unique PIN codes!'}
-            </Alert>
+            {status === 'live' ? (
+              <SuccessAlert>
+                Your wedding website is now live and accessible to all guests with their unique PIN codes!
+              </SuccessAlert>
+            ) : (
+              <InfoAlert>
+                Draft mode: Your wedding is private. Only you can see it while editing.
+              </InfoAlert>
+            )}
 
             {/* Action Buttons */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -299,95 +277,61 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
                 {status === 'live' ? 'Deactivate Website' : 'Publish Website'}
               </PrimaryActionButton>
 
-              <Button
-                variant="outlined"
+              <SecondaryActionButton
                 onClick={() => handleUpdateStatus(status === 'live' ? 'draft' : 'live')}
                 disabled={updatingStatus}
-                sx={{
-                  borderColor: COLORS.text.subtle,
-                  color: COLORS.text.subtle,
-                  py: 1.5,
-                  px: 4,
-                  borderRadius: RADII.md,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderColor: COLORS.text.muted,
-                    bgcolor: alpha(COLORS.text.subtle, 0.05),
-                    borderWidth: 2,
-                  },
-                }}
+                sx={{ py: 1.5, px: 4 }}
               >
                 Switch to {status === 'live' ? 'Draft' : 'Live'}
-              </Button>
+              </SecondaryActionButton>
             </Stack>
           </Stack>
-        </Paper>
+        </PheraCard>
 
         {/* Website Links Section */}
-        <Paper sx={{
-          p: 4,
-          borderRadius: RADII.lg,
-          bgcolor: COLORS.bg.muted,
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          }
-        }}>
+        <PheraCard variant="muted" sx={{ p: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: COLORS.text.strong }}>
             Website Links
           </Typography>
 
           <Stack spacing={3}>
-            {/* Main Wedding URL */}
             <Box>
               <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1.5 }}>
                 Your Wedding URL
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'stretch' }}>
-                <TextField
+                <PheraTextField
                   fullWidth
                   value={weddingUrl}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  sx={{
-                    ...textFieldSx,
-                    '& .MuiOutlinedInput-root': {
-                      ...textFieldSx['& .MuiOutlinedInput-root'],
-                      bgcolor: COLORS.bg.white,
-                    }
-                  }}
+                  InputProps={{ readOnly: true }}
                 />
                 <IconButton
                   onClick={() => copyToClipboard(weddingUrl)}
                   sx={{
                     bgcolor: alpha(COLORS.brand.primary, 0.1),
                     color: COLORS.brand.primary,
-                    '&:hover': {
-                      bgcolor: alpha(COLORS.brand.primary, 0.2),
-                    },
+                    '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) },
                   }}
                 >
                   <ContentCopy />
                 </IconButton>
                 <Button
-                  variant="outlined"
-                  startIcon={<Launch />}
+                  component="a"
                   href={weddingUrl}
                   target="_blank"
+                  rel="noopener noreferrer"
+                  variant="outlined"
+                  startIcon={<Launch />}
                   sx={{
-                    borderColor: COLORS.brand.primary,
-                    color: COLORS.brand.primary,
+                    borderColor: COLORS.text.strong,
+                    color: COLORS.text.strong,
                     borderRadius: RADII.md,
                     textTransform: 'none',
                     fontWeight: 600,
                     px: 3,
                     '&:hover': {
-                      borderColor: COLORS.brand.primaryHover,
-                      bgcolor: 'rgba(222, 63, 94, 0.05)',
+                      borderColor: COLORS.text.strong,
+                      bgcolor: alpha(COLORS.text.strong, 0.04),
                     },
                   }}
                 >
@@ -396,19 +340,10 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
               </Stack>
             </Box>
           </Stack>
-        </Paper>
-
+        </PheraCard>
 
         {/* Integrations (Optional) */}
-        <Paper sx={{
-          p: 4,
-          borderRadius: RADII.lg,
-          bgcolor: COLORS.bg.muted,
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          }
-        }}>
+        <PheraCard variant="muted" sx={{ p: 4 }}>
           <Stack spacing={3}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
@@ -420,51 +355,29 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
             </Box>
 
             <Stack spacing={3}>
-              <TextField
+              <PheraTextField
                 label="WhatsApp Group Link"
                 fullWidth
                 value={whatsappLink}
                 onChange={(e) => setWhatsappLink(e.target.value)}
                 placeholder="https://chat.whatsapp.com/..."
                 helperText="Share a WhatsApp group link with your guests"
-                sx={{
-                  ...textFieldSx,
-                  '& .MuiOutlinedInput-root': {
-                    ...textFieldSx['& .MuiOutlinedInput-root'],
-                    bgcolor: COLORS.bg.white,
-                  }
-                }}
               />
 
-              <TextField
+              <PheraTextField
                 label="Google Sheets ID"
                 fullWidth
                 value={googleSheetsId}
                 onChange={(e) => setGoogleSheetsId(e.target.value)}
                 placeholder="1ABC..."
                 helperText="For syncing RSVP data with Google Sheets"
-                sx={{
-                  ...textFieldSx,
-                  '& .MuiOutlinedInput-root': {
-                    ...textFieldSx['& .MuiOutlinedInput-root'],
-                    bgcolor: COLORS.bg.white,
-                  }
-                }}
               />
             </Stack>
           </Stack>
-        </Paper>
+        </PheraCard>
 
         {/* Pre-Publish Checklist */}
-        <Paper sx={{
-          p: 4,
-          borderRadius: RADII.lg,
-          bgcolor: COLORS.bg.muted,
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          }
-        }}>
+        <PheraCard variant="muted" sx={{ p: 4 }}>
           <Stack spacing={3}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
@@ -534,7 +447,7 @@ export default function SettingsPage({ params }: { params: Promise<{ weddingSlug
               </ListItem>
             </List>
           </Stack>
-        </Paper>
+        </PheraCard>
       </Stack>
 
       <ConfirmDialog
