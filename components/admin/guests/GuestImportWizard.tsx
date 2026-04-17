@@ -237,7 +237,7 @@ export default function GuestImportWizard({
       const res = await fetch('/api/guests/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wedding_id: weddingId, guests: guestsToImport }),
+        body: JSON.stringify({ wedding_id: weddingSlug, guests: guestsToImport }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
