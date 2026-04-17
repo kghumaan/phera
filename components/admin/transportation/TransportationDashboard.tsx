@@ -15,12 +15,11 @@ import {
   IconButton,
   alpha,
   CircularProgress,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
 } from '@mui/material';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { PrimaryActionButton, SecondaryActionButton, ActionButton } from '@/components/admin/ActionButton';
@@ -491,8 +490,10 @@ export default function TransportationDashboard({
       </Paper>
 
       {/* Confirm Dialog */}
-      <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-        <DialogTitle>Finalize Bookings?</DialogTitle>
+      <PheraDialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+        <PheraDialogTitle onClose={() => setConfirmDialogOpen(false)}>
+          Finalize Bookings?
+        </PheraDialogTitle>
         <DialogContent>
           <Typography variant="body2">
             This will confirm {totalPendingCount} reservation(s). Guests will be notified that their
@@ -511,7 +512,7 @@ export default function TransportationDashboard({
             Confirm & Notify
           </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Stack>
   );
 }

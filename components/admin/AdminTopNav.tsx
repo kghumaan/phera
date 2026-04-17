@@ -17,8 +17,6 @@ import {
     ListItemIcon,
     ListItemText,
         Chip,
-    Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
 } from '@mui/material';
@@ -47,6 +45,7 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import AutoSaveIndicator from './AutoSaveIndicator';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PheraSwitch } from '@/components/shared/Switch';
 
 interface AdminTopNavProps {
@@ -501,26 +500,17 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 open={upgradeModalOpen}
                 onClose={() => setUpgradeModalOpen(false)}
             />
-            <Dialog
+            <PheraDialog
                 open={homeModalOpen}
                 onClose={() => setHomeModalOpen(false)}
-                PaperProps={{
-                    sx: {
-                        borderRadius: RADII.dialog,
-                        p: { xs: 2, md: 3 },
-                        textAlign: 'center',
-                        maxWidth: '400px'
-                    }
-                }}
+                PaperProps={{ sx: { p: { xs: 2, md: 3 }, textAlign: 'center', maxWidth: '400px' } }}
             >
-                <DialogTitle sx={{
-                    fontWeight: 600,
-                    fontSize: '1.8rem',
-                    color: COLORS.text.strong,
-                    pb: 1
-                }}>
+                <PheraDialogTitle
+                    onClose={() => setHomeModalOpen(false)}
+                    sx={{ justifyContent: 'center', pb: 1 }}
+                >
                     Leave Admin Dashboard?
-                </DialogTitle>
+                </PheraDialogTitle>
                 <DialogContent>
                     <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
                         You are about to be taken to the Home page. Any unsaved data may be lost.
@@ -566,24 +556,20 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         Cancel
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </PheraDialog>
 
             {/* Sign Out confirmation */}
-            <Dialog
+            <PheraDialog
                 open={signOutModalOpen}
                 onClose={() => setSignOutModalOpen(false)}
-                PaperProps={{
-                    sx: {
-                        borderRadius: RADII.dialog,
-                        p: { xs: 2, md: 3 },
-                        textAlign: 'center',
-                        maxWidth: '400px'
-                    }
-                }}
+                PaperProps={{ sx: { p: { xs: 2, md: 3 }, textAlign: 'center', maxWidth: '400px' } }}
             >
-                <DialogTitle sx={{ fontWeight: 600, fontSize: '1.8rem', color: COLORS.text.strong, pb: 1 }}>
+                <PheraDialogTitle
+                    onClose={() => setSignOutModalOpen(false)}
+                    sx={{ justifyContent: 'center', pb: 1 }}
+                >
                     Sign Out?
-                </DialogTitle>
+                </PheraDialogTitle>
                 <DialogContent>
                     <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
                         You will be signed out and taken to the home page.
@@ -618,7 +604,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         Cancel
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </PheraDialog>
         </AppBar>
     );
 }
