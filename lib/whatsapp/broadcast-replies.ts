@@ -28,19 +28,35 @@ function fieldExpectsMedia(field: { key: string; label: string; type: string }):
   return /image|photo|picture|passport|doc|scan|id|visa|ticket|upload/.test(hint);
 }
 
+export interface BroadcastAttribution {
+  matched: boolean;
+  collectsData: boolean;
+  /** Labels for fields newly filled by this inbound message. */
+  filledLabels: string[];
+  /** Labels for fields still unfilled on the broadcast recipient row. */
+  missingLabels: string[];
+}
+
+const NO_MATCH: BroadcastAttribution = {
+  matched: false,
+  collectsData: false,
+  filledLabels: [],
+  missingLabels: [],
+};
+
 export async function recordBroadcastReplyForGuest(
   guestId: string,
   replyText: string,
   context?: ReplyContext,
-): Promise<void> {
+): Promise<BroadcastAttribution> {
   const trimmed = (replyText || '').trim();
   const mediaUrl = context?.mediaUrl ?? null;
   const mediaType = context?.mediaType ?? null;
-  if (!trimmed && !mediaUrl) return;
+  if (!trimmed && !mediaUrl) return NO_MATCH;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return;
+  if (!url || !serviceKey) return NO_MATCH;
 
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
 
@@ -57,7 +73,7 @@ export async function recordBroadcastReplyForGuest(
     .order('created_at', { ascending: false })
     .limit(1);
 
-  if (error || !data || !data.length) return;
+  if (error || !data || !data.length) return NO_MATCH;
 
   const row: any = data[0];
   const collectsData: boolean = row.concierge_broadcasts?.collects_data ?? false;
@@ -65,7 +81,8 @@ export async function recordBroadcastReplyForGuest(
     row.concierge_broadcasts?.data_schema ?? [];
 
   // Start from whatever we already collected for this broadcast recipient.
-  const merged: Record<string, any> = { ...(row.collected_data || {}) };
+  const before: Record<string, any> = { ...(row.collected_data || {}) };
+  const merged: Record<string, any> = { ...before };
 
   // 1) Media → fill any still-empty schema field that expects media.
   if (mediaUrl && collectsData && schema.length > 0) {
@@ -127,4 +144,20 @@ export async function recordBroadcastReplyForGuest(
     .from('concierge_broadcast_recipients')
     .update(update)
     .eq('id', row.id);
+
+  const filledLabels: string[] = [];
+  const missingLabels: string[] = [];
+  for (const f of schema) {
+    const wasEmpty = before[f.key] == null || before[f.key] === '';
+    const isNowFilled = merged[f.key] != null && merged[f.key] !== '';
+    if (wasEmpty && isNowFilled) filledLabels.push(f.label);
+    if (!isNowFilled) missingLabels.push(f.label);
+  }
+
+  return {
+    matched: true,
+    collectsData,
+    filledLabels,
+    missingLabels,
+  };
 }

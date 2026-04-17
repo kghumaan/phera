@@ -283,16 +283,56 @@ async function tryConciergeFlow(
     const guestName = guest.name?.split(' ')[0] || 'Guest';
     console.log(`[concierge] Message from ${guest.name} (${senderPhone}): ${content.slice(0, 80)}`);
 
-    // If the guest has a pending broadcast awaiting reply, attribute this
-    // message to that broadcast (reply text + optional structured data).
-    // Non-blocking: AI flow still runs below.
+    // Attribute this inbound to a pending broadcast (if any). The
+    // attribution result drives whether we short-circuit the AI reply
+    // and use a data-aware acknowledgment instead.
+    let attribution = null as Awaited<ReturnType<typeof recordBroadcastReplyForGuest>> | null;
     try {
-      await recordBroadcastReplyForGuest(guest.id, content, {
+      attribution = await recordBroadcastReplyForGuest(guest.id, content, {
         mediaUrl: media?.mediaUrl ?? null,
         mediaType: media?.mediaType ?? null,
       });
     } catch (err) {
       console.error('[concierge] broadcast reply record error:', err);
+    }
+
+    // Broadcast short-circuit — the guest is replying to a data-collection
+    // prompt. We already saved what we can; skip the generic AI reply
+    // (which would hallucinate about the image or duplicate responses) and
+    // send a purpose-built acknowledgment instead.
+    if (attribution?.matched && attribution.collectsData) {
+      const { filledLabels, missingLabels } = attribution;
+      let ack: string;
+      if (filledLabels.length === 0) {
+        ack = `Thanks ${guestName} — I've saved that. Let me know if you meant to send something else.`;
+      } else if (missingLabels.length === 0) {
+        ack = `Got it ${guestName}! I've saved your ${filledLabels.join(' and ')}. All set — thank you.`;
+      } else {
+        ack = `Got it — saved your ${filledLabels.join(' and ')}. Still waiting on: ${missingLabels.join(', ')}.`;
+      }
+      await whapiSend(senderPhone, ack);
+      console.log(`[concierge] Broadcast ack to ${guestName}: ${ack.slice(0, 120)}`);
+      return true;
+    }
+
+    // Debounce: if the guest is in the middle of sending a burst of short
+    // messages, wait ~2.5s and check if a newer inbound arrived. If so,
+    // skip this reply — the later webhook invocation will generate a
+    // fresher one that reflects the full context.
+    const msgTimestamp = new Date(
+      msg.timestamp ? msg.timestamp * 1000 : Date.now(),
+    ).toISOString();
+    await new Promise((r) => setTimeout(r, 2500));
+    const { data: newerInbound } = await supabase
+      .from('whatsapp_chat_history')
+      .select('id, created_at')
+      .eq('guest_id', guest.id)
+      .eq('role', 'user')
+      .gt('created_at', msgTimestamp)
+      .limit(1);
+    if (newerInbound && newerInbound.length > 0) {
+      console.log(`[concierge] Debounce — newer inbound from ${guestName}, skipping reply for this one`);
+      return true;
     }
 
     // Note: generateAIResponse logs both the inbound user message and the

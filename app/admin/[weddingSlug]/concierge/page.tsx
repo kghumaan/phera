@@ -65,6 +65,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null);
   const [enabling, setEnabling] = useState(false);
+  const [generatingKB, setGeneratingKB] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [phoneCopied, setPhoneCopied] = useState(false);
   const [conciergePhone, setConciergePhone] = useState('');
@@ -149,6 +150,22 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
           });
       }
       setConciergeEnabled(true);
+
+      // Seed the Knowledge Bank from the wedding's venue + dates so the
+      // agent has useful context the moment Concierge turns on. Best-effort
+      // — users can regenerate later from the KB tab.
+      setGeneratingKB(true);
+      try {
+        await fetch('/api/concierge/knowledge/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weddingId }),
+        });
+      } catch (err) {
+        console.error('Auto KB generation failed:', err);
+      } finally {
+        setGeneratingKB(false);
+      }
     } finally {
       setEnabling(false);
     }
@@ -163,6 +180,25 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       return (
         <Box sx={{ maxWidth: 1000, display: 'flex', justifyContent: 'center', p: 8 }}>
           <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
+        </Box>
+      );
+    }
+
+    // Seeding the Knowledge Bank right after enable — show a dedicated
+    // status screen so users know what's happening before the dashboard
+    // renders with populated entries.
+    if (generatingKB) {
+      return (
+        <Box sx={{ maxWidth: 1000 }}>
+          <Stack spacing={3} alignItems="center" sx={{ py: 10, px: 3 }}>
+            <CircularProgress size={44} sx={{ color: COLORS.brand.primary }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, textAlign: 'center' }}>
+              Building your Concierge&apos;s knowledge bank
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, textAlign: 'center', maxWidth: 460, lineHeight: 1.65 }}>
+              Generating venue details, event timing, and local guides for your wedding — so the agent has context from the moment your first guest messages in. Takes about 20 seconds.
+            </Typography>
+          </Stack>
         </Box>
       );
     }

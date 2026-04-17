@@ -369,7 +369,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
     <Stack spacing={2}>
       {/* Description */}
       <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.6 }}>
-        Your concierge AI already knows how to answer most questions using your wedding details. Add specific information here that you want to prioritize — local recommendations, insider tips, or anything unique your guests should know. This knowledge will be used first when answering guest questions.
+        Supplementary data for the Concierge — local tips, insider info, and anything beyond your wedding details. Prioritized over the AI&apos;s defaults.
       </Typography>
 
       {/* Action buttons row + Add form */}

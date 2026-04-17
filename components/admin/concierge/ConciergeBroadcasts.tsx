@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -63,12 +63,6 @@ export default function ConciergeBroadcasts({
     load();
   }, [load]);
 
-  const stats = useMemo(() => {
-    const totalSent = broadcasts.reduce((s, b) => s + b.sent_count, 0);
-    const totalReplies = broadcasts.reduce((s, b) => s + b.replied_count, 0);
-    const totalRecipients = broadcasts.reduce((s, b) => s + b.recipient_count, 0);
-    return { totalSent, totalReplies, totalRecipients, count: broadcasts.length };
-  }, [broadcasts]);
 
   return (
     <Stack spacing={3}>

@@ -32,8 +32,6 @@ import TransportationSetupWizard from '@/components/admin/transportation/Transpo
 import TransportationDashboard from '@/components/admin/transportation/TransportationDashboard';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import EarlyBetaGate from '@/components/admin/EarlyBetaGate';
-import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
@@ -50,25 +48,11 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   const { isPro } = usePlan();
   const { isViewOnly } = useAdminRole();
   const { user } = useAuth();
-  const isBetaUser = checkBetaAccess(user?.email);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [settings, setSettings] = useState<TransportationSettings | null>(null);
   const [wizardStep, setWizardStep] = useState<WizardStep>('initial');
-
-  // Early beta gate: non-beta users (including demo) see the request screen.
-  if (!isBetaUser) {
-    return (
-      <EarlyBetaGate
-        featureName="Transportation"
-        description="Airport shuttles, venue transfers, and pickup coordination for every guest."
-        when={true}
-      >
-        <></>
-      </EarlyBetaGate>
-    );
-  }
 
   useEffect(() => {
     loadData();

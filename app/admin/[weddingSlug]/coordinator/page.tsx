@@ -54,7 +54,6 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { InfoOutlined } from '@mui/icons-material';
 import { isDemoUser, DEMO_VENDORS, DEMO_COORDINATOR_PHONE, DEMO_COORDINATOR_TOOLTIP, DEMO_BUTTON_TOOLTIPS } from '@/lib/demo/coordinator-mock-data';
-import { isBetaUser as checkBetaAccess } from '@/lib/utils/beta-access';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
@@ -155,12 +154,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Beta access check
-  const isBetaUser = checkBetaAccess(user?.email);
   const isDemo = isDemoUser();
-
-  // Early access request state
-  const [betaRequestStatus, setBetaRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
 
   // Testing toggle
   const isSuperAdmin = user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'simran@simmetrystudios.com';
@@ -220,57 +214,6 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     fetchCoordinatorInfo();
   }, [isPro]);
 
-  // Check for existing beta request
-  useEffect(() => {
-    if (isDemo) return;
-    if (isPro && !isBetaUser && user?.email) {
-      const checkExistingRequest = async () => {
-        const hasRequestedLocal = localStorage.getItem(`phera_coordinator_requested_${user.email.toLowerCase()}`);
-        if (hasRequestedLocal === 'true') {
-          setBetaRequestStatus('success');
-          return;
-        }
-        setBetaRequestStatus('checking');
-        try {
-          const { data, error } = await (supabase as any)
-            .from('contact_submissions')
-            .select('id')
-            .eq('email', user.email.toLowerCase())
-            .eq('message', 'Phera Coordinator: Early Preview Setup Request')
-            .limit(1);
-          if (error) { setBetaRequestStatus('idle'); return; }
-          if (data && data.length > 0) {
-            setBetaRequestStatus('success');
-            localStorage.setItem(`phera_coordinator_requested_${user.email.toLowerCase()}`, 'true');
-          } else {
-            setBetaRequestStatus('idle');
-          }
-        } catch {
-          setBetaRequestStatus('idle');
-        }
-      };
-      checkExistingRequest();
-    }
-  }, [isPro, isBetaUser, user?.email]);
-
-  const handleRequestBetaAccess = async () => {
-    if (isViewOnly || !user?.email) return;
-    setBetaRequestStatus('submitting');
-    try {
-      const { error } = await (supabase as any)
-        .from('contact_submissions')
-        .insert([{
-          name: user.name || 'Admin',
-          email: user.email.toLowerCase(),
-          message: 'Phera Coordinator: Early Preview Setup Request'
-        }]);
-      if (error) throw error;
-      localStorage.setItem(`phera_coordinator_requested_${user.email.toLowerCase()}`, 'true');
-      setBetaRequestStatus('success');
-    } catch {
-      setBetaRequestStatus('error');
-    }
-  };
 
   // Delete vendor
   const handleDeleteVendor = async () => {
@@ -636,110 +579,6 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
     );
   }
 
-  // ─── STATE A.5: Pro user, NOT in beta ────────────────────────────────
-  // Demo bypass removed so the beta gate fires for everyone except the
-  // explicit allowlist. Demo weddings no longer skip the gate.
-  if (isPro && !isBetaUser) {
-    return (
-      <Box sx={{ maxWidth: 1000 }}>
-        <Stack spacing={4}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              Coordinator
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-              Track vendor conversations, get AI-powered insights, and manage all your wedding vendors in one place
-            </Typography>
-          </Box>
-
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 4, md: 8 },
-              borderRadius: '32px',
-              bgcolor: COLORS.bg.white,
-              border: '1px solid rgba(0, 0, 0, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-            }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: RADII.xl,
-                bgcolor: '#DE3F5E10',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 3,
-              }}
-            >
-              <InfoOutlined sx={{ fontSize: 32, color: COLORS.brand.primary }} />
-            </Box>
-
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: COLORS.text.strong }}>
-              Early Preview Mode
-            </Typography>
-
-            <Typography variant="body2" sx={{ color: COLORS.text.muted, maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
-              Phera Coordinator is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your vendors.
-            </Typography>
-
-            {betaRequestStatus === 'checking' ? (
-              <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
-            ) : betaRequestStatus === 'success' ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  p: 3,
-                  bgcolor: '#F1F8E9',
-                  borderRadius: RADII.lg,
-                  border: '1px solid #C5E1A5',
-                }}
-              >
-                <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
-                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600, textAlign: 'center' }}>
-                  Request confirmed! We'll reach out soon to get you set up. In the meantime, feel free to explore our other services.
-                </Typography>
-              </Box>
-            ) : (
-              <Stack spacing={2} alignItems="center">
-                <PrimaryActionButton
-                  loading={betaRequestStatus === 'submitting'}
-                  onClick={handleRequestBetaAccess}
-                  sx={{
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: RADII.md,
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
-                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' },
-                  }}
-                >
-                  Request Early Access
-                </PrimaryActionButton>
-                {betaRequestStatus === 'error' && (
-                  <Typography variant="caption" sx={{ color: COLORS.accent.danger }}>
-                    Something went wrong. Please try again or contact support.
-                  </Typography>
-                )}
-              </Stack>
-            )}
-          </Paper>
-        </Stack>
-      </Box>
-    );
-  }
-
   // ─── Loading state ──────────────────────────────────────────────────
   if (loading) {
     return (
@@ -815,24 +654,30 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   </Typography>
                   {phoneConfigured ? (
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          px: 2,
-                          py: 1,
-                          bgcolor: COLORS.bg.subtle,
-                          borderRadius: 1,
-                          border: '1px solid rgba(0,0,0,0.07)',
-                        }}
+                      <Tooltip
+                        title="This is the WhatsApp number you add to your vendor group chats. Phera reads messages from this line and helps coordinate with vendors."
+                        arrow
                       >
-                        <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
-                        <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
-                          {coordinatorPhone}
-                        </Typography>
-                      </Paper>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            px: 2,
+                            py: 1,
+                            bgcolor: COLORS.bg.subtle,
+                            borderRadius: 1,
+                            border: '1px solid rgba(0,0,0,0.07)',
+                            cursor: 'help',
+                          }}
+                        >
+                          <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                          <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
+                            {coordinatorPhone}
+                          </Typography>
+                        </Paper>
+                      </Tooltip>
                       <IconButton
                         size="small"
                         onClick={handleCopyPhone}
@@ -894,6 +739,40 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
                     Open any vendor WhatsApp group chat, tap the group name at the top, select <strong>Add Participant</strong>, and add the Coordinator number. Phera will automatically start tracking messages and extracting insights.
                   </Typography>
+                  <Box
+                    sx={{
+                      mt: 1.25,
+                      p: 1.25,
+                      borderRadius: 1,
+                      bgcolor: alpha(COLORS.brand.primary, 0.05),
+                      border: `1px solid ${alpha(COLORS.brand.primary, 0.15)}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem', flex: 1, minWidth: 200 }}>
+                      Heads up — only <strong style={{ color: COLORS.text.strong }}>future messages</strong> get tracked. For the history,{' '}
+                    </Typography>
+                    <Button
+                      size="small"
+                      startIcon={<Upload sx={{ fontSize: 14 }} />}
+                      onClick={() => setImportDialogOpen(true)}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: RADII.md,
+                        color: COLORS.brand.primary,
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        minWidth: 0,
+                        px: 1,
+                        py: 0.25,
+                      }}
+                    >
+                      Import existing chat
+                    </Button>
+                  </Box>
                   <Button
                     size="small"
                     startIcon={discoveringGroups ? <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} /> : <Sync />}
@@ -1011,24 +890,30 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 </Typography>
                 {phoneConfigured && (
                   <>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        px: 2,
-                        py: 0.75,
-                        bgcolor: COLORS.bg.subtle,
-                        borderRadius: 1,
-                        border: '1px solid rgba(0,0,0,0.07)',
-                      }}
+                    <Tooltip
+                      title="This is the WhatsApp number you add to your vendor group chats. Phera reads messages from this line and helps coordinate with vendors."
+                      arrow
                     >
-                      <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
-                      <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
-                        {coordinatorPhone}
-                      </Typography>
-                    </Paper>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          px: 2,
+                          py: 0.75,
+                          bgcolor: COLORS.bg.subtle,
+                          borderRadius: 1,
+                          border: '1px solid rgba(0,0,0,0.07)',
+                          cursor: 'help',
+                        }}
+                      >
+                        <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                        <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
+                          {coordinatorPhone}
+                        </Typography>
+                      </Paper>
+                    </Tooltip>
                     <Tooltip title={isDemo ? DEMO_COORDINATOR_TOOLTIP : (phoneCopied ? 'Copied!' : 'Copy coordinator number')} arrow>
                       <IconButton
                         size="small"

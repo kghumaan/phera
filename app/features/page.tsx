@@ -146,7 +146,7 @@ const pricingTiers = [
     name: 'PHERA PREMIUM',
     price: '$599',
     priceSuffix: '/wedding',
-    description: 'Up to 400 guests',
+    description: '400+ guests',
     features: [
       'Everything in Base',
       'Vendor Coordinator Agent',
