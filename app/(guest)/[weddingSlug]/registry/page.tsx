@@ -8,8 +8,6 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -28,6 +26,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import type { WeddingRegistry } from '@/lib/supabase/wedding-service';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 export default function RegistryPage() {
   const params = useParams();
@@ -280,26 +279,17 @@ export default function RegistryPage() {
       </Container>
 
       {/* Confirmation Dialog */}
-      <Dialog
+      <PheraDialog
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: RADII.dialog,
-            bgcolor: COLORS.bg.white,
-            p: 2,
-          }
-        }}
+        PaperProps={{ sx: { p: 2 } }}
       >
-        <DialogTitle sx={{
-          fontWeight: 600,
-          fontSize: 24,
-          color: '#141414',
-          textAlign: 'center',
-          pt: 3,
-        }}>
+        <PheraDialogTitle
+          onClose={() => setConfirmDialogOpen(false)}
+          sx={{ justifyContent: 'center', pt: 3 }}
+        >
           Leaving Site
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent>
           <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
             <OpenInNew sx={{ fontSize: 48, color: wedding?.primary_color || COLORS.brand.primary }} />
@@ -358,7 +348,7 @@ export default function RegistryPage() {
             Continue
           </Button>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       {/* WhatsApp Channel Modal */}
       <WhatsAppChannelModal
