@@ -59,7 +59,7 @@ import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
 
@@ -336,17 +336,17 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               <Typography
                 variant="h1"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { md: '2.75rem', lg: '3.5rem' },
                   lineHeight: 1.1,
                   color: COLORS.text.strong,
                   mb: { md: 4, lg: 5 },
                   flexShrink: 0,
-                  whiteSpace: 'nowrap',
                 }}
               >
-                Everything you need,{' '}
+                Everything you need,
+                <br />
                 <Box component="span" sx={{ color: COLORS.brand.primary }}>
                   simplified
                 </Box>
@@ -378,9 +378,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         variant="h5"
                         sx={{
                           color: COLORS.text.strong,
-                          fontSize: { md: '2rem', lg: '2.5rem' },
+                          fontSize: { md: '1.5rem', lg: '1.875rem' },
                           fontWeight: 500,
-                          lineHeight: 1.15,
+                          lineHeight: 1.2,
                           mb: { md: 3, lg: 4 },
                         }}
                       >
@@ -669,7 +669,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           <Typography
             variant="h1"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               fontSize: '2.5rem',
               lineHeight: 1.15,
@@ -1131,7 +1131,7 @@ function LandingPageContent() {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     fontSize: { xs: '2.6rem', md: '4rem', lg: '4.75rem' },
                     lineHeight: 1.05,
                     letterSpacing: '-0.02em',
@@ -1273,7 +1273,7 @@ function LandingPageContent() {
                     <Typography
                       variant="h2"
                       sx={{
-                        fontFamily: 'var(--font-instrument-serif)',
+                        fontFamily: FONTS.display,
                         fontStyle: 'italic',
                         // fontSize: { xs: '2rem', md: '3rem', lg: '4rem' },
                         lineHeight: 1.1,
@@ -1385,7 +1385,7 @@ function LandingPageContent() {
                   <Typography
                     variant="h2"
                     sx={{
-                      fontFamily: 'var(--font-instrument-serif)',
+                      fontFamily: FONTS.display,
                       fontStyle: 'italic',
                       lineHeight: 1.1,
                       color: COLORS.text.strong,
@@ -1526,7 +1526,7 @@ function LandingPageContent() {
                 variant="h2"
                 align="center"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
                   color: COLORS.text.strong,
@@ -1639,7 +1639,7 @@ function LandingPageContent() {
             top: { xs: 8, md: 12 },
             right: { xs: 12, md: 16 },
             fontSize: { xs: '1.5rem', md: '2rem' },
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             color: alpha('#DE3F5E', 0.2),
             transition: 'all 0.3s ease',
@@ -1669,7 +1669,7 @@ function LandingPageContent() {
           {item.icon}
         </Box>
 
-        <Typography variant="h5" sx={{ mb: { xs: 1, md: 2 }, fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', zIndex: 1, color: COLORS.text.strong, fontSize: { xs: '1rem', md: '1.5rem' } }}>
+        <Typography variant="h5" sx={{ mb: { xs: 1, md: 2 }, fontFamily: FONTS.display, fontStyle: 'italic', zIndex: 1, color: COLORS.text.strong, fontSize: { xs: '1rem', md: '1.5rem' } }}>
           {item.title}
         </Typography>
 
@@ -1719,7 +1719,7 @@ function LandingPageContent() {
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { xs: '1.5rem', md: '3rem' },
                   color: COLORS.text.strong,
@@ -1927,7 +1927,7 @@ function LandingPageContent() {
                   </Typography>
                   <Typography
                     sx={{
-                      fontFamily: 'var(--font-instrument-serif)',
+                      fontFamily: FONTS.display,
                       fontStyle: 'italic',
                       fontSize: { xs: '1.5rem', md: '2rem' },
                       color: COLORS.text.strong,
@@ -2006,7 +2006,7 @@ function LandingPageContent() {
             <Typography
               variant="h2"
               align="center"
-              sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3rem' }, color: COLORS.text.strong }}
+              sx={{ fontFamily: FONTS.display, fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3rem' }, color: COLORS.text.strong }}
             >
               Common Questions
             </Typography>

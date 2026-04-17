@@ -18,7 +18,7 @@ import { WhatsApp, ArrowBack, Send, InfoOutlined, CheckCircle } from '@mui/icons
 import { useState } from 'react';
 import Link from 'next/link';
 import AppHeader from '@/components/shared/AppHeader';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 export default function WhatsAppTestPage() {
@@ -95,7 +95,7 @@ export default function WhatsAppTestPage() {
           
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
             <WhatsApp sx={{ color: '#000', fontSize: 32 }} />
-            <Typography variant="h4" sx={{ fontWeight: 400, fontStyle: 'italic', fontFamily: 'var(--font-instrument-serif)', color: '#000' }}>
+            <Typography variant="h4" sx={{ fontWeight: 400, fontStyle: 'italic', fontFamily: FONTS.display, color: '#000' }}>
               WhatsApp Integration Test
             </Typography>
           </Stack>

@@ -17,7 +17,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function NewWeddingPage() {
   const router = useRouter();
@@ -204,7 +204,7 @@ export default function NewWeddingPage() {
                 <Typography
                   variant="h3"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     mb: 1,
                     fontSize: { xs: '2rem', sm: '2.5rem' },
                     color: COLORS.text.strong,

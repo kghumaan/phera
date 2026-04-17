@@ -20,7 +20,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Send } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import AppFooter from '@/components/shared/AppFooter';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -88,7 +88,7 @@ export default function ContactPage() {
                 <Typography
                   variant="h2"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     fontStyle: 'italic',
                     fontSize: { xs: '2.5rem', md: '3.5rem' },
                     color: COLORS.text.strong,

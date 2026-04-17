@@ -6,6 +6,7 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { BACKGROUNDS } from '@/lib/constants/images';
 import { getAllPosts } from '@/lib/blog';
 import AppFooter from '@/components/shared/AppFooter';
+import { FONTS } from '@/lib/theme/tokens';
 
 export const metadata: Metadata = {
   title: 'Indian Wedding Planning Blog | Phera',
@@ -44,7 +45,7 @@ export default function BlogIndexPage() {
             <Typography
               variant="h1"
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontStyle: 'italic',
                 fontSize: { xs: '2.25rem', md: '3rem' },
                 color: '#1a1a1a',
@@ -129,7 +130,7 @@ export default function BlogIndexPage() {
                     ) : (
                       <Typography
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
+                          fontFamily: FONTS.display,
                           fontStyle: 'italic',
                           fontSize: '1.5rem',
                           color: '#DE3F5E',

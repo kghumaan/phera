@@ -96,7 +96,6 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 color: '#000000',
                 fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2.25rem', xl: '2.75rem' },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif',
               }}
             >
               {unit.value}
@@ -108,7 +107,6 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif',
                 textAlign: 'center',
               }}
             >

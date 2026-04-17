@@ -1,13 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import { extractBroadcastData } from './extract-broadcast-data';
 
 /**
  * When a guest replies to WhatsApp, check if they have a pending broadcast
  * recipient row and attribute the message to it.
  *
- * For broadcasts with `collects_data=true`, we store the raw reply under
- * `reply_text` for now. Structured data extraction (mapping free-form
- * reply → schema fields) is intentionally left as a follow-up — a
- * dedicated AI pass can parse reply_text against data_schema later.
+ * For broadcasts with `collects_data=true` and a non-empty data_schema,
+ * we run an AI extraction pass (Gemini Flash → DeepSeek fallback) that
+ * maps the raw reply into the schema's keys. Raw reply_text is always
+ * stored alongside for auditability.
  */
 export async function recordBroadcastReplyForGuest(guestId: string, replyText: string): Promise<void> {
   if (!replyText.trim()) return;
@@ -33,12 +34,19 @@ export async function recordBroadcastReplyForGuest(guestId: string, replyText: s
   const collectsData = row.concierge_broadcasts?.collects_data ?? false;
   const schema: Array<{ key: string; label: string; type: string }> = row.concierge_broadcasts?.data_schema ?? [];
 
-  // Naive extraction: when there is exactly one schema field, store the
-  // whole reply under that key. Otherwise leave collected_data null
-  // until a proper AI parser runs.
   let collected: Record<string, any> | null = null;
-  if (collectsData && schema.length === 1) {
-    collected = { [schema[0].key]: replyText.trim() };
+  if (collectsData && schema.length > 0) {
+    if (schema.length === 1) {
+      // Single-field schema → trivially map the whole reply to that key.
+      collected = { [schema[0].key]: replyText.trim() };
+    } else {
+      // Multi-field schema → run the AI extractor.
+      try {
+        collected = await extractBroadcastData(replyText.trim(), schema);
+      } catch (err) {
+        console.error('[broadcast-replies] extract failed:', err);
+      }
+    }
   }
 
   await supabase

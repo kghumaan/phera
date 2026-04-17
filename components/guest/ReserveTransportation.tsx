@@ -19,7 +19,7 @@ import {
   Tooltip,
   alpha,
 } from '@mui/material';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
 import {
   DirectionsBus,
@@ -307,7 +307,7 @@ export default function ReserveTransportation({
         <Typography
           variant="h3"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             color: COLORS.text.strong,
             mb: 2,
@@ -411,7 +411,7 @@ export default function ReserveTransportation({
         <Typography
           variant="h3"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             color: COLORS.text.strong,
             mb: 1,

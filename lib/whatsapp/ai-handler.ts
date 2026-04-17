@@ -662,8 +662,11 @@ function extractTextToolCalls(text: string): {
 } {
   const parsedCalls: Array<{ tool: string; params: Record<string, any> }> = [];
 
-  // Match <function(name){json}</function> or <function=name>{json}</function>
-  const pattern = /<function[=(]([a-z_]+)[)>]\s*(\{[^}]*\})\s*<\/function>/gi;
+  // Match multiple shapes the LLM might emit:
+  //   <function(name){json}</function>
+  //   <function=name>{json}</function>
+  //   <function/name{json}></function>   ← Groq LLaMA 3.3 variant
+  const pattern = /<function[=(/]([a-z_]+)[)>/]?\s*(\{[^}]*\})\s*(?:\/>|<\/function>)/gi;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
@@ -676,8 +679,11 @@ function extractTextToolCalls(text: string): {
     }
   }
 
-  // Strip all function tags from text
-  const cleanText = text.replace(/<function[=(][^>]*>[\s\S]*?<\/function>/gi, '').trim();
+  // Strip all function tags from text (all shapes above).
+  const cleanText = text
+    .replace(/<function[=(/][^>]*?\{[^}]*\}\s*(?:\/>|<\/function>)/gi, '')
+    .replace(/<\/?function[^>]*>/gi, '')
+    .trim();
 
   return { cleanText, parsedCalls };
 }

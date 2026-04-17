@@ -19,7 +19,7 @@ import { DirectionsBus, CheckCircle, WhatsApp, Add, Remove } from '@mui/icons-ma
 import { submitTravelSignup } from '@/lib/supabase/travel-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import Link from 'next/link';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import { ErrorAlert } from '@/components/shared/Alert';
 
 interface TravelFormData {
@@ -197,7 +197,6 @@ export default function TravelFormPage() {
               <Typography
                 variant="h4"
                 sx={{
-                  fontFamily: 'Outfit',
                   mb: 2,
                   fontSize: { xs: '1.75rem', md: '2.125rem' },
                   color: COLORS.text.strong,
@@ -232,7 +231,6 @@ export default function TravelFormPage() {
                   <Typography
                     variant="h4"
                     sx={{
-                      fontFamily: 'Outfit',
                       mb: 1,
                       fontSize: { xs: '1.75rem', md: '2.125rem' },
                       color: COLORS.text.strong,

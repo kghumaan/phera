@@ -58,7 +58,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
 
@@ -330,7 +330,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               {/* Section Header - Big */}
               <Typography
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { md: '3rem', lg: '3.5rem' },
                   lineHeight: 1.1,
@@ -604,7 +604,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
         <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
           <Typography
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               fontSize: '2rem',
               lineHeight: 1.15,

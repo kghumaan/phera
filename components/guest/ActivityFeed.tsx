@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { getAttendees } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 interface ActivityItem {
   id: string;
@@ -190,7 +190,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           variant="h6"
           fontWeight={600}
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             color: '#800020'
           }}
         >

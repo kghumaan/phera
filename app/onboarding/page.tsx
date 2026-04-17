@@ -50,7 +50,7 @@ import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -731,7 +731,7 @@ export default function OnboardingPage() {
           sx={{
             color: COLORS.text.strong,
             fontWeight: 400,
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             letterSpacing: '0.02em'
           }}
@@ -933,7 +933,7 @@ export default function OnboardingPage() {
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 1, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
                         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
@@ -992,7 +992,7 @@ export default function OnboardingPage() {
                     {/* STEP 2: NAMES, VENUE, DATE (Moved from step 4) */}
                     {step === 2 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           {role === 'planner' ? 'Tell us about your business' : "Let's get your wedding set up"}
                         </Typography>
                         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
@@ -1215,7 +1215,7 @@ export default function OnboardingPage() {
                     {/* STEP 3: ONBOARDING GOALS — multi-select topics */}
                     {step === 3 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           What do you want to get done?
                         </Typography>
                         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>

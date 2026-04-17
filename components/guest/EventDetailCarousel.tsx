@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight, Close } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // Diamond indicators component — exported for reuse in admin preview
 export const DiamondIndicators = ({ total, current, activeColor = COLORS.brand.primary }: { total: number; current: number; activeColor?: string }) => (
@@ -189,7 +189,7 @@ export const SlideContent = ({
           <Typography
             variant="h2"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontWeight: 400,
               fontSize: { xs: 36, md: 48, lg: 56 },
               lineHeight: 1.2,
@@ -246,7 +246,7 @@ export const SlideContent = ({
         <Typography
           variant="h2"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontWeight: 400,
             fontSize: { xs: 32, md: 40, lg: 48 },
             lineHeight: 1.3,

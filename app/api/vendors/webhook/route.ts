@@ -4,6 +4,7 @@ import { whapiClient } from '@/lib/vendors/whapi-client';
 import { extractVendorInsights, saveInsights, generateCoordinatorReply } from '@/lib/vendors/ai-extractor';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
 import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
+import { recordBroadcastReplyForGuest } from '@/lib/whatsapp/broadcast-replies';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -258,6 +259,15 @@ async function tryConciergeFlow(senderPhone: string, content: string, msg: any):
     const guestName = guest.name?.split(' ')[0] || 'Guest';
     console.log(`[concierge] Message from ${guest.name} (${senderPhone}): ${content.slice(0, 80)}`);
 
+    // If the guest has a pending broadcast awaiting reply, attribute this
+    // message to that broadcast (reply text + optional structured data).
+    // Non-blocking: AI flow still runs below.
+    try {
+      await recordBroadcastReplyForGuest(guest.id, content);
+    } catch (err) {
+      console.error('[concierge] broadcast reply record error:', err);
+    }
+
     // Note: generateAIResponse logs both the inbound user message and the
     // outbound assistant reply to whatsapp_chat_history internally. We skip
     // webhook-side logging to avoid duplicate rows in the conversation view.
@@ -290,9 +300,15 @@ function sanitizeAIResponse(raw: string | null | undefined, guestName: string): 
   const trimmed = (raw || '').trim();
   const plain = trimmed.replace(/[\s*_\-•·—]+/g, '');
   const looksBroken = !trimmed || trimmed.length < 15 || plain.length < 5;
-  if (looksBroken) {
-    console.warn(`[concierge] Rejected AI response as broken/empty. raw="${trimmed.slice(0, 200)}"`);
-    return `Sorry ${guestName}, I couldn't pull that up right now. Could you rephrase your question or try again in a moment?`;
+
+  // Catch raw function-call syntax leaking into chat text. This happens when
+  // the fallback model (e.g. Groq) doesn't execute tools and instead emits
+  // <function/name{...}></function> tokens as plain text.
+  const hasFunctionTag = /<function\/?[\w_]+/i.test(trimmed) || /<\/function>/i.test(trimmed);
+
+  if (looksBroken || hasFunctionTag) {
+    console.warn(`[concierge] Rejected AI response (broken=${looksBroken}, fn_tag=${hasFunctionTag}). raw="${trimmed.slice(0, 200)}"`);
+    return `Got it, ${guestName} — noted. I've saved that on my end. Anything else?`;
   }
   return trimmed;
 }

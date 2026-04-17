@@ -29,7 +29,7 @@ import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import AdminTopNav from './AdminTopNav';
 import UpgradeModal from './UpgradeModal';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -208,7 +208,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           <Typography
             variant="h4"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               color: COLORS.text.strong,
               fontWeight: 700,
@@ -346,7 +346,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                       <Typography
                         variant="h6"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
+                          fontFamily: FONTS.display,
                           fontStyle: 'italic',
                           color: COLORS.text.strong,
                           fontWeight: 700,
@@ -428,7 +428,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         }}
       >
         <DialogTitle sx={{
-          fontFamily: 'var(--font-instrument-serif)',
+          fontFamily: FONTS.display,
           fontStyle: 'italic',
           fontWeight: 700,
           fontSize: '1.4rem',

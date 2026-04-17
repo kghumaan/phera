@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase/client';
 import AppHeader from '@/components/shared/AppHeader';
 import ReserveTransportation from '@/components/guest/ReserveTransportation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function TransportationPage() {
   const params = useParams();
@@ -87,7 +87,7 @@ export default function TransportationPage() {
         <Typography
           variant="h5"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             color: COLORS.text.strong,
             mb: 2,

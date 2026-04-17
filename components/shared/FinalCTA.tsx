@@ -3,7 +3,7 @@
 import { Box, Container, Typography, Stack, Button, Chip, Paper } from '@mui/material';
 import Link from 'next/link';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function FinalCTA() {
     return (
@@ -23,7 +23,7 @@ export default function FinalCTA() {
                 <Box sx={{ position: 'relative', zIndex: 2 }}>
                     <Typography
                         variant="h2"
-                        sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '1.5rem', md: '2.5rem' } }}
+                        sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '1.5rem', md: '2.5rem' } }}
                     >
                         300 guests. 3 days. Zero stress.
                     </Typography>

@@ -29,7 +29,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -167,7 +167,7 @@ export default function SignupPage() {
                 <Typography
                   variant="h4"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     fontWeight: 700,
                     mb: 1,
                     color: COLORS.text.strong,

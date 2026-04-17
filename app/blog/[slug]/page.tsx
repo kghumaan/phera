@@ -10,7 +10,7 @@ import MDXComponents from '@/components/blog/MDXComponents';
 import { getPostBySlug, getAllSlugs } from '@/lib/blog';
 import { notFound } from 'next/navigation';
 import AppFooter from '@/components/shared/AppFooter';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -103,7 +103,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <Typography
             variant="h1"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               fontSize: { xs: '2rem', md: '2.75rem' },
               color: COLORS.text.strong,
@@ -212,7 +212,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           >
             <Typography
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontStyle: 'italic',
                 fontSize: { xs: '1.5rem', md: '2rem' },
                 color: COLORS.text.strong,

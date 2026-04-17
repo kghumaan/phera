@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import AppHeader from '@/components/shared/AppHeader';
 import AppFooter from '@/components/shared/AppFooter';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { FONTS } from '@/lib/theme/tokens';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -42,7 +43,7 @@ export default function PrivacyPage() {
             <Typography
               variant="h2"
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontSize: { xs: '2.5rem', md: '3.5rem' },
                 color: '#1a1a1a',
                 mb: 2,

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { motion } from 'framer-motion';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function NotFound() {
   return (
@@ -51,7 +51,7 @@ export default function NotFound() {
             <Typography
               variant="h2"
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontSize: { xs: '3rem', md: '4.5rem' },
                 color: COLORS.text.strong,
                 mb: 1,
