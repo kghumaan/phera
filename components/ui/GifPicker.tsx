@@ -158,7 +158,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={handleKeyPress}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ color: '#808080', mr: 1, fontSize: '1.2rem' }} />,
+                startAdornment: <SearchIcon sx={{ color: COLORS.text.subtle, mr: 1, fontSize: '1.2rem' }} />,
                 endAdornment: searchTerm.trim() && (
                   <IconButton
                     size="small"

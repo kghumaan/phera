@@ -249,7 +249,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                                 border: '2px solid',
                                 borderColor: selectedTemplate === name ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.12),
                                 bgcolor: selectedTemplate === name ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.white,
-                                color: selectedTemplate === name ? COLORS.brand.primary : '#555',
+                                color: selectedTemplate === name ? COLORS.brand.primary : COLORS.text.muted,
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',

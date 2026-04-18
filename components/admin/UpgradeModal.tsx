@@ -156,7 +156,7 @@ export default function UpgradeModal({ open, onClose, tier = 'base', returnPath 
 
           {error && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body2" sx={{ color: '#c0392b', mb: 1 }}>{error}</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.accent.dangerText, mb: 1 }}>{error}</Typography>
               <Typography
                 component="span"
                 onClick={fetchClientSecret}

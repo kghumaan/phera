@@ -470,7 +470,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: viewMode === 'mobile' ? '#e5e5e5' : 'transparent',
+              bgcolor: viewMode === 'mobile' ? COLORS.border.default : 'transparent',
               overflow: 'auto',
             }}
           >

@@ -865,7 +865,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
             </>
           )}
 
-          <Box sx={{ p: 1.5, borderRadius: RADII.sm, bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
+          <Box sx={{ p: 1.5, borderRadius: RADII.sm, bgcolor: COLORS.bg.subtle, border: '1px solid rgba(0,0,0,0.07)' }}>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
               {generatePinSummary(pin, events)}
             </Typography>

@@ -27,7 +27,7 @@ const designSystemRules = {
   // Colors + radii must resolve through tokens.
   // Matches hex literals in JSX string attributes + sx object values.
   "no-restricted-syntax": [
-    "warn",
+    "error",
     {
       // Catches `color: '#DE3F5E'`, `bgcolor: "#1a1a1a"`, etc.
       selector:
@@ -134,6 +134,47 @@ const eslintConfig = [
       // to look pixel-perfect at mockup scale, so sub-14px text is fine.
       "components/ui/IPhoneMockup.tsx",
       "components/ui/MobileBrowserShell.tsx",
+      // Color/palette picker content — the hex values ARE the data. The
+      // user picks from a named set of wedding primary colors, event
+      // category tints, avatar swatches etc. Tokenizing would just
+      // re-define the same literals somewhere else.
+      "app/admin/**/design/page.tsx",
+      "app/admin/**/schedule/components/InlineMajorForm.tsx",
+      "app/admin/**/schedule/components/InlineMinorForm.tsx",
+      "app/admin/**/schedule/components/MajorEventCard.tsx",
+      "app/admin/**/schedule/components/MinorEventCard.tsx",
+      "app/admin/**/schedule/components/ExamplesSection.tsx",
+      "app/admin/**/schedule/components/DayCard.tsx",
+      "app/admin/**/schedule/components/MoreDetailsModal.tsx",
+      "app/admin/**/schedule/components/TimePicker.tsx",
+      "components/admin/build-ai/ChatLookFeelForm.tsx",
+      "components/admin/build-ai/ChatColorPicker.tsx",
+      "components/admin/build-ai/ChatBackgroundPicker.tsx",
+      "components/admin/GuestHierarchy.tsx",
+      "components/admin/EventBuilder.tsx",
+      "components/preview/ReadOnlyComments.tsx",
+      // WhatsApp UI mock — mirrors the real WhatsApp chat palette
+      // (bubble green, header teal, blue tick) by design. Tokenizing
+      // these would make it stop looking like WhatsApp.
+      "components/ui/WhatsAppConcierge.tsx",
+      "components/ui/PlaceholderCouple.tsx",
+      // Third-party brand marks — Google SVG logo fills etc. stay as
+      // their official brand hex.
+      "components/auth/LoginDialog.tsx",
+      "components/auth/LoginModal.tsx",
+      "components/guest/CustomRSVPForm.tsx",
+      // Semantic palette arrays — tier/category/avatar color tables
+      // whose entries ARE the data users see.
+      "app/admin/**/task-manager/page.tsx",
+      "app/admin/**/coordinator/**/page.tsx",
+      // Landing + marketing pages — separate agent owns these; they use
+      // custom hero palettes that are intentionally off-tokens.
+      "app/page.tsx",
+      "app/pricing/page.tsx",
+      "app/features/page.tsx",
+      "app/blog/**/*.{ts,tsx}",
+      "components/landing/**/*.{ts,tsx}",
+      "components/shared/FinalCTA.tsx",
     ],
     rules: {
       "no-restricted-syntax": "off",

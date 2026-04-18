@@ -753,7 +753,7 @@ export default function GuestList({
                         sx={{
                           width: 40,
                           height: 40,
-                          backgroundColor: comment.guest?.avatar_color || '#C4C4C4',
+                          backgroundColor: comment.guest?.avatar_color || COLORS.text.faint,
                           color: COLORS.text.inverse,
                           fontWeight: 600,
                           fontSize: '0.9rem',
@@ -973,7 +973,7 @@ export default function GuestList({
                   sx={{
                     width: 44,
                     height: 44,
-                    backgroundColor: guest.avatarColor || '#F0F0F0',
+                    backgroundColor: guest.avatarColor || COLORS.bg.muted,
                     color: COLORS.text.inverse,
                     fontWeight: 600,
                     fontSize: '16px',

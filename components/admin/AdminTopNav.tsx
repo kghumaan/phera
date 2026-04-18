@@ -338,7 +338,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
                                 {wedding?.couple_name || 'Your Wedding'}
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.muted, mt: 0.5, fontSize: '0.875rem' }}>
                                 {isDemo ? 'Demo Mode' : user?.email}
                             </Typography>
 
@@ -355,7 +355,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     fontSize: '0.875rem',
                                     cursor: isPro ? 'default' : 'pointer',
                                     '&:hover': {
-                                        bgcolor: isPro ? COLORS.brand.primary : '#e5e5e5',
+                                        bgcolor: isPro ? COLORS.brand.primary : COLORS.border.default,
                                     },
                                     '& .MuiChip-icon': {
                                         color: COLORS.text.inverse,

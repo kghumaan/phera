@@ -416,7 +416,7 @@ function KanbanColumn({
             </Box>
           </Paper>
         ) : (
-          <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: RADII.sm, cursor: 'pointer', color: COLORS.text.faint, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' } }}>
+          <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: RADII.sm, cursor: 'pointer', color: COLORS.text.faint, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: COLORS.text.muted } }}>
             <Add sx={{ fontSize: 16 }} />
             <Typography sx={{ fontSize: '0.875rem' }}>Add a task</Typography>
           </Box>

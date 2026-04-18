@@ -356,7 +356,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             fontSize: '16px',
                             fontWeight: 500,
                             '&:hover': {
-                                borderColor: '#B0B0B0',
+                                borderColor: COLORS.text.faint,
                                 backgroundColor: COLORS.bg.muted,
                             },
                         }}
@@ -549,7 +549,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     },
                     '&:disabled': {
                       backgroundColor: COLORS.border.default,
-                      color: '#A0A0A0',
+                      color: COLORS.text.faint,
                     },
                   }}
                 >
@@ -592,7 +592,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
-                        borderColor: '#666666',
+                        borderColor: COLORS.text.subtle,
                         backgroundColor: 'rgba(133, 133, 133, 0.04)',
                       },
                     }}

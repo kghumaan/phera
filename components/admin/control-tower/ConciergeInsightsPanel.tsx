@@ -61,7 +61,7 @@ export default function ConciergeInsightsPanel({ guestsReached, messagesHandled,
                 formatter={((value: number) => [`${value} guests`, '']) as any}
                 contentStyle={{ borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14 }}
               />
-              <Bar dataKey="value" fill="#DE3F5E" radius={[4, 4, 0, 0]} barSize={24} />
+              <Bar dataKey="value" fill={COLORS.brand.primary} radius={[4, 4, 0, 0]} barSize={24} />
             </BarChart>
           </ResponsiveContainer>
         </>

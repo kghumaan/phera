@@ -268,7 +268,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                     height: 22,
                     minWidth: 22,
                     flexShrink: 0,
-                    bgcolor: '#F3F3F3',
+                    bgcolor: COLORS.bg.muted,
                     color: COLORS.text.subtle,
                     fontWeight: 600,
                   }}

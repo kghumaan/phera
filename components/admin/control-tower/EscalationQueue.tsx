@@ -278,7 +278,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                               px: 1.25,
                               py: 0.75,
                               borderRadius: msg.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
-                              bgcolor: msg.role === 'user' ? '#DCF8C6' : COLORS.bg.white,
+                              bgcolor: msg.role === 'user' ? COLORS.accent.successBg : COLORS.bg.white,
                               border: msg.role === 'assistant' ? '1px solid rgba(0,0,0,0.07)' : 'none',
                             }}>
                               <Typography sx={{ fontSize: 14, color: COLORS.text.strong, whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>

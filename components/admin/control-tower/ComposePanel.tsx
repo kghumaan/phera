@@ -258,7 +258,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                       sx={{
                         height: 20, fontSize: 14, fontWeight: 600,
                         bgcolor: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningBg : COLORS.accent.infoBg,
-                        color: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningText : '#1565C0',
+                        color: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningText : COLORS.accent.info,
                       }}
                     />
                     <Chip

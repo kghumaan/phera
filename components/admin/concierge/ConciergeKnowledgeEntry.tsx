@@ -243,7 +243,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             <IconActionButton
               size="small"
               loading={deleting}
-              spinnerColor="#6a6a6a"
+              spinnerColor={COLORS.text.subtle}
               onClick={async (e) => {
                 e.stopPropagation();
                 setDeleting(true);

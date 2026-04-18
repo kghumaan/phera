@@ -209,7 +209,7 @@ export default function ControlTowerPage() {
             label="Days to Wedding"
             value={daysLeft !== null ? daysLeft : '—'}
             subtitle={weddingDate ? new Date(weddingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined}
-            color="#8b5cf6"
+            color={COLORS.side.both}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -218,7 +218,7 @@ export default function ControlTowerPage() {
             label="RSVPs Complete"
             value={rsvpPct}
             subtitle={`${summary.rsvp_breakdown.yes + summary.rsvp_breakdown.no + summary.rsvp_breakdown.maybe} of ${summary.total_guests} responded`}
-            color="#22c55e"
+            color={COLORS.accent.success}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -227,7 +227,7 @@ export default function ControlTowerPage() {
             label="Not Yet Reached by Concierge"
             value={summary.not_contacted}
             subtitle={summary.total_guests > 0 ? `${Math.round((summary.not_contacted / summary.total_guests) * 100)}% of guests pending first touch` : undefined}
-            color="#f59e0b"
+            color={COLORS.accent.warning}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -235,7 +235,7 @@ export default function ControlTowerPage() {
             icon={<SendIcon sx={{ fontSize: 20, color: COLORS.accent.info }} />}
             label="Sent This Week"
             value={summary.messages_sent_this_week}
-            color="#3b82f6"
+            color={COLORS.accent.info}
           />
         </Grid>
       </Grid>

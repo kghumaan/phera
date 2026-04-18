@@ -56,7 +56,7 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
                 px: 2,
                 py: 1.25,
                 borderRadius: RADII.md,
-                bgcolor: msg.role === 'assistant' ? '#DE3F5E10' : '#F3F3F3',
+                bgcolor: msg.role === 'assistant' ? COLORS.brand.primarySubtle : COLORS.bg.muted,
                 borderTopLeftRadius: msg.role === 'user' ? '4px' : '14px',
                 borderTopRightRadius: msg.role === 'assistant' ? '4px' : '14px',
               }}

@@ -187,7 +187,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
       >
         {checked && (
           <Box component="svg" viewBox="0 0 24 24" sx={{ width: 14, height: 14 }}>
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#1a1a1a" />
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill={COLORS.text.strong} />
           </Box>
         )}
       </Box>
@@ -401,8 +401,8 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                         label={wedding.status === 'live' ? 'Live' : 'Draft'}
                         size="small"
                         sx={{
-                          bgcolor: wedding.status === 'live' ? alpha('#4caf50', 0.1) : alpha(COLORS.text.strong, 0.05),
-                          color: wedding.status === 'live' ? '#2e7d32' : COLORS.text.faint,
+                          bgcolor: wedding.status === 'live' ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.text.strong, 0.05),
+                          color: wedding.status === 'live' ? COLORS.accent.successText : COLORS.text.faint,
                           fontWeight: 600,
                           fontSize: '0.875rem',
                         }}

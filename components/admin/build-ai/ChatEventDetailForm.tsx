@@ -318,7 +318,7 @@ export default function ChatEventDetailForm({ onSave, onCancel, initialData }: C
           <Box key={idx} sx={{
             p: 2,
             borderRadius: RADII.md,
-            bgcolor: '#f9f9f9',
+            bgcolor: COLORS.bg.muted,
             border: '1px solid',
             borderColor: alpha(COLORS.text.strong, 0.08),
           }}>

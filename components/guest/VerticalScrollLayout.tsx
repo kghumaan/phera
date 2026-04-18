@@ -813,7 +813,7 @@ export default function VerticalScrollLayout({
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#777',
+                        color: COLORS.text.subtle,
                         fontSize: '0.875rem',
                         textAlign: 'center',
                         lineHeight: 1.4,
@@ -907,7 +907,7 @@ export default function VerticalScrollLayout({
                                   top: 10,
                                   bottom: 10,
                                   width: '1px',
-                                  backgroundColor: '#E5E5E5',
+                                  backgroundColor: COLORS.border.default,
                                   zIndex: 0,
                                 }}
                               />
@@ -928,7 +928,7 @@ export default function VerticalScrollLayout({
                                           width: isMajor ? 12 : 8,
                                           height: isMajor ? 12 : 8,
                                           borderRadius: '50%',
-                                          backgroundColor: isMajor ? '#111' : '#D1D1D1',
+                                          backgroundColor: isMajor ? COLORS.text.strong : COLORS.text.faint,
                                           zIndex: 2,
                                         }}
                                       />
@@ -981,7 +981,7 @@ export default function VerticalScrollLayout({
                                           )}
                                           {!isMajor && event.location && (
                                             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
-                                              <StreamlineIcon name="map-pin" size={13} color="#888" />
+                                              <StreamlineIcon name="map-pin" size={13} color={COLORS.text.subtle} />
                                               <Typography variant="body3" sx={{ color: COLORS.text.faint, display: 'block' }}>
                                                 {event.location}
                                               </Typography>
@@ -1008,7 +1008,7 @@ export default function VerticalScrollLayout({
                                           {/* Major events: Time row */}
                                           {isMajor && event.time && (
                                             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
-                                              <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
+                                              <StreamlineIcon name="clock" size={14} color={COLORS.text.subtle} />
                                               <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                 {event.time}
                                               </Typography>
@@ -1020,7 +1020,7 @@ export default function VerticalScrollLayout({
                                             <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center" sx={{ mb: 1.5 }}>
                                               {event.location && (
                                                 <Stack direction="row" spacing={0.5} alignItems="center">
-                                                  <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                                                  <StreamlineIcon name="map-pin" size={14} color={COLORS.text.subtle} />
                                                   <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                     {event.location}
                                                   </Typography>
@@ -1028,7 +1028,7 @@ export default function VerticalScrollLayout({
                                               )}
                                               {event.dress_code && (
                                                 <Stack direction="row" spacing={0.5} alignItems="center">
-                                                  <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                                                  <StreamlineIcon name="hanger" size={14} color={COLORS.text.subtle} />
                                                   <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                     {event.dress_code}
                                                   </Typography>
@@ -1410,7 +1410,7 @@ export default function VerticalScrollLayout({
                                   {shop.details && (
                                     <Typography
                                       sx={{
-                                        color: '#444',
+                                        color: COLORS.text.muted,
                                         fontSize: '0.875rem',
                                         lineHeight: 1.5,
                                       }}
@@ -1652,7 +1652,7 @@ export default function VerticalScrollLayout({
                 zIndex: 70,
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: '#FAF6F1',
+                backgroundColor: COLORS.bg.muted,
                 backgroundImage: 'url(/images/backgrounds/pearl.webp)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -1785,7 +1785,7 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
 const DiamondSeparator = () => (
   <Box
     sx={{
-      color: '#D1B99F',
+      color: COLORS.text.faint,
       display: 'flex',
       justifyContent: 'center',
       my: 0.25,

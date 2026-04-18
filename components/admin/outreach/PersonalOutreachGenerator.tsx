@@ -98,7 +98,7 @@ export default function PersonalOutreachGenerator({
             borderRadius: RADII.md,
             textTransform: 'none',
             bgcolor: copied ? COLORS.accent.success : COLORS.brand.primary,
-            '&:hover': { bgcolor: copied ? '#45a049' : '#c13550' },
+            '&:hover': { bgcolor: copied ? COLORS.accent.success : COLORS.brand.primaryHover },
           }}
         >
           {copied ? 'Copied!' : 'Copy message'}

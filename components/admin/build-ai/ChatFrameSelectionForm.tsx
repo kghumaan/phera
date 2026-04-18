@@ -53,7 +53,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            bgcolor: '#f9f9f9',
+            bgcolor: COLORS.bg.muted,
             transition: 'all 0.15s',
             '&:hover': { transform: 'scale(1.05)', borderColor: COLORS.brand.primary },
           }}

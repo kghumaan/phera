@@ -103,22 +103,22 @@ export default function PaymentForm({
         </Typography>
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-          <Typography variant="body2" color="#666">Amount:</Typography>
-          <Typography variant="body2" color="#141414" fontWeight={600}>${amount}</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Amount:</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong }} fontWeight={600}>${amount}</Typography>
         </Stack>
-        
+
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-          <Typography variant="body2" color="#666">From:</Typography>
-          <Typography variant="body2" color="#141414">{donorName}</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>From:</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong }}>{donorName}</Typography>
         </Stack>
-        
+
         {message && (
           <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-            <Typography variant="caption" color="#666" sx={{ mb: 0.5, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 0.5, display: 'block' }}>
               Your message:
             </Typography>
-            <Typography variant="body2" color="#333">
-              "{message}"
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+              &quot;{message}&quot;
             </Typography>
           </Box>
         )}
@@ -170,7 +170,7 @@ export default function PaymentForm({
                 fontSize: 16,
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: loading ? COLORS.text.subtle : '#2a2a2a',
+                  backgroundColor: loading ? COLORS.text.subtle : COLORS.text.strong,
                 },
                 '&:disabled': {
                   backgroundColor: COLORS.text.subtle,

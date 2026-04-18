@@ -35,6 +35,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import { supabase } from '@/lib/supabase/client';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { getTagColor } from '@/lib/utils/tag-color';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
@@ -57,6 +58,7 @@ interface GuestLite {
   id: string;
   name: string | null;
   wedding_side: 'bride' | 'groom' | 'both' | null;
+  tag: string | null;
 }
 
 export default function RoomAssignmentsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
@@ -113,11 +115,19 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     (async () => {
       const { data } = await (supabase as any)
         .from('guests')
-        .select('id, name, wedding_side')
+        .select('id, name, wedding_side, logistics_data')
         .eq('wedding_id', weddingSlug)
         .order('created_at', { ascending: true });
-      setGuests(((data ?? []) as GuestLite[]));
-      setGuestCount(data?.length ?? 0);
+      const guestList: GuestLite[] = (data ?? []).map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        wedding_side: g.wedding_side,
+        tag: typeof g.logistics_data?.tag === 'string' && g.logistics_data.tag.trim()
+          ? g.logistics_data.tag.trim()
+          : null,
+      }));
+      setGuests(guestList);
+      setGuestCount(guestList.length);
     })();
   }, [weddingSlug]);
 
@@ -619,8 +629,6 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
       {/* Rooms grid */}
       {(() => {
-        const guestIndexById = new Map<string, number>();
-        guests.forEach((g, i) => guestIndexById.set(g.id, i + 1));
         const guestById = new Map<string, GuestLite>();
         guests.forEach((g) => guestById.set(g.id, g));
         const editingRoom = rooms.find((r) => r.id === editRoomId) || null;
@@ -639,18 +647,46 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                   sx={{ height: 20, fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
                 />
               </Box>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {rooms.length > 0 && guests.length > 0 && (
-                  <PrimaryActionButton
-                    size="small"
-                    startIcon={<GroupAdd />}
-                    onClick={handleAutoAssign}
-                    loading={assigning}
-                    sx={{ px: 2, py: 0.75 }}
-                  >
-                    Place All Guests
-                  </PrimaryActionButton>
-                )}
+              <Stack direction="row" spacing={1.25} flexWrap="wrap" useFlexGap alignItems="center">
+                {rooms.length > 0 && guests.length > 0 && (() => {
+                  const placedIds = new Set<string>();
+                  rooms.forEach((r) => (r.assigned_guest_ids ?? []).forEach((id) => placedIds.add(id)));
+                  const placedCount = placedIds.size;
+                  const total = guests.length;
+                  const remaining = Math.max(0, total - placedCount);
+                  return (
+                    <>
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                          px: 1.25,
+                          py: 0.5,
+                          borderRadius: 999,
+                          bgcolor: remaining === 0 ? 'rgba(34,197,94,0.1)' : 'rgba(222,63,94,0.08)',
+                          color: remaining === 0 ? COLORS.accent.success : COLORS.brand.primary,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: 'inherit' }}>
+                          {placedCount}/{total}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.875rem', color: 'inherit' }}>
+                          guests placed{remaining > 0 ? ` — ${remaining} to go` : ''}
+                        </Typography>
+                      </Box>
+                      <PrimaryActionButton
+                        size="small"
+                        startIcon={<GroupAdd />}
+                        onClick={handleAutoAssign}
+                        loading={assigning}
+                        sx={{ px: 2, py: 0.75 }}
+                      >
+                        Place All Guests
+                      </PrimaryActionButton>
+                    </>
+                  );
+                })()}
                 {rooms.some((r) => (r.assigned_guest_ids?.length ?? 0) > 0) && (
                   <SecondaryActionButton size="small" onClick={handleClearAssignments}>
                     Clear Assignments
@@ -723,6 +759,10 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                   const cap = room.capacity ?? 0;
                   const assigned = room.assigned_guest_ids ?? [];
                   const slots = Math.max(cap, assigned.length);
+                  // Prefer bed_type; fall back to notes when the parser dumped
+                  // the descriptive text there ("Deluxe Garden View" etc.).
+                  const bedLine = room.bed_type?.trim() || room.notes?.trim() || '';
+                  const showNotesBottom = !!room.notes?.trim() && bedLine !== room.notes?.trim();
                   return (
                     <Paper
                       key={room.id}
@@ -764,43 +804,43 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                           <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.1 }}>
                             {room.room_number}
                           </Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.subtle, mt: 0.25 }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.25 }}>
                             {[room.floor ? `Floor ${room.floor}` : null, room.hotel_name || defaultHotel]
                               .filter(Boolean)
                               .join(' · ') || '—'}
                           </Typography>
                         </Box>
 
-                        {/* Bed type + capacity summary */}
-                        <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap>
-                          {room.bed_type && (
-                            <Chip
-                              size="small"
-                              icon={<KingBed sx={{ fontSize: 12 }} />}
-                              label={room.bed_type}
+                        {/* Bed type / room descriptor sits above the placed count. */}
+                        <Box>
+                          {bedLine && (
+                            <Typography
+                              variant="body2"
                               sx={{
-                                height: 22,
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                bgcolor: 'rgba(222,63,94,0.08)',
-                                color: COLORS.brand.primary,
-                                '& .MuiChip-icon': { color: COLORS.brand.primary, ml: 0.5 },
+                                fontWeight: 500,
+                                color: COLORS.text.subtle,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                mb: 0.25,
                               }}
-                            />
+                            >
+                              <KingBed sx={{ fontSize: 14 }} />
+                              {bedLine}
+                            </Typography>
                           )}
                           {cap > 0 && (
-                            <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.subtle }}>
+                            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
                               {assigned.length}/{cap} placed
                             </Typography>
                           )}
-                        </Stack>
+                        </Box>
 
                         {/* Capacity slots — full-width rows like outlined buttons */}
                         <Stack spacing={0.75}>
                             {Array.from({ length: slots }).map((_, i) => {
                               const gid = assigned[i];
                               const g = gid ? guestById.get(gid) : null;
-                              const num = gid ? guestIndexById.get(gid) : null;
                               const side = g?.wedding_side;
                               const tint =
                                 side === 'bride'
@@ -861,7 +901,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                                       'overflow: hidden',
                                       'pointer-events: none',
                                     ].join(';');
-                                    ghost.innerHTML = `<span style="color:${COLORS.brand.primary};font-size:11.2px;font-weight:700;min-width:20px;">#${num}</span><span style="overflow:hidden;text-overflow:ellipsis;">${(g.name || 'Unnamed guest').replace(/</g, '&lt;')}</span>`;
+                                    ghost.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;">${(g.name || 'Unnamed guest').replace(/</g, '&lt;')}</span>`;
                                     document.body.appendChild(ghost);
                                     const offsetX = Math.min(e.clientX - rect.left, rect.width - 20);
                                     const offsetY = Math.min(e.clientY - rect.top, 30);
@@ -918,17 +958,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                                 >
                                   <Typography
                                     sx={{
-                                      fontSize: '0.7rem',
-                                      fontWeight: 700,
-                                      color: g ? COLORS.brand.primary : COLORS.text.faint,
-                                      minWidth: 20,
-                                    }}
-                                  >
-                                    {g ? `#${num}` : `${i + 1}.`}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      fontSize: '0.8rem',
+                                      fontSize: '0.875rem',
                                       fontWeight: g ? 600 : 400,
                                       color: g ? COLORS.text.strong : COLORS.text.faint,
                                       fontStyle: g ? 'normal' : 'italic',
@@ -941,14 +971,41 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                                   >
                                     {g ? g.name || 'Unnamed guest' : 'Empty'}
                                   </Typography>
+                                  {g?.tag && (() => {
+                                    const c = getTagColor(g.tag);
+                                    return (
+                                      <Box
+                                        sx={{
+                                          flexShrink: 0,
+                                          fontSize: '0.875rem',
+                                          fontWeight: 600,
+                                          lineHeight: 1,
+                                          px: 0.75,
+                                          py: 0.35,
+                                          borderRadius: 999,
+                                          bgcolor: c.bg,
+                                          color: c.fg,
+                                          border: `1px solid ${c.border}`,
+                                          maxWidth: 110,
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          pointerEvents: 'none',
+                                        }}
+                                      >
+                                        {g.tag}
+                                      </Box>
+                                    );
+                                  })()}
                                 </Box>
                               );
                             })}
 
-                          {/* Add guest button — dashed call-to-action that
-                              mirrors the schedule page's "Add Minor Event".
-                              Opens a menu of still-unplaced guests. Selecting
-                              one auto-bumps the room capacity by 1. */}
+                          {/* Add guest button — only shown when the room is
+                              already at-capacity (no empty cells to drop into).
+                              Matches the empty-cell visual so it reads as a
+                              quiet call-to-action rather than a primary button. */}
+                          {assigned.length >= slots && (
                           <Box
                             onClick={(e) => {
                               setAddGuestRoomId(room.id);
@@ -964,31 +1021,32 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: 0.75,
-                              bgcolor: COLORS.border.light,
-                              border: '1px dashed #BCBCBC',
+                              bgcolor: 'transparent',
+                              border: `1px dashed ${COLORS.border.default}`,
                               cursor: 'pointer',
                               transition: 'all 0.12s',
                               '&:hover': {
-                                bgcolor: COLORS.border.default,
-                                borderColor: COLORS.text.faint,
+                                bgcolor: 'rgba(0,0,0,0.03)',
+                                borderColor: COLORS.brand.primary,
                               },
                             }}
                           >
-                            <Add sx={{ fontSize: 14, color: COLORS.text.muted }} />
-                            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: COLORS.text.muted }}>
+                            <Add sx={{ fontSize: 14, color: COLORS.text.faint }} />
+                            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.faint, fontStyle: 'italic' }}>
                               Add Guest
                             </Typography>
                           </Box>
+                          )}
                         </Stack>
 
                         {slots === 0 && (
-                          <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.faint, fontStyle: 'italic' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, fontStyle: 'italic' }}>
                             No capacity set — Add Guest will create the first slot
                           </Typography>
                         )}
 
-                        {room.notes && (
-                          <Typography sx={{ fontSize: '0.72rem', color: COLORS.text.subtle }}>{room.notes}</Typography>
+                        {showNotesBottom && (
+                          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>{room.notes}</Typography>
                         )}
                       </Stack>
                     </Paper>
@@ -1011,13 +1069,12 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                 const available = guests.filter((g) => !placed.has(g.id));
                 if (available.length === 0) {
                   return (
-                    <Box sx={{ px: 2, py: 1.5, color: COLORS.text.subtle, fontSize: '0.82rem' }}>
+                    <Box sx={{ px: 2, py: 1.5, color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                       All guests are already placed.
                     </Box>
                   );
                 }
                 return available.map((g) => {
-                  const idx = guestIndexById.get(g.id);
                   const side = g.wedding_side;
                   const sideColor =
                     side === 'bride'
@@ -1033,10 +1090,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                       onClick={() => addGuestRoomId && handleAddGuestToRoom(addGuestRoomId, g.id)}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: COLORS.brand.primary, minWidth: 24 }}>
-                          #{idx}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, flex: 1 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, flex: 1 }}>
                           {g.name || 'Unnamed guest'}
                         </Typography>
                         {side && (

@@ -33,7 +33,7 @@ export const DiamondIndicators = ({ total, current, activeColor = COLORS.brand.p
             fillRule="evenodd"
             clipRule="evenodd"
             d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z"
-            fill={index === current ? activeColor : '#D7A393'}
+            fill={index === current ? activeColor : COLORS.text.faint}
           />
         </svg>
       </Box>

@@ -195,7 +195,7 @@ const AdminDashboard = () => {
       name: 'Guest Comments',
       description: 'All comments and messages from guests',
       icon: <ChatIcon />,
-      color: '#FF5722'
+      color: COLORS.accent.warning
     },
     {
       key: 'whatsapp_channel_clicks',
@@ -293,7 +293,7 @@ const AdminDashboard = () => {
               {[
                 { label: 'Total Guests', value: stats.guests, color: COLORS.accent.info, icon: <PeopleIcon /> },
                 { label: 'RSVPs Received', value: stats.rsvps, color: COLORS.accent.success, icon: <EventIcon /> },
-                { label: 'Comments Posted', value: stats.comments, color: '#FF5722', icon: <ChatIcon /> },
+                { label: 'Comments Posted', value: stats.comments, color: COLORS.accent.warning, icon: <ChatIcon /> },
                 { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: COLORS.accent.success, icon: <WhatsAppIcon /> },
               ].map((stat, index) => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.label}>

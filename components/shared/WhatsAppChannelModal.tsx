@@ -290,7 +290,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     width: '100%',
                     maxWidth: 320,
                     '&:hover': {
-                      backgroundColor: '#1fb855',
+                      backgroundColor: COLORS.accent.success,
                     },
                   }}
                 >

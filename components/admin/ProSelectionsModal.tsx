@@ -48,7 +48,7 @@ export default function ProSelectionsModal({ open, selections, onCancel, onUpgra
                 gap: 1.5,
                 p: 1.5,
                 borderRadius: RADII.sm,
-                bgcolor: '#f8f8f8',
+                bgcolor: COLORS.bg.subtle,
                 border: '1px solid rgba(0,0,0,0.07)',
               }}
             >

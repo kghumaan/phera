@@ -171,7 +171,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     fontSize: '1.1rem',
                                     boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
                                     '&:hover': {
-                                        bgcolor: '#c23450',
+                                        bgcolor: COLORS.brand.primaryHover,
                                         boxShadow: '0 10px 20px rgba(222, 63, 94, 0.3)',
                                     },
                                     '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint },

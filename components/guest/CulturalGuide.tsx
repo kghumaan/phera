@@ -136,7 +136,7 @@ const ceremoniesData: CulturalEvent[] = [
     time: '10:00 AM - 12:00 PM',
     location: 'Bride\'s Family Home',
     emoji: '✨',
-    color: '#FFC107',
+    color: COLORS.accent.warning,
     description: 'A purification ritual where turmeric paste is applied to the bride and groom for a natural glow and to ward off evil spirits before the wedding.',
     significance: 'Haldi (turmeric) has antiseptic properties and is believed to bring good luck, purify the soul, and give a natural glow to the couple.',
     dressCode: {

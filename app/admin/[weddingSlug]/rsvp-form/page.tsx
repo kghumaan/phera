@@ -815,7 +815,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
             {[
               { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: COLORS.brand.primary },
               { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: COLORS.text.strong },
-              { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: '#9e9e9e' },
+              { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: COLORS.text.faint },
             ].map(({ key, label, description, icon: Icon, color }) => {
               const isSelected = selectedConfirmation === key;
               return (

@@ -37,8 +37,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Platform
                         </Typography>
@@ -57,8 +56,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Company
                         </Typography>
@@ -83,8 +81,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 12, md: 4 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Connect
                         </Typography>
@@ -125,7 +122,7 @@ export default function AppFooter() {
                         textAlign: 'center',
                     }}
                 >
-                    <Typography variant="body2" sx={{ color: '#5a5a5a', fontWeight: 500 }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 500 }}>
                         © 2026 Phera Events. All rights reserved.
                     </Typography>
                     <Typography variant="caption" sx={{ color: COLORS.text.faint, display: 'block', mt: 0.5 }}>
