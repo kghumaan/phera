@@ -70,6 +70,7 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { PheraDialog } from '@/components/shared/Dialog';
+import { PheraCard } from '@/components/shared/Card';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -751,7 +752,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         />
 
         {/* Step List */}
-        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3 }}>
+        <PheraCard variant="muted" sx={{ p: 3 }}>
           <Stack spacing={1.5}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
@@ -797,7 +798,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               Add Custom Step
             </Button>
           )}
-        </Paper>
+        </PheraCard>
 
         {/* Confirmation Messages */}
         <Box>
@@ -809,7 +810,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           </Typography>
         </Box>
 
-        <Paper sx={{ borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, p: 3 }}>
+        <PheraCard variant="muted" sx={{ p: 3 }}>
           <Stack spacing={1.5}>
             {[
               { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: COLORS.brand.primary },
@@ -909,7 +910,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               );
             })}
           </Stack>
-        </Paper>
+        </PheraCard>
 
         <ContinueButton
           weddingSlug={weddingSlug}
@@ -928,15 +929,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: COLORS.bg.subtle }}>
           <Stack spacing={2.5}>
             {/* Title & Description */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: RADII.md,
-                border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: COLORS.bg.white,
-              }}
-            >
+            <PheraCard variant="default" sx={{ p: 3 }}>
               <Stack spacing={2.5}>
                 <TextField
                   value={dialogTitle}
@@ -957,7 +950,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   sx={textFieldSx}
                 />
               </Stack>
-            </Paper>
+            </PheraCard>
 
             {/* Question Cards */}
             {dialogQuestions.map((q, qIndex) => {
