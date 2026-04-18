@@ -164,7 +164,7 @@ export default function ChatDateForm({
                                 border: '2px solid',
                                 '&:hover': {
                                     border: '2px solid',
-                                    borderColor: '#c73552',
+                                    borderColor: COLORS.brand.primaryHover,
                                     bgcolor: 'rgba(222, 63, 94, 0.04)'
                                 },
                                 '&.Mui-disabled': {

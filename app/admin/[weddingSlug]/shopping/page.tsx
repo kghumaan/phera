@@ -299,7 +299,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                   '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+                <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
                   Add Custom Store
                 </Typography>
                 <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
@@ -319,7 +319,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
                   '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+                <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
                   Add Recommended Shop
                 </Typography>
                 <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>

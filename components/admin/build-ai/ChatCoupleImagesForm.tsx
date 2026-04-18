@@ -154,7 +154,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
             textTransform: 'none',
             fontWeight: 600,
             mb: 2,
-            '&:hover': { borderColor: '#c73552', bgcolor: 'rgba(222,63,94,0.04)' },
+            '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
           }}
         >
           {`Add Photo${images.length > 0 ? ` (${images.length}/6)` : ''}`}

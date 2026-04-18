@@ -54,7 +54,7 @@ const FREE_FRAME_COUNT = 4;
 
 const COLOR_OPTIONS = [
   { name: 'Rose', value: COLORS.brand.primary },
-  { name: 'Black', value: '#141414' },
+  { name: 'Black', value: COLORS.text.strong },
   { name: 'Plum', value: '#59114D' },
   { name: 'Ocean', value: '#004550' },
   { name: 'Maroon', value: '#941C28' },

@@ -192,7 +192,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
             fontWeight: 600,
             textTransform: 'none',
             fontSize: '0.9rem',
-            '&:hover': { borderColor: '#c73552', bgcolor: alpha(COLORS.brand.primary, 0.04) },
+            '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha(COLORS.brand.primary, 0.04) },
           }}
         >
           Voice Input

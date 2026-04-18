@@ -28,6 +28,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { getTagColor } from '@/lib/utils/tag-color';
 
 type SideValue = 'bride' | 'groom' | 'both' | null;
 
@@ -495,13 +496,22 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               />
                             )}
                           />
-                        ) : tag ? (
-                          <Chip
-                            label={tag}
-                            size="small"
-                            sx={{ fontSize: '0.875rem', fontWeight: 500, bgcolor: 'rgba(0, 0, 0, 0.05)', color: COLORS.text.strong }}
-                          />
-                        ) : (
+                        ) : tag ? (() => {
+                          const c = getTagColor(tag);
+                          return (
+                            <Chip
+                              label={tag}
+                              size="small"
+                              sx={{
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                bgcolor: c.bg,
+                                color: c.fg,
+                                border: `1px solid ${c.border}`,
+                              }}
+                            />
+                          );
+                        })() : (
                           <span style={{ color: COLORS.text.faint }}>—</span>
                         )}
                       </TableCell>

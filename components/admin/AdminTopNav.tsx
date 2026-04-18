@@ -335,7 +335,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     user?.initials || user?.email?.[0].toUpperCase() || 'U'
                                 )}
                             </Avatar>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
                                 {wedding?.couple_name || 'Your Wedding'}
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
@@ -415,31 +415,31 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         {/* Menu Items */}
                         <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <SettingsOutlined sx={{ color: '#111111', fontSize: 22 }} />
+                                <SettingsOutlined sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Settings"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 
                         <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <ChatBubbleOutline sx={{ color: '#111111', fontSize: 22 }} />
+                                <ChatBubbleOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Contact Us"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 
                         <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <HelpOutline sx={{ color: '#111111', fontSize: 22 }} />
+                                <HelpOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Help"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 

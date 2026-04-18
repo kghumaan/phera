@@ -422,7 +422,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                       <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9rem', mb: 0.25 }}>
                         {title}
                       </Typography>
-                      <Typography sx={{ color: COLORS.text.muted, fontSize: '0.82rem', lineHeight: 1.55 }}>
+                      <Typography sx={{ color: COLORS.text.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
                         {body}
                       </Typography>
                     </Box>

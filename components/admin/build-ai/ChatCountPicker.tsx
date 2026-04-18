@@ -43,7 +43,7 @@ export default function ChatCountPicker({
             },
             '& fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
             '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
-            '&:hover fieldset': { borderColor: '#c73552', borderWidth: '2px' },
+            '&:hover fieldset': { borderColor: COLORS.brand.primaryHover, borderWidth: '2px' },
             '&:hover': {
                 bgcolor: '#eeeeee',
             }

@@ -122,7 +122,7 @@ function TextSection({
         <Typography
           variant="subtitleCaps"
           sx={{
-            color: '#141414',
+            color: COLORS.text.strong,
             mb: 1,
             fontSize: { xs: '0.9rem', sm: '0.95rem' },
           }}
@@ -152,7 +152,7 @@ function TextSection({
       {section.content && (
         <Typography
           variant="body2"
-          sx={{ color: '#474747', lineHeight: 1.7, mt: 1, whiteSpace: 'pre-line' }}
+          sx={{ color: COLORS.text.muted, lineHeight: 1.7, mt: 1, whiteSpace: 'pre-line' }}
         >
           {section.content}
         </Typography>

@@ -223,7 +223,13 @@ function OnboardingLayoutContent({
                 borderRight: '1px solid rgba(0, 0, 0, 0.04)',
               }}
             >
-              {children}
+              {isLoadingPlan || isLoadingWedding ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                </Box>
+              ) : (
+                children
+              )}
 
               {/* Loading overlay */}
               <Backdrop
@@ -284,18 +290,6 @@ function OnboardingLayoutContent({
 
       {/* Demo tour overlay */}
       {showTour && <DemoTour weddingSlug={weddingSlug} />}
-
-      {/* Plan loading guard - show full page backdrop if plan is still loading */}
-      <Backdrop
-        open={isLoadingPlan}
-        sx={{
-          color: COLORS.brand.primary,
-          zIndex: (theme) => theme.zIndex.drawer + 2, // Highest priority
-          bgcolor: COLORS.bg.white, // Solid white background for initial load
-        }}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
 
       <ViewerBanner />
     </NavigationGuardProvider>

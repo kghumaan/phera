@@ -335,11 +335,11 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
             bgcolor: alpha(COLORS.brand.primary, 0.08),
             color: COLORS.text.strong,
             fontWeight: 700,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             height: 32,
             px: 1,
             '& .MuiChip-icon': { color: COLORS.brand.primary, fontSize: 18 },
-            '& .MuiChip-label': { px: 1.25, fontSize: '0.85rem', fontWeight: 700 },
+            '& .MuiChip-label': { px: 1.25, fontSize: '0.875rem', fontWeight: 700 },
           }}
         />
       );

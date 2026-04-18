@@ -203,7 +203,7 @@ export default function DayCard({
               '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
             }}
           >
-            <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+            <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
               Add Minor Event
             </Typography>
             <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
@@ -223,7 +223,7 @@ export default function DayCard({
               '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
             }}
           >
-            <Typography sx={{ fontWeight: 600, color: '#141414', fontSize: '1rem', lineHeight: 1.5 }}>
+            <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
               Add Major Event
             </Typography>
             <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>

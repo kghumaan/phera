@@ -148,7 +148,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   fontWeight: 400,
                   fontSize: 28,
                   lineHeight: 1.3,
-                  color: '#141414',
+                  color: COLORS.text.strong,
                   fontStyle: 'italic',
                 }}
               >
@@ -162,7 +162,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   fontWeight: 300,
                   fontSize: 16,
                   lineHeight: 1.5,
-                  color: '#474747',
+                  color: COLORS.text.muted,
                   textAlign: 'center',
                   maxWidth: 320,
                 }}

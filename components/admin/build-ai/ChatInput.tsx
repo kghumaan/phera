@@ -85,7 +85,7 @@ export default function ChatInput({ input, onInputChange, onSend, disabled, plac
           color: input.trim() ? COLORS.bg.white : COLORS.text.faint,
           borderRadius: RADII.md,
           transition: 'all 0.15s',
-          '&:hover': { bgcolor: input.trim() ? '#c73552' : alpha(COLORS.text.strong, 0.08) },
+          '&:hover': { bgcolor: input.trim() ? COLORS.brand.primaryHover : alpha(COLORS.text.strong, 0.08) },
           '&.Mui-disabled': { bgcolor: alpha(COLORS.text.strong, 0.04), color: COLORS.border.default },
         }}
       >

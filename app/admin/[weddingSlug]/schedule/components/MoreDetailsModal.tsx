@@ -288,7 +288,7 @@ const subtitleCapsSx = {
   fontWeight: 600,
   letterSpacing: '0.32px',
   textTransform: 'uppercase' as const,
-  color: '#141414',
+  color: COLORS.text.strong,
 };
 
 function getSlideTypeLabel(slide: CarouselSlide): string {
@@ -931,7 +931,7 @@ function SlideEditor({
                 lineHeight: 1.5,
                 cursor: 'pointer',
                 bgcolor: slide.type === opt.type ? '#ebebeb' : 'transparent',
-                color: '#141414',
+                color: COLORS.text.strong,
                 border: slide.type === opt.type ? '1px solid #141414' : '1px solid #d6d6d6',
                 transition: 'all 0.15s',
                 '&:hover': {

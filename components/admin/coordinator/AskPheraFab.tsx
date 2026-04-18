@@ -30,7 +30,7 @@ export default function AskPheraFab({ onClick, visible }: AskPheraFabProps) {
           bgcolor: COLORS.brand.primary,
           color: COLORS.text.inverse,
           boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-          '&:hover': { bgcolor: '#c73552' },
+          '&:hover': { bgcolor: COLORS.brand.primaryHover },
           zIndex: 1200,
         }}
       >

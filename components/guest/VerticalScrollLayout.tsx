@@ -556,7 +556,7 @@ export default function VerticalScrollLayout({
           key={idx}
           variant="body2"
           sx={{
-            color: '#474747',
+            color: COLORS.text.muted,
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
             lineHeight: 1.7,
             mb: 2,
@@ -571,7 +571,7 @@ export default function VerticalScrollLayout({
         <Typography
           variant="body2"
           sx={{
-            color: '#474747',
+            color: COLORS.text.muted,
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
             lineHeight: 1.7,
             whiteSpace: 'pre-line',
@@ -957,7 +957,7 @@ export default function VerticalScrollLayout({
                                           <Typography
                                             variant={isMajor ? "h6" : "body1"}
                                             sx={{
-                                              color: '#141414',
+                                              color: COLORS.text.strong,
                                               lineHeight: 1.1,
                                               mb: 0.5,
                                             }}
@@ -970,7 +970,7 @@ export default function VerticalScrollLayout({
                                             <Typography
                                               variant="body3"
                                               sx={{
-                                                color: '#141414',
+                                                color: COLORS.text.strong,
                                                 fontWeight: 500,
                                                 mb: 0.5,
                                                 display: 'block',
@@ -1147,7 +1147,7 @@ export default function VerticalScrollLayout({
                                   variant="h5"
                                   sx={{
                                     fontWeight: 600,
-                                    color: '#141414',
+                                    color: COLORS.text.strong,
                                     mb: 1.5,
                                   }}
                                 >
@@ -1239,7 +1239,7 @@ export default function VerticalScrollLayout({
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: '#141414',
+                                  color: COLORS.text.strong,
                                   fontSize: { md: '0.95rem', lg: '1.05rem' },
                                 }}
                               >
@@ -1400,7 +1400,7 @@ export default function VerticalScrollLayout({
                                     variant="h6"
                                     sx={{
                                       fontWeight: 600,
-                                      color: '#141414',
+                                      color: COLORS.text.strong,
                                       fontSize: { md: '0.95rem', lg: '1.05rem' },
                                       mb: 0.25,
                                     }}
@@ -1771,7 +1771,7 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
         sx={{
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: '#141414',
+          color: COLORS.text.strong,
           textAlign: 'center',
         }}
       >

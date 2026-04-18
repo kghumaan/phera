@@ -9,7 +9,7 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_OPTIONS = [
   { name: 'Rose', value: COLORS.brand.primary },
-  { name: 'Black', value: '#141414' },
+  { name: 'Black', value: COLORS.text.strong },
   { name: 'Plum', value: '#59114D' },
   { name: 'Purple', value: '#AC3FBA' },
   { name: 'Ocean', value: '#004550' },
@@ -23,7 +23,7 @@ const COLOR_OPTIONS = [
 ];
 
 const FONT_COLOR_OPTIONS = [
-  { name: 'Black', value: '#141414' },
+  { name: 'Black', value: COLORS.text.strong },
   { name: 'Dark Gray', value: COLORS.text.strong },
   { name: 'Charcoal', value: '#555555' },
   { name: 'White', value: COLORS.bg.white },
@@ -189,12 +189,12 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
   const [designData, setDesignData] = useState({
     background_image: currentValues.background_image || BACKGROUND_UI_OPTIONS[0].url,
     primary_color: currentValues.primary_color || COLORS.brand.primary,
-    font_color: currentValues.font_color || '#141414',
+    font_color: currentValues.font_color || COLORS.text.strong,
     button_font_color: currentValues.button_font_color || COLORS.bg.white,
     website_layout: currentValues.website_layout || 'multi_page',
     lock_screen_background: currentValues.lock_screen_background || BACKGROUND_UI_OPTIONS[0].url,
     lock_screen_primary_color: currentValues.lock_screen_primary_color || COLORS.brand.primary,
-    lock_screen_font_color: currentValues.lock_screen_font_color || '#141414',
+    lock_screen_font_color: currentValues.lock_screen_font_color || COLORS.text.strong,
     lock_screen_button_font_color: currentValues.lock_screen_button_font_color || COLORS.bg.white,
   });
 

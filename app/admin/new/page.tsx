@@ -286,7 +286,7 @@ export default function NewWeddingPage() {
                 sx={{
                   textAlign: 'center',
                   color: COLORS.text.faint,
-                  fontSize: '0.85rem',
+                  fontSize: '0.875rem',
                 }}
               >
                 Don't worry, you can change this later

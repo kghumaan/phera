@@ -386,7 +386,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
             onClick={handleContinue}
             disabled={!isPinComplete}
             sx={{
-              backgroundColor: '#141414',
+              backgroundColor: COLORS.text.strong,
               color: COLORS.text.inverse,
               borderRadius: RADII.lg,
               px: '20px',

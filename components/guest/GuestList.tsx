@@ -573,7 +573,7 @@ export default function GuestList({
                     disableUnderline: true,
                     sx: {
                       fontSize: '16px',
-                      color: '#141414',
+                      color: COLORS.text.strong,
                       paddingBottom: selectedGif ? '160px' : '0px',
                       '& textarea::placeholder': {
                         color: COLORS.text.faint,
@@ -787,7 +787,7 @@ export default function GuestList({
                             sx={{
                               fontSize: '16px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                             }}
                           >
                             {comment.guest?.name || 'Unknown Guest'}
@@ -837,7 +837,7 @@ export default function GuestList({
                             sx={{
                               fontSize: '16px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                               mb: comment.gif_url ? 1 : 1,
                             }}
                           >
@@ -997,7 +997,7 @@ export default function GuestList({
                   <Typography variant="subtitle1" sx={{
                     fontSize: '16px',
                     lineHeight: '1.5em',
-                    color: '#141414'
+                    color: COLORS.text.strong
                   }}>
                     {guest.name}
                   </Typography>
@@ -1202,7 +1202,7 @@ export default function GuestList({
                 outline: 'none',
                 width: '100%',
                 fontSize: '16px',
-                color: '#141414',
+                color: COLORS.text.strong,
               }}
             />
             {searchQuery && (

@@ -6,7 +6,7 @@ import { Check } from '@mui/icons-material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_OPTIONS = [
-  { name: 'Black', value: '#141414' },
+  { name: 'Black', value: COLORS.text.strong },
   { name: 'Rose', value: COLORS.brand.primary },
   { name: 'Plum', value: '#59114D' },
   { name: 'Purple', value: '#AC3FBA' },

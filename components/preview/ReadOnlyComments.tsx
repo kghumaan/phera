@@ -143,7 +143,7 @@ function ReadOnlyComments() {
                   fontSize: '14px',
                   lineHeight: '1.26em',
                   textAlign: 'center',
-                  color: activeTab === index ? '#DE3F5E' : '#000000',
+                  color: activeTab === index ? COLORS.brand.primary : '#000000',
                 }}
               >
                 {tab}
@@ -259,7 +259,7 @@ function ReadOnlyComments() {
                               fontWeight: 600,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                             }}
                           >
                             {comment.guest.name}
@@ -269,7 +269,7 @@ function ReadOnlyComments() {
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#858585',
+                              color: COLORS.text.faint,
                             }}
                           >
                             {formatTimeAgo(comment.created_at)}
@@ -283,7 +283,7 @@ function ReadOnlyComments() {
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                               mb: (comment as any).gif_url ? 1 : 1,
                             }}
                           >
@@ -355,7 +355,7 @@ function ReadOnlyComments() {
                           fontWeight: 400,
                           fontSize: '14px',
                           lineHeight: '1.5em',
-                          color: '#141414',
+                          color: COLORS.text.strong,
                         }}
                       >
                         {guestName}
@@ -397,7 +397,7 @@ function ReadOnlyComments() {
                           fontWeight: 400,
                           fontSize: '14px',
                           lineHeight: '1.5em',
-                          color: '#141414',
+                          color: COLORS.text.strong,
                         }}
                       >
                         {guestName}
