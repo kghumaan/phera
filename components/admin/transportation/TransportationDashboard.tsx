@@ -831,7 +831,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                   '& .MuiChip-label': { px: 1, fontSize: '0.875rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha(COLORS.accent.success, 0.1),
-                  color: '#2E7D32',
+                  color: COLORS.accent.successText,
                   fontWeight: 600,
                   border: '1px solid',
                   borderColor: alpha(COLORS.accent.success, 0.2),

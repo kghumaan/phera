@@ -38,7 +38,7 @@ interface EscalationQueueProps {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: '#EF5350', high: COLORS.accent.warning, medium: COLORS.accent.info, low: COLORS.text.faint,
+  urgent: COLORS.accent.danger, high: COLORS.accent.warning, medium: COLORS.accent.info, low: COLORS.text.faint,
 };
 const CATEGORY_LABELS: Record<string, string> = {
   visa: 'Visa', hotel: 'Hotel', flight: 'Flight', dietary: 'Dietary',

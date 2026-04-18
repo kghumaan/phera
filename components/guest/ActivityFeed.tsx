@@ -191,7 +191,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           fontWeight={600}
           sx={{
             fontFamily: FONTS.display,
-            color: '#800020'
+            color: COLORS.cultural.maroon
           }}
         >
           Activity
@@ -201,7 +201,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           size="small"
           sx={{
             backgroundColor: newActivityCount > 0 ? 'rgba(222, 63, 94, 0.2)' : 'rgba(128, 0, 32, 0.1)',
-            color: newActivityCount > 0 ? COLORS.brand.primary : '#800020',
+            color: newActivityCount > 0 ? COLORS.brand.primary : COLORS.cultural.maroon,
             fontWeight: 500,
             transition: 'all 0.3s ease',
           }}
@@ -267,8 +267,8 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
 
                 {/* Content */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, color: '#800020' }}>
-                    <Box component="span" sx={{ fontWeight: 600, color: '#800020' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, color: COLORS.cultural.maroon }}>
+                    <Box component="span" sx={{ fontWeight: 600, color: COLORS.cultural.maroon }}>
                       {activity.guestName}
                     </Box>{' '}
                     {activity.action} 👍

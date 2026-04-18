@@ -40,7 +40,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
   const [pinEntryText, setPinEntryText] = useState<string | null>(null);
   const [pinEntrySubtitleText, setPinEntrySubtitleText] = useState<string | null>(null);
   const [pinEntryBackground, setPinEntryBackground] = useState('/images/backgrounds/pearl.webp');
-  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState(COLORS.text.strong);
+  const [pinEntryPrimaryColor, setPinEntryPrimaryColor] = useState<string>(COLORS.text.strong);
   const [pinEntryFontColor, setPinEntryFontColor] = useState<string>(COLORS.text.strong);
   const [pinEntryButtonFontColor, setPinEntryButtonFontColor] = useState<string>(COLORS.bg.white);
   const [coupleName, setCoupleName] = useState('');

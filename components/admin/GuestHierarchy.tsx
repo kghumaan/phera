@@ -68,7 +68,7 @@ interface FamilyGroup {
 }
 
 const guestTiers = [
-  { value: 'immediate', label: 'Immediate Family', color: '#800020' },
+  { value: 'immediate', label: 'Immediate Family', color: COLORS.cultural.maroon },
   { value: 'extended', label: 'Extended Family', color: '#D4AF37' },
   { value: 'friends', label: 'Friends', color: '#FF6B6B' },
   { value: 'colleagues', label: 'Colleagues', color: '#20C997' },

@@ -59,7 +59,7 @@ import { PageHeading } from '@/components/shared/PageHeading';
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
   { id: 'todo', label: 'To Do', color: '#5C6BC0', bg: '#EEF0FC' },
   { id: 'doing', label: 'Doing', color: '#E6890A', bg: '#FFF4E0' },
-  { id: 'done', label: 'Done', color: '#2E7D32', bg: '#E8F5E9' },
+  { id: 'done', label: 'Done', color: COLORS.accent.successText, bg: COLORS.accent.successBg },
 ];
 
 // ─── Tag Input ────────────────────────────────────────────────────────────────
@@ -268,7 +268,7 @@ function TaskCard({
             {task.title}
           </Typography>
           {task.description && (
-            <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>
               {task.description}
             </Typography>
           )}
@@ -318,7 +318,7 @@ function TaskCardStatic({ task }: { task: Task }) {
         <Box sx={{ pt: 0.25, color: COLORS.border.default, flexShrink: 0 }}><DragIndicator sx={{ fontSize: 16 }} /></Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
-          {task.description && <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+          {task.description && <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
         </Box>
       </Box>
       {task.tags && task.tags.length > 0 && (
@@ -453,7 +453,7 @@ function MockBoard() {
             {tasks.map(task => (
               <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.07)', bgcolor: COLORS.bg.white }}>
                 <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
-                {task.description && <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+                {task.description && <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
               </Paper>
             ))}
           </Box>

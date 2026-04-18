@@ -198,8 +198,8 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
                     fontSize: '0.875rem',
                     height: 20,
                     flexShrink: 0,
-                    bgcolor: '#E8F5E9',
-                    color: '#2E7D32',
+                    bgcolor: COLORS.accent.successBg,
+                    color: COLORS.accent.successText,
                     fontWeight: 600,
                   }}
                 />

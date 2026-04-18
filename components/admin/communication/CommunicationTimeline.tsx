@@ -9,7 +9,7 @@ const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Template Sent', color: COLORS.accent.info },
   message_received: { label: 'Message Received', color: COLORS.accent.success },
   conversation_started: { label: 'Conversation Started', color: COLORS.side.both },
-  info_collected: { label: 'Info Collected', color: '#06b6d4' },
+  info_collected: { label: 'Info Collected', color: COLORS.accent.info },
   escalated: { label: 'Escalated', color: COLORS.accent.danger },
   opted_out: { label: 'Opted Out', color: COLORS.text.faint },
   status_changed: { label: 'Status Changed', color: COLORS.accent.warning },

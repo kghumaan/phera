@@ -437,7 +437,7 @@ export default function AdminPreviewPanel({
                                             ? '0 4px 12px rgba(16, 185, 129, 0.3)'
                                             : '0 4px 12px rgba(222, 63, 94, 0.3)',
                                         '&:hover': {
-                                            bgcolor: publishSuccess ? '#059669' : '#c23450',
+                                            bgcolor: publishSuccess ? COLORS.accent.success : '#c23450',
                                         },
                                         '&.Mui-disabled': {
                                             bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,

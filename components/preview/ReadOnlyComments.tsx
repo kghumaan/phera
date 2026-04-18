@@ -19,9 +19,9 @@ const getInitials = (name: string): string => {
 // Helper function to generate avatar color
 const getAvatarColor = (name: string, index: number): string => {
   const colors = [
-    '#E91E63', COLORS.accent.info, COLORS.accent.warning, COLORS.accent.success, COLORS.side.both,
+    COLORS.brand.primary, COLORS.accent.info, COLORS.accent.warning, COLORS.accent.success, COLORS.side.both,
     '#00BCD4', '#FF5722', '#607D8B', '#795548', '#3F51B5',
-    '#F44336', '#009688', '#FFC107', '#E91E63', '#673AB7',
+    COLORS.accent.danger, '#009688', '#FFC107', COLORS.brand.primary, '#673AB7',
   ];
   return colors[index % colors.length];
 };
@@ -33,7 +33,7 @@ const mockComments = [
     guest: {
       name: 'Priya Sharma',
       initials: 'PS',
-      avatar_color: '#E91E63',
+      avatar_color: COLORS.brand.primary,
     },
     message: "Can't wait to celebrate this special day with you both! So excited! 💃✨",
     created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
@@ -103,7 +103,7 @@ function ReadOnlyComments() {
   return (
     <Paper
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 1,
         overflow: 'hidden',
         boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',

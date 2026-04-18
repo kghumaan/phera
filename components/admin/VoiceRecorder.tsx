@@ -298,7 +298,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
-                    color: '#7a7a7a',
+                    color: COLORS.text.subtle,
                     lineHeight: 1.7,
                     mt: 1,
                     p: 1.5,
@@ -348,7 +348,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                   )}
                 </Box>
                 {task.description && (
-                  <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+                  <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>
                     {task.description}
                   </Typography>
                 )}

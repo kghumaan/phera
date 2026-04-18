@@ -160,7 +160,7 @@ export default function PaymentForm({
               sx={{
                 width: '100%',
                 backgroundColor: loading ? COLORS.text.subtle : COLORS.text.strong,
-                color: '#fff',
+                color: COLORS.bg.white,
                 borderRadius: '16px',
                 border: 'none',
                 py: 3,

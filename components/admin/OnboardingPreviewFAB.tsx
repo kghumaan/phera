@@ -191,7 +191,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
             bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primary,
             color: COLORS.text.inverse,
             '&:hover': {
-              bgcolor: statusSaved ? '#059669' : COLORS.brand.primaryHover,
+              bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primaryHover,
               transform: 'scale(1.05)',
             },
             boxShadow: statusSaved ? '0 4px 20px rgba(16, 185, 129, 0.4)' : '0 4px 20px rgba(222, 63, 94, 0.4)',
@@ -283,7 +283,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                     bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
                     color: urlCopied ? COLORS.bg.white : COLORS.brand.primary,
                     '&:hover': {
-                      bgcolor: urlCopied ? '#059669' : alpha(COLORS.brand.primary, 0.2),
+                      bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
                     },
                   }}
                 >
@@ -296,7 +296,7 @@ export default function OnboardingPreviewFAB({ weddingSlug, coupleName, weddingS
                     bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
                     color: slugSaved ? COLORS.bg.white : COLORS.brand.primary,
                     '&:hover': {
-                      bgcolor: slugSaved ? '#059669' : alpha(COLORS.brand.primary, 0.2),
+                      bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
                     },
                     transition: 'all 0.2s ease',
                   }}

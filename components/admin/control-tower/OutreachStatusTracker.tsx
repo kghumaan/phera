@@ -19,7 +19,7 @@ const STATUS_CONFIG: {
   { key: 'rsvp_requested', label: 'RSVP Requested', color: COLORS.accent.info },
   { key: 'rsvp_confirmed', label: 'RSVP Confirmed', color: COLORS.accent.success },
   { key: 'travel_collected', label: 'Travel Collected', color: COLORS.side.both },
-  { key: 'logistics_complete', label: 'Logistics Complete', color: '#06b6d4' },
+  { key: 'logistics_complete', label: 'Logistics Complete', color: COLORS.accent.info },
   { key: 'unresponsive', label: 'Unresponsive', color: COLORS.accent.danger },
 ];
 

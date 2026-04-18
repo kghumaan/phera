@@ -126,7 +126,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
         p: 2,
         py: 1.5,
                 fontWeight: 500,
-        color: '#000',
+        color: COLORS.text.strong,
         fontSize: '1.1rem'
       }}>
         Choose a GIF
@@ -134,7 +134,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
           onClick={onClose} 
           size="small"
           sx={{
-            color: '#000',
+            color: COLORS.text.strong,
             p: 0.5,
             '&:hover': {
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -196,11 +196,11 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   },
                 },
                 '& .MuiOutlinedInput-input': {
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontSize: '0.9rem',
                   py: 0,
                   '&::placeholder': {
-                    color: '#999',
+                    color: COLORS.text.faint,
                     opacity: 1,
                   },
                 },
@@ -321,13 +321,13 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
           sx={{
             borderRadius: '12px',
             borderColor: 'rgba(0, 0, 0, 0.23)',
-            color: '#000',
+            color: COLORS.text.strong,
             fontWeight: 500,
             textTransform: 'none',
             px: 2,
             fontSize: '0.9rem',
             '&:hover': {
-              borderColor: '#000',
+              borderColor: COLORS.text.strong,
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
             },
           }}

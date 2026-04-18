@@ -441,7 +441,7 @@ export default function EventDetailCarousel({
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
               color: COLORS.text.strong,
               '&:hover': {
-                backgroundColor: '#FEF9F2',
+                backgroundColor: COLORS.bg.muted,
               },
               '&:disabled': {
                 backgroundColor: 'rgba(254, 249, 242, 0.3)',
@@ -461,7 +461,7 @@ export default function EventDetailCarousel({
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
               color: COLORS.text.strong,
               '&:hover': {
-                backgroundColor: '#FEF9F2',
+                backgroundColor: COLORS.bg.muted,
               },
               '&:disabled': {
                 backgroundColor: 'rgba(254, 249, 242, 0.3)',

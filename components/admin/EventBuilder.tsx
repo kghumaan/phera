@@ -70,7 +70,7 @@ const eventTemplates = [
   {
     name: 'Wedding Ceremony',
     type: 'main',
-    color: '#800020', // Maroon
+    color: COLORS.cultural.maroon, // Maroon
     icon: '💍',
     description: 'Sacred wedding rituals and exchange of vows',
   },

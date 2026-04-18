@@ -200,14 +200,14 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={handlePhoneSignIn}
                 disabled={loading}
                 sx={{
-                  backgroundColor: '#E91E63',
+                  backgroundColor: COLORS.brand.primary,
                   py: 1.5,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: '#C2185B',
+                    backgroundColor: COLORS.brand.primaryHover,
                   },
                 }}
               >
@@ -254,14 +254,14 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={handleOTPVerification}
                 disabled={loading || otp.length !== 6}
                 sx={{
-                  backgroundColor: '#E91E63',
+                  backgroundColor: COLORS.brand.primary,
                   py: 1.5,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: '#C2185B',
+                    backgroundColor: COLORS.brand.primaryHover,
                   },
                 }}
               >

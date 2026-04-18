@@ -271,7 +271,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '16px',
                       color: COLORS.text.strong,
                       '& fieldset': {
@@ -320,14 +320,14 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                   }}
                 >
                   {isLoading ? 'Sending...' : 'Send Verification Code'}
                 </Button>
 
                 <Box sx={{ position: 'relative', py: 1, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ textAlign: 'center', color: COLORS.text.faint, backgroundColor: '#fff', position: 'relative', zIndex: 1, display: 'inline-block', px: 2 }}>
+                  <Typography variant="body2" sx={{ textAlign: 'center', color: COLORS.text.faint, backgroundColor: COLORS.bg.white, position: 'relative', zIndex: 1, display: 'inline-block', px: 2 }}>
                     OR
                   </Typography>
                   <Box sx={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', backgroundColor: '#E0E0E0', zIndex: 0 }} />
@@ -357,7 +357,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             fontWeight: 500,
                             '&:hover': {
                                 borderColor: '#B0B0B0',
-                                backgroundColor: '#F5F5F5',
+                                backgroundColor: COLORS.bg.muted,
                             },
                         }}
                     >
@@ -396,7 +396,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '16px',
                       color: COLORS.text.strong,
                       '& fieldset': {
@@ -441,7 +441,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                   }}
                 >
                   {isLoading ? 'Sending...' : 'Send Verification Code'}
@@ -494,7 +494,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '24px',
                       fontFamily: FONTS.body,
                       color: COLORS.text.strong,
@@ -543,7 +543,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                     '&:hover': {
                       backgroundColor: '#C73652',
                     },

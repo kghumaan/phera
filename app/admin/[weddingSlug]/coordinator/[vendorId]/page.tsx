@@ -111,13 +111,13 @@ const INSIGHT_COLORS: Record<string, string> = {
   action_item: COLORS.accent.warning,
   decision: COLORS.accent.success,
   price_quote: COLORS.side.both,
-  deadline: '#F44336',
+  deadline: COLORS.accent.danger,
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: COLORS.text.faint,
   medium: COLORS.accent.warning,
-  high: '#F44336',
+  high: COLORS.accent.danger,
   urgent: '#D32F2F',
 };
 
@@ -767,7 +767,7 @@ export default function VendorDetailPage({
                             )}
                           </Stack>
                           {item.due_date && (
-                            <Typography sx={{ fontSize: '0.875rem', color: '#F44336' }}>
+                            <Typography sx={{ fontSize: '0.875rem', color: COLORS.accent.danger }}>
                               Due: {new Date(item.due_date).toLocaleDateString()}
                             </Typography>
                           )}
@@ -1059,7 +1059,7 @@ function CollapsibleInsightSection({
                 {item.content}
               </Typography>
               {item.due_date && (
-                <Typography sx={{ fontSize: '0.875rem', color: '#F44336', mt: 0.25 }}>
+                <Typography sx={{ fontSize: '0.875rem', color: COLORS.accent.danger, mt: 0.25 }}>
                   Due: {new Date(item.due_date).toLocaleDateString()}
                 </Typography>
               )}

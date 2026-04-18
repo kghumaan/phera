@@ -1224,7 +1224,7 @@ export default function VerticalScrollLayout({
                               transition: 'all 0.3s ease',
                               '&:hover': {
                                 borderColor: primaryColor,
-                                backgroundColor: '#FEF9F2',
+                                backgroundColor: COLORS.bg.muted,
                               }
                             }}
                           >
@@ -1360,7 +1360,7 @@ export default function VerticalScrollLayout({
                               cursor: shop.url ? 'pointer' : 'default',
                               transition: 'all 0.3s ease',
                               '&:hover': shop.url ? {
-                                backgroundColor: '#FEF9F2',
+                                backgroundColor: COLORS.bg.muted,
                                 borderColor: primaryColor,
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
                                 transform: 'translateY(-2px)',

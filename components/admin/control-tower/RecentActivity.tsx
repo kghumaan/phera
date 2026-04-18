@@ -33,7 +33,7 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 16, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 16, color: COLORS.accent.success }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 16, color: COLORS.side.both }} />,
-  info_collected: <InfoIcon sx={{ fontSize: 16, color: '#06b6d4' }} />,
+  info_collected: <InfoIcon sx={{ fontSize: 16, color: COLORS.accent.info }} />,
   escalated: <ErrorOutlineIcon sx={{ fontSize: 16, color: COLORS.accent.danger }} />,
   opted_out: <BlockIcon sx={{ fontSize: 16, color: COLORS.text.faint }} />,
   status_changed: <SyncAltIcon sx={{ fontSize: 16, color: COLORS.accent.warning }} />,
@@ -54,7 +54,7 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: '#EF5350',
+  urgent: COLORS.accent.danger,
   high: COLORS.accent.warning,
   medium: COLORS.accent.info,
   low: COLORS.text.faint,
@@ -266,8 +266,8 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                             height: 20,
                             fontSize: 14,
                             fontWeight: 600,
-                            bgcolor: details.attending === 'yes' ? '#E8F5E9' : details.attending === 'no' ? '#FFEBEE' : '#FFF3E0',
-                            color: details.attending === 'yes' ? '#2E7D32' : details.attending === 'no' ? '#C62828' : '#E65100',
+                            bgcolor: details.attending === 'yes' ? COLORS.accent.successBg : details.attending === 'no' ? COLORS.accent.dangerBg : COLORS.accent.warningBg,
+                            color: details.attending === 'yes' ? COLORS.accent.successText : details.attending === 'no' ? COLORS.accent.dangerText : COLORS.accent.warningText,
                           }}
                         />
                         {details.guest_count > 1 && (
@@ -291,7 +291,7 @@ export default function RecentActivity({ events, weddingSlug }: RecentActivityPr
                               fontSize: 14,
                               fontWeight: 600,
                               mt: 0.5,
-                              bgcolor: details.urgency === 'urgent' ? '#EF5350' : COLORS.accent.warning,
+                              bgcolor: details.urgency === 'urgent' ? COLORS.accent.danger : COLORS.accent.warning,
                               color: COLORS.text.inverse,
                             }}
                           />

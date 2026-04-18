@@ -35,7 +35,7 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
   template_sent: <SendIcon sx={{ fontSize: 14, color: COLORS.accent.info }} />,
   message_received: <ReplyIcon sx={{ fontSize: 14, color: COLORS.accent.success }} />,
   conversation_started: <ChatIcon sx={{ fontSize: 14, color: COLORS.side.both }} />,
-  info_collected: <InfoIcon sx={{ fontSize: 14, color: '#06b6d4' }} />,
+  info_collected: <InfoIcon sx={{ fontSize: 14, color: COLORS.accent.info }} />,
   escalated: <ErrorOutlineIcon sx={{ fontSize: 14, color: COLORS.accent.danger }} />,
   opted_out: <BlockIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />,
   status_changed: <SyncAltIcon sx={{ fontSize: 14, color: COLORS.accent.warning }} />,
@@ -59,7 +59,7 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
   template_sent: COLORS.accent.info,
   message_received: COLORS.accent.success,
   conversation_started: COLORS.side.both,
-  info_collected: '#06b6d4',
+  info_collected: COLORS.accent.info,
   escalated: COLORS.accent.danger,
   opted_out: COLORS.text.faint,
   status_changed: COLORS.accent.warning,
@@ -68,7 +68,7 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: '#EF5350',
+  urgent: COLORS.accent.danger,
   high: COLORS.accent.warning,
   medium: COLORS.accent.info,
   low: COLORS.text.faint,
@@ -272,8 +272,8 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                           label={details.attending === 'yes' ? 'Attending' : details.attending === 'no' ? 'Not Attending' : 'Maybe'}
                           size="small"
                           sx={{ height: 20, fontSize: 14, fontWeight: 600,
-                            bgcolor: details.attending === 'yes' ? '#E8F5E9' : details.attending === 'no' ? '#FFEBEE' : '#FFF3E0',
-                            color: details.attending === 'yes' ? '#2E7D32' : details.attending === 'no' ? '#C62828' : '#E65100',
+                            bgcolor: details.attending === 'yes' ? COLORS.accent.successBg : details.attending === 'no' ? COLORS.accent.dangerBg : COLORS.accent.warningBg,
+                            color: details.attending === 'yes' ? COLORS.accent.successText : details.attending === 'no' ? COLORS.accent.dangerText : COLORS.accent.warningText,
                           }}
                         />
                         {details.guest_count > 1 && (

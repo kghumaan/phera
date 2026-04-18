@@ -18,7 +18,7 @@ const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   template_sent: { label: 'Message Sent', color: COLORS.accent.info },
   message_received: { label: 'Reply Received', color: COLORS.accent.success },
   conversation_started: { label: 'Conversation', color: COLORS.side.both },
-  info_collected: { label: 'Info Collected', color: '#06b6d4' },
+  info_collected: { label: 'Info Collected', color: COLORS.accent.info },
   escalated: { label: 'Escalated', color: COLORS.accent.danger },
   opted_out: { label: 'Opted Out', color: COLORS.text.faint },
   status_changed: { label: 'Status Changed', color: COLORS.accent.warning },

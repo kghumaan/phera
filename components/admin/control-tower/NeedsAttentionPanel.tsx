@@ -81,8 +81,8 @@ export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddi
                   size="small"
                   sx={{
                     height: 18, fontSize: 9,
-                    bgcolor: g.outreach_status === 'unresponsive' ? '#FFEBEE' : COLORS.bg.subtle,
-                    color: g.outreach_status === 'unresponsive' ? '#C62828' : COLORS.text.subtle,
+                    bgcolor: g.outreach_status === 'unresponsive' ? COLORS.accent.dangerBg : COLORS.bg.subtle,
+                    color: g.outreach_status === 'unresponsive' ? COLORS.accent.dangerText : COLORS.text.subtle,
                   }}
                 />
                 <Typography sx={{ fontSize: 9, color: COLORS.text.faint, whiteSpace: 'nowrap', alignSelf: 'center' }}>
