@@ -35,16 +35,30 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
 
   useEffect(() => {
     if (!open || !broadcastId) return;
-    setLoading(true);
-    (async () => {
+
+    let cancelled = false;
+    const refresh = async (silent: boolean) => {
+      if (!silent) setLoading(true);
       const [b, r] = await Promise.all([
         broadcastsService.get(broadcastId),
         broadcastsService.getRecipients(broadcastId),
       ]);
+      if (cancelled) return;
       setBroadcast(b);
       setRecipients(r);
-      setLoading(false);
-    })();
+      if (!silent) setLoading(false);
+    };
+
+    refresh(false);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      refresh(true);
+    }, 10000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [open, broadcastId]);
 
   const replied = recipients.filter((r) => !!r.replied_at);
@@ -96,7 +110,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                 <Chip
                   label={broadcast.target_type === 'all' ? 'All guests' : broadcast.target_type === 'tags' ? `Tags: ${broadcast.target_tags.join(', ')}` : 'Specific guests'}
                   size="small"
-                  sx={{ bgcolor: COLORS.bg.white, border: '1px solid rgba(0,0,0,0.1)', color: COLORS.text.muted, fontWeight: 600, fontSize: '0.72rem' }}
+                  sx={{ bgcolor: COLORS.bg.white, border: '1px solid rgba(0,0,0,0.1)', color: COLORS.text.muted, fontWeight: 600, fontSize: '0.875rem' }}
                 />
                 {broadcast.collects_data && (
                   <Chip
@@ -107,7 +121,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                       bgcolor: 'rgba(222,63,94,0.1)',
                       color: COLORS.brand.primary,
                       fontWeight: 600,
-                      fontSize: '0.72rem',
+                      fontSize: '0.875rem',
                       '& .MuiChip-icon': { color: COLORS.brand.primary },
                     }}
                   />
@@ -125,7 +139,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
 
             {replied.length > 0 && (
               <Box>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
                   Replies
                 </Typography>
                 <Stack spacing={1}>
@@ -138,7 +152,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
 
             {pending.length > 0 && (
               <Box>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, mb: 1.25 }}>
                   Awaiting reply
                 </Typography>
                 <Stack spacing={0.75}>
@@ -156,7 +170,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, fontWeight: 500 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, fontWeight: 500 }}>
                           {r.guest_name || 'Unnamed guest'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
@@ -180,7 +194,7 @@ export default function BroadcastDetailDrawer({ broadcastId, open, onClose }: Br
                               ? COLORS.accent.success
                               : COLORS.text.muted,
                           fontWeight: 600,
-                          fontSize: '0.7rem',
+                          fontSize: '0.875rem',
                           height: 20,
                           textTransform: 'capitalize',
                         }}
@@ -213,7 +227,7 @@ function StatChip({ icon, label }: { icon: React.ReactNode; label: string }) {
       }}
     >
       <Box sx={{ color: COLORS.text.subtle, display: 'inline-flex' }}>{icon}</Box>
-      <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong, fontWeight: 600 }}>{label}</Typography>
+      <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, fontWeight: 600 }}>{label}</Typography>
     </Paper>
   );
 }
@@ -247,9 +261,62 @@ function ReplyRow({
           </Box>
           <CheckCircleOutline sx={{ fontSize: 18, color: COLORS.accent.success }} />
         </Stack>
-        <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-          {recipient.reply_text}
-        </Typography>
+        <Stack spacing={0.75}>
+          {(recipient.reply_text || '').split('\n').map((line, i) => {
+            const s = line.trim();
+            if (!s) return null;
+            const isHttp = /^https?:\/\//i.test(s);
+            const isImage =
+              isHttp &&
+              (/\.(png|jpe?g|webp|gif|heic|heif)(\?|$)/i.test(s) ||
+                /whapi|whatsapp|media|image/i.test(s));
+            if (isImage) {
+              return (
+                <Box
+                  key={i}
+                  component="a"
+                  href={s}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    display: 'inline-block',
+                    width: 72,
+                    height: 72,
+                    borderRadius: 0,
+                    overflow: 'hidden',
+                    bgcolor: COLORS.bg.muted,
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={s}
+                    alt="Guest reply"
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </Box>
+              );
+            }
+            if (isHttp) {
+              return (
+                <Typography
+                  key={i}
+                  component="a"
+                  href={s}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ fontSize: '0.875rem', color: COLORS.brand.primary, textDecoration: 'underline' }}
+                >
+                  Open attachment
+                </Typography>
+              );
+            }
+            return (
+              <Typography key={i} sx={{ fontSize: '0.875rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                {s}
+              </Typography>
+            );
+          })}
+        </Stack>
         {schema.length > 0 && recipient.collected_data && (
           <Stack direction="row" spacing={0.75} flexWrap="wrap">
             {schema.map((f) => (
@@ -261,7 +328,7 @@ function ReplyRow({
                   bgcolor: 'rgba(222,63,94,0.08)',
                   color: COLORS.brand.primary,
                   fontWeight: 600,
-                  fontSize: '0.7rem',
+                  fontSize: '0.875rem',
                 }}
               />
             ))}

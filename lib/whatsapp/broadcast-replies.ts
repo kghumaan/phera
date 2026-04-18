@@ -95,10 +95,18 @@ export async function recordBroadcastReplyForGuest(
   }
 
   // 2) Text → AI extract what we can map to remaining schema keys.
-  if (trimmed && collectsData && schema.length > 0) {
-    // Only ask the AI for keys we still don't have.
+  //    Skip pure media-placeholder messages (`[image]`, `[document]`, etc.)
+  //    — those carry no structured text; the media URL has already been
+  //    routed to the right field above.
+  const isPlaceholderText = /^\[(image|document|video|audio)\]$/i.test(trimmed);
+  if (trimmed && !isPlaceholderText && collectsData && schema.length > 0) {
+    // Only ask the AI for text-type keys we still don't have. Never let a
+    // text reply land in a media/image field — those can only be filled
+    // by an actual uploaded file.
     const missingSchema = schema.filter(
-      (f) => merged[f.key] == null || merged[f.key] === '',
+      (f) =>
+        !fieldExpectsMedia(f) &&
+        (merged[f.key] == null || merged[f.key] === ''),
     );
     if (missingSchema.length > 0) {
       try {
@@ -119,8 +127,13 @@ export async function recordBroadcastReplyForGuest(
 
   // 3) Append this message to reply_text so the Reply column shows the
   //    full conversation when a guest answered across several messages.
+  //    For media messages we append the URL itself so the UI can render
+  //    the actual image inline instead of showing "[image]" text.
   const existingReply = (row.reply_text || '').trim();
-  const newSegment = trimmed || (mediaType ? `[${mediaType}]` : '');
+  const segments: string[] = [];
+  if (mediaUrl) segments.push(mediaUrl);
+  if (trimmed && !isPlaceholderText) segments.push(trimmed);
+  const newSegment = segments.join('\n') || (mediaType ? `[${mediaType}]` : '');
   const nextReplyText = existingReply
     ? `${existingReply}\n${newSegment}`
     : newSegment;

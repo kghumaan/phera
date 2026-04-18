@@ -41,7 +41,25 @@ interface RecipientRow {
   replied_at: string | null;
   reply_text: string | null;
   collected_data: Record<string, any> | null;
-  guests: { name: string | null; phone: string | null } | null;
+  guests: {
+    name: string | null;
+    phone: string | null;
+    initials: string | null;
+    avatar_color: string | null;
+  } | null;
+}
+
+const IMAGE_EXT = /\.(png|jpe?g|webp|gif|heic|heif)(\?|$)/i;
+
+function isImageUrl(s: string): boolean {
+  if (!/^https?:\/\//i.test(s)) return false;
+  if (IMAGE_EXT.test(s)) return true;
+  // WhatsApp / Whapi media endpoints often omit ext; treat any whapi / media host as image by default.
+  return /whapi|whatsapp|media|image/i.test(s);
+}
+
+function isUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s);
 }
 
 export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps) {
@@ -67,7 +85,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
         const ids = bList.map((b) => b.id);
         const { data: rs } = await (supabase as any)
           .from('concierge_broadcast_recipients')
-          .select('id, broadcast_id, guest_id, replied_at, reply_text, collected_data, guests(name, phone)')
+          .select('id, broadcast_id, guest_id, replied_at, reply_text, collected_data, guests(name, phone, initials, avatar_color)')
           .in('broadcast_id', ids);
         setRecipients((rs || []) as RecipientRow[]);
       } else {
@@ -185,7 +203,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                         bgcolor: 'rgba(222,63,94,0.08)',
                         color: COLORS.brand.primary,
                         fontWeight: 600,
-                        fontSize: '0.7rem',
+                        fontSize: '0.875rem',
                         height: 20,
                       }}
                     />
@@ -202,14 +220,14 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Guest</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Guest</TableCell>
                       {b.data_schema.map((f) => {
                         const filled = rows.filter((r) => {
                           const v = r.collected_data?.[f.key];
                           return v != null && String(v).trim() !== '';
                         }).length;
                         return (
-                          <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
+                          <TableCell key={f.key} sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>
                             <Stack direction="row" spacing={0.75} alignItems="center">
                               <span>{f.label}</span>
                               <Chip
@@ -217,7 +235,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                                 size="small"
                                 sx={{
                                   height: 18,
-                                  fontSize: '0.68rem',
+                                  fontSize: '0.875rem',
                                   fontWeight: 700,
                                   bgcolor: filled === rows.length ? 'rgba(16,185,129,0.1)' : 'rgba(222,63,94,0.08)',
                                   color: filled === rows.length ? COLORS.accent.success : COLORS.brand.primary,
@@ -228,19 +246,51 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                           </TableCell>
                         );
                       })}
-                      <TableCell sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Reply</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Exact Reply</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {rows.map((r) => (
+                    {rows.map((r) => {
+                      const guestName = r.guests?.name || 'Unnamed';
+                      const initials =
+                        r.guests?.initials ||
+                        guestName
+                          .split(' ')
+                          .map((p) => p[0])
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase();
+                      return (
                       <TableRow key={r.id}>
                         <TableCell>
-                          <Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong, fontWeight: 600 }}>
-                            {r.guests?.name || 'Unnamed'}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
-                            {r.guests?.phone || '—'}
-                          </Typography>
+                          <Stack direction="row" alignItems="center" spacing={1.25}>
+                            <Box
+                              sx={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: '50%',
+                                bgcolor: r.guests?.avatar_color || COLORS.brand.primary,
+                                color: COLORS.text.inverse,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {initials}
+                            </Box>
+                            <Box>
+                              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, fontWeight: 600 }}>
+                                {guestName}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: COLORS.text.faint }}>
+                                {r.guests?.phone || '—'}
+                              </Typography>
+                            </Box>
+                          </Stack>
                         </TableCell>
                         {b.data_schema.map((f) => {
                           const val = r.collected_data?.[f.key];
@@ -250,7 +300,7 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                           return (
                             <TableCell key={f.key}>
                               {val == null || val === '' ? (
-                                <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.faint }}>—</Typography>
+                                <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>—</Typography>
                               ) : isUrl && expectsImage ? (
                                 <Box
                                   component="a"
@@ -261,9 +311,8 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                                     display: 'inline-block',
                                     width: 56,
                                     height: 56,
-                                    borderRadius: 1,
+                                    borderRadius: 0,
                                     overflow: 'hidden',
-                                    border: '1px solid rgba(0,0,0,0.08)',
                                     bgcolor: COLORS.bg.muted,
                                   }}
                                 >
@@ -280,12 +329,12 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                                   href={val}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  sx={{ fontSize: '0.82rem', color: COLORS.brand.primary, fontWeight: 500, textDecoration: 'underline' }}
+                                  sx={{ fontSize: '0.875rem', color: COLORS.brand.primary, fontWeight: 500, textDecoration: 'underline' }}
                                 >
                                   Open
                                 </Typography>
                               ) : (
-                                <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.strong, fontWeight: 500 }}>
+                                <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, fontWeight: 500 }}>
                                   {String(val)}
                                 </Typography>
                               )}
@@ -293,12 +342,65 @@ export default function CollectedDataTab({ weddingSlug }: CollectedDataTabProps)
                           );
                         })}
                         <TableCell>
-                          <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap' }}>
-                            {r.reply_text || '—'}
-                          </Typography>
+                          {r.reply_text ? (
+                            <Stack spacing={0.75} sx={{ maxWidth: 260 }}>
+                              {r.reply_text.split('\n').map((line, i) => {
+                                const s = line.trim();
+                                if (!s) return null;
+                                if (isUrl(s) && isImageUrl(s)) {
+                                  return (
+                                    <Box
+                                      key={i}
+                                      component="a"
+                                      href={s}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      sx={{
+                                        display: 'inline-block',
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 0,
+                                        overflow: 'hidden',
+                                        bgcolor: COLORS.bg.muted,
+                                      }}
+                                    >
+                                      <Box
+                                        component="img"
+                                        src={s}
+                                        alt="Guest reply"
+                                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                      />
+                                    </Box>
+                                  );
+                                }
+                                if (isUrl(s)) {
+                                  return (
+                                    <Typography
+                                      key={i}
+                                      component="a"
+                                      href={s}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      sx={{ fontSize: '0.875rem', color: COLORS.brand.primary, textDecoration: 'underline' }}
+                                    >
+                                      Open attachment
+                                    </Typography>
+                                  );
+                                }
+                                return (
+                                  <Typography key={i} sx={{ fontSize: '0.875rem', color: COLORS.text.muted, whiteSpace: 'pre-wrap' }}>
+                                    {s}
+                                  </Typography>
+                                );
+                              })}
+                            </Stack>
+                          ) : (
+                            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>—</Typography>
+                          )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}

@@ -60,7 +60,7 @@ function RepliesDoughnut({ replied, total }: { replied: number; total: number })
           justifyContent: 'center',
         }}
       >
-        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
+        <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
           {replied}/{total}
         </Typography>
       </Box>
@@ -92,15 +92,30 @@ export default function ConciergeBroadcasts({
   const [composerOpen, setComposerOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     const list = await broadcastsService.list(weddingSlug);
     setBroadcasts(list);
-    setLoading(false);
+    if (!opts?.silent) setLoading(false);
   }, [weddingSlug]);
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Poll for new replies / delivery updates while admin is on this tab.
+  // Pauses when tab is hidden so we don't burn requests in the background.
+  useEffect(() => {
+    let cancelled = false;
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      if (cancelled) return;
+      load({ silent: true });
+    }, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [load]);
 
 
@@ -219,7 +234,7 @@ export default function ConciergeBroadcasts({
                             bgcolor: 'rgba(222,63,94,0.1)',
                             color: COLORS.brand.primary,
                             fontWeight: 600,
-                            fontSize: '0.7rem',
+                            fontSize: '0.875rem',
                             height: 22,
                             '& .MuiChip-icon': { color: COLORS.brand.primary },
                           }}
@@ -246,7 +261,7 @@ export default function ConciergeBroadcasts({
                             : COLORS.bg.subtle,
                         color: b.status === 'failed' ? COLORS.brand.primary : COLORS.text.muted,
                         fontWeight: 600,
-                        fontSize: '0.7rem',
+                        fontSize: '0.875rem',
                         height: 22,
                       }}
                     />
@@ -261,16 +276,16 @@ export default function ConciergeBroadcasts({
                     <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.88rem', lineHeight: 1.2 }}>
                       {b.replied_count} {b.replied_count === 1 ? 'reply' : 'replies'}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '0.72rem' }}>
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                       of {b.recipient_count} {b.recipient_count === 1 ? 'guest' : 'guests'}
                     </Typography>
                   </Box>
                   <Box sx={{ flex: 1 }} />
                   <Typography
                     variant="caption"
-                    sx={{ color: COLORS.text.faint, fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
+                    sx={{ color: COLORS.text.faint, fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
                   >
-                    View details <OpenInNew sx={{ fontSize: 12 }} />
+                    View details <OpenInNew sx={{ fontSize: 14 }} />
                   </Typography>
                 </Stack>
               </Stack>
