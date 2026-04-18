@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect, useCallback, forwardRef } from 'react';
 import Image from 'next/image';
@@ -1203,11 +1204,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     borderRadius: '3px',
                   },
                   '&::-webkit-scrollbar-thumb': {
-                    background: '#c1c1c1',
+                    background: COLORS.text.faint,
                     borderRadius: '3px',
                   },
                   '&::-webkit-scrollbar-thumb:hover': {
-                    background: '#a8a8a8',
+                    background: COLORS.text.faint,
                   },
                 }}>
                   {/* Spacer for overlay height */}
@@ -1549,7 +1550,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 mb: 2,
               }}
             >
-              Let's make this celebration official! ✨
+              Let&apos;s make this celebration official! ✨
             </Typography>
 
             <Typography
@@ -1678,7 +1679,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                     outline: 'none',
                     flex: 1,
                     fontSize: 'inherit',
-                    color: formData.phone ? COLORS.text.strong : '#888888',
+                    color: formData.phone ? COLORS.text.strong : COLORS.text.subtle,
                     backgroundColor: 'transparent',
                     marginLeft: '8px',
                   }}
@@ -1741,7 +1742,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <CheckCircleOutlined sx={{ fontSize: 64, color: themeColor, mb: 2 }} />
                 <Typography variant="h6" sx={{ color: COLORS.text.strong, mb: 1 }}>
-                  You're all set!
+                  You&apos;re all set!
                 </Typography>
                 <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   Logged in as {formData.email || user?.email}
@@ -2387,7 +2388,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   mb: 2,
                 }}
               >
-                What's your dining preference? 🍛
+                What&apos;s your dining preference? 🍛
               </Typography>
 
               <Typography
@@ -2790,11 +2791,11 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             borderRadius: '3px',
           },
           '&::-webkit-scrollbar-thumb': {
-            background: '#c1c1c1',
+            background: COLORS.text.faint,
             borderRadius: '3px',
           },
           '&::-webkit-scrollbar-thumb:hover': {
-            background: '#a8a8a8',
+            background: COLORS.text.faint,
           },
         }}>
           <AnimatePresence mode="wait">
@@ -2907,7 +2908,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           </Typography>
         </DialogContent>
         <DialogActions sx={{ background: 'transparent', pb: 2, pr: 2 }}>
-          <Button onClick={handleCancelExit} variant="outlined" sx={{ color: COLORS.text.strong, borderColor: COLORS.text.strong, '&:hover': { borderColor: COLORS.text.strong, background: '#222' } }}>
+          <Button onClick={handleCancelExit} variant="outlined" sx={{ color: COLORS.text.strong, borderColor: COLORS.text.strong, '&:hover': { borderColor: COLORS.text.strong, background: COLORS.text.strong } }}>
             Cancel
           </Button>
           <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: COLORS.brand.primaryHover } }}>
