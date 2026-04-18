@@ -350,7 +350,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#f44336',
+                  color: COLORS.accent.danger,
                   mt: { xs: 3, sm: 4 },
                   fontWeight: 600,
                   fontSize: { xs: '0.9rem', sm: '1rem' },
@@ -399,7 +399,7 @@ const AdminPinEntry = ({ onPinVerified }: AdminPinEntryProps) => {
               maxWidth: '354px',
               boxShadow: 'none',
               '&:hover': {
-                backgroundColor: '#2A2A2A',
+                backgroundColor: COLORS.text.strong,
                 boxShadow: 'none',
               },
               '&:disabled': {
