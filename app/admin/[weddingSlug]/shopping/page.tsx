@@ -27,6 +27,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const inlineFieldSx = {
@@ -275,11 +276,11 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
           )}
 
           {shops.length === 0 && !isAddingNew && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+            <PheraCard variant="default" sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No stores yet. Add one below.
               </Typography>
-            </Paper>
+            </PheraCard>
           )}
 
           {/* Add buttons at bottom */}

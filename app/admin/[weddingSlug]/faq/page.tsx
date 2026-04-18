@@ -44,6 +44,7 @@ import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const SWITCH_SX = {
@@ -388,17 +389,11 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
           )}
 
           {faqs.length === 0 && !isAddingNew && (
-            <Paper sx={{
-              p: 4,
-              textAlign: 'center',
-              borderRadius: RADII.lg,
-              bgcolor: COLORS.bg.white,
-              boxShadow: 'none',
-            }}>
+            <PheraCard variant="default" sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No FAQs yet. Add your first question below.
               </Typography>
-            </Paper>
+            </PheraCard>
           )}
 
           {/* Add buttons at bottom (like schedule) */}
