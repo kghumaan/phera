@@ -1391,12 +1391,10 @@ function ChatPickerItem({
 function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <Paper
-      elevation={0}
+    <PheraCard
+      variant="muted"
       sx={{
-        borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: '#FFFBF6',
         overflow: 'hidden',
       }}
     >
@@ -1441,6 +1439,6 @@ function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) 
           </Stack>
         </Box>
       </Collapse>
-    </Paper>
+    </PheraCard>
   );
 }
