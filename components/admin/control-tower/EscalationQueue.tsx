@@ -146,7 +146,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
           Needs Your Attention ({active.length})
         </Typography>
         {active.length > 0 && (
-          <Button size="small" onClick={handleDismissAll} sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}>
+          <Button size="small" onClick={handleDismissAll} sx={{ textTransform: 'none', fontSize: 14, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}>
             Dismiss All
           </Button>
         )}
@@ -161,7 +161,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
             return (
               <Chip key={p} label={`${p} (${cnt})`} size="small"
                 onClick={() => setFilterPriority(filterPriority === p ? null : p)}
-                sx={{ height: 22, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer',
+                sx={{ height: 22, fontSize: 14, fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer',
                   bgcolor: filterPriority === p ? PRIORITY_COLORS[p] : `${PRIORITY_COLORS[p]}18`,
                   color: filterPriority === p ? COLORS.bg.white : PRIORITY_COLORS[p],
                   border: `1px solid ${PRIORITY_COLORS[p]}40` }}
@@ -172,7 +172,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
             <Chip key={c} label={CATEGORY_LABELS[c] || c} size="small"
               variant={filterCategory === c ? 'filled' : 'outlined'}
               onClick={() => setFilterCategory(filterCategory === c ? null : c)}
-              sx={{ height: 22, fontSize: 10, cursor: 'pointer',
+              sx={{ height: 22, fontSize: 14, cursor: 'pointer',
                 color: filterCategory === c ? COLORS.bg.white : COLORS.text.muted,
                 bgcolor: filterCategory === c ? COLORS.text.muted : 'transparent',
                 borderColor: 'rgba(0,0,0,0.15)' }}
@@ -183,7 +183,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
 
       {sorted.length === 0 ? (
         <Box sx={{ py: 3, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.faint }}>
             {active.length === 0 ? 'No open issues. Everything is on track.' : 'No items match filter.'}
           </Typography>
         </Box>
@@ -202,10 +202,10 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                 {/* Guest info + badges */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
                   <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                       {esc.guest_name}
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: COLORS.text.subtle }}>
+                    <Typography sx={{ fontSize: 14, color: COLORS.text.subtle }}>
                       {esc.guest_email}{esc.guest_phone ? ` · ${esc.guest_phone}` : ''}
                     </Typography>
                   </Box>
@@ -216,15 +216,15 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                 </Box>
 
                 {/* Title + description */}
-                <Typography sx={{ fontSize: 12, fontWeight: 500, color: COLORS.text.strong, mb: 0.25 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: COLORS.text.strong, mb: 0.25 }}>
                   {esc.title}
                 </Typography>
                 {esc.description && esc.description !== esc.title && (
-                  <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {esc.description}
                   </Typography>
                 )}
-                <Typography sx={{ fontSize: 10, color: COLORS.text.faint, mt: 0.5 }}>
+                <Typography sx={{ fontSize: 14, color: COLORS.text.faint, mt: 0.5 }}>
                   {timeAgo(esc.created_at)}
                 </Typography>
 
@@ -233,15 +233,15 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                   <Box sx={{ mt: 1 }}>
                     <TextField size="small" fullWidth placeholder="Resolution notes (optional)" value={resolveNotes}
                       onChange={(e) => setResolveNotes(e.target.value)}
-                      sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: RADII.sm, bgcolor: COLORS.bg.white, fontSize: 12, color: COLORS.text.strong, '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' } } }}
+                      sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: RADII.sm, bgcolor: COLORS.bg.white, fontSize: 14, color: COLORS.text.strong, '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' } } }}
                     />
                     <Stack direction="row" spacing={1}>
                       <ActionButton size="small" variant="contained" onClick={() => handleResolve(esc.id)}
-                        sx={{ bgcolor: COLORS.accent.success, borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
+                        sx={{ bgcolor: COLORS.accent.success, borderRadius: RADII.sm, textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
                         Confirm
                       </ActionButton>
                       <Button size="small" onClick={() => { setResolvingId(null); setResolveNotes(''); }}
-                        sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.subtle }}>
+                        sx={{ textTransform: 'none', fontSize: 14, color: COLORS.text.subtle }}>
                         Cancel
                       </Button>
                     </Stack>
@@ -252,14 +252,14 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                 <Collapse in={isViewingConvo}>
                   <Box sx={{ mt: 1.5, p: 1.5, bgcolor: '#F5F5F0', borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: COLORS.text.strong }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                         Recent Messages
                       </Typography>
                       <Button
                         size="small"
-                        endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                        endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
                         href={`/admin/${weddingSlug}/concierge?guest=${esc.guest_id}`}
-                        sx={{ textTransform: 'none', fontSize: 10, color: COLORS.brand.primary, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
+                        sx={{ textTransform: 'none', fontSize: 14, color: COLORS.brand.primary, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
                       >
                         Full Conversation
                       </Button>
@@ -281,7 +281,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                               bgcolor: msg.role === 'user' ? '#DCF8C6' : COLORS.bg.white,
                               border: msg.role === 'assistant' ? '1px solid rgba(0,0,0,0.07)' : 'none',
                             }}>
-                              <Typography sx={{ fontSize: 11, color: COLORS.text.strong, whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
+                              <Typography sx={{ fontSize: 14, color: COLORS.text.strong, whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
                                 {msg.content}
                               </Typography>
                               <Typography sx={{ fontSize: 9, color: COLORS.text.faint, mt: 0.25, textAlign: msg.role === 'user' ? 'right' : 'left' }}>
@@ -292,7 +292,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                         ))}
                       </Box>
                     ) : (
-                      <Typography sx={{ fontSize: 11, color: COLORS.text.faint, textAlign: 'center', py: 1 }}>
+                      <Typography sx={{ fontSize: 14, color: COLORS.text.faint, textAlign: 'center', py: 1 }}>
                         No conversation history found for this guest.
                       </Typography>
                     )}
@@ -304,13 +304,13 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <ActionButton size="small" variant="outlined" startIcon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => setResolvingId(esc.id)}
-                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600, color: COLORS.accent.success, borderColor: '#22c55e40', '&:hover': { borderColor: COLORS.accent.success, bgcolor: '#22c55e08' } }}>
+                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 14, fontWeight: 600, color: COLORS.accent.success, borderColor: '#22c55e40', '&:hover': { borderColor: COLORS.accent.success, bgcolor: '#22c55e08' } }}>
                       Resolve
                     </ActionButton>
                     <ActionButton size="small" variant="outlined"
                       startIcon={isViewingConvo ? <CloseIcon sx={{ fontSize: 14 }} /> : <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
                       onClick={() => handleViewConversation(esc.id, esc.guest_id)}
-                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 11, fontWeight: 600,
+                      sx={{ borderRadius: RADII.sm, textTransform: 'none', fontSize: 14, fontWeight: 600,
                         color: isViewingConvo ? COLORS.brand.primary : COLORS.text.subtle,
                         borderColor: isViewingConvo ? '#DE3F5E40' : 'rgba(0,0,0,0.12)',
                         '&:hover': { borderColor: isViewingConvo ? COLORS.brand.primary : 'rgba(0,0,0,0.3)', bgcolor: isViewingConvo ? '#DE3F5E08' : COLORS.bg.muted } }}>
