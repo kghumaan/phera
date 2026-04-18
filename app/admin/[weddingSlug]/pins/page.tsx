@@ -47,16 +47,9 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { PheraCard } from '@/components/shared/Card';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-
-const sectionPaperSx = {
-  p: 3,
-  borderRadius: RADII.lg,
-  bgcolor: COLORS.bg.subtle,
-  boxShadow: 'none',
-  border: '1px solid rgba(0,0,0,0.07)',
-};
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
@@ -546,7 +539,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
         </Box>
 
         {/* Welcome Text */}
-        <Paper sx={sectionPaperSx}>
+        <PheraCard variant="muted" sx={{ p: 3, border: '1px solid rgba(0,0,0,0.07)' }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Welcome Text
           </Typography>
@@ -576,10 +569,10 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               sx={textFieldSx}
             />
           </Stack>
-        </Paper>
+        </PheraCard>
 
         {/* Background Selection */}
-        <Paper sx={sectionPaperSx}>
+        <PheraCard variant="muted" sx={{ p: 3, border: '1px solid rgba(0,0,0,0.07)' }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Background Image
           </Typography>
@@ -658,7 +651,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               maxWidth={600}
             />
           )}
-        </Paper>
+        </PheraCard>
 
         {/* Delete Confirmation Dialog */}
         <PheraDialog
