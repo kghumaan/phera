@@ -51,6 +51,8 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { SecondaryActionButton } from '@/components/admin/ActionButton';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import CollectedDataTab from '@/components/admin/rsvp/CollectedDataTab';
 
@@ -337,51 +339,43 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   return (
     <Box sx={{ width: '100%' }}>
       <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
-              RSVPs
-            </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-              Track RSVPs, dietary restrictions, and guest preferences
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-            <SecondaryActionButton
-              startIcon={<Download />}
-              onClick={handleDownloadMenuOpen}
-            >
-              Export Data
-            </SecondaryActionButton>
-            <PheraMenu
-              anchorEl={downloadMenuAnchor}
-              open={Boolean(downloadMenuAnchor)}
-              onClose={handleDownloadMenuClose}
-            >
-              <PheraMenuItem onClick={handleExportExcelAll}>
-                <ListItemIcon><Download fontSize="small" sx={{ color: COLORS.brand.primary }} /></ListItemIcon>
-                <ListItemText>Export All (Excel)</ListItemText>
-              </PheraMenuItem>
-              <PheraMenuItem onClick={() => handleExportCSV('all')}>
-                <ListItemIcon><Download fontSize="small" /></ListItemIcon>
-                <ListItemText>All RSVPs (CSV)</ListItemText>
-              </PheraMenuItem>
-              <PheraMenuItem onClick={() => handleExportCSV('attending')}>
-                <ListItemIcon><CheckCircle fontSize="small" sx={{ color: COLORS.accent.success }} /></ListItemIcon>
-                <ListItemText>Attending (CSV)</ListItemText>
-              </PheraMenuItem>
-              <PheraMenuItem onClick={() => handleExportCSV('not_attending')}>
-                <ListItemIcon><Cancel fontSize="small" sx={{ color: COLORS.accent.danger }} /></ListItemIcon>
-                <ListItemText>Not Attending (CSV)</ListItemText>
-              </PheraMenuItem>
-              <PheraMenuItem onClick={() => handleExportCSV('maybe')}>
-                <ListItemIcon><HelpOutline fontSize="small" sx={{ color: COLORS.accent.warning }} /></ListItemIcon>
-                <ListItemText>Maybe (CSV)</ListItemText>
-              </PheraMenuItem>
-            </PheraMenu>
-          </Stack>
-        </Box>
+        <PageHeading
+          title="RSVPs"
+          subtitle="Track RSVPs, dietary restrictions, and guest preferences"
+          actions={
+            <Stack direction="row" spacing={1}>
+              <SecondaryActionButton startIcon={<Download />} onClick={handleDownloadMenuOpen}>
+                Export Data
+              </SecondaryActionButton>
+              <PheraMenu
+                anchorEl={downloadMenuAnchor}
+                open={Boolean(downloadMenuAnchor)}
+                onClose={handleDownloadMenuClose}
+              >
+                <PheraMenuItem onClick={handleExportExcelAll}>
+                  <ListItemIcon><Download fontSize="small" sx={{ color: COLORS.brand.primary }} /></ListItemIcon>
+                  <ListItemText>Export All (Excel)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('all')}>
+                  <ListItemIcon><Download fontSize="small" /></ListItemIcon>
+                  <ListItemText>All RSVPs (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('attending')}>
+                  <ListItemIcon><CheckCircle fontSize="small" sx={{ color: COLORS.accent.success }} /></ListItemIcon>
+                  <ListItemText>Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('not_attending')}>
+                  <ListItemIcon><Cancel fontSize="small" sx={{ color: COLORS.accent.danger }} /></ListItemIcon>
+                  <ListItemText>Not Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('maybe')}>
+                  <ListItemIcon><HelpOutline fontSize="small" sx={{ color: COLORS.accent.warning }} /></ListItemIcon>
+                  <ListItemText>Maybe (CSV)</ListItemText>
+                </PheraMenuItem>
+              </PheraMenu>
+            </Stack>
+          }
+        />
 
         {/* Stats Cards */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -953,22 +947,23 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               </Table>
             </TableContainer>
           ) : (
-            <Box sx={{ textAlign: 'center', py: 10, px: 3 }}>
-              <People sx={{ fontSize: 80, color: alpha(COLORS.brand.primary, 0.1), mb: 3 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 1.5 }}>
-                {weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.text.subtle, maxWidth: 500, mx: 'auto', mb: 4 }}>
-                {weddingStatus === 'live'
-                  ? 'Your guests haven\'t started RSVPing yet. Once they do, their responses will appear here automatically.'
-                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'}
-              </Typography>
-              {weddingStatus === 'draft' && (
-                <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 600 }}>
-                  Tip: You can publish your website using the button in the bottom left sidebar.
-                </Typography>
-              )}
-            </Box>
+            <EmptyState
+              icon={<People sx={{ fontSize: 80, color: alpha(COLORS.brand.primary, 0.1) }} />}
+              title={weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
+              subtitle={
+                weddingStatus === 'live'
+                  ? "Your guests haven't started RSVPing yet. Once they do, their responses will appear here automatically."
+                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'
+              }
+              action={
+                weddingStatus === 'draft' ? (
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 600 }}>
+                    Tip: You can publish your website using the button in the bottom left sidebar.
+                  </Typography>
+                ) : undefined
+              }
+              sx={{ py: 10 }}
+            />
           )}
         </Paper>
       </Stack>
