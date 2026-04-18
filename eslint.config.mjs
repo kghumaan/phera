@@ -61,8 +61,11 @@ const designSystemRules = {
   // Raw MUI primitives that have a shared wrapper should go through the
   // wrapper instead. Callers can still import the underlying MUI
   // component from inside `components/shared/*`.
+  //
+  // Tightened to `error` after the Alert/Menu/Switch sweep landed — any new
+  // raw imports should be caught in review, not drift back into the tree.
   "no-restricted-imports": [
-    "warn",
+    "error",
     {
       paths: [
         {
@@ -121,11 +124,16 @@ const eslintConfig = [
       "components/shared/Card.tsx",
       "components/shared/Chip.tsx",
       "components/shared/Dialog.tsx",
+      "components/shared/Switch.tsx",
       "components/shared/PageHeading.tsx",
       "components/shared/StatCard.tsx",
       "components/shared/EmptyState.tsx",
       "components/admin/ActionButton.tsx",
       "lib/theme/**/*.{ts,tsx}",
+      // UI chrome mocks (iPhone frame, browser bar) — their whole job is
+      // to look pixel-perfect at mockup scale, so sub-14px text is fine.
+      "components/ui/IPhoneMockup.tsx",
+      "components/ui/MobileBrowserShell.tsx",
     ],
     rules: {
       "no-restricted-syntax": "off",
