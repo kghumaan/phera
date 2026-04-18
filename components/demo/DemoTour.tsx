@@ -6,6 +6,7 @@ import { Close, ArrowForward, ArrowBack } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface TourStep {
   target: string;
@@ -431,7 +432,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                 top: 8,
                 right: 8,
                 color: '#999',
-                '&:hover': { color: '#666' },
+                '&:hover': { color: COLORS.text.subtle },
               }}
             >
               <Close fontSize="small" />
@@ -443,7 +444,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                 sx={{
                   fontSize: '0.875rem',
                   fontWeight: 700,
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   textTransform: 'uppercase',
                   letterSpacing: '1px',
                   mb: 1,
@@ -458,7 +459,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               sx={{
                 fontSize: step.noSpotlight ? '1.5rem' : '1.1rem',
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1,
                 pr: 3,
                 fontFamily: step.noSpotlight ? 'var(--font-instrument-serif)' : undefined,
@@ -474,7 +475,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               <Typography
                 sx={{
                   fontSize: '0.875rem',
-                  color: '#666',
+                  color: COLORS.text.subtle,
                   lineHeight: 1.6,
                   mb: 2.5,
                   textAlign: step.noSpotlight ? 'center' : undefined,
@@ -493,7 +494,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   variant="contained"
                   size="large"
                   sx={{
-                    bgcolor: '#DE3F5E',
+                    bgcolor: COLORS.brand.primary,
                     color: 'white',
                     px: 5,
                     py: 1.5,
@@ -501,7 +502,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     fontSize: '1.1rem',
                     textTransform: 'none',
                     fontWeight: 700,
-                    '&:hover': { bgcolor: '#C8365A' },
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
                   }}
                 >
                   Start Planning Free
@@ -513,7 +514,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     color: '#999',
                     textTransform: 'none',
                     fontSize: '0.875rem',
-                    '&:hover': { color: '#666', bgcolor: 'transparent' },
+                    '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
                   Continue exploring
@@ -529,7 +530,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     color: '#999',
                     textTransform: 'none',
                     fontSize: '0.875rem',
-                    '&:hover': { color: '#666', bgcolor: 'transparent' },
+                    '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
                   Skip tour
@@ -541,7 +542,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                       onClick={handleBack}
                       size="small"
                       sx={{
-                        color: '#666',
+                        color: COLORS.text.subtle,
                         border: '1px solid',
                         borderColor: alpha('#000', 0.12),
                         '&:hover': { bgcolor: alpha('#000', 0.04) },
@@ -556,13 +557,13 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     size="small"
                     endIcon={<ArrowForward sx={{ fontSize: '1rem !important' }} />}
                     sx={{
-                      bgcolor: '#DE3F5E',
+                      bgcolor: COLORS.brand.primary,
                       color: 'white',
                       borderRadius: '8px',
                       textTransform: 'none',
                       fontWeight: 600,
                       px: 2,
-                      '&:hover': { bgcolor: '#C8365A' },
+                      '&:hover': { bgcolor: COLORS.brand.primaryHover },
                     }}
                   >
                     Next
@@ -581,7 +582,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                       width: idx === currentStep ? 16 : 6,
                       height: 6,
                       borderRadius: 3,
-                      bgcolor: idx === currentStep ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                      bgcolor: idx === currentStep ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.2),
                       transition: 'all 0.3s ease',
                     }}
                   />

@@ -16,6 +16,7 @@ import {
 import { PheraDialog } from '@/components/shared/Dialog';
 import { Close as CloseIcon, Search as SearchIcon, Gif as GifIcon } from '@mui/icons-material';
 import { GifData } from '@/lib/supabase/types';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface GifPickerProps {
   open: boolean;
@@ -164,7 +165,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                     onClick={() => searchGifs(searchTerm)}
                     disabled={loading}
                     sx={{
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       p: 0.5,
                       '&:hover': {
                         backgroundColor: 'rgba(222, 63, 94, 0.1)',
@@ -190,7 +191,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                     borderColor: 'rgba(0, 0, 0, 0.23)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#DE3F5E',
+                    borderColor: COLORS.brand.primary,
                     borderWidth: '1px',
                   },
                 },
@@ -224,7 +225,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   py: 0.5,
                   fontSize: '0.875rem',
                   backgroundColor: 'rgba(222, 63, 94, 0.08)',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   '&:hover': {
@@ -246,7 +247,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
         <Box sx={{ p: 2, minHeight: '400px', backgroundColor: 'white' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-              <CircularProgress sx={{ color: '#DE3F5E' }} size={32} />
+              <CircularProgress sx={{ color: COLORS.brand.primary }} size={32} />
             </Box>
           ) : gifs.length > 0 ? (
             <Box sx={{ 
