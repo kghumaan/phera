@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 
@@ -14,9 +15,10 @@ Rules:
 - "room_number" is REQUIRED for every entry. Strings only — preserve any letters or zero-padding (e.g. "1207", "PH-2", "A12").
 - "floor" is optional. Use the floor designator as it appears (numeric like "1", "12", or labels like "Lobby", "Mezzanine", "PH").
 - "hotel_name" is optional. If the document covers a single hotel and a name is visible, set it on every room. If multiple hotels are described, set the appropriate name per room. If no hotel is mentioned, leave it null.
+- "bed_type" is optional short string describing the bed configuration as stated or implied. Normalize to a concise phrase in Title Case. Examples: "King", "Queen", "1 King", "2 Queens", "2 Doubles", "Twin", "1 King + Sofa Bed", "Junior Suite", "2 Twins", "Connecting Suite". If nothing is visible, leave null — never guess.
 - "capacity" is optional integer. Estimate it from any of these clues:
     * An explicit column ("Capacity", "Sleeps", "Max Occupancy", "Pax", "Beds").
-    * Bed type ("King" → 2, "Queen" → 2, "Twin" → 2, "Double" → 2, "Single" → 1, "Suite" → 4, "Connecting Suite" → 4).
+    * Bed type ("King" → 2, "Queen" → 2, "Twin" → 2, "Double" → 2, "Single" → 1, "Suite" → 4, "Connecting Suite" → 4, "2 Queens" → 4, "2 Doubles" → 4, "2 Twins" → 2, "1 King + Sofa Bed" → 3).
     * Room type ("Standard" → 2, "Deluxe" → 2, "Family Room" → 4, "Junior Suite" → 3).
     * Number of repeated rows for the same room number (each row may represent one occupant — use the row count as capacity in that case).
     * Floorplan shapes implying bed counts.
@@ -30,7 +32,7 @@ Respond with ONLY valid JSON in this exact shape, no prose, no markdown fences:
 
 {
   "rooms": [
-    { "room_number": "string", "floor": "string|null", "hotel_name": "string|null", "capacity": number|null, "notes": "string|null" }
+    { "room_number": "string", "floor": "string|null", "hotel_name": "string|null", "bed_type": "string|null", "capacity": number|null, "notes": "string|null" }
   ]
 }`;
 
@@ -38,6 +40,7 @@ interface ParsedRoom {
   room_number: string;
   floor: string | null;
   hotel_name: string | null;
+  bed_type: string | null;
   capacity: number | null;
   notes: string | null;
 }
@@ -77,11 +80,12 @@ function validateRooms(input: any): ParsedRoom[] {
     const dedupeKey = `${(hotel_name || '').toLowerCase()}|${room_number.toLowerCase()}`;
 
     const floor = typeof r.floor === 'string' && r.floor.trim() ? r.floor.trim() : r.floor != null ? String(r.floor) : null;
+    const bed_type = typeof r.bed_type === 'string' && r.bed_type.trim() ? r.bed_type.trim() : null;
     const capacityNum = typeof r.capacity === 'number' ? Math.floor(r.capacity) : Number.parseInt(r.capacity, 10);
     const capacity = Number.isFinite(capacityNum) && capacityNum > 0 ? capacityNum : null;
     const notes = typeof r.notes === 'string' && r.notes.trim() ? r.notes.trim() : null;
 
-    const incoming: ParsedRoom = { room_number, floor, hotel_name, capacity, notes };
+    const incoming: ParsedRoom = { room_number, floor, hotel_name, bed_type, capacity, notes };
 
     const existing = merged.get(dedupeKey);
     if (existing) {
@@ -90,6 +94,7 @@ function validateRooms(input: any): ParsedRoom[] {
         room_number, // canonical form is identical for both
         floor: existing.floor || incoming.floor,
         hotel_name: existing.hotel_name || incoming.hotel_name,
+        bed_type: existing.bed_type || incoming.bed_type,
         capacity: Math.max(existing.capacity ?? 0, incoming.capacity ?? 0) || null,
         notes: existing.notes || incoming.notes,
       });
@@ -197,7 +202,7 @@ export async function POST(request: NextRequest) {
     let parsed: any;
     try {
       parsed = JSON.parse(stripJsonFences(textPart.text));
-    } catch (err) {
+    } catch {
       console.error('Failed to JSON.parse LLM output:', textPart.text);
       return NextResponse.json({ error: 'LLM returned invalid JSON' }, { status: 502 });
     }

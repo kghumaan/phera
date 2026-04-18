@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from './client';
 
 /**
@@ -33,9 +34,11 @@ export interface WeddingRoom {
   room_number: string;
   floor: string | null;
   hotel_name: string | null;
+  bed_type: string | null;
   capacity: number | null;
   notes: string | null;
   source: 'parsed' | 'manual';
+  assigned_guest_ids: string[];
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +47,7 @@ export interface RoomDraft {
   room_number: string;
   floor?: string | null;
   hotel_name?: string | null;
+  bed_type?: string | null;
   capacity?: number | null;
   notes?: string | null;
   source?: 'parsed' | 'manual';
@@ -79,6 +83,7 @@ export const roomsService = {
         room_number: canonicalizeRoomNumber(r.room_number),
         floor: r.floor || null,
         hotel_name: r.hotel_name || null,
+        bed_type: r.bed_type || null,
         capacity: r.capacity ?? null,
         notes: r.notes || null,
         source: r.source || 'parsed',
@@ -125,6 +130,7 @@ export const roomsService = {
     if (patch.room_number !== undefined) updates.room_number = canonicalizeRoomNumber(patch.room_number);
     if (patch.floor !== undefined) updates.floor = patch.floor || null;
     if (patch.hotel_name !== undefined) updates.hotel_name = patch.hotel_name || null;
+    if (patch.bed_type !== undefined) updates.bed_type = patch.bed_type || null;
     if (patch.capacity !== undefined) updates.capacity = patch.capacity ?? null;
     if (patch.notes !== undefined) updates.notes = patch.notes || null;
 
@@ -154,5 +160,43 @@ export const roomsService = {
   async insertOne(weddingSlug: string, room: RoomDraft): Promise<WeddingRoom | null> {
     const result = await this.insertMany(weddingSlug, [{ ...room, source: room.source || 'manual' }]);
     return result[0] || null;
+  },
+
+  async setAssignments(id: string, guestIds: string[]): Promise<WeddingRoom | null> {
+    const { data, error } = await (supabase as any)
+      .from('wedding_rooms')
+      .update({ assigned_guest_ids: guestIds })
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) {
+      console.error('roomsService.setAssignments error:', error);
+      return null;
+    }
+    return data as WeddingRoom;
+  },
+
+  async clearAllAssignments(weddingSlug: string): Promise<boolean> {
+    const { error } = await (supabase as any)
+      .from('wedding_rooms')
+      .update({ assigned_guest_ids: [] })
+      .eq('wedding_id', weddingSlug);
+    if (error) {
+      console.error('roomsService.clearAllAssignments error:', error);
+      return false;
+    }
+    return true;
+  },
+
+  async removeAll(weddingSlug: string): Promise<boolean> {
+    const { error } = await (supabase as any)
+      .from('wedding_rooms')
+      .delete()
+      .eq('wedding_id', weddingSlug);
+    if (error) {
+      console.error('roomsService.removeAll error:', error);
+      return false;
+    }
+    return true;
   },
 };
