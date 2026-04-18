@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
-  Box, Typography, Paper, Grid, CircularProgress,
+  Box, Typography, Grid, CircularProgress,
   Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -23,6 +23,9 @@ import ComposePanel from '@/components/admin/control-tower/ComposePanel';
 import UnifiedTimeline from '@/components/admin/control-tower/UnifiedTimeline';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
+import { ErrorAlert } from '@/components/shared/Alert';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -62,7 +65,7 @@ function StatCard({ icon, label, value, subtitle, color }: {
   icon: React.ReactNode; label: string; value: string | number; subtitle?: string; color: string;
 }) {
   return (
-    <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 2, bgcolor: COLORS.bg.white, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+    <PheraCard variant="default" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
       <Box sx={{ width: 36, height: 36, borderRadius: RADII.sm, bgcolor: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </Box>
@@ -70,10 +73,10 @@ function StatCard({ icon, label, value, subtitle, color }: {
         <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.1 }}>{value}</Typography>
         <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, fontWeight: 500 }}>{label}</Typography>
         {subtitle && (
-          <Typography sx={{ fontSize: 9, color: COLORS.text.faint }}>{subtitle}</Typography>
+          <Typography variant="caption" sx={{ color: COLORS.text.faint }}>{subtitle}</Typography>
         )}
       </Box>
-    </Paper>
+    </PheraCard>
   );
 }
 
@@ -154,17 +157,12 @@ export default function ControlTowerPage() {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <PageHeading title="Control Tower" sx={{ mb: 1 }} />
-        <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(220,38,38,0.2)', p: 4, bgcolor: '#fef2f2' }}>
-          <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#b91c1c', mb: 0.5 }}>
-            Could not load dashboard
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: '#7f1d1d', mb: 2 }}>
-            {fetchError}
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: '#7f1d1d' }}>
+        <ErrorAlert title="Could not load dashboard">
+          <Typography variant="body2" sx={{ mb: 1.5 }}>{fetchError}</Typography>
+          <Typography variant="body2">
             Common cause in development: <code>SUPABASE_SERVICE_ROLE_KEY</code> is missing from <code>.env.local</code>. Check the server console for details.
           </Typography>
-        </Paper>
+        </ErrorAlert>
       </Box>
     );
   }
@@ -173,16 +171,19 @@ export default function ControlTowerPage() {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <PageHeading title="Control Tower" sx={{ mb: 1 }} />
-        <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: COLORS.bg.white }}>
-          <PeopleAltIcon sx={{ fontSize: 48, color: COLORS.text.faint, mb: 2 }} />
-          <Typography sx={{ fontWeight: 600, fontSize: 16, color: COLORS.text.strong, mb: 1 }}>No guests yet</Typography>
-          <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, maxWidth: 400, mx: 'auto' }}>
-            Add guests to start tracking outreach, RSVPs, and coordination.
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: COLORS.text.faint, mt: 2 }}>
-            Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If RSVPs shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
-          </Typography>
-        </Paper>
+        <PheraCard variant="default" sx={{ p: 6 }}>
+          <EmptyState
+            icon={<PeopleAltIcon sx={{ fontSize: 48 }} />}
+            title="No guests yet"
+            subtitle="Add guests to start tracking outreach, RSVPs, and coordination."
+            action={
+              <Typography variant="body2" sx={{ color: COLORS.text.faint, mt: 2 }}>
+                Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If RSVPs shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
+              </Typography>
+            }
+            sx={{ py: 0 }}
+          />
+        </PheraCard>
       </Box>
     );
   }
