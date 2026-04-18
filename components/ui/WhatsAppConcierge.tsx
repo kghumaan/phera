@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Paper, Stack, Avatar, Typography, alpha } from '@mui/material';
 import { ArrowBack, Verified, Check } from '@mui/icons-material';
+import { COLORS } from '@/lib/theme/tokens';
 
 export interface Message {
     type: 'guest' | 'bot';
@@ -112,7 +113,7 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                         transform: 'translateX(-50%)',
                         width: D.notchWidth,
                         height: D.notchHeight,
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         borderBottomLeftRadius: D.notchRadius,
                         borderBottomRightRadius: D.notchRadius,
                         zIndex: 20,

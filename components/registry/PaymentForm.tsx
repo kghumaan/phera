@@ -13,6 +13,7 @@ import {
   IconButton
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { COLORS } from '@/lib/theme/tokens';
 import { ArrowBack } from '@mui/icons-material';
 import { ErrorAlert } from '@/components/shared/Alert';
 
@@ -84,7 +85,7 @@ export default function PaymentForm({
           variant="body2"
           sx={{
             fontWeight: 300,
-            color: '#666',
+            color: COLORS.text.subtle,
             mb: 1,
           }}
         >
@@ -94,7 +95,7 @@ export default function PaymentForm({
           variant="h6"
           sx={{
             fontWeight: 600,
-            color: '#141414',
+            color: COLORS.text.strong,
             mb: 2,
           }}
         >
@@ -158,7 +159,7 @@ export default function PaymentForm({
               disabled={loading || !stripe || !elements}
               sx={{
                 width: '100%',
-                backgroundColor: loading ? '#666' : '#141414',
+                backgroundColor: loading ? COLORS.text.subtle : COLORS.text.strong,
                 color: '#fff',
                 borderRadius: '16px',
                 border: 'none',
@@ -169,10 +170,10 @@ export default function PaymentForm({
                 fontSize: 16,
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: loading ? '#666' : '#2a2a2a',
+                  backgroundColor: loading ? COLORS.text.subtle : '#2a2a2a',
                 },
                 '&:disabled': {
-                  backgroundColor: '#666',
+                  backgroundColor: COLORS.text.subtle,
                   cursor: 'not-allowed',
                 },
               }}
@@ -186,7 +187,7 @@ export default function PaymentForm({
             sx={{
               fontSize: 14,
               textAlign: 'center',
-              color: '#666',
+              color: COLORS.text.subtle,
               mt: 2,
             }}
           >

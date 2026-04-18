@@ -19,6 +19,7 @@ import {
   Phone as PhoneIcon,
 } from '@mui/icons-material';
 import { signInWithGoogle, signInWithPhone, verifyOTP } from '@/lib/supabase/auth-service';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface LoginDialogProps {
   open: boolean;
@@ -273,7 +274,7 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={() => setStep('login')}
                 sx={{
                   textTransform: 'none',
-                  color: '#666',
+                  color: COLORS.text.subtle,
                 }}
               >
                 Back to Login
