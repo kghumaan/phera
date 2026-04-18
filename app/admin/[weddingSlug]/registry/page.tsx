@@ -24,6 +24,7 @@ import ContinueButton from '@/components/admin/ContinueButton';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 
 const inlineFieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -256,12 +257,12 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
                   { name: 'New Home Contribution', url: 'https://zola.com/registry/couple-name' },
                   { name: 'Adventure Fund', url: 'https://honeyfund.com/couple' },
                 ].map((item, idx) => (
-                  <Paper key={idx} sx={{ p: 3, borderRadius: RADII.lg, bgcolor: COLORS.bg.muted, boxShadow: 'none' }}>
+                  <PheraCard key={idx} variant="muted" sx={{ p: 3 }}>
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{item.name}</Typography>
                       <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>{item.url}</Typography>
                     </Box>
-                  </Paper>
+                  </PheraCard>
                 ))}
               </Stack>
             </Box>
@@ -371,11 +372,11 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
           )}
 
           {registry.length === 0 && !isAddingNew && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+            <PheraCard variant="default" sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 No registry links yet. Add your first registry link below.
               </Typography>
-            </Paper>
+            </PheraCard>
           )}
 
           {!isViewOnly && !isAddingNew && (
