@@ -40,17 +40,10 @@ import FeatureRequestModal from '@/components/admin/FeatureRequestModal';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-
-// Consistent section Paper styling (matches other onboarding pages)
-const sectionPaperSx = {
-  p: 3,
-  borderRadius: RADII.lg,
-  bgcolor: COLORS.bg.muted,
-  boxShadow: 'none',
-};
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
@@ -368,7 +361,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
         <Stack spacing={3}>
           {/* Desktop Layout Selection */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 1, color: COLORS.text.strong }}>
               Desktop Layout
             </Typography>
@@ -457,11 +450,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Grid>
               </Grid>
             </RadioGroup>
-          </Paper>
+          </PheraCard>
 
 
           {/* Main Background Selection */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 2, color: COLORS.text.strong }}>
               Main Background Image
             </Typography>
@@ -540,10 +533,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 maxWidth={600}
               />
             )}
-          </Paper>
+          </PheraCard>
 
           {/* Main Primary Color Selection */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 2, color: COLORS.text.strong }}>
               Primary Theme Color
             </Typography>
@@ -596,10 +589,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
               />
               {!isPro && <ProBadge position="inline" />}
             </Box>
-          </Paper>
+          </PheraCard>
 
           {/* Primary Font Style */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 1, color: COLORS.text.strong }}>
               Primary Font Style
             </Typography>
@@ -653,10 +646,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Box>
               ))}
             </Box>
-          </Paper>
+          </PheraCard>
 
           {/* Images & Frames */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Stack spacing={4}>
               {/* Couple Photos */}
               <Box>
@@ -907,7 +900,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Grid>
               </Box>
             </Stack>
-          </Paper>
+          </PheraCard>
         </Stack>
 
         {/* Pro Selections Modal */}
