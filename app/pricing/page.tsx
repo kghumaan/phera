@@ -130,7 +130,7 @@ const pricingTiers = [
     name: 'PHERA FREE',
     price: '$0',
     priceSuffix: '',
-    description: 'Website + RSVPs',
+    description: '',
     features: [
       'Custom wedding website',
       'Guest list & RSVP collection',
@@ -145,13 +145,14 @@ const pricingTiers = [
     name: 'PHERA BASE',
     price: '$349',
     priceSuffix: '',
-    description: 'Up to 200 guests',
+    description: '',
     features: [
       'Everything in Free',
       'Proactive WhatsApp outreach',
       'Travel, rooms & shuttle coordination',
       '24/7 WhatsApp Concierge for guests',
-      'Control Tower dashboard',
+      'Vendor Coordinator Agent',
+      'Broadcasts & structured data collection',
     ],
     buttonText: 'Get Started',
     highlight: true,
@@ -160,12 +161,14 @@ const pricingTiers = [
     name: 'PHERA PREMIUM',
     price: '$599',
     priceSuffix: '',
-    description: '400+ guests',
+    description: '200+ guests',
     features: [
       'Everything in Base',
-      'Vendor Coordinator Agent',
-      'Reverse-destination cultural guides',
       'Priority escalation support',
+      'On-call standby for urgent matters',
+      'Dedicated human coordinator hours',
+      'White-glove onboarding',
+      'Custom outreach sequences',
     ],
     buttonText: 'Get Started',
     highlight: false,
@@ -174,32 +177,44 @@ const pricingTiers = [
 
 const faqs = [
   {
-    q: 'Is this only for destination weddings?',
-    a: 'Not at all! It works perfectly for any Indian wedding—local, destination, intimate, or grand.',
+    q: 'Is there a free tier?',
+    a: 'Yes. Phera Free gives you a custom wedding website, guest list + RSVP collection, PIN-gated event access, and AI-assisted design — all at no cost. Base ($349) adds proactive WhatsApp outreach, travel/rooms/shuttle coordination, the 24/7 Concierge, and the Vendor Coordinator Agent.',
   },
   {
-    q: 'Can I customize the look and feel?',
-    a: 'Absolutely! Choose designs, colors, photos, and cultural elements to match your vision.',
+    q: 'How does the guest coordination work?',
+    a: 'Once you upgrade to Base, Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign rooms and shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
   },
   {
-    q: 'What do I actually pay for?',
-    a: "One flat fee per wedding — no subscriptions. Every tier includes the wedding website, RSVP collection, travel coordination, and a 24/7 WhatsApp Concierge. Premium adds the Vendor Coordinator Agent; Grand adds dedicated human coordinator hours.",
+    q: 'What information does Phera collect from my guests?',
+    a: 'RSVP confirmations, event attendance, dietary needs, travel plans, flight details, party size, and any special requirements — all collected conversationally through WhatsApp and structured into your admin dashboard.',
   },
   {
-    q: 'Can guests access this without an app?',
-    a: 'Yes! It works in any browser on mobile or desktop. No downloads needed.',
+    q: 'Do my guests need to download an app?',
+    a: "No. Everything happens through WhatsApp and your wedding website. Guests reply to a message — no app downloads, no account creation, no passwords.",
   },
   {
-    q: 'Is my guest data secure?',
-    a: 'Yes, we use bank-level encryption to keep your guest information private and secure.',
+    q: "What if a guest doesn't respond on WhatsApp?",
+    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After a few attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
   },
   {
-    q: 'What is the WhatsApp Concierge?',
-    a: 'It is an intelligent automated assistant that guests can text to get answers about your wedding schedule, events, and travel details. It saves you from answering the same questions repeatedly.',
+    q: 'Can I customize my wedding website myself?',
+    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a short conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
   },
   {
-    q: 'Can I upgrade to Pro later?',
-    a: 'Yes, you can start with the Free plan and upgrade to Pro whenever you need the advanced features like travel coordination or the WhatsApp agent.',
+    q: 'How does the Concierge know about my wedding?',
+    a: "It's trained on your wedding data — venue, dates, events, dress codes — plus a Knowledge Bank we auto-generate for your location: local weather, nearby restaurants and activities, cultural context. You can edit it anytime.",
+  },
+  {
+    q: 'What does the Vendor Coordinator Agent do?',
+    a: "Add our agent to your vendor WhatsApp groups (caterer, florist, DJ, etc.). It summarizes threads, extracts action items, flags risks, and keeps every commitment on record — so decisions don't get buried in 500-message chats.",
+  },
+  {
+    q: 'Do I still need a day-of coordinator?',
+    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. Premium includes dedicated human coordinator hours and on-call standby for urgent matters. For most couples, pairing Premium with a local day-of coordinator is the sweet spot.',
+  },
+  {
+    q: "Is my guests' data safe?",
+    a: 'Yes. Phera is DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
   },
 ];
 
@@ -1072,9 +1087,11 @@ function PricingPageContent() {
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
-                      {tier.description}
-                    </Typography>
+                    {tier.description && (
+                      <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.9rem', md: '0.95rem' } }}>
+                        {tier.description}
+                      </Typography>
+                    )}
 
                     <List dense sx={{ mb: { xs: 1, md: 2 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (

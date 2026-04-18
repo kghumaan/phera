@@ -1,9 +1,8 @@
 'use client';
 
-import { Box, Container, Typography, Stack, Button, Chip, Paper } from '@mui/material';
+import { Box, Container, Typography, Stack, Button, Paper } from '@mui/material';
 import Link from 'next/link';
-import StreamlineIcon from '@/components/ui/StreamlineIcon';
-import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS } from '@/lib/theme/tokens';
 
 export default function FinalCTA() {
     return (
@@ -23,21 +22,22 @@ export default function FinalCTA() {
                 <Box sx={{ position: 'relative', zIndex: 2 }}>
                     <Typography
                         variant="h2"
-                        sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '1.5rem', md: '2.5rem' } }}
+                        sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '2.5rem', md: '3rem' }, lineHeight: 1.15 }}
                     >
-                        300 guests. 3 days. Zero stress.
+                        Your wedding, beautifully handled.
                     </Typography>
                     <Typography
                         variant="h6"
                         sx={{
                             mb: { xs: 3, md: 5 },
                             color: COLORS.text.muted,
-                            maxWidth: '600px',
+                            maxWidth: '640px',
                             mx: 'auto',
-                            fontSize: { xs: '0.8rem', md: '1.25rem' }
+                            fontSize: { xs: '1rem', md: '1.25rem' },
+                            lineHeight: 1.5,
                         }}
                     >
-                        Let Phera coordinate your guests while you celebrate.
+                        Hundreds of guests, days of events, people flying in from everywhere — all coordinated over WhatsApp so you can focus on the celebration.
                     </Typography>
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
@@ -63,34 +63,6 @@ export default function FinalCTA() {
                         >
                             Get Started
                         </Button>
-                    </Stack>
-                    <Stack
-                        direction="row"
-                        spacing={3}
-                        sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
-                    >
-                        <Chip
-                            icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="Less than a single shuttle bus rental"
-                            sx={{
-                                bgcolor: 'transparent',
-                                color: COLORS.text.muted,
-                                border: 'none',
-                                fontWeight: 500,
-                                fontSize: '1.1rem',
-                            }}
-                        />
-                        <Chip
-                            icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="DPDPA compliant"
-                            sx={{
-                                bgcolor: 'transparent',
-                                color: COLORS.text.muted,
-                                border: 'none',
-                                fontWeight: 500,
-                                fontSize: '1.1rem',
-                            }}
-                        />
                     </Stack>
                 </Box>
             </Paper>

@@ -68,7 +68,7 @@ const features = [
   {
     id: 'wedding-website',
     title: 'A wedding website that actually gets used',
-    problem: 'Static wedding sites guests visit once and forget — leaving them to ping you for schedules, venues, and dress codes.',
+    problem: "Your auntie visited your wedding site once, then WhatsApped you three times asking for the venue, the dress code, and whether the kids are invited to the sangeet.",
     solution: 'A beautiful, bespoke site with schedule, FAQ, registry, and PIN-gated event access. Design it yourself, let AI build it, or have our team craft it 1-on-1.',
     featureImage: '/images/feature_images/wedding_website.png',
     frameType: 'desktop' as const,
@@ -76,7 +76,7 @@ const features = [
   {
     id: 'guest-outreach',
     title: 'We collect every detail from your guests',
-    problem: 'Chasing 300 guests across WhatsApp groups for RSVPs, dietary needs, and +1 counts.',
+    problem: "You're chasing 300 guests across five WhatsApp groups for RSVPs, dietary needs, and +1 counts — while your uncle insists he already replied (he didn't).",
     solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
     featureImage: '/images/feature_images/rsvp_collection.png',
     frameType: 'desktop' as const,
@@ -84,7 +84,7 @@ const features = [
   {
     id: 'travel-coordination',
     title: 'Travel, shuttles, and rooms — handled',
-    problem: "Spreadsheets of flight numbers, hotel blocks, and shuttle manifests you're updating at midnight.",
+    problem: "You're updating a spreadsheet of flight numbers at midnight. Your uncle's flight lands at 4 AM and nobody knows who is picking him up.",
     solution: 'We collect travel plans from every guest, manage hotel blocks and room assignments, optimize shuttle routes, and send pickup reminders. Nobody gets stranded at the airport.',
     featureImage: '/images/feature_images/travel_coordination.png',
     frameType: 'desktop' as const,
@@ -92,15 +92,15 @@ const features = [
   {
     id: 'guest-communication',
     title: 'We answer every guest question, 24/7',
-    problem: "Guests messaging you at 2 AM asking about dress code, venue directions, and what to pack.",
-    solution: 'Our WhatsApp Agent answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.',
+    problem: "Your auntie is WhatsApping you at 2 AM about the dress code. Your cousin's fiancé wants to know if he needs a visa. You should be sleeping.",
+    solution: "Concierge is trained on your wedding data — venue, dates, local weather, nearby things to do. Guests get instant answers in English or Hindi: dress codes for each event, visa walkthroughs, airport pickups, restaurant picks near the hotel. You finally sleep.",
     frameType: 'mobile' as const,
     customComponent: <WhatsAppConcierge hideNotch dense sx={{ borderRadius: 0 }} />,
   },
   {
     id: 'vendor-coordinator',
     title: 'Your vendor groups, finally organized',
-    problem: "Endless WhatsApp groups with caterers, florists, and decorators — decisions buried in 500-message threads.",
+    problem: "You're in eight WhatsApp groups — caterer, florist, decorator, DJ — playing telephone between them while your mom asks for 'a quick update' every hour.",
     solution: "Add our Agent to your vendor groups. It summarizes threads, extracts action items, flags risks, and keeps every commitment on record. You'll never miss a detail again.",
     featureImage: '/images/feature_images/coordinator1.png',
     featureImage2: '/images/feature_images/coordinator2.png',
@@ -110,8 +110,8 @@ const features = [
   {
     id: 'reverse-destination',
     title: "Your friends from abroad? We've got them.",
-    problem: 'Non-Indian friends and colleagues flying in with no idea what a sangeet is, what to wear, or how visas work.',
-    solution: 'Cultural briefings per event, dress-code guides, visa walkthroughs, ceremony explainers — all delivered through WhatsApp before they board.',
+    problem: "Your college roommate from Brooklyn has no idea what a sangeet is. Your cousin's fiancé has never been to a baraat. They're flying in without a clue.",
+    solution: 'Cultural briefings per event, dress-code guides, ceremony explainers — all delivered through WhatsApp before they board. They show up ready to enjoy, not Google.',
     featureImage: '/images/feature_images/multi_event.png',
     frameType: 'desktop' as const,
   },
@@ -122,7 +122,7 @@ const pricingTiers = [
     name: 'PHERA FREE',
     price: '$0',
     priceSuffix: '',
-    description: 'Website + RSVPs',
+    description: '',
     features: [
       'Custom wedding website',
       'Guest list & RSVP collection',
@@ -137,13 +137,14 @@ const pricingTiers = [
     name: 'PHERA BASE',
     price: '$349',
     priceSuffix: '',
-    description: 'Up to 200 guests',
+    description: '',
     features: [
       'Everything in Free',
       'Proactive WhatsApp outreach',
       'Travel, rooms & shuttle coordination',
       '24/7 WhatsApp Concierge for guests',
-      'Control Tower dashboard',
+      'Vendor Coordinator Agent',
+      'Broadcasts & structured data collection',
     ],
     buttonText: 'Get Started',
     highlight: true,
@@ -152,12 +153,14 @@ const pricingTiers = [
     name: 'PHERA PREMIUM',
     price: '$599',
     priceSuffix: '',
-    description: '400+ guests',
+    description: '200+ guests',
     features: [
       'Everything in Base',
-      'Vendor Coordinator Agent',
-      'Reverse-destination cultural guides',
       'Priority escalation support',
+      'On-call standby for urgent matters',
+      'Dedicated human coordinator hours',
+      'White-glove onboarding',
+      'Custom outreach sequences',
     ],
     buttonText: 'Get Started',
     highlight: false,
@@ -166,36 +169,44 @@ const pricingTiers = [
 
 const faqs = [
   {
+    q: 'Is there a free tier?',
+    a: 'Yes. Phera Free gives you a custom wedding website, guest list + RSVP collection, PIN-gated event access, and AI-assisted design — all at no cost. Base ($349) adds proactive WhatsApp outreach, travel/rooms/shuttle coordination, the 24/7 Concierge, and the Vendor Coordinator Agent.',
+  },
+  {
     q: 'How does the guest coordination work?',
-    a: 'Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
+    a: 'Once you upgrade to Base, Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign rooms and shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
   },
   {
     q: 'What information does Phera collect from my guests?',
-    a: 'RSVP confirmations, event attendance, dietary requirements, travel plans, flight details, party size, and any special needs — all collected conversationally via WhatsApp.',
+    a: 'RSVP confirmations, event attendance, dietary needs, travel plans, flight details, party size, and any special requirements — all collected conversationally through WhatsApp and structured into your admin dashboard.',
   },
   {
     q: 'Do my guests need to download an app?',
-    a: 'No. Everything happens through WhatsApp and your wedding website. Guests just reply to messages — no app downloads, no account creation, no passwords.',
+    a: "No. Everything happens through WhatsApp and your wedding website. Guests reply to a message — no app downloads, no account creation, no passwords.",
   },
   {
-    q: 'What if a guest does not respond on WhatsApp?',
-    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After 3 attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
-  },
-  {
-    q: 'I already have a wedding website — can I still use Phera?',
-    a: 'Absolutely. Phera complements any existing wedding website. We handle the guest logistics layer — outreach, coordination, concierge — regardless of where your website lives.',
+    q: "What if a guest doesn't respond on WhatsApp?",
+    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After a few attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
   },
   {
     q: 'Can I customize my wedding website myself?',
-    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
+    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a short conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
+  },
+  {
+    q: 'How does the Concierge know about my wedding?',
+    a: "It's trained on your wedding data — venue, dates, events, dress codes — plus a Knowledge Bank we auto-generate for your location: local weather, nearby restaurants and activities, cultural context. You can edit it anytime.",
+  },
+  {
+    q: 'What does the Vendor Coordinator Agent do?',
+    a: "Add our agent to your vendor WhatsApp groups (caterer, florist, DJ, etc.). It summarizes threads, extracts action items, flags risks, and keeps every commitment on record — so decisions don't get buried in 500-message chats.",
   },
   {
     q: 'Do I still need a day-of coordinator?',
-    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your wedding. We recommend pairing with a local day-of coordinator for on-site execution. Together you get planner-quality outcomes at a fraction of the cost.',
+    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. Premium includes dedicated human coordinator hours and on-call standby for urgent matters. For most couples, pairing Premium with a local day-of coordinator is the sweet spot.',
   },
   {
-    q: 'Is my guests\' data safe?',
-    a: 'Yes. We are DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
+    q: "Is my guests' data safe?",
+    a: 'Yes. Phera is DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
   },
 ];
 
@@ -1177,7 +1188,7 @@ function LandingPageContent() {
                     px: { xs: 2, md: 0 },
                   }}
                 >
-                  One platform for the website, RSVPs, travel, rooms, transport, vendors, and a 24/7 WhatsApp concierge.
+                  One platform for your website, RSVPs, travel, rooms, transport, vendors, and a 24/7 WhatsApp concierge.
                 </Typography>
 
                 <Stack
@@ -1276,8 +1287,8 @@ function LandingPageContent() {
                       sx={{
                         fontFamily: FONTS.display,
                         fontStyle: 'italic',
-                        // fontSize: { xs: '2rem', md: '3rem', lg: '4rem' },
-                        lineHeight: 1.1,
+                        fontSize: { xs: '2.5rem', md: '3rem', lg: '3.5rem' },
+                        lineHeight: 1.15,
                         color: 'white'
                       }}
                     >
@@ -1286,17 +1297,16 @@ function LandingPageContent() {
                     <StreamlineIcon name="whatsapp" sx={{ width: { xs: 40, md: 50 }, height: { xs: 40, md: 50 }, color: 'white' }} />
 
                   </Stack>
-                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1.05rem', md: '1.4rem' }, lineHeight: 1.4, color: 'white' }}>
-                    Stop being your guests' personal assistant. Let our intelligent WhatsApp
-                    Concierge handle the repetitive questions so you can focus on your celebration.
+                  <Typography variant="h6" sx={{ mb: { xs: 2, md: 6 }, opacity: 0.9, fontWeight: 400, fontSize: { xs: '1rem', md: '1.4rem' }, lineHeight: 1.5, color: 'white' }}>
+                    Trained on your wedding. Answers every guest question the moment it hits WhatsApp — so you never have to.
                   </Typography>
 
                   <List sx={{ mb: { xs: 1, md: 2 }, color: 'white' }}>
                     {[
-                      { icon: <SupportAgent />, text: "Answers FAQs about schedule, venue, and dress code" },
-                      { icon: <DirectionsBus />, text: "Coordinates shuttle sign-ups and airport pickups" },
-                      { icon: <Campaign />, text: "Broadcasts urgent updates to your entire guest list" },
-                      { icon: <Check />, text: "All data comes directly from your wedding website" }
+                      { icon: <AutoAwesome />, text: "Trained on your wedding data — venue, dates, events, dress codes" },
+                      { icon: <Verified />, text: "Knows local weather, nearby restaurants, spas, and things to do" },
+                      { icon: <SupportAgent />, text: "Handles visa questions, cultural guides, and airport pickups" },
+                      { icon: <Campaign />, text: "Broadcasts updates and collects replies back from every guest" },
                     ].map((item, idx) => (
                       <ListItem key={idx} sx={{ px: 0, py: { xs: 0.25, md: 0.5 } }}>
                         <ListItemIcon sx={{ color: 'white', minWidth: { xs: 28, md: 40 } }}>
@@ -1306,7 +1316,7 @@ function LandingPageContent() {
                         </ListItemIcon>
                         <ListItemText
                           primary={item.text}
-                          primaryTypographyProps={{ fontSize: { xs: '0.9rem', md: '1.25rem' }, color: 'white' }}
+                          primaryTypographyProps={{ fontSize: { xs: '0.95rem', md: '1.25rem' }, lineHeight: 1.5, color: 'white' }}
                         />
                       </ListItem>
                     ))}
@@ -1334,7 +1344,7 @@ function LandingPageContent() {
                 </motion.div>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-end' } }}>
                 <motion.div
                   initial="hidden"
                   whileInView="visible"
@@ -1529,14 +1539,14 @@ function LandingPageContent() {
                 sx={{
                   fontFamily: FONTS.display,
                   fontStyle: 'italic',
-                  fontSize: { xs: '1.5rem', md: '3.5rem', lg: '4.5rem' },
+                  fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
                   color: COLORS.text.strong,
-                  lineHeight: 1.1,
+                  lineHeight: 1.15,
                 }}
               >
                 Your Journey, Simplified.
               </Typography>
-              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontWeight: 400, maxWidth: '600px', mx: 'auto', textAlign: 'center', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontWeight: 400, maxWidth: '600px', mx: 'auto', textAlign: 'center', fontSize: { xs: '1rem', md: '1.25rem' }, lineHeight: 1.5 }}>
                 Launch your wedding in minutes, not months.
               </Typography>
             </Stack>
@@ -1670,11 +1680,11 @@ function LandingPageContent() {
           {item.icon}
         </Box>
 
-        <Typography variant="h5" sx={{ mb: { xs: 1, md: 2 }, fontFamily: FONTS.display, fontStyle: 'italic', zIndex: 1, color: COLORS.text.strong, fontSize: { xs: '1rem', md: '1.5rem' } }}>
+        <Typography variant="h5" sx={{ mb: { xs: 1, md: 2 }, fontFamily: FONTS.display, fontStyle: 'italic', zIndex: 1, color: COLORS.text.strong, fontSize: { xs: '1.15rem', md: '1.5rem' } }}>
           {item.title}
         </Typography>
 
-        <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+        <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.5, zIndex: 1, fontSize: { xs: '0.9rem', md: '1rem' } }}>
           {item.desc}
         </Typography>
       </Paper>
@@ -1722,13 +1732,14 @@ function LandingPageContent() {
                 sx={{
                   fontFamily: FONTS.display,
                   fontStyle: 'italic',
-                  fontSize: { xs: '1.5rem', md: '3rem' },
+                  fontSize: { xs: '2.5rem', md: '3rem' },
+                  lineHeight: 1.15,
                   color: COLORS.text.strong,
                 }}
               >
                 Simple, Transparent Pricing
               </Typography>
-              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontSize: { xs: '1rem', md: '1.25rem' }, lineHeight: 1.5 }}>
                 One flat fee per wedding. No subscriptions, no surprises.
               </Typography>
             </Stack>
@@ -1810,12 +1821,12 @@ function LandingPageContent() {
                     )}
                     <Typography
                       variant="overline"
-                      sx={{ fontWeight: 'bold', opacity: 0.7, color: COLORS.brand.primary, fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                      sx={{ fontWeight: 'bold', opacity: 0.7, color: COLORS.brand.primary, fontSize: { xs: '0.75rem', md: '0.8rem' }, letterSpacing: '1.5px' }}
                     >
                       {tier.name}
                     </Typography>
                     <Box sx={{ my: { xs: 0.5, md: 2 } }}>
-                      <Typography variant="h3" sx={{ fontWeight: 'bold', display: 'inline', fontSize: { xs: '1.5rem', md: '3rem' } }}>
+                      <Typography variant="h3" sx={{ fontWeight: 'bold', display: 'inline', fontSize: { xs: '2rem', md: '3rem' } }}>
                         {tier.price}
                       </Typography>
                       {'priceSuffix' in tier && tier.priceSuffix && (
@@ -1824,9 +1835,11 @@ function LandingPageContent() {
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
-                      {tier.description}
-                    </Typography>
+                    {tier.description && (
+                      <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.9rem', md: '0.95rem' } }}>
+                        {tier.description}
+                      </Typography>
+                    )}
 
                     <List dense sx={{ mb: { xs: 1, md: 2 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (
@@ -1847,8 +1860,8 @@ function LandingPageContent() {
                               sx: {
                                 color: COLORS.text.strong,
                                 fontWeight: 400,
-                                fontSize: { xs: '0.8rem', md: '.9rem' },
-                                lineHeight: 1.4
+                                fontSize: { xs: '0.9rem', md: '0.95rem' },
+                                lineHeight: 1.5
                               }
                             }}
                           />
@@ -1860,7 +1873,7 @@ function LandingPageContent() {
                       const ctaSx = {
                         borderRadius: { xs: '16px', md: '32px' },
                         py: { xs: 0.75, md: 1.5 },
-                        fontSize: { xs: '0.7rem', md: '1rem' },
+                        fontSize: { xs: '0.9rem', md: '1rem' },
                         bgcolor: tier.highlight ? '#DE3F5E' : 'transparent',
                         borderColor: COLORS.brand.primary,
                         color: tier.highlight ? 'white' : '#DE3F5E',
@@ -2007,7 +2020,7 @@ function LandingPageContent() {
             <Typography
               variant="h2"
               align="center"
-              sx={{ fontFamily: FONTS.display, fontStyle: 'italic', fontSize: { xs: '1.5rem', md: '3rem' }, color: COLORS.text.strong }}
+              sx={{ fontFamily: FONTS.display, fontStyle: 'italic', fontSize: { xs: '2.5rem', md: '3rem' }, lineHeight: 1.15, color: COLORS.text.strong }}
             >
               Common Questions
             </Typography>
@@ -2053,12 +2066,12 @@ function LandingPageContent() {
                     </Box>}
                     sx={{ px: { xs: 2, md: 3 }, py: { xs: 0.5, md: 1 } }}
                   >
-                    <Typography variant="h6" sx={{ fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: COLORS.text.strong }}>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', md: '1.1rem' }, fontWeight: 700, color: COLORS.text.strong }}>
                       {faq.q}
                     </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ px: { xs: 2, md: 3 }, pb: { xs: 1.5, md: 2.5 }, pt: 0 }}>
-                    <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.6, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+                    <Typography variant="body2" sx={{ color: '#666', lineHeight: 1.6, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                       {faq.a}
                     </Typography>
                   </AccordionDetails>
