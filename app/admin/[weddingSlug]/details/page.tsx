@@ -11,7 +11,6 @@ import {
   Chip,
   FormControlLabel,
   Checkbox,
-  Paper,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useState, useEffect, use, forwardRef } from 'react';
@@ -33,15 +32,10 @@ import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constant
 import ContinueButton from '@/components/admin/ContinueButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-const sectionPaperSx = {
-  p: 3,
-  borderRadius: RADII.lg,
-  bgcolor: COLORS.bg.muted,
-  boxShadow: 'none',
-};
 
 // Custom input for react-datepicker matching admin ENHANCED_TEXT_FIELD_SX style
 const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; placeholder?: string; label?: string; error?: boolean }>(
@@ -464,7 +458,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         {/* Form Content */}
         <Stack spacing={3}>
           {/* Couple Names */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Couple Information *
             </Typography>
@@ -494,11 +488,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
 
           {/* Wedding Date */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Wedding Dates *
             </Typography>
@@ -526,7 +520,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
           {/* Date Display Preview and Edit */}
           {/* {weddingDateStart && (
@@ -607,7 +601,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           )} */}
 
           {/* Venue */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Venue Information *
             </Typography>
@@ -635,10 +629,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
           {/* Welcome Message Section */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Welcome Message
             </Typography>
@@ -654,10 +648,10 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               placeholder="e.g. Can't wait to celebrate with you all! ❤️"
               sx={textFieldSx}
             />
-          </Paper>
+          </PheraCard>
 
           {/* RSVP Deadline */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               RSVP Information
             </Typography>
@@ -712,7 +706,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               </Grid>
             )}
           </Stack>
-          </Paper>
+          </PheraCard>
 
         </Stack>
       </Stack>
