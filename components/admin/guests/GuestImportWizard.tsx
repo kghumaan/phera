@@ -319,7 +319,7 @@ export default function GuestImportWizard({
                   <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
                     Drag & drop your guest list here
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: COLORS.text.subtle }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.subtle }}>
                     or click to browse — .csv, .xlsx, .xls, .vcf supported
                   </Typography>
                   <input
@@ -333,10 +333,10 @@ export default function GuestImportWizard({
 
                 {/* Format guide */}
                 <Paper elevation={0} sx={{ mt: 2.5, p: 2, bgcolor: COLORS.bg.muted, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
                     How to format your file
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: COLORS.text.muted, mb: 1.5, lineHeight: 1.7 }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mb: 1.5, lineHeight: 1.7 }}>
                     Upload any schema — we'll match columns automatically. Names are required. Email and phone unlock RSVPs, WhatsApp, and concierge, so include them when you can. Works best with headers like below.
                   </Typography>
 
@@ -345,40 +345,40 @@ export default function GuestImportWizard({
                     <Table size="small">
                       <TableHead>
                         <TableRow sx={{ bgcolor: COLORS.bg.white }}>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, py: 0.75 }}>Name</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, py: 0.75 }}>Email</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, py: 0.75 }}>Phone</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, py: 0.75 }}>Side</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, py: 0.75 }}>Tag</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Name</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Email</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Side</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Tag</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Priya Sharma</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>priya@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>+919876543210</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Bride</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Priya's Friends</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya Sharma</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>priya@email.com</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+919876543210</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Bride</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya's Friends</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Arjun Mehta</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>arjun@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>+14155551234</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Groom</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Arjun's Family</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Arjun Mehta</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>arjun@email.com</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+14155551234</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Groom</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Arjun's Family</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Neha Patel</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>neha@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>+14085559876</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Bride</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 11, py: 0.5 }}>Priya's US Friends</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Neha Patel</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>neha@email.com</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+14085559876</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Bride</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya's US Friends</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
 
-                  <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, mt: 1 }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, mt: 1 }}>
                     Side and tag are optional.
                   </Typography>
                 </Paper>
@@ -400,7 +400,7 @@ export default function GuestImportWizard({
                       '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
                     }}
                   >
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                       📱 How to export contacts from your phone
                     </Typography>
                     <ExpandMore
@@ -414,7 +414,7 @@ export default function GuestImportWizard({
                   </Box>
 
                   <Collapse in={exportHelpOpen} timeout="auto" unmountOnExit>
-                    <Typography sx={{ fontSize: 12, color: COLORS.text.muted, mt: 1.5, mb: 1.5, lineHeight: 1.7 }}>
+                    <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mt: 1.5, mb: 1.5, lineHeight: 1.7 }}>
                       Export your phone&apos;s address book as a .vcf file, then upload it here. Easiest from a desktop browser after emailing the file to yourself.
                     </Typography>
 
@@ -422,7 +422,7 @@ export default function GuestImportWizard({
                       <Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
                           <PhoneIphone sx={{ fontSize: 16, color: COLORS.text.strong }} />
-                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: COLORS.text.strong }}>
+                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                             iPhone (via iCloud)
                           </Typography>
                         </Box>
@@ -433,7 +433,7 @@ export default function GuestImportWizard({
                             'Click the share icon at the bottom-left → Export vCard.',
                             'Upload the downloaded .vcf file above.',
                           ].map((step, i) => (
-                            <Typography key={i} component="li" sx={{ fontSize: 11, color: COLORS.text.muted, lineHeight: 1.6 }}>
+                            <Typography key={i} component="li" sx={{ fontSize: 14, color: COLORS.text.muted, lineHeight: 1.6 }}>
                               {step}
                             </Typography>
                           ))}
@@ -443,7 +443,7 @@ export default function GuestImportWizard({
                       <Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
                           <Android sx={{ fontSize: 16, color: COLORS.text.strong }} />
-                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: COLORS.text.strong }}>
+                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                             Android
                           </Typography>
                         </Box>
@@ -454,7 +454,7 @@ export default function GuestImportWizard({
                             'Email or AirDrop the file to your computer.',
                             'Upload the .vcf file above.',
                           ].map((step, i) => (
-                            <Typography key={i} component="li" sx={{ fontSize: 11, color: COLORS.text.muted, lineHeight: 1.6 }}>
+                            <Typography key={i} component="li" sx={{ fontSize: 14, color: COLORS.text.muted, lineHeight: 1.6 }}>
                               {step}
                             </Typography>
                           ))}
@@ -577,22 +577,22 @@ export default function GuestImportWizard({
                       <Table size="small">
                         <TableHead>
                           <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 12 }}>Name</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 12 }}>Email</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 12 }}>Phone</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 12 }}>Side</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 12 }}>Tag</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Email</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Phone</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Side</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Tag</TableCell>
                             <TableCell sx={{ width: 40 }} />
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {manualGuests.map((g, i) => (
                             <TableRow key={i}>
-                              <TableCell sx={{ color: COLORS.text.strong, fontSize: 12 }}>{g.name}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{g.email || '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{g.phone ? `${g.country_code}${g.phone}` : '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{g.wedding_side || '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{g.tag || '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.strong, fontSize: 14 }}>{g.name}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.email || '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.phone ? `${g.country_code}${g.phone}` : '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.wedding_side || '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.tag || '—'}</TableCell>
                               <TableCell>
                                 <IconButton size="small" onClick={() => handleRemoveManual(i)}>
                                   <Close sx={{ fontSize: 14, color: COLORS.text.faint }} />
@@ -604,7 +604,7 @@ export default function GuestImportWizard({
                       </Table>
                     </TableContainer>
                     <Box sx={{ p: 1.5, bgcolor: COLORS.bg.muted, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                      <Typography sx={{ fontSize: 12, color: COLORS.text.muted, fontWeight: 500 }}>
+                      <Typography sx={{ fontSize: 14, color: COLORS.text.muted, fontWeight: 500 }}>
                         {manualGuests.length} guest{manualGuests.length !== 1 ? 's' : ''} ready to import
                       </Typography>
                     </Box>
@@ -628,12 +628,12 @@ export default function GuestImportWizard({
           const preview = mapped.slice(0, 5);
           return (
             <Box>
-              <Typography sx={{ fontSize: 13, color: COLORS.text.muted, mb: 2 }}>
+              <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mb: 2 }}>
                 Found <strong>{stats.total}</strong> guest{stats.total !== 1 ? 's' : ''} in your file.
                 {' '}<span style={{ color: COLORS.text.subtle }}>{stats.withEmail} with email · {stats.withPhone} with phone</span>
               </Typography>
 
-              <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
                 Preview (first {preview.length})
               </Typography>
               <Paper
@@ -649,21 +649,21 @@ export default function GuestImportWizard({
                   <Table size="small" sx={{ bgcolor: COLORS.bg.white }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, bgcolor: COLORS.bg.muted }}>Name</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, bgcolor: COLORS.bg.muted }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, bgcolor: COLORS.bg.muted }}>Phone</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, bgcolor: COLORS.bg.muted }}>Side</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 11, bgcolor: COLORS.bg.muted }}>Tag</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Name</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Phone</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Side</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Tag</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody sx={{ bgcolor: COLORS.bg.white }}>
                       {preview.map((row, i) => (
                         <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? COLORS.bg.white : COLORS.bg.muted }}>
-                          <TableCell sx={{ color: COLORS.text.strong, fontSize: 12, fontWeight: 500 }}>{row.name || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{row.email || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{row.phone || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{row.wedding_side || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 12 }}>{row.group || '—'}</TableCell>
+                          <TableCell sx={{ color: COLORS.text.strong, fontSize: 14, fontWeight: 500 }}>{row.name || '—'}</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.email || '—'}</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.phone || '—'}</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.wedding_side || '—'}</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.group || '—'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -738,7 +738,7 @@ export default function GuestImportWizard({
                 }}
               >
                 {result.errors.map((e, i) => (
-                  <Typography key={i} sx={{ fontSize: 12, color: COLORS.brand.primary, fontWeight: 500, mb: 0.3 }}>
+                  <Typography key={i} sx={{ fontSize: 14, color: COLORS.brand.primary, fontWeight: 500, mb: 0.3 }}>
                     {e.row > 0 ? `Row ${e.row}: ` : ''}{e.reason}
                   </Typography>
                 ))}
