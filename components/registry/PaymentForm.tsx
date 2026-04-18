@@ -184,7 +184,7 @@ export default function PaymentForm({
           <Typography
             variant="caption"
             sx={{
-              fontSize: 12,
+              fontSize: 14,
               textAlign: 'center',
               color: '#666',
               mt: 2,

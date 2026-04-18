@@ -237,7 +237,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      fontSize: 12,
+                      fontSize: 14,
                       color: COLORS.text.subtle,
                     }}
                   >

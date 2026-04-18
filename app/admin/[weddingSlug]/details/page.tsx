@@ -253,7 +253,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               </Typography>
               <Typography sx={{
                 color: COLORS.text.strong,
-                fontSize: 11,
+                fontSize: 14,
                 textAlign: 'center',
                 opacity: 0.7,
                 textTransform: 'lowercase'

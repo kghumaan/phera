@@ -68,7 +68,7 @@ function StatCard({ icon, label, value, subtitle, color }: {
       </Box>
       <Box>
         <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.1 }}>{value}</Typography>
-        <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, fontWeight: 500 }}>{label}</Typography>
+        <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, fontWeight: 500 }}>{label}</Typography>
         {subtitle && (
           <Typography sx={{ fontSize: 9, color: COLORS.text.faint }}>{subtitle}</Typography>
         )}
@@ -158,10 +158,10 @@ export default function ControlTowerPage() {
           <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#b91c1c', mb: 0.5 }}>
             Could not load dashboard
           </Typography>
-          <Typography sx={{ fontSize: 13, color: '#7f1d1d', mb: 2 }}>
+          <Typography sx={{ fontSize: 14, color: '#7f1d1d', mb: 2 }}>
             {fetchError}
           </Typography>
-          <Typography sx={{ fontSize: 12, color: '#7f1d1d' }}>
+          <Typography sx={{ fontSize: 14, color: '#7f1d1d' }}>
             Common cause in development: <code>SUPABASE_SERVICE_ROLE_KEY</code> is missing from <code>.env.local</code>. Check the server console for details.
           </Typography>
         </Paper>
@@ -176,10 +176,10 @@ export default function ControlTowerPage() {
         <Paper elevation={0} sx={{ borderRadius: RADII.md, border: '1px solid rgba(0,0,0,0.07)', p: 6, textAlign: 'center', bgcolor: COLORS.bg.white }}>
           <PeopleAltIcon sx={{ fontSize: 48, color: COLORS.text.faint, mb: 2 }} />
           <Typography sx={{ fontWeight: 600, fontSize: 16, color: COLORS.text.strong, mb: 1 }}>No guests yet</Typography>
-          <Typography sx={{ fontSize: 13, color: COLORS.text.subtle, maxWidth: 400, mx: 'auto' }}>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, maxWidth: 400, mx: 'auto' }}>
             Add guests to start tracking outreach, RSVPs, and coordination.
           </Typography>
-          <Typography sx={{ fontSize: 11, color: COLORS.text.faint, mt: 2 }}>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.faint, mt: 2 }}>
             Demo wedding? Make sure the <code>guests</code> table has rows for slug <code>{weddingSlug}</code>. If RSVPs shows data but this is empty, the dashboard API is returning <code>total_guests: 0</code> — check Network tab.
           </Typography>
         </Paper>
@@ -317,7 +317,7 @@ export default function ControlTowerPage() {
           ) : activityEvents ? (
             <UnifiedTimeline events={activityEvents} weddingSlug={weddingSlug} />
           ) : (
-            <Typography sx={{ fontSize: 13, color: COLORS.text.faint, py: 2, textAlign: 'center' }}>
+            <Typography sx={{ fontSize: 14, color: COLORS.text.faint, py: 2, textAlign: 'center' }}>
               No activity data available.
             </Typography>
           )}
@@ -342,7 +342,7 @@ export default function ControlTowerPage() {
               Concierge Insights
             </Typography>
             {concierge.guestsReached > 0 && (
-              <Typography sx={{ fontSize: 11, color: COLORS.text.subtle, ml: 0.5 }}>
+              <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, ml: 0.5 }}>
                 ({concierge.guestsReached} guests reached, {concierge.messagesHandled} messages)
               </Typography>
             )}
