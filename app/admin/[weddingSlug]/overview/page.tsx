@@ -37,6 +37,7 @@ import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -488,12 +489,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
         {/* Wedding Details & RSVP Summary */}
         {weddingData && (
-          <Paper sx={{
-            p: 4,
-            borderRadius: RADII.lg,
-            bgcolor: COLORS.bg.muted,
-            boxShadow: 'none',
-          }}>
+          <PheraCard variant="muted" sx={{ p: 4 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 3, color: COLORS.text.strong, display: 'block' }}>
               Wedding Summary
             </Typography>
@@ -666,7 +662,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 </Box>
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
         )}
 
         {/* Quick Links */}
