@@ -155,7 +155,7 @@ function ReadOnlyComments() {
                   label={mockGuestCounts.going}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: '#000000',
                     height: 20,
                     minWidth: 20,
@@ -172,7 +172,7 @@ function ReadOnlyComments() {
                   label={mockGuestCounts.maybe}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: '#000000',
                     height: 20,
                     minWidth: 20,

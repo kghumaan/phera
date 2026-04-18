@@ -223,7 +223,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                   px: 2,
                   py: 1.25,
                   borderRadius: '14px 14px 4px 14px',
-                  bgcolor: '#eeeeee',
+                  bgcolor: COLORS.bg.muted,
                 }}
               >
                 <Typography

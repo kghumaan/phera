@@ -1132,7 +1132,7 @@ export default function GuestList({
                   label={going}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: COLORS.text.strong,
                     height: 24,
                     minWidth: 24,
@@ -1151,7 +1151,7 @@ export default function GuestList({
                   label={maybe}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: COLORS.text.strong,
                     height: 24,
                     minWidth: 24,

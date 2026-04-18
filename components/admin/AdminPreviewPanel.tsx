@@ -330,7 +330,7 @@ export default function AdminPreviewPanel({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: '#f8f7f5',
+                bgcolor: COLORS.bg.subtle,
             }}
         >
             {/* Toggle Header with Publish Button */}

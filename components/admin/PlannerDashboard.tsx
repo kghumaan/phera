@@ -198,7 +198,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8f7f5' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: COLORS.bg.subtle }}>
       <AdminTopNav weddingSlug="" />
 
       <Container maxWidth="md" sx={{ pt: { xs: '72px', md: '88px' }, pb: 4 }}>

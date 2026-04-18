@@ -70,7 +70,7 @@ export default function TravelSectionCard({
                 {section.title || 'Untitled'}
               </Typography>
               {section.visible === false && (
-                <VisibilityOff sx={{ fontSize: 16, color: '#aaa' }} />
+                <VisibilityOff sx={{ fontSize: 16, color: COLORS.text.faint }} />
               )}
             </Stack>
 

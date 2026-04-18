@@ -123,7 +123,7 @@ export default function OtpInput({ length = 6, value, onChange, disabled = false
               color: COLORS.text.muted,
             },
             '&::placeholder': {
-              color: '#ccc',
+              color: COLORS.text.faint,
             },
           }}
         />

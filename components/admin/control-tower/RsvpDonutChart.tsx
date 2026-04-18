@@ -19,7 +19,7 @@ const SEGMENTS = [
   { key: 'yes', label: 'Attending', color: COLORS.accent.success },
   { key: 'no', label: 'Declined', color: COLORS.accent.danger },
   { key: 'maybe', label: 'Maybe', color: COLORS.accent.warning },
-  { key: 'pending', label: 'No RSVP', color: '#e2e8f0' },
+  { key: 'pending', label: 'No RSVP', color: COLORS.border.default },
 ];
 
 export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChartProps) {

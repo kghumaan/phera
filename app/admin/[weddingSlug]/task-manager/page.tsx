@@ -412,7 +412,7 @@ function KanbanColumn({
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <ActionButton size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: COLORS.text.inverse, fontSize: '0.875rem', py: 0.5, px: 1.5, borderRadius: RADII.sm, '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</ActionButton>
-              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}><Close sx={{ fontSize: 16 }} /></IconButton>
+              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: COLORS.text.faint }}><Close sx={{ fontSize: 16 }} /></IconButton>
             </Box>
           </Paper>
         ) : (

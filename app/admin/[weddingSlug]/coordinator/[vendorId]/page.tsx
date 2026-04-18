@@ -118,7 +118,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: COLORS.text.faint,
   medium: COLORS.accent.warning,
   high: COLORS.accent.danger,
-  urgent: '#D32F2F',
+  urgent: COLORS.accent.dangerText,
 };
 
 const STATUS_OPTIONS = ['active', 'booked', 'declined', 'paid'];
@@ -127,7 +127,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: COLORS.accent.info,
   booked: COLORS.accent.success,
   declined: COLORS.text.faint,
-  paid: '#8BC34A',
+  paid: COLORS.accent.success,
 };
 
 const SENDER_COLORS: Record<string, string> = {
@@ -135,7 +135,7 @@ const SENDER_COLORS: Record<string, string> = {
   couple: COLORS.brand.primary,
   planner: COLORS.accent.info,
   coordinator: COLORS.accent.success,
-  unknown: '#757575',
+  unknown: COLORS.text.subtle,
 };
 
 /**
@@ -145,11 +145,11 @@ const SENDER_COLORS: Record<string, string> = {
  */
 const MEMBER_PALETTE = [
   COLORS.brand.primary, COLORS.accent.info, COLORS.side.both, COLORS.accent.success, COLORS.accent.warning,
-  '#00BCD4', '#F06292', '#795548', '#5E35B1', '#00897B',
-  '#FB8C00', '#3949AB', '#8BC34A', '#E53935', '#546E7A',
+  '#00BCD4', COLORS.brand.primary, '#795548', '#5E35B1', '#00897B',
+  COLORS.accent.warning, '#3949AB', COLORS.accent.success, COLORS.accent.danger, '#546E7A',
 ];
 function memberColor(name: string): string {
-  if (!name) return '#757575';
+  if (!name) return COLORS.text.subtle;
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -734,7 +734,7 @@ export default function VendorDetailPage({
                                 fontSize: '0.875rem',
                                 lineHeight: 1.5,
                                 textDecoration: item.is_completed ? 'line-through' : 'none',
-                                color: item.is_completed ? '#aaa' : COLORS.text.strong,
+                                color: item.is_completed ? COLORS.text.faint : COLORS.text.strong,
                                 flex: 1,
                               }}
                             >
@@ -1040,7 +1040,7 @@ function CollapsibleInsightSection({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          '&:hover': { bgcolor: '#EFEFEF' },
+          '&:hover': { bgcolor: COLORS.bg.muted },
         }}
       >
         <Stack direction="row" alignItems="center" spacing={0.75}>

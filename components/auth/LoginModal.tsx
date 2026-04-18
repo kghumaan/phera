@@ -318,7 +318,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     fontSize: '14px',
                     fontWeight: 700,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                     color: COLORS.bg.white,
                   }}
@@ -330,7 +330,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   <Typography variant="body2" sx={{ textAlign: 'center', color: COLORS.text.faint, backgroundColor: COLORS.bg.white, position: 'relative', zIndex: 1, display: 'inline-block', px: 2 }}>
                     OR
                   </Typography>
-                  <Box sx={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', backgroundColor: '#E0E0E0', zIndex: 0 }} />
+                  <Box sx={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', backgroundColor: COLORS.border.default, zIndex: 0 }} />
                 </Box>
 
                 <Stack spacing={2}>
@@ -348,7 +348,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             />
                         }
                         sx={{
-                            borderColor: '#E0E0E0',
+                            borderColor: COLORS.border.default,
                             color: COLORS.text.strong,
                             py: 1.5,
                             borderRadius: '16px',
@@ -439,7 +439,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     fontSize: '14px',
                     fontWeight: 700,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                     color: COLORS.bg.white,
                   }}
@@ -545,10 +545,10 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     fontWeight: 700,
                     color: COLORS.bg.white,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                     '&:disabled': {
-                      backgroundColor: '#E0E0E0',
+                      backgroundColor: COLORS.border.default,
                       color: '#A0A0A0',
                     },
                   }}
@@ -570,7 +570,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
-                        borderColor: '#C73652',
+                        borderColor: COLORS.brand.primaryHover,
                         backgroundColor: 'rgba(222, 63, 94, 0.04)',
                       },
                     }}

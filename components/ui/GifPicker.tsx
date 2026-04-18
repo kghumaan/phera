@@ -171,7 +171,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                         backgroundColor: 'rgba(222, 63, 94, 0.1)',
                       },
                       '&:disabled': {
-                        color: '#ccc',
+                        color: COLORS.text.faint,
                       },
                     }}
                   >
@@ -301,7 +301,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <GifIcon sx={{ fontSize: 48, color: '#ccc', mb: 1 }} />
+              <GifIcon sx={{ fontSize: 48, color: COLORS.text.faint, mb: 1 }} />
               <Typography variant="body2" sx={{ 
                 color: 'rgba(0, 0, 0, 0.48)',
                 fontSize: '0.9rem'

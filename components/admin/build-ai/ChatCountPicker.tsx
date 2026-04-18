@@ -45,7 +45,7 @@ export default function ChatCountPicker({
             '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
             '&:hover fieldset': { borderColor: COLORS.brand.primaryHover, borderWidth: '2px' },
             '&:hover': {
-                bgcolor: '#eeeeee',
+                bgcolor: COLORS.bg.muted,
             }
         },
     };

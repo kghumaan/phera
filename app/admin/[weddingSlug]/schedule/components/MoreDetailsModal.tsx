@@ -930,12 +930,12 @@ function SlideEditor({
                 fontWeight: slide.type === opt.type ? 600 : 400,
                 lineHeight: 1.5,
                 cursor: 'pointer',
-                bgcolor: slide.type === opt.type ? '#ebebeb' : 'transparent',
+                bgcolor: slide.type === opt.type ? COLORS.bg.muted : 'transparent',
                 color: COLORS.text.strong,
                 border: slide.type === opt.type ? '1px solid #141414' : '1px solid #d6d6d6',
                 transition: 'all 0.15s',
                 '&:hover': {
-                  bgcolor: slide.type === opt.type ? '#ebebeb' : COLORS.bg.subtle,
+                  bgcolor: slide.type === opt.type ? COLORS.bg.muted : COLORS.bg.subtle,
                 },
               }}
             >
@@ -1126,7 +1126,7 @@ function ImageSlideFields({
               width: 48,
               height: 48,
               borderRadius: RADII.dialog,
-              bgcolor: '#ebebeb',
+              bgcolor: COLORS.bg.muted,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

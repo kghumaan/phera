@@ -196,8 +196,8 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
             return (
               <Paper key={esc.id} elevation={0} sx={{
                 p: 1.5, borderRadius: RADII.sm,
-                bgcolor: esc.priority === 'urgent' ? '#FFF5F5' : esc.priority === 'high' ? '#FFFBF0' : COLORS.bg.muted,
-                border: `1px solid ${esc.priority === 'urgent' ? '#FFCDD2' : esc.priority === 'high' ? '#FFE0B2' : 'rgba(0,0,0,0.07)'}`,
+                bgcolor: esc.priority === 'urgent' ? COLORS.accent.dangerBg : esc.priority === 'high' ? COLORS.accent.warningBg : COLORS.bg.muted,
+                border: `1px solid ${esc.priority === 'urgent' ? COLORS.accent.dangerBg : esc.priority === 'high' ? COLORS.accent.warningBg : 'rgba(0,0,0,0.07)'}`,
               }}>
                 {/* Guest info + badges */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
@@ -237,7 +237,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                     />
                     <Stack direction="row" spacing={1}>
                       <ActionButton size="small" variant="contained" onClick={() => handleResolve(esc.id)}
-                        sx={{ bgcolor: COLORS.accent.success, borderRadius: RADII.sm, textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: '#16a34a' } }}>
+                        sx={{ bgcolor: COLORS.accent.success, borderRadius: RADII.sm, textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: COLORS.accent.success } }}>
                         Confirm
                       </ActionButton>
                       <Button size="small" onClick={() => { setResolvingId(null); setResolveNotes(''); }}
@@ -250,7 +250,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
 
                 {/* Inline conversation snippet */}
                 <Collapse in={isViewingConvo}>
-                  <Box sx={{ mt: 1.5, p: 1.5, bgcolor: '#F5F5F0', borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
+                  <Box sx={{ mt: 1.5, p: 1.5, bgcolor: COLORS.bg.muted, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong }}>
                         Recent Messages

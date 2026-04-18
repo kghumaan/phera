@@ -52,7 +52,7 @@ export default function Bubble({ message }: { message: Message }) {
           px: 2.5,
           py: 1.5,
           borderRadius: '16px 16px 4px 16px',
-          bgcolor: '#eeeeee',
+          bgcolor: COLORS.bg.muted,
           color: COLORS.text.strong,
           whiteSpace: 'pre-line',
         }}

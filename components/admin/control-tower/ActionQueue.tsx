@@ -227,8 +227,8 @@ export default function ActionQueue({
                 sx={{
                   p: 1.5,
                   borderRadius: RADII.sm,
-                  bgcolor: item._priority === 'urgent' ? '#FFF5F5' : item._priority === 'high' ? '#FFFBF0' : COLORS.bg.muted,
-                  border: `1px solid ${item._priority === 'urgent' ? '#FFCDD2' : item._priority === 'high' ? '#FFE0B2' : 'rgba(0,0,0,0.07)'}`,
+                  bgcolor: item._priority === 'urgent' ? COLORS.accent.dangerBg : item._priority === 'high' ? COLORS.accent.warningBg : COLORS.bg.muted,
+                  border: `1px solid ${item._priority === 'urgent' ? COLORS.accent.dangerBg : item._priority === 'high' ? COLORS.accent.warningBg : 'rgba(0,0,0,0.07)'}`,
                 }}
               >
                 {/* Badges row */}
@@ -309,7 +309,7 @@ export default function ActionQueue({
                           textTransform: 'none',
                           fontSize: 14,
                           fontWeight: 600,
-                          '&:hover': { bgcolor: '#16a34a' },
+                          '&:hover': { bgcolor: COLORS.accent.success },
                         }}
                       >
                         Confirm Resolve

@@ -88,7 +88,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: COLORS.accent.info,
   booked: COLORS.accent.success,
   declined: COLORS.text.faint,
-  paid: '#8BC34A',
+  paid: COLORS.accent.success,
 };
 
 // Mock data for Basic user blurred teaser
@@ -1407,10 +1407,10 @@ function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) 
           alignItems: 'center',
           gap: 1.5,
           cursor: 'pointer',
-          '&:hover': { bgcolor: '#FFF6EB' },
+          '&:hover': { bgcolor: COLORS.bg.muted },
         }}
       >
-        <InfoOutlined sx={{ fontSize: 18, color: '#B35D00' }} />
+        <InfoOutlined sx={{ fontSize: 18, color: COLORS.accent.warningText }} />
         <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
           How to add a new vendor chat
         </Typography>

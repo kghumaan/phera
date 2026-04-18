@@ -257,7 +257,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                       size="small"
                       sx={{
                         height: 20, fontSize: 14, fontWeight: 600,
-                        bgcolor: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningBg : '#E3F2FD',
+                        bgcolor: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningBg : COLORS.accent.infoBg,
                         color: selectedTemplate.category === 'MARKETING' ? COLORS.accent.warningText : '#1565C0',
                       }}
                     />
@@ -269,7 +269,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                   </Box>
 
                   {/* Preview */}
-                  <Box sx={{ p: 1.5, bgcolor: '#F5F5F0', borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
+                  <Box sx={{ p: 1.5, bgcolor: COLORS.bg.muted, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.05)' }}>
                     <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, mb: 0.5, fontWeight: 600 }}>PREVIEW</Typography>
                     <Typography sx={{ fontSize: 14, color: COLORS.text.strong, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                       {previewText}
@@ -328,7 +328,7 @@ export default function ComposePanel({ weddingSlug, guests, partner1Name = '', p
                             height: 26, fontSize: 14, fontWeight: 500, cursor: 'pointer',
                             bgcolor: targetFilter === f.value ? COLORS.text.strong : COLORS.bg.subtle,
                             color: targetFilter === f.value ? COLORS.bg.white : COLORS.text.muted,
-                            '&:hover': { bgcolor: targetFilter === f.value ? COLORS.text.strong : '#EEEEEE' },
+                            '&:hover': { bgcolor: targetFilter === f.value ? COLORS.text.strong : COLORS.bg.muted },
                           }}
                         />
                       ))}
