@@ -452,7 +452,7 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
                               <Stack spacing={0.25} sx={{ py: 0.5 }}>
                                 {pinData.hidden_events.map((eid: string) => {
                                   const ev = events.find(e => e.id === eid);
-                                  return ev ? <Typography key={eid} variant="body2" sx={{ fontSize: '0.8rem' }}>{ev.name}</Typography> : null;
+                                  return ev ? <Typography key={eid} variant="body2" sx={{ fontSize: '0.875rem' }}>{ev.name}</Typography> : null;
                                 })}
                               </Stack>
                             }
@@ -873,7 +873,7 @@ function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDel
           )}
 
           <Box sx={{ p: 1.5, borderRadius: RADII.sm, bgcolor: '#f8f8f8', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
               {generatePinSummary(pin, events)}
             </Typography>
           </Box>

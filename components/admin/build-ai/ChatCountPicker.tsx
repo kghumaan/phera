@@ -62,7 +62,7 @@ export default function ChatCountPicker({
             mt: 1,
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
         }}>
-            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
                 {label}
             </Typography>
             <FormControl fullWidth size="small">

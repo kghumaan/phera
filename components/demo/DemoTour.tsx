@@ -441,7 +441,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
             {!step.noSpotlight && (
               <Typography
                 sx={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.875rem',
                   fontWeight: 700,
                   color: '#DE3F5E',
                   textTransform: 'uppercase',
@@ -512,7 +512,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   sx={{
                     color: '#999',
                     textTransform: 'none',
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     '&:hover': { color: '#666', bgcolor: 'transparent' },
                   }}
                 >
@@ -528,7 +528,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   sx={{
                     color: '#999',
                     textTransform: 'none',
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     '&:hover': { color: '#666', bgcolor: 'transparent' },
                   }}
                 >

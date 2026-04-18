@@ -42,7 +42,7 @@ export default function ChatLayoutPicker({ onSave, currentValue }: ChatLayoutPic
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         Website Navigation Style
       </Typography>
 
@@ -88,7 +88,7 @@ export default function ChatLayoutPicker({ onSave, currentValue }: ChatLayoutPic
                 {opt.label}
               </Typography>
               <Typography sx={{
-                fontSize: '0.7rem',
+                fontSize: '0.875rem',
                 color: COLORS.text.faint,
                 lineHeight: 1.4,
               }}>

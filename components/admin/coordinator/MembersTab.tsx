@@ -85,7 +85,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
   if (members.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: COLORS.text.faint, fontSize: '0.85rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
           No members found for this conversation.
         </Typography>
       </Box>
@@ -124,7 +124,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 flexShrink: 0,
               }}
             >
@@ -135,7 +135,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 sx={{
-                  fontSize: '0.85rem',
+                  fontSize: '0.875rem',
                   fontWeight: 600,
                   color: COLORS.text.strong,
                   overflow: 'hidden',
@@ -147,14 +147,14 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 {member.is_whatsapp_admin && (
                   <Typography
                     component="span"
-                    sx={{ fontSize: '0.7rem', color: COLORS.text.faint, ml: 0.5, fontWeight: 400 }}
+                    sx={{ fontSize: '0.875rem', color: COLORS.text.faint, ml: 0.5, fontWeight: 400 }}
                   >
                     (WA admin)
                   </Typography>
                 )}
               </Typography>
               {member.name && (
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: COLORS.text.subtle }}>
+                <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>
                   {member.phone}
                 </Typography>
               )}
@@ -168,7 +168,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
               sx={{
                 minWidth: 120,
                 height: 32,
-                fontSize: '0.78rem',
+                fontSize: '0.875rem',
                 fontWeight: 600,
                 bgcolor: alpha(config.color, 0.08),
                 color: config.color,
@@ -190,7 +190,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
               }}
             >
               {Object.entries(ROLE_CONFIG).map(([value, cfg]) => (
-                <MenuItem key={value} value={value} sx={{ fontSize: '0.82rem', gap: 0.75 }}>
+                <MenuItem key={value} value={value} sx={{ fontSize: '0.875rem', gap: 0.75 }}>
                   <Box component="span" sx={{ color: cfg.color, display: 'flex', alignItems: 'center' }}>
                     {cfg.icon}
                   </Box>

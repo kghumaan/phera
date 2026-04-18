@@ -44,7 +44,7 @@ interface ChatLookFeelFormProps {
 function BackgroundPicker({ selected, onSelect, label }: { selected: string; onSelect: (url: string) => void; label: string }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         {label}
       </Typography>
       <Box sx={{
@@ -81,7 +81,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
               <Box component="img" src={bg.thumbUrl} alt={bg.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </Box>
             <Typography sx={{
-              fontSize: '0.6rem',
+              fontSize: '0.875rem',
               color: selected === bg.url ? COLORS.brand.primary : COLORS.text.subtle,
               fontWeight: selected === bg.url ? 700 : 500,
               mt: 0.5,
@@ -102,7 +102,7 @@ function BackgroundPicker({ selected, onSelect, label }: { selected: string; onS
 function ColorPicker({ selected, onSelect, label, options }: { selected: string; onSelect: (hex: string) => void; label: string; options: typeof COLOR_OPTIONS }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         {label}
       </Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
@@ -145,7 +145,7 @@ function LayoutPicker({ selected, onSelect }: { selected: string; onSelect: (lay
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1.5, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         Website Navigation Style
       </Typography>
       <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -170,10 +170,10 @@ function LayoutPicker({ selected, onSelect }: { selected: string; onSelect: (lay
               }}
             >
               <Icon sx={{ fontSize: 28, color: isSelected ? COLORS.brand.primary : COLORS.text.subtle, mb: 0.5 }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: isSelected ? COLORS.brand.primary : COLORS.text.strong, mb: 0.25 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: isSelected ? COLORS.brand.primary : COLORS.text.strong, mb: 0.25 }}>
                 {opt.label}
               </Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: COLORS.text.faint, lineHeight: 1.3 }}>
+              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, lineHeight: 1.3 }}>
                 {opt.description}
               </Typography>
             </Box>
@@ -230,7 +230,7 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
           minHeight: 36,
           '& .MuiTab-root': {
             minHeight: 36,
-            fontSize: '0.8rem',
+            fontSize: '0.875rem',
             fontWeight: 600,
             textTransform: 'none',
             px: 2,
@@ -311,7 +311,7 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
             fullWidth
             sx={{
               color: COLORS.text.subtle,
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
               py: 1,
               borderRadius: RADII.lg,
               flex: 1,
@@ -329,7 +329,7 @@ export default function ChatLookFeelForm({ onSave, onCancel, currentValues }: Ch
           fullWidth
           sx={{
             borderRadius: RADII.lg,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             py: 1,
             flex: 1,
           }}

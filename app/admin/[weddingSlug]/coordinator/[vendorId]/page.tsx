@@ -483,7 +483,7 @@ export default function VendorDetailPage({
                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.3)' },
                         '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                       },
-                      '& .MuiOutlinedInput-input': { color: COLORS.text.strong, fontSize: '0.82rem', py: 0 },
+                      '& .MuiOutlinedInput-input': { color: COLORS.text.strong, fontSize: '0.875rem', py: 0 },
                     }}
                   />
                   <Select
@@ -496,7 +496,7 @@ export default function VendorDetailPage({
                       width: 180,
                       height: 36,
                       borderRadius: RADII.sm,
-                      fontSize: '0.82rem',
+                      fontSize: '0.875rem',
                       color: COLORS.text.strong,
                       bgcolor: COLORS.bg.white,
                       '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
@@ -519,7 +519,7 @@ export default function VendorDetailPage({
                       width: 180,
                       height: 36,
                       borderRadius: RADII.sm,
-                      fontSize: '0.82rem',
+                      fontSize: '0.875rem',
                       color: COLORS.text.strong,
                       bgcolor: COLORS.bg.white,
                       '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
@@ -553,14 +553,14 @@ export default function VendorDetailPage({
                       <Chip
                         label={vendor.category}
                         size="small"
-                        sx={{ color: COLORS.text.muted, bgcolor: alpha(COLORS.text.strong, 0.06), fontSize: '0.7rem', height: 20, borderRadius: '4px' }}
+                        sx={{ color: COLORS.text.muted, bgcolor: alpha(COLORS.text.strong, 0.06), fontSize: '0.875rem', height: 20, borderRadius: '4px' }}
                       />
                     )}
                     <Chip
                       label={vendor.status}
                       size="small"
                       sx={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.875rem',
                         height: 20,
                         borderRadius: '4px',
                         textTransform: 'capitalize',
@@ -577,7 +577,7 @@ export default function VendorDetailPage({
                 <>
                   <Tooltip title={DEMO_BUTTON_TOOLTIPS.refreshInsights}>
                     <span>
-                      <Button size="small" startIcon={<Refresh />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}>
+                      <Button size="small" startIcon={<Refresh />} disabled sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                         Refresh
                       </Button>
                     </span>
@@ -606,7 +606,7 @@ export default function VendorDetailPage({
                       startIcon={uploadingOlder ? <CircularProgress size={14} /> : <Upload />}
                       onClick={() => olderFileInputRef.current?.click()}
                       disabled={uploadingOlder}
-                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}
+                      sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.875rem' }}
                     >
                       {uploadingOlder ? 'Uploading...' : 'Upload older messages'}
                     </Button>
@@ -616,7 +616,7 @@ export default function VendorDetailPage({
                     startIcon={reanalyzing ? <CircularProgress size={14} /> : <Refresh />}
                     onClick={handleReanalyze}
                     disabled={reanalyzing}
-                    sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.78rem' }}
+                    sx={{ textTransform: 'none', borderRadius: RADII.md, color: COLORS.text.subtle, fontSize: '0.875rem' }}
                   >
                     Refresh
                   </Button>
@@ -642,7 +642,7 @@ export default function VendorDetailPage({
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                fontSize: '0.82rem',
+                fontSize: '0.875rem',
                 color: COLORS.text.subtle,
                 minHeight: 40,
                 '&.Mui-selected': { color: COLORS.brand.primary },
@@ -662,10 +662,10 @@ export default function VendorDetailPage({
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 {summaries.length > 0 && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: COLORS.text.strong, mb: 1 }}>Overview</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong, mb: 1 }}>Overview</Typography>
                     <Stack spacing={1}>
                       {summaries.map((item) => (
-                        <Typography key={item.id} sx={{ fontSize: '0.85rem', lineHeight: 1.6, color: COLORS.text.muted }}>
+                        <Typography key={item.id} sx={{ fontSize: '0.875rem', lineHeight: 1.6, color: COLORS.text.muted }}>
                           {item.content}
                         </Typography>
                       ))}
@@ -675,12 +675,12 @@ export default function VendorDetailPage({
 
                 {priceQuotes.length > 0 && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: COLORS.text.strong, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {INSIGHT_ICONS.price_quote} Price Quotes
                     </Typography>
                     <Stack spacing={0.5}>
                       {priceQuotes.map((item) => (
-                        <Typography key={item.id} sx={{ fontSize: '0.82rem', lineHeight: 1.5, color: COLORS.text.muted }}>
+                        <Typography key={item.id} sx={{ fontSize: '0.875rem', lineHeight: 1.5, color: COLORS.text.muted }}>
                           {item.content}
                         </Typography>
                       ))}
@@ -698,7 +698,7 @@ export default function VendorDetailPage({
                   <Box sx={{ px: 1.5, py: 1, bgcolor: COLORS.bg.subtle, borderBottom: '1px solid', borderColor: alpha(COLORS.text.strong, 0.06) }}>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
                       <Box sx={{ color: COLORS.text.subtle }}>{INSIGHT_ICONS.action_item}</Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>Action Items</Typography>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>Action Items</Typography>
                     </Stack>
                   </Box>
                   <Stack sx={{ p: 1 }}>
@@ -731,7 +731,7 @@ export default function VendorDetailPage({
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Typography
                               sx={{
-                                fontSize: '0.78rem',
+                                fontSize: '0.875rem',
                                 lineHeight: 1.5,
                                 textDecoration: item.is_completed ? 'line-through' : 'none',
                                 color: item.is_completed ? '#aaa' : COLORS.text.strong,
@@ -742,10 +742,10 @@ export default function VendorDetailPage({
                             </Typography>
                             {importedItems.has(item.id) ? (
                               <Chip
-                                icon={<ViewKanban sx={{ fontSize: 12 }} />}
+                                icon={<ViewKanban sx={{ fontSize: 14 }} />}
                                 label="In Tasks"
                                 size="small"
-                                sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600, bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success, '& .MuiChip-icon': { color: COLORS.accent.success } }}
+                                sx={{ height: 20, fontSize: '0.875rem', fontWeight: 600, bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success, '& .MuiChip-icon': { color: COLORS.accent.success } }}
                               />
                             ) : (
                               <Tooltip title="Import to Task Manager">
@@ -767,7 +767,7 @@ export default function VendorDetailPage({
                             )}
                           </Stack>
                           {item.due_date && (
-                            <Typography sx={{ fontSize: '0.7rem', color: '#F44336' }}>
+                            <Typography sx={{ fontSize: '0.875rem', color: '#F44336' }}>
                               Due: {new Date(item.due_date).toLocaleDateString()}
                             </Typography>
                           )}
@@ -802,7 +802,7 @@ export default function VendorDetailPage({
                   elevation={0}
                   sx={{ p: 3, textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, bgcolor: COLORS.bg.white }}
                 >
-                  <Typography sx={{ color: COLORS.text.faint, fontSize: '0.78rem' }}>
+                  <Typography sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
                     No insights yet. Click "Re-analyze" to extract insights from the conversation.
                   </Typography>
                 </Paper>
@@ -822,7 +822,7 @@ export default function VendorDetailPage({
               }}
             >
               <Box sx={{ p: 1.5, borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.82rem', color: COLORS.text.strong }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>
                   Conversation ({allMessages.length} messages)
                 </Typography>
               </Box>
@@ -834,7 +834,7 @@ export default function VendorDetailPage({
                 }}
               >
                 {allMessages.length === 0 ? (
-                  <Typography sx={{ color: COLORS.text.faint, textAlign: 'center', py: 4, fontSize: '0.78rem' }}>
+                  <Typography sx={{ color: COLORS.text.faint, textAlign: 'center', py: 4, fontSize: '0.875rem' }}>
                     No messages yet.
                   </Typography>
                 ) : (
@@ -850,7 +850,7 @@ export default function VendorDetailPage({
                         <React.Fragment key={msg.id}>
                           {showDate && (
                             <Typography
-                              sx={{ textAlign: 'center', fontSize: '0.66rem', color: COLORS.text.faint, py: 0.5 }}
+                              sx={{ textAlign: 'center', fontSize: '0.875rem', color: COLORS.text.faint, py: 0.5 }}
                             >
                               {new Date(msg.message_timestamp).toLocaleDateString(undefined, {
                                 weekday: 'short',
@@ -872,21 +872,21 @@ export default function VendorDetailPage({
                             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25 }}>
                               <Typography
                                 sx={{
-                                  fontSize: '0.72rem',
+                                  fontSize: '0.875rem',
                                   fontWeight: 600,
                                   color: memberColor(msg.sender_name),
                                 }}
                               >
                                 {msg.sender_name}
                               </Typography>
-                              <Typography sx={{ fontSize: '0.64rem', color: COLORS.text.faint }}>
+                              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
                                 {new Date(msg.message_timestamp).toLocaleTimeString(undefined, {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
                               </Typography>
                             </Stack>
-                            <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, pl: 0, color: COLORS.text.strong }}>
+                            <Typography sx={{ fontSize: '0.875rem', lineHeight: 1.5, pl: 0, color: COLORS.text.strong }}>
                               {msg.content}
                             </Typography>
                           </Box>
@@ -904,7 +904,7 @@ export default function VendorDetailPage({
           {activeTab === 2 && isDemo && (
             <Paper elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 1, overflow: 'hidden', bgcolor: COLORS.bg.white }}>
               <Box sx={{ px: 1.5, py: 1, bgcolor: COLORS.bg.subtle, borderBottom: '1px solid', borderColor: alpha(COLORS.text.strong, 0.06) }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>
                   Members ({DEMO_MEMBERS[vendorId]?.length || 0})
                 </Typography>
               </Box>
@@ -915,20 +915,20 @@ export default function VendorDetailPage({
                       width: 32, height: 32, borderRadius: '50%',
                       bgcolor: member.role === 'vendor' ? alpha(COLORS.side.both, 0.12) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.12) : alpha(COLORS.accent.info, 0.12),
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.75rem', fontWeight: 700,
+                      fontSize: '0.875rem', fontWeight: 700,
                       color: member.role === 'vendor' ? COLORS.side.both : member.role === 'admin' ? COLORS.brand.primary : COLORS.accent.info,
                     }}>
                       {member.name.charAt(0).toUpperCase()}
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: COLORS.text.strong }}>{member.name}</Typography>
-                      {member.phone && <Typography sx={{ fontSize: '0.7rem', color: COLORS.text.subtle }}>{member.phone}</Typography>}
+                      <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>{member.name}</Typography>
+                      {member.phone && <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>{member.phone}</Typography>}
                     </Box>
                     <Chip
                       label={member.role}
                       size="small"
                       sx={{
-                        fontSize: '0.68rem', height: 20, borderRadius: '4px', textTransform: 'capitalize',
+                        fontSize: '0.875rem', height: 20, borderRadius: '4px', textTransform: 'capitalize',
                         bgcolor: member.role === 'vendor' ? alpha(COLORS.side.both, 0.1) : member.role === 'admin' ? alpha(COLORS.brand.primary, 0.1) : alpha(COLORS.accent.info, 0.1),
                         color: member.role === 'vendor' ? COLORS.side.both : member.role === 'admin' ? COLORS.brand.primary : COLORS.accent.info,
                       }}
@@ -943,7 +943,7 @@ export default function VendorDetailPage({
           )}
           {activeTab === 2 && !isDemo && !conversationId && (
             <Box sx={{ py: 4, textAlign: 'center' }}>
-              <Typography sx={{ color: COLORS.text.faint, fontSize: '0.85rem' }}>
+              <Typography sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
                 No conversation linked to this vendor yet.
               </Typography>
             </Box>
@@ -1045,7 +1045,7 @@ function CollapsibleInsightSection({
       >
         <Stack direction="row" alignItems="center" spacing={0.75}>
           <Box sx={{ color: COLORS.text.subtle }}>{icon}</Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: COLORS.text.strong }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong }}>
             {title} ({items.length})
           </Typography>
         </Stack>
@@ -1055,11 +1055,11 @@ function CollapsibleInsightSection({
         <Stack sx={{ p: 1.5 }} spacing={1}>
           {items.map((item) => (
             <Box key={item.id}>
-              <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.5, color: COLORS.text.strong }}>
+              <Typography sx={{ fontSize: '0.875rem', lineHeight: 1.5, color: COLORS.text.strong }}>
                 {item.content}
               </Typography>
               {item.due_date && (
-                <Typography sx={{ fontSize: '0.7rem', color: '#F44336', mt: 0.25 }}>
+                <Typography sx={{ fontSize: '0.875rem', color: '#F44336', mt: 0.25 }}>
                   Due: {new Date(item.due_date).toLocaleDateString()}
                 </Typography>
               )}

@@ -186,7 +186,7 @@ function SortableStepRow({
                 size="small"
                 sx={{
                   height: 22,
-                  fontSize: '0.7rem',
+                  fontSize: '0.875rem',
                   bgcolor: alpha(COLORS.brand.primary, 0.1),
                   color: COLORS.brand.primary,
                   fontWeight: 600,

@@ -155,7 +155,7 @@ export default function ActionQueue({
                 onIssueResolved?.();
               } catch {}
             }}
-            sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}
+            sx={{ textTransform: 'none', fontSize: 14, color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}
           >
             Dismiss All
           </Button>
@@ -177,7 +177,7 @@ export default function ActionQueue({
                 onClick={() => setFilterPriority(filterPriority === p ? null : p)}
                 sx={{
                   height: 22,
-                  fontSize: 10,
+                  fontSize: 14,
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   cursor: 'pointer',
@@ -198,7 +198,7 @@ export default function ActionQueue({
               onClick={() => setFilterCategory(filterCategory === c ? null : c)}
               sx={{
                 height: 22,
-                fontSize: 10,
+                fontSize: 14,
                 cursor: 'pointer',
                 color: filterCategory === c ? COLORS.bg.white : COLORS.text.muted,
                 bgcolor: filterCategory === c ? COLORS.text.muted : 'transparent',
@@ -251,13 +251,13 @@ export default function ActionQueue({
                     variant="outlined"
                     sx={{ height: 18, fontSize: 9, color: COLORS.text.muted, borderColor: 'rgba(0,0,0,0.15)' }}
                   />
-                  <Typography sx={{ fontSize: 10, color: COLORS.text.faint, ml: 'auto !important', alignSelf: 'center' }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.faint, ml: 'auto !important', alignSelf: 'center' }}>
                     {formatRelativeTime(item.created_at)}
                   </Typography>
                 </Stack>
 
                 {/* Title */}
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: COLORS.text.strong, lineHeight: 1.3, mb: 0.25 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, lineHeight: 1.3, mb: 0.25 }}>
                   {item._title || item.template_name || 'Untitled issue'}
                 </Typography>
 
@@ -265,7 +265,7 @@ export default function ActionQueue({
                 {item.template_name && item.template_name !== item._title && (
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 14,
                       color: COLORS.text.muted,
                       lineHeight: 1.4,
                       display: '-webkit-box',
@@ -292,7 +292,7 @@ export default function ActionQueue({
                         '& .MuiOutlinedInput-root': {
                           borderRadius: RADII.sm,
                           bgcolor: COLORS.bg.white,
-                          fontSize: 12,
+                          fontSize: 14,
                           color: COLORS.text.strong,
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
                         },
@@ -307,7 +307,7 @@ export default function ActionQueue({
                           bgcolor: COLORS.accent.success,
                           borderRadius: RADII.sm,
                           textTransform: 'none',
-                          fontSize: 11,
+                          fontSize: 14,
                           fontWeight: 600,
                           '&:hover': { bgcolor: '#16a34a' },
                         }}
@@ -317,7 +317,7 @@ export default function ActionQueue({
                       <Button
                         size="small"
                         onClick={() => { setResolvingId(null); setResolveNotes(''); }}
-                        sx={{ textTransform: 'none', fontSize: 11, color: COLORS.text.subtle }}
+                        sx={{ textTransform: 'none', fontSize: 14, color: COLORS.text.subtle }}
                       >
                         Cancel
                       </Button>
@@ -336,7 +336,7 @@ export default function ActionQueue({
                       sx={{
                         borderRadius: RADII.sm,
                         textTransform: 'none',
-                        fontSize: 11,
+                        fontSize: 14,
                         fontWeight: 600,
                         color: COLORS.accent.success,
                         borderColor: '#22c55e40',
@@ -353,7 +353,7 @@ export default function ActionQueue({
                       sx={{
                         borderRadius: RADII.sm,
                         textTransform: 'none',
-                        fontSize: 11,
+                        fontSize: 14,
                         fontWeight: 600,
                         color: COLORS.text.subtle,
                         borderColor: 'rgba(0,0,0,0.12)',

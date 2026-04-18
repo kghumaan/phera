@@ -664,7 +664,7 @@ export default function MoreDetailsModal({
                       />
                     </Box>
                   ) : (
-                    <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>
                       Add slides to see preview
                     </Typography>
                   )}
@@ -709,10 +709,10 @@ export default function MoreDetailsModal({
               {/* CTA preview — matches what guests see on the schedule card */}
               {slides.length > 0 && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'underline' }}>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem', fontWeight: 700, textDecoration: 'underline' }}>
                     More Details
                   </Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem' }}>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
                     {'>'}
                   </Typography>
                 </Box>
@@ -1070,7 +1070,7 @@ function TextSlideFields({
           position: 'absolute',
           bottom: 8,
           right: 12,
-          fontSize: '0.75rem',
+          fontSize: '0.875rem',
           color: COLORS.text.faint,
         }}>
           {bodyText.length}

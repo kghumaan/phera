@@ -43,16 +43,16 @@ export default function OutreachFunnelChart({ summary }: OutreachFunnelChartProp
       </Typography>
       {total === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>No guests yet</Typography>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.faint }}>No guests yet</Typography>
         </Box>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11, fill: COLORS.text.muted }} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 14, fill: COLORS.text.muted }} axisLine={false} tickLine={false} />
             <Tooltip
               formatter={((value: number) => [`${value} guests`, '']) as any}
-              contentStyle={{ borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 12 }}
+              contentStyle={{ borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14 }}
             />
             <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20}>
               {data.map((entry, index) => (

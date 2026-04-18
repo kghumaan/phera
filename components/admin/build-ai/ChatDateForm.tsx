@@ -138,7 +138,7 @@ export default function ChatDateForm({
                                 fullWidth
                                 sx={{
                                     borderRadius: RADII.lg,
-                                    fontSize: '0.85rem',
+                                    fontSize: '0.875rem',
                                     py: 1,
                                     flex: 1,
                                 }}
@@ -156,7 +156,7 @@ export default function ChatDateForm({
                                 borderRadius: RADII.lg,
                                 borderColor: COLORS.brand.primary,
                                 color: COLORS.brand.primary,
-                                fontSize: '0.85rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 700,
                                 py: 1,
                                 textTransform: 'none',

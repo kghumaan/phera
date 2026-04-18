@@ -1685,7 +1685,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 />
               </Box>
               {errors.phone && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.75rem' }}>
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block', fontSize: '0.875rem' }}>
                   {errors.phone}
                 </Typography>
               )}

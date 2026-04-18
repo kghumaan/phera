@@ -476,7 +476,7 @@ export default function CulturalGuide() {
                               color: currentCeremony.color,
                               width: 32,
                               height: 32,
-                              fontSize: '0.8rem',
+                              fontSize: '0.875rem',
                             }}
                           >
                             {index + 1}

@@ -163,7 +163,7 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
                     height: 36,
                     bgcolor: '#DE3F5E15',
                     color: COLORS.brand.primary,
-                    fontSize: '0.75rem',
+                    fontSize: '0.875rem',
                     fontWeight: 700,
                     flexShrink: 0,
                   }}
@@ -172,16 +172,16 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
                       {activity.guestName}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>
+                    <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>
                       {formatTimeAgo(activity.lastMessageAt)}
                     </Typography>
                   </Box>
                   <Typography
                     sx={{
-                      fontSize: '0.8rem',
+                      fontSize: '0.875rem',
                       color: COLORS.text.subtle,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -195,7 +195,7 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
                   label="answered"
                   size="small"
                   sx={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.875rem',
                     height: 20,
                     flexShrink: 0,
                     bgcolor: '#E8F5E9',
@@ -225,12 +225,12 @@ export default function ConciergeDashboard({ weddingId, onViewConversation }: Co
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Circle sx={{ fontSize: 10, color: COLORS.accent.success }} />
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>
+          <Circle sx={{ fontSize: 14, color: COLORS.accent.success }} />
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
             Concierge Active
           </Typography>
         </Box>
-        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.8rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
           Text the concierge number from your phone to test it yourself
         </Typography>
       </Paper>

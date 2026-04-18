@@ -63,7 +63,7 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
             >
               <Typography
                 sx={{
-                  fontSize: '0.85rem',
+                  fontSize: '0.875rem',
                   color: COLORS.text.strong,
                   lineHeight: 1.5,
                   whiteSpace: 'pre-wrap',
@@ -74,7 +74,7 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
               </Typography>
               <Typography
                 sx={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.875rem',
                   color: COLORS.text.faint,
                   mt: 0.5,
                   textAlign: msg.role === 'assistant' ? 'right' : 'left',

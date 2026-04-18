@@ -854,7 +854,7 @@ export default function OnboardingPage() {
                           </Stack>
 
                           {/* Desktop Feature Title */}
-                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: COLORS.text.strong, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', opacity: 0.7 }}>
+                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: COLORS.text.strong, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.875rem', opacity: 0.7 }}>
                             What's included:
                           </Typography>
 
@@ -872,7 +872,7 @@ export default function OnboardingPage() {
                               mb: showAllFeatures ? 2 : 0,
                               justifyContent: 'flex-start',
                               textTransform: 'none',
-                              fontSize: '0.8rem'
+                              fontSize: '0.875rem'
                             }}
                           >
                             {showAllFeatures ? 'Hide premium features' : 'Show all premium features'}
@@ -898,7 +898,7 @@ export default function OnboardingPage() {
                                   </Typography>
                                 </Stack>
                               ))}
-                              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.8rem' }}>
+                              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.875rem' }}>
                                 + even more features coming soon
                               </Typography>
                             </Stack>
@@ -1004,7 +1004,7 @@ export default function OnboardingPage() {
                             {role === 'planner' && (
                               <>
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Company / Business Name</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Company / Business Name</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1016,7 +1016,7 @@ export default function OnboardingPage() {
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Where are you based?</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Where are you based?</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1032,7 +1032,7 @@ export default function OnboardingPage() {
                               <>
                                 <Stack direction="row" spacing={2}>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Your First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Your First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -1043,7 +1043,7 @@ export default function OnboardingPage() {
                                     />
                                   </Box>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Partner's First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner's First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -1056,14 +1056,14 @@ export default function OnboardingPage() {
 
                                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
-                                  <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                  <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                     Optionally provide details below
                                   </Typography>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
                                 </Stack>
 
                                 <Box ref={venueContainerRef} sx={{ position: 'relative' }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Event Venue</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Event Venue</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1107,7 +1107,7 @@ export default function OnboardingPage() {
                                               <LocationOn sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
                                             </ListItemIcon>
                                             <ListItemText
-                                              primary={<Typography sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.85rem' }}>{s.name}</Typography>}
+                                              primary={<Typography sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.875rem' }}>{s.name}</Typography>}
                                               secondary={<Typography variant="caption" sx={{ color: COLORS.text.subtle }}>{s.place_name}</Typography>}
                                             />
                                           </ListItemButton>
@@ -1143,14 +1143,14 @@ export default function OnboardingPage() {
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.875rem' }}>
                                       Venue TBD
                                     </Typography>
                                   </Stack>
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Wedding Dates</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Wedding Dates</Typography>
                                   <DatePicker
                                     selectsRange
                                     startDate={weddingDate ? new Date(weddingDate) : undefined}
@@ -1199,7 +1199,7 @@ export default function OnboardingPage() {
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.875rem' }}>
                                       Dates TBD
                                     </Typography>
                                   </Stack>
@@ -1264,7 +1264,7 @@ export default function OnboardingPage() {
                                       variant="caption"
                                       sx={{
                                         color: COLORS.text.subtle,
-                                        fontSize: '0.72rem',
+                                        fontSize: '0.875rem',
                                         lineHeight: 1.4,
                                         display: 'block',
                                       }}

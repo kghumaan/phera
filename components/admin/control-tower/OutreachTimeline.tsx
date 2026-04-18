@@ -143,7 +143,7 @@ export default function OutreachTimeline({ events }: OutreachTimelineProps) {
                             px: 0.75,
                             py: 0.25,
                             borderRadius: '4px',
-                            fontSize: '0.65rem',
+                            fontSize: '0.875rem',
                           }}
                         >
                           SCHEDULED

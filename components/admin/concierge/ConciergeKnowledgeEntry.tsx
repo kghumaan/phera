@@ -196,7 +196,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               label={categoryLabel}
               size="small"
               sx={{
-                fontSize: '0.65rem',
+                fontSize: '0.875rem',
                 height: 20,
                 bgcolor: `${categoryColor}15`,
                 color: categoryColor,
@@ -209,7 +209,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
                 label="AI Generated"
                 size="small"
                 sx={{
-                  fontSize: '0.6rem',
+                  fontSize: '0.875rem',
                   height: 20,
                   bgcolor: '#DE3F5E10',
                   color: COLORS.brand.primary,
@@ -225,7 +225,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               color: COLORS.text.muted,
               lineHeight: 1.6,
               whiteSpace: 'pre-wrap',
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
             }}
           >
             {entry.content.length > 200 ? entry.content.slice(0, 200) + '...' : entry.content}

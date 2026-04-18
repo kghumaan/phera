@@ -40,7 +40,7 @@ export default function ChatColorPicker({ onSave, currentValue }: ChatColorPicke
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         Choose Your Accent Color
       </Typography>
 

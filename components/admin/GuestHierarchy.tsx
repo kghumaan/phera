@@ -328,12 +328,12 @@ export default function GuestHierarchy() {
                         <Chip
                           label={guest.tier}
                           size="small"
-                          sx={{ height: 20, fontSize: '0.75rem' }}
+                          sx={{ height: 20, fontSize: '0.875rem' }}
                         />
                         <Chip
                           label={guest.side}
                           size="small"
-                          sx={{ height: 20, fontSize: '0.75rem' }}
+                          sx={{ height: 20, fontSize: '0.875rem' }}
                         />
                         <Chip
                           icon={getStatusIcon(guest.rsvpStatus)}
@@ -341,7 +341,7 @@ export default function GuestHierarchy() {
                           size="small"
                           sx={{
                             height: 20,
-                            fontSize: '0.75rem',
+                            fontSize: '0.875rem',
                             bgcolor: getStatusColor(guest.rsvpStatus) + '20',
                             color: getStatusColor(guest.rsvpStatus),
                           }}

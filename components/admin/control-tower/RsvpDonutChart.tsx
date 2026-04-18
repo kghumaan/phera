@@ -38,7 +38,7 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
       </Typography>
       {totalGuests === 0 ? (
         <Box sx={{ py: 4, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>No guests yet</Typography>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.faint }}>No guests yet</Typography>
         </Box>
       ) : (
         <Box sx={{ position: 'relative' }}>
@@ -60,7 +60,7 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
               </Pie>
               <Tooltip
                 formatter={((value: number, name: string) => [`${value} guests`, name]) as any}
-                contentStyle={{ borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 12 }}
+                contentStyle={{ borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14 }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -69,7 +69,7 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
             <Typography sx={{ fontSize: 22, fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
               {responded}
             </Typography>
-            <Typography sx={{ fontSize: 10, color: COLORS.text.faint }}>
+            <Typography sx={{ fontSize: 14, color: COLORS.text.faint }}>
               of {totalGuests}
             </Typography>
           </Box>
@@ -81,7 +81,7 @@ export default function RsvpDonutChart({ breakdown, totalGuests }: RsvpDonutChar
               return (
                 <Box key={s.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: s.color }} />
-                  <Typography sx={{ fontSize: 11, color: COLORS.text.muted }}>
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.muted }}>
                     {s.label} ({val})
                   </Typography>
                 </Box>

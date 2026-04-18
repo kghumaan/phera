@@ -341,7 +341,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '0.75rem',
+                              fontSize: '0.875rem',
                               fontWeight: 700,
                               flexShrink: 0,
                             }}

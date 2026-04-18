@@ -155,7 +155,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
             '& .MuiOutlinedInput-root': {
               bgcolor: COLORS.bg.white,
               borderRadius: RADII.sm,
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
               '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
               '&:hover fieldset': { borderColor: COLORS.brand.primary },
               '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
@@ -175,7 +175,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
             },
             '& .MuiToggleButton-root': {
               textTransform: 'none',
-              fontSize: '0.8rem',
+              fontSize: '0.875rem',
               px: 2,
               borderRadius: '10px !important',
               color: COLORS.text.subtle,
@@ -232,7 +232,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                     height: 40,
                     bgcolor: '#DE3F5E15',
                     color: COLORS.brand.primary,
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     fontWeight: 700,
                     flexShrink: 0,
                   }}
@@ -241,7 +241,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
                       {conv.guestName}
                     </Typography>
                     <Typography variant="body4" sx={{ color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>
@@ -250,7 +250,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                   </Box>
                   <Typography
                     sx={{
-                      fontSize: '0.8rem',
+                      fontSize: '0.875rem',
                       color: COLORS.text.subtle,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -264,7 +264,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                   label={conv.messageCount}
                   size="small"
                   sx={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.875rem',
                     height: 22,
                     minWidth: 22,
                     flexShrink: 0,

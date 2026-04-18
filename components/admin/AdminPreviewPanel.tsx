@@ -612,7 +612,7 @@ export default function AdminPreviewPanel({
                     variant="caption"
                     sx={{
                         color: COLORS.text.faint,
-                        fontSize: '0.75rem',
+                        fontSize: '0.875rem',
                         textAlign: 'center',
                         flexShrink: 1,
                         minWidth: 0,
@@ -750,7 +750,7 @@ export default function AdminPreviewPanel({
                                                 <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
                                                     {pin.pin}
                                                 </Typography>
-                                                <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '10px' }}>
+                                                <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '14px' }}>
                                                     {pin.type}
                                                 </Typography>
                                             </Stack>

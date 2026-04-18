@@ -567,7 +567,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       py: 1,
                       borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
                         borderColor: '#C73652',
@@ -589,7 +589,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       py: 1,
                       borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
                         borderColor: '#666666',

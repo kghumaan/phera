@@ -54,10 +54,10 @@ export default function ConversationThread({ guestName, events }: ConversationTh
                   <Chip
                     label={event.template_name}
                     size="small"
-                    sx={{ mb: 0.5, height: 20, fontSize: '0.65rem' }}
+                    sx={{ mb: 0.5, height: 20, fontSize: '0.875rem' }}
                   />
                 )}
-                <Typography variant="body2" sx={{ color: COLORS.text.strong, fontSize: '0.85rem' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.strong, fontSize: '0.875rem' }}>
                   {(event.details as any)?.message || (event.details as any)?.delivery_status || event.event_type}
                 </Typography>
                 <Typography variant="caption" sx={{ color: COLORS.text.faint, mt: 0.5, display: 'block', textAlign: 'right' }}>

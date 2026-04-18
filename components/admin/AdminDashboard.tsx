@@ -409,7 +409,7 @@ const AdminDashboard = () => {
                                   sx={{
                                     backgroundColor: COLORS.accent.success,
                                     color: COLORS.text.inverse,
-                                    fontSize: '0.7rem',
+                                    fontSize: '0.875rem',
                                     height: 20,
                                   }}
                                 />

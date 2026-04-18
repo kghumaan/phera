@@ -248,7 +248,7 @@ export default function BroadcastComposer({
           />
 
           <Box>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
               Target
             </Typography>
             <ToggleButtonGroup
@@ -397,7 +397,7 @@ export default function BroadcastComposer({
                       bgcolor: 'transparent',
                       p: 0,
                       cursor: 'pointer',
-                      fontSize: '0.78rem',
+                      fontSize: '0.875rem',
                       color: COLORS.text.muted,
                       textDecoration: 'underline',
                       '&:hover': { color: COLORS.brand.primary },
@@ -423,7 +423,7 @@ export default function BroadcastComposer({
                       bgcolor: 'transparent',
                       p: 0,
                       cursor: 'pointer',
-                      fontSize: '0.78rem',
+                      fontSize: '0.875rem',
                       color: COLORS.brand.primary,
                       fontWeight: 600,
                       textDecoration: 'underline',
@@ -453,7 +453,7 @@ export default function BroadcastComposer({
                     bgcolor: 'transparent',
                     p: 0,
                     cursor: 'pointer',
-                    fontSize: '0.78rem',
+                    fontSize: '0.875rem',
                     color: COLORS.text.muted,
                     textDecoration: 'underline',
                     '&:hover': { color: COLORS.brand.primary },

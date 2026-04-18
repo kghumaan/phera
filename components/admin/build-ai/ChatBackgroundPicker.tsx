@@ -25,7 +25,7 @@ export default function ChatBackgroundPicker({ onSave, currentValue }: ChatBackg
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         Choose a Background
       </Typography>
 
@@ -77,7 +77,7 @@ export default function ChatBackgroundPicker({ onSave, currentValue }: ChatBackg
               />
             </Box>
             <Typography sx={{
-              fontSize: '0.65rem',
+              fontSize: '0.875rem',
               color: selected === bg.url ? COLORS.brand.primary : COLORS.text.subtle,
               fontWeight: selected === bg.url ? 700 : 500,
               mt: 0.5,

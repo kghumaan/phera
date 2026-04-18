@@ -611,7 +611,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     flexShrink: 0,
                     mt: 0.25,
                   }}
@@ -669,7 +669,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                           borderRadius: RADII.md,
                           color: COLORS.accent.success,
                           fontWeight: 600,
-                          fontSize: '0.8rem',
+                          fontSize: '0.875rem',
                         }}
                       >
                         Open in WhatsApp
@@ -698,7 +698,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     flexShrink: 0,
                     mt: 0.25,
                   }}
@@ -724,7 +724,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       color: COLORS.brand.primary,
                       border: '1px solid',
                       borderColor: alpha(COLORS.brand.primary, 0.3),
-                      fontSize: '0.8rem',
+                      fontSize: '0.875rem',
                       '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.04) },
                     }}
                   >
@@ -748,7 +748,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     flexShrink: 0,
                     mt: 0.25,
                   }}
@@ -772,7 +772,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                         borderRadius: RADII.md,
                         color: COLORS.text.strong,
                         border: '1px solid rgba(0,0,0,0.15)',
-                        fontSize: '0.8rem',
+                        fontSize: '0.875rem',
                       }}
                     >
                       Upload Chat Manually
@@ -790,10 +790,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
         {isSuperAdmin && forceOnboarding && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
+              <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
                 Test Mode
               </Typography>
-              <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
+              <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
                 Force onboarding view
               </Typography>
             </Box>
@@ -983,7 +983,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       {/* Summary snippet */}
                       <Typography
                         sx={{
-                          fontSize: '0.5rem',
+                          fontSize: '0.875rem',
                           color: COLORS.text.subtle,
                           lineHeight: 1.5,
                           display: '-webkit-box',
@@ -1001,20 +1001,20 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                       <Chip
                         label={`${totalMessages} msgs`}
                         size="small"
-                        sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
+                        sx={{ fontSize: '0.875rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
                       />
                       {vendor.category && (
                         <Chip
                           label={vendor.category}
                           size="small"
-                          sx={{ fontSize: '0.7rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
+                          sx={{ fontSize: '0.875rem', height: 22, borderRadius: '6px', bgcolor: alpha(COLORS.text.strong, 0.06), color: COLORS.text.muted }}
                         />
                       )}
                       <Chip
                         label={vendor.status}
                         size="small"
                         sx={{
-                          fontSize: '0.7rem',
+                          fontSize: '0.875rem',
                           height: 22,
                           borderRadius: '6px',
                           textTransform: 'capitalize',
@@ -1028,7 +1028,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                           label={`${actionItems.length} action`}
                           size="small"
                           sx={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.875rem',
                             height: 22,
                             borderRadius: '6px',
                             bgcolor: alpha(COLORS.text.strong, 0.06),
@@ -1049,10 +1049,10 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
           {isSuperAdmin && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, px: 1 }}>
               <Box>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
                   Test Mode
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
+                <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
                   Force onboarding view
                 </Typography>
               </Box>
@@ -1223,7 +1223,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                   '& .MuiTab-root': {
                     textTransform: 'none',
                     fontWeight: 600,
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     minHeight: 36,
                     color: COLORS.text.subtle,
                     '&.Mui-selected': { color: COLORS.brand.primary },
@@ -1239,7 +1239,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                 {currentTabLoading ? (
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, gap: 1.5 }}>
                     <CircularProgress sx={{ color: COLORS.brand.primary }} size={24} />
-                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.8rem' }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                       {syncDialogTab === 0 ? 'Loading group chats...' : 'Loading direct chats...'}
                     </Typography>
                   </Box>
@@ -1273,7 +1273,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             return next;
                           })}
                           disabled={syncing}
-                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: COLORS.text.subtle }}
+                          sx={{ textTransform: 'none', fontSize: '0.875rem', color: COLORS.text.subtle }}
                         >
                           Select all
                         </Button>
@@ -1285,7 +1285,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                             return next;
                           })}
                           disabled={syncing}
-                          sx={{ textTransform: 'none', fontSize: '0.75rem', color: COLORS.text.subtle }}
+                          sx={{ textTransform: 'none', fontSize: '0.875rem', color: COLORS.text.subtle }}
                         >
                           Clear
                         </Button>
@@ -1413,27 +1413,27 @@ function HowToAddChatsPanel({ coordinatorPhone }: { coordinatorPhone: string }) 
         }}
       >
         <InfoOutlined sx={{ fontSize: 18, color: '#B35D00' }} />
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
+        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
           How to add a new vendor chat
         </Typography>
         {open ? <ExpandLess sx={{ fontSize: 20, color: COLORS.text.subtle }} /> : <ExpandMore sx={{ fontSize: 20, color: COLORS.text.subtle }} />}
       </Box>
       <Collapse in={open}>
         <Box sx={{ px: 2.5, pb: 2, pt: 0.5 }}>
-          <Stack spacing={1} sx={{ color: COLORS.text.muted, fontSize: '0.85rem', lineHeight: 1.6 }}>
-            <Typography sx={{ fontSize: '0.85rem' }}>
+          <Stack spacing={1} sx={{ color: COLORS.text.muted, fontSize: '0.875rem', lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: '0.875rem' }}>
               <strong>1.</strong> Open WhatsApp on your phone, pick a vendor group chat, tap the group name, and add
               <strong> {coordinatorPhone || '+66 98 048 2140'} </strong>
               as a participant (saved as &quot;Phera&quot; in your contacts makes it obvious).
             </Typography>
-            <Typography sx={{ fontSize: '0.85rem' }}>
+            <Typography sx={{ fontSize: '0.875rem' }}>
               <strong>2.</strong> Repeat for every vendor you want Phera to track — caterer, florist, photographer, etc.
             </Typography>
-            <Typography sx={{ fontSize: '0.85rem' }}>
+            <Typography sx={{ fontSize: '0.875rem' }}>
               <strong>3.</strong> Click <strong>Connect new Chat</strong> above. Phera will list every group it&apos;s
               a member of — pick the ones that belong to this wedding and confirm.
             </Typography>
-            <Typography sx={{ fontSize: '0.85rem', mt: 1, color: COLORS.text.subtle }}>
+            <Typography sx={{ fontSize: '0.875rem', mt: 1, color: COLORS.text.subtle }}>
               Phera can only see messages sent <em>after</em> it joined a group. To pull older history, open that
               vendor and use the <strong>Upload older messages</strong> button with a WhatsApp chat export (
               Chat → ⋯ → Export chat → Without Media).

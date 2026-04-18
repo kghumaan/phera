@@ -612,7 +612,7 @@ function VehicleColumn({
                 bgcolor: alpha(COLORS.brand.primary, 0.1),
                 color: COLORS.text.strong,
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 px: 0.5
               }}
             />
@@ -696,7 +696,7 @@ function VehicleColumn({
                     <Button
                       size="small"
                       onClick={() => setIsAdding(false)}
-                      sx={{ color: COLORS.text.subtle, fontSize: '0.75rem' }}
+                      sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}
                     >
                       Cancel
                     </Button>
@@ -706,7 +706,7 @@ function VehicleColumn({
                       disabled={!manualName.trim()}
                       loading={isSubmitting}
                       sx={{
-                        fontSize: '0.75rem',
+                        fontSize: '0.875rem',
                         borderRadius: 1,
                         minWidth: 50,
                         height: 32,
@@ -726,7 +726,7 @@ function VehicleColumn({
                     border: '1px dashed #e8e8e8',
                     borderRadius: 1,
                     color: COLORS.text.subtle,
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     '&:hover': {
                       border: '1px dashed #DE3F5E',
                       color: COLORS.brand.primary,
@@ -828,7 +828,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                 label={reservation.pickup_location.name}
                 sx={{
                   height: 30,
-                  '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
+                  '& .MuiChip-label': { px: 1, fontSize: '0.875rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha(COLORS.accent.success, 0.1),
                   color: '#2E7D32',
@@ -845,7 +845,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
                 size="small"
                 sx={{
                   height: 26,
-                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.875rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha(COLORS.brand.primary, 0.08),
                   color: COLORS.text.strong,
@@ -876,7 +876,7 @@ function ReservationCard({ reservation }: { reservation: TransportationReservati
           size="small"
           sx={{
             height: 24,
-            '& .MuiChip-label': { px: 1, fontSize: '0.8rem' },
+            '& .MuiChip-label': { px: 1, fontSize: '0.875rem' },
             bgcolor: alpha(COLORS.brand.primary, 0.1),
             color: COLORS.text.strong,
             fontWeight: 500,
@@ -916,7 +916,7 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
                 label={reservation.pickup_location.name}
                 sx={{
                   height: 30,
-                  '& .MuiChip-label': { px: 1, fontSize: '0.85rem' },
+                  '& .MuiChip-label': { px: 1, fontSize: '0.875rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha(COLORS.brand.primary, 0.08),
                   color: COLORS.text.strong,
@@ -931,7 +931,7 @@ function ReservationCardStatic({ reservation }: { reservation: TransportationRes
                 size="small"
                 sx={{
                   height: 26,
-                  '& .MuiChip-label': { px: 0.75, fontSize: '0.8rem' },
+                  '& .MuiChip-label': { px: 0.75, fontSize: '0.875rem' },
                   '& .MuiChip-icon': { ml: 0.5 },
                   bgcolor: alpha(COLORS.brand.primary, 0.08),
                   color: COLORS.text.strong,

@@ -161,7 +161,7 @@ function ReadOnlyComments() {
                     minWidth: 20,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '14px',
                       fontWeight: 600,
                     },
                   }}
@@ -178,7 +178,7 @@ function ReadOnlyComments() {
                     minWidth: 20,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '14px',
                       fontWeight: 600,
                     },
                   }}

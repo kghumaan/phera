@@ -170,7 +170,7 @@ function TextSection({
             borderRadius: '32px',
             px: 3,
             fontWeight: 600,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             '&:hover': {
               borderColor: primaryColor,
               bgcolor: `${primaryColor}10`,

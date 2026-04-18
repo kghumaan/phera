@@ -109,7 +109,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
                   left: 4,
                   bgcolor: COLORS.brand.primary,
                   color: COLORS.text.inverse,
-                  fontSize: '0.6rem',
+                  fontSize: '0.875rem',
                   fontWeight: 700,
                   px: 0.75,
                   py: 0.25,
@@ -169,7 +169,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           fullWidth
           sx={{
             color: COLORS.text.subtle,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             py: 1,
             borderRadius: RADII.lg,
             flex: 1,
@@ -187,7 +187,7 @@ export default function ChatCoupleImagesForm({ onSave, onCancel, weddingId, curr
           disabled={images.length === 0}
           sx={{
             borderRadius: RADII.lg,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             py: 1,
             flex: 1,
           }}

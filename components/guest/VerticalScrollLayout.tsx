@@ -814,7 +814,7 @@ export default function VerticalScrollLayout({
                       variant="body2"
                       sx={{
                         color: '#777',
-                        fontSize: '0.85rem',
+                        fontSize: '0.875rem',
                         textAlign: 'center',
                         lineHeight: 1.4,
                         mt: 1.5,
@@ -1411,7 +1411,7 @@ export default function VerticalScrollLayout({
                                     <Typography
                                       sx={{
                                         color: '#444',
-                                        fontSize: '0.85rem',
+                                        fontSize: '0.875rem',
                                         lineHeight: 1.5,
                                       }}
                                     >
@@ -1434,7 +1434,7 @@ export default function VerticalScrollLayout({
                                     textTransform: 'none',
                                     px: 3,
                                     py: 0.75,
-                                    fontSize: '0.85rem',
+                                    fontSize: '0.875rem',
                                     fontWeight: 600,
                                     flexShrink: 0,
                                     alignSelf: { xs: 'stretch', sm: 'center' },
@@ -1464,7 +1464,7 @@ export default function VerticalScrollLayout({
                     sx={{
                       color: primaryColor,
                       borderColor: primaryColor,
-                      fontSize: '0.85rem',
+                      fontSize: '0.875rem',
                       textTransform: 'none',
                       borderRadius: '32px',
                       px: 3,
@@ -1485,7 +1485,7 @@ export default function VerticalScrollLayout({
                       sx={{
                         bgcolor: primaryColor,
                         color: COLORS.text.inverse,
-                        fontSize: '0.85rem',
+                        fontSize: '0.875rem',
                         textTransform: 'none',
                         borderRadius: '32px',
                         px: 3,

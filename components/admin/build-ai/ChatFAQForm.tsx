@@ -53,7 +53,7 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
         mb: 1,
         display: 'block',
         fontWeight: 500,
-        fontSize: '0.75rem'
+        fontSize: '0.875rem'
     };
 
     return (
@@ -138,7 +138,7 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
                             fullWidth
                             sx={{
                                 color: COLORS.text.subtle,
-                                fontSize: '0.85rem',
+                                fontSize: '0.875rem',
                                 py: 1,
                                 borderRadius: RADII.lg,
                                 flex: 1,
@@ -161,7 +161,7 @@ export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFo
                         fullWidth
                         sx={{
                             borderRadius: RADII.lg,
-                            fontSize: '0.85rem',
+                            fontSize: '0.875rem',
                             py: 1,
                             flex: 1,
                         }}

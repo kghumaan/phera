@@ -1119,7 +1119,7 @@ export default function GuestList({
                     minWidth: 20,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       letterSpacing: '6%',
                       textTransform: 'uppercase',
@@ -1138,7 +1138,7 @@ export default function GuestList({
                     minWidth: 24,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       letterSpacing: '6%',
                       textTransform: 'uppercase',
@@ -1157,7 +1157,7 @@ export default function GuestList({
                     minWidth: 24,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       letterSpacing: '6%',
                       textTransform: 'uppercase',

@@ -812,7 +812,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                                 bgcolor: COLORS.brand.primary,
                                 color: COLORS.text.inverse,
                                 fontWeight: 600,
-                                fontSize: '0.75rem',
+                                fontSize: '0.875rem',
                               }}
                             />
                           )}

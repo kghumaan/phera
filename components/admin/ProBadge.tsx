@@ -36,7 +36,7 @@ export default function ProBadge({ size = 'small', position = 'inline' }: ProBad
         }}
       >
         <AutoAwesome sx={{ fontSize: 12, color: COLORS.brand.primary }} />
-        <Typography variant="inherit" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.5px', color: COLORS.brand.primary }}>
+        <Typography variant="inherit" sx={{ fontSize: '0.875rem', fontWeight: 700, letterSpacing: '0.5px', color: COLORS.brand.primary }}>
           PRO
         </Typography>
       </Box>

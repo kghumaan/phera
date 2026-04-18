@@ -189,7 +189,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 borderRadius: 1,
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '0.8rem',
+                                fontSize: '0.875rem',
                                 color: COLORS.text.strong,
                                 bgcolor: alpha(COLORS.brand.primary, 0.05),
                                 border: '1px solid',
@@ -232,7 +232,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 height: 28,
                                 bgcolor: user?.avatar_color || COLORS.brand.primary,
                                 color: COLORS.text.inverse,
-                                fontSize: '0.85rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 700,
                                 border: '2px solid white',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
@@ -265,7 +265,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 }
                             }}
                             sx={{
-                                fontSize: '0.8rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 600,
                                 color: isPro ? COLORS.brand.primary : COLORS.text.subtle,
                                 cursor: isPro ? 'default' : 'pointer',
@@ -352,7 +352,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     bgcolor: isPro ? COLORS.brand.primary : COLORS.border.faint,
                                     color: isPro ? COLORS.bg.white : COLORS.text.subtle,
                                     fontWeight: 600,
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.875rem',
                                     cursor: isPro ? 'default' : 'pointer',
                                     '&:hover': {
                                         bgcolor: isPro ? COLORS.brand.primary : '#e5e5e5',
@@ -371,10 +371,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.subtle }}>
+                                        <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
                                             Test Mode
                                         </Typography>
-                                        <Typography variant="caption" sx={{ fontSize: '0.75rem', color: COLORS.text.faint }}>
+                                        <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
                                             Toggle plan for testing
                                         </Typography>
                                     </Box>
@@ -394,7 +394,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         borderRadius: '100px',
                                         textTransform: 'none',
                                         fontWeight: 600,
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.875rem',
                                         borderWidth: '1.5px',
                                         borderColor: 'rgba(0, 0, 0, 0.3)',
                                         color: COLORS.text.muted,

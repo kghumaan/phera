@@ -204,7 +204,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
         mb: 1,
         display: 'block',
         fontWeight: 500,
-        fontSize: '0.75rem'
+        fontSize: '0.875rem'
     };
 
     return (
@@ -250,7 +250,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                                 borderColor: selectedTemplate === name ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.12),
                                 bgcolor: selectedTemplate === name ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.white,
                                 color: selectedTemplate === name ? COLORS.brand.primary : '#555',
-                                fontSize: '0.8rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap',
@@ -336,7 +336,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                     }
                     label={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Major Event</Typography>
+                            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>Major Event</Typography>
                             <Tooltip title="Major events are highlighted more prominently on your wedding timeline and schedule. Use this for key moments like the ceremony or reception." arrow>
                                 <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                             </Tooltip>
@@ -352,7 +352,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                             fullWidth
                             sx={{
                                 color: COLORS.text.subtle,
-                                fontSize: '0.85rem',
+                                fontSize: '0.875rem',
                                 py: 1,
                                 borderRadius: RADII.lg,
                                 flex: 1,
@@ -375,7 +375,7 @@ export default function ChatEventForm({ onSave, onCancel, initialData }: ChatEve
                         fullWidth
                         sx={{
                             borderRadius: RADII.lg,
-                            fontSize: '0.85rem',
+                            fontSize: '0.875rem',
                             py: 1,
                             flex: 1,
                         }}

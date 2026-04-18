@@ -92,7 +92,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
     mb: 1,
     display: 'block',
     fontWeight: 500,
-    fontSize: '0.75rem'
+    fontSize: '0.875rem'
   };
 
   return (
@@ -147,7 +147,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Allow Plus One</Typography>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>Allow Plus One</Typography>
                 <Tooltip title="When enabled, guests using this PIN can include plus-ones in their RSVP." arrow>
                   <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                 </Tooltip>
@@ -164,7 +164,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Skip RSVP</Typography>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>Skip RSVP</Typography>
                 <Tooltip title="When enabled, guests using this PIN won't need to RSVP. They'll go straight to the wedding details." arrow>
                   <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                 </Tooltip>
@@ -185,7 +185,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               }
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.text.strong }}>Restrict Events</Typography>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>Restrict Events</Typography>
                   <Tooltip title="When enabled, select events this PIN should NOT have access to." arrow>
                     <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'help' }} />
                   </Tooltip>
@@ -205,7 +205,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
                         size="small"
                       />
                     }
-                    label={<Typography sx={{ fontSize: '0.85rem', color: COLORS.text.strong }}>{event.name}</Typography>}
+                    label={<Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong }}>{event.name}</Typography>}
                   />
                 ))}
               </Box>
@@ -221,7 +221,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
               fullWidth
               sx={{
                 color: COLORS.text.subtle,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 py: 1,
                 borderRadius: RADII.lg,
                 flex: 1,
@@ -244,7 +244,7 @@ export default function ChatPinForm({ onSave, onCancel, weddingId, initialData }
             fullWidth
             sx={{
               borderRadius: RADII.lg,
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
               py: 1,
               flex: 1,
             }}

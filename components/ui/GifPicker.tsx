@@ -222,7 +222,7 @@ export default function GifPicker({ open, onClose, onSelectGif }: GifPickerProps
                   borderRadius: '12px',
                   px: 1.5,
                   py: 0.5,
-                  fontSize: '0.75rem',
+                  fontSize: '0.875rem',
                   backgroundColor: 'rgba(222, 63, 94, 0.08)',
                   color: '#DE3F5E',
                   cursor: 'pointer',

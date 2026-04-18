@@ -416,7 +416,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     textTransform: 'none',
                     color: COLORS.text.subtle,
                     fontWeight: 500,
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     '&:hover': { color: COLORS.brand.primary, bgcolor: '#DE3F5E08' },
                   }}
                 >
@@ -561,7 +561,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                             <VoiceWaveform stream={activeStream} isActive={voiceState === 'recording'} barCount={30} />
                           </Box>
                         )}
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
                           {formatTime(voiceElapsed)}
                         </Typography>
                         <PrimaryActionButton
@@ -570,7 +570,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                           onClick={stopRecording}
                           sx={{
                             borderRadius: RADII.sm,
-                            fontSize: '0.8rem',
+                            fontSize: '0.875rem',
                             py: 0.5,
                             px: 1.5,
                             minWidth: 'auto',
@@ -584,7 +584,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                     {voiceState === 'transcribing' && (
                       <>
                         <CircularProgress size={16} sx={{ color: COLORS.brand.primary }} />
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 500, color: COLORS.text.subtle }}>
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.subtle }}>
                           Transcribing...
                         </Typography>
                       </>
@@ -594,7 +594,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                   {/* Voice/upload error */}
                   {voiceError && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: COLORS.accent.danger }}>{voiceError}</Typography>
+                      <Typography sx={{ fontSize: '0.875rem', color: COLORS.accent.danger }}>{voiceError}</Typography>
                       <IconButton size="small" onClick={() => setVoiceError(null)} sx={{ color: COLORS.text.faint, p: 0.25 }}>
                         <Close sx={{ fontSize: 14 }} />
                       </IconButton>
@@ -658,7 +658,7 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         </Typography>
       )}
       {generateError && (
-        <Typography variant="body2" sx={{ color: COLORS.accent.danger, fontSize: '0.8rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.accent.danger, fontSize: '0.875rem' }}>
           {generateError}
         </Typography>
       )}

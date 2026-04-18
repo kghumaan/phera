@@ -720,7 +720,7 @@ function PrescheduledSection({
                           size="small"
                           sx={{
                             height: 22,
-                            fontSize: '0.75rem',
+                            fontSize: '0.875rem',
                             bgcolor: isFull
                               ? 'rgba(0,0,0,0.1)'
                               : alpha(primaryColor, 0.1),

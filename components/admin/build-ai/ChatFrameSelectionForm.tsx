@@ -58,7 +58,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
             '&:hover': { transform: 'scale(1.05)', borderColor: COLORS.brand.primary },
           }}
         >
-          <Typography sx={{ fontSize: '0.65rem', color: COLORS.text.faint, fontWeight: 600, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, fontWeight: 600, textAlign: 'center' }}>
             No Frame
           </Typography>
         </Box>
@@ -95,7 +95,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
                 p: 0.2,
                 display: 'flex',
               }}>
-                <Check sx={{ color: COLORS.text.inverse, fontSize: 12 }} />
+                <Check sx={{ color: COLORS.text.inverse, fontSize: 14 }} />
               </Box>
             )}
           </Box>
@@ -110,7 +110,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           fullWidth
           sx={{
             color: COLORS.text.subtle,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             py: 1,
             borderRadius: RADII.lg,
             flex: 1,
@@ -127,7 +127,7 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           fullWidth
           sx={{
             borderRadius: RADII.lg,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             py: 1,
             flex: 1,
           }}

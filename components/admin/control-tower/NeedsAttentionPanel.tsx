@@ -50,7 +50,7 @@ export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddi
           <Typography
             component="a"
             href={`/admin/${weddingSlug}/guests`}
-            sx={{ fontSize: 11, color: COLORS.brand.primary, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+            sx={{ fontSize: 14, color: COLORS.brand.primary, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
           >
             View all
           </Typography>
@@ -59,7 +59,7 @@ export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddi
 
       {guests.length === 0 ? (
         <Box sx={{ py: 3, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: 13, color: COLORS.text.faint }}>
+          <Typography sx={{ fontSize: 14, color: COLORS.text.faint }}>
             Everyone is responding!
           </Typography>
         </Box>
@@ -68,10 +68,10 @@ export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddi
           {guests.map((g) => (
             <Box key={g.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.75, px: 1, borderRadius: RADII.sm, bgcolor: COLORS.bg.muted, border: '1px solid rgba(0,0,0,0.04)' }}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 600, color: COLORS.text.strong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {g.name}
                 </Typography>
-                <Typography sx={{ fontSize: 10, color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {g.email}
                 </Typography>
               </Box>

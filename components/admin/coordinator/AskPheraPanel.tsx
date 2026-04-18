@@ -170,10 +170,10 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
           <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
             AI Vendor Assistant
           </Typography>
-          <Typography sx={{ fontSize: '0.82rem', color: COLORS.text.subtle, lineHeight: 1.6 }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, lineHeight: 1.6 }}>
             Ask questions about your vendor conversations, get quote comparisons, and receive suggestions — all powered by your actual vendor data.
           </Typography>
-          <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.faint, mt: 1 }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, mt: 1 }}>
             Disabled in demo mode
           </Typography>
         </Box>
@@ -229,7 +229,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                 <Typography
                   variant="body2"
                   sx={{
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     lineHeight: 1.5,
                     color: COLORS.text.strong,
                     whiteSpace: 'pre-line',

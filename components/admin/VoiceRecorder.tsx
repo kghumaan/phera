@@ -220,7 +220,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
               <VoiceWaveform stream={activeStream} isActive={state === 'recording'} />
             </Box>
           )}
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.brand.primary, fontVariantNumeric: 'tabular-nums' }}>
             {formatTime(elapsed)}
           </Typography>
           <PrimaryActionButton
@@ -241,7 +241,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       {isProcessing && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} />
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.subtle }}>
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.subtle }}>
             {state === 'uploading' ? 'Transcribing...' : 'Extracting tasks...'}
           </Typography>
         </Box>
@@ -250,7 +250,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
       {/* Error display */}
       {error && state === 'idle' && !pendingTasks && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '0.8rem', color: COLORS.accent.danger }}>{error}</Typography>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.accent.danger }}>{error}</Typography>
           <IconButton size="small" onClick={() => setError(null)} sx={{ color: COLORS.text.faint }}>
             <Close sx={{ fontSize: 14 }} />
           </IconButton>
@@ -289,7 +289,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                   '&:hover': { color: COLORS.text.subtle },
                 }}
               >
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Transcript
                 </Typography>
                 {showTranscript ? <KeyboardArrowUp sx={{ fontSize: 16 }} /> : <KeyboardArrowDown sx={{ fontSize: 16 }} />}
@@ -297,7 +297,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
               <Collapse in={showTranscript}>
                 <Typography
                   sx={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.875rem',
                     color: '#7a7a7a',
                     lineHeight: 1.7,
                     mt: 1,
@@ -326,7 +326,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.strong }}>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong }}>
                     {task.title}
                   </Typography>
                   {task.tag && (
@@ -337,7 +337,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                         borderRadius: '6px',
                         bgcolor: alpha(COLORS.brand.primary, 0.08),
                         color: COLORS.brand.primary,
-                        fontSize: '0.65rem',
+                        fontSize: '0.875rem',
                         fontWeight: 600,
                         flexShrink: 0,
                         border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`,
@@ -348,7 +348,7 @@ export default function VoiceRecorder({ onTasksExtracted }: VoiceRecorderProps) 
                   )}
                 </Box>
                 {task.description && (
-                  <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+                  <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
                     {task.description}
                   </Typography>
                 )}

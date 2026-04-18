@@ -55,7 +55,7 @@ const StyledTextField = styled(TextField)({
   },
   '& .MuiInputLabel-root': {
     color: '#666 !important',
-    fontSize: '0.85rem',
+    fontSize: '0.875rem',
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: '#DE3F5E !important',
@@ -191,7 +191,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           </Box>
         )}
       </Box>
-      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, fontSize: '0.8rem' }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, fontSize: '0.875rem' }}>
         {label}
       </Typography>
     </Stack>
@@ -370,7 +370,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                         borderRadius: RADII.sm,
                       }}>
                         <AccessTime sx={{ fontSize: '1.1rem', color: COLORS.text.subtle }} />
-                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                           {wedding.wedding_date_display || 'Date TBD'}
                         </Typography>
                       </Box>
@@ -389,7 +389,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                           maxWidth: '100%',
                         }}>
                           <LocationOn sx={{ fontSize: '1.1rem', color: COLORS.text.subtle, flexShrink: 0 }} />
-                          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {[wedding.venue_name !== 'Venue Name' ? wedding.venue_name : null, wedding.venue_location !== 'City, Country' ? wedding.venue_location : null].filter(Boolean).join(', ')}
                           </Typography>
                         </Box>
@@ -404,7 +404,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                           bgcolor: wedding.status === 'live' ? alpha('#4caf50', 0.1) : alpha(COLORS.text.strong, 0.05),
                           color: wedding.status === 'live' ? '#2e7d32' : COLORS.text.faint,
                           fontWeight: 600,
-                          fontSize: '0.75rem',
+                          fontSize: '0.875rem',
                         }}
                       />
                     </Box>
@@ -433,7 +433,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Partner 1 Name</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner 1 Name</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -445,7 +445,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Partner 2 Name</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner 2 Name</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -456,7 +456,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Event Venue</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Event Venue</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -470,7 +470,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.8rem' }}>Wedding Dates</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Wedding Dates</Typography>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <Stack direction="row" spacing={2}>
                   <Box sx={{ flex: 1 }}>

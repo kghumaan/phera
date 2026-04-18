@@ -72,7 +72,7 @@ export default function CommunicationTimeline({ events, onGuestClick }: Communic
                     bgcolor: `${typeInfo.color}15`,
                     color: typeInfo.color,
                     fontWeight: 600,
-                    fontSize: '0.7rem',
+                    fontSize: '0.875rem',
                     height: 22,
                   }}
                 />

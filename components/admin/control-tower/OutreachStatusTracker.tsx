@@ -92,7 +92,7 @@ export default function OutreachStatusTracker({ summary }: OutreachStatusTracker
                 bgcolor: `${color}14`,
                 color: color,
                 fontWeight: 500,
-                fontSize: '0.75rem',
+                fontSize: '0.875rem',
                 border: `1px solid ${color}30`,
                 '& .MuiChip-label': { px: 1 },
               }}

@@ -517,7 +517,7 @@ export default function AppHeader({
             {/* <Box
               sx={{
                 color: COLORS.text.faint,
-                fontSize: '10px',
+                fontSize: '14px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
@@ -529,7 +529,7 @@ export default function AppHeader({
             <Box
               sx={{
                 color: COLORS.text.strong,
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -559,7 +559,7 @@ export default function AppHeader({
               ) : (
                 <DashboardIcon fontSize="small" />
               )}
-              <Typography sx={{ fontSize: '0.85rem' }}>Admin Dashboard</Typography>
+              <Typography sx={{ fontSize: '0.875rem' }}>Admin Dashboard</Typography>
             </PheraMenuItem>
           )}
 
@@ -579,7 +579,7 @@ export default function AppHeader({
             ) : (
               <LogoutIcon fontSize="small" />
             )}
-            <Typography sx={{ fontSize: '0.85rem' }}>Sign Out</Typography>
+            <Typography sx={{ fontSize: '0.875rem' }}>Sign Out</Typography>
           </PheraMenuItem>
         </PheraMenu>
       )}

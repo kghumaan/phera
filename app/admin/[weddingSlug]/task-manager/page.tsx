@@ -86,8 +86,8 @@ function TagSelector({
 
   return (
     <Box>
-      <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: COLORS.text.faint, textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        <LocalOfferOutlined sx={{ fontSize: 10 }} /> Tags
+      <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: COLORS.text.faint, textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <LocalOfferOutlined sx={{ fontSize: 14 }} /> Tags
       </Typography>
       <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ gap: 0.5, mb: 1 }}>
         {availableTags.map(tag => {
@@ -100,7 +100,7 @@ function TagSelector({
               onClick={() => onToggle(tag)}
               sx={{
                 height: 28,
-                fontSize: '0.8rem',
+                fontSize: '0.875rem',
                 cursor: 'pointer',
                 bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.1) : 'rgba(0,0,0,0.03)',
                 color: isSelected ? COLORS.brand.primary : COLORS.text.subtle,
@@ -126,7 +126,7 @@ function TagSelector({
               '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
               '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
             },
-            '& .MuiInputBase-input': { fontSize: '0.75rem', py: 0.5, px: 1 },
+            '& .MuiInputBase-input': { fontSize: '0.875rem', py: 0.5, px: 1 },
           }}
         />
         <IconButton size="small" onClick={handleAddCustom} disabled={!customTag.trim()} sx={{ color: COLORS.brand.primary, p: 0.25 }}>
@@ -225,7 +225,7 @@ function TaskCard({
                 onClick={onEditSave}
                 disabled={!editDraft.title.trim()}
                 sx={{
-                  fontSize: '0.8rem', py: 0.5, px: 2, borderRadius: RADII.sm,
+                  fontSize: '0.875rem', py: 0.5, px: 2, borderRadius: RADII.sm,
                 }}
               >
                 Save
@@ -264,11 +264,11 @@ function TaskCard({
           <DragIndicator sx={{ fontSize: 16 }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>
             {task.title}
           </Typography>
           {task.description && (
-            <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
               {task.description}
             </Typography>
           )}
@@ -290,7 +290,7 @@ function TaskCard({
               label={tag}
               size="small"
               sx={{
-                height: 24, fontSize: '0.75rem', fontWeight: 600,
+                height: 24, fontSize: '0.875rem', fontWeight: 600,
                 bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary,
                 border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`,
                 '& .MuiChip-label': { px: 1.2 },
@@ -317,14 +317,14 @@ function TaskCardStatic({ task }: { task: Task }) {
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
         <Box sx={{ pt: 0.25, color: COLORS.border.default, flexShrink: 0 }}><DragIndicator sx={{ fontSize: 16 }} /></Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
-          {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
+          {task.description && <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
         </Box>
       </Box>
       {task.tags && task.tags.length > 0 && (
         <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
           {task.tags.map(tag => (
-            <Chip key={tag} label={tag} size="small" sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary, border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`, '& .MuiChip-label': { px: 1.2 } }} />
+            <Chip key={tag} label={tag} size="small" sx={{ height: 24, fontSize: '0.875rem', fontWeight: 600, bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary, border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`, '& .MuiChip-label': { px: 1.2 } }} />
           ))}
         </Stack>
       )}
@@ -370,8 +370,8 @@ function KanbanColumn({
       {/* Column header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
         <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
-        <Box sx={{ ml: 0.5, px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
+        <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+        <Box sx={{ ml: 0.5, px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.875rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
       </Box>
 
       {/* Tasks drop zone */}
@@ -411,14 +411,14 @@ function KanbanColumn({
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <ActionButton size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: COLORS.text.inverse, fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: RADII.sm, '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</ActionButton>
+              <ActionButton size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: COLORS.text.inverse, fontSize: '0.875rem', py: 0.5, px: 1.5, borderRadius: RADII.sm, '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</ActionButton>
               <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}><Close sx={{ fontSize: 16 }} /></IconButton>
             </Box>
           </Paper>
         ) : (
           <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: RADII.sm, cursor: 'pointer', color: COLORS.text.faint, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' } }}>
             <Add sx={{ fontSize: 16 }} />
-            <Typography sx={{ fontSize: '0.8rem' }}>Add a task</Typography>
+            <Typography sx={{ fontSize: '0.875rem' }}>Add a task</Typography>
           </Box>
         )}
       </Box>
@@ -447,13 +447,13 @@ function MockBoard() {
           <Box key={col.id} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
-              <Box sx={{ px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+              <Box sx={{ px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.875rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
             </Box>
             {tasks.map(task => (
               <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.07)', bgcolor: COLORS.bg.white }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
-                {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
+                {task.description && <Typography sx={{ fontSize: '0.875rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
               </Paper>
             ))}
           </Box>

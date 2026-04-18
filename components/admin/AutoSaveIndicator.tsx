@@ -41,7 +41,7 @@ export default function AutoSaveIndicator({ status, message }: AutoSaveIndicator
                   }}
                 />
               </motion.div>
-              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontSize: '0.8rem' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
                 {message || 'Saving...'}
               </Typography>
             </>
@@ -49,7 +49,7 @@ export default function AutoSaveIndicator({ status, message }: AutoSaveIndicator
           {status === 'saved' && (
             <>
               <Check sx={{ fontSize: 16, color: COLORS.accent.success }} />
-              <Typography variant="caption" sx={{ color: COLORS.accent.success, fontSize: '0.8rem', fontWeight: 500 }}>
+              <Typography variant="caption" sx={{ color: COLORS.accent.success, fontSize: '0.875rem', fontWeight: 500 }}>
                 {message || 'Saved'}
               </Typography>
             </>
@@ -57,7 +57,7 @@ export default function AutoSaveIndicator({ status, message }: AutoSaveIndicator
           {status === 'error' && (
             <>
               <ErrorOutline sx={{ fontSize: 16, color: COLORS.accent.danger }} />
-              <Typography variant="caption" sx={{ color: COLORS.accent.danger, fontSize: '0.8rem' }}>
+              <Typography variant="caption" sx={{ color: COLORS.accent.danger, fontSize: '0.875rem' }}>
                 {message || 'Error saving'}
               </Typography>
             </>

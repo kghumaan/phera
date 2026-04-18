@@ -205,7 +205,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
               onClick={() => setGoBackOpen(prev => !prev)}
               sx={{
                 color: COLORS.text.faint,
-                fontSize: '0.75rem',
+                fontSize: '0.875rem',
                 fontWeight: 600,
                 textTransform: 'none',
                 px: 1.5,
@@ -251,7 +251,7 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                               px: 2,
                               py: 1.25,
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
+                              fontSize: '0.875rem',
                               color: COLORS.text.strong,
                               fontWeight: 500,
                               transition: 'all 0.1s',
