@@ -264,7 +264,7 @@ function OnboardingLayoutContent({
                     height: '100%',
                     overflow: 'hidden',
                     pt: TOP_NAV_HEIGHT, // Shift internal content down to clear fixed Top Nav
-                    bgcolor: '#f8f7f5', // Ensure background extends to top behind nav
+                    bgcolor: COLORS.bg.subtle, // Ensure background extends to top behind nav
                   }}
                 >
                   <AdminPreviewPanel
