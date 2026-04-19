@@ -511,10 +511,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             </Box>
 
             {/* Two-column layout */}
-            <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2.5 }}>
 
               {/* Guest chat list */}
-              <PheraCard variant="default" sx={{ flex: 1.4, overflow: 'hidden' }}>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1.4 }, width: { xs: '100%', md: 'auto' }, overflow: 'hidden' }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
                   <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
                 </Box>
@@ -545,7 +545,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               </PheraCard>
 
               {/* Notification toggles */}
-              <PheraCard variant="default" sx={{ flex: 1, alignSelf: 'flex-start' }}>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1 }, width: { xs: '100%', md: 'auto' }, alignSelf: { md: 'flex-start' } }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
                   <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Guest Notifications</Typography>
                 </Box>

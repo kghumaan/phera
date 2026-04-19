@@ -220,7 +220,17 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          justifyContent: 'space-between',
+          gap: 2,
+          flexWrap: 'wrap',
+        }}
+      >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
             Guest List
@@ -232,7 +242,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
         <PrimaryActionButton
           startIcon={<Upload />}
           onClick={() => setImportOpen(true)}
-          sx={{ px: 2.5, py: 1 }}
+          sx={{ px: 2.5, py: 1, width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}
         >
           Import Guests
         </PrimaryActionButton>
@@ -307,7 +317,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             </SecondaryActionButton>
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
             <Table size="small" sx={{ tableLayout: 'fixed', minWidth: 960 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: COLORS.bg.muted }}>

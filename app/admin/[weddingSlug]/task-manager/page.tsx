@@ -440,7 +440,15 @@ const mockTasks: Task[] = [
 
 function MockBoard() {
   return (
-    <Box sx={{ display: 'flex', gap: 2.5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2.5,
+        overflowX: { xs: 'auto', md: 'visible' },
+        pb: { xs: 1, md: 0 },
+        '& > *': { minWidth: { xs: 220, md: 0 } },
+      }}
+    >
       {COLUMNS.map(col => {
         const tasks = mockTasks.filter(t => t.column === col.id);
         return (
@@ -684,7 +692,18 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
         />
 
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-          <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2.5,
+              alignItems: 'flex-start',
+              overflowX: { xs: 'auto', md: 'visible' },
+              pb: { xs: 1, md: 0 },
+              '& > *': {
+                minWidth: { xs: 260, md: 0 },
+              },
+            }}
+          >
             {COLUMNS.map(col => (
               <KanbanColumn
                 key={col.id}

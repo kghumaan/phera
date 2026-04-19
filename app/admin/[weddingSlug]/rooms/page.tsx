@@ -421,7 +421,15 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'flex-start' },
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Room Assignments
@@ -432,7 +440,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
             </Box>
             <PrimaryActionButton
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{ px: 3, py: 1, whiteSpace: 'nowrap' }}
+              sx={{ px: 3, py: 1, whiteSpace: 'nowrap', width: { xs: '100%', sm: 'auto' } }}
             >
               Upgrade to Pro
             </PrimaryActionButton>
@@ -751,7 +759,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: { xs: 'repeat(auto-fill, minmax(220px, 1fr))', md: 'repeat(auto-fill, minmax(240px, 1fr))' },
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fill, minmax(220px, 1fr))', md: 'repeat(auto-fill, minmax(240px, 1fr))' },
                   gap: 2,
                 }}
               >

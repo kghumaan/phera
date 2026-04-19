@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, CircularProgress, Backdrop } from '@mui/material';
+import { Box, CircularProgress, Backdrop, Collapse, IconButton, Typography } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
 import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
@@ -48,6 +49,7 @@ function OnboardingLayoutContent({
   const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [isPlanner, setIsPlanner] = useState(false);
   const [adminRole, setAdminRole] = useState<AdminRole>(null);
   const pathname = usePathname();
@@ -136,6 +138,7 @@ function OnboardingLayoutContent({
   useEffect(() => {
     setIsNavigating(false);
     setMobileOpen(false); // Close sidebar on mobile when navigating
+    setMobilePreviewOpen(false); // Collapse preview when switching pages
   }, [pathname]);
 
   const handleStatusChange = async (newStatus: 'draft' | 'live') => {
@@ -228,7 +231,70 @@ function OnboardingLayoutContent({
                   <CircularProgress sx={{ color: COLORS.brand.primary }} />
                 </Box>
               ) : (
-                children
+                <>
+                  {/* Mobile / Tablet Collapsible Preview — only on wedding-website pages */}
+                  {(() => {
+                    const currentGroup = groups.find(group =>
+                      group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
+                    );
+                    if (currentGroup?.id !== 'wedding-website') return null;
+                    return (
+                      <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 3 }}>
+                        <Box
+                          onClick={() => setMobilePreviewOpen((o) => !o)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            bgcolor: COLORS.bg.muted,
+                            border: `1px solid ${COLORS.border.faint}`,
+                            borderRadius: RADII.md,
+                            px: 2,
+                            py: 1.25,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease',
+                            '&:hover': { bgcolor: COLORS.bg.subtle },
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                            {mobilePreviewOpen ? 'Hide preview' : 'Show preview'}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            sx={{
+                              color: COLORS.text.subtle,
+                              transform: mobilePreviewOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s ease',
+                            }}
+                          >
+                            <ExpandMore />
+                          </IconButton>
+                        </Box>
+                        <Collapse in={mobilePreviewOpen} unmountOnExit>
+                          <Box sx={{ mt: 1.5 }}>
+                            <AdminPreviewPanel
+                              compact
+                              weddingSlug={wedding?.slug || weddingSlug}
+                              weddingId={wedding?.id}
+                              hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
+                              lastPublishedAt={wedding?.last_published_at ?? null}
+                              currentAdminPath={currentAdminPath}
+                              websiteLayout={wedding?.website_layout}
+                              isLive={wedding?.status === 'live'}
+                              onPublished={() => {
+                                if (wedding) {
+                                  setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
+                                }
+                              }}
+                            />
+                          </Box>
+                        </Collapse>
+                      </Box>
+                    );
+                  })()}
+
+                  {children}
+                </>
               )}
 
               {/* Loading overlay */}

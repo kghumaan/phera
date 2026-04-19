@@ -11,7 +11,7 @@ import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import MobileBrowserShell from '@/components/ui/MobileBrowserShell';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, RADII, TEXT } from '@/lib/theme/tokens';
 import { PheraSwitch } from '@/components/shared/Switch';
 
 const SECTION_MAP: Record<string, string> = {
@@ -38,6 +38,11 @@ interface AdminPreviewPanelProps {
      * show the live guest URL. Otherwise it shows the preview URL.
      */
     isLive?: boolean;
+    /**
+     * Compact mode — renders iframe directly without phone/desktop chrome.
+     * Used for the inline mobile preview in the admin layout.
+     */
+    compact?: boolean;
 }
 
 interface PinCode {
@@ -55,6 +60,7 @@ export default function AdminPreviewPanel({
     currentAdminPath,
     websiteLayout,
     isLive = false,
+    compact = false,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -322,6 +328,202 @@ export default function AdminPreviewPanel({
         return Math.max(Math.min(wFromH, maxW, 400), 340);
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
+
+    if (compact) {
+        return (
+            <Box
+                data-tour="tour-preview"
+                sx={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    bgcolor: COLORS.bg.subtle,
+                    borderRadius: RADII.md,
+                    border: `1px solid ${COLORS.border.faint}`,
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                        px: 1.5,
+                        py: 1,
+                        bgcolor: COLORS.bg.white,
+                        borderBottom: `1px solid ${COLORS.border.faint}`,
+                    }}
+                >
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                        Live Preview
+                    </Typography>
+                    {showPublishButton && (
+                        <ActionButton
+                            variant="contained"
+                            onClick={handlePublish}
+                            loading={isPublishing}
+                            disabled={publishSuccess}
+                            startIcon={publishSuccess ? <Check sx={{ fontSize: 16 }} /> : <Publish sx={{ fontSize: 16 }} />}
+                            sx={{
+                                bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                color: COLORS.text.inverse,
+                                borderRadius: RADII.md,
+                                px: 1.5,
+                                py: 0.5,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: TEXT.sm,
+                                minHeight: 32,
+                                '&:hover': {
+                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
+                                },
+                                '&.Mui-disabled': {
+                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                    color: COLORS.text.inverse,
+                                    opacity: 0.8,
+                                },
+                            }}
+                        >
+                            {publishSuccess ? 'Published' : 'Publish'}
+                        </ActionButton>
+                    )}
+                </Box>
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: { xs: '60vh', sm: '65vh' },
+                        bgcolor: COLORS.bg.white,
+                    }}
+                >
+                    <iframe
+                        key={iframeSrc}
+                        ref={iframeRefLine}
+                        src={iframeSrc}
+                        onLoad={handleIframeLoad}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            border: 'none',
+                            backgroundColor: COLORS.bg.white,
+                            display: 'block',
+                        }}
+                        title="Wedding Preview"
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                        px: 1.5,
+                        py: 1,
+                        bgcolor: COLORS.bg.white,
+                        borderTop: `1px solid ${COLORS.border.faint}`,
+                    }}
+                >
+                    <Button
+                        variant="text"
+                        onClick={() => window.open(previewUrl, '_blank')}
+                        startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
+                        sx={{
+                            color: COLORS.text.strong,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: TEXT.sm,
+                            px: 1,
+                            minHeight: 32,
+                            borderRadius: RADII.md,
+                        }}
+                    >
+                        Open
+                    </Button>
+                    <Button
+                        variant="text"
+                        onClick={handleShareClick}
+                        startIcon={<IosShare sx={{ fontSize: 18 }} />}
+                        sx={{
+                            color: COLORS.text.strong,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: TEXT.sm,
+                            px: 1,
+                            minHeight: 32,
+                            borderRadius: RADII.md,
+                        }}
+                    >
+                        Share
+                    </Button>
+                </Box>
+
+                {/* Share Modal — reused from full mode */}
+                <PheraDialog
+                    open={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{ sx: { p: 1, m: { xs: 1, sm: 2 } } }}
+                >
+                    <DialogContent>
+                        <IconButton
+                            onClick={() => setIsShareModalOpen(false)}
+                            sx={{ position: 'absolute', right: 16, top: 16, color: COLORS.text.subtle }}
+                        >
+                            <Close />
+                        </IconButton>
+                        {isLoadingModal ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                                <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                            </Box>
+                        ) : (
+                            <Stack spacing={3} sx={{ mt: 2, pb: 2 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center', color: COLORS.text.strong }}>
+                                    Share with your guests
+                                </Typography>
+                                <Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: COLORS.text.strong }}>
+                                        Phera URL
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        value={publicUrl}
+                                        InputProps={{
+                                            readOnly: true,
+                                            sx: {
+                                                borderRadius: RADII.md,
+                                                bgcolor: COLORS.bg.muted,
+                                                color: COLORS.text.subtle,
+                                            },
+                                        }}
+                                    />
+                                    <Stack direction="row" spacing={2} mt={1.5}>
+                                        <Button
+                                            startIcon={copiedStates['url'] ? <Check sx={{ fontSize: 18 }} /> : <ContentCopy sx={{ fontSize: 18 }} />}
+                                            onClick={() => copyToClipboard(publicUrl, 'url')}
+                                            sx={{ textTransform: 'none', color: COLORS.brand.primary, fontWeight: 600, p: 0, minWidth: 0 }}
+                                        >
+                                            {copiedStates['url'] ? 'Copied' : 'Copy URL'}
+                                        </Button>
+                                        <Button
+                                            startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
+                                            href={publicUrl}
+                                            target="_blank"
+                                            sx={{ textTransform: 'none', color: COLORS.brand.primary, fontWeight: 600, p: 0, minWidth: 0 }}
+                                        >
+                                            Open
+                                        </Button>
+                                    </Stack>
+                                </Box>
+                            </Stack>
+                        )}
+                    </DialogContent>
+                </PheraDialog>
+            </Box>
+        );
+    }
 
     return (
         <Box

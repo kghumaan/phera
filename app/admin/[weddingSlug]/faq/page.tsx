@@ -398,7 +398,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
 
           {/* Add buttons at bottom (like schedule) */}
           {!isViewOnly && !isAddingNew && (
-            <Stack direction="row" spacing={1.5}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
               <Box
                 onClick={startNew}
                 sx={{

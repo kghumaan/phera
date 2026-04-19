@@ -381,8 +381,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
               borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
               bgcolor: COLORS.bg.white,
@@ -405,8 +405,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
               borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
               bgcolor: COLORS.bg.white,
@@ -432,8 +432,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
               borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
               bgcolor: COLORS.bg.white,
@@ -456,8 +456,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
               borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
               bgcolor: COLORS.bg.white,
@@ -582,8 +582,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
           {activeTab === (allCustomQuestions.length > 0 ? 8 : 7) ? (
             <CollectedDataTab weddingSlug={weddingSlug} />
           ) : getFilteredRSVPs().length > 0 ? (
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+              <Table sx={{ minWidth: { xs: 600, md: 'auto' } }}>
                 <TableHead>
                   <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
                     <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Guest</TableCell>
@@ -770,8 +770,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                       {expandedRows.has(rsvp.id) && (
                         <TableRow>
                           <TableCell colSpan={activeTab === 7 ? allCustomQuestions.length + 3 : activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha(COLORS.brand.primary, 0.02), py: 2 }}>
-                            <Box sx={{ px: 2 }}>
-                              <Box sx={{ display: 'flex', gap: 4, rowGap: 3, flexWrap: 'wrap' }}>
+                            <Box sx={{ px: { xs: 0, sm: 2 } }}>
+                              <Box sx={{ display: 'flex', gap: { xs: 2, sm: 4 }, rowGap: 3, flexWrap: 'wrap' }}>
                                 {rsvp.food_preference && rsvp.food_preference.length > 0 && (
                                   <Box sx={{ minWidth: 200 }}>
                                     <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
