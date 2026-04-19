@@ -38,6 +38,10 @@ export interface RSVPFormData {
   selectedGif?: GifData;
   whatsappOptIn?: boolean;
   custom_answers?: Record<string, any>;
+  // DPDPA consent — captured on the first RSVP step. true = guest
+  // acknowledges their info is used for wedding coordination and can
+  // be withdrawn anytime. Written to guests.consent_given_at on submit.
+  consentGiven?: boolean;
 }
 
 // Custom RSVP Question Types

@@ -117,6 +117,15 @@ export const groups: SidebarGroup[] = [
       { id: 'team', label: 'Collaborators', path: '/team' },
     ],
   },
+  {
+    id: 'support',
+    label: 'Support',
+    icon: <HelpOutline />,
+    standalone: true,
+    items: [
+      { id: 'support', label: 'Support', path: '/support' },
+    ],
+  },
 ];
 
 interface OnboardingSidebarProps {

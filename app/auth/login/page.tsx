@@ -572,6 +572,17 @@ function LoginContent() {
                       Resend code
                     </Button>
                   </Stack>
+                  <Box sx={{ textAlign: 'center', pt: 1 }}>
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                      Can&apos;t receive a code?{' '}
+                      <a
+                        href="/contact"
+                        style={{ color: COLORS.brand.primary, fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        Contact support
+                      </a>
+                    </Typography>
+                  </Box>
                 </Stack>
               )}
             </Stack>

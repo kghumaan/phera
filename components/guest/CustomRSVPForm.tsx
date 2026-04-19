@@ -82,6 +82,7 @@ const initialFormData: RSVPFormData = {
   maybeComment: '',
   selectedGif: undefined,
   custom_answers: {},
+  consentGiven: false,
 };
 
 const foodPreferences = [
@@ -797,6 +798,10 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           newErrors.phone = 'Phone number is required';
         } else if (formData.phone.replace(/\D/g, '').length < 10) {
           newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
+        }
+        // DPDPA consent — required before we collect any personal data.
+        if (!formData.consentGiven) {
+          newErrors.consentGiven = 'Please confirm consent to continue';
         }
         break;
 
@@ -1703,6 +1708,53 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             >
               <strong>Note:</strong> Phone number is required for hotel confirmations and important updates.
             </Typography>
+
+            {/* ─── DPDPA consent ─── */}
+            <Box
+              onClick={() => handleInputChange('consentGiven' as any, !formData.consentGiven)}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                p: 2,
+                borderRadius: 2,
+                border: `1px solid ${errors.consentGiven ? COLORS.accent.danger : 'rgba(0, 0, 0, 0.12)'}`,
+                bgcolor: formData.consentGiven ? `${themeColor}10` : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  mt: 0.25,
+                  borderRadius: '4px',
+                  border: `1.5px solid ${formData.consentGiven ? themeColor : 'rgba(0, 0, 0, 0.35)'}`,
+                  bgcolor: formData.consentGiven ? themeColor : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {formData.consentGiven && (
+                  <Box component="svg" viewBox="0 0 24 24" sx={{ width: 14, height: 14 }}>
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white" />
+                  </Box>
+                )}
+              </Box>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.5, fontSize: '0.875rem' }}>
+                I agree to share this information so the couple and their wedding team can coordinate my attendance
+                (RSVPs, travel, logistics, and reminders). I can withdraw anytime by replying <strong>STOP</strong> on
+                WhatsApp or emailing <a href="mailto:privacy@phera.io" style={{ color: themeColor }}>privacy@phera.io</a>.
+              </Typography>
+            </Box>
+            {errors.consentGiven && (
+              <Typography variant="caption" sx={{ color: COLORS.accent.danger, ml: 1 }}>
+                {errors.consentGiven}
+              </Typography>
+            )}
           </Stack>
         );
 
