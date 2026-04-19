@@ -156,7 +156,7 @@ function TaskCard({
   onEdit: (id: string) => void;
   isEditing: boolean;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -344,7 +344,7 @@ function KanbanColumn({
   onEdit: (id: string) => void;
   editingId: string | null;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -612,7 +612,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     setEditDraft({ title: task.title, description: task.description || '', tags: task.tags || [] });
   }, [tasks, isViewOnly]);
 
-  const handleEditChange = useCallback((field: string, value: any) => {
+  const handleEditChange = useCallback((field: string, value: string | string[]) => {
     setEditDraft(prev => prev ? { ...prev, [field]: value } : null);
   }, []);
 

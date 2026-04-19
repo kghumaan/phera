@@ -965,7 +965,7 @@ export default function AdminPreviewPanel({
                                             </IconButton>
                                         </Box>
                                     ))}
-                                    {(!settings?.pin_codes || (settings.pin_codes as any).length === 0) && (
+                                    {(!settings?.pin_codes || (settings.pin_codes as unknown as PinCode[]).length === 0) && (
                                         <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontStyle: 'italic' }}>
                                             No PIN codes configured yet.
                                         </Typography>
@@ -983,7 +983,7 @@ export default function AdminPreviewPanel({
                                             Publish your website
                                         </Typography>
                                         <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5, mr: 4 }}>
-                                            Keep your site unpublished while you're building it. Publish it when you're ready for guests to visit.
+                                            Keep your site unpublished while you&apos;re building it. Publish it when you&apos;re ready for guests to visit.
                                         </Typography>
                                     </Box>
                                     <PheraSwitch

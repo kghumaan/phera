@@ -38,7 +38,7 @@ interface Guest {
   email: string | null;
   phone: string | null;
   wedding_side: SideValue;
-  logistics_data: any;
+  logistics_data: { tag?: string } & Record<string, unknown> | null;
   initials: string | null;
   avatar_color: string | null;
   created_at: string;
@@ -74,6 +74,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     const wedding = await weddingService.getWeddingBySlug(weddingSlug);
     if (wedding) setWeddingId(wedding.id);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests row fields here aren't captured by generated supabase types
     const { data, error } = await (supabase as any)
       .from('guests')
       .select('id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at')
@@ -149,7 +150,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     }
 
     // Build the update payload scoped to this field only
-    const updates: Record<string, any> = {};
+    const updates: Record<string, unknown> = {};
     const optimistic: Partial<Guest> = {};
 
     if (field === 'name') {
@@ -182,6 +183,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
       optimistic.logistics_data = nextLogistics;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.update() field shape isn't captured by generated supabase types
     const { error } = await (supabase as any).from('guests').update(updates).eq('id', editing.guestId);
 
     if (error) {
@@ -196,6 +198,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   const removeGuest = async (id: string) => {
     if (!confirm('Remove this guest?')) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.delete() isn't captured by generated supabase types
     const { error } = await (supabase as any).from('guests').delete().eq('id', id);
     if (error) {
       console.error('guest delete error:', error);

@@ -68,7 +68,7 @@ interface RSVPData {
   song_request: string | null;
   special_message: string | null;
   maybe_comment: string | null;
-  custom_answers?: Record<string, any> | null;
+  custom_answers?: Record<string, string | string[] | null | undefined> | null;
   created_at: string;
   guest: {
     id: string;
@@ -175,7 +175,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   const prepareRSVPDataForExport = (data: RSVPData[]) => {
     return data.map(r => {
-      const base: Record<string, any> = {
+      const base: Record<string, unknown> = {
         'Guest Name': r.guest?.name || 'Unknown',
         'Email': r.guest?.email || '',
         'Phone': r.guest?.phone || '',
@@ -881,7 +881,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                       Special Message
                                     </Typography>
                                     <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5, fontStyle: 'italic' }}>
-                                      "{rsvp.special_message}"
+                                      &quot;{rsvp.special_message}&quot;
                                     </Typography>
                                   </Box>
                                 )}

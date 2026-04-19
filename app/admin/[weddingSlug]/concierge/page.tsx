@@ -14,6 +14,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { WhatsApp, LockOutlined, CheckCircleOutline, PhoneAndroid, ContentCopy, AutoAwesome, Bolt, Schedule, Campaign } from '@mui/icons-material';
@@ -105,6 +106,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
   useEffect(() => {
     if (!isPro) return;
     (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- weddings table is not in generated supabase types
       const { data: wedding } = await (supabase as any)
         .from('weddings')
         .select('id')
@@ -112,6 +114,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .single();
       if (!wedding) return;
       setWeddingId(wedding.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
       const { data: settings } = await (supabase as any)
         .from('wedding_settings')
         .select('concierge_enabled')
@@ -125,6 +128,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     if (isViewOnly || !weddingId || enabling) return;
     setEnabling(true);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
       const { data: existing } = await (supabase as any)
         .from('wedding_settings')
         .select('id')
@@ -132,11 +136,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .maybeSingle();
 
       if (existing) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
         await (supabase as any)
           .from('wedding_settings')
           .update({ concierge_enabled: true, concierge_enabled_at: new Date().toISOString() })
           .eq('wedding_id', weddingId);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
         await (supabase as any)
           .from('wedding_settings')
           .insert({
@@ -308,7 +314,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     }
 
     // Not enabled → marketing intro page with Enable CTA.
-    const features: Array<{ icon: React.ComponentType<{ sx?: any }>; title: string; body: string }> = [
+    const features: Array<{ icon: React.ComponentType<{ sx?: SxProps<Theme> }>; title: string; body: string }> = [
       {
         icon: AutoAwesome,
         title: 'Answers on autopilot',
@@ -474,7 +480,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
           <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
-            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
+            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you&apos;ve already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don&apos;t have to.
           </Typography>
           <Stack spacing={0.6} sx={{ pl: 0 }}>
             {([
