@@ -74,7 +74,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
     ? {
         bgcolor: `${COLORS.bg.white} !important`,
         color: 'transparent !important',
-        border: `1.5px solid ${COLORS.brand.primary} !important`,
+        border: `1.5px solid ${resolvedSpinnerColor} !important`,
         boxShadow: 'none !important',
         opacity: 1,
         '& .MuiButton-startIcon, & .MuiButton-endIcon': {
@@ -83,7 +83,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
         '&.Mui-disabled': {
           bgcolor: `${COLORS.bg.white} !important`,
           color: 'transparent !important',
-          border: `1.5px solid ${COLORS.brand.primary} !important`,
+          border: `1.5px solid ${resolvedSpinnerColor} !important`,
           opacity: 1,
         },
       }
