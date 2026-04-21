@@ -334,6 +334,22 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       // the right.
       const horizontalPad = 16;
       const tooltipW = Math.min(TOOLTIP_WIDTH, window.innerWidth - horizontalPad * 2);
+
+      // When the target lives inside the open sidebar drawer, anchor the
+      // tooltip near the top of the viewport (≈ below the AdminTopNav).
+      // Otherwise steps that point at items lower in the list (e.g.
+      // "Event Access" → tour-pins) push the tooltip far down and end up
+      // overlapping the spotlighted row. Keeping a fixed anchor makes every
+      // sidebar step feel consistent, like step 1.
+      const targetEl = step.target ? document.querySelector(`[data-tour="${step.target}"]`) : null;
+      const targetInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
+      if (targetInSidebar) {
+        return {
+          top: 84, // AdminTopNav is 48 px on mobile + a small gap
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
       return {
         top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 260),
         left: `calc(50vw - ${tooltipW / 2}px)`,
