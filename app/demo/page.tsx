@@ -24,7 +24,7 @@ async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: 
 
     if (data) {
       console.log(`[demo-clone] reused existing slug (${Math.round(performance.now() - t0)}ms)`);
-      router.replace(`/admin/${existingSlug}/overview?tour=true`);
+      router.replace(`/admin/${existingSlug}/details?tour=true`);
       return;
     }
     // Stale — remove and clone fresh
@@ -45,7 +45,7 @@ async function cloneAndRedirect(router: ReturnType<typeof useRouter>, setError: 
   const { slug } = await res.json();
   sessionStorage.setItem(DEMO_SLUG_KEY, slug);
   console.log(`[demo-clone] total client wall: ${Math.round(performance.now() - t0)}ms`);
-  router.replace(`/admin/${slug}/overview?tour=true`);
+  router.replace(`/admin/${slug}/details?tour=true`);
 }
 
 export default function DemoPage() {

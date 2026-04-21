@@ -269,6 +269,7 @@ function OnboardingLayoutContent({
                     return (
                       <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 2 }}>
                         <Box
+                          data-tour="tour-preview"
                           onClick={() => setMobilePreviewOpen(true)}
                           sx={{
                             display: 'flex',

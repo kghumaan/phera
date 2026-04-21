@@ -12,6 +12,8 @@ interface TourStep {
   target: string;
   title: string;
   description: string;
+  /** Extra sentence rendered only on mobile, below the main description. */
+  mobileNote?: string;
   noSpotlight?: boolean;
   navigateTo?: string;
   expandGroup?: string; // group id (e.g. 'website', 'guest-responses')
@@ -25,6 +27,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-overview',
     title: 'Welcome to Phera',
     description: 'This is your wedding command center. Everything you need to plan, coordinate, and run your celebration lives here.',
+    mobileNote: 'For the full experience we recommend viewing Phera on a desktop.',
   },
   {
     target: 'tour-wedding-website',
@@ -210,14 +213,23 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
   // translated off-screen when the drawer is closed, so the spotlight lands
   // outside the viewport. Ask the admin layout to open/close the drawer based
   // on whether the current step actually targets a sidebar element.
+  //
+  // The effect depends on `pathname` so it re-fires after every navigation
+  // (step 2 navigates to /details), and the 60ms delay lets the layout's own
+  // `[pathname]` effect (which blanket-closes the drawer) run first. Without
+  // that, the drawer would flash open and immediately close again as the
+  // layout's close wins the race.
   useEffect(() => {
     if (!isActive || !step || !isMobile) return;
-    const targetEl = document.querySelector(`[data-tour="${step.target}"]`);
-    const isInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
-    window.dispatchEvent(new CustomEvent(
-      isInSidebar ? 'phera:open-mobile-sidebar' : 'phera:close-mobile-sidebar'
-    ));
-  }, [currentStep, isActive, step, isMobile]);
+    const t = setTimeout(() => {
+      const targetEl = document.querySelector(`[data-tour="${step.target}"]`);
+      const isInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
+      window.dispatchEvent(new CustomEvent(
+        isInSidebar ? 'phera:open-mobile-sidebar' : 'phera:close-mobile-sidebar'
+      ));
+    }, 60);
+    return () => clearTimeout(t);
+  }, [currentStep, isActive, step, isMobile, pathname]);
 
   // Handle step changes: navigation, sidebar expansion
   useEffect(() => {
@@ -498,11 +510,26 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   fontSize: '0.875rem',
                   color: COLORS.text.subtle,
                   lineHeight: 1.6,
-                  mb: 2.5,
+                  mb: step.mobileNote && isMobile ? 1.25 : 2.5,
                   textAlign: step.noSpotlight ? 'center' : undefined,
                 }}
               >
                 {step.description}
+              </Typography>
+            )}
+
+            {/* Mobile-only note, e.g. recommending desktop on the welcome step */}
+            {step.mobileNote && isMobile && (
+              <Typography
+                sx={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: COLORS.brand.primary,
+                  lineHeight: 1.5,
+                  mb: 2.5,
+                }}
+              >
+                {step.mobileNote}
               </Typography>
             )}
 
