@@ -5,6 +5,7 @@ import { autoGenerateForUser } from '@/lib/concierge/generate-knowledge';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     apiVersion: '2025-08-27.basil' as any,
   });
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (session.payment_status !== 'paid') {
+    if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
       return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
     }
 

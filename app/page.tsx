@@ -59,6 +59,7 @@ import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
+import BroadcastAnimation from '@/components/landing/BroadcastAnimation';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
@@ -66,19 +67,19 @@ import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 // Combined features with problem + solution
 const features = [
   {
+    id: 'guest-outreach',
+    title: 'We collect every detail from your guests',
+    problem: "You're chasing 300 guests across five WhatsApp groups for RSVPs, dietary needs, and +1 counts — while your uncle insists he already replied (he didn't).",
+    solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
+    frameType: 'none' as const,
+    customComponent: <BroadcastAnimation />,
+  },
+  {
     id: 'wedding-website',
     title: 'A wedding website that actually gets used',
     problem: "Your auntie visited your wedding site once, then WhatsApped you three times asking for the venue, the dress code, and whether the kids are invited to the sangeet.",
     solution: 'A beautiful, bespoke site with schedule, FAQ, registry, and PIN-gated event access. Design it yourself, let AI build it, or have our team craft it 1-on-1.',
     featureImage: '/images/feature_images/wedding_website.png',
-    frameType: 'desktop' as const,
-  },
-  {
-    id: 'guest-outreach',
-    title: 'We collect every detail from your guests',
-    problem: "You're chasing 300 guests across five WhatsApp groups for RSVPs, dietary needs, and +1 counts — while your uncle insists he already replied (he didn't).",
-    solution: 'We reach out on your behalf — save-the-dates, RSVPs, dietary, event-by-event attendance. Auto follow-ups for non-responders, escalations only when it matters.',
-    featureImage: '/images/feature_images/rsvp_collection.png',
     frameType: 'desktop' as const,
   },
   {
@@ -668,6 +669,19 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       </IPhoneMockup>
                     )}
 
+                    {item.customComponent && item.frameType === 'none' && (
+                      /* Unframed custom component — floats in the right slot, responsive */
+                      <Box
+                        sx={{
+                          width: { md: '100%', lg: '105%' },
+                          maxWidth: { md: '820px', lg: '1000px' },
+                          pr: { md: 2, lg: 0 },
+                        }}
+                      >
+                        {item.customComponent}
+                      </Box>
+                    )}
+
                   </motion.div>
                 );
               })}
@@ -742,6 +756,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </Box>
+                )}
+                {item.customComponent && item.frameType === 'none' && (
+                  <Box sx={{ mx: -1.5, mb: 3 }}>
+                    {item.customComponent}
                   </Box>
                 )}
                 {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (

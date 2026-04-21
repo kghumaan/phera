@@ -5,6 +5,7 @@ import { autoGenerateForUser } from '@/lib/concierge/generate-knowledge';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     apiVersion: '2025-08-27.basil' as any,
   });
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    if (session.payment_status === 'paid') {
+    if (session.payment_status === 'paid' || session.payment_status === 'no_payment_required') {
       const userId = session.metadata?.userId;
       const tier = session.metadata?.tier || 'base';
       // Any paid non-planner tier grants Pro access; planner tiers grant Planner access.

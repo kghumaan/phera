@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   apiVersion: '2025-08-27.basil' as any,
 });
 
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: config.mode,
       return_url: returnUrl,
+      allow_promotion_codes: true,
       metadata: {
         userId,
         weddingSlug: weddingSlug || '',
