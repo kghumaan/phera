@@ -334,24 +334,34 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       // the right.
       const horizontalPad = 16;
       const tooltipW = Math.min(TOOLTIP_WIDTH, window.innerWidth - horizontalPad * 2);
+      const tooltipH = 280; // approximate; used to pick a side with room
+      const topSafe = 84; // AdminTopNav + small gap
+      const bottomSafe = 16;
+      const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height) - bottomSafe;
+      const spaceAbove = targetRect.top - topSafe;
 
-      // When the target lives inside the open sidebar drawer, anchor the
-      // tooltip near the top of the viewport (≈ below the AdminTopNav).
-      // Otherwise steps that point at items lower in the list (e.g.
-      // "Event Access" → tour-pins) push the tooltip far down and end up
-      // overlapping the spotlighted row. Keeping a fixed anchor makes every
-      // sidebar step feel consistent, like step 1.
-      const targetEl = step.target ? document.querySelector(`[data-tour="${step.target}"]`) : null;
-      const targetInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
-      if (targetInSidebar) {
+      // Prefer placing the tooltip below the target. If the target sits low
+      // in the viewport (e.g. "Event Access" at the bottom of an expanded
+      // group) and the below-target position would overflow, flip to above
+      // the target instead — that keeps the spotlighted row visible and the
+      // tooltip from overlapping it. Fall back to pinning near the top when
+      // neither side has enough room.
+      if (spaceBelow >= tooltipH) {
         return {
-          top: 84, // AdminTopNav is 48 px on mobile + a small gap
+          top: targetRect.top + targetRect.height + 16,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+      if (spaceAbove >= tooltipH) {
+        return {
+          top: targetRect.top - tooltipH - 16,
           left: `calc(50vw - ${tooltipW / 2}px)`,
           width: tooltipW,
         };
       }
       return {
-        top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 260),
+        top: topSafe,
         left: `calc(50vw - ${tooltipW / 2}px)`,
         width: tooltipW,
       };
